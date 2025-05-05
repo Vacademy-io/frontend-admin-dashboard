@@ -41,6 +41,7 @@ export interface SelectedQuestionPaperFilters {
     assessment_statuses: MyFilterOption[];
     assessment_modes: MyFilterOption[];
     access_statuses: MyFilterOption[];
+    evaluation_types: MyFilterOption[];
 }
 
 export const ScheduleTestMainComponent = () => {
@@ -55,7 +56,8 @@ export const ScheduleTestMainComponent = () => {
     const { data: initData } = useSuspenseQuery(useInstituteQuery());
     const { data: initAssessmentData } = useSuspenseQuery(getInitAssessmentDetails(initData?.id));
     const { BatchesFilterData, SubjectFilterData } = useFilterDataForAssesment(initData);
-    const { AssessmentTypeData, ModeData } = useFilterDataForAssesmentInitData(initAssessmentData);
+    const { AssessmentTypeData, ModeData, EvaluationTypeData } =
+        useFilterDataForAssesmentInitData(initAssessmentData);
     const { getCourseFromPackage } = useInstituteDetailsStore();
     const setHandleRefetchDataAssessment = useRefetchStoreAssessment(
         (state) => state.setHandleRefetchDataAssessment,
@@ -74,6 +76,7 @@ export const ScheduleTestMainComponent = () => {
             assessment_statuses: [],
             assessment_modes: [],
             access_statuses: [],
+            evaluation_types: [],
         });
 
     const [scheduleTestTabsData, setScheduleTestTabsData] = useState<ScheduleTestTab[]>([
@@ -196,6 +199,7 @@ export const ScheduleTestMainComponent = () => {
             assessment_statuses: [],
             assessment_modes: [],
             access_statuses: [],
+            evaluation_types: [],
         });
         setSearchText("");
         getFilteredData.mutate({
@@ -211,6 +215,7 @@ export const ScheduleTestMainComponent = () => {
                 get_passed_assessments: selectedTab === "previousTests" ? true : false,
                 get_upcoming_assessments: selectedTab === "upcomingTests" ? true : false,
                 institute_ids: [initData?.id || ""],
+                evaluation_types: [],
                 assessment_statuses: [
                     {
                         id: "0",
@@ -350,6 +355,7 @@ export const ScheduleTestMainComponent = () => {
                 get_live_assessments: true,
                 get_passed_assessments: false,
                 get_upcoming_assessments: false,
+                evaluation_types: [],
             });
 
             const fetchUpcomingTests = getAssessmentListWithFilters(pageNo, 10, INSTITUTE_ID, {
@@ -496,6 +502,16 @@ export const ScheduleTestMainComponent = () => {
                                 }
                                 onSelectionChange={(items) =>
                                     handleFilterChange("access_statuses", items)
+                                }
+                            />
+                            <ScheduleTestFilters
+                                label="Evaluation"
+                                data={EvaluationTypeData}
+                                selectedItems={
+                                    selectedQuestionPaperFilters["evaluation_types"] || []
+                                }
+                                onSelectionChange={(items) =>
+                                    handleFilterChange("evaluation_types", items)
                                 }
                             />
                             <ScheduleTestFilterButtons

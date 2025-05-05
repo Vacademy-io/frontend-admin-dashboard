@@ -30,6 +30,7 @@ export const CourseMaterial = () => {
     useIntroJsTour({
         key: StudyLibraryIntroKey.createCourseStep,
         steps: studyLibrarySteps.createCourseStep,
+        partial: true,
     });
 
     const handleAddCourse = ({ requestData }: { requestData: AddCourseData }) => {

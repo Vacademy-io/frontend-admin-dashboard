@@ -1,5 +1,6 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { ViewDetails } from "../-components/batch/viewDetailsDialogBox";
+import { ViewDetails as ViewDetailsStudent } from "../-components/student/viewDetailsDialogBox";
 
 export type ColumnWidthConfig = Record<string, string>;
 
@@ -129,7 +130,9 @@ export interface SubjectOverviewColumnType {
     subject: string;
     module: string;
     module_completed: string;
+    module_completed_by_batch: string;
     average_time_spent: string;
+    average_time_spent_by_batch: string;
     details?: string;
     module_id: string;
     user_id?: string;
@@ -149,10 +152,71 @@ export const SubjectOverviewColumns: ColumnDef<SubjectOverviewColumnType>[] = [
     },
     {
         accessorKey: "module_completed",
+        header: "Module Completed",
+    },
+    {
+        accessorKey: "module_completed_by_batch",
         header: "Module completed by batch",
     },
     {
+        accessorKey: "average_time_spent_by_batch",
+        header: "Daily Time spent by batch (Avg)",
+    },
+    {
         accessorKey: "average_time_spent",
+        header: "Daily Time spent (Avg)",
+    },
+    {
+        accessorKey: "details",
+        header: "",
+        cell: ({ row }) => <ViewDetailsStudent row={row} />,
+    },
+    {
+        accessorKey: "user_id",
+        header: "",
+    },
+];
+
+export const SUBJECT_OVERVIEW_WIDTH: Record<keyof SubjectOverviewColumnType, string> = {
+    subject: "w-[200px]",
+    module: "w-[200px]",
+    module_completed: "w-[200px]",
+    module_completed_by_batch: "w-[200px]",
+    average_time_spent: "w-[200px]",
+    average_time_spent_by_batch: "w-[200px]",
+    details: "w-[100px]",
+    module_id: "w-[0px]",
+    user_id: "w-[0px]",
+};
+
+export interface SubjectOverviewBatchColumnType {
+    subject: string;
+    module: string;
+    module_completed_by_batch: string;
+    average_time_spent_by_batch: string;
+    details?: string;
+    module_id: string;
+    user_id?: string;
+}
+export const SubjectOverviewBatchColumns: ColumnDef<SubjectOverviewBatchColumnType>[] = [
+    {
+        accessorKey: "subject",
+        header: "Subject",
+    },
+    {
+        accessorKey: "module",
+        header: "Module",
+    },
+    {
+        accessorKey: "module_id",
+        header: "",
+    },
+    {
+        accessorKey: "module_completed_by_batch",
+        header: "Module completed by batch",
+    },
+    {
+        accessorKey: "average_time_spent_by_batch",
         header: "Daily Time spent by batch (Avg)",
     },
     {
@@ -166,12 +230,12 @@ export const SubjectOverviewColumns: ColumnDef<SubjectOverviewColumnType>[] = [
     },
 ];
 
-export const SUBJECT_OVERVIEW_WIDTH: Record<keyof SubjectOverviewColumnType, string> = {
+export const SUBJECT_OVERVIEW_BATCH_WIDTH: Record<keyof SubjectOverviewBatchColumnType, string> = {
     subject: "w-[200px]",
     module: "w-[200px]",
-    module_completed: "w-[200px]",
-    average_time_spent: "w-[200px]",
-    details: "w-[100px]",
+    module_completed_by_batch: "w-[200px]",
+    average_time_spent_by_batch: "w-[200px]",
+    details: "w-[200px]",
     module_id: "w-[0px]",
     user_id: "w-[0px]",
 };
@@ -219,6 +283,47 @@ export const CHAPTER_OVERVIEW_WIDTH: Record<keyof ChapterOverviewColumnType, str
     study_slide: "w-[300px]",
     batch_concentration_score: "w-[300px]",
     average_time_spent: "w-[300px]",
+};
+
+export interface ChapterOverviewStudentColumnType {
+    study_slide: string;
+    batch_concentration_score: string;
+    concentration_score: string;
+    average_time_spent: string;
+    last_active: string;
+}
+
+export const ChapterOverviewStudentColumns: ColumnDef<ChapterOverviewStudentColumnType>[] = [
+    {
+        accessorKey: "study_slide",
+        header: "Study Slide",
+    },
+    {
+        accessorKey: "concentration_score",
+        header: "Concentration Score",
+    },
+    {
+        accessorKey: "batch_concentration_score",
+        header: "Batch Concentration Score (Avg)",
+    },
+    {
+        accessorKey: "average_time_spent",
+        header: "Time Spent",
+    },
+    {
+        accessorKey: "last_active",
+        header: "Last Active",
+    },
+];
+export const CHAPTER_OVERVIEW_STUDENT_WIDTH: Record<
+    keyof ChapterOverviewStudentColumnType,
+    string
+> = {
+    study_slide: "w-[300px]",
+    batch_concentration_score: "w-[300px]",
+    concentration_score: "w-[300px]",
+    average_time_spent: "w-[300px]",
+    last_active: "w-[300px]",
 };
 
 interface SlideDetail {
@@ -281,3 +386,60 @@ export const SLIDES_WIDTH: Record<keyof SlidesColumnType, string> = {
     concentration_score: "w-[150px]",
     time_spent: "w-[150px]",
 };
+
+interface ProgressReportSetting {
+    daily: boolean;
+    weekly: boolean;
+    monthly: boolean;
+}
+
+export interface RoleSetting {
+    comma_separated_communication_types: string;
+    learner_progress_report: ProgressReportSetting;
+    batch_progress_report: ProgressReportSetting;
+    comma_separated_email_ids: string | null;
+    comma_separated_mobile_number: string | null;
+}
+
+export interface InstituteSettingResponse {
+    learner_setting: RoleSetting;
+    parent_setting: RoleSetting;
+}
+
+export enum RoleSettingEnum {
+    LEARNER = "learner_setting",
+    PARENT = "parent_setting",
+}
+
+export enum CommunicationTypeEnum {
+    EMAIL = "EMAIL",
+    WHATSAPP = "WHATSAPP",
+}
+
+export enum ReportDurationEnum {
+    DAILY = "daily",
+    WEEKLY = "weekly",
+    MONTHLY = "monthly",
+}
+
+export enum ReportTypeEnum {
+    LEARNER_PROGRESS = "learner_progress_report",
+    BATCH_PROGRESS = "batch_progress_report",
+}
+
+export enum commaSeperatedType {
+    EMAIL = "comma_separated_email_ids",
+    MOBILE = "comma_separated_mobile_number",
+}
+
+export interface MultipleInputProps {
+    itemsList: string[];
+    onListChange: (
+        role: RoleSettingEnum.LEARNER | RoleSettingEnum.PARENT,
+        commaSeperatedType: commaSeperatedType,
+        updatedList: string[],
+    ) => void;
+    inputType: "email" | "mobile";
+    role: RoleSettingEnum.LEARNER | RoleSettingEnum.PARENT;
+    commaSeperatedType: commaSeperatedType;
+}

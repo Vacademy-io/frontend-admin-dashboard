@@ -2,19 +2,22 @@ import { AddSessionDataType } from "@/routes/study-library/session/-components/s
 import { ADD_SESSION } from "@/constants/urls";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { getInstituteId } from "@/constants/helper";
 
 export const useAddSession = () => {
     const queryClient = useQueryClient();
+    const instituteId = getInstituteId();
 
     return useMutation({
         mutationFn: async ({ requestData }: { requestData: AddSessionDataType }) => {
             const payload = requestData;
-            return authenticatedAxiosInstance.post(ADD_SESSION, payload);
+            return authenticatedAxiosInstance.post(`${ADD_SESSION}?instituteId=${instituteId}`, payload);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["GET_INIT_INSTITUTE"] });
             queryClient.invalidateQueries({ queryKey: ["GET_INIT_STUDY_LIBRARY"] });
             queryClient.invalidateQueries({ queryKey: ["GET_SESSION_DATA"] });
+            queryClient.invalidateQueries({ queryKey: ["GET_BATCHES"] });
         },
     });
 };

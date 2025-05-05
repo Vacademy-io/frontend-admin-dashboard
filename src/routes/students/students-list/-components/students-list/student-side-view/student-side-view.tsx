@@ -13,21 +13,30 @@ import { StatusChips } from "@/components/design-system/chips";
 import { StudentOverview } from "./student-overview/student-overview";
 import { StudentLearningProgress } from "./student-learning-progress/student-learning-progress";
 import { StudentTestRecord } from "./student-test-records/student-test-record";
-import { useStudentSidebar } from "@/routes/students/students-list/-context/selected-student-sidebar-context";
 import { getPublicUrl } from "@/services/upload_file";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
+import { StudentTable } from "@/types/student-table-types";
 
 export const StudentSidebar = ({
     selectedTab,
     examType,
+    isStudentList,
+    isSubmissionTab,
+    selectedStudent,
 }: {
     selectedTab?: string;
     examType?: string;
+    isStudentList?: boolean;
+    isSubmissionTab?: boolean;
+    selectedStudent: StudentTable | null;
 }) => {
     const { state } = useSidebar();
     const [category, setCategory] = useState("overview");
     const { toggleSidebar } = useSidebar();
-    const { selectedStudent } = useStudentSidebar();
     const [imageUrl, setImageUrl] = useState<string | null>(null);
+    const [faceLoader, setFaceLoader] = useState(false);
+
+
     useEffect(() => {
         if (state == "expanded") {
             document.body.classList.add("sidebar-open");
@@ -44,17 +53,21 @@ export const StudentSidebar = ({
     useEffect(() => {
         const fetchImageUrl = async () => {
             if (selectedStudent?.face_file_id) {
+                console.log("inside if");
                 try {
+                    setFaceLoader(true);
                     const url = await getPublicUrl(selectedStudent.face_file_id);
                     setImageUrl(url);
+                    console.log("url", url);
+                    setFaceLoader(false);
                 } catch (error) {
                     console.error("Failed to fetch image URL:", error);
                 }
-            }
+            } else setImageUrl(null);
         };
 
         fetchImageUrl();
-    }, [selectedStudent?.face_file_id]);
+    }, [selectedStudent?.face_file_id, selectedStudent]);
 
     return (
         <Sidebar side="right">
@@ -119,14 +132,18 @@ export const StudentSidebar = ({
                     <SidebarMenuItem className="flex w-full flex-col gap-6">
                         <div className="size-[240px] w-full items-center justify-center">
                             <div className="size-full rounded-full object-cover">
-                                {imageUrl == null ? (
+                                {faceLoader ? (
+                                    <DashboardLoader />
+                                ) : imageUrl == null ? (
                                     <DummyProfile className="size-full" />
                                 ) : (
-                                    <img
-                                        src={imageUrl}
-                                        alt="face profile"
-                                        className={`object-cover`}
-                                    />
+                                    <div className="flex w-full items-center justify-center">
+                                        <img
+                                            src={imageUrl}
+                                            alt="face profile"
+                                            className={`size-[240px] rounded-full object-cover`}
+                                        />
+                                    </div>
                                 )}
                             </div>
                         </div>
@@ -138,10 +155,14 @@ export const StudentSidebar = ({
                         </div>
                     </SidebarMenuItem>
 
-                    {category == "overview" && <StudentOverview />}
-                    {category == "learningProgress" && <StudentLearningProgress />}
+                    {category == "overview" && <StudentOverview isSubmissionTab={isSubmissionTab} />}
+                    {category == "learningProgress" && <StudentLearningProgress isSubmissionTab={isSubmissionTab}/>}
                     {category == "testRecord" && (
-                        <StudentTestRecord selectedTab={selectedTab} examType={examType} />
+                        <StudentTestRecord
+                            selectedTab={selectedTab}
+                            examType={examType}
+                            isStudentList={isStudentList}
+                        />
                     )}
                 </SidebarMenu>
             </SidebarContent>

@@ -17,10 +17,12 @@ import { getInstituteId } from "@/constants/helper";
 import {
     getAdminParticipants,
     handleGetAssessmentTotalMarksData,
+    handleGetSubmissionsExportCSV,
+    handleGetSubmissionsExportPDF,
 } from "../-services/assessment-details-services";
 import { MyPagination } from "@/components/design-system/pagination";
 import { MyButton } from "@/components/design-system/button";
-import { ArrowCounterClockwise, Export } from "phosphor-react";
+import { ArrowCounterClockwise } from "phosphor-react";
 import { AssessmentDetailsSearchComponent } from "./SearchComponent";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { useFilterDataForAssesment } from "@/routes/assessment/assessment-list/-utils.ts/useFiltersData";
@@ -37,6 +39,10 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import AssessmentGlobalLevelRevaluateAssessment from "./assessment-global-level-revaluate/assessment-global-level-revaluate-assessment";
 import { AssessmentGlobalLevelRevaluateQuestionWise } from "./assessment-global-level-revaluate/assessment-global-level-revaluate-question-wise";
 import { AssessmentGlobalLevelReleaseResultAssessment } from "./assessment-global-level-revaluate/assessment-global-level-release-result-assessment";
+import ExportDialogPDFCSV from "@/components/common/export-dialog-pdf-csv";
+import Papa from "papaparse";
+import { useRef } from "react";
+import { useUsersCredentials } from "@/routes/students/students-list/-services/usersCredentials";
 
 export interface SelectedSubmissionsFilterInterface {
     name: string;
@@ -96,6 +102,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
     const [attemptedCount, setAttemptedCount] = useState(0);
     const [ongoingCount, setOngoingCount] = useState(0);
     const [pendingCount, setPendingCount] = useState(0);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     const getParticipantsListData = useMutation({
         mutationFn: ({
@@ -678,6 +685,95 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
         }
     };
 
+    const getStudentSubmissionsDataPDF = useMutation({
+        mutationFn: ({
+            instituteId,
+            assessmentId,
+            selectedFilter,
+        }: {
+            instituteId: string | undefined;
+            assessmentId: string;
+            selectedFilter: SelectedSubmissionsFilterInterface;
+        }) => handleGetSubmissionsExportPDF(instituteId, assessmentId, selectedFilter),
+        onSuccess: async (response) => {
+            const date = new Date();
+            const url = window.URL.createObjectURL(new Blob([response]));
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute(
+                "download",
+                `pdf_student_submissions_list_${date.toLocaleString()}.pdf`,
+            );
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+            toast.success("Student submissions list data for PDF exported successfully");
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
+    const getStudentSubmissionsDataCSV = useMutation({
+        mutationFn: ({
+            instituteId,
+            assessmentId,
+            selectedFilter,
+        }: {
+            instituteId: string | undefined;
+            assessmentId: string;
+            selectedFilter: SelectedSubmissionsFilterInterface;
+        }) => handleGetSubmissionsExportCSV(instituteId, assessmentId, selectedFilter),
+        onSuccess: (data) => {
+            const date = new Date();
+            const parsedData = Papa.parse(data, {
+                download: false,
+                header: true,
+                skipEmptyLines: true,
+            }).data;
+
+            const csv = Papa.unparse(parsedData);
+
+            const blob = new Blob([csv], { type: "text/csv" });
+            const url = URL.createObjectURL(blob);
+
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute(
+                "download",
+                `csv_student_submissions_list_${date.toLocaleString()}.csv`,
+            );
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Clean up the created URL object
+            URL.revokeObjectURL(url);
+            toast.success("Student submissions list data for CSV exported successfully");
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
+    const handleExportPDF = () => {
+        getStudentSubmissionsDataPDF.mutate({
+            instituteId: initData?.id,
+            assessmentId,
+            selectedFilter,
+        });
+    };
+    const handleExportCSV = () => {
+        getStudentSubmissionsDataCSV.mutate({
+            instituteId: initData?.id,
+            assessmentId,
+            selectedFilter,
+        });
+    };
+
+    
+
     useEffect(() => {
         const timer = setTimeout(() => {
             const fetchAllParticipants = async () => {
@@ -720,6 +816,45 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
             }));
         }
     }, [participantsData?.content, page]);
+
+    const tableRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                tableRef.current &&
+                !tableRef.current.contains(event.target as Node) &&
+                isSidebarOpen
+            ) {
+                setIsSidebarOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isSidebarOpen]);
+
+    const getUserCredentialsMutation = useUsersCredentials();
+
+    async function getCredentials() {
+        const ids = participantsData?.content.map((student: StudentTable) => student.user_id);
+        if (!ids || ids.length === 0) {
+            return;
+        }
+        const credentials = await getUserCredentialsMutation.mutateAsync({ userIds: ids || [] });
+        return credentials;
+    }
+
+    useEffect(() => {
+        async function fetchCredentials() {
+            if (participantsData?.content && participantsData.content.length > 0) {
+                await getCredentials();
+            }
+        }
+        fetchCredentials();
+    }, [participantsData]);
 
     if (isParticipantsLoading) return <DashboardLoader />;
 
@@ -800,15 +935,16 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                         </TabsTrigger>
                     </TabsList>
                     <div className="flex items-center gap-6">
-                        <MyButton
-                            type="button"
-                            scale="large"
-                            buttonType="secondary"
-                            className="font-medium"
-                        >
-                            <Export size={32} />
-                            Export
-                        </MyButton>
+                        <ExportDialogPDFCSV
+                            handleExportPDF={handleExportPDF}
+                            handleExportCSV={handleExportCSV}
+                            isPDFLoading={
+                                getStudentSubmissionsDataPDF.status === "pending" ? true : false
+                            }
+                            isCSVLoading={
+                                getStudentSubmissionsDataCSV.status === "pending" ? true : false
+                            }
+                        />
                         <MyButton
                             type="button"
                             scale="large"
@@ -961,10 +1097,12 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                     </div>
                 )}
                 <div className="flex max-h-[72vh] flex-col gap-6 overflow-y-auto p-4">
-                    <TabsContent value={selectedTab}>
+                    <TabsContent value={selectedTab} ref={tableRef}>
                         <SidebarProvider
                             style={{ ["--sidebar-width" as string]: "565px" }}
                             defaultOpen={false}
+                            open={isSidebarOpen}
+                            onOpenChange={setIsSidebarOpen}
                         >
                             <AssessmentSubmissionsStudentTable
                                 data={{
@@ -995,7 +1133,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                                 onRowSelectionChange={handleRowSelectionChange}
                                 currentPage={page}
                             />
-                            <StudentSidebar selectedTab={selectedTab} examType={examType} />
+                            <StudentSidebar selectedTab={selectedTab} examType={examType} selectedStudent={selectedStudent} isSubmissionTab={true}/>
                         </SidebarProvider>
                     </TabsContent>
                     <div className="flex justify-between">

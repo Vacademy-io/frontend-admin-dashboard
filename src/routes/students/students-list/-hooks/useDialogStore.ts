@@ -9,6 +9,8 @@ interface DialogStore {
     isReRegisterOpen: boolean;
     isTerminateRegistrationOpen: boolean;
     isDeleteOpen: boolean;
+    isShareCredentialsOpen: boolean;
+    isIndividualShareCredentialsOpen: boolean;
     selectedStudent: StudentTable | null;
     bulkActionInfo: BulkActionInfo | null;
     isBulkAction: boolean;
@@ -19,6 +21,7 @@ interface DialogStore {
     openReRegisterDialog: (student: StudentTable) => void;
     openTerminateRegistrationDialog: (student: StudentTable) => void;
     openDeleteDialog: (student: StudentTable) => void;
+    openIndividualShareCredentialsDialog: (student: StudentTable) => void;
 
     // Bulk actions
     openBulkChangeBatchDialog: (info: BulkActionInfo) => void;
@@ -26,6 +29,7 @@ interface DialogStore {
     openBulkReRegisterDialog: (info: BulkActionInfo) => void;
     openBulkTerminateRegistrationDialog: (info: BulkActionInfo) => void;
     openBulkDeleteDialog: (info: BulkActionInfo) => void;
+    openBulkShareCredentialsDialog: (info: BulkActionInfo) => void;
 
     closeAllDialogs: () => void;
 }
@@ -36,6 +40,8 @@ export const useDialogStore = create<DialogStore>((set) => ({
     isReRegisterOpen: false,
     isTerminateRegistrationOpen: false,
     isDeleteOpen: false,
+    isShareCredentialsOpen: false,
+    isIndividualShareCredentialsOpen: false,
     selectedStudent: null,
     bulkActionInfo: null,
     isBulkAction: false,
@@ -45,60 +51,37 @@ export const useDialogStore = create<DialogStore>((set) => ({
         set({
             isChangeBatchOpen: true,
             selectedStudent: student,
-            bulkActionInfo: null,
             isBulkAction: false,
-            isExtendSessionOpen: false,
-            isReRegisterOpen: false,
-            isTerminateRegistrationOpen: false,
-            isDeleteOpen: false,
         }),
-
     openExtendSessionDialog: (student) =>
         set({
             isExtendSessionOpen: true,
             selectedStudent: student,
-            bulkActionInfo: null,
             isBulkAction: false,
-            isChangeBatchOpen: false,
-            isReRegisterOpen: false,
-            isTerminateRegistrationOpen: false,
-            isDeleteOpen: false,
         }),
-
     openReRegisterDialog: (student) =>
         set({
             isReRegisterOpen: true,
             selectedStudent: student,
-            bulkActionInfo: null,
             isBulkAction: false,
-            isChangeBatchOpen: false,
-            isExtendSessionOpen: false,
-            isTerminateRegistrationOpen: false,
-            isDeleteOpen: false,
         }),
-
     openTerminateRegistrationDialog: (student) =>
         set({
             isTerminateRegistrationOpen: true,
             selectedStudent: student,
-            bulkActionInfo: null,
             isBulkAction: false,
-            isChangeBatchOpen: false,
-            isExtendSessionOpen: false,
-            isReRegisterOpen: false,
-            isDeleteOpen: false,
         }),
-
     openDeleteDialog: (student) =>
         set({
             isDeleteOpen: true,
             selectedStudent: student,
-            bulkActionInfo: null,
             isBulkAction: false,
-            isChangeBatchOpen: false,
-            isExtendSessionOpen: false,
-            isReRegisterOpen: false,
-            isTerminateRegistrationOpen: false,
+        }),
+    openIndividualShareCredentialsDialog: (student) =>
+        set({
+            isIndividualShareCredentialsOpen: true,
+            selectedStudent: student,
+            isBulkAction: false,
         }),
 
     // Bulk actions
@@ -107,59 +90,36 @@ export const useDialogStore = create<DialogStore>((set) => ({
             isChangeBatchOpen: true,
             bulkActionInfo: info,
             isBulkAction: true,
-            selectedStudent: null,
-            isExtendSessionOpen: false,
-            isReRegisterOpen: false,
-            isTerminateRegistrationOpen: false,
-            isDeleteOpen: false,
         }),
-
     openBulkExtendSessionDialog: (info) =>
         set({
             isExtendSessionOpen: true,
             bulkActionInfo: info,
             isBulkAction: true,
-            selectedStudent: null,
-            isChangeBatchOpen: false,
-            isReRegisterOpen: false,
-            isTerminateRegistrationOpen: false,
-            isDeleteOpen: false,
         }),
-
     openBulkReRegisterDialog: (info) =>
         set({
             isReRegisterOpen: true,
             bulkActionInfo: info,
             isBulkAction: true,
-            selectedStudent: null,
-            isChangeBatchOpen: false,
-            isExtendSessionOpen: false,
-            isTerminateRegistrationOpen: false,
-            isDeleteOpen: false,
         }),
-
     openBulkTerminateRegistrationDialog: (info) =>
         set({
             isTerminateRegistrationOpen: true,
             bulkActionInfo: info,
             isBulkAction: true,
-            selectedStudent: null,
-            isChangeBatchOpen: false,
-            isExtendSessionOpen: false,
-            isReRegisterOpen: false,
-            isDeleteOpen: false,
         }),
-
     openBulkDeleteDialog: (info) =>
         set({
             isDeleteOpen: true,
             bulkActionInfo: info,
             isBulkAction: true,
-            selectedStudent: null,
-            isChangeBatchOpen: false,
-            isExtendSessionOpen: false,
-            isReRegisterOpen: false,
-            isTerminateRegistrationOpen: false,
+        }),
+    openBulkShareCredentialsDialog: (info) =>
+        set({
+            isShareCredentialsOpen: true,
+            bulkActionInfo: info,
+            isBulkAction: true,
         }),
 
     closeAllDialogs: () =>
@@ -169,6 +129,8 @@ export const useDialogStore = create<DialogStore>((set) => ({
             isReRegisterOpen: false,
             isTerminateRegistrationOpen: false,
             isDeleteOpen: false,
+            isShareCredentialsOpen: false,
+            isIndividualShareCredentialsOpen: false,
             selectedStudent: null,
             bulkActionInfo: null,
             isBulkAction: false,

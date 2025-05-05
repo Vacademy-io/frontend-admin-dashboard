@@ -279,6 +279,8 @@ html {
 /* Center the tooltip and match the design */
 .custom-tooltip {
     background-color: white !important;
+    pointer-events: auto !important;
+    z-index: 99999 !important;
     border-radius: 0.5rem !important;
     box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1) !important;
     display: flex !important;
@@ -289,6 +291,12 @@ html {
     width: 300px !important;
     margin: auto !important;
 }
+
+.tooltip-postion {
+    position: absolute !important;
+    bottom: -40% !important;
+}
+
 .introjs-tooltip-title {
     color: rgb(234 88 12) !important;
     text-wrap: nowrap !important;

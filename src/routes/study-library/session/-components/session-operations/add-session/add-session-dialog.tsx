@@ -32,6 +32,7 @@ export const AddSessionDialog = ({
             open={isAddSessionDiaogOpen}
             onOpenChange={handleOpenAddSessionDialog}
             footer={submitButton}
+            className="z-[99999]"
         >
             <AddSessionForm
                 onSubmit={handleSubmit}

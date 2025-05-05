@@ -27,7 +27,11 @@ export function filterMenuItems(menuList: SidebarItemsType[], instituteId: strin
     const shubham_id = SHUBHAM_INSTITUTE_ID;
     if (instituteId === ssdc_id || instituteId === shubham_id) {
         return menuList.filter(
-            (item) => item.id !== "evaluation-centre" && item.id !== "Community Centre",
+            (item) =>
+                item.id !== "evaluation-centre" &&
+                item.id !== "Community Centre" &&
+                item.id !== "Homework Creation" &&
+                item.id !== "AI Center",
         );
     }
     return menuList;

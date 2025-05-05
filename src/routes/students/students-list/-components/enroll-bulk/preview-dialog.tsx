@@ -2,9 +2,6 @@ import React, { useState } from "react";
 import { MyButton } from "@/components/design-system/button";
 import { Header } from "@/routes/students/students-list/-schemas/student-bulk-enroll/csv-bulk-init";
 import { useBulkUploadStore } from "@/routes/students/students-list/-stores/enroll-students-bulk/useBulkUploadStore";
-import { Warning } from "@phosphor-icons/react";
-import { StatusColumnRenderer } from "./status-column-rendered";
-import { Row } from "@tanstack/react-table";
 import { SchemaFields } from "@/routes/students/students-list/-types/bulk-upload-types";
 import { EditableBulkUploadTable } from "./bulk-upload-table";
 import { UploadResultsTable } from "./upload-results-table";
@@ -33,11 +30,10 @@ export const PreviewDialog: React.FC<PreviewDialogProps> = ({
     onDownloadResponse,
     closeAllDialogs,
 }) => {
-    const { csvData, csvErrors, setIsEditing } = useBulkUploadStore();
+    const { csvErrors, setIsEditing } = useBulkUploadStore();
     const [selectedErrorRow, setSelectedErrorRow] = useState<number | null>(null);
     const [showErrorDialog, setShowErrorDialog] = useState(false);
 
-    // When the dialog closes, ensure edit mode is turned off
     React.useEffect(() => {
         if (!isOpen) {
             setIsEditing(false);
@@ -51,20 +47,6 @@ export const PreviewDialog: React.FC<PreviewDialogProps> = ({
             closeAllDialogs();
         }
     };
-
-    // Create a wrapped status column renderer with proper type safety
-    const CustomStatusColumnRenderer = React.useCallback(
-        ({ row }: { row: Row<SchemaFields> }) => {
-            return (
-                <StatusColumnRenderer
-                    row={row}
-                    csvErrors={csvErrors}
-                    csvData={uploadCompleted && uploadResponse ? uploadResponse : csvData}
-                />
-            );
-        },
-        [csvErrors, csvData, uploadCompleted, uploadResponse],
-    );
 
     // Handler for viewing error details
     const handleViewError = (rowIndex: number) => {
@@ -89,7 +71,7 @@ export const PreviewDialog: React.FC<PreviewDialogProps> = ({
                     layoutVariant="default"
                     onClick={handleClose}
                 >
-                    Close
+                    {uploadCompleted ? "Close" : "Done"}
                 </MyButton>
             </div>
         </footer>
@@ -100,13 +82,13 @@ export const PreviewDialog: React.FC<PreviewDialogProps> = ({
             open={isOpen}
             onOpenChange={handleClose}
             heading={uploadCompleted && uploadResponse ? "Upload Response" : "Preview Data"}
-            dialogWidth="w-[80vw]"
+            dialogWidth="w-[80vw] overflow-x-hidden no-scrollbar"
             footer={footer}
         >
             <div className="no-scrollbar max-h-[80vh] w-[80vw] overflow-x-hidden p-0 font-normal">
                 {uploadCompleted && uploadResponse ? (
                     // Show upload results using the new component
-                    <div className="no-scrollbar flex flex-col overflow-x-scroll">
+                    <div className="no-scrollbar flex flex-col">
                         <UploadResultsTable
                             data={uploadResponse}
                             onViewError={handleViewError}
@@ -115,27 +97,11 @@ export const PreviewDialog: React.FC<PreviewDialogProps> = ({
                     </div>
                 ) : (
                     <div className="flex flex-col gap-4">
-                        {csvErrors.length > 0 && (
-                            <div className="rounded-md">
-                                <div className="flex items-center">
-                                    <Warning className="h-5 w-5 text-danger-500" />
-                                    <h3 className="ml-2 text-lg font-medium text-danger-700">
-                                        Found {csvErrors.length} validation issues in {affectedRows}{" "}
-                                        rows
-                                    </h3>
-                                </div>
-                                <p className="mt-2 text-sm text-danger-700">
-                                    Please check the STATUS column and fix these issues before
-                                    proceeding.
-                                </p>
-                            </div>
-                        )}
-
-                        <div className="no-scrollbar flex flex-col">
+                        <div className="no-scrollbar flex flex-col overflow-x-hidden">
                             <EditableBulkUploadTable
                                 headers={headers}
                                 onEdit={onEdit}
-                                statusColumnRenderer={CustomStatusColumnRenderer}
+                                affectedRows={affectedRows}
                             />
                         </div>
                     </div>
@@ -146,7 +112,7 @@ export const PreviewDialog: React.FC<PreviewDialogProps> = ({
             {showErrorDialog && uploadResponse && selectedErrorRow !== null && (
                 <ErrorDetailsDialog
                     isOpen={showErrorDialog}
-                    onClose={() => setShowErrorDialog(false)}
+                    onClose={() => setShowErrorDialog(!showErrorDialog)}
                     errors={[
                         {
                             path: [selectedErrorRow, "ERROR"],

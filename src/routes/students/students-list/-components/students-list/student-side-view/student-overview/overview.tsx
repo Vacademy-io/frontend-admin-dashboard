@@ -25,12 +25,32 @@ export const OverViewData = ({
         {
             heading: `General Details`,
             content: [
-                `Course: ${packageSessionDetails?.package_dto.package_name}`,
-                `Level: ${packageSessionDetails?.level.level_name}`,
-                `Session: ${packageSessionDetails?.session.session_name}`,
-                `Enrollment No.: ${selectedStudent.institute_enrollment_id}`,
-                `Gender: ${selectedStudent.gender}`,
-                `School: ${selectedStudent.linked_institute_name}`,
+                `Course: ${
+                    packageSessionDetails?.package_dto.package_name == undefined
+                        ? "N/A"
+                        : packageSessionDetails?.package_dto.package_name
+                }`,
+                `Level: ${
+                    packageSessionDetails?.level.level_name == undefined
+                        ? "N/A"
+                        : packageSessionDetails?.level.level_name
+                }`,
+                `Session: ${
+                    packageSessionDetails?.session.session_name == undefined
+                        ? "N/A"
+                        : packageSessionDetails?.session.session_name
+                }`,
+                `Enrollment No: ${
+                    selectedStudent.institute_enrollment_id == undefined
+                        ? "N/A"
+                        : selectedStudent.institute_enrollment_id
+                }`,
+                `Gender: ${selectedStudent.gender == undefined ? "N/A" : selectedStudent.gender}`,
+                `School: ${
+                    selectedStudent.linked_institute_name == undefined
+                        ? "N/A"
+                        : selectedStudent.linked_institute_name
+                }`,
             ],
         },
         {
@@ -42,7 +62,10 @@ export const OverViewData = ({
         },
         {
             heading: `Location Details`,
-            content: [`State: ${selectedStudent.region}`, `City: ${selectedStudent.city}`],
+            content: [
+                `State: ${selectedStudent.region != null ? selectedStudent.region : "N/A"} `,
+                `City: ${selectedStudent.city != null ? selectedStudent.city : "N/A"}`,
+            ],
         },
         {
             heading: `Parent/Guardian's Details`,

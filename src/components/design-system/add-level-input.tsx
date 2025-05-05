@@ -9,6 +9,7 @@ interface AddLevelInputProps {
     newLevelDuration: number | null;
     setNewLevelDuration: Dispatch<SetStateAction<number | null>>;
     handleAddLevel: (levelName: string, durationInDays: number | null) => void;
+    batchCreation?: boolean;
 }
 
 export const AddLevelInput = ({
@@ -17,6 +18,7 @@ export const AddLevelInput = ({
     newLevelDuration,
     setNewLevelDuration,
     handleAddLevel,
+    batchCreation = false,
 }: AddLevelInputProps) => {
     const [showNewLevelInput, setShowNewLevelInput] = useState(false);
     return (
@@ -52,15 +54,18 @@ export const AddLevelInput = ({
                             onClick={() => {
                                 if (newLevelName) {
                                     handleAddLevel(newLevelName, newLevelDuration);
-                                    setNewLevelName("");
-                                    setNewLevelDuration(null);
-                                    setShowNewLevelInput(false);
+                                    if (!batchCreation) {
+                                        setNewLevelName("");
+                                        setNewLevelDuration(null);
+                                        setShowNewLevelInput(false);
+                                    }
                                 }
                             }}
                             buttonType="primary"
                             layoutVariant="icon"
                             scale="small"
                             type="button"
+                            disable={!newLevelName || !newLevelDuration}
                         >
                             <Plus />
                         </MyButton>
@@ -83,6 +88,7 @@ export const AddLevelInput = ({
                     buttonType="text"
                     layoutVariant="default"
                     scale="small"
+                    id="add-level-button"
                     className="w-fit text-primary-500 hover:bg-white active:bg-white"
                 >
                     <Plus /> Add Level

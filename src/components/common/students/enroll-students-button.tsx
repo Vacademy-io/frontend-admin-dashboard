@@ -5,11 +5,15 @@ import { EnrollBulkButton } from "@/routes/students/students-list/-components/en
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { cn } from "@/lib/utils";
-
+import { useBulkDialog } from "@/routes/students/students-list/-context/bulk-dialog-context";
+import { useRouter } from "@tanstack/react-router";
 export const EnrollStudentsButton = () => {
     const { getCourseFromPackage } = useInstituteDetailsStore();
+    const { enrollStudentDialogOpen, setEnrollStudentDialogOpen } = useBulkDialog();
+    const router = useRouter();
+
     return (
-        <Dialog>
+        <Dialog open={enrollStudentDialogOpen} onOpenChange={setEnrollStudentDialogOpen}>
             <DialogTrigger
                 disabled={getCourseFromPackage().length === 0}
                 className={cn(
@@ -32,7 +36,7 @@ export const EnrollStudentsButton = () => {
                     </div>
                     <DialogDescription className="flex flex-col items-center justify-center gap-6 p-6 text-neutral-600">
                         <EnrollManuallyButton />
-                        <MyButton buttonType="secondary" scale="large" layoutVariant="default">
+                        <MyButton buttonType="secondary" scale="large" layoutVariant="default" onClick={()=>{router.navigate({to: "/students/enroll-requests"})}}>
                             Enroll From Requests
                         </MyButton>
                         <EnrollBulkButton />

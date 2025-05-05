@@ -6,7 +6,6 @@ import "react-quill/dist/quill.snow.css";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PopoverClose } from "@radix-ui/react-popover";
 import SelectField from "@/components/design-system/select-field";
-import CustomInput from "@/components/design-system/custom-input";
 import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
 import { QUESTION_TYPES } from "@/constants/dummy-data";
 import { SectionQuestionPaperFormProps } from "../../../-utils/assessment-question-paper";
@@ -102,42 +101,32 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                 className="!w-full"
                                 required
                             />
-                            <CustomInput
-                                control={form.control}
-                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionMark`}
-                                label="Marks"
-                                required
-                            />
-                            <CustomInput
-                                control={form.control}
-                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionPenalty`}
-                                label="Negative Marking"
-                                required
-                            />
-                            <div className="flex flex-col gap-2">
-                                <h1 className="text-sm font-semibold">Time Limit</h1>
-                                <div className="flex items-center gap-4 text-sm">
-                                    <CustomInput
-                                        control={form.control}
-                                        name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionDuration.hrs`}
-                                        label=""
-                                        className="w-10"
-                                    />
-                                    <span>hrs</span>
-                                    <span>:</span>
-                                    <CustomInput
-                                        control={form.control}
-                                        name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionDuration.min`}
-                                        label=""
-                                        className="w-10"
-                                    />
-                                    <span>min</span>
-                                </div>
-                            </div>
                         </div>
                     </PopoverContent>
                 </Popover>
             </div>
+            {getValues(
+                `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.parentRichTextContent`,
+            ) && (
+                <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
+                    <span>Comprehension Text</span>
+                    <FormField
+                        control={control}
+                        name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.parentRichTextContent`}
+                        render={({ field }) => (
+                            <FormItem className="w-full">
+                                <FormControl>
+                                    <MainViewQuillEditor
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+            )}
             <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
                 <span>
                     Question&nbsp;
@@ -164,7 +153,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                 <div className="flex gap-4">
                     <div
                         className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
-                            option1.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                            option1?.isSelected ? "border border-primary-300 bg-primary-50" : ""
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">
@@ -213,7 +202,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                     </div>
                     <div
                         className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
-                            option2.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                            option2?.isSelected ? "border border-primary-300 bg-primary-50" : ""
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">
@@ -264,7 +253,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                 <div className="flex gap-4">
                     <div
                         className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
-                            option3.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                            option3?.isSelected ? "border border-primary-300 bg-primary-50" : ""
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">
@@ -313,7 +302,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                     </div>
                     <div
                         className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
-                            option4.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                            option4?.isSelected ? "border border-primary-300 bg-primary-50" : ""
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">

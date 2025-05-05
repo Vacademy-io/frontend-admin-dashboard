@@ -19,6 +19,7 @@ import sectionDetailsSchema from "../../create-assessment/$assessmentId/$examtyp
 import { UseFormReturn } from "react-hook-form";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { TokenKey } from "@/constants/auth/tokens";
+import { AssignmentFormType } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-form-schemas/assignmentFormSchema";
 
 export type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 
@@ -26,6 +27,8 @@ interface QuestionPapersTabsProps {
     isAssessment: boolean; // Flag to determine if it's an assessment
     index?: number;
     sectionsForm?: UseFormReturn<SectionFormType>;
+    studyLibraryAssignmentForm?: UseFormReturn<AssignmentFormType>;
+    isStudyLibraryAssignment?: boolean;
     currentQuestionIndex: number;
     setCurrentQuestionIndex: Dispatch<SetStateAction<number>>;
 }
@@ -34,6 +37,8 @@ export const QuestionPapersTabs = ({
     isAssessment,
     index,
     sectionsForm,
+    studyLibraryAssignmentForm,
+    isStudyLibraryAssignment,
     currentQuestionIndex,
     setCurrentQuestionIndex,
 }: QuestionPapersTabsProps) => {
@@ -336,6 +341,8 @@ export const QuestionPapersTabs = ({
                         isAssessment={isAssessment}
                         index={index}
                         sectionsForm={sectionsForm}
+                        studyLibraryAssignmentForm={studyLibraryAssignmentForm}
+                        isStudyLibraryAssignment={isStudyLibraryAssignment}
                         currentQuestionIndex={currentQuestionIndex}
                         setCurrentQuestionIndex={setCurrentQuestionIndex}
                     />
@@ -356,6 +363,8 @@ export const QuestionPapersTabs = ({
                         isAssessment={isAssessment}
                         index={index}
                         sectionsForm={sectionsForm}
+                        studyLibraryAssignmentForm={studyLibraryAssignmentForm}
+                        isStudyLibraryAssignment={isStudyLibraryAssignment}
                         currentQuestionIndex={currentQuestionIndex}
                         setCurrentQuestionIndex={setCurrentQuestionIndex}
                     />

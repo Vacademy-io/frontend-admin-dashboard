@@ -3,7 +3,7 @@ import { MyDialog } from "@/components/design-system/dialog";
 import { useState, useEffect } from "react";
 import { Row } from "@tanstack/react-table";
 import {
-    SubjectOverviewColumnType,
+    SubjectOverviewBatchColumnType,
     ChapterReport,
     ChapterOverviewColumns,
     CHAPTER_OVERVIEW_WIDTH,
@@ -16,7 +16,7 @@ import { usePacageDetails } from "../../-store/usePacageDetails";
 import dayjs from "dayjs";
 import { formatToTwoDecimalPlaces, convertMinutesToTimeFormat } from "../../-services/helper";
 
-export const ViewDetails = ({ row }: { row: Row<SubjectOverviewColumnType> }) => {
+export const ViewDetails = ({ row }: { row: Row<SubjectOverviewBatchColumnType> }) => {
     const [viewDetailsState, setViewDetailsState] = useState(false);
     const [chapterReportData, setChapterReportData] = useState<ChapterReport>();
     const { pacageSessionId, course, session, level } = usePacageDetails();

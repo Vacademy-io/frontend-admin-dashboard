@@ -8,16 +8,18 @@ export interface StudentCredentialsType {
     user_id: string;
 }
 
+export const getStudentCredentails = async ({ userId }: { userId: string }) => {
+    const response = await authenticatedAxiosInstance.get(`${GET_USER_CREDENTIALS}/${userId}`);
+    return response.data;
+};
+
 export const useStudentCredentails = ({ userId }: { userId: string }) => {
     return useQuery<StudentCredentialsType | null>({
         queryKey: ["GET_USER_CREDENTIALS", userId],
         queryFn: async () => {
-            const response = await authenticatedAxiosInstance.get(
-                `${GET_USER_CREDENTIALS}/${userId}`,
-            );
+            const response = await getStudentCredentails({ userId });
             return response.data;
         },
-        staleTime: 3600000,
         enabled: !!userId,
     });
 };

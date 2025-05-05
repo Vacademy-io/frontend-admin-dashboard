@@ -4,7 +4,7 @@ import { CalendarBlank } from "phosphor-react";
 import { useNavigate } from "@tanstack/react-router";
 import useIntroJsTour from "@/hooks/use-intro";
 import { IntroKey } from "@/constants/storage/introKey";
-import { createAssesmentSteps } from "@/constants/intro/steps";
+import { createAssesmentButtonStep } from "@/constants/intro/steps";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Examination, Mock, Practice, Survey } from "@/svgs";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
@@ -30,11 +30,7 @@ export const ScheduleTestHeaderDescription = () => {
 
     useIntroJsTour({
         key: IntroKey.assessmentFirstTimeVisit,
-        steps: createAssesmentSteps.filter((step) => step.element === "#create-assessment"),
-        partial: true,
-        onTourExit: () => {
-            console.log("Tour Completed");
-        },
+        steps: createAssesmentButtonStep,
     });
 
     return (

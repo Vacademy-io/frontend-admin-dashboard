@@ -25,6 +25,8 @@ export interface FilterChipsProps {
     setSelectedFilters?: React.Dispatch<React.SetStateAction<string[]>>;
     disabled?: boolean;
     clearFilters?: boolean;
+    handleSelect?: (option: string | number) => void;
+    handleClearFilters?: () => void;
 }
 
 // export interface StatusChipsProps {
@@ -43,4 +45,5 @@ export type ActivityStatus =
     | "ENDED"
     | "Attempted"
     | "Not Attempted"
-    | "evaluated";
+    | "evaluated"
+    | "evaluating";

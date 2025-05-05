@@ -3,6 +3,9 @@ import { MyDialog } from "@/components/design-system/dialog";
 import React, { useRef, useState } from "react";
 import { Plus } from "phosphor-react";
 import { AddCourseData, AddCourseForm } from "./add-course-form";
+import useIntroJsTour from "@/hooks/use-intro";
+import { StudyLibraryIntroKey } from "@/constants/storage/introKey";
+import { addCourseStep } from "@/constants/intro/steps";
 
 const triggerButton = (
     <MyButton buttonType="primary" layoutVariant="default" scale="large" id="create-new-course">
@@ -49,6 +52,7 @@ export const AddCourseButton = ({ onSubmit, courseButton }: AddCourseButtonProps
                 buttonType="primary"
                 layoutVariant="default"
                 scale="large"
+                id="add-course-button"
                 className="w-[140px]"
                 disable={disableAddButton}
             >
@@ -56,6 +60,12 @@ export const AddCourseButton = ({ onSubmit, courseButton }: AddCourseButtonProps
             </MyButton>
         </div>
     );
+
+    useIntroJsTour({
+        key: StudyLibraryIntroKey.addCourseStep,
+        steps: addCourseStep,
+        enable: openDialog,
+    });
 
     return (
         <MyDialog
@@ -65,6 +75,8 @@ export const AddCourseButton = ({ onSubmit, courseButton }: AddCourseButtonProps
             open={openDialog}
             onOpenChange={handleOpenChange}
             footer={submitButton}
+            isTour
+            className="z-[99999]"
         >
             <AddCourseForm
                 onSubmitCourse={onSubmit}

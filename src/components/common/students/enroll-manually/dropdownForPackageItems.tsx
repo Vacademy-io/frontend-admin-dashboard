@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CaretDown, CaretUp, CaretRight } from "@phosphor-icons/react";
 import {
     DropdownMenu,
@@ -11,6 +11,18 @@ import {
     DropdownMenuSubContent,
 } from "@radix-ui/react-dropdown-menu";
 import { myDropDownProps, DropdownItem, DropdownItemType } from "./dropdownTypesForPackageItems";
+import { AddCourseButton } from "@/components/common/study-library/add-course/add-course-button";
+import { AddSessionDialog } from "@/routes/study-library/session/-components/session-operations/add-session/add-session-dialog";
+import { AddLevelButton } from "@/routes/study-library/courses/levels/-components/add-level-button";
+import { MyButton } from "@/components/design-system/button";
+import { Plus } from "lucide-react";
+import { AddCourseData } from "@/components/common/study-library/add-course/add-course-form";
+import { AddSessionDataType } from "@/routes/study-library/session/-components/session-operations/add-session/add-session-form";
+import { AddLevelData } from "@/routes/study-library/courses/levels/-components/add-level-form";
+import { useAddCourse } from "@/services/study-library/course-operations/add-course";
+import { useAddSession } from "@/services/study-library/session-management/addSession";
+import { useAddLevel } from "@/routes/study-library/courses/levels/-services/add-level";
+import { toast } from "sonner";
 
 const isDropdownItem = (item: string | DropdownItem | DropdownItemType): item is DropdownItem => {
     return typeof item !== "string" && "label" in item;
@@ -32,9 +44,38 @@ export const MyDropdown = ({
     error,
     disable,
     required = false,
-}: myDropDownProps) => {
+    showAddCourseButton = false,
+    showAddSessionButton = false,
+    showAddLevelButton = false,
+    onAddCourse,
+    onAddSession,
+    onAddLevel,
+    packageId = "",
+    disableAddLevelButton = false,
+}: myDropDownProps & {
+    showAddCourseButton?: boolean;
+    showAddSessionButton?: boolean;
+    showAddLevelButton?: boolean;
+    onAddCourse?: ({ requestData }: { requestData: AddCourseData }) => void;
+    onAddSession?: (data: AddSessionDataType) => void;
+    onAddLevel?: (data: {
+        requestData: AddLevelData;
+        packageId?: string;
+        sessionId?: string;
+    }) => void;
+    packageId?: string;
+    disableAddLevelButton?: boolean;
+}) => {
     const [isOpen, setIsOpen] = useState<boolean>(false);
-
+    const [isAddSessionDialogOpen, setIsAddSessionDialogOpen] = useState(false);
+    const [disableAddButton, setDisableAddButton] = useState(true);
+    const addCourseMutation = useAddCourse();
+    const addSessionMutation = useAddSession();
+    const addLevelMutation = useAddLevel();
+    const formSubmitRef = useRef(() => {});
+    const submitFn = (fn: () => void) => {
+        formSubmitRef.current = fn;
+    };
     useEffect(() => {
         // Auto-select the only item if dropdownList has exactly one item and no current value is set
         if (dropdownList.length === 1) {
@@ -72,6 +113,83 @@ export const MyDropdown = ({
             return currentValue.name;
         } else {
             return currentValue; // It's a string
+        }
+    };
+
+    const handleAddCourseSubmit = ({ requestData }: { requestData: AddCourseData }) => {
+        if (onAddCourse) {
+            onAddCourse({ requestData });
+        } else {
+            addCourseMutation.mutate(
+                { requestData: requestData },
+                {
+                    onSuccess: () => {
+                        toast.success("Course created successfully");
+                    },
+                    onError: () => {
+                        toast.error("Failed to create course");
+                    },
+                },
+            );
+        }
+    };
+
+    const handleAddSessionSubmit = (sessionData: AddSessionDataType) => {
+        if (onAddSession) {
+            onAddSession(sessionData);
+            setIsAddSessionDialogOpen(false);
+        } else {
+            const processedData = structuredClone(sessionData);
+            const transformedData = {
+                ...processedData,
+                levels: processedData.levels.map((level) => ({
+                    id: level.level_dto.id,
+                    new_level: level.level_dto.new_level === true,
+                    level_name: level.level_dto.level_name,
+                    duration_in_days: level.level_dto.duration_in_days,
+                    thumbnail_file_id: level.level_dto.thumbnail_file_id,
+                    package_id: level.level_dto.package_id,
+                })),
+            };
+
+            addSessionMutation.mutate(
+                { requestData: transformedData as unknown as AddSessionDataType },
+                {
+                    onSuccess: () => {
+                        toast.success("Session added successfully");
+                        setIsAddSessionDialogOpen(false);
+                    },
+                    onError: (error) => {
+                        toast.error(error.message || "Failed to add session");
+                    },
+                },
+            );
+        }
+    };
+
+    const handleAddLevelSubmit = ({
+        requestData,
+        packageId: pId,
+        sessionId: sId,
+    }: {
+        requestData: AddLevelData;
+        packageId?: string;
+        sessionId?: string;
+    }) => {
+        if (onAddLevel) {
+            onAddLevel({ requestData, packageId: pId, sessionId: sId });
+        } else {
+            addLevelMutation.mutate(
+                { requestData: requestData, packageId: pId || "", sessionId: sId || "" },
+                {
+                    onSuccess: () => {
+                        toast.success("Level added successfully");
+                    },
+                    onError: (error) => {
+                        toast.error(error.message || "Failed to add level");
+                    },
+                },
+            );
         }
     };
 
@@ -162,7 +280,7 @@ export const MyDropdown = ({
                         <div className={`truncate ${!currentValue ? "text-neutral-400" : ""}`}>
                             {getDisplayText()}
                         </div>
-                        <div className="ml-2 flex-shrink-0">
+                        <div className="ml-2 shrink-0">
                             <CaretDown className={`${isOpen ? "hidden" : "visible"} size-[18px]`} />
                             <CaretUp className={`${isOpen ? "visible" : "hidden"} size-[18px]`} />
                         </div>
@@ -186,6 +304,105 @@ export const MyDropdown = ({
                             </DropdownMenuItem>
                         )}
                         {dropdownList.map((item) => renderMenuItem(item))}
+                        {(showAddCourseButton || showAddSessionButton || showAddLevelButton) && (
+                            <div className="border-t border-neutral-200 pt-2">
+                                {showAddCourseButton && (
+                                    <AddCourseButton
+                                        onSubmit={handleAddCourseSubmit}
+                                        courseButton={
+                                            <MyButton
+                                                type="button"
+                                                buttonType="text"
+                                                layoutVariant="default"
+                                                scale="small"
+                                                className="w-full text-primary-500"
+                                            >
+                                                <Plus className="mr-2" /> Create Course
+                                            </MyButton>
+                                        }
+                                    />
+                                )}
+                                {showAddSessionButton && (
+                                    <AddSessionDialog
+                                        isAddSessionDiaogOpen={isAddSessionDialogOpen}
+                                        handleOpenAddSessionDialog={() =>
+                                            setIsAddSessionDialogOpen(!isAddSessionDialogOpen)
+                                        }
+                                        handleSubmit={handleAddSessionSubmit}
+                                        trigger={
+                                            <MyButton
+                                                type="button"
+                                                buttonType="text"
+                                                layoutVariant="default"
+                                                scale="small"
+                                                className="w-full text-primary-500"
+                                            >
+                                                <Plus className="mr-2" /> Create Session
+                                            </MyButton>
+                                        }
+                                        submitButton={
+                                            <div className="flex items-center justify-end">
+                                                <MyButton
+                                                    type="submit"
+                                                    buttonType="primary"
+                                                    layoutVariant="default"
+                                                    scale="large"
+                                                    className="w-[140px]"
+                                                    disable={disableAddButton}
+                                                    onClick={() => formSubmitRef.current()}
+                                                >
+                                                    Add
+                                                </MyButton>
+                                            </div>
+                                        }
+                                        setDisableAddButton={setDisableAddButton}
+                                        submitFn={submitFn}
+                                    />
+                                )}
+                                {showAddLevelButton && (
+                                    <AddLevelButton
+                                        onSubmit={handleAddLevelSubmit}
+                                        trigger={
+                                            <div>
+                                                <MyButton
+                                                    type="button"
+                                                    buttonType="text"
+                                                    layoutVariant="default"
+                                                    scale="small"
+                                                    className="w-full text-primary-500"
+                                                    disable={disableAddLevelButton}
+                                                >
+                                                    <div className="flex items-center">
+                                                        <Plus
+                                                            className={`${
+                                                                disableAddLevelButton
+                                                                    ? "text-primary-300"
+                                                                    : "text-primary-500"
+                                                            }`}
+                                                        />{" "}
+                                                        <p
+                                                            className={
+                                                                disableAddLevelButton
+                                                                    ? "text-primary-300"
+                                                                    : "text-primary-500"
+                                                            }
+                                                        >
+                                                            Create Level
+                                                        </p>
+                                                    </div>
+                                                    {disableAddLevelButton && (
+                                                        <p className="text-caption text-neutral-500">
+                                                            (Select a course first)
+                                                        </p>
+                                                    )}
+                                                </MyButton>
+                                            </div>
+                                        }
+                                        packageId={packageId}
+                                    />
+                                )}
+                            </div>
+                        )}
                     </DropdownMenuContent>
                 </DropdownMenuPortal>
             </DropdownMenu>

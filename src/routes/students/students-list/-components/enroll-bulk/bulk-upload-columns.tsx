@@ -7,7 +7,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Header } from "@/routes/students/students-list/-schemas/student-bulk-enroll/csv-bulk-init";
 import { Row } from "@tanstack/react-table";
-import { CheckCircle, Warning } from "@phosphor-icons/react";
+import { CheckCircle } from "@phosphor-icons/react";
 import { MyButton } from "@/components/design-system/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -29,7 +29,16 @@ interface EditableBulkUploadColumnsProps {
     isEditing: boolean;
     onCellClick: (rowIndex: number, columnId: string) => void;
     editCell: { rowIndex: number; columnId: string } | null;
-    handleCellEdit: (rowIndex: number, columnId: string, value: string) => void;
+    handleCellEdit: (
+        rowIndex: number,
+        columnId: string,
+        value: string,
+        currentPage: number,
+        ITEMS_PER_PAGE: number,
+    ) => void;
+    onViewErrors?: (rowIndex: number) => void;
+    currentPage: number;
+    ITEMS_PER_PAGE: number;
 }
 
 // Create editable bulk upload columns
@@ -42,6 +51,9 @@ export const createEditableBulkUploadColumns = ({
     onCellClick,
     editCell,
     handleCellEdit,
+    onViewErrors,
+    currentPage,
+    ITEMS_PER_PAGE,
 }: EditableBulkUploadColumnsProps): Array<ColumnDef<SchemaFields>> => {
     const columns: Array<ColumnDef<SchemaFields>> = [];
 
@@ -61,7 +73,9 @@ export const createEditableBulkUploadColumns = ({
                 const rowIndex = props.row.index;
 
                 // Check if there are any errors for this row
-                const rowErrors = csvErrors.filter((error) => error.path[0] === rowIndex);
+                const rowErrors = csvErrors.filter(
+                    (error) => error.path[0] === rowIndex + currentPage * ITEMS_PER_PAGE,
+                );
                 const hasErrors = rowErrors.length > 0;
 
                 if (!hasErrors) {
@@ -74,8 +88,13 @@ export const createEditableBulkUploadColumns = ({
 
                 return (
                     <div className="flex justify-center">
-                        <MyButton buttonType="primary" scale="small" layoutVariant="default">
-                            Check errors
+                        <MyButton
+                            buttonType="primary"
+                            scale="small"
+                            layoutVariant="default"
+                            onClick={() => onViewErrors?.(rowIndex)}
+                        >
+                            Errors ({rowErrors.length})
                         </MyButton>
                     </div>
                 );
@@ -112,8 +131,13 @@ export const createEditableBulkUploadColumns = ({
 
                     return (
                         <div className="flex justify-center">
-                            <MyButton buttonType="primary" scale="small" layoutVariant="default">
-                                Check errors
+                            <MyButton
+                                buttonType="primary"
+                                scale="small"
+                                layoutVariant="default"
+                                onClick={() => onViewErrors?.(rowIndex)}
+                            >
+                                Errors ({rowErrors.length})
                             </MyButton>
                         </div>
                     );
@@ -124,14 +148,9 @@ export const createEditableBulkUploadColumns = ({
                 accessorKey: header.column_name,
                 header: () => {
                     return (
-                        <div className="flex flex-col">
+                        <div className="flex items-center">
                             <span>{header.column_name.replace(/_/g, " ")}</span>
-                            {!header.optional && (
-                                <span className="text-xs text-danger-500">*Required</span>
-                            )}
-                            {header.type === "enum" && header.options && (
-                                <span className="text-xs text-neutral-500">(Select one)</span>
-                            )}
+                            {!header.optional && <span className="text-xs text-danger-500">*</span>}
                             {header.type === "date" && header.format && (
                                 <span className="text-xs text-neutral-500">({header.format})</span>
                             )}
@@ -141,9 +160,11 @@ export const createEditableBulkUploadColumns = ({
                 cell: ({ getValue, row, column }) => {
                     const rowIndex = row.index;
                     const columnId = column.id;
+                    // const absoluteRowIndex = rowIndex + currentPage * ITEMS_PER_PAGE;
                     const error = csvErrors.find(
                         (error) =>
-                            error.path[0] === rowIndex && error.path[1] === header.column_name,
+                            error.path[0] === rowIndex + currentPage * ITEMS_PER_PAGE &&
+                            error.path[1] === header.column_name,
                     );
                     const value = getValue() as string;
                     const isCurrentlyEditing =
@@ -151,16 +172,51 @@ export const createEditableBulkUploadColumns = ({
 
                     // Render editable cell if in edit mode
                     if (isEditing && isCurrentlyEditing) {
+                        // For gender type fields, render a dropdown
+                        if (header.type === "gender") {
+                            return (
+                                <Select
+                                    defaultValue={value?.toUpperCase()}
+                                    onValueChange={(newValue) =>
+                                        handleCellEdit(
+                                            rowIndex,
+                                            columnId,
+                                            newValue,
+                                            currentPage,
+                                            ITEMS_PER_PAGE,
+                                        )
+                                    }
+                                >
+                                    <SelectTrigger className={error ? "border-danger-500" : ""}>
+                                        <SelectValue placeholder="Select gender" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {["MALE", "FEMALE", "OTHERS"].map((option) => (
+                                            <SelectItem key={option} value={option}>
+                                                {option}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            );
+                        }
+
                         // For enum type fields, render a dropdown
                         if (header.type === "enum" && header.options && header.options.length > 0) {
                             return (
                                 <Select
                                     defaultValue={value}
                                     onValueChange={(newValue) =>
-                                        handleCellEdit(rowIndex, columnId, newValue)
+                                        handleCellEdit(
+                                            rowIndex,
+                                            columnId,
+                                            newValue,
+                                            currentPage,
+                                            ITEMS_PER_PAGE,
+                                        )
                                     }
                                 >
-                                    <SelectTrigger>
+                                    <SelectTrigger className={error ? "border-danger-500" : ""}>
                                         <SelectValue placeholder="Select an option" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -179,44 +235,43 @@ export const createEditableBulkUploadColumns = ({
                             <Input
                                 autoFocus
                                 defaultValue={value}
+                                className={cn(error ? "border-danger-500" : "")}
                                 onChange={(e) => e.stopPropagation()}
-                                onBlur={(e) => handleCellEdit(rowIndex, columnId, e.target.value)}
+                                onBlur={(e) =>
+                                    handleCellEdit(
+                                        rowIndex,
+                                        columnId,
+                                        e.target.value,
+                                        currentPage,
+                                        ITEMS_PER_PAGE,
+                                    )
+                                }
                                 onKeyDown={(e) => {
                                     if (e.key === "Enter") {
                                         handleCellEdit(
                                             rowIndex,
                                             columnId,
                                             (e.target as HTMLInputElement).value,
+                                            currentPage,
+                                            ITEMS_PER_PAGE,
                                         );
                                     }
                                 }}
-                                onClick={(e) => e.stopPropagation()}
                             />
                         );
                     }
 
-                    // Otherwise, render the cell normally with double-click support
+                    // Render non-editable cell
                     return (
                         <div
                             className={cn(
-                                "relative py-2",
-                                error && "bg-danger-50",
-                                isEditing && "cursor-pointer hover:bg-primary-50",
+                                "cursor-pointer truncate",
+                                error ? "text-danger-500" : "text-neutral-900",
+                                isEditing && "hover:bg-neutral-100",
                             )}
-                            onDoubleClick={() => isEditing && onCellClick(rowIndex, columnId)}
+                            onClick={() => onCellClick(rowIndex, columnId)}
                         >
-                            <div
-                                className={cn(
-                                    "max-w-[180px] overflow-hidden overflow-ellipsis whitespace-nowrap",
-                                    error &&
-                                        "border-b border-dashed border-danger-500 text-danger-700",
-                                )}
-                            >
-                                {value}
-                                {error && (
-                                    <Warning className="ml-1 inline h-4 w-4 text-danger-500" />
-                                )}
-                            </div>
+                            {header.type === "gender" && value ? value.toUpperCase() : value}
                         </div>
                     );
                 },

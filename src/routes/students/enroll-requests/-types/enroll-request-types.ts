@@ -1,12 +1,4 @@
-import { StudentTable } from "@/types/student-table-types";
 import { LearnerInvitationType } from "../../invite/-types/create-invitation-types";
-
-export interface LearnerEnrollRequestType {
-    invite_link_name: string;
-    invite_link: string;
-    request_time: string;
-    learner: StudentTable;
-}
 
 export interface FilterRequestType {
     status: string[];

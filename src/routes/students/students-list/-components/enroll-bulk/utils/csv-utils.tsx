@@ -106,10 +106,31 @@ export const validateCsvData = (
                 const processedData = results.data.map((row, rowIndex) => {
                     const processedRow: SchemaFields = { ...row };
 
+                    // Check if row is empty (all fields are empty)
+                    const isRowEmpty = headers.every((header) => {
+                        const value = row[header.column_name];
+                        return !value || (typeof value === "string" && value.trim() === "");
+                    });
+
+                    // Skip validation for empty rows
+                    if (isRowEmpty) {
+                        return processedRow;
+                    }
+
                     // Validate each field according to its type and constraints
                     headers.forEach((header) => {
                         const fieldName = header.column_name;
                         const value = row[fieldName] as string;
+
+                        // Convert gender values to uppercase during initial load
+                        if (header.type === "gender" && value) {
+                            processedRow[fieldName] = value.toUpperCase();
+                        }
+
+                        // Wrap ADDRESS_LINE values in inverted commas
+                        if (fieldName === "ADDRESS_LINE" && value) {
+                            processedRow[fieldName] = `"${value}"`;
+                        }
 
                         // Determine if field is optional based on both schema and user settings
                         const isOptional =
@@ -140,6 +161,26 @@ export const validateCsvData = (
 
                         // If field has a value, validate according to type
                         if (value) {
+                            if (header.type === "gender") {
+                                const upperCaseValue = value.toUpperCase();
+                                const validOptions = header.options ||
+                                    header.sample_values || ["MALE", "FEMALE", "OTHERS"];
+                                if (validOptions && !validOptions.includes(upperCaseValue)) {
+                                    allErrors.push({
+                                        path: [rowIndex, fieldName],
+                                        message: `Invalid value for ${fieldName.replace(
+                                            /_/g,
+                                            " ",
+                                        )}`,
+                                        resolution: `Value must be one of: ${validOptions.join(
+                                            ", ",
+                                        )}`,
+                                        currentVal: value,
+                                        format: validOptions.join(", "),
+                                    });
+                                }
+                            }
+
                             // Enum validation
                             if (
                                 header.type === "enum" &&

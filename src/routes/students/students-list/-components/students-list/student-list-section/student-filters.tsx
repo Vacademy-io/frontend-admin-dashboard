@@ -4,10 +4,16 @@ import { Export } from "@phosphor-icons/react";
 import { Filters } from "./myFilter";
 import { StudentSearchBox } from "../../../../../../components/common/student-search-box";
 import { StudentFiltersProps } from "@/routes/students/students-list/-types/students-list-types";
-import { useMemo } from "react";
-import { SessionDropdown } from "../../../../../../components/common/session-dropdown";
+import { useMemo, useRef, useState } from "react";
 import { exportStudentsCsv } from "../../../-services/exportStudentsCsv";
 import { exportAccountDetails } from "../../../-services/exportAccountDetails";
+import { MyDropdown } from "@/components/common/students/enroll-manually/dropdownForPackageItems";
+import { Plus } from "phosphor-react";
+import { AddSessionDialog } from "@/routes/study-library/session/-components/session-operations/add-session/add-session-dialog";
+import { useAddSession } from "@/services/study-library/session-management/addSession";
+import { AddSessionDataType } from "@/routes/study-library/session/-components/session-operations/add-session/add-session-form";
+import { toast } from "sonner";
+import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 
 export const StudentFilters = ({
     currentSession,
@@ -26,7 +32,70 @@ export const StudentFilters = ({
     onClearFilters,
     totalElements,
     appliedFilters,
+    sessionList,
 }: StudentFiltersProps) => {
+    const [isAddSessionDiaogOpen, setIsAddSessionDiaogOpen] = useState(false);
+    const handleOpenAddSessionDialog = () => {
+        if (!instituteDetails?.batches_for_sessions.length) return;
+        setIsAddSessionDiaogOpen(!isAddSessionDiaogOpen);
+    };
+    const addSessionMutation = useAddSession();
+    const [disableAddButton, setDisableAddButton] = useState(true);
+    const {instituteDetails} = useInstituteDetailsStore();
+
+
+    const handleAddSession = (sessionData: AddSessionDataType) => {
+        const processedData = structuredClone(sessionData);
+
+        const transformedData = {
+            ...processedData,
+            levels: processedData.levels.map((level) => ({
+                id: level.level_dto.id,
+                new_level: level.level_dto.new_level === true,
+                level_name: level.level_dto.level_name,
+                duration_in_days: level.level_dto.duration_in_days,
+                thumbnail_file_id: level.level_dto.thumbnail_file_id,
+                package_id: level.level_dto.package_id,
+            })),
+        };
+
+        // Use type assertion since we know this is the correct format for the API
+        addSessionMutation.mutate(
+            { requestData: transformedData as unknown as AddSessionDataType },
+            {
+                onSuccess: () => {
+                    toast.success("Session added successfully");
+                    setIsAddSessionDiaogOpen(false);
+                },
+                onError: (error) => {
+                    toast.error(error.message || "Failed to add session");
+                },
+            },
+        );
+    };
+
+    const formSubmitRef = useRef(() => {});
+
+    const submitButton = (
+        <div className="flex items-center justify-end">
+            <MyButton
+                type="submit"
+                buttonType="primary"
+                layoutVariant="default"
+                scale="large"
+                className="w-[140px]"
+                disable={disableAddButton}
+                onClick={() => formSubmitRef.current()}
+            >
+                Add
+            </MyButton>
+        </div>
+    );
+
+    const submitFn = (fn: () => void) => {
+        formSubmitRef.current = fn;
+    };
+
     const isFilterActive = useMemo(() => {
         return getActiveFiltersState();
     }, [columnFilters, searchFilter]);
@@ -43,11 +112,31 @@ export const StudentFilters = ({
         <div className="flex items-start justify-between gap-4">
             <div className="flex w-full flex-col gap-3" id="organize">
                 <div className="flex w-full justify-between">
-                    <SessionDropdown
-                        sessionDirection="flex-row"
-                        defaultSession={currentSession}
-                        onSessionChange={onSessionChange}
-                    />
+                    {sessionList.length==0 ?
+                        <AddSessionDialog
+                            isAddSessionDiaogOpen={isAddSessionDiaogOpen}
+                            handleOpenAddSessionDialog={handleOpenAddSessionDialog}
+                            handleSubmit={handleAddSession}
+                            trigger={
+                                <div className="flex flex-col items-center">
+                                    <MyButton buttonType="text" className="text-primary-500 disabled:text-primary-300" disable={!instituteDetails?.batches_for_sessions.length}>
+                                        <Plus /> Add New Session
+                                    </MyButton>
+                                    {!instituteDetails?.batches_for_sessions.length && <p className="text-[12px] text-neutral-400 -mt-2">(Create a course first)</p>}
+                                </div>
+                            }
+                            submitButton={submitButton}
+                            setDisableAddButton={setDisableAddButton}
+                            submitFn={submitFn}
+                        />
+                    :
+                        <MyDropdown
+                            currentValue={currentSession}
+                            dropdownList={sessionList}
+                            placeholder="Select Session"
+                            handleChange={onSessionChange}
+                        />
+                    }
                     <div className="flex items-center gap-4">
                         <MyButton
                             scale="large"
@@ -88,6 +177,7 @@ export const StudentFilters = ({
                             }}
                             onFilterChange={(values) => onFilterChange(filter.id, values)}
                             clearFilters={clearFilters}
+                            id={filter.id}
                         />
                     ))}
 

@@ -7,10 +7,12 @@ import {
     ADD_UPDATE_DOCUMENT_SLIDE,
     UPDATE_SLIDE_STATUS,
     UPDATE_SLIDE_ORDER,
+    UPDATE_QUESTION_ORDER,
 } from "@/constants/urls";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { TokenKey } from "@/constants/auth/tokens";
 import { useContentStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store";
+import { SlideQuestionsDataInterface } from "@/types/study-library/study-library-slides-type";
 
 export interface Slide {
     slide_title: string | null;
@@ -171,6 +173,23 @@ export const useSlides = (chapterId: string) => {
         },
     });
 
+    const updateQuestionSlideMutation = useMutation({
+        mutationFn: async (payload: SlideQuestionsDataInterface) => {
+            const response = await authenticatedAxiosInstance.post(
+                `${UPDATE_QUESTION_ORDER}?chapterId=${chapterId}`,
+                payload,
+            );
+            return response.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["slides"] });
+            queryClient.invalidateQueries({ queryKey: ["GET_MODULES_WITH_CHAPTERS"] });
+            queryClient.invalidateQueries({ queryKey: ["GET_INIT_INSTITUTE"] });
+            queryClient.invalidateQueries({ queryKey: ["GET_STUDENT_SUBJECTS_PROGRESS"] });
+            queryClient.invalidateQueries({ queryKey: ["GET_STUDENT_SLIDES_PROGRESS"] });
+        },
+    });
+
     return {
         slides: getSlidesQuery.data,
         isLoading: getSlidesQuery.isLoading,
@@ -179,9 +198,11 @@ export const useSlides = (chapterId: string) => {
         addUpdateDocumentSlide: addUpdateDocumentSlideMutation.mutateAsync,
         updateSlideStatus: updateSlideStatus.mutateAsync,
         updateSlideOrder: updateSlideOrderMutation.mutateAsync,
+        updateQuestionOrder: updateQuestionSlideMutation.mutateAsync,
         isUpdating:
             addUpdateVideoSlideMutation.isPending ||
             addUpdateDocumentSlideMutation.isPending ||
-            updateSlideOrderMutation.isPending,
+            updateSlideOrderMutation.isPending ||
+            updateQuestionSlideMutation.isPending,
     };
 };

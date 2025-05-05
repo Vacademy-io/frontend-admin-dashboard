@@ -2,8 +2,13 @@ import { MyButton } from "@/components/design-system/button";
 import { Share } from "@phosphor-icons/react";
 import { EnrollBulkDialog } from "./enroll-bulk-dialog";
 import { MyDialog } from "@/components/design-system/dialog";
+import { useState } from "react";
 
 export const EnrollBulkButton = () => {
+    const [isOpen, setIsOpen] = useState(false);
+
+    const handleOpenChange = (open: boolean) => setIsOpen(open);
+
     const bulkTrigger = (
         <MyButton buttonType="primary" scale="large" layoutVariant="default">
             <span>
@@ -14,20 +19,13 @@ export const EnrollBulkButton = () => {
     );
 
     return (
-        // <Dialog>
-        //     <DialogTrigger>
-        // <MyButton buttonType="primary" scale="large" layoutVariant="default">
-        //     <span>
-        //         <Share />
-        //     </span>
-        //     Enroll in Bulk
-        //  </MyButton>
-        //     </DialogTrigger>
-        //     <DialogContent className="w-[400px] max-w-[800px] p-0 font-normal">
-        //         <EnrollBulkDialog />
-        //     </DialogContent>
-        // </Dialog>
-        <MyDialog heading="Enroll in Bulk" trigger={bulkTrigger}>
+        <MyDialog
+            heading="Enroll in Bulk"
+            trigger={bulkTrigger}
+            dialogId="enroll-bulk-dialog"
+            onOpenChange={handleOpenChange}
+            open={isOpen}
+        >
             <EnrollBulkDialog />
         </MyDialog>
     );
