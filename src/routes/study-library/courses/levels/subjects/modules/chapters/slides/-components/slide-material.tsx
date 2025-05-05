@@ -206,7 +206,21 @@ export const SlideMaterial = ({
         setIsOpen: Dispatch<SetStateAction<boolean>>,
         notify: boolean,
     ) => {
-        const status = "PUBLISHED";
+        if (activeItem?.source_type === "QUESTION") {
+            const questionsData: UploadQuestionPaperFormType = JSON.parse(
+                activeItem.document_data!,
+            );
+            // need to add my question logic
+            const convertedData = convertToSlideFormat(questionsData, "PUBLISHED");
+            try {
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-expect-error
+                await updateQuestionOrder(convertedData!);
+            } catch {
+                toast.error("error saving slide");
+            }
+            return;
+        }
         if (activeItem?.source_type == "DOCUMENT") {
             if (activeItem.document_type == "DOC") SaveDraft();
             const publishedData = activeItem.document_data;
@@ -269,6 +283,21 @@ export const SlideMaterial = ({
         notify: boolean,
     ) => {
         const status = "DRAFT";
+        if (activeItem?.source_type === "QUESTION") {
+            const questionsData: UploadQuestionPaperFormType = JSON.parse(
+                activeItem.document_data!,
+            );
+            // need to add my question logic
+            const convertedData = convertToSlideFormat(questionsData, status);
+            try {
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-expect-error
+                await updateQuestionOrder(convertedData!);
+            } catch {
+                toast.error("error saving slide");
+            }
+            return;
+        }
         if (activeItem?.source_type == "DOCUMENT") {
             if (activeItem.document_type == "DOC") SaveDraft();
             const draftData = activeItem.document_data;
@@ -337,12 +366,19 @@ export const SlideMaterial = ({
     // Modified SaveDraft function
     const SaveDraft = async (slideToSave?: Slide | null) => {
         const slide = slideToSave ? slideToSave : activeItem;
+        const status = slide
+            ? slide.status == "PUBLISHED"
+                ? "UNSYNC"
+                : slide.status == "UNSYNC"
+                  ? "UNSYNC"
+                  : "DRAFT"
+            : "DRAFT";
         if (activeItem?.source_type === "QUESTION") {
             const questionsData: UploadQuestionPaperFormType = JSON.parse(
                 activeItem.document_data!,
             );
             // need to add my question logic
-            const convertedData = convertToSlideFormat(questionsData);
+            const convertedData = convertToSlideFormat(questionsData, status);
             try {
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-expect-error
@@ -354,14 +390,6 @@ export const SlideMaterial = ({
         }
 
         const currentHtml = getCurrentEditorHTMLContent();
-
-        const status = slide
-            ? slide.status == "PUBLISHED"
-                ? "UNSYNC"
-                : slide.status == "UNSYNC"
-                  ? "UNSYNC"
-                  : "DRAFT"
-            : "DRAFT";
 
         try {
             await addUpdateDocumentSlide({
