@@ -1,5 +1,7 @@
-import SlidesEditorComponent from "@/components/common/slides/SlideEditorComponent";
 import { createFileRoute } from "@tanstack/react-router"
+import { lazy, Suspense } from "react";
+
+const SlidesEditorComponent = lazy(() => import("@/components/common/slides/SlideEditorComponent"));
 
 interface AddPresentParams {
   title: string;
@@ -7,6 +9,7 @@ interface AddPresentParams {
   id: string;
   isEdit: boolean;
 }
+
 export const Route = createFileRoute("/study-library/present/add/")({
   component: RouteComponent,
   validateSearch: (search: Record<string, unknown>): AddPresentParams => {
@@ -21,6 +24,14 @@ export const Route = createFileRoute("/study-library/present/add/")({
 
 function RouteComponent() {
   const { title = "", description = "", id, isEdit } = Route.useSearch();
-  return <SlidesEditorComponent metaData={{ title, description }} presentationId={id} isEdit={isEdit} />;
-}
 
+  return (
+    <Suspense fallback={<div>Loading editor...</div>}>
+      <SlidesEditorComponent
+        metaData={{ title, description }}
+        presentationId={id}
+        isEdit={isEdit}
+      />
+    </Suspense>
+  );
+}
