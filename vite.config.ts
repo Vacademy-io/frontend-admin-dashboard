@@ -10,10 +10,23 @@ import svgr from "vite-plugin-svgr";
 export default defineConfig({
     plugins: [react(), tsconfigPaths(), TanStackRouterVite(), svgr({ include: "**/*.svg" })],
     // plugins: [react(), tsconfigPaths(), svgr({ include: "**/*.svg" })],
+
+    build: {
+        rollupOptions: {
+          output: {
+            manualChunks: {
+              // Group vendor dependencies
+              vendor: ['react', 'react-dom', 'react-router-dom'],
+              // Group large libraries separately
+              pdfjs: ['pdfjs-dist', 'pdf-lib'],
+            
+              // Add other large dependencies here
+            }
+          }
+        }},
     resolve: {
         alias: {
        
-    
             "@": path.resolve(__dirname, "./src"),
        
         },
