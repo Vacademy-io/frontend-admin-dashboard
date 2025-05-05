@@ -176,7 +176,7 @@ export const useSlides = (chapterId: string) => {
     const updateQuestionSlideMutation = useMutation({
         mutationFn: async (payload: SlideQuestionsDataInterface) => {
             const response = await authenticatedAxiosInstance.post(
-                `${UPDATE_QUESTION_ORDER}?chapterId=${chapterId}`,
+                `${UPDATE_QUESTION_ORDER}?chapterId=${chapterId}&instituteId=${INSTITUTE_ID}`,
                 payload,
             );
             return response.data;
