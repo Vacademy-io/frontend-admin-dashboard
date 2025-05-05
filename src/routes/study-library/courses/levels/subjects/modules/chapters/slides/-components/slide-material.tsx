@@ -7,7 +7,6 @@ import { ActivityStatsSidebar } from "./stats-dialog/activity-sidebar";
 import { useContentStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store";
 import { EmptySlideMaterial } from "@/assets/svgs";
 import { useState } from "react";
-import YouTubePlayer from "./youtube-player";
 import { html } from "@yoopta/exports";
 import { SlidesMenuOption } from "./slides-menu-options/slides-menu-option";
 import { plugins, TOOLS, MARKS } from "@/constants/study-library/yoopta-editor-plugins-tools";
@@ -26,6 +25,7 @@ import { convertHtmlToPdf, convertToSlideFormat } from "../-helper/helper";
 import { StudyLibraryQuestionsPreview } from "./questions-preview";
 import { UploadQuestionPaperFormType } from "@/routes/assessment/question-papers/-components/QuestionPaperUpload";
 import StudyLibraryAssignmentPreview from "./assignment-preview";
+import VideoSlidePreview from "./video-slide-preview";
 
 export const formatHTMLString = (htmlString: string) => {
     // Remove the body tag and its attributes
@@ -170,53 +170,7 @@ export const SlideMaterial = ({
             );
             return;
         } else if (activeItem.source_type == "VIDEO") {
-            const videoURL =
-                (activeItem.status == "PUBLISHED"
-                    ? activeItem.published_url
-                    : activeItem.video_url) || "";
-            // TODO : add drive video upload functionality when drive video is handled at the students portal side
-            // if (videoURL.includes("drive")) {
-            //     if (videoURL.includes("drive")) {
-            //         const videoId = videoURL.match(/\/d\/(.+?)\//)?.[1];
-            //         const embedUrl = videoId
-            //             ? `https://drive.google.com/file/d/${videoId}/preview`
-            //             : null;
-
-            //         console.log(embedUrl);
-
-            //         setContent(
-            //             embedUrl ? (
-            //                 <div
-            //                     key={`video-${activeItem.slide_id}`}
-            //                     className="relative max-h-[80vh] w-full"
-            //                 >
-            //                     <div className="relative aspect-[16/9] max-h-[80vh] w-full">
-            //                         <iframe
-            //                             key={`drive-video-${activeItem.slide_id}`}
-            //                             src={embedUrl}
-            //                             className="absolute inset-0 h-full w-full"
-            //                             allow="autoplay"
-            //                             allowFullScreen
-            //                         />
-            //                     </div>
-            //                 </div>
-            //             ) : (
-            //                 <div>Unable to load the video. Ensure it is publicly accessible.</div>
-            //             ),
-            //         );
-            //     }
-            // } else {
-            //     setContent(
-            //         <div key={`video-${activeItem.slide_id}`} className="size-full">
-            //             <YouTubePlayer videoUrl={videoURL} videoTitle={activeItem.video_title} />
-            //         </div>,
-            //     );
-            // }
-            setContent(
-                <div key={`video-${activeItem.slide_id}`} className="size-full">
-                    <YouTubePlayer videoUrl={videoURL} videoTitle={activeItem.video_title} />
-                </div>,
-            );
+            setContent(<VideoSlidePreview activeItem={activeItem} />);
             return;
         } else if (activeItem.source_type == "DOCUMENT" && activeItem.document_type == "PDF") {
             const url = await getPublicUrl(
@@ -240,9 +194,7 @@ export const SlideMaterial = ({
         } else if (activeItem.source_type == "QUESTION") {
             setContent(<StudyLibraryQuestionsPreview activeItem={activeItem} />);
             return;
-        }
-
-        else if (activeItem.source_type == "ASSIGNMENT") {
+        } else if (activeItem.source_type == "ASSIGNMENT") {
             setContent(<StudyLibraryAssignmentPreview activeItem={activeItem} />);
             return;
         }
@@ -254,7 +206,21 @@ export const SlideMaterial = ({
         setIsOpen: Dispatch<SetStateAction<boolean>>,
         notify: boolean,
     ) => {
-        const status = "PUBLISHED";
+        if (activeItem?.source_type === "QUESTION") {
+            const questionsData: UploadQuestionPaperFormType = JSON.parse(
+                activeItem.document_data!,
+            );
+            // need to add my question logic
+            const convertedData = convertToSlideFormat(questionsData, "PUBLISHED");
+            try {
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-expect-error
+                await updateQuestionOrder(convertedData!);
+            } catch {
+                toast.error("error saving slide");
+            }
+            return;
+        }
         if (activeItem?.source_type == "DOCUMENT") {
             if (activeItem.document_type == "DOC") SaveDraft();
             const publishedData = activeItem.document_data;
@@ -317,6 +283,21 @@ export const SlideMaterial = ({
         notify: boolean,
     ) => {
         const status = "DRAFT";
+        if (activeItem?.source_type === "QUESTION") {
+            const questionsData: UploadQuestionPaperFormType = JSON.parse(
+                activeItem.document_data!,
+            );
+            // need to add my question logic
+            const convertedData = convertToSlideFormat(questionsData, status);
+            try {
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-expect-error
+                await updateQuestionOrder(convertedData!);
+            } catch {
+                toast.error("error saving slide");
+            }
+            return;
+        }
         if (activeItem?.source_type == "DOCUMENT") {
             if (activeItem.document_type == "DOC") SaveDraft();
             const draftData = activeItem.document_data;
@@ -385,12 +366,19 @@ export const SlideMaterial = ({
     // Modified SaveDraft function
     const SaveDraft = async (slideToSave?: Slide | null) => {
         const slide = slideToSave ? slideToSave : activeItem;
+        const status = slide
+            ? slide.status == "PUBLISHED"
+                ? "UNSYNC"
+                : slide.status == "UNSYNC"
+                  ? "UNSYNC"
+                  : "DRAFT"
+            : "DRAFT";
         if (activeItem?.source_type === "QUESTION") {
             const questionsData: UploadQuestionPaperFormType = JSON.parse(
                 activeItem.document_data!,
             );
             // need to add my question logic
-            const convertedData = convertToSlideFormat(questionsData);
+            const convertedData = convertToSlideFormat(questionsData, status);
             try {
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-expect-error
@@ -402,14 +390,6 @@ export const SlideMaterial = ({
         }
 
         const currentHtml = getCurrentEditorHTMLContent();
-
-        const status = slide
-            ? slide.status == "PUBLISHED"
-                ? "UNSYNC"
-                : slide.status == "UNSYNC"
-                  ? "UNSYNC"
-                  : "DRAFT"
-            : "DRAFT";
 
         try {
             await addUpdateDocumentSlide({

@@ -23,6 +23,6 @@ export const useModulesWithChaptersQuery = (subjectId: string, packageSessionId:
             setModulesData(data);
             return data;
         },
-        staleTime: 3600000,
+        staleTime: 0,
     };
 };

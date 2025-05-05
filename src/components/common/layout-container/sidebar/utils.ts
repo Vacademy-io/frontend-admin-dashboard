@@ -40,6 +40,7 @@ export const SidebarItemsData: SidebarItemsType[] = [
             },
         ],
     },
+
     {
         icon: BookOpen,
         title: "Learning Center",
@@ -56,6 +57,10 @@ export const SidebarItemsData: SidebarItemsType[] = [
             {
                 subItem: "Reports",
                 subItemLink: "/study-library/reports",
+            },
+            {
+                subItem: "Presentation",
+                subItemLink: "/study-library/present",
             },
         ],
     },

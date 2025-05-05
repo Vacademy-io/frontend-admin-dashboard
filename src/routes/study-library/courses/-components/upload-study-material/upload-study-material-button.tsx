@@ -3,13 +3,15 @@ import { MyButton } from "@/components/design-system/button";
 import { BookOpenText } from "@phosphor-icons/react";
 import { useState } from "react";
 import { StudyMaterialDetailsForm } from "./study-material-details-form";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useRouter } from "@tanstack/react-router";
 import { useDialogStore } from "@/routes/study-library/courses/-stores/slide-add-dialogs-store";
 
 export const UploadStudyMaterialButton = () => {
     const [openDialog, setOpenDialog] = useState(false);
     const navigate = useNavigate();
     const { openDocUploadDialog, openPdfDialog, openVideoDialog } = useDialogStore();
+    const router = useRouter();
+    const { sessionId } = router.state.location.search;
 
     const handleOpenChange = () => {
         setOpenDialog(!openDialog);
@@ -41,6 +43,7 @@ export const UploadStudyMaterialButton = () => {
                 moduleId: data.module?.id || "",
                 chapterId: data.chapter?.id || "",
                 slideId: "",
+                sessionId: sessionId || "",
             },
         });
 

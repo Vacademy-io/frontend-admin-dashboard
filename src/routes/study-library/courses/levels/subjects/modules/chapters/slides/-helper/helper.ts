@@ -198,7 +198,7 @@ export function updateDocumentDataInSlides<T>(
     });
 }
 
-export function convertToSlideFormat(question: UploadQuestionPaperFormType) {
+export function convertToSlideFormat(question: UploadQuestionPaperFormType, status: string) {
     const questionsData = question.questions[0];
     if (!questionsData) return;
     const generateTextBlock = (content: string | null | undefined) => ({
@@ -323,28 +323,10 @@ export function convertToSlideFormat(question: UploadQuestionPaperFormType) {
         title: "",
         image_file_id: "",
         description: "",
-        status: "DRAFT",
+        status: status,
         slide_order: 0,
-        video_slide: {
-            id: "",
-            description: "",
-            title: "",
-            url: "",
-            video_length_in_millis: 0,
-            published_url: "",
-            published_video_length_in_millis: 0,
-            source_type: "",
-        },
-        document_slide: {
-            id: "",
-            type: "",
-            data: "",
-            title: "",
-            cover_file_id: "",
-            total_pages: 0,
-            published_data: "",
-            published_document_total_pages: 0,
-        },
+        video_slide: null,
+        document_slide: null,
         question_slide: {
             id: crypto.randomUUID(),
             parent_rich_text: generateTextBlock(questionsData?.parentRichTextContent),
@@ -361,30 +343,20 @@ export function convertToSlideFormat(question: UploadQuestionPaperFormType) {
             points: questionsData.questionPoints || "",
             options: options?.map((opt) => ({
                 id: opt.id,
-                questionSlideId: "",
+                question_slide_id: "",
                 text: generateTextBlock(opt.text.content),
-                explanationTextData: generateTextBlock(opt.explanation_text.content),
+                explanation_text_data: generateTextBlock(opt.explanation_text.content),
                 mediaId: "",
             })),
         },
-        assignment_slide: {
-            id: "",
-            parentRichText: {
-                id: "",
-                type: "",
-                content: "",
-            },
-            textData: {
-                id: "",
-                type: "",
-                content: "",
-            },
-            liveDate: "",
-            endDate: "",
-            reAttemptCount: 0,
-            commaSeparatedMediaIds: "",
-        },
+        assignment_slide: null,
         is_loaded: true,
         new_slide: true,
     };
+}
+
+export function timestampToSeconds(timestamp: string | undefined): number {
+    if (!timestamp) return 0;
+    const [hours = 0, minutes = 0, seconds = 0] = timestamp.split(":").map(Number);
+    return hours * 3600 + minutes * 60 + seconds;
 }

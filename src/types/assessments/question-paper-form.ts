@@ -37,6 +37,7 @@ export interface MyQuestion {
     numericType?: string;
     parentRichTextContent?: string | null;
     subjectiveAnswerText?: string;
+    timestamp?: string;
     // optionsJson: string | null; //Array for numerical answers
 }
 

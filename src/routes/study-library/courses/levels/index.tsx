@@ -14,6 +14,7 @@ import {
 import { getCourseSessions } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSessionsForLevels";
 import { getCourseNameById } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getCourseNameById";
 import { getCourseLevels } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getLevelWithDetails";
+import { getCourses } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getCourses";
 
 interface CourseSearchParams {
     courseId: string;
@@ -45,9 +46,12 @@ function RouteComponent() {
 
     const courseName = getCourseNameById(courseId);
 
+    const [courses, setCourses] = useState(getCourses());
+
     useEffect(() => {
         const newLevelList = initialSession ? getCourseLevels(courseId!, initialSession.id) : [];
         setLevelList(newLevelList);
+        setCourses(getCourses());
     }, [studyLibraryData]);
 
     if (levelList[0]?.id == "DEFAULT") {
@@ -78,7 +82,16 @@ function RouteComponent() {
     }, []);
 
     return (
-        <LayoutContainer>
+        <LayoutContainer
+            internalSideBar
+            sideBarList={courses.map((course) => {
+                return {
+                    value: course.package_name,
+                    id: course.id,
+                };
+            })}
+            sideBarData={{ title: "Courses", listIconText: "C", searchParam: "courseId" }}
+        >
             <InitStudyLibraryProvider>
                 <LevelPage />
             </InitStudyLibraryProvider>

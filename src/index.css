@@ -397,3 +397,39 @@ html {
         @apply bg-background text-foreground;
     }
 }
+
+.App-menu_top{
+    position: fixed  !important;
+    top: 10;
+    left: 0;
+}
+.toolbar{
+    display: none !important;
+}
+.sidebar-trigger__label-element{
+    display: none !important;
+  
+}
+/* .App-toolbar{
+    background-color: hsl(var(--primary-100)) !important;
+} */
+
+.HintViewer{
+    display: none !important;
+}
+/* .Island{
+    background-color: hsl(var(--primary-100)) !important;
+} */
+
+.zoom-actions{
+    display: none !important;
+}
+
+.buttonList{
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 4px !important;
+}
+.App-menu__left{
+    max-width: 80vw !important;
+}

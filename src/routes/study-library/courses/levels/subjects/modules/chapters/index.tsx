@@ -17,6 +17,7 @@ interface ModulesSearchParams {
     levelId: string;
     subjectId: string;
     moduleId: string;
+    sessionId: string;
 }
 
 export const Route = createFileRoute("/study-library/courses/levels/subjects/modules/chapters/")({
@@ -27,13 +28,14 @@ export const Route = createFileRoute("/study-library/courses/levels/subjects/mod
             levelId: search.levelId as string,
             subjectId: search.subjectId as string,
             moduleId: search.moduleId as string,
+            sessionId: search.sessionId as string,
         };
     },
 });
 
 function RouteComponent() {
     const navigate = useNavigate();
-    const { courseId, levelId, subjectId, moduleId } = Route.useSearch();
+    const { courseId, levelId, subjectId, moduleId, sessionId } = Route.useSearch();
     const [currentModuleId, setCurrentModuleId] = useState(moduleId);
     const { setNavHeading } = useNavHeadingStore();
     const { setActiveItem, setItems } = useContentStore();
@@ -58,6 +60,7 @@ function RouteComponent() {
                 levelId,
                 subjectId,
                 moduleId: currentModuleId,
+                sessionId,
             },
             replace: true,
         });
@@ -72,6 +75,7 @@ function RouteComponent() {
                 courseId,
                 levelId,
                 subjectId,
+                sessionId,
             },
         });
     };
@@ -90,7 +94,8 @@ function RouteComponent() {
 
     return (
         <LayoutContainer
-            sidebarComponent={
+            hasInternalSidebarComponent={true}
+            internalSidebarComponent={
                 <ChapterSidebarComponent
                     currentModuleId={currentModuleId}
                     setCurrentModuleId={setCurrentModuleId}
@@ -98,7 +103,7 @@ function RouteComponent() {
             }
         >
             <InitStudyLibraryProvider>
-                <ModulesWithChaptersProvider subjectId={subjectId}>
+                <ModulesWithChaptersProvider>
                     <ChapterMaterial currentModuleId={currentModuleId} />
                 </ModulesWithChaptersProvider>
             </InitStudyLibraryProvider>
