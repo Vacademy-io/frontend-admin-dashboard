@@ -71,6 +71,9 @@ interface YouTubePlayerProps {
 
 export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
     // Convert formRefData from a ref to useState to trigger re-renders
+    const isAddTimeFrameRef = useRef<HTMLButtonElement | null>(null);
+    const isAddQuestionTypeRef = useRef<HTMLButtonElement | null>(null);
+
     const [formData, setFormData] = useState<UploadQuestionPaperFormType>({
         questionPaperId: "1",
         isFavourite: false,
@@ -88,11 +91,6 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
 
     // Keep ref for compatibility with existing code
     const formRefData = useRef<UploadQuestionPaperFormType>(formData);
-
-    // Update ref whenever state changes
-    useEffect(() => {
-        formRefData.current = formData;
-    }, [formData]);
 
     const videoPlayerTimeFrameForm = useForm<VideoPlayerTimeFormType>({
         resolver: zodResolver(videoPlayerTimeSchema),
@@ -234,6 +232,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
 
         // Handle HH:MM:SS or MM:SS format
         const parts = timestamp.split(":");
+        console.log(parts);
 
         if (parts.length === 3) {
             // HH:MM:SS format
@@ -378,8 +377,11 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
         };
     }, [playerRef.current]);
 
-    const isAddTimeFrameRef = useRef<HTMLButtonElement | null>(null);
-    const isAddQuestionTypeRef = useRef<HTMLButtonElement | null>(null);
+    // Update ref whenever state changes
+    useEffect(() => {
+        formRefData.current = formData;
+    }, [formData]);
+
     return (
         <div className="flex w-full flex-col">
             {/* Video Player Container (preserving your aspect ratio) */}
@@ -406,7 +408,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                     ></div>
 
                     {/* Question Markers */}
-                    {formData.questions.map((question: StudyLibraryQuestion, idx) => (
+                    {formData.questions?.map((question: StudyLibraryQuestion, idx) => (
                         <div
                             key={idx}
                             className="absolute top-0 -ml-1.5 size-3 -translate-y-1/2 cursor-pointer rounded-full bg-red-500"
