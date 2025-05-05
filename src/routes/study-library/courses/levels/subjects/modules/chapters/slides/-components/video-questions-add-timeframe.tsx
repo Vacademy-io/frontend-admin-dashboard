@@ -27,6 +27,7 @@ interface VideoQuestionsTimeFrameDialogProps {
     setFormData: Dispatch<SetStateAction<UploadQuestionPaperFormType>>;
     isAddTimeFrameRef: React.RefObject<HTMLButtonElement>;
     isAddQuestionTypeRef: React.RefObject<HTMLButtonElement>;
+    videoDuration: number;
 }
 
 const VideoQuestionsTimeFrameAddDialog = ({
@@ -43,6 +44,7 @@ const VideoQuestionsTimeFrameAddDialog = ({
     setFormData,
     isAddTimeFrameRef,
     isAddQuestionTypeRef,
+    videoDuration,
 }: VideoQuestionsTimeFrameDialogProps) => {
     return (
         <Dialog>
@@ -187,6 +189,7 @@ const VideoQuestionsTimeFrameAddDialog = ({
                                 setFormData={setFormData}
                                 isAddTimeFrameRef={isAddTimeFrameRef}
                                 isAddQuestionTypeRef={isAddQuestionTypeRef}
+                                videoDuration={videoDuration}
                             />
                         </div>
                     </form>

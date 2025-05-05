@@ -6,11 +6,13 @@ import { questionsFormSchema } from "@/routes/assessment/question-papers/-utils/
 import { useFieldArray, UseFormReturn } from "react-hook-form";
 import { UploadQuestionPaperFormType } from "@/routes/assessment/question-papers/-components/QuestionPaperUpload";
 import { uploadQuestionPaperFormSchema } from "@/routes/assessment/question-papers/-utils/upload-question-paper-form-schema";
-import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogClose, DialogContent } from "@/components/ui/dialog";
 import { MyButton } from "@/components/design-system/button";
-import { Dispatch, MutableRefObject, SetStateAction } from "react";
+import { Dispatch, MutableRefObject, SetStateAction, useState } from "react";
 import { VideoPlayerTimeFormType } from "../../-form-schemas/video-player-time-schema";
 import VideoQuestionDialogAddPreview from "./video-question-dialog-add-preview";
+import { toast } from "sonner";
+import { timestampToSeconds } from "../../-helper/helper";
 
 export interface QuestionTypeProps {
     icon: React.ReactNode; // Accepts an SVG or any React component
@@ -52,6 +54,7 @@ const AddVideoQuestionDialog = ({
     setFormData,
     isAddTimeFrameRef,
     isAddQuestionTypeRef,
+    videoDuration,
 }: {
     addedQuestionForm: UseFormReturn<QuestionPaperForm>;
     videoQuestionForm: UseFormReturn<QuestionPaperForm>;
@@ -65,12 +68,14 @@ const AddVideoQuestionDialog = ({
     setFormData: Dispatch<SetStateAction<UploadQuestionPaperFormType>>;
     isAddTimeFrameRef: React.RefObject<HTMLButtonElement>;
     isAddQuestionTypeRef: React.RefObject<HTMLButtonElement>;
+    videoDuration: number;
 }) => {
     const { append: appendVideoQuestion } = useFieldArray({
         control: videoQuestionForm.control,
         name: "questions", // Name of the field array
     });
 
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
     const { hrs, min, sec } = videoPlayerTimeFrameForm.watch();
     const isButtonDisabled = !hrs && !min && !sec;
 
@@ -129,21 +134,45 @@ const AddVideoQuestionDialog = ({
         setPreviewQuestionDialog(true);
     };
 
+    const handleNextClick = () => {
+        if (handleCheckEligibilityForNext()) {
+            setIsDialogOpen(true);
+        }
+    };
+
+    const handleCheckEligibilityForNext = () => {
+        const timestamp = timestampToSeconds(
+            `${videoPlayerTimeFrameForm.getValues("hrs")}:${videoPlayerTimeFrameForm.getValues(
+                "min",
+            )}:${videoPlayerTimeFrameForm.getValues("sec")}`,
+        );
+        if (timestamp === null || timestamp < 0 || timestamp > videoDuration) {
+            toast.error(
+                "Invalid timestamp. Please enter a valid time in MM:SS format or seconds also current timestamp should be less than video length",
+                {
+                    className: "error-toast",
+                    duration: 3000,
+                },
+            );
+            return false;
+        }
+        return true;
+    };
+
     return (
         <>
-            <Dialog>
-                <DialogTrigger>
-                    <MyButton
-                        type="button"
-                        buttonType="primary"
-                        scale="large"
-                        layoutVariant="default"
-                        className="mr-3"
-                        disable={isButtonDisabled}
-                    >
-                        Next
-                    </MyButton>
-                </DialogTrigger>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <MyButton
+                    type="button"
+                    buttonType="primary"
+                    scale="large"
+                    layoutVariant="default"
+                    className="mr-3"
+                    disable={isButtonDisabled}
+                    onClick={handleNextClick}
+                >
+                    Next
+                </MyButton>
                 <DialogContent className="size-[500px] p-0">
                     <h1 className="rounded-t-lg bg-primary-50 p-4 font-semibold text-primary-500">
                         Add Question

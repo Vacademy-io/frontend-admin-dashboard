@@ -14,6 +14,7 @@ import VideoQuestionsTimeFrameAddDialog from "./video-questions-add-timeframe";
 import VideoQuestionsTimeFrameEditDialog from "./video-questions-edit-timeframe";
 import VideoQuestionDialogEditPreview from "./slides-sidebar/video-question-dialog-edit-preview";
 import { StudyLibraryQuestion } from "@/types/study-library/study-library-video-questions";
+import { timestampToSeconds } from "../-helper/helper";
 
 interface YTPlayer {
     destroy(): void;
@@ -202,12 +203,6 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
         }
     };
 
-    function timestampToSeconds(timestamp: string | undefined): number {
-        if (!timestamp) return 0;
-        const [hours = 0, minutes = 0, seconds = 0] = timestamp.split(":").map(Number);
-        return hours * 3600 + minutes * 60 + seconds;
-    }
-
     const handleTimelineClick = (e: React.MouseEvent<HTMLDivElement>) => {
         if (!playerRef.current || !timelineRef.current) return;
 
@@ -232,7 +227,6 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
 
         // Handle HH:MM:SS or MM:SS format
         const parts = timestamp.split(":");
-        console.log(parts);
 
         if (parts.length === 3) {
             // HH:MM:SS format
@@ -465,16 +459,17 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                     setFormData={setFormData}
                     isAddTimeFrameRef={isAddTimeFrameRef}
                     isAddQuestionTypeRef={isAddQuestionTypeRef}
+                    videoDuration={videoDuration}
                 />
             </div>
 
             {/* Questions List */}
             <div className="mt-4 w-full">
-                {formData.questions.length === 0 ? (
+                {formData.questions?.length === 0 ? (
                     <p className="text-sm italic text-gray-500">No questions added yet.</p>
                 ) : (
                     <ul className="max-h-60 space-y-1 overflow-y-auto">
-                        {formData.questions.map((question, idx) => (
+                        {formData.questions?.map((question, idx) => (
                             <li
                                 key={idx}
                                 className="cursor-pointer rounded-md bg-white p-2 text-sm hover:bg-gray-50"
@@ -492,6 +487,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                                         handleSetCurrentTimeStamp={handleSetCurrentTimeStamp}
                                         question={question}
                                         updateQuestion={updateQuestion} // Pass updateQuestion function
+                                        videoDuration={videoDuration}
                                     />
                                 </div>
                                 <div className="flex items-center justify-between">

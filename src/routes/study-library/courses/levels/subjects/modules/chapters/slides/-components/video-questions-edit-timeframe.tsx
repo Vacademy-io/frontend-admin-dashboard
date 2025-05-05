@@ -3,7 +3,7 @@ import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/
 import { FormProvider, useForm } from "react-hook-form";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
 import { MyInput } from "@/components/design-system/input";
-import { MutableRefObject, useEffect, useRef } from "react";
+import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { UploadQuestionPaperFormType } from "@/routes/assessment/question-papers/-components/QuestionPaperUpload";
 import {
     VideoPlayerTimeFormType,
@@ -12,19 +12,24 @@ import {
 import { PencilSimpleLine } from "phosphor-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { StudyLibraryQuestion } from "@/types/study-library/study-library-video-questions";
+import { toast } from "sonner";
+import { timestampToSeconds } from "../-helper/helper";
 
 interface VideoQuestionsTimeFrameDialogProps {
     formRefData: MutableRefObject<UploadQuestionPaperFormType>;
     handleSetCurrentTimeStamp: () => void;
     question?: StudyLibraryQuestion;
+    videoDuration: number;
 }
 
 const VideoQuestionsTimeFrameEditDialog = ({
     formRefData,
     handleSetCurrentTimeStamp,
     question,
+    videoDuration,
 }: VideoQuestionsTimeFrameDialogProps) => {
     const closeRef = useRef<HTMLButtonElement | null>(null);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
     const form = useForm<VideoPlayerTimeFormType>({
         resolver: zodResolver(videoPlayerTimeSchema),
         defaultValues: {
@@ -38,6 +43,19 @@ const VideoQuestionsTimeFrameEditDialog = ({
 
     const handleEditTimeStampCurrentQuestion = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
+        const timestamp = timestampToSeconds(
+            `${form.getValues("hrs")}:${form.getValues("min")}:${form.getValues("sec")}`,
+        );
+        if (timestamp === null || timestamp < 0 || timestamp > videoDuration) {
+            toast.error(
+                "Invalid timestamp. Please enter a valid time in MM:SS format or seconds also current timestamp should be less than video length",
+                {
+                    className: "error-toast",
+                    duration: 3000,
+                },
+            );
+            return;
+        }
         const currentQuestionIndex = formRefData.current.questions.findIndex(
             (q) => q.questionId === question?.questionId,
         );
@@ -60,7 +78,7 @@ const VideoQuestionsTimeFrameEditDialog = ({
     }, []);
 
     return (
-        <Dialog>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger>
                 <MyButton
                     type="button"
