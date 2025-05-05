@@ -41,4 +41,6 @@ export { default as LongAnswer } from "./longanswer.svg";
 export { default as SingleWord } from "./singleword.svg";
 export { default as CompLongAnswer } from "./clonganswer.svg";
 export { default as CompSingleWord } from "./csingleword.svg";
+export { default as QuzizIcon } from "./quziz.png";
+export { default as feedbackIcon } from "./feedback.png";
 export { default as EvaluatorAI } from "./ai-evaluator.svg";

@@ -17,7 +17,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
     currentQuestionIndex,
     className,
 }: QuestionPaperTemplateFormProps) => {
-    const { control, getValues } = form;
+    const { control, getValues , setValue } = form;
     const answersType = getValues("answersType") || "Answer:";
     const explanationsType = getValues("explanationsType") || "Explanation:";
     const optionsType = getValues("optionsType") || "";
@@ -28,6 +28,24 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
     const option2 = getValues(`questions.${currentQuestionIndex}.multipleChoiceOptions.${1}`);
     const option3 = getValues(`questions.${currentQuestionIndex}.multipleChoiceOptions.${2}`);
     const option4 = getValues(`questions.${currentQuestionIndex}.multipleChoiceOptions.${3}`);
+
+    const handleOptionChange = (optionIndex: number) => {
+        const options = [0, 1, 2, 3];
+
+        // Check current state of the selected option
+        const isCurrentlySelected = getValues(
+            `questions.${currentQuestionIndex}.multipleChoiceOptions.${optionIndex}.isSelected`,
+        );
+
+        options?.forEach((option) => {
+            setValue(
+                `questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.isSelected`,
+                option === optionIndex ? !isCurrentlySelected : false,
+                { shouldDirty: true, shouldValidate: true },
+            );
+        });
+        form.trigger(`questions.${currentQuestionIndex}.multipleChoiceOptions`);
+    };
     const tags = getValues(`questions.${currentQuestionIndex}.tags`) || [];
     const level = getValues(`questions.${currentQuestionIndex}.level`) || "";
 
