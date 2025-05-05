@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import React from "react";
 import { InternalSideBar } from "./internal-sidebar/internalSideBar";
 import { StudentSidebarProvider } from "@/routes/students/students-list/-providers/student-sidebar-provider";
+import { InternalSidebarComponent } from "./internal-sidebar/internalSidebarComponent";
 
 export const LayoutContainer = ({
     children,
@@ -14,6 +15,8 @@ export const LayoutContainer = ({
     internalSideBar = false,
     sideBarList,
     sideBarData,
+    internalSidebarComponent,
+    hasInternalSidebarComponent = false,
 }: {
     children?: React.ReactNode;
     className?: string;
@@ -22,6 +25,8 @@ export const LayoutContainer = ({
     internalSideBar?: boolean;
     sideBarList?: { value: string; id: string }[];
     sideBarData?: { title: string; listIconText: string; searchParam: string };
+    hasInternalSidebarComponent?: boolean;
+    internalSidebarComponent?: React.ReactNode;
 }) => {
     const { open } = useSidebar();
     return (
@@ -30,7 +35,7 @@ export const LayoutContainer = ({
                 <MySidebar sidebarComponent={sidebarComponent} />
             </div>
             <div className="flex h-full flex-1 flex-row">
-                {internalSideBar && (
+                {(hasInternalSidebarComponent && internalSidebarComponent) ? <InternalSidebarComponent sidebarComponent={internalSidebarComponent} /> : internalSideBar && (
                     <InternalSideBar sideBarList={sideBarList} sideBarData={sideBarData} />
                 )}
                 <div className="flex w-full flex-1 flex-col text-neutral-600">
