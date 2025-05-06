@@ -1,19 +1,19 @@
-import { MyButton } from "@/components/design-system/button";
-import { StarFour } from "phosphor-react";
-import { QuestionsFromTextDialog } from "./QuestionsFromTextDialog";
-import { useRef, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { handleGetQuestionsFromText } from "../../../-services/ai-center-service";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { useAICenter } from "../../../-contexts/useAICenterContext";
-import { GetImagesForAITools } from "@/routes/ai-center/-helpers/GetImagesForAITools";
-import { AIToolPageData } from "@/routes/ai-center/-constants/AIToolPageData";
-import { Separator } from "@/components/ui/separator";
-import AITasksList from "@/routes/ai-center/-components/AITasksList";
-import { languageSupport } from "@/constants/dummy-data";
+import { MyButton } from '@/components/design-system/button';
+import { StarFour } from 'phosphor-react';
+import { QuestionsFromTextDialog } from './QuestionsFromTextDialog';
+import { useRef, useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { handleGetQuestionsFromText } from '../../../-services/ai-center-service';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { useAICenter } from '../../../-contexts/useAICenterContext';
+import { GetImagesForAITools } from '@/routes/ai-center/-helpers/GetImagesForAITools';
+import { AIToolPageData } from '@/routes/ai-center/-constants/AIToolPageData';
+import { Separator } from '@/components/ui/separator';
+import AITasksList from '@/routes/ai-center/-components/AITasksList';
+import { languageSupport } from '@/constants/dummy-data';
 
 const formSchema = z.object({
     taskName: z.string().min(1),
@@ -36,12 +36,12 @@ export const GenerateQuestionsFromText = () => {
     const dialogForm = useForm<QuestionsFromTextData>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            taskName: "",
-            text: "",
+            taskName: '',
+            text: '',
             num: undefined,
-            class_level: "",
-            topics: "",
-            question_type: "",
+            class_level: '',
+            topics: '',
+            question_type: '',
             question_language: languageSupport[0],
         },
     });
@@ -74,7 +74,7 @@ export const GenerateQuestionsFromText = () => {
             taskId: string;
         }) => {
             setLoader(true);
-            setKey("text");
+            setKey('text');
             return handleGetQuestionsFromText(
                 data.taskName,
                 data.text,
@@ -83,7 +83,7 @@ export const GenerateQuestionsFromText = () => {
                 data.topics,
                 data.question_type,
                 data.question_language,
-                taskId,
+                taskId
             );
         },
         onSuccess: () => {
@@ -91,7 +91,9 @@ export const GenerateQuestionsFromText = () => {
             setKey(null);
             dialogForm.reset();
             handleOpenChange(false);
-            queryClient.invalidateQueries({ queryKey: ["GET_INDIVIDUAL_AI_LIST_DATA"] });
+            setTimeout(() => {
+                queryClient.invalidateQueries({ queryKey: ['GET_INDIVIDUAL_AI_LIST_DATA'] });
+            }, 100);
         },
         onError: (error: unknown) => {
             console.log(error);
@@ -99,7 +101,7 @@ export const GenerateQuestionsFromText = () => {
     });
 
     const pollGenerateQuestionsFromText = (data: QuestionsFromTextData) => {
-        const taskId = ""; // Generate a unique taskId if needed
+        const taskId = ''; // Generate a unique taskId if needed
         getQuestionsFromTextMutation.mutate({
             data: {
                 taskName: data.taskName,
@@ -130,14 +132,14 @@ export const GenerateQuestionsFromText = () => {
         formSubmitRef.current = submitFn;
     };
 
-    const toolData = AIToolPageData["text"];
+    const toolData = AIToolPageData['text'];
     return (
         <>
             {toolData && (
                 <div className="flex w-full flex-col gap-4 px-8 text-neutral-600">
                     <div className="flex w-fit items-center justify-start gap-2">
                         <div className="flex items-center gap-2 text-h2 font-semibold">
-                            <StarFour size={30} weight="fill" className="text-primary-500" />{" "}
+                            <StarFour size={30} weight="fill" className="text-primary-500" />{' '}
                             {toolData.heading}
                         </div>
                         <AITasksList
@@ -171,7 +173,7 @@ export const GenerateQuestionsFromText = () => {
                         ))}
                     </div>
                     <div>
-                        {loader && keyContext == "text" ? (
+                        {loader && keyContext == 'text' ? (
                             <MyButton
                                 type="button"
                                 scale="medium"
@@ -189,7 +191,7 @@ export const GenerateQuestionsFromText = () => {
                                 layoutVariant="default"
                                 className="text-sm"
                                 onClick={handleUploadClick}
-                                disable={loader && keyContext != "text" && keyContext != ""}
+                                disable={loader && keyContext != 'text' && keyContext != ''}
                             >
                                 Generate
                             </MyButton>
@@ -207,7 +209,7 @@ export const GenerateQuestionsFromText = () => {
                 form={dialogForm}
                 taskId=""
             />
-            {getQuestionsFromTextMutation.status === "success" && (
+            {getQuestionsFromTextMutation.status === 'success' && (
                 <AITasksList heading="Vsmart Topics" enableDialog={true} />
             )}
         </>

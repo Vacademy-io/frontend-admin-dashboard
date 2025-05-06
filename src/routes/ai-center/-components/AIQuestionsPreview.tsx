@@ -1,38 +1,38 @@
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { MyButton } from "@/components/design-system/button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { MyButton } from '@/components/design-system/button';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import {
     AIAssessmentResponseInterface,
     AITaskIndividualListInterface,
-} from "@/types/ai/generate-assessment/generate-complete-assessment";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { handleGetQuestionsInvidualTask, handleRetryAITask } from "../-services/ai-center-service";
-import { useState } from "react";
-import { FormProvider, useFieldArray, useForm } from "react-hook-form";
-import { z } from "zod";
-import { generateCompleteAssessmentFormSchema } from "../-utils/generate-complete-assessment-schema";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { transformQuestionsToGenerateAssessmentAI } from "../-utils/helper";
-import useInstituteLogoStore from "@/components/common/layout-container/sidebar/institutelogo-global-zustand";
-import { Sortable, SortableDragHandle, SortableItem } from "@/components/ui/sortable";
-import { getPPTViewTitle } from "@/routes/assessment/question-papers/-utils/helper";
-import { QuestionType } from "@/constants/dummy-data";
-import { DotsSixVertical } from "phosphor-react";
-import { PPTComponentFactory } from "@/routes/assessment/question-papers/-components/QuestionPaperTemplatesTypes/PPTComponentFactory";
-import { Separator } from "@/components/ui/separator";
-import { MainViewComponentFactory } from "@/routes/assessment/question-papers/-components/QuestionPaperTemplatesTypes/MainViewComponentFactory";
-import ExportQuestionPaperAI from "./export-ai-question-paper/ExportQuestionPaperAI";
-import { toast } from "sonner";
-import { QuestionsFromTextData } from "../ai-tools/vsmart-prompt/-components/GenerateQuestionsFromText";
-import { handleGenerateAssessmentQuestions } from "../-services/ai-center-service";
-import { VsmartUpload } from "./regenerate-dialogs/VsmartUpload";
-import VsmartAudio from "./regenerate-dialogs/VsmartAudio";
-import { VsmartPrompt } from "./regenerate-dialogs/VsmartPrompt";
-import { VsmartExtract } from "./regenerate-dialogs/VsmartExtract";
-import { VsmartImage } from "./regenerate-dialogs/VsmartImage";
-import { VsmartOrganizer } from "./regenerate-dialogs/VsmartOrganizer";
-import { Badge } from "@/components/ui/badge";
-import { AxiosError } from "axios";
+} from '@/types/ai/generate-assessment/generate-complete-assessment';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { handleGetQuestionsInvidualTask, handleRetryAITask } from '../-services/ai-center-service';
+import { useState } from 'react';
+import { FormProvider, useFieldArray, useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { generateCompleteAssessmentFormSchema } from '../-utils/generate-complete-assessment-schema';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { transformQuestionsToGenerateAssessmentAI } from '../-utils/helper';
+import useInstituteLogoStore from '@/components/common/layout-container/sidebar/institutelogo-global-zustand';
+import { Sortable, SortableDragHandle, SortableItem } from '@/components/ui/sortable';
+import { getPPTViewTitle } from '@/routes/assessment/question-papers/-utils/helper';
+import { QuestionType } from '@/constants/dummy-data';
+import { DotsSixVertical } from 'phosphor-react';
+import { PPTComponentFactory } from '@/routes/assessment/question-papers/-components/QuestionPaperTemplatesTypes/PPTComponentFactory';
+import { Separator } from '@/components/ui/separator';
+import { MainViewComponentFactory } from '@/routes/assessment/question-papers/-components/QuestionPaperTemplatesTypes/MainViewComponentFactory';
+import ExportQuestionPaperAI from './export-ai-question-paper/ExportQuestionPaperAI';
+import { toast } from 'sonner';
+import { QuestionsFromTextData } from '../ai-tools/vsmart-prompt/-components/GenerateQuestionsFromText';
+import { handleGenerateAssessmentQuestions } from '../-services/ai-center-service';
+import { VsmartUpload } from './regenerate-dialogs/VsmartUpload';
+import VsmartAudio from './regenerate-dialogs/VsmartAudio';
+import { VsmartPrompt } from './regenerate-dialogs/VsmartPrompt';
+import { VsmartExtract } from './regenerate-dialogs/VsmartExtract';
+import { VsmartImage } from './regenerate-dialogs/VsmartImage';
+import { VsmartOrganizer } from './regenerate-dialogs/VsmartOrganizer';
+import { Badge } from '@/components/ui/badge';
+import { AxiosError } from 'axios';
 // import { VsmartSorter } from "./regenerate-dialogs/VsmartSorter";
 interface AIQuestionsPreviewProps {
     task: AITaskIndividualListInterface;
@@ -40,7 +40,7 @@ interface AIQuestionsPreviewProps {
     handleGenerateQuestionsForAssessment?: (
         pdfId?: string,
         prompt?: string,
-        taskName?: string,
+        taskName?: string
     ) => void;
     pollGenerateQuestionsFromText?: (data: QuestionsFromTextData) => void;
     pollGenerateQuestionsFromAudio?: (data: QuestionsFromTextData, taskId: string) => void;
@@ -88,10 +88,10 @@ const AIQuestionsPreview = ({
 
     const { instituteLogo } = useInstituteLogoStore();
     const [assessmentData, setAssessmentData] = useState<AIAssessmentResponseInterface>({
-        title: "",
+        title: '',
         tags: [],
-        difficulty: "",
-        description: "",
+        difficulty: '',
+        description: '',
         subjects: [],
         classes: [],
         questions: [],
@@ -99,18 +99,18 @@ const AIQuestionsPreview = ({
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const form = useForm<z.infer<typeof generateCompleteAssessmentFormSchema>>({
         resolver: zodResolver(generateCompleteAssessmentFormSchema),
-        mode: "onChange",
+        mode: 'onChange',
         defaultValues: {
-            questionPaperId: "1",
+            questionPaperId: '1',
             isFavourite: false,
-            title: "",
+            title: '',
             createdOn: new Date(),
-            yearClass: "",
-            subject: "",
-            questionsType: "",
-            optionsType: "",
-            answersType: "",
-            explanationsType: "",
+            yearClass: '',
+            subject: '',
+            questionsType: '',
+            optionsType: '',
+            answersType: '',
+            explanationsType: '',
             fileUpload: undefined,
             classess: [],
             subjects: [],
@@ -124,10 +124,10 @@ const AIQuestionsPreview = ({
     // UseFieldArray to manage questions array
     const { fields, move } = useFieldArray({
         control: form.control,
-        name: "questions", // Name of the field array
+        name: 'questions', // Name of the field array
     });
 
-    const questions = form.getValues("questions");
+    const questions = form.getValues('questions');
 
     const handlePageClick = (pageIndex: number) => {
         setCurrentQuestionIndex(pageIndex);
@@ -150,7 +150,7 @@ const AIQuestionsPreview = ({
             setNoResponse(false);
             setAssessmentData(response);
             const transformQuestionsData = transformQuestionsToGenerateAssessmentAI(
-                response.questions,
+                response.questions
             );
             form.reset({
                 ...form.getValues(),
@@ -174,29 +174,29 @@ const AIQuestionsPreview = ({
 
     const handleGenerateClick = () => {
         switch (heading) {
-            case "Vsmart Upload":
+            case 'Vsmart Upload':
                 setOpenVsmartUpload(true);
                 break;
-            case "Vsmart Audio":
+            case 'Vsmart Audio':
                 setOpenVsmartAudio(true);
                 break;
-            case "Vsmart Topics":
+            case 'Vsmart Topics':
                 setOpenVsmartPrompt(true);
                 break;
-            case "Vsmart Extract":
+            case 'Vsmart Extract':
                 setOpenVsmartExtract(true);
                 break;
-            case "Vsmart Image":
+            case 'Vsmart Image':
                 setOpenVsmartImage(true);
                 break;
-            case "Vsmart Organizer":
+            case 'Vsmart Organizer':
                 setOpenVsmartOrganizer(true);
                 break;
             // case "Vsmart Sorter":
             //     setOpenVsmartSorter(true);
             //     break;
             default:
-                console.log("Vsmart Upload");
+                console.log('Vsmart Upload');
                 break;
         }
     };
@@ -207,13 +207,16 @@ const AIQuestionsPreview = ({
         },
         onSuccess: (response) => {
             setNoResponse(false);
+            setTimeout(() => {
+                queryClient.invalidateQueries({ queryKey: ['GET_INDIVIDUAL_AI_LIST_DATA'] });
+            }, 100);
             if (!response.questions) {
-                toast.success("No data exists!");
+                toast.success('No data exists!');
                 return;
             }
             setAssessmentData(response);
             const transformQuestionsData = transformQuestionsToGenerateAssessmentAI(
-                response.questions,
+                response.questions
             );
             form.reset({
                 ...form.getValues(),
@@ -223,18 +226,17 @@ const AIQuestionsPreview = ({
                 tags: response?.tags,
                 questions: transformQuestionsData,
             });
-            queryClient.invalidateQueries({ queryKey: ["GET_INDIVIDUAL_AI_LIST_DATA"] });
         },
         onError: (error: unknown) => {
             setNoResponse(false);
             if (error instanceof AxiosError) {
                 toast.error(error.response?.data.ex, {
-                    className: "error-toast",
+                    className: 'error-toast',
                     duration: 2000,
                 });
             } else {
                 // Handle non-Axios errors if necessary
-                console.error("Unexpected error:", error);
+                console.error('Unexpected error:', error);
             }
         },
     });
@@ -253,7 +255,7 @@ const AIQuestionsPreview = ({
                         Failed to load questions
                     </h1>
                     <h1 className="p-4">
-                        Click{" "}
+                        Click{' '}
                         <MyButton
                             type="button"
                             scale="small"
@@ -262,14 +264,14 @@ const AIQuestionsPreview = ({
                             onClick={() => handleRetryTask(task.id)}
                         >
                             Here
-                        </MyButton>{" "}
+                        </MyButton>{' '}
                         to retry
                     </h1>
                 </DialogContent>
             </Dialog>
             <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger>
-                    {task.status === "FAILED" ? (
+                    {task.status === 'FAILED' ? (
                         <MyButton
                             type="button"
                             scale="small"
@@ -277,10 +279,10 @@ const AIQuestionsPreview = ({
                             className="border-none text-sm !text-blue-600 shadow-none hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 active:bg-transparent"
                             onClick={() => handleRetryTask(task.id)}
                         >
-                            {getRetryMutation.status === "pending" ? (
+                            {getRetryMutation.status === 'pending' ? (
                                 <DashboardLoader size={18} />
                             ) : (
-                                "Retry"
+                                'Retry'
                             )}
                         </MyButton>
                     ) : (
@@ -291,10 +293,10 @@ const AIQuestionsPreview = ({
                             className="border-none text-sm !text-blue-600 shadow-none hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 active:bg-transparent"
                             onClick={() => handlViewQuestionsList(task.id)}
                         >
-                            {getQuestionsListMutation.status === "pending" ? (
+                            {getQuestionsListMutation.status === 'pending' ? (
                                 <DashboardLoader size={18} />
                             ) : (
-                                "View"
+                                'View'
                             )}
                         </MyButton>
                     )}
@@ -314,11 +316,11 @@ const AIQuestionsPreview = ({
                                                     className="size-12 rounded-full"
                                                 />
                                                 <span className="text-lg font-semibold text-neutral-500">
-                                                    {form.getValues("title")}
+                                                    {form.getValues('title')}
                                                 </span>
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                {form.getValues("tags")?.map((tag, idx) => {
+                                                {form.getValues('tags')?.map((tag, idx) => {
                                                     return (
                                                         <Badge variant="outline" key={idx}>
                                                             {tag}
@@ -371,8 +373,8 @@ const AIQuestionsPreview = ({
                                                                         className={`rounded-xl border-4 bg-primary-50 p-6 ${
                                                                             currentQuestionIndex ===
                                                                             index
-                                                                                ? "border-primary-500 bg-none"
-                                                                                : "bg-none"
+                                                                                ? 'border-primary-500 bg-none'
+                                                                                : 'bg-none'
                                                                         }`}
                                                                         onMouseEnter={() =>
                                                                             handlePageClick(index)
@@ -385,8 +387,8 @@ const AIQuestionsPreview = ({
                                                                                     &nbsp;
                                                                                     {getPPTViewTitle(
                                                                                         getValues(
-                                                                                            `questions.${index}.questionType`,
-                                                                                        ) as QuestionType,
+                                                                                            `questions.${index}.questionType`
+                                                                                        ) as QuestionType
                                                                                     )}
                                                                                 </h1>
                                                                                 <SortableDragHandle
@@ -401,7 +403,7 @@ const AIQuestionsPreview = ({
                                                                                 key={index}
                                                                                 type={
                                                                                     getValues(
-                                                                                        `questions.${index}.questionType`,
+                                                                                        `questions.${index}.questionType`
                                                                                     ) as QuestionType
                                                                                 }
                                                                                 props={{
@@ -411,7 +413,7 @@ const AIQuestionsPreview = ({
                                                                                     setCurrentQuestionIndex:
                                                                                         setCurrentQuestionIndex,
                                                                                     className:
-                                                                                        "relative mt-4 rounded-xl border-4 border-primary-300 bg-white p-4",
+                                                                                        'relative mt-4 rounded-xl border-4 border-primary-300 bg-white p-4',
                                                                                 }}
                                                                             />
                                                                         </div>
@@ -433,7 +435,7 @@ const AIQuestionsPreview = ({
                                                 key={currentQuestionIndex}
                                                 type={
                                                     getValues(
-                                                        `questions.${currentQuestionIndex}.questionType`,
+                                                        `questions.${currentQuestionIndex}.questionType`
                                                     ) as QuestionType
                                                 }
                                                 props={{
@@ -442,7 +444,7 @@ const AIQuestionsPreview = ({
                                                     setCurrentQuestionIndex:
                                                         setCurrentQuestionIndex,
                                                     className:
-                                                        "dialog-height overflow-auto ml-6 flex w-full flex-col gap-6 pr-6 pt-4",
+                                                        'dialog-height overflow-auto ml-6 flex w-full flex-col gap-6 pr-6 pt-4',
                                                 }}
                                             />
                                         )}

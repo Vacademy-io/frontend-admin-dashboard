@@ -1,29 +1,29 @@
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { MyButton } from "@/components/design-system/button";
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { MyButton } from '@/components/design-system/button';
 import {
     AILectureFeedbackInterface,
     AITaskIndividualListInterface,
-} from "@/types/ai/generate-assessment/generate-complete-assessment";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { handleGetEvaluateLecture, handleRetryAITask } from "../-services/ai-center-service";
-import EvaluateReportPreview from "../ai-tools/vsmart-feedback/-components/EvaluateReportPreview";
-import { useState } from "react";
-import { toast } from "sonner";
-import { AxiosError } from "axios";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+} from '@/types/ai/generate-assessment/generate-complete-assessment';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { handleGetEvaluateLecture, handleRetryAITask } from '../-services/ai-center-service';
+import EvaluateReportPreview from '../ai-tools/vsmart-feedback/-components/EvaluateReportPreview';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { AxiosError } from 'axios';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 const AIEvaluatePreview = ({ task }: { task: AITaskIndividualListInterface }) => {
     const [noResponse, setNoResponse] = useState(false);
     const queryClient = useQueryClient();
     const [evaluateLecture, setEvaluateLecture] = useState<AILectureFeedbackInterface>({
-        title: "",
-        reportTitle: "",
+        title: '',
+        reportTitle: '',
         lectureInfo: {
-            lectureTitle: "",
-            duration: "",
-            evaluationDate: "",
+            lectureTitle: '',
+            duration: '',
+            evaluationDate: '',
         },
-        totalScore: "0",
+        totalScore: '0',
         criteria: [],
         summary: [],
     });
@@ -60,23 +60,25 @@ const AIEvaluatePreview = ({ task }: { task: AITaskIndividualListInterface }) =>
         },
         onSuccess: (response) => {
             setNoResponse(false);
+            setTimeout(() => {
+                queryClient.invalidateQueries({ queryKey: ['GET_INDIVIDUAL_AI_LIST_DATA'] });
+            }, 100);
             if (!response) {
-                toast.success("No data exists!");
+                toast.success('No data exists!');
                 return;
             }
             setEvaluateLecture(response);
-            queryClient.invalidateQueries({ queryKey: ["GET_INDIVIDUAL_AI_LIST_DATA"] });
         },
         onError: (error: unknown) => {
             setNoResponse(false);
             if (error instanceof AxiosError) {
                 toast.error(error.response?.data.ex, {
-                    className: "error-toast",
+                    className: 'error-toast',
                     duration: 2000,
                 });
             } else {
                 // Handle non-Axios errors if necessary
-                console.error("Unexpected error:", error);
+                console.error('Unexpected error:', error);
             }
         },
     });
@@ -95,7 +97,7 @@ const AIEvaluatePreview = ({ task }: { task: AITaskIndividualListInterface }) =>
                         Failed to load questions
                     </h1>
                     <h1 className="p-4">
-                        Click{" "}
+                        Click{' '}
                         <MyButton
                             type="button"
                             scale="small"
@@ -104,12 +106,12 @@ const AIEvaluatePreview = ({ task }: { task: AITaskIndividualListInterface }) =>
                             onClick={() => handleRetryTask(task.id)}
                         >
                             Here
-                        </MyButton>{" "}
+                        </MyButton>{' '}
                         to retry
                     </h1>
                 </DialogContent>
             </Dialog>
-            {task.status === "FAILED" ? (
+            {task.status === 'FAILED' ? (
                 <MyButton
                     type="button"
                     scale="small"
@@ -117,10 +119,10 @@ const AIEvaluatePreview = ({ task }: { task: AITaskIndividualListInterface }) =>
                     className="border-none text-sm !text-blue-600 shadow-none hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 active:bg-transparent"
                     onClick={() => handleRetryTask(task.id)}
                 >
-                    {getRetryMutation.status === "pending" ? (
+                    {getRetryMutation.status === 'pending' ? (
                         <DashboardLoader size={18} />
                     ) : (
-                        "Retry"
+                        'Retry'
                     )}
                 </MyButton>
             ) : (
@@ -131,15 +133,15 @@ const AIEvaluatePreview = ({ task }: { task: AITaskIndividualListInterface }) =>
                     className="border-none text-sm !text-blue-600 shadow-none hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 active:bg-transparent"
                     onClick={() => handlViewChatList(task.id)}
                 >
-                    {getChatListMutation.status === "pending" ? (
+                    {getChatListMutation.status === 'pending' ? (
                         <DashboardLoader size={18} />
                     ) : (
-                        "View"
+                        'View'
                     )}
                 </MyButton>
             )}
 
-            {getChatListMutation.status === "success" && (
+            {getChatListMutation.status === 'success' && (
                 <EvaluateReportPreview openDialog={true} evaluateLectureData={evaluateLecture} />
             )}
         </>

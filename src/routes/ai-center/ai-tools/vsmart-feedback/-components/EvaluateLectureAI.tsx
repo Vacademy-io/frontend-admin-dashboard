@@ -1,18 +1,18 @@
-import { GenerateCard } from "@/routes/ai-center/-components/GenerateCard";
-import { getInstituteId } from "@/constants/helper";
-import { useFileUpload } from "@/hooks/use-file-upload";
-import { useEffect, useRef, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAICenter } from "@/routes/ai-center/-contexts/useAICenterContext";
+import { GenerateCard } from '@/routes/ai-center/-components/GenerateCard';
+import { getInstituteId } from '@/constants/helper';
+import { useFileUpload } from '@/hooks/use-file-upload';
+import { useEffect, useRef, useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAICenter } from '@/routes/ai-center/-contexts/useAICenterContext';
 import {
     handleEvaluateLecture,
     handleStartProcessUploadedAudioFile,
-} from "@/routes/ai-center/-services/ai-center-service";
-import AITasksList from "@/routes/ai-center/-components/AITasksList";
+} from '@/routes/ai-center/-services/ai-center-service';
+import AITasksList from '@/routes/ai-center/-components/AITasksList';
 
 const EvaluateLectureAI = () => {
     const queryClient = useQueryClient();
-    const [taskName, setTaskName] = useState("");
+    const [taskName, setTaskName] = useState('');
     const instituteId = getInstituteId();
     const { setLoader, key, setKey } = useAICenter();
     const { uploadFile } = useFileUpload();
@@ -20,7 +20,7 @@ const EvaluateLectureAI = () => {
     const [fileUploading, setFileUploading] = useState(false);
 
     const handleUploadClick = () => {
-        setKey("evaluateLecture");
+        setKey('evaluateLecture');
         fileInputRef.current?.click();
     };
 
@@ -30,9 +30,9 @@ const EvaluateLectureAI = () => {
             const fileId = await uploadFile({
                 file,
                 setIsUploading: setFileUploading,
-                userId: "your-user-id",
+                userId: 'your-user-id',
                 source: instituteId,
-                sourceId: "STUDENTS",
+                sourceId: 'STUDENTS',
             });
             if (fileId) {
                 const response = await handleStartProcessUploadedAudioFile(fileId);
@@ -40,7 +40,7 @@ const EvaluateLectureAI = () => {
                     pollGenerateAssessment(response.pdf_id);
                 }
             }
-            event.target.value = "";
+            event.target.value = '';
         }
     };
 
@@ -48,13 +48,15 @@ const EvaluateLectureAI = () => {
     const generateAssessmentMutation = useMutation({
         mutationFn: ({ pdfId, taskName }: { pdfId: string; taskName: string }) => {
             setLoader(true);
-            setKey("evaluateLecture");
+            setKey('evaluateLecture');
             return handleEvaluateLecture(pdfId, taskName);
         },
         onSuccess: () => {
             setLoader(false);
             setKey(null);
-            queryClient.invalidateQueries({ queryKey: ["GET_INDIVIDUAL_AI_LIST_DATA"] });
+            setTimeout(() => {
+                queryClient.invalidateQueries({ queryKey: ['GET_INDIVIDUAL_AI_LIST_DATA'] });
+            }, 100);
         },
         onError: (error: unknown) => {
             console.log(error);
@@ -69,7 +71,7 @@ const EvaluateLectureAI = () => {
     };
 
     useEffect(() => {
-        if (key === "question") {
+        if (key === 'question') {
             if (fileUploading == true) setLoader(true);
         }
     }, [fileUploading, key]);
@@ -86,7 +88,7 @@ const EvaluateLectureAI = () => {
                 taskName={taskName}
                 setTaskName={setTaskName}
             />
-            {generateAssessmentMutation.status === "success" && (
+            {generateAssessmentMutation.status === 'success' && (
                 <AITasksList heading="Vsmart Feedback" enableDialog={true} />
             )}
         </>
