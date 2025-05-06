@@ -206,12 +206,13 @@ export const SlideMaterial = ({
         setIsOpen: Dispatch<SetStateAction<boolean>>,
         notify: boolean,
     ) => {
+        const status = "PUBLISHED";
         if (activeItem?.source_type === "QUESTION") {
             const questionsData: UploadQuestionPaperFormType = JSON.parse(
                 activeItem.document_data!,
             );
             // need to add my question logic
-            const convertedData = convertToSlideFormat(questionsData, "PUBLISHED");
+            const convertedData = convertToSlideFormat(questionsData, status);
             try {
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-expect-error
