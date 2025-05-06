@@ -17,13 +17,13 @@ const AIEvaluatePreview = ({ task }: { task: AITaskIndividualListInterface }) =>
     const queryClient = useQueryClient();
     const [evaluateLecture, setEvaluateLecture] = useState<AILectureFeedbackInterface>({
         title: "",
-        report_title: "",
-        lecture_info: {
-            lecture_title: "",
+        reportTitle: "",
+        lectureInfo: {
+            lectureTitle: "",
             duration: "",
-            evaluation_date: "",
+            evaluationDate: "",
         },
-        total_score: "0",
+        totalScore: "0",
         criteria: [],
         summary: [],
     });
