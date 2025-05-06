@@ -2,7 +2,7 @@ import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { MyButton } from '@/components/design-system/button';
 import { AITaskIndividualListInterface } from '@/types/ai/generate-assessment/generate-complete-assessment';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { Dispatch, SetStateAction, useState } from 'react';
 import {
     handleGetChatWithPDFInvidualTask,
     handleRetryAITask,
@@ -14,7 +14,15 @@ import { toast } from 'sonner';
 import { AxiosError } from 'axios';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 
-const AIChatWithPDFPreview = ({ task }: { task: AITaskIndividualListInterface }) => {
+const AIChatWithPDFPreview = ({
+    task,
+    openAIPreview,
+    setOpenAIPreview,
+}: {
+    task: AITaskIndividualListInterface;
+    openAIPreview: boolean;
+    setOpenAIPreview: Dispatch<SetStateAction<boolean>>;
+}) => {
     const [noResponse, setNoResponse] = useState(false);
     const queryClient = useQueryClient();
     const [chatResponse, setChatResponse] = useState<QuestionWithAnswerChatInterface[]>([]);
@@ -33,6 +41,7 @@ const AIChatWithPDFPreview = ({ task }: { task: AITaskIndividualListInterface })
             }
             setNoResponse(false);
             setChatResponse(response);
+            setOpenAIPreview(true);
         },
         onError: (error: unknown) => {
             console.log(error);
@@ -133,7 +142,7 @@ const AIChatWithPDFPreview = ({ task }: { task: AITaskIndividualListInterface })
 
             {getChatListMutation.status === 'success' && (
                 <PlayWithPDF
-                    isListMode={true}
+                    isListMode={openAIPreview}
                     chatResponse={chatResponse}
                     input_id={task.input_id}
                     parent_id={task.parent_id}

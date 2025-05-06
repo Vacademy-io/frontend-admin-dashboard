@@ -38,7 +38,7 @@ const AITasksList = ({
     pollGenerateQuestionsFromAudio?: (data: QuestionsFromTextData, taskId: string) => void;
 }) => {
     const [open, setOpen] = useState(enableDialog);
-
+    const [openQuestionsPreview, setOpenQuestionsPreview] = useState(false);
     const { data: allTasksData, isLoading } = useSuspenseQuery(
         handleQueryGetListIndividualTopics(getTaskTypeFromFeature(heading))
     );
@@ -70,7 +70,7 @@ const AITasksList = ({
     const { mutate } = getAITasksIndividualListMutation;
 
     useEffect(() => {
-        if (open) {
+        if (open && !openQuestionsPreview) {
             let count = 0;
             const maxRuns = 5;
             const interval = setInterval(() => {
@@ -82,11 +82,12 @@ const AITasksList = ({
                     taskType: getTaskTypeFromFeature(heading),
                 });
                 count++;
-            }, 10000); // 10 seconds
+            }, 10000);
 
             return () => clearInterval(interval); // cleanup on unmount
         }
-    }, [mutate, heading, open]);
+        return () => {};
+    }, [mutate, heading, open, openQuestionsPreview]);
 
     if (isLoading) return <DashboardLoader />;
 
@@ -157,17 +158,35 @@ const AITasksList = ({
                                             </Badge>
                                             {task.status !== 'PROGRESS' &&
                                                 heading === 'Vsmart Feedback' && (
-                                                    <AIEvaluatePreview task={task} />
+                                                    <AIEvaluatePreview
+                                                        task={task}
+                                                        openEvaluatePreview={openQuestionsPreview}
+                                                        setOpenEvaluatePreview={
+                                                            setOpenQuestionsPreview
+                                                        }
+                                                    />
                                                 )}
 
                                             {task.status !== 'PROGRESS' &&
                                                 heading === 'Vsmart Lecturer' && (
-                                                    <AIPlanLecturePreview task={task} />
+                                                    <AIPlanLecturePreview
+                                                        task={task}
+                                                        openPlanLecturePreview={
+                                                            openQuestionsPreview
+                                                        }
+                                                        setOpenPlanLecturePreview={
+                                                            setOpenQuestionsPreview
+                                                        }
+                                                    />
                                                 )}
 
                                             {task.status !== 'PROGRESS' &&
                                                 heading === 'Vsmart Chat' && (
-                                                    <AIChatWithPDFPreview task={task} />
+                                                    <AIChatWithPDFPreview
+                                                        task={task}
+                                                        openAIPreview={openQuestionsPreview}
+                                                        setOpenAIPreview={setOpenQuestionsPreview}
+                                                    />
                                                 )}
 
                                             {heading !== 'Vsmart Lecturer' &&
@@ -190,6 +209,10 @@ const AITasksList = ({
                                                             pollGenerateQuestionsFromAudio
                                                         }
                                                         heading={heading}
+                                                        openQuestionsPreview={openQuestionsPreview}
+                                                        setOpenQuestionsPreview={
+                                                            setOpenQuestionsPreview
+                                                        }
                                                     />
                                                 )}
                                         </div>

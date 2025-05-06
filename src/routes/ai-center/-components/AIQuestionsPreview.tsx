@@ -7,7 +7,7 @@ import {
 } from '@/types/ai/generate-assessment/generate-complete-assessment';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { handleGetQuestionsInvidualTask, handleRetryAITask } from '../-services/ai-center-service';
-import { useState } from 'react';
+import { Dispatch, SetStateAction, useState } from 'react';
 import { FormProvider, useFieldArray, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { generateCompleteAssessmentFormSchema } from '../-utils/generate-complete-assessment-schema';
@@ -45,6 +45,8 @@ interface AIQuestionsPreviewProps {
     pollGenerateQuestionsFromText?: (data: QuestionsFromTextData) => void;
     pollGenerateQuestionsFromAudio?: (data: QuestionsFromTextData, taskId: string) => void;
     heading: string;
+    openQuestionsPreview: boolean;
+    setOpenQuestionsPreview: Dispatch<SetStateAction<boolean>>;
 }
 
 const AIQuestionsPreview = ({
@@ -54,9 +56,10 @@ const AIQuestionsPreview = ({
     pollGenerateQuestionsFromText,
     pollGenerateQuestionsFromAudio,
     heading,
+    openQuestionsPreview,
+    setOpenQuestionsPreview,
 }: AIQuestionsPreviewProps) => {
     const queryClient = useQueryClient();
-    const [open, setOpen] = useState(false);
     const [openVsmartUpload, setOpenVsmartUpload] = useState(false);
     const [openVsmartAudio, setOpenVsmartAudio] = useState(false);
     const [openVsmartPrompt, setOpenVsmartPrompt] = useState(false);
@@ -269,7 +272,7 @@ const AIQuestionsPreview = ({
                     </h1>
                 </DialogContent>
             </Dialog>
-            <Dialog open={open} onOpenChange={setOpen}>
+            <Dialog open={openQuestionsPreview} onOpenChange={setOpenQuestionsPreview}>
                 <DialogTrigger>
                     {task.status === 'FAILED' ? (
                         <MyButton
@@ -340,7 +343,7 @@ const AIQuestionsPreview = ({
                                                 layoutVariant="default"
                                                 className="mr-4 text-sm"
                                                 onClick={() => {
-                                                    setOpen(false);
+                                                    setOpenQuestionsPreview(false);
                                                 }}
                                             >
                                                 Cancel

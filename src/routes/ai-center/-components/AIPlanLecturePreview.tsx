@@ -8,12 +8,20 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { handleGetLecturePlan, handleRetryAITask } from '../-services/ai-center-service';
 
 import PlanLecturePreview from '../ai-tools/vsmart-lecture/-components/PlanLecturePreview';
-import { useState } from 'react';
+import { Dispatch, SetStateAction, useState } from 'react';
 import { toast } from 'sonner';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { AxiosError } from 'axios';
 
-const AIPlanLecturePreview = ({ task }: { task: AITaskIndividualListInterface }) => {
+const AIPlanLecturePreview = ({
+    task,
+    openPlanLecturePreview,
+    setOpenPlanLecturePreview,
+}: {
+    task: AITaskIndividualListInterface;
+    openPlanLecturePreview: boolean;
+    setOpenPlanLecturePreview: Dispatch<SetStateAction<boolean>>;
+}) => {
     const [noResponse, setNoResponse] = useState(false);
     const queryClient = useQueryClient();
     const [planLectureData, setPlanLectureData] = useState<PlanLectureDataInterface>({
@@ -43,6 +51,7 @@ const AIPlanLecturePreview = ({ task }: { task: AITaskIndividualListInterface })
             }
             setNoResponse(false);
             setPlanLectureData(response);
+            setOpenPlanLecturePreview(true);
         },
         onError: (error: unknown) => {
             console.log(error);
@@ -142,7 +151,10 @@ const AIPlanLecturePreview = ({ task }: { task: AITaskIndividualListInterface })
             )}
 
             {getChatListMutation.status === 'success' && (
-                <PlanLecturePreview openDialog={true} planLectureData={planLectureData} />
+                <PlanLecturePreview
+                    openDialog={openPlanLecturePreview}
+                    planLectureData={planLectureData}
+                />
             )}
         </>
     );

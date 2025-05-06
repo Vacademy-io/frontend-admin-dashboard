@@ -7,12 +7,20 @@ import {
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { handleGetEvaluateLecture, handleRetryAITask } from '../-services/ai-center-service';
 import EvaluateReportPreview from '../ai-tools/vsmart-feedback/-components/EvaluateReportPreview';
-import { useState } from 'react';
+import { Dispatch, SetStateAction, useState } from 'react';
 import { toast } from 'sonner';
 import { AxiosError } from 'axios';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 
-const AIEvaluatePreview = ({ task }: { task: AITaskIndividualListInterface }) => {
+const AIEvaluatePreview = ({
+    task,
+    openEvaluatePreview,
+    setOpenEvaluatePreview,
+}: {
+    task: AITaskIndividualListInterface;
+    openEvaluatePreview: boolean;
+    setOpenEvaluatePreview: Dispatch<SetStateAction<boolean>>;
+}) => {
     const [noResponse, setNoResponse] = useState(false);
     const queryClient = useQueryClient();
     const [evaluateLecture, setEvaluateLecture] = useState<AILectureFeedbackInterface>({
@@ -42,6 +50,7 @@ const AIEvaluatePreview = ({ task }: { task: AITaskIndividualListInterface }) =>
             }
             setNoResponse(false);
             setEvaluateLecture(response);
+            setOpenEvaluatePreview(true);
         },
         onError: (error: unknown) => {
             console.log(error);
@@ -142,7 +151,10 @@ const AIEvaluatePreview = ({ task }: { task: AITaskIndividualListInterface }) =>
             )}
 
             {getChatListMutation.status === 'success' && (
-                <EvaluateReportPreview openDialog={true} evaluateLectureData={evaluateLecture} />
+                <EvaluateReportPreview
+                    openDialog={openEvaluatePreview}
+                    evaluateLectureData={evaluateLecture}
+                />
             )}
         </>
     );
