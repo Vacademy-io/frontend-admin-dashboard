@@ -40,7 +40,7 @@ const SortAndSplitTopicQuestions = () => {
                 const response = await handleStartProcessUploadedFile(fileId);
                 if (response) {
                     setUploadedFilePDFId(response.pdf_id);
-                    handleGenerateQuestionsForAssessment(response.pdf_id);
+                    handleGenerateQuestionsForAssessment(response.pdf_id, prompt);
                 }
             }
             event.target.value = '';
@@ -88,12 +88,6 @@ const SortAndSplitTopicQuestions = () => {
             if (fileUploading == true) setLoader(true);
         }
     }, [fileUploading, key]);
-
-    useEffect(() => {
-        if (uploadedFilePDFId) {
-            handleGenerateQuestionsForAssessment(uploadedFilePDFId, prompt);
-        }
-    }, [uploadedFilePDFId]);
 
     return (
         <>
