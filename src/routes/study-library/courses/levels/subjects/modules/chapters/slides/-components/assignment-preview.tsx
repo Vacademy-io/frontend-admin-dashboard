@@ -49,18 +49,11 @@ const StudyLibraryAssignmentPreview = ({ activeItem }: { activeItem: Slide }) =>
         defaultValues,
     });
 
-    const onSubmit = (data: AssignmentFormType) => {
-        console.log(data);
-    };
-
-    const onInvalid = (err: unknown) => {
-        console.log(err);
-    };
-
     const adaptive_marking_for_each_question = form.getValues("adaptive_marking_for_each_question");
-    const { watch, getValues, handleSubmit } = form;
+    const { watch, getValues } = form;
     const totalParticipants = Number(getValues("totalParticipants")) || 0;
     const submittedParticipants = Number(getValues("submittedParticipants")) || 0;
+
     useEffect(() => {
         const subscription = watch(() => {
             const modifiedItems = updateDocumentDataInSlides(
@@ -342,17 +335,6 @@ const StudyLibraryAssignmentPreview = ({ activeItem }: { activeItem: Slide }) =>
                             )}
                         />
                     </div>
-                </div>
-                <div>
-                    <MyButton
-                        type="button"
-                        scale="large"
-                        buttonType="secondary"
-                        className="font-medium text-neutral-600"
-                        onClick={handleSubmit(onSubmit, onInvalid)}
-                    >
-                        Upload Submission
-                    </MyButton>
                 </div>
             </FormProvider>
         </div>
