@@ -67,6 +67,27 @@ const AITasksList = ({
         setAllTasks(allTasksData);
     }, [allTasksData]);
 
+    const { mutate } = getAITasksIndividualListMutation;
+
+    useEffect(() => {
+        if (open) {
+            let count = 0;
+            const maxRuns = 5;
+            const interval = setInterval(() => {
+                if (count >= maxRuns) {
+                    clearInterval(interval);
+                    return;
+                }
+                mutate({
+                    taskType: getTaskTypeFromFeature(heading),
+                });
+                count++;
+            }, 10000); // 10 seconds
+
+            return () => clearInterval(interval); // cleanup on unmount
+        }
+    }, [mutate, heading, open]);
+
     if (isLoading) return <DashboardLoader />;
 
     return (
