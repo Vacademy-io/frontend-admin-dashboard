@@ -1,49 +1,41 @@
-import { getInstituteId } from "@/constants/helper";
-import { useFileUpload } from "@/hooks/use-file-upload";
-import { useEffect, useRef, useState } from "react";
+import { getInstituteId } from '@/constants/helper';
+import { useFileUpload } from '@/hooks/use-file-upload';
+import { useEffect, useRef, useState } from 'react';
 import {
     handleConvertPDFToHTML,
     handleGenerateAssessmentQuestions,
     handleStartProcessUploadedFile,
-} from "@/routes/ai-center/-services/ai-center-service";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import GeneratePageWiseAssessment from "./GeneratePageWiseAssessment";
-import { GenerateAssessmentDialog } from "./GenerateAssessmentDialog";
-import { GenerateCard } from "@/routes/ai-center/-components/GenerateCard";
-import { useAICenter } from "@/routes/ai-center/-contexts/useAICenterContext";
-import AITasksList from "@/routes/ai-center/-components/AITasksList";
+} from '@/routes/ai-center/-services/ai-center-service';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import GeneratePageWiseAssessment from './GeneratePageWiseAssessment';
+import { GenerateAssessmentDialog } from './GenerateAssessmentDialog';
+import { GenerateCard } from '@/routes/ai-center/-components/GenerateCard';
+import { useAICenter } from '@/routes/ai-center/-contexts/useAICenterContext';
+import AITasksList from '@/routes/ai-center/-components/AITasksList';
 
 const GenerateAIAssessmentComponent = () => {
     const queryClient = useQueryClient();
     const [allPagesGenerateQuestionsStatus, setAllPagesGenerateQuestionsStatus] = useState(false);
     const [pageWiseGenerateQuestionsStatus, setPageWiseGenerateQuestionsStatus] = useState(false);
-    console.log(allPagesGenerateQuestionsStatus);
-    const [taskName, setTaskName] = useState("");
+    const [taskName, setTaskName] = useState('');
     const instituteId = getInstituteId();
     const { setLoader, key, setKey } = useAICenter();
     const { uploadFile } = useFileUpload();
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const [openAssessmentDialog, setOpenAssessmentDialog] = useState(false);
-    const [uploadedFilePDFId, setUploadedFilePDFId] = useState("");
+    const [uploadedFilePDFId, setUploadedFilePDFId] = useState('');
     const [htmlData, setHtmlData] = useState(null);
     const [openPageWiseAssessmentDialog, setOpenPageWiseAssessmentDialog] = useState(false);
+    const [fileUploading, setFileUploading] = useState(false);
 
     const handleOpenAssessmentDialog = (open: boolean) => {
         setOpenAssessmentDialog(open);
     };
 
     const handleUploadClick = () => {
-        setKey("assessment");
+        setKey('assessment');
         fileInputRef.current?.click();
     };
-
-    const [fileUploading, setFileUploading] = useState(false);
-
-    useEffect(() => {
-        if (key === "assessment") {
-            if (fileUploading == true) setLoader(true);
-        }
-    }, [fileUploading, key]);
 
     const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -51,9 +43,9 @@ const GenerateAIAssessmentComponent = () => {
             const fileId = await uploadFile({
                 file,
                 setIsUploading: setFileUploading,
-                userId: "your-user-id",
+                userId: 'your-user-id',
                 source: instituteId,
-                sourceId: "STUDENTS",
+                sourceId: 'STUDENTS',
             });
             if (fileId) {
                 const response = await handleStartProcessUploadedFile(fileId);
@@ -62,7 +54,7 @@ const GenerateAIAssessmentComponent = () => {
                     setUploadedFilePDFId(response.pdf_id);
                 }
             }
-            event.target.value = "";
+            event.target.value = '';
         }
     };
 
@@ -80,8 +72,8 @@ const GenerateAIAssessmentComponent = () => {
             taskId?: string;
         }) => {
             setLoader(true);
-            setKey("assessment");
-            return handleGenerateAssessmentQuestions(pdfId, userPrompt, taskName, taskId || "");
+            setKey('assessment');
+            return handleGenerateAssessmentQuestions(pdfId, userPrompt, taskName, taskId || '');
         },
         onMutate: () => {
             setAllPagesGenerateQuestionsStatus(true);
@@ -90,7 +82,9 @@ const GenerateAIAssessmentComponent = () => {
             setAllPagesGenerateQuestionsStatus(false);
             setLoader(false);
             setKey(null);
-            queryClient.invalidateQueries({ queryKey: ["GET_INDIVIDUAL_AI_LIST_DATA"] });
+            setTimeout(() => {
+                queryClient.invalidateQueries({ queryKey: ['GET_INDIVIDUAL_AI_LIST_DATA'] });
+            }, 100);
         },
         onError: (error: unknown) => {
             console.log(error);
@@ -100,7 +94,7 @@ const GenerateAIAssessmentComponent = () => {
     const pollGenerateAssessment = (prompt?: string, taskId?: string) => {
         generateAssessmentMutation.mutate({
             pdfId: uploadedFilePDFId,
-            userPrompt: "",
+            userPrompt: '',
             taskName,
             taskId,
         });
@@ -117,7 +111,7 @@ const GenerateAIAssessmentComponent = () => {
             handleConvertPDFToHTML(pdfId, taskName),
         onSuccess: async (response) => {
             // Check if response indicates pending state
-            if (response?.status === "pending") {
+            if (response?.status === 'pending') {
                 setPageWiseGenerateQuestionsStatus(true);
                 convertPendingRef.current = true;
                 // Don't schedule next poll - we'll wait for an error to resume
@@ -128,7 +122,7 @@ const GenerateAIAssessmentComponent = () => {
             convertPendingRef.current = false;
 
             // If conversion is complete and we have HTML data
-            if (response === "Done" || response?.html) {
+            if (response === 'Done' || response?.html) {
                 setPageWiseGenerateQuestionsStatus(false);
                 stopConvertPolling();
                 setHtmlData(response?.html);
@@ -141,7 +135,7 @@ const GenerateAIAssessmentComponent = () => {
             scheduleNextConvertPoll();
         },
         onError: (error: unknown) => {
-            console.error("⛔️ Convert Error:", error);
+            console.error('⛔️ Convert Error:', error);
 
             // If we were in a pending state, resume polling on error
             if (convertPendingRef.current) {
@@ -176,7 +170,7 @@ const GenerateAIAssessmentComponent = () => {
 
         // Only schedule next poll if not in pending state
         if (!convertPendingRef.current) {
-            console.log("Scheduling next conversion poll in 10 seconds");
+            console.log('Scheduling next conversion poll in 10 seconds');
             convertPollingTimeoutIdRef.current = setTimeout(() => {
                 pollConvertPDFToHTML();
             }, 10000);
@@ -208,6 +202,12 @@ const GenerateAIAssessmentComponent = () => {
         };
     }, []);
 
+    useEffect(() => {
+        if (key === 'assessment') {
+            if (fileUploading == true) setLoader(true);
+        }
+    }, [fileUploading, key]);
+
     return (
         <div className="flex items-center justify-start gap-8">
             <GenerateCard
@@ -235,7 +235,7 @@ const GenerateAIAssessmentComponent = () => {
                 setOpenPageWiseAssessmentDialog={setOpenPageWiseAssessmentDialog}
                 htmlData={htmlData}
             />
-            {generateAssessmentMutation.status === "success" && (
+            {generateAssessmentMutation.status === 'success' && (
                 <AITasksList heading="Vsmart Upload" enableDialog={true} />
             )}
         </div>

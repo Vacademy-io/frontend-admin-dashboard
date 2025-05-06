@@ -1,14 +1,14 @@
-import { LayoutContainer } from "@/components/common/layout-container/layout-container";
-import { createFileRoute } from "@tanstack/react-router";
-import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
-import { useEffect } from "react";
-import { AICenterProvider } from "./-contexts/useAICenterContext";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { AIToolCardData } from "./-constants/AICardsData";
-import { AIToolsCard } from "./-components/AIToolsCard";
-import AllToolsTasks from "./ai-tools/-components/AllToolsTasks";
+import { LayoutContainer } from '@/components/common/layout-container/layout-container';
+import { createFileRoute } from '@tanstack/react-router';
+import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
+import { useEffect } from 'react';
+import { AICenterProvider } from './-contexts/useAICenterContext';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { AIToolCardData } from './-constants/AICardsData';
+import { AIToolsCard } from './-components/AIToolsCard';
+import AllToolsTasks from './ai-tools/-components/AllToolsTasks';
 
-export const Route = createFileRoute("/ai-center/")({
+export const Route = createFileRoute('/ai-center/')({
     component: () => (
         <LayoutContainer>
             <AICenterProvider>
@@ -22,7 +22,7 @@ function RouteComponent() {
     const { setNavHeading } = useNavHeadingStore();
 
     useEffect(() => {
-        setNavHeading("VSmart AI Tools");
+        setNavHeading('VSmart AI Tools');
     }, []);
 
     return (

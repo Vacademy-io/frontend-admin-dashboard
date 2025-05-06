@@ -1,20 +1,28 @@
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { MyButton } from "@/components/design-system/button";
-import { AITaskIndividualListInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { MyButton } from '@/components/design-system/button';
+import { AITaskIndividualListInterface } from '@/types/ai/generate-assessment/generate-complete-assessment';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Dispatch, SetStateAction, useState } from 'react';
 import {
     handleGetChatWithPDFInvidualTask,
     handleRetryAITask,
-} from "../-services/ai-center-service";
+} from '../-services/ai-center-service';
 import PlayWithPDF, {
     QuestionWithAnswerChatInterface,
-} from "../ai-tools/vsmart-chat/-components/PlayWithPDF";
-import { toast } from "sonner";
-import { AxiosError } from "axios";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+} from '../ai-tools/vsmart-chat/-components/PlayWithPDF';
+import { toast } from 'sonner';
+import { AxiosError } from 'axios';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
-const AIChatWithPDFPreview = ({ task }: { task: AITaskIndividualListInterface }) => {
+const AIChatWithPDFPreview = ({
+    task,
+    openAIPreview,
+    setOpenAIPreview,
+}: {
+    task: AITaskIndividualListInterface;
+    openAIPreview: boolean;
+    setOpenAIPreview: Dispatch<SetStateAction<boolean>>;
+}) => {
     const [noResponse, setNoResponse] = useState(false);
     const queryClient = useQueryClient();
     const [chatResponse, setChatResponse] = useState<QuestionWithAnswerChatInterface[]>([]);
@@ -33,6 +41,7 @@ const AIChatWithPDFPreview = ({ task }: { task: AITaskIndividualListInterface })
             }
             setNoResponse(false);
             setChatResponse(response);
+            setOpenAIPreview(true);
         },
         onError: (error: unknown) => {
             console.log(error);
@@ -51,23 +60,25 @@ const AIChatWithPDFPreview = ({ task }: { task: AITaskIndividualListInterface })
         },
         onSuccess: (response) => {
             setNoResponse(false);
+            setTimeout(() => {
+                queryClient.invalidateQueries({ queryKey: ['GET_INDIVIDUAL_AI_LIST_DATA'] });
+            }, 100);
             if (!response) {
-                toast.success("No data exists!");
+                toast.success('No data exists!');
                 return;
             }
             setChatResponse(response);
-            queryClient.invalidateQueries({ queryKey: ["GET_INDIVIDUAL_AI_LIST_DATA"] });
         },
         onError: (error: unknown) => {
             setNoResponse(false);
             if (error instanceof AxiosError) {
                 toast.error(error.response?.data.ex, {
-                    className: "error-toast",
+                    className: 'error-toast',
                     duration: 2000,
                 });
             } else {
                 // Handle non-Axios errors if necessary
-                console.error("Unexpected error:", error);
+                console.error('Unexpected error:', error);
             }
         },
     });
@@ -85,7 +96,7 @@ const AIChatWithPDFPreview = ({ task }: { task: AITaskIndividualListInterface })
                         Failed to load questions
                     </h1>
                     <h1 className="p-4">
-                        Click{" "}
+                        Click{' '}
                         <MyButton
                             type="button"
                             scale="small"
@@ -94,12 +105,12 @@ const AIChatWithPDFPreview = ({ task }: { task: AITaskIndividualListInterface })
                             onClick={() => handleRetryTask(task.id)}
                         >
                             Here
-                        </MyButton>{" "}
+                        </MyButton>{' '}
                         to retry
                     </h1>
                 </DialogContent>
             </Dialog>
-            {task.status === "FAILED" ? (
+            {task.status === 'FAILED' ? (
                 <MyButton
                     type="button"
                     scale="small"
@@ -107,10 +118,10 @@ const AIChatWithPDFPreview = ({ task }: { task: AITaskIndividualListInterface })
                     className="border-none text-sm !text-blue-600 shadow-none hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 active:bg-transparent"
                     onClick={() => handleRetryTask(task.id)}
                 >
-                    {getRetryMutation.status === "pending" ? (
+                    {getRetryMutation.status === 'pending' ? (
                         <DashboardLoader size={18} />
                     ) : (
-                        "Retry"
+                        'Retry'
                     )}
                 </MyButton>
             ) : (
@@ -121,17 +132,17 @@ const AIChatWithPDFPreview = ({ task }: { task: AITaskIndividualListInterface })
                     className="border-none text-sm !text-blue-600 shadow-none hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 active:bg-transparent"
                     onClick={() => handlViewChatList(task.id)}
                 >
-                    {getChatListMutation.status === "pending" ? (
+                    {getChatListMutation.status === 'pending' ? (
                         <DashboardLoader size={18} />
                     ) : (
-                        "View"
+                        'View'
                     )}
                 </MyButton>
             )}
 
-            {getChatListMutation.status === "success" && (
+            {getChatListMutation.status === 'success' && (
                 <PlayWithPDF
-                    isListMode={true}
+                    isListMode={openAIPreview}
                     chatResponse={chatResponse}
                     input_id={task.input_id}
                     parent_id={task.parent_id}

@@ -1,16 +1,16 @@
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { MyInput } from "@/components/design-system/input";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { getInstituteId } from "@/constants/helper";
-import { useFileUpload } from "@/hooks/use-file-upload";
-import { GenerateCard } from "@/routes/ai-center/-components/GenerateCard";
-import { useAICenter } from "@/routes/ai-center/-contexts/useAICenterContext";
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { MyInput } from '@/components/design-system/input';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { getInstituteId } from '@/constants/helper';
+import { useFileUpload } from '@/hooks/use-file-upload';
+import { GenerateCard } from '@/routes/ai-center/-components/GenerateCard';
+import { useAICenter } from '@/routes/ai-center/-contexts/useAICenterContext';
 import {
     handleChatWithPDF,
     handleStartProcessUploadedFile,
-} from "@/routes/ai-center/-services/ai-center-service";
-import { useMutation } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+} from '@/routes/ai-center/-services/ai-center-service';
+import { useMutation } from '@tanstack/react-query';
+import { useEffect, useRef, useState } from 'react';
 
 export interface QuestionWithAnswerChatInterface {
     id: string;
@@ -31,24 +31,24 @@ const PlayWithPDF = ({
     parent_id?: string;
     task_name?: string;
 }) => {
-    const [taskName, setTaskName] = useState(task_name ?? "");
+    const [taskName, setTaskName] = useState(task_name ?? '');
     const instituteId = getInstituteId();
     const { setLoader, key, setKey } = useAICenter();
     const { uploadFile } = useFileUpload();
     const fileInputRef = useRef<HTMLInputElement | null>(null);
-    const [uploadedFilePDFId, setUploadedFilePDFId] = useState(input_id ?? "");
+    const [uploadedFilePDFId, setUploadedFilePDFId] = useState(input_id ?? '');
     const [fileUploading, setFileUploading] = useState(false);
     const [open, setOpen] = useState(isListMode);
-    const [question, setQuestion] = useState("");
+    const [question, setQuestion] = useState('');
     const [questionsWithAnswers, setQuestionsWithAnswers] = useState<
         QuestionWithAnswerChatInterface[]
     >(chatResponse ?? []);
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
-    const [parentId, setParentId] = useState(parent_id ?? "");
+    const [parentId, setParentId] = useState(parent_id ?? '');
     const [pendingResponse, setPendingResponse] = useState(false);
 
     const handleUploadClick = () => {
-        setKey("chat");
+        setKey('chat');
         fileInputRef.current?.click();
     };
 
@@ -58,9 +58,9 @@ const PlayWithPDF = ({
             const fileId = await uploadFile({
                 file,
                 setIsUploading: setFileUploading,
-                userId: "your-user-id",
+                userId: 'your-user-id',
                 source: instituteId,
-                sourceId: "STUDENTS",
+                sourceId: 'STUDENTS',
             });
             if (fileId) {
                 const response = await handleStartProcessUploadedFile(fileId);
@@ -69,10 +69,10 @@ const PlayWithPDF = ({
                     setFileUploading(true);
                     setLoader(false);
                     setOpen(true);
-                    setParentId("");
+                    setParentId('');
                 }
             }
-            event.target.value = "";
+            event.target.value = '';
         }
     };
 
@@ -107,7 +107,7 @@ const PlayWithPDF = ({
         },
         onSuccess: (response) => {
             // Check if response indicates pending state
-            if (response?.status === "pending") {
+            if (response?.status === 'pending') {
                 pendingRef.current = true;
                 // Don't schedule next poll - we'll wait for an error to resume
                 return;
@@ -119,8 +119,8 @@ const PlayWithPDF = ({
             // If we have complete data, we're done
             if (response) {
                 setQuestionsWithAnswers(response);
-                if (parentId === "") setParentId(response[0].id);
-                setQuestion("");
+                if (parentId === '') setParentId(response[0].id);
+                setQuestion('');
                 setPendingResponse(false);
                 return;
             }
@@ -160,7 +160,7 @@ const PlayWithPDF = ({
         // Only schedule next poll if not in pending state
         if (!pendingRef.current) {
             setLoader(true);
-            setKey("chat");
+            setKey('chat');
             pollingTimeoutIdRef.current = setTimeout(() => {
                 pollGenerateAssessment();
             }, 10000);
@@ -199,14 +199,14 @@ const PlayWithPDF = ({
     }, []);
 
     useEffect(() => {
-        if (key === "chat") {
+        if (key === 'chat') {
             if (fileUploading == true) setLoader(true);
         }
     }, [fileUploading, key]);
 
     // Scroll to bottom on update
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [questionsWithAnswers]);
 
     return (
@@ -241,7 +241,7 @@ const PlayWithPDF = ({
                                             <p
                                                 className="rounded-xl bg-blue-100 px-4 py-2 text-black"
                                                 dangerouslySetInnerHTML={{
-                                                    __html: qa.response || "",
+                                                    __html: qa.response || '',
                                                 }}
                                             />
                                         </div>
@@ -279,7 +279,7 @@ const PlayWithPDF = ({
                                         input={question}
                                         onChangeFunction={(e) => setQuestion(e.target.value)}
                                         onKeyDown={(e) => {
-                                            if (e.key === "Enter") {
+                                            if (e.key === 'Enter') {
                                                 e.preventDefault();
                                                 handleAddQuestions();
                                             }

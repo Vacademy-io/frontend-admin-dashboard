@@ -1,27 +1,35 @@
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { MyButton } from "@/components/design-system/button";
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { MyButton } from '@/components/design-system/button';
 import {
     AITaskIndividualListInterface,
     PlanLectureDataInterface,
-} from "@/types/ai/generate-assessment/generate-complete-assessment";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { handleGetLecturePlan, handleRetryAITask } from "../-services/ai-center-service";
+} from '@/types/ai/generate-assessment/generate-complete-assessment';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { handleGetLecturePlan, handleRetryAITask } from '../-services/ai-center-service';
 
-import PlanLecturePreview from "../ai-tools/vsmart-lecture/-components/PlanLecturePreview";
-import { useState } from "react";
-import { toast } from "sonner";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { AxiosError } from "axios";
+import PlanLecturePreview from '../ai-tools/vsmart-lecture/-components/PlanLecturePreview';
+import { Dispatch, SetStateAction, useState } from 'react';
+import { toast } from 'sonner';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { AxiosError } from 'axios';
 
-const AIPlanLecturePreview = ({ task }: { task: AITaskIndividualListInterface }) => {
+const AIPlanLecturePreview = ({
+    task,
+    openPlanLecturePreview,
+    setOpenPlanLecturePreview,
+}: {
+    task: AITaskIndividualListInterface;
+    openPlanLecturePreview: boolean;
+    setOpenPlanLecturePreview: Dispatch<SetStateAction<boolean>>;
+}) => {
     const [noResponse, setNoResponse] = useState(false);
     const queryClient = useQueryClient();
     const [planLectureData, setPlanLectureData] = useState<PlanLectureDataInterface>({
-        heading: "",
-        mode: "",
-        duration: "",
-        language: "",
-        level: "",
+        heading: '',
+        mode: '',
+        duration: '',
+        language: '',
+        level: '',
         timeWiseSplit: [],
         assignment: {
             topicCovered: [],
@@ -43,6 +51,7 @@ const AIPlanLecturePreview = ({ task }: { task: AITaskIndividualListInterface })
             }
             setNoResponse(false);
             setPlanLectureData(response);
+            setOpenPlanLecturePreview(true);
         },
         onError: (error: unknown) => {
             console.log(error);
@@ -61,23 +70,25 @@ const AIPlanLecturePreview = ({ task }: { task: AITaskIndividualListInterface })
         },
         onSuccess: (response) => {
             setNoResponse(false);
+            setTimeout(() => {
+                queryClient.invalidateQueries({ queryKey: ['GET_INDIVIDUAL_AI_LIST_DATA'] });
+            }, 100);
             if (!response) {
-                toast.success("No data exists!");
+                toast.success('No data exists!');
                 return;
             }
             setPlanLectureData(response);
-            queryClient.invalidateQueries({ queryKey: ["GET_INDIVIDUAL_AI_LIST_DATA"] });
         },
         onError: (error: unknown) => {
             setNoResponse(false);
             if (error instanceof AxiosError) {
                 toast.error(error.response?.data.ex, {
-                    className: "error-toast",
+                    className: 'error-toast',
                     duration: 2000,
                 });
             } else {
                 // Handle non-Axios errors if necessary
-                console.error("Unexpected error:", error);
+                console.error('Unexpected error:', error);
             }
         },
     });
@@ -95,7 +106,7 @@ const AIPlanLecturePreview = ({ task }: { task: AITaskIndividualListInterface })
                         Failed to load questions
                     </h1>
                     <h1 className="p-4">
-                        Click{" "}
+                        Click{' '}
                         <MyButton
                             type="button"
                             scale="small"
@@ -104,12 +115,12 @@ const AIPlanLecturePreview = ({ task }: { task: AITaskIndividualListInterface })
                             onClick={() => handleRetryTask(task.id)}
                         >
                             Here
-                        </MyButton>{" "}
+                        </MyButton>{' '}
                         to retry
                     </h1>
                 </DialogContent>
             </Dialog>
-            {task.status === "FAILED" ? (
+            {task.status === 'FAILED' ? (
                 <MyButton
                     type="button"
                     scale="small"
@@ -117,10 +128,10 @@ const AIPlanLecturePreview = ({ task }: { task: AITaskIndividualListInterface })
                     className="border-none text-sm !text-blue-600 shadow-none hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 active:bg-transparent"
                     onClick={() => handleRetryTask(task.id)}
                 >
-                    {getRetryMutation.status === "pending" ? (
+                    {getRetryMutation.status === 'pending' ? (
                         <DashboardLoader size={18} />
                     ) : (
-                        "Retry"
+                        'Retry'
                     )}
                 </MyButton>
             ) : (
@@ -131,16 +142,19 @@ const AIPlanLecturePreview = ({ task }: { task: AITaskIndividualListInterface })
                     className="border-none text-sm !text-blue-600 shadow-none hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 active:bg-transparent"
                     onClick={() => handlViewChatList(task.id)}
                 >
-                    {getChatListMutation.status === "pending" ? (
+                    {getChatListMutation.status === 'pending' ? (
                         <DashboardLoader size={18} />
                     ) : (
-                        "View"
+                        'View'
                     )}
                 </MyButton>
             )}
 
-            {getChatListMutation.status === "success" && (
-                <PlanLecturePreview openDialog={true} planLectureData={planLectureData} />
+            {getChatListMutation.status === 'success' && (
+                <PlanLecturePreview
+                    openDialog={openPlanLecturePreview}
+                    planLectureData={planLectureData}
+                />
             )}
         </>
     );

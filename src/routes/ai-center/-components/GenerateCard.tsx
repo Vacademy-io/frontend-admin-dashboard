@@ -1,19 +1,19 @@
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { MyButton } from "@/components/design-system/button";
-import { Input } from "@/components/ui/input";
-import { StarFour, UploadSimple } from "phosphor-react";
-import { useAICenter } from "../-contexts/useAICenterContext";
-import { AIToolPageData } from "../-constants/AIToolPageData";
-import { GetImagesForAITools } from "../-helpers/GetImagesForAITools";
-import { Separator } from "@/components/ui/separator";
-import { MyInput } from "@/components/design-system/input";
-import AITasksList from "./AITasksList";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { useState } from "react";
-import { PromptDummyData } from "./Prompt-dummy-data";
-import { QuestionsFromTextData } from "../ai-tools/vsmart-prompt/-components/GenerateQuestionsFromText";
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { MyButton } from '@/components/design-system/button';
+import { Input } from '@/components/ui/input';
+import { StarFour, UploadSimple } from 'phosphor-react';
+import { useAICenter } from '../-contexts/useAICenterContext';
+import { AIToolPageData } from '../-constants/AIToolPageData';
+import { GetImagesForAITools } from '../-helpers/GetImagesForAITools';
+import { Separator } from '@/components/ui/separator';
+import { MyInput } from '@/components/design-system/input';
+import AITasksList from './AITasksList';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useState } from 'react';
+import { PromptDummyData } from './Prompt-dummy-data';
+import { QuestionsFromTextData } from '../ai-tools/vsmart-prompt/-components/GenerateQuestionsFromText';
 
 type PromptType = keyof typeof PromptDummyData;
 
@@ -34,7 +34,7 @@ interface GenerateCardProps {
         pdfId?: string,
         prompt?: string,
         taskName?: string,
-        taskId?: string,
+        taskId?: string
     ) => void;
     pollGenerateQuestionsFromText?: (data: QuestionsFromTextData) => void;
     pollGenerateQuestionsFromAudio?: (data: QuestionsFromTextData, taskId: string) => void;
@@ -54,7 +54,7 @@ export const GenerateCard = ({
     pollGenerateQuestionsFromText,
     pollGenerateQuestionsFromAudio,
 }: GenerateCardProps) => {
-    const [selectedValue, setSelectedValue] = useState<PromptType>("topic");
+    const [selectedValue, setSelectedValue] = useState<PromptType>('topic');
     const { key: keyContext, loader } = useAICenter();
     const toolData = keyProp ? AIToolPageData[keyProp] : null;
     return (
@@ -63,7 +63,7 @@ export const GenerateCard = ({
                 <div className="flex w-full flex-col gap-4 px-8 text-neutral-600">
                     <div className="flex w-fit items-center justify-start gap-2">
                         <div className="flex items-center gap-2 text-h2 font-semibold">
-                            <StarFour size={30} weight="fill" className="text-primary-500" />{" "}
+                            <StarFour size={30} weight="fill" className="text-primary-500" />{' '}
                             {toolData.heading}
                         </div>
                         <AITasksList
@@ -79,7 +79,7 @@ export const GenerateCard = ({
                     <div className="flex items-center justify-between">
                         {GetImagesForAITools(toolData.key)}
                         <div className="flex flex-col gap-4">
-                            {keyProp !== "audio" && (
+                            {keyProp !== 'audio' && (
                                 <MyInput
                                     inputType="text"
                                     inputPlaceholder="Enter Your Task Name"
@@ -89,7 +89,7 @@ export const GenerateCard = ({
                                     label="Task Name"
                                 />
                             )}
-                            {keyProp === "sortSplitPdf" && (
+                            {keyProp === 'sortSplitPdf' && (
                                 <div className="flex flex-col gap-2">
                                     <h1>
                                         {PromptDummyData[selectedValue].heading}
@@ -148,7 +148,7 @@ export const GenerateCard = ({
                                     onClick={handleUploadClick}
                                     disable={
                                         (keyContext !== keyProp && loader && keyContext != null) ||
-                                        (keyProp !== "audio" && !taskName)
+                                        (keyProp !== 'audio' && !taskName)
                                     }
                                 >
                                     <UploadSimple size={32} />

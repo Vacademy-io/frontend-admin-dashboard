@@ -1,22 +1,22 @@
-import { MyButton } from "@/components/design-system/button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { useState } from "react";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
+import { MyButton } from '@/components/design-system/button';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { useEffect, useState } from 'react';
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import {
     handleGetListIndividualTopics,
     handleQueryGetListIndividualTopics,
-} from "../-services/ai-center-service";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { Badge } from "@/components/ui/badge";
-import AIQuestionsPreview from "./AIQuestionsPreview";
-import { AITaskIndividualListInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
-import { getTaskTypeFromFeature } from "../-helpers/GetImagesForAITools";
-import AIChatWithPDFPreview from "./AIChatWithPDFPreview";
-import AIPlanLecturePreview from "./AIPlanLecturePreview";
-import AIEvaluatePreview from "./AIEvaluatePreview";
-import { ArrowCounterClockwise } from "phosphor-react";
-import { convertToLocalDateTime } from "@/constants/helper";
-import { QuestionsFromTextData } from "../ai-tools/vsmart-prompt/-components/GenerateQuestionsFromText";
+} from '../-services/ai-center-service';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { Badge } from '@/components/ui/badge';
+import AIQuestionsPreview from './AIQuestionsPreview';
+import { AITaskIndividualListInterface } from '@/types/ai/generate-assessment/generate-complete-assessment';
+import { getTaskTypeFromFeature } from '../-helpers/GetImagesForAITools';
+import AIChatWithPDFPreview from './AIChatWithPDFPreview';
+import AIPlanLecturePreview from './AIPlanLecturePreview';
+import AIEvaluatePreview from './AIEvaluatePreview';
+import { ArrowCounterClockwise } from 'phosphor-react';
+import { convertToLocalDateTime } from '@/constants/helper';
+import { QuestionsFromTextData } from '../ai-tools/vsmart-prompt/-components/GenerateQuestionsFromText';
 
 const AITasksList = ({
     heading,
@@ -32,15 +32,15 @@ const AITasksList = ({
     handleGenerateQuestionsForAssessment?: (
         pdfId?: string,
         prompt?: string,
-        taskId?: string,
+        taskId?: string
     ) => void;
     pollGenerateQuestionsFromText?: (data: QuestionsFromTextData) => void;
     pollGenerateQuestionsFromAudio?: (data: QuestionsFromTextData, taskId: string) => void;
 }) => {
     const [open, setOpen] = useState(enableDialog);
-
+    const [openQuestionsPreview, setOpenQuestionsPreview] = useState(false);
     const { data: allTasksData, isLoading } = useSuspenseQuery(
-        handleQueryGetListIndividualTopics(getTaskTypeFromFeature(heading)),
+        handleQueryGetListIndividualTopics(getTaskTypeFromFeature(heading))
     );
 
     const [allTasks, setAllTasks] = useState<AITaskIndividualListInterface[]>(allTasksData);
@@ -62,6 +62,32 @@ const AITasksList = ({
             taskType,
         });
     };
+
+    useEffect(() => {
+        setAllTasks(allTasksData);
+    }, [allTasksData]);
+
+    const { mutate } = getAITasksIndividualListMutation;
+
+    useEffect(() => {
+        if (open && !openQuestionsPreview) {
+            let count = 0;
+            const maxRuns = 5;
+            const interval = setInterval(() => {
+                if (count >= maxRuns) {
+                    clearInterval(interval);
+                    return;
+                }
+                mutate({
+                    taskType: getTaskTypeFromFeature(heading),
+                });
+                count++;
+            }, 10000);
+
+            return () => clearInterval(interval); // cleanup on unmount
+        }
+        return () => {};
+    }, [mutate, heading, open, openQuestionsPreview]);
 
     if (isLoading) return <DashboardLoader />;
 
@@ -97,7 +123,7 @@ const AITasksList = ({
                     </div>
                 </div>
 
-                {getAITasksIndividualListMutation.status === "pending" ? (
+                {getAITasksIndividualListMutation.status === 'pending' ? (
                     <DashboardLoader size={24} />
                 ) : (
                     <div className="flex flex-col gap-4 overflow-y-auto p-4">
@@ -121,35 +147,53 @@ const AITasksList = ({
                                         <div className="flex items-center justify-start">
                                             <Badge
                                                 className={`border border-gray-200 text-neutral-600 shadow-none ${
-                                                    task.status === "FAILED"
-                                                        ? "bg-red-100"
-                                                        : task.status === "COMPLETED"
-                                                          ? "bg-green-100"
-                                                          : "bg-blue-100"
+                                                    task.status === 'FAILED'
+                                                        ? 'bg-red-100'
+                                                        : task.status === 'COMPLETED'
+                                                          ? 'bg-green-100'
+                                                          : 'bg-blue-100'
                                                 }`}
                                             >
                                                 {task.status}
                                             </Badge>
-                                            {task.status !== "PROGRESS" &&
-                                                heading === "Vsmart Feedback" && (
-                                                    <AIEvaluatePreview task={task} />
+                                            {task.status !== 'PROGRESS' &&
+                                                heading === 'Vsmart Feedback' && (
+                                                    <AIEvaluatePreview
+                                                        task={task}
+                                                        openEvaluatePreview={openQuestionsPreview}
+                                                        setOpenEvaluatePreview={
+                                                            setOpenQuestionsPreview
+                                                        }
+                                                    />
                                                 )}
 
-                                            {task.status !== "PROGRESS" &&
-                                                heading === "Vsmart Lecturer" && (
-                                                    <AIPlanLecturePreview task={task} />
+                                            {task.status !== 'PROGRESS' &&
+                                                heading === 'Vsmart Lecturer' && (
+                                                    <AIPlanLecturePreview
+                                                        task={task}
+                                                        openPlanLecturePreview={
+                                                            openQuestionsPreview
+                                                        }
+                                                        setOpenPlanLecturePreview={
+                                                            setOpenQuestionsPreview
+                                                        }
+                                                    />
                                                 )}
 
-                                            {task.status !== "PROGRESS" &&
-                                                heading === "Vsmart Chat" && (
-                                                    <AIChatWithPDFPreview task={task} />
+                                            {task.status !== 'PROGRESS' &&
+                                                heading === 'Vsmart Chat' && (
+                                                    <AIChatWithPDFPreview
+                                                        task={task}
+                                                        openAIPreview={openQuestionsPreview}
+                                                        setOpenAIPreview={setOpenQuestionsPreview}
+                                                    />
                                                 )}
 
-                                            {heading !== "Vsmart Lecturer" &&
-                                                heading !== "Vsmart Chat" &&
-                                                heading !== "Vsmart Feedback" &&
-                                                (task.status === "COMPLETED" ||
-                                                    task.status === "FAILED") && (
+                                            {heading !== 'Vsmart Lecturer' &&
+                                                heading !== 'Vsmart Chat' &&
+                                                heading !== 'Vsmart Feedback' &&
+                                                (task.status === 'COMPLETED' ||
+                                                    task.status === 'FAILED') && (
                                                     <AIQuestionsPreview
                                                         task={task}
                                                         pollGenerateAssessment={
@@ -165,6 +209,10 @@ const AITasksList = ({
                                                             pollGenerateQuestionsFromAudio
                                                         }
                                                         heading={heading}
+                                                        openQuestionsPreview={openQuestionsPreview}
+                                                        setOpenQuestionsPreview={
+                                                            setOpenQuestionsPreview
+                                                        }
                                                     />
                                                 )}
                                         </div>

@@ -1,21 +1,21 @@
-import { useEffect, useRef, useState } from "react";
-import { GenerateCard } from "../../../-components/GenerateCard";
-import { useFileUpload } from "@/hooks/use-file-upload";
-import { getInstituteId } from "@/constants/helper";
+import { useEffect, useRef, useState } from 'react';
+import { GenerateCard } from '../../../-components/GenerateCard';
+import { useFileUpload } from '@/hooks/use-file-upload';
+import { getInstituteId } from '@/constants/helper';
 import {
     handleStartProcessUploadedAudioFile,
     handleGetQuestionsFromAudio,
-} from "../../../-services/ai-center-service";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAICenter } from "../../../-contexts/useAICenterContext";
-import GenerateQuestionsFromAudioForm from "./GenerateQuestionsFromAudioForm";
-import { QuestionsFromTextData } from "@/routes/ai-center/ai-tools/vsmart-prompt/-components/GenerateQuestionsFromText";
-import AITasksList from "@/routes/ai-center/-components/AITasksList";
+} from '../../../-services/ai-center-service';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAICenter } from '../../../-contexts/useAICenterContext';
+import GenerateQuestionsFromAudioForm from './GenerateQuestionsFromAudioForm';
+import { QuestionsFromTextData } from '@/routes/ai-center/ai-tools/vsmart-prompt/-components/GenerateQuestionsFromText';
+import AITasksList from '@/routes/ai-center/-components/AITasksList';
 
 export const GenerateQuestionsFromAudio = () => {
-    const [audioId, setAudioId] = useState("");
+    const [audioId, setAudioId] = useState('');
     const queryClient = useQueryClient();
-    const [taskName, setTaskName] = useState("");
+    const [taskName, setTaskName] = useState('');
     const instituteId = getInstituteId();
     const { uploadFile } = useFileUpload();
     const { setLoader, key, setKey } = useAICenter();
@@ -23,7 +23,7 @@ export const GenerateQuestionsFromAudio = () => {
     const [fileUploading, setFileUploading] = useState(false);
 
     const handleUploadClick = () => {
-        setKey("audio");
+        setKey('audio');
         fileInputRef.current?.click();
     };
 
@@ -33,9 +33,9 @@ export const GenerateQuestionsFromAudio = () => {
             const fileId = await uploadFile({
                 file,
                 setIsUploading: setFileUploading,
-                userId: "your-user-id",
+                userId: 'your-user-id',
                 source: instituteId,
-                sourceId: "STUDENTS",
+                sourceId: 'STUDENTS',
             });
             if (fileId) {
                 const response = await handleStartProcessUploadedAudioFile(fileId);
@@ -43,7 +43,7 @@ export const GenerateQuestionsFromAudio = () => {
                     setAudioId(response.pdf_id);
                 }
             }
-            event.target.value = "";
+            event.target.value = '';
         }
     };
 
@@ -66,7 +66,7 @@ export const GenerateQuestionsFromAudio = () => {
             taskId?: string;
         }) => {
             setLoader(true);
-            setKey("audio");
+            setKey('audio');
             return handleGetQuestionsFromAudio(
                 audioId,
                 numQuestions,
@@ -74,13 +74,15 @@ export const GenerateQuestionsFromAudio = () => {
                 difficulty,
                 language,
                 taskName,
-                taskId || "",
+                taskId || ''
             );
         },
         onSuccess: () => {
             setLoader(false);
             setKey(null);
-            queryClient.invalidateQueries({ queryKey: ["GET_INDIVIDUAL_AI_LIST_DATA"] });
+            setTimeout(() => {
+                queryClient.invalidateQueries({ queryKey: ['GET_INDIVIDUAL_AI_LIST_DATA'] });
+            }, 100);
         },
         onError: (error: unknown) => {
             console.log(error);
@@ -105,7 +107,7 @@ export const GenerateQuestionsFromAudio = () => {
         prompt: string,
         difficulty: string,
         language: string,
-        taskName: string,
+        taskName: string
     ) => {
         getQuestionsFromAudioMutation.mutate({
             audioId,
@@ -118,7 +120,7 @@ export const GenerateQuestionsFromAudio = () => {
     };
 
     useEffect(() => {
-        if (key === "audio") {
+        if (key === 'audio') {
             if (fileUploading == true) setLoader(true);
         }
     }, [fileUploading, key]);
@@ -137,15 +139,15 @@ export const GenerateQuestionsFromAudio = () => {
                 setTaskName={setTaskName}
                 pollGenerateQuestionsFromAudio={pollGenerateQuestionsFromAudio}
             />
-            {audioId !== "" && (
+            {audioId !== '' && (
                 <GenerateQuestionsFromAudioForm
                     audioId={audioId}
                     handleCallApi={handleCallApi}
                     status={getQuestionsFromAudioMutation.status}
                 />
             )}
-            {getQuestionsFromAudioMutation.status === "success" && (
-                <AITasksList heading="Vsmart Audio" />
+            {getQuestionsFromAudioMutation.status === 'success' && (
+                <AITasksList heading="Vsmart Audio" enableDialog={true} />
             )}
         </>
     );

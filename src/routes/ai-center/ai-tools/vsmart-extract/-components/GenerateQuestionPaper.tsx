@@ -1,18 +1,18 @@
-import { getInstituteId } from "@/constants/helper";
-import { useFileUpload } from "@/hooks/use-file-upload";
-import { useEffect, useRef, useState } from "react";
+import { getInstituteId } from '@/constants/helper';
+import { useFileUpload } from '@/hooks/use-file-upload';
+import { useEffect, useRef, useState } from 'react';
 import {
     handleGenerateAssessmentQuestions,
     handleStartProcessUploadedFile,
-} from "../../../-services/ai-center-service";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { GenerateCard } from "../../../-components/GenerateCard";
-import { useAICenter } from "../../../-contexts/useAICenterContext";
-import AITasksList from "@/routes/ai-center/-components/AITasksList";
+} from '../../../-services/ai-center-service';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { GenerateCard } from '../../../-components/GenerateCard';
+import { useAICenter } from '../../../-contexts/useAICenterContext';
+import AITasksList from '@/routes/ai-center/-components/AITasksList';
 
 const GenerateAiQuestionPaperComponent = () => {
     const queryClient = useQueryClient();
-    const [taskName, setTaskName] = useState("");
+    const [taskName, setTaskName] = useState('');
     const instituteId = getInstituteId();
     const { setLoader, key, setKey } = useAICenter();
     const { uploadFile } = useFileUpload();
@@ -20,7 +20,7 @@ const GenerateAiQuestionPaperComponent = () => {
     const [fileUploading, setFileUploading] = useState(false);
 
     const handleUploadClick = () => {
-        setKey("question");
+        setKey('question');
         fileInputRef.current?.click();
     };
 
@@ -30,17 +30,17 @@ const GenerateAiQuestionPaperComponent = () => {
             const fileId = await uploadFile({
                 file,
                 setIsUploading: setFileUploading,
-                userId: "your-user-id",
+                userId: 'your-user-id',
                 source: instituteId,
-                sourceId: "STUDENTS",
+                sourceId: 'STUDENTS',
             });
             if (fileId) {
                 const response = await handleStartProcessUploadedFile(fileId);
                 if (response) {
-                    pollGenerateAssessment(response.pdf_id, "", "");
+                    pollGenerateAssessment(response.pdf_id, '', '');
                 }
             }
-            event.target.value = "";
+            event.target.value = '';
         }
     };
 
@@ -58,13 +58,15 @@ const GenerateAiQuestionPaperComponent = () => {
             taskId?: string;
         }) => {
             setLoader(true);
-            setKey("question");
-            return handleGenerateAssessmentQuestions(pdfId, userPrompt, taskName, taskId || "");
+            setKey('question');
+            return handleGenerateAssessmentQuestions(pdfId, userPrompt, taskName, taskId || '');
         },
         onSuccess: () => {
             setLoader(false);
             setKey(null);
-            queryClient.invalidateQueries({ queryKey: ["GET_INDIVIDUAL_AI_LIST_DATA"] });
+            setTimeout(() => {
+                queryClient.invalidateQueries({ queryKey: ['GET_INDIVIDUAL_AI_LIST_DATA'] });
+            }, 100);
         },
         onError: (error: unknown) => {
             console.log(error);
@@ -73,15 +75,15 @@ const GenerateAiQuestionPaperComponent = () => {
 
     const pollGenerateAssessment = (pdfId?: string, prompt?: string, taskId?: string) => {
         generateAssessmentMutation.mutate({
-            pdfId: pdfId || "",
-            userPrompt: prompt || "",
+            pdfId: pdfId || '',
+            userPrompt: prompt || '',
             taskName,
             taskId,
         });
     };
 
     useEffect(() => {
-        if (key === "question") {
+        if (key === 'question') {
             if (fileUploading == true) setLoader(true);
         }
     }, [fileUploading, key]);
@@ -100,7 +102,7 @@ const GenerateAiQuestionPaperComponent = () => {
                 setTaskName={setTaskName}
                 pollGenerateAssessment={pollGenerateAssessment}
             />
-            {generateAssessmentMutation.status === "success" && (
+            {generateAssessmentMutation.status === 'success' && (
                 <AITasksList heading="Vsmart Extract" enableDialog={true} />
             )}
         </>

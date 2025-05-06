@@ -1,7 +1,7 @@
-import { Separator } from "@/components/ui/separator";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { useState } from "react";
-import { PlanLectureDataInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
+import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { useState } from 'react';
+import { PlanLectureDataInterface } from '@/types/ai/generate-assessment/generate-complete-assessment';
 
 const PlanLecturePreview = ({
     openDialog = false,
@@ -89,7 +89,7 @@ const PlanLecturePreview = ({
                                                                 {activity}
                                                             </p>
                                                         );
-                                                    },
+                                                    }
                                                 )}
                                             </div>
                                         </div>
