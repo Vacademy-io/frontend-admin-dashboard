@@ -147,7 +147,7 @@ export const GenerateQuestionsFromAudio = () => {
                 />
             )}
             {getQuestionsFromAudioMutation.status === 'success' && (
-                <AITasksList heading="Vsmart Audio" />
+                <AITasksList heading="Vsmart Audio" enableDialog={true} />
             )}
         </>
     );
