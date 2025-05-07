@@ -1,11 +1,8 @@
 import { MyButton } from '@/components/design-system/button';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { useEffect, useState } from 'react';
-import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
-import {
-    handleGetListIndividualTopics,
-    handleQueryGetListIndividualTopics,
-} from '../-services/ai-center-service';
+import { useMutation } from '@tanstack/react-query';
+import { handleGetListIndividualTopics } from '../-services/ai-center-service';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { Badge } from '@/components/ui/badge';
 import AIQuestionsPreview from './AIQuestionsPreview';
@@ -39,11 +36,8 @@ const AITasksList = ({
 }) => {
     const [open, setOpen] = useState(enableDialog);
     const [openQuestionsPreview, setOpenQuestionsPreview] = useState(false);
-    const { data: allTasksData, isLoading } = useSuspenseQuery(
-        handleQueryGetListIndividualTopics(getTaskTypeFromFeature(heading))
-    );
-
-    const [allTasks, setAllTasks] = useState<AITaskIndividualListInterface[]>(allTasksData);
+    const [allTasks, setAllTasks] = useState<AITaskIndividualListInterface[]>([]);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
 
     const getAITasksIndividualListMutation = useMutation({
         mutationFn: async ({ taskType }: { taskType: string }) => {
@@ -62,10 +56,6 @@ const AITasksList = ({
             taskType,
         });
     };
-
-    useEffect(() => {
-        setAllTasks(allTasksData);
-    }, [allTasksData]);
 
     const { mutate } = getAITasksIndividualListMutation;
 
@@ -88,6 +78,24 @@ const AITasksList = ({
         }
         return () => {};
     }, [mutate, heading, open, openQuestionsPreview]);
+
+    useEffect(() => {
+        const fetchTasks = async () => {
+            setIsLoading(true);
+            try {
+                const taskType = getTaskTypeFromFeature(heading);
+                const data = await handleGetListIndividualTopics(taskType);
+                setAllTasks(data);
+            } catch (error) {
+                console.error('Failed to fetch tasks:', error);
+                setAllTasks([]); // fallback or keep old state if preferred
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchTasks();
+    }, [heading]);
 
     if (isLoading) return <DashboardLoader />;
 
@@ -122,7 +130,6 @@ const AITasksList = ({
                         <ArrowCounterClockwise size={18} className="font-thin text-neutral-600" />
                     </div>
                 </div>
-
                 {getAITasksIndividualListMutation.status === 'pending' ? (
                     <DashboardLoader size={24} />
                 ) : (
@@ -188,7 +195,6 @@ const AITasksList = ({
                                                         setOpenAIPreview={setOpenQuestionsPreview}
                                                     />
                                                 )}
-
                                             {heading !== 'Vsmart Lecturer' &&
                                                 heading !== 'Vsmart Chat' &&
                                                 heading !== 'Vsmart Feedback' &&
