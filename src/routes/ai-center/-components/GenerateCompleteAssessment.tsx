@@ -1,25 +1,25 @@
-import { useEffect, useState } from "react";
-import { FormProvider, useFieldArray, UseFormReturn } from "react-hook-form";
-import { transformQuestionsToGenerateAssessmentAI } from "../-utils/helper";
-import { Sortable, SortableDragHandle, SortableItem } from "@/components/ui/sortable";
-import { getPPTViewTitle } from "@/routes/assessment/question-papers/-utils/helper";
-import { QuestionType } from "@/constants/dummy-data";
-import { DotsSixVertical } from "phosphor-react";
-import { PPTComponentFactory } from "@/routes/assessment/question-papers/-components/QuestionPaperTemplatesTypes/PPTComponentFactory";
-import { Separator } from "@/components/ui/separator";
-import { MainViewComponentFactory } from "@/routes/assessment/question-papers/-components/QuestionPaperTemplatesTypes/MainViewComponentFactory";
-import { z } from "zod";
-import { generateCompleteAssessmentFormSchema } from "../-utils/generate-complete-assessment-schema";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { MyButton } from "@/components/design-system/button";
-import useInstituteLogoStore from "@/components/common/layout-container/sidebar/institutelogo-global-zustand";
-import { Input } from "@/components/ui/input";
-import { AIAssessmentResponseInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
-import ExportQuestionPaperAI from "./export-ai-question-paper/ExportQuestionPaperAI";
-import { QuestionsFromTextDialog } from "../ai-tools/vsmart-prompt/-components/QuestionsFromTextDialog";
-import { QuestionsFromTextData } from "../ai-tools/vsmart-prompt/-components/GenerateQuestionsFromText";
-import { useAICenter } from "../-contexts/useAICenterContext";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
+import { useEffect, useState } from 'react';
+import { FormProvider, useFieldArray, UseFormReturn } from 'react-hook-form';
+import { transformQuestionsToGenerateAssessmentAI } from '../-utils/helper';
+import { Sortable, SortableDragHandle, SortableItem } from '@/components/ui/sortable';
+import { getPPTViewTitle } from '@/routes/assessment/question-papers/-utils/helper';
+import { QuestionType } from '@/constants/dummy-data';
+import { DotsSixVertical } from 'phosphor-react';
+import { PPTComponentFactory } from '@/routes/assessment/question-papers/-components/QuestionPaperTemplatesTypes/PPTComponentFactory';
+import { Separator } from '@/components/ui/separator';
+import { MainViewComponentFactory } from '@/routes/assessment/question-papers/-components/QuestionPaperTemplatesTypes/MainViewComponentFactory';
+import { z } from 'zod';
+import { generateCompleteAssessmentFormSchema } from '../-utils/generate-complete-assessment-schema';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { MyButton } from '@/components/design-system/button';
+import useInstituteLogoStore from '@/components/common/layout-container/sidebar/institutelogo-global-zustand';
+import { Input } from '@/components/ui/input';
+import { AIAssessmentResponseInterface } from '@/types/ai/generate-assessment/generate-complete-assessment';
+import ExportQuestionPaperAI from './export-ai-question-paper/ExportQuestionPaperAI';
+import { QuestionsFromTextDialog } from '../ai-tools/vsmart-prompt/-components/QuestionsFromTextDialog';
+import { QuestionsFromTextData } from '../ai-tools/vsmart-prompt/-components/GenerateQuestionsFromText';
+import { useAICenter } from '../-contexts/useAICenterContext';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
 // Infer the form type from the schema
 type GenerateCompleteAssessmentFormType = z.infer<typeof generateCompleteAssessmentFormSchema>;
 
@@ -75,7 +75,7 @@ const GenerateCompleteAssessment = ({
 }: GenerateCompleteAssessmentProps) => {
     const { instituteLogo } = useInstituteLogoStore();
     const transformQuestionsData = transformQuestionsToGenerateAssessmentAI(
-        assessmentData?.questions,
+        assessmentData?.questions
     );
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const { loader, key: keyContext } = useAICenter();
@@ -85,10 +85,10 @@ const GenerateCompleteAssessment = ({
     // UseFieldArray to manage questions array
     const { fields, move } = useFieldArray({
         control: form.control,
-        name: "questions", // Name of the field array
+        name: 'questions', // Name of the field array
     });
 
-    const questions = form.getValues("questions");
+    const questions = form.getValues('questions');
 
     const handlePageClick = (pageIndex: number) => {
         setCurrentQuestionIndex(pageIndex);
@@ -120,7 +120,7 @@ const GenerateCompleteAssessment = ({
                                         className="size-12 rounded-full"
                                     />
                                     <span className="text-lg font-semibold text-neutral-500">
-                                        {form.getValues("title")}
+                                        {form.getValues('title')}
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-4">
@@ -150,7 +150,7 @@ const GenerateCompleteAssessment = ({
                                             submitButton={submitButtonForText || <></>}
                                             handleDisableSubmitBtn={handleDisableSubmitBtn}
                                             submitForm={submitFormFn}
-                                            taskId={keyProp || ""}
+                                            taskId={keyProp || ''}
                                         />
                                     ) : (
                                         <Dialog
@@ -184,10 +184,10 @@ const GenerateCompleteAssessment = ({
                                                         <Input
                                                             type=""
                                                             placeholder="Enter number of questions to generate"
-                                                            value={numQuestions || ""}
+                                                            value={numQuestions || ''}
                                                             onChange={(e) =>
                                                                 setNumQuestions(
-                                                                    Number(e.target.value),
+                                                                    Number(e.target.value)
                                                                 )
                                                             }
                                                         />
@@ -195,7 +195,7 @@ const GenerateCompleteAssessment = ({
                                                     {setDifficulty && (
                                                         <Input
                                                             placeholder="Enter difficulty level [Easy, Medium, Hard]"
-                                                            value={difficulty || ""}
+                                                            value={difficulty || ''}
                                                             onChange={(e) =>
                                                                 setDifficulty(e.target.value)
                                                             }
@@ -204,7 +204,7 @@ const GenerateCompleteAssessment = ({
                                                     {setLanguage && (
                                                         <Input
                                                             placeholder="Enter language [English, Hindi, etc.]"
-                                                            value={language || ""}
+                                                            value={language || ''}
                                                             onChange={(e) =>
                                                                 setLanguage(e.target.value)
                                                             }
@@ -232,7 +232,7 @@ const GenerateCompleteAssessment = ({
                                                             className="mr-4 text-sm"
                                                             onClick={() =>
                                                                 handleGenerateQuestionsForAssessment(
-                                                                    audioId || "",
+                                                                    audioId || ''
                                                                 )
                                                             }
                                                         >
@@ -290,8 +290,8 @@ const GenerateCompleteAssessment = ({
                                                                 // onClick={() => handlePageClick(index)}
                                                                 className={`rounded-xl border-4 bg-primary-50 p-6 ${
                                                                     currentQuestionIndex === index
-                                                                        ? "border-primary-500 bg-none"
-                                                                        : "bg-none"
+                                                                        ? 'border-primary-500 bg-none'
+                                                                        : 'bg-none'
                                                                 }`}
                                                                 onMouseEnter={() =>
                                                                     handlePageClick(index)
@@ -304,8 +304,8 @@ const GenerateCompleteAssessment = ({
                                                                             &nbsp;
                                                                             {getPPTViewTitle(
                                                                                 getValues(
-                                                                                    `questions.${index}.questionType`,
-                                                                                ) as QuestionType,
+                                                                                    `questions.${index}.questionType`
+                                                                                ) as QuestionType
                                                                             )}
                                                                         </h1>
                                                                         <SortableDragHandle
@@ -320,7 +320,7 @@ const GenerateCompleteAssessment = ({
                                                                         key={index}
                                                                         type={
                                                                             getValues(
-                                                                                `questions.${currentQuestionIndex}.questionType`,
+                                                                                `questions.${currentQuestionIndex}.questionType`
                                                                             ) as QuestionType
                                                                         }
                                                                         props={{
@@ -330,7 +330,7 @@ const GenerateCompleteAssessment = ({
                                                                             setCurrentQuestionIndex:
                                                                                 setCurrentQuestionIndex,
                                                                             className:
-                                                                                "relative mt-4 rounded-xl border-4 border-primary-300 bg-white p-4",
+                                                                                'relative mt-4 rounded-xl border-4 border-primary-300 bg-white p-4',
                                                                         }}
                                                                     />
                                                                 </div>
@@ -352,7 +352,7 @@ const GenerateCompleteAssessment = ({
                                         key={currentQuestionIndex}
                                         type={
                                             getValues(
-                                                `questions.${currentQuestionIndex}.questionType`,
+                                                `questions.${currentQuestionIndex}.questionType`
                                             ) as QuestionType
                                         }
                                         props={{
@@ -360,7 +360,7 @@ const GenerateCompleteAssessment = ({
                                             currentQuestionIndex: currentQuestionIndex,
                                             setCurrentQuestionIndex: setCurrentQuestionIndex,
                                             className:
-                                                "dialog-height overflow-auto ml-6 flex w-full flex-col gap-6 pr-6 pt-4",
+                                                'dialog-height overflow-auto ml-6 flex w-full flex-col gap-6 pr-6 pt-4',
                                         }}
                                     />
                                 )}

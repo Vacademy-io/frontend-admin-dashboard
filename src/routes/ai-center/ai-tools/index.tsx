@@ -1,8 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { AICenterProvider } from "../-contexts/useAICenterContext";
-import { LayoutContainer } from "@/components/common/layout-container/layout-container";
+import { createFileRoute } from '@tanstack/react-router';
+import { AICenterProvider } from '../-contexts/useAICenterContext';
+import { LayoutContainer } from '@/components/common/layout-container/layout-container';
 
-export const Route = createFileRoute("/ai-center/ai-tools/")({
+export const Route = createFileRoute('/ai-center/ai-tools/')({
     component: RouteComponent,
 });
 
