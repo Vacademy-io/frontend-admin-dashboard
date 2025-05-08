@@ -1,4 +1,4 @@
-import { getInstituteId } from "@/constants/helper";
+import { getInstituteId } from '@/constants/helper';
 import {
     CHAT_WITH_PDF_AI_URL,
     CONVERT_PDF_TO_HTML_AI_URL,
@@ -20,13 +20,13 @@ import {
     SORT_QUESTIONS_FILE_AI_URL,
     SORT_SPLIT_FILE_AI_URL,
     START_PROCESSING_FILE_AI_URL,
-} from "@/constants/urls";
-import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
-import axios from "axios";
+} from '@/constants/urls';
+import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
+import axios from 'axios';
 
 export const handleStartProcessUploadedFile = async (fileId: string) => {
     const response = await axios({
-        method: "POST",
+        method: 'POST',
         url: START_PROCESSING_FILE_AI_URL,
         data: {
             file_id: fileId,
@@ -38,7 +38,7 @@ export const handleStartProcessUploadedFile = async (fileId: string) => {
 export const handleGetListIndividualTopics = async (taskType: string) => {
     const instituteId = getInstituteId();
     const response = await axios({
-        method: "GET",
+        method: 'GET',
         url: LIST_INDIVIDUAL_AI_TASKS_URL,
         params: {
             instituteId,
@@ -50,7 +50,7 @@ export const handleGetListIndividualTopics = async (taskType: string) => {
 
 export const handleRetryAITask = async (taskId: string) => {
     const response = await axios({
-        method: "POST",
+        method: 'POST',
         url: RETRY_AI_URL,
         params: {
             taskId,
@@ -61,7 +61,7 @@ export const handleRetryAITask = async (taskId: string) => {
 
 export const handleQueryGetListIndividualTopics = (taskType: string) => {
     return {
-        queryKey: ["GET_INDIVIDUAL_AI_LIST_DATA", taskType],
+        queryKey: ['GET_INDIVIDUAL_AI_LIST_DATA', taskType],
         queryFn: () => handleGetListIndividualTopics(taskType),
         staleTime: 60 * 60 * 1000,
     };
@@ -69,7 +69,7 @@ export const handleQueryGetListIndividualTopics = (taskType: string) => {
 
 export const handleGetQuestionsInvidualTask = async (taskId: string) => {
     const response = await axios({
-        method: "GET",
+        method: 'GET',
         url: GET_INDIVIDUAL_AI_TASK_QUESTIONS,
         params: {
             taskId,
@@ -80,7 +80,7 @@ export const handleGetQuestionsInvidualTask = async (taskId: string) => {
 
 export const handleGetChatWithPDFInvidualTask = async (parentId: string) => {
     const response = await axios({
-        method: "GET",
+        method: 'GET',
         url: GET_INDIVIDUAL_CHAT_WITH_PDF_AI_TASK_QUESTIONS,
         params: {
             parentId,
@@ -91,7 +91,7 @@ export const handleGetChatWithPDFInvidualTask = async (parentId: string) => {
 
 export const handleGetLecturePlan = async (taskId: string) => {
     const response = await axios({
-        method: "GET",
+        method: 'GET',
         url: GET_LECTURE_PLAN_PREVIEW_URL,
         params: {
             taskId,
@@ -102,7 +102,7 @@ export const handleGetLecturePlan = async (taskId: string) => {
 
 export const handleGetEvaluateLecture = async (taskId: string) => {
     const response = await axios({
-        method: "GET",
+        method: 'GET',
         url: GET_LECTURE_FEEDBACK_PREVIEW_URL,
         params: {
             taskId,
@@ -115,11 +115,11 @@ export const handleSortSplitPDF = async (
     pdfId: string,
     requiredTopics: string,
     taskName: string,
-    taskId: string,
+    taskId: string
 ) => {
     const instituteId = getInstituteId();
     const response = await axios({
-        method: "GET",
+        method: 'GET',
         url: SORT_SPLIT_FILE_AI_URL,
         params: {
             pdfId,
@@ -135,11 +135,11 @@ export const handleSortSplitPDF = async (
 export const handleSortQuestionsPDF = async (
     pdfId: string,
     userPrompt: string,
-    taskName: string,
+    taskName: string
 ) => {
     const instituteId = getInstituteId();
     const response = await axios({
-        method: "GET",
+        method: 'GET',
         url: SORT_QUESTIONS_FILE_AI_URL,
         params: {
             pdfId,
@@ -155,11 +155,11 @@ export const handleGenerateAssessmentQuestions = async (
     pdfId: string,
     userPrompt: string,
     taskName: string,
-    taskId: string,
+    taskId: string
 ) => {
     const instituteId = getInstituteId();
     const response = await axios({
-        method: "GET",
+        method: 'GET',
         url: GENERATE_QUESTIONS_FROM_FILE_AI_URL,
         params: {
             pdfId,
@@ -175,11 +175,11 @@ export const handleGenerateAssessmentImage = async (
     pdfId: string,
     userPrompt: string,
     taskName: string,
-    taskId: string,
+    taskId: string
 ) => {
     const instituteId = getInstituteId();
     const response = await axios({
-        method: "GET",
+        method: 'GET',
         url: GENERATE_QUESTIONS_FROM_IMAGE_AI_URL,
         params: {
             pdfId,
@@ -195,7 +195,7 @@ export const handleGenerateAssessmentImage = async (
 export const handleEvaluateLecture = async (audioId: string, taskName: string) => {
     const instituteId = getInstituteId();
     const response = await axios({
-        method: "GET",
+        method: 'GET',
         url: GENERATE_FEEDBACK_FROM_FILE_AI_URL,
         params: {
             audioId,
@@ -209,10 +209,10 @@ export const handleEvaluateLecture = async (audioId: string, taskName: string) =
 export const handleGenerateAssessmentQuestionsPageWise = async (
     html: string,
     userPrompt: string,
-    taskId: string,
+    taskId: string
 ) => {
     const response = await axios({
-        method: "POST",
+        method: 'POST',
         url: HTML_TO_QUESTIONS_FROM_FILE_AI_URL,
         params: {
             userPrompt,
@@ -225,7 +225,7 @@ export const handleGenerateAssessmentQuestionsPageWise = async (
 export const handleConvertPDFToHTML = async (pdfId: string, taskName: string) => {
     const instituteId = getInstituteId();
     const response = await axios({
-        method: "GET",
+        method: 'GET',
         url: CONVERT_PDF_TO_HTML_AI_URL,
         params: {
             pdfId,
@@ -238,7 +238,7 @@ export const handleConvertPDFToHTML = async (pdfId: string, taskName: string) =>
 
 export const handleGetQuestionsFromHTMLUrl = async (html: string, userPrompt: string) => {
     const response = await axios({
-        method: "POST",
+        method: 'POST',
         params: {
             userPrompt,
         },
@@ -250,7 +250,7 @@ export const handleGetQuestionsFromHTMLUrl = async (html: string, userPrompt: st
 
 export const handleStartProcessUploadedAudioFile = async (fileId: string) => {
     const response = await axios({
-        method: "POST",
+        method: 'POST',
         url: PROCESS_AUDIO_FILE,
         // params: {
         //     audioId: fileId
@@ -267,11 +267,11 @@ export const handleGetQuestionsFromAudio = async (
     difficulty: string | null,
     language: string | null,
     taskName: string,
-    taskId: string,
+    taskId: string
 ) => {
     const instituteId = getInstituteId();
     const response = await axios({
-        method: "GET",
+        method: 'GET',
         url: GET_QUESTIONS_FROM_AUDIO,
         params: {
             audioId: audioId,
@@ -295,11 +295,11 @@ export const handleGetQuestionsFromText = async (
     topics: string,
     question_type: string,
     question_language: string,
-    taskId: string,
+    taskId: string
 ) => {
     const instituteId = getInstituteId();
     const response = await authenticatedAxiosInstance({
-        method: "POST",
+        method: 'POST',
         url: GET_QUESTIONS_FROM_TEXT,
         data: {
             text: text,
@@ -327,13 +327,13 @@ export const handleGetPlanLecture = async (
         min: string;
     },
     isQuestionGenerated: boolean,
-    isAssignmentHomeworkGenerated: boolean,
+    isAssignmentHomeworkGenerated: boolean
 ) => {
     const instituteId = getInstituteId();
     const totalMinutes =
-        Number(lectureDuration.hrs || "0") * 60 + Number(lectureDuration.min || "0");
+        Number(lectureDuration.hrs || '0') * 60 + Number(lectureDuration.min || '0');
     const response = await axios({
-        method: "GET",
+        method: 'GET',
         url: GET_LECTURE_PLAN_URL,
         params: {
             userPrompt: prompt,
@@ -354,11 +354,11 @@ export const handleChatWithPDF = async (
     pdfId: string,
     userPrompt: string,
     taskName: string,
-    parentId: string,
+    parentId: string
 ) => {
     const instituteId = getInstituteId();
     const response = await axios({
-        method: "GET",
+        method: 'GET',
         url: CHAT_WITH_PDF_AI_URL,
         params: {
             pdfId,

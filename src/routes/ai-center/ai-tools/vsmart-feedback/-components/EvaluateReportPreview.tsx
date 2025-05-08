@@ -22,7 +22,7 @@ const EvaluateReportPreview = ({
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogContent className="no-scrollbar !m-0 h-full !w-full !max-w-full !gap-0 overflow-y-auto !rounded-none p-0">
                 <h1 className="bg-primary-50 p-4 font-semibold text-primary-500">
-                    {evaluateLectureData?.report_title}
+                    {evaluateLectureData?.reportTitle}
                 </h1>
                 <div className="flex h-screen w-screen flex-col gap-4 p-6">
                     <div className="flex items-center justify-between">
@@ -36,13 +36,13 @@ const EvaluateReportPreview = ({
                             <div className="flex items-center">
                                 <span className="text-sm font-semibold">Lecture Title:&nbsp;</span>
                                 <span className="text-sm font-thin">
-                                    {evaluateLectureData?.lecture_info?.lecture_title}
+                                    {evaluateLectureData?.lectureInfo?.lectureTitle}
                                 </span>
                             </div>
                             <div className="flex items-center">
                                 <span className="text-sm font-semibold">Duration:&nbsp;</span>
                                 <span className="text-sm font-thin">
-                                    {evaluateLectureData?.lecture_info?.duration}
+                                    {evaluateLectureData?.lectureInfo?.duration}
                                 </span>
                             </div>
                             <div className="flex items-center">
@@ -50,7 +50,7 @@ const EvaluateReportPreview = ({
                                     Evaluation Date:&nbsp;
                                 </span>
                                 <span className="text-sm font-thin">
-                                    {evaluateLectureData?.lecture_info?.evaluation_date}
+                                    {evaluateLectureData?.lectureInfo?.evaluationDate}
                                 </span>
                             </div>
                         </div>
@@ -58,19 +58,19 @@ const EvaluateReportPreview = ({
                             <div className="flex flex-col items-center">
                                 <span className="text-sm">Total Score</span>
                                 <span className="font-bold text-neutral-400">
-                                    {evaluateLectureData?.total_score}/100
+                                    {evaluateLectureData?.totalScore}/100
                                 </span>
                             </div>
                             <div className="flex flex-col items-center">
                                 <StarRatingComponent
-                                    score={Number(evaluateLectureData?.total_score)}
+                                    score={Number(evaluateLectureData?.totalScore)}
                                 />
                                 <span
                                     className={getPerformanceColor(
-                                        Number(evaluateLectureData?.total_score),
+                                        Number(evaluateLectureData?.totalScore),
                                     )}
                                 >
-                                    {getPerformanceLabel(Number(evaluateLectureData?.total_score))}
+                                    {getPerformanceLabel(Number(evaluateLectureData?.totalScore))}
                                 </span>
                             </div>
                         </div>
@@ -111,13 +111,13 @@ const EvaluateReportPreview = ({
                                     ))}
                                 </div>
                                 {criterion &&
-                                    criterion.scope_of_improvement &&
-                                    criterion.scope_of_improvement.length > 0 && (
+                                    criterion.scopeOfImprovement &&
+                                    criterion.scopeOfImprovement.length > 0 && (
                                         <div className="mt-2 flex flex-col gap-1">
                                             <span className="text-sm font-semibold">
                                                 Scope of Improvement:
                                             </span>
-                                            {criterion?.scope_of_improvement?.map(
+                                            {criterion?.scopeOfImprovement?.map(
                                                 (improvement, impIndex) => (
                                                     <div
                                                         key={impIndex}

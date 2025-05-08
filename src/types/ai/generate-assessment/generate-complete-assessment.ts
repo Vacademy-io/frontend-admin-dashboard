@@ -1,6 +1,6 @@
 interface RichText {
     id: string | null;
-    type: "HTML" | string;
+    type: string;
     content: string;
 }
 
@@ -67,16 +67,16 @@ export interface AITaskIndividualListInterface {
 }
 
 interface TimeWiseSection {
-    section_heading: string;
-    time_split: string;
+    sectionHeading: string;
+    timeSplit: string;
     content: string;
-    topic_covered: string[];
-    question_to_students: string[];
+    topicCovered: string[];
+    questionToStudents: string[];
     activity: string[];
 }
 
 interface Assignment {
-    topic_covered: string[];
+    topicCovered: string[];
     tasks: string[];
 }
 
@@ -86,31 +86,31 @@ export interface PlanLectureDataInterface {
     duration: string;
     language: string;
     level: string;
-    time_wise_split: TimeWiseSection[];
+    timeWiseSplit: TimeWiseSection[];
     assignment: Assignment;
     summary: string[];
 }
 
 export interface AILectureFeedbackInterface {
     title: string;
-    report_title: string;
-    lecture_info: LectureInfo;
-    total_score: string; // or number, depending on usage
+    reportTitle: string;
+    lectureInfo: LectureInfo;
+    totalScore: string; // or number, depending on usage
     criteria: EvaluationCriterion[];
     summary: string[];
 }
 
 export interface LectureInfo {
-    lecture_title: string;
+    lectureTitle: string;
     duration: string;
-    evaluation_date: string;
+    evaluationDate: string;
 }
 
 export interface EvaluationCriterion {
     name: string;
     score: string; // or number
     points: CriterionPoint[];
-    scope_of_improvement: string[];
+    scopeOfImprovement: string[];
 }
 
 export interface CriterionPoint {

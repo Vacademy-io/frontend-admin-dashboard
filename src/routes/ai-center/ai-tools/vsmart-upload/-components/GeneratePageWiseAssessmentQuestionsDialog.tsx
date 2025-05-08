@@ -1,22 +1,22 @@
-import { useEffect, useState } from "react";
-import { FormProvider, useFieldArray, UseFormReturn } from "react-hook-form";
-import { transformQuestionsToGenerateAssessmentAI } from "@/routes/ai-center/-utils/helper";
-import { Sortable, SortableDragHandle, SortableItem } from "@/components/ui/sortable";
-import { getPPTViewTitle } from "@/routes/assessment/question-papers/-utils/helper";
-import { QuestionType } from "@/constants/dummy-data";
-import { DotsSixVertical } from "phosphor-react";
-import { PPTComponentFactory } from "@/routes/assessment/question-papers/-components/QuestionPaperTemplatesTypes/PPTComponentFactory";
-import { Separator } from "@/components/ui/separator";
-import { MainViewComponentFactory } from "@/routes/assessment/question-papers/-components/QuestionPaperTemplatesTypes/MainViewComponentFactory";
-import { z } from "zod";
-import { generateCompleteAssessmentFormSchema } from "@/routes/ai-center/-utils/generate-complete-assessment-schema";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { MyButton } from "@/components/design-system/button";
-import useInstituteLogoStore from "@/components/common/layout-container/sidebar/institutelogo-global-zustand";
-import { Input } from "@/components/ui/input";
-import { AIAssessmentResponseInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
-import ExportQuestionPaperAI from "@/routes/ai-center/-components/export-ai-question-paper/ExportQuestionPaperAI";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
+import { useEffect, useState } from 'react';
+import { FormProvider, useFieldArray, UseFormReturn } from 'react-hook-form';
+import { transformQuestionsToGenerateAssessmentAI } from '@/routes/ai-center/-utils/helper';
+import { Sortable, SortableDragHandle, SortableItem } from '@/components/ui/sortable';
+import { getPPTViewTitle } from '@/routes/assessment/question-papers/-utils/helper';
+import { QuestionType } from '@/constants/dummy-data';
+import { DotsSixVertical } from 'phosphor-react';
+import { PPTComponentFactory } from '@/routes/assessment/question-papers/-components/QuestionPaperTemplatesTypes/PPTComponentFactory';
+import { Separator } from '@/components/ui/separator';
+import { MainViewComponentFactory } from '@/routes/assessment/question-papers/-components/QuestionPaperTemplatesTypes/MainViewComponentFactory';
+import { z } from 'zod';
+import { generateCompleteAssessmentFormSchema } from '@/routes/ai-center/-utils/generate-complete-assessment-schema';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { MyButton } from '@/components/design-system/button';
+import useInstituteLogoStore from '@/components/common/layout-container/sidebar/institutelogo-global-zustand';
+import { Input } from '@/components/ui/input';
+import { AIAssessmentResponseInterface } from '@/types/ai/generate-assessment/generate-complete-assessment';
+import ExportQuestionPaperAI from '@/routes/ai-center/-components/export-ai-question-paper/ExportQuestionPaperAI';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
 
 // Infer the form type from the schema
 type GeneratePageWiseAssessmentQuestionsDialog = z.infer<
@@ -50,7 +50,7 @@ const GeneratePageWiseAssessmentQuestionsDialog = ({
 }: GeneratePageWiseAssessmentProps) => {
     const { instituteLogo } = useInstituteLogoStore();
     const transformQuestionsData = transformQuestionsToGenerateAssessmentAI(
-        assessmentData?.questions,
+        assessmentData?.questions
     );
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
@@ -59,10 +59,10 @@ const GeneratePageWiseAssessmentQuestionsDialog = ({
     // UseFieldArray to manage questions array
     const { fields, move } = useFieldArray({
         control: form.control,
-        name: "questions", // Name of the field array
+        name: 'questions', // Name of the field array
     });
 
-    const questions = form.getValues("questions");
+    const questions = form.getValues('questions');
 
     const handlePageClick = (pageIndex: number) => {
         setCurrentQuestionIndex(pageIndex);
@@ -88,10 +88,10 @@ const GeneratePageWiseAssessmentQuestionsDialog = ({
                     className="text-sm"
                     onClick={handleGenerateQuestionsForAssessment}
                 >
-                    {loadingState === "pending" ? (
+                    {loadingState === 'pending' ? (
                         <DashboardLoader size={18} />
                     ) : (
-                        "Extract Copied Questions"
+                        'Extract Copied Questions'
                     )}
                 </MyButton>
             </DialogTrigger>
@@ -107,7 +107,7 @@ const GeneratePageWiseAssessmentQuestionsDialog = ({
                                         className="size-12 rounded-full"
                                     />
                                     <span className="text-lg font-semibold text-neutral-500">
-                                        {form.getValues("title")}
+                                        {form.getValues('title')}
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-4">
@@ -186,8 +186,8 @@ const GeneratePageWiseAssessmentQuestionsDialog = ({
                                                                 // onClick={() => handlePageClick(index)}
                                                                 className={`rounded-xl border-4 bg-primary-50 p-6 ${
                                                                     currentQuestionIndex === index
-                                                                        ? "border-primary-500 bg-none"
-                                                                        : "bg-none"
+                                                                        ? 'border-primary-500 bg-none'
+                                                                        : 'bg-none'
                                                                 }`}
                                                                 onMouseEnter={() =>
                                                                     handlePageClick(index)
@@ -200,8 +200,8 @@ const GeneratePageWiseAssessmentQuestionsDialog = ({
                                                                             &nbsp;
                                                                             {getPPTViewTitle(
                                                                                 getValues(
-                                                                                    `questions.${index}.questionType`,
-                                                                                ) as QuestionType,
+                                                                                    `questions.${index}.questionType`
+                                                                                ) as QuestionType
                                                                             )}
                                                                         </h1>
                                                                         <SortableDragHandle
@@ -216,7 +216,7 @@ const GeneratePageWiseAssessmentQuestionsDialog = ({
                                                                         key={index}
                                                                         type={
                                                                             getValues(
-                                                                                `questions.${currentQuestionIndex}.questionType`,
+                                                                                `questions.${currentQuestionIndex}.questionType`
                                                                             ) as QuestionType
                                                                         }
                                                                         props={{
@@ -226,7 +226,7 @@ const GeneratePageWiseAssessmentQuestionsDialog = ({
                                                                             setCurrentQuestionIndex:
                                                                                 setCurrentQuestionIndex,
                                                                             className:
-                                                                                "relative mt-4 rounded-xl border-4 border-primary-300 bg-white p-4",
+                                                                                'relative mt-4 rounded-xl border-4 border-primary-300 bg-white p-4',
                                                                         }}
                                                                     />
                                                                 </div>
@@ -248,7 +248,7 @@ const GeneratePageWiseAssessmentQuestionsDialog = ({
                                         key={currentQuestionIndex}
                                         type={
                                             getValues(
-                                                `questions.${currentQuestionIndex}.questionType`,
+                                                `questions.${currentQuestionIndex}.questionType`
                                             ) as QuestionType
                                         }
                                         props={{
@@ -256,7 +256,7 @@ const GeneratePageWiseAssessmentQuestionsDialog = ({
                                             currentQuestionIndex: currentQuestionIndex,
                                             setCurrentQuestionIndex: setCurrentQuestionIndex,
                                             className:
-                                                "dialog-height overflow-auto ml-6 flex w-full flex-col gap-6 pr-6 pt-4",
+                                                'dialog-height overflow-auto ml-6 flex w-full flex-col gap-6 pr-6 pt-4',
                                         }}
                                     />
                                 )}

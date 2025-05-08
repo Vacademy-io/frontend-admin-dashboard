@@ -1,12 +1,15 @@
-import { getInstituteId } from "@/constants/helper";
-import { useFileUpload } from "@/hooks/use-file-upload";
-import { useEffect, useRef, useState } from "react";
-import { handleGenerateAssessmentImage, handleStartProcessUploadedFile } from "@/routes/ai-center/-services/ai-center-service";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { GenerateCard } from "@/routes/ai-center/-components/GenerateCard";
-import { useAICenter } from "@/routes/ai-center/-contexts/useAICenterContext";
-import AITasksList from "@/routes/ai-center/-components/AITasksList";
-import { jsPDF } from "jspdf";
+import { getInstituteId } from '@/constants/helper';
+import { useFileUpload } from '@/hooks/use-file-upload';
+import { useEffect, useRef, useState } from 'react';
+import {
+    handleGenerateAssessmentImage,
+    handleStartProcessUploadedFile,
+} from '@/routes/ai-center/-services/ai-center-service';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { GenerateCard } from '@/routes/ai-center/-components/GenerateCard';
+import { useAICenter } from '@/routes/ai-center/-contexts/useAICenterContext';
+import AITasksList from '@/routes/ai-center/-components/AITasksList';
+import { jsPDF } from 'jspdf';
 
 interface ConvertImageToPDFResult {
     pdfFile: File;
@@ -21,9 +24,9 @@ const convertImageToPDF = async (file: File): Promise<ConvertImageToPDFResult> =
                 const img = new Image();
                 img.onload = () => {
                     const pdf = new jsPDF({
-                        orientation: img.width > img.height ? "landscape" : "portrait",
-                        unit: "mm",
-                        format: "a4",
+                        orientation: img.width > img.height ? 'landscape' : 'portrait',
+                        unit: 'mm',
+                        format: 'a4',
                     });
 
                     // Calculate dimensions to fit the page while maintaining aspect ratio
@@ -42,16 +45,16 @@ const convertImageToPDF = async (file: File): Promise<ConvertImageToPDFResult> =
                     const x = (pageWidth - imgWidth) / 2;
                     const y = (pageHeight - imgHeight) / 2;
 
-                    pdf.addImage(img, "JPEG", x, y, imgWidth, imgHeight);
+                    pdf.addImage(img, 'JPEG', x, y, imgWidth, imgHeight);
 
                     // Convert PDF to blob and then to File
-                    const pdfBlob = pdf.output("blob");
+                    const pdfBlob = pdf.output('blob');
                     const pdfFile = new File(
                         [pdfBlob],
-                        `${file.name.replace(/\.[^/.]+$/, "")}.pdf`,
+                        `${file.name.replace(/\.[^/.]+$/, '')}.pdf`,
                         {
-                            type: "application/pdf",
-                        },
+                            type: 'application/pdf',
+                        }
                     );
 
                     resolve({ pdfFile, pdfBlob });
@@ -69,7 +72,7 @@ const convertImageToPDF = async (file: File): Promise<ConvertImageToPDFResult> =
 
 const GenerateAiQuestionFromImageComponent = () => {
     const queryClient = useQueryClient();
-    const [taskName, setTaskName] = useState("");
+    const [taskName, setTaskName] = useState('');
     const instituteId = getInstituteId();
     const { uploadFile } = useFileUpload();
     const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -77,7 +80,7 @@ const GenerateAiQuestionFromImageComponent = () => {
     const [fileUploading, setFileUploading] = useState(false);
 
     const handleUploadClick = () => {
-        setKey("image");
+        setKey('image');
         fileInputRef.current?.click();
     };
 
@@ -86,38 +89,38 @@ const GenerateAiQuestionFromImageComponent = () => {
         if (file) {
             try {
                 const { pdfFile } = await convertImageToPDF(file);
-                console.log("PDF file created:", pdfFile);
+                console.log('PDF file created:', pdfFile);
 
                 const response1 = await uploadFile({
                     file: pdfFile,
                     setIsUploading: setFileUploading,
-                    userId: "your-user-id",
+                    userId: 'your-user-id',
                     source: instituteId,
-                    sourceId: "STUDENTS",
+                    sourceId: 'STUDENTS',
                 });
-                console.log("Upload response:", response1);
+                console.log('Upload response:', response1);
 
                 if (response1) {
                     try {
                         const response = await handleStartProcessUploadedFile(response1);
-                        console.log("Process response:", response);
+                        console.log('Process response:', response);
 
                         if (response) {
                             generateAssessmentMutation.mutate({
                                 pdfId: response.pdf_id,
-                                userPrompt: "",
+                                userPrompt: '',
                                 taskName,
-                                taskId: "",
+                                taskId: '',
                             });
                         }
                     } catch (processError) {
-                        console.error("Error in handleStartProcessUploadedFile:", processError);
+                        console.error('Error in handleStartProcessUploadedFile:', processError);
                     }
                 }
             } catch (error) {
-                console.error("Error in file processing:", error);
+                console.error('Error in file processing:', error);
             }
-            event.target.value = "";
+            event.target.value = '';
         }
     };
 
@@ -134,13 +137,15 @@ const GenerateAiQuestionFromImageComponent = () => {
             taskId: string;
         }) => {
             setLoader(true);
-            setKey("image");
+            setKey('image');
             return handleGenerateAssessmentImage(pdfId, userPrompt, taskName, taskId);
         },
         onSuccess: () => {
             setLoader(false);
             setKey(null);
-            queryClient.invalidateQueries({ queryKey: ["GET_INDIVIDUAL_AI_LIST_DATA"] });
+            setTimeout(() => {
+                queryClient.invalidateQueries({ queryKey: ['GET_INDIVIDUAL_AI_LIST_DATA'] });
+            }, 100);
         },
         onError: () => {
             setLoader(false);
@@ -149,7 +154,7 @@ const GenerateAiQuestionFromImageComponent = () => {
     });
 
     useEffect(() => {
-        if (key === "image") {
+        if (key === 'image') {
             if (fileUploading == true) setLoader(true);
         }
     }, [fileUploading, key]);
@@ -167,7 +172,7 @@ const GenerateAiQuestionFromImageComponent = () => {
                 taskName={taskName}
                 setTaskName={setTaskName}
             />
-            {generateAssessmentMutation.status === "success" && (
+            {generateAssessmentMutation.status === 'success' && (
                 <AITasksList heading="Vsmart Image" enableDialog={true} />
             )}
         </>

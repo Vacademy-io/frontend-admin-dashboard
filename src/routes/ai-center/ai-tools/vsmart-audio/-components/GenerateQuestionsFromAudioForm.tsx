@@ -1,18 +1,18 @@
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { MyButton } from "@/components/design-system/button";
-import { MyInput } from "@/components/design-system/input";
-import SelectField from "@/components/design-system/select-field";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
-import { Textarea } from "@/components/ui/textarea";
-import { languageSupport } from "@/constants/dummy-data";
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { MyButton } from '@/components/design-system/button';
+import { MyInput } from '@/components/design-system/input';
+import SelectField from '@/components/design-system/select-field';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
+import { Textarea } from '@/components/ui/textarea';
+import { languageSupport } from '@/constants/dummy-data';
 import {
     AudioAIQuestionFormSchema,
     audioQuestionsFormSchema,
-} from "@/routes/ai-center/-utils/audio-questions-schema";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
-import { FormProvider, useForm } from "react-hook-form";
+} from '@/routes/ai-center/-utils/audio-questions-schema';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useState } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
 
 const GenerateQuestionsFromAudioForm = ({
     audioId,
@@ -26,7 +26,7 @@ const GenerateQuestionsFromAudioForm = ({
         prompt: string,
         difficulty: string,
         language: string,
-        taskName: string,
+        taskName: string
     ) => void;
     status: string;
 }) => {
@@ -34,11 +34,11 @@ const GenerateQuestionsFromAudioForm = ({
     const form = useForm<AudioAIQuestionFormSchema>({
         resolver: zodResolver(audioQuestionsFormSchema),
         defaultValues: {
-            numQuestions: "",
-            prompt: "",
-            difficulty: "",
+            numQuestions: '',
+            prompt: '',
+            difficulty: '',
             language: languageSupport[0],
-            taskName: "",
+            taskName: '',
         },
     });
 
@@ -49,7 +49,7 @@ const GenerateQuestionsFromAudioForm = ({
             values.prompt,
             values.difficulty,
             values.language,
-            values.taskName,
+            values.taskName
         );
         form.reset();
     };
@@ -68,7 +68,7 @@ const GenerateQuestionsFromAudioForm = ({
                                 <FormItem>
                                     <FormControl>
                                         <MyInput
-                                            input={field.value?.toString() || ""}
+                                            input={field.value?.toString() || ''}
                                             onChangeFunction={(e) => field.onChange(e.target.value)}
                                             label="Task Name"
                                             required={true}
@@ -108,7 +108,7 @@ const GenerateQuestionsFromAudioForm = ({
                                 <FormItem>
                                     <FormControl>
                                         <MyInput
-                                            input={field.value?.toString() || ""}
+                                            input={field.value?.toString() || ''}
                                             onChangeFunction={(e) => field.onChange(e.target.value)}
                                             label="Number of Questions"
                                             required={true}
@@ -153,7 +153,7 @@ const GenerateQuestionsFromAudioForm = ({
                             className="w-full font-thin"
                         />
                         <div>
-                            {status === "pending" ? (
+                            {status === 'pending' ? (
                                 <MyButton
                                     buttonType="primary"
                                     layoutVariant="default"

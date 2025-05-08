@@ -1,28 +1,28 @@
-import { getInstituteId } from "@/constants/helper";
-import { useFileUpload } from "@/hooks/use-file-upload";
-import { useEffect, useRef, useState } from "react";
+import { getInstituteId } from '@/constants/helper';
+import { useFileUpload } from '@/hooks/use-file-upload';
+import { useEffect, useRef, useState } from 'react';
 import {
     handleSortQuestionsPDF,
     handleStartProcessUploadedFile,
-} from "../../../-services/ai-center-service";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { GenerateCard } from "../../../-components/GenerateCard";
-import { useAICenter } from "../../../-contexts/useAICenterContext";
-import AITasksList from "@/routes/ai-center/-components/AITasksList";
+} from '../../../-services/ai-center-service';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { GenerateCard } from '../../../-components/GenerateCard';
+import { useAICenter } from '../../../-contexts/useAICenterContext';
+import AITasksList from '@/routes/ai-center/-components/AITasksList';
 
 const SortTopicQuestions = () => {
-    const [prompt, setPrompt] = useState("");
+    const [prompt, setPrompt] = useState('');
     const queryClient = useQueryClient();
-    const [taskName, setTaskName] = useState("");
+    const [taskName, setTaskName] = useState('');
     const instituteId = getInstituteId();
     const { setLoader, key, setKey } = useAICenter();
     const { uploadFile } = useFileUpload();
     const fileInputRef = useRef<HTMLInputElement | null>(null);
-    const [uploadedFilePDFId, setUploadedFilePDFId] = useState("");
+    const [uploadedFilePDFId, setUploadedFilePDFId] = useState('');
     const [fileUploading, setFileUploading] = useState(false);
 
     const handleUploadClick = () => {
-        setKey("sortTopicsPdf");
+        setKey('sortTopicsPdf');
         fileInputRef.current?.click();
     };
 
@@ -32,9 +32,9 @@ const SortTopicQuestions = () => {
             const fileId = await uploadFile({
                 file,
                 setIsUploading: setFileUploading,
-                userId: "your-user-id",
+                userId: 'your-user-id',
                 source: instituteId,
-                sourceId: "STUDENTS",
+                sourceId: 'STUDENTS',
             });
             if (fileId) {
                 const response = await handleStartProcessUploadedFile(fileId);
@@ -43,7 +43,7 @@ const SortTopicQuestions = () => {
                     handleGenerateQuestionsForAssessment(response.pdf_id);
                 }
             }
-            event.target.value = "";
+            event.target.value = '';
         }
     };
 
@@ -58,13 +58,15 @@ const SortTopicQuestions = () => {
             taskName: string;
         }) => {
             setLoader(true);
-            setKey("sortTopicsPdf");
+            setKey('sortTopicsPdf');
             return handleSortQuestionsPDF(pdfId, userPrompt, taskName);
         },
         onSuccess: () => {
             setLoader(false);
             setKey(null);
-            queryClient.invalidateQueries({ queryKey: ["GET_INDIVIDUAL_AI_LIST_DATA"] });
+            setTimeout(() => {
+                queryClient.invalidateQueries({ queryKey: ['GET_INDIVIDUAL_AI_LIST_DATA'] });
+            }, 100);
         },
         onError: (error: unknown) => {
             console.log(error);
@@ -74,7 +76,7 @@ const SortTopicQuestions = () => {
     const handleGenerateQuestionsForAssessment = (
         pdfId = uploadedFilePDFId,
         userPrompt = prompt,
-        name = taskName,
+        name = taskName
     ) => {
         // Use pdfId in your mutation call
         generateAssessmentMutation.mutate({ pdfId: pdfId, userPrompt: userPrompt, taskName: name });
@@ -87,7 +89,7 @@ const SortTopicQuestions = () => {
     }, [uploadedFilePDFId]);
 
     useEffect(() => {
-        if (key === "sortTopicsPdf") {
+        if (key === 'sortTopicsPdf') {
             if (fileUploading == true) setLoader(true);
         }
     }, [fileUploading, key]);
@@ -108,7 +110,7 @@ const SortTopicQuestions = () => {
                 setPrompt={setPrompt}
                 handleGenerateQuestionsForAssessment={handleGenerateQuestionsForAssessment}
             />
-            {generateAssessmentMutation.status === "success" && (
+            {generateAssessmentMutation.status === 'success' && (
                 <AITasksList heading="Vsmart Sorter" enableDialog={true} />
             )}
         </>
