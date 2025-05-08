@@ -1,20 +1,20 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 
-import React, { useEffect, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
+import React, { useEffect, useRef, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import {
     VideoPlayerTimeFormType,
     videoPlayerTimeSchema,
-} from "../-form-schemas/video-player-time-schema";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { UploadQuestionPaperFormType } from "@/routes/assessment/question-papers/-components/QuestionPaperUpload";
-import { uploadQuestionPaperFormSchema } from "@/routes/assessment/question-papers/-utils/upload-question-paper-form-schema";
-import VideoQuestionsTimeFrameAddDialog from "./video-questions-add-timeframe";
-import VideoQuestionsTimeFrameEditDialog from "./video-questions-edit-timeframe";
-import VideoQuestionDialogEditPreview from "./slides-sidebar/video-question-dialog-edit-preview";
-import { StudyLibraryQuestion } from "@/types/study-library/study-library-video-questions";
-import { timestampToSeconds } from "../-helper/helper";
+} from '../-form-schemas/video-player-time-schema';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { UploadQuestionPaperFormType } from '@/routes/assessment/question-papers/-components/QuestionPaperUpload';
+import { uploadQuestionPaperFormSchema } from '@/routes/assessment/question-papers/-utils/upload-question-paper-form-schema';
+import VideoQuestionsTimeFrameAddDialog from './video-questions-add-timeframe';
+import VideoQuestionsTimeFrameEditDialog from './video-questions-edit-timeframe';
+import VideoQuestionDialogEditPreview from './slides-sidebar/video-question-dialog-edit-preview';
+import { StudyLibraryQuestion } from '@/types/study-library/study-library-video-questions';
+import { timestampToSeconds } from '../-helper/helper';
 
 interface YTPlayer {
     destroy(): void;
@@ -52,7 +52,7 @@ declare global {
                         onError?: (event: YouTubePlayerEvent) => void;
                         [key: string]: unknown;
                     };
-                },
+                }
             ) => YTPlayer;
             PlayerState: {
                 PLAYING: number;
@@ -76,16 +76,16 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
     const isAddQuestionTypeRef = useRef<HTMLButtonElement | null>(null);
 
     const [formData, setFormData] = useState<UploadQuestionPaperFormType>({
-        questionPaperId: "1",
+        questionPaperId: '1',
         isFavourite: false,
-        title: "",
+        title: '',
         createdOn: new Date(),
-        yearClass: "",
-        subject: "",
-        questionsType: "",
-        optionsType: "",
-        answersType: "",
-        explanationsType: "",
+        yearClass: '',
+        subject: '',
+        questionsType: '',
+        optionsType: '',
+        answersType: '',
+        explanationsType: '',
         fileUpload: undefined,
         questions: [],
     });
@@ -96,35 +96,35 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
     const videoPlayerTimeFrameForm = useForm<VideoPlayerTimeFormType>({
         resolver: zodResolver(videoPlayerTimeSchema),
         defaultValues: {
-            hrs: "",
-            min: "",
-            sec: "",
+            hrs: '',
+            min: '',
+            sec: '',
         },
     });
 
     const editQuestionTimeFrameForm = useForm<VideoPlayerTimeFormType>({
         resolver: zodResolver(videoPlayerTimeSchema),
         defaultValues: {
-            hrs: "",
-            min: "",
-            sec: "",
+            hrs: '',
+            min: '',
+            sec: '',
         },
     });
 
     const addedQuestionForm = useForm<UploadQuestionPaperFormType>({
         resolver: zodResolver(uploadQuestionPaperFormSchema),
-        mode: "onChange",
+        mode: 'onChange',
         defaultValues: {
-            questionPaperId: "1",
+            questionPaperId: '1',
             isFavourite: false,
-            title: "",
+            title: '',
             createdOn: new Date(),
-            yearClass: "",
-            subject: "",
-            questionsType: "",
-            optionsType: "",
-            answersType: "",
-            explanationsType: "",
+            yearClass: '',
+            subject: '',
+            questionsType: '',
+            optionsType: '',
+            answersType: '',
+            explanationsType: '',
             fileUpload: undefined,
             questions: [],
         },
@@ -132,18 +132,18 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
 
     const videoQuestionForm = useForm<UploadQuestionPaperFormType>({
         resolver: zodResolver(uploadQuestionPaperFormSchema),
-        mode: "onChange",
+        mode: 'onChange',
         defaultValues: {
-            questionPaperId: "1",
+            questionPaperId: '1',
             isFavourite: false,
-            title: "",
+            title: '',
             createdOn: new Date(),
-            yearClass: "",
-            subject: "",
-            questionsType: "",
-            optionsType: "",
-            answersType: "",
-            explanationsType: "",
+            yearClass: '',
+            subject: '',
+            questionsType: '',
+            optionsType: '',
+            answersType: '',
+            explanationsType: '',
             fileUpload: undefined,
             questions: [],
         },
@@ -166,37 +166,37 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
         if (match && match[2] && match[2].length === 11) {
             return match[2];
         }
-        return "";
+        return '';
     };
 
     // Function to load YouTube IFrame API
     const loadYouTubeAPI = () => {
-        console.log("Loading YouTube API...");
+        console.log('Loading YouTube API...');
 
         if (window.YT) {
-            console.log("YouTube API already loaded");
+            console.log('YouTube API already loaded');
             setIsAPIReady(true);
             return;
         }
 
         // Remove any existing YouTube API script
         const existingScript = document.querySelector(
-            'script[src="https://www.youtube.com/iframe_api"]',
+            'script[src="https://www.youtube.com/iframe_api"]'
         );
         if (existingScript) {
-            console.log("Removing existing YouTube API script");
+            console.log('Removing existing YouTube API script');
             existingScript.remove();
         }
 
-        const tag = document.createElement("script");
-        tag.src = "https://www.youtube.com/iframe_api";
+        const tag = document.createElement('script');
+        tag.src = 'https://www.youtube.com/iframe_api';
 
         window.onYouTubeIframeAPIReady = () => {
-            console.log("YouTube API Ready");
+            console.log('YouTube API Ready');
             setIsAPIReady(true);
         };
 
-        const firstScriptTag = document.getElementsByTagName("script")[0];
+        const firstScriptTag = document.getElementsByTagName('script')[0];
         firstScriptTag?.parentNode?.insertBefore(tag, firstScriptTag);
     };
 
@@ -206,9 +206,9 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
         const secs = Math.floor(seconds % 60);
 
         if (hrs > 0) {
-            return `${hrs}:${mins < 10 ? "0" + mins : mins}:${secs < 10 ? "0" + secs : secs}`;
+            return `${hrs}:${mins < 10 ? '0' + mins : mins}:${secs < 10 ? '0' + secs : secs}`;
         } else {
-            return `${mins}:${secs < 10 ? "0" + secs : secs}`;
+            return `${mins}:${secs < 10 ? '0' + secs : secs}`;
         }
     };
 
@@ -235,7 +235,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
         const timestamp = formatTime(playerRef.current.getCurrentTime());
 
         // Handle HH:MM:SS or MM:SS format
-        const parts = timestamp.split(":");
+        const parts = timestamp.split(':');
 
         if (parts.length === 3) {
             // HH:MM:SS format
@@ -248,18 +248,18 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
             // MM:SS format
             const min = String(parseInt(parts[0] as string, 10));
             const sec = String(parseInt(parts[1] as string, 10));
-            videoPlayerTimeFrameForm.reset({ hrs: "0", min, sec });
-            editQuestionTimeFrameForm.reset({ hrs: "0", min, sec });
+            videoPlayerTimeFrameForm.reset({ hrs: '0', min, sec });
+            editQuestionTimeFrameForm.reset({ hrs: '0', min, sec });
         }
     };
 
     const handleGetOptions = (question: StudyLibraryQuestion) => {
-        if (question.questionType === "MCQS") return question.singleChoiceOptions;
-        else if (question.questionType === "CMCQS") return question.csingleChoiceOptions;
-        else if (question.questionType === "MCQM") return question.multipleChoiceOptions;
-        else if (question.questionType === "CMCQM") return question.cmultipleChoiceOptions;
-        else if (question.questionType === "TRUE_FALSE") return question.trueFalseOptions;
-        else if (question.questionType === "NUMERIC" || question.questionType === "CNUMERIC")
+        if (question.questionType === 'MCQS') return question.singleChoiceOptions;
+        else if (question.questionType === 'CMCQS') return question.csingleChoiceOptions;
+        else if (question.questionType === 'MCQM') return question.multipleChoiceOptions;
+        else if (question.questionType === 'CMCQM') return question.cmultipleChoiceOptions;
+        else if (question.questionType === 'TRUE_FALSE') return question.trueFalseOptions;
+        else if (question.questionType === 'NUMERIC' || question.questionType === 'CNUMERIC')
             return question.validAnswers;
         return question.subjectiveAnswerText;
     };
@@ -277,7 +277,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
         setFormData((prevData) => {
             const updatedQuestions = [...prevData.questions];
             const index = updatedQuestions.findIndex(
-                (q) => q.questionId === updatedQuestion.questionId,
+                (q) => q.questionId === updatedQuestion.questionId
             );
 
             if (index !== -1) {
@@ -306,13 +306,13 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
     // Create player when API is ready and URL changes
     useEffect(() => {
         if (!isAPIReady || !videoUrl) {
-            console.log("Waiting for API or missing video URL");
+            console.log('Waiting for API or missing video URL');
             return;
         }
 
         const videoId = extractVideoId(videoUrl);
         if (!videoId || !containerRef.current) {
-            console.log("Invalid video ID or missing container");
+            console.log('Invalid video ID or missing container');
             return;
         }
 
@@ -323,14 +323,14 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
         }
 
         // Create container element
-        const playerContainer = document.createElement("div");
-        containerRef.current.innerHTML = "";
+        const playerContainer = document.createElement('div');
+        containerRef.current.innerHTML = '';
         containerRef.current.appendChild(playerContainer);
 
         // Create new player
         const player = new window.YT.Player(playerContainer, {
-            height: "100%",
-            width: "100%",
+            height: '100%',
+            width: '100%',
             videoId: videoId,
             playerVars: {
                 autoplay: 0,
@@ -338,20 +338,21 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                 showinfo: 0,
                 rel: 0,
                 modestbranding: 1,
+                cc_load_policy: 0,
             },
             events: {
                 onReady: (event) => {
-                    console.log("Player ready:", event);
+                    console.log('Player ready:', event);
                     setVideoDuration(event.target.getDuration());
                 },
                 onStateChange: (event) => {
-                    console.log("Player state changed:", event);
+                    console.log('Player state changed:', event);
                     if (event.data === window.YT.PlayerState.PLAYING) {
                         setVideoDuration(event.target.getDuration());
                     }
                 },
                 onError: (event) => {
-                    console.error("Player error:", event);
+                    console.error('Player error:', event);
                 },
             },
         });
@@ -372,7 +373,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                         setCurrentTime(player.getCurrentTime());
                     }
                 } catch (e) {
-                    console.error("Error getting player state:", e);
+                    console.error('Error getting player state:', e);
                 }
             }, 1000);
         }
@@ -390,7 +391,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
     return (
         <div className="flex w-full flex-col">
             {/* Video Player Container (preserving your aspect ratio) */}
-            <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
+            <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
                 <div
                     ref={containerRef}
                     className="absolute left-0 top-0 size-full bg-neutral-100"
@@ -421,7 +422,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                                 left: `${
                                     (timestampToSeconds(question.timestamp) / videoDuration) * 100
                                 }%`,
-                                top: "50%",
+                                top: '50%',
                             }}
                             onMouseEnter={() => setHoveredQuestion(question)}
                             onMouseLeave={() => setHoveredQuestion(null)}
@@ -433,13 +434,13 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                             {hoveredQuestion === question && (
                                 <div className="absolute bottom-5 left-1/2 z-10 w-48 -translate-x-1/2 rounded border border-gray-300 bg-white p-4 shadow-xl">
                                     <p className="text-sm text-gray-500">
-                                        Timestamp:{" "}
+                                        Timestamp:{' '}
                                         {formatTime(timestampToSeconds(question.timestamp))}
                                     </p>
                                     <span
                                         className="text-sm font-medium"
                                         dangerouslySetInnerHTML={{
-                                            __html: question.questionName || "",
+                                            __html: question.questionName || '',
                                         }}
                                     />
                                 </div>
@@ -491,7 +492,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                             >
                                 <div className="flex items-center gap-2">
                                     <p className="font-semibold">
-                                        {idx + 1}. Time stamp -{" "}
+                                        {idx + 1}. Time stamp -{' '}
                                         {formatTime(timestampToSeconds(question.timestamp))}
                                     </p>
                                     <VideoQuestionsTimeFrameEditDialog
@@ -507,7 +508,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                                     <span
                                         className="font-thin"
                                         dangerouslySetInnerHTML={{
-                                            __html: question.questionName || "",
+                                            __html: question.questionName || '',
                                         }}
                                     />
                                     <div className="flex items-center gap-2">
@@ -523,18 +524,18 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                                         />
                                     </div>
                                 </div>
-                                {(question.questionType === "LONG_ANSWER" ||
-                                    question.questionType === "ONE_WORD") && (
+                                {(question.questionType === 'LONG_ANSWER' ||
+                                    question.questionType === 'ONE_WORD') && (
                                     <span className="flex w-1/2 rounded-xl border bg-neutral-50 p-4 font-thin">
                                         <span
                                             dangerouslySetInnerHTML={{
-                                                __html: handleGetOptions(question) || "",
+                                                __html: handleGetOptions(question) || '',
                                             }}
                                         />
                                     </span>
                                 )}
-                                {(question.questionType === "NUMERIC" ||
-                                    question.questionType === "CNUMERIC") && (
+                                {(question.questionType === 'NUMERIC' ||
+                                    question.questionType === 'CNUMERIC') && (
                                     <div className="mt-4 flex w-full flex-col gap-4">
                                         {chunkArray(handleGetOptions(question) || [], 2).map(
                                             (optionPair, rowIdx) => (
@@ -551,19 +552,19 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                                                             >
                                                                 <span
                                                                     dangerouslySetInnerHTML={{
-                                                                        __html: option || "",
+                                                                        __html: option || '',
                                                                     }}
                                                                 />
                                                             </span>
                                                         );
                                                     })}
                                                 </div>
-                                            ),
+                                            )
                                         )}
                                     </div>
                                 )}
-                                {!["LONG_ANSWER", "ONE_WORD", "NUMERIC", "CNUMERIC"].includes(
-                                    question.questionType,
+                                {!['LONG_ANSWER', 'ONE_WORD', 'NUMERIC', 'CNUMERIC'].includes(
+                                    question.questionType
                                 ) && (
                                     <div className="mt-4 flex w-full flex-col gap-4">
                                         {chunkArray(handleGetOptions(question) || [], 2).map(
@@ -582,20 +583,20 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                                                                 <span className="mr-1">
                                                                     (
                                                                     {String.fromCharCode(
-                                                                        97 + globalIndex,
+                                                                        97 + globalIndex
                                                                     )}
                                                                     .)
                                                                 </span>
                                                                 <span
                                                                     dangerouslySetInnerHTML={{
-                                                                        __html: option.name || "",
+                                                                        __html: option.name || '',
                                                                     }}
                                                                 />
                                                             </span>
                                                         );
                                                     })}
                                                 </div>
-                                            ),
+                                            )
                                         )}
                                     </div>
                                 )}
