@@ -12,8 +12,16 @@ import { GenerateAssessmentDialog } from './GenerateAssessmentDialog';
 import { GenerateCard } from '@/routes/ai-center/-components/GenerateCard';
 import { useAICenter } from '@/routes/ai-center/-contexts/useAICenterContext';
 import AITasksList from '@/routes/ai-center/-components/AITasksList';
+import { UseFormReturn } from 'react-hook-form';
+import { SectionFormType } from '@/types/assessments/assessment-steps';
 
-const GenerateAIAssessmentComponent = () => {
+const GenerateAIAssessmentComponent = ({
+    form,
+    currentSectionIndex,
+}: {
+    form?: UseFormReturn<SectionFormType>;
+    currentSectionIndex?: number;
+}) => {
     const queryClient = useQueryClient();
     const [allPagesGenerateQuestionsStatus, setAllPagesGenerateQuestionsStatus] = useState(false);
     const [pageWiseGenerateQuestionsStatus, setPageWiseGenerateQuestionsStatus] = useState(false);
@@ -221,6 +229,8 @@ const GenerateAIAssessmentComponent = () => {
                 taskName={taskName}
                 setTaskName={setTaskName}
                 pollGenerateAssessment={pollGenerateAssessment}
+                sectionsForm={form}
+                currentSectionIndex={currentSectionIndex}
             />
             <GenerateAssessmentDialog
                 open={openAssessmentDialog}
@@ -236,7 +246,12 @@ const GenerateAIAssessmentComponent = () => {
                 htmlData={htmlData}
             />
             {generateAssessmentMutation.status === 'success' && (
-                <AITasksList heading="Vsmart Upload" enableDialog={true} />
+                <AITasksList
+                    heading="Vsmart Upload"
+                    enableDialog={true}
+                    sectionsForm={form}
+                    currentSectionIndex={currentSectionIndex}
+                />
             )}
         </div>
     );

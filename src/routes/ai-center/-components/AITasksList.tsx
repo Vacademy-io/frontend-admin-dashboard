@@ -14,6 +14,8 @@ import AIEvaluatePreview from './AIEvaluatePreview';
 import { ArrowCounterClockwise } from 'phosphor-react';
 import { convertToLocalDateTime } from '@/constants/helper';
 import { QuestionsFromTextData } from '../ai-tools/vsmart-prompt/-components/GenerateQuestionsFromText';
+import { UseFormReturn } from 'react-hook-form';
+import { SectionFormType } from '@/types/assessments/assessment-steps';
 
 const AITasksList = ({
     heading,
@@ -22,6 +24,8 @@ const AITasksList = ({
     handleGenerateQuestionsForAssessment,
     pollGenerateQuestionsFromText,
     pollGenerateQuestionsFromAudio,
+    sectionsForm,
+    currentSectionIndex,
 }: {
     heading: string;
     enableDialog?: boolean;
@@ -33,6 +37,8 @@ const AITasksList = ({
     ) => void;
     pollGenerateQuestionsFromText?: (data: QuestionsFromTextData) => void;
     pollGenerateQuestionsFromAudio?: (data: QuestionsFromTextData, taskId: string) => void;
+    sectionsForm?: UseFormReturn<SectionFormType>;
+    currentSectionIndex?: number;
 }) => {
     const [open, setOpen] = useState(enableDialog);
     const [openQuestionsPreview, setOpenQuestionsPreview] = useState(false);
@@ -219,6 +225,8 @@ const AITasksList = ({
                                                         setOpenQuestionsPreview={
                                                             setOpenQuestionsPreview
                                                         }
+                                                        sectionsForm={sectionsForm}
+                                                        currentSectionIndex={currentSectionIndex}
                                                     />
                                                 )}
                                         </div>

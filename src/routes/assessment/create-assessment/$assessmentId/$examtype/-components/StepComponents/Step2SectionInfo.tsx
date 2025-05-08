@@ -375,7 +375,7 @@ export const Step2SectionInfo = ({
                             </div>
                         </DialogContent>
                     </Dialog>
-                    <Step2GenerateQuestionsFromAI />
+                    <Step2GenerateQuestionsFromAI form={form} index={index} />
                 </div>
                 <div className="flex flex-col gap-2" id="section-instructions">
                     <h1 className="font-thin">Section Description</h1>

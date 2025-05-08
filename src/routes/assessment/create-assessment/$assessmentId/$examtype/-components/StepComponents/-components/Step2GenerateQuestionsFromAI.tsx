@@ -14,8 +14,18 @@ import { GenerateQuestionsFromAudio } from '@/routes/ai-center/ai-tools/vsmart-a
 import { GenerateQuestionsFromText } from '@/routes/ai-center/ai-tools/vsmart-prompt/-components/GenerateQuestionsFromText';
 import GenerateAiQuestionPaperComponent from '@/routes/ai-center/ai-tools/vsmart-extract/-components/GenerateQuestionPaper';
 import GenerateAiQuestionFromImageComponent from '@/routes/ai-center/ai-tools/vsmart-image/-components/GenerateQuestionPaper';
+import { UseFormReturn } from 'react-hook-form';
+import sectionDetailsSchema from '../../../-utils/section-details-schema';
+import { z } from 'zod';
 
-const Step2GenerateQuestionsFromAI = () => {
+type SectionFormType = z.infer<typeof sectionDetailsSchema>;
+const Step2GenerateQuestionsFromAI = ({
+    form,
+    index,
+}: {
+    form: UseFormReturn<SectionFormType>;
+    index: number;
+}) => {
     return (
         <AlertDialog>
             <AlertDialogTrigger>
@@ -99,7 +109,10 @@ const Step2GenerateQuestionsFromAI = () => {
                                     </DialogTrigger>
                                     <DialogContent className="no-scrollbar !m-0 flex h-full !w-full !max-w-full flex-col !gap-0 overflow-y-auto !rounded-none !p-0">
                                         <AICenterProvider>
-                                            <GenerateAIAssessmentComponent />
+                                            <GenerateAIAssessmentComponent
+                                                form={form}
+                                                currentSectionIndex={index}
+                                            />
                                         </AICenterProvider>
                                     </DialogContent>
                                 </Dialog>
