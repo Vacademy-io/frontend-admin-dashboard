@@ -1,11 +1,8 @@
 import { MyButton } from '@/components/design-system/button';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { useEffect, useState } from 'react';
-import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
-import {
-    handleGetListIndividualTopics,
-    handleQueryGetListIndividualTopics,
-} from '../-services/ai-center-service';
+import { useMutation } from '@tanstack/react-query';
+import { handleGetListIndividualTopics } from '../-services/ai-center-service';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { Badge } from '@/components/ui/badge';
 import AIQuestionsPreview from './AIQuestionsPreview';
@@ -17,6 +14,9 @@ import AIEvaluatePreview from './AIEvaluatePreview';
 import { ArrowCounterClockwise } from 'phosphor-react';
 import { convertToLocalDateTime } from '@/constants/helper';
 import { QuestionsFromTextData } from '../ai-tools/vsmart-prompt/-components/GenerateQuestionsFromText';
+import { UseFormReturn } from 'react-hook-form';
+import { SectionFormType } from '@/types/assessments/assessment-steps';
+import { useAIQuestionDialogStore } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/zustand-global-states/ai-add-questions-dialog-zustand';
 
 const AITasksList = ({
     heading,
@@ -25,6 +25,8 @@ const AITasksList = ({
     handleGenerateQuestionsForAssessment,
     pollGenerateQuestionsFromText,
     pollGenerateQuestionsFromAudio,
+    sectionsForm,
+    currentSectionIndex,
 }: {
     heading: string;
     enableDialog?: boolean;
@@ -36,14 +38,14 @@ const AITasksList = ({
     ) => void;
     pollGenerateQuestionsFromText?: (data: QuestionsFromTextData) => void;
     pollGenerateQuestionsFromAudio?: (data: QuestionsFromTextData, taskId: string) => void;
+    sectionsForm?: UseFormReturn<SectionFormType>;
+    currentSectionIndex?: number;
 }) => {
-    const [open, setOpen] = useState(enableDialog);
-    const [openQuestionsPreview, setOpenQuestionsPreview] = useState(false);
-    const { data: allTasksData, isLoading } = useSuspenseQuery(
-        handleQueryGetListIndividualTopics(getTaskTypeFromFeature(heading))
-    );
+    const { isAIQuestionDialog9, setIsAIQuestionDialog9 } = useAIQuestionDialogStore();
 
-    const [allTasks, setAllTasks] = useState<AITaskIndividualListInterface[]>(allTasksData);
+    const [openQuestionsPreview, setOpenQuestionsPreview] = useState(false);
+    const [allTasks, setAllTasks] = useState<AITaskIndividualListInterface[]>([]);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
 
     const getAITasksIndividualListMutation = useMutation({
         mutationFn: async ({ taskType }: { taskType: string }) => {
@@ -63,14 +65,10 @@ const AITasksList = ({
         });
     };
 
-    useEffect(() => {
-        setAllTasks(allTasksData);
-    }, [allTasksData]);
-
     const { mutate } = getAITasksIndividualListMutation;
 
     useEffect(() => {
-        if (open && !openQuestionsPreview) {
+        if (isAIQuestionDialog9 && !openQuestionsPreview) {
             let count = 0;
             const maxRuns = 5;
             const interval = setInterval(() => {
@@ -87,12 +85,34 @@ const AITasksList = ({
             return () => clearInterval(interval); // cleanup on unmount
         }
         return () => {};
-    }, [mutate, heading, open, openQuestionsPreview]);
+    }, [mutate, heading, isAIQuestionDialog9, openQuestionsPreview]);
+
+    useEffect(() => {
+        const fetchTasks = async () => {
+            setIsLoading(true);
+            try {
+                const taskType = getTaskTypeFromFeature(heading);
+                const data = await handleGetListIndividualTopics(taskType);
+                setAllTasks(data);
+            } catch (error) {
+                console.error('Failed to fetch tasks:', error);
+                setAllTasks([]); // fallback or keep old state if preferred
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchTasks();
+    }, [heading]);
+
+    useEffect(() => {
+        setIsAIQuestionDialog9(enableDialog);
+    }, [enableDialog]);
 
     if (isLoading) return <DashboardLoader />;
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={isAIQuestionDialog9} onOpenChange={setIsAIQuestionDialog9}>
             <DialogTrigger
                 asChild
                 onClick={(e) => {
@@ -122,7 +142,6 @@ const AITasksList = ({
                         <ArrowCounterClockwise size={18} className="font-thin text-neutral-600" />
                     </div>
                 </div>
-
                 {getAITasksIndividualListMutation.status === 'pending' ? (
                     <DashboardLoader size={24} />
                 ) : (
@@ -188,7 +207,6 @@ const AITasksList = ({
                                                         setOpenAIPreview={setOpenQuestionsPreview}
                                                     />
                                                 )}
-
                                             {heading !== 'Vsmart Lecturer' &&
                                                 heading !== 'Vsmart Chat' &&
                                                 heading !== 'Vsmart Feedback' &&
@@ -213,6 +231,8 @@ const AITasksList = ({
                                                         setOpenQuestionsPreview={
                                                             setOpenQuestionsPreview
                                                         }
+                                                        sectionsForm={sectionsForm}
+                                                        currentSectionIndex={currentSectionIndex}
                                                     />
                                                 )}
                                         </div>

@@ -9,29 +9,29 @@ import {
     AIUploadPdfImg,
     AIPlanLectureImg,
     AIEvaluateLectureImg,
-} from "@/assets/svgs";
+} from '@/assets/svgs';
 
 export const GetImagesForAITools = (key: string) => {
     switch (key) {
-        case "assessment":
+        case 'assessment':
             return <AIUploadPdfImg />;
-        case "audio":
+        case 'audio':
             return <AIUploadAudioImg />;
-        case "text":
+        case 'text':
             return <AIGivePromptImg />;
-        case "chat":
+        case 'chat':
             return <AIChatImg />;
-        case "question":
+        case 'question':
             return <AIExtractPdfImg />;
-        case "image":
+        case 'image':
             return <AIExtractImg />;
-        case "sortSplitPdf":
+        case 'sortSplitPdf':
             return <AISortAndSplitImg />;
-        case "sortTopicsPdf":
+        case 'sortTopicsPdf':
             return <AISorterImg />;
-        case "planLecture":
+        case 'planLecture':
             return <AIPlanLectureImg />;
-        case "evaluateLecture":
+        case 'evaluateLecture':
             return <AIEvaluateLectureImg />;
         default:
             <></>;
@@ -41,27 +41,27 @@ export const GetImagesForAITools = (key: string) => {
 
 export const getTaskTypeFromFeature = (heading: string): string => {
     switch (heading) {
-        case "Vsmart Upload":
-            return "PDF_TO_QUESTIONS";
-        case "Vsmart Extract":
-            return "PDF_TO_QUESTIONS";
-        case "Vsmart Image":
-            return "IMAGE_TO_QUESTIONS";
-        case "Vsmart Audio":
-            return "AUDIO_TO_QUESTIONS";
-        case "Vsmart Topics":
-            return "TEXT_TO_QUESTIONS";
-        case "Vsmart Chat":
-            return "CHAT_WITH_PDF";
-        case "Vsmart Organizer":
-            return "PDF_TO_QUESTIONS_WITH_TOPIC";
-        case "Vsmart Sorter":
-            return "SORT_QUESTIONS_TOPIC_WISE";
-        case "Vsmart Lecturer":
-            return "LECTURE_PLANNER";
-        case "Vsmart Feedback":
-            return "LECTURE_FEEDBACK";
+        case 'Vsmart Upload':
+            return 'PDF_TO_QUESTIONS';
+        case 'Vsmart Extract':
+            return 'PDF_TO_QUESTIONS';
+        case 'Vsmart Image':
+            return 'IMAGE_TO_QUESTIONS';
+        case 'Vsmart Audio':
+            return 'AUDIO_TO_QUESTIONS';
+        case 'Vsmart Topics':
+            return 'TEXT_TO_QUESTIONS';
+        case 'Vsmart Chat':
+            return 'CHAT_WITH_PDF';
+        case 'Vsmart Organizer':
+            return 'PDF_TO_QUESTIONS_WITH_TOPIC';
+        case 'Vsmart Sorter':
+            return 'SORT_QUESTIONS_TOPIC_WISE';
+        case 'Vsmart Lecturer':
+            return 'LECTURE_PLANNER';
+        case 'Vsmart Feedback':
+            return 'LECTURE_FEEDBACK';
         default:
-            return "UNKNOWN_TASK_TYPE"; // fallback for safety
+            return 'UNKNOWN_TASK_TYPE'; // fallback for safety
     }
 };

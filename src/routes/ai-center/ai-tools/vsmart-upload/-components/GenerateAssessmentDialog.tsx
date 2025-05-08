@@ -1,6 +1,6 @@
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { MyButton } from "@/components/design-system/button";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { MyButton } from '@/components/design-system/button';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
 
 interface GenerateDialogProps {
     open: boolean;
@@ -37,7 +37,7 @@ export const GenerateAssessmentDialog = ({
                         {allPagesGenerateQuestionsStatus ? (
                             <DashboardLoader size={18} />
                         ) : (
-                            "Select Questions From All Pages"
+                            'Select Questions From All Pages'
                         )}
                     </MyButton>
                     <MyButton
@@ -51,7 +51,7 @@ export const GenerateAssessmentDialog = ({
                         {pageWiseGenerateQuestionsStatus ? (
                             <DashboardLoader size={18} />
                         ) : (
-                            "Select Question From Specific Pages"
+                            'Select Question From Specific Pages'
                         )}
                     </MyButton>
                 </div>
