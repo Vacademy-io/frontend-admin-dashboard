@@ -16,6 +16,7 @@ import { convertToLocalDateTime } from '@/constants/helper';
 import { QuestionsFromTextData } from '../ai-tools/vsmart-prompt/-components/GenerateQuestionsFromText';
 import { UseFormReturn } from 'react-hook-form';
 import { SectionFormType } from '@/types/assessments/assessment-steps';
+import { useAIQuestionDialogStore } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/zustand-global-states/ai-add-questions-dialog-zustand';
 
 const AITasksList = ({
     heading,
@@ -40,7 +41,8 @@ const AITasksList = ({
     sectionsForm?: UseFormReturn<SectionFormType>;
     currentSectionIndex?: number;
 }) => {
-    const [open, setOpen] = useState(enableDialog);
+    const { isAIQuestionDialog9, setIsAIQuestionDialog9 } = useAIQuestionDialogStore();
+
     const [openQuestionsPreview, setOpenQuestionsPreview] = useState(false);
     const [allTasks, setAllTasks] = useState<AITaskIndividualListInterface[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -66,7 +68,7 @@ const AITasksList = ({
     const { mutate } = getAITasksIndividualListMutation;
 
     useEffect(() => {
-        if (open && !openQuestionsPreview) {
+        if (isAIQuestionDialog9 && !openQuestionsPreview) {
             let count = 0;
             const maxRuns = 5;
             const interval = setInterval(() => {
@@ -83,7 +85,7 @@ const AITasksList = ({
             return () => clearInterval(interval); // cleanup on unmount
         }
         return () => {};
-    }, [mutate, heading, open, openQuestionsPreview]);
+    }, [mutate, heading, isAIQuestionDialog9, openQuestionsPreview]);
 
     useEffect(() => {
         const fetchTasks = async () => {
@@ -103,10 +105,14 @@ const AITasksList = ({
         fetchTasks();
     }, [heading]);
 
+    useEffect(() => {
+        setIsAIQuestionDialog9(enableDialog);
+    }, [enableDialog]);
+
     if (isLoading) return <DashboardLoader />;
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={isAIQuestionDialog9} onOpenChange={setIsAIQuestionDialog9}>
             <DialogTrigger
                 asChild
                 onClick={(e) => {

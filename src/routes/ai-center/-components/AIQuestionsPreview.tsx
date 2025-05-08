@@ -33,6 +33,7 @@ import { MyQuestion } from '@/types/assessments/question-paper-form';
 import { SectionFormType } from '@/types/assessments/assessment-steps';
 import { addQuestionPaper } from '@/routes/assessment/question-papers/-utils/question-paper-services';
 import { getQuestionPaperById } from '@/routes/community/question-paper/-service/utils';
+import { useAIQuestionDialogStore } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/zustand-global-states/ai-add-questions-dialog-zustand';
 
 interface AIQuestionsPreviewProps {
     task: AITaskIndividualListInterface;
@@ -58,6 +59,17 @@ const AIQuestionsPreview = ({
     sectionsForm,
     currentSectionIndex,
 }: AIQuestionsPreviewProps) => {
+    const {
+        setIsAIQuestionDialog1,
+        setIsAIQuestionDialog2,
+        setIsAIQuestionDialog3,
+        setIsAIQuestionDialog4,
+        setIsAIQuestionDialog5,
+        setIsAIQuestionDialog6,
+        setIsAIQuestionDialog7,
+        setIsAIQuestionDialog8,
+        setIsAIQuestionDialog9,
+    } = useAIQuestionDialogStore();
     const queryClient = useQueryClient();
     const { instituteLogo } = useInstituteLogoStore();
     const [assessmentData, setAssessmentData] = useState<AIAssessmentResponseInterface>({
@@ -225,6 +237,16 @@ const AIQuestionsPreview = ({
                 sectionsForm?.trigger(
                     `section.${currentSectionIndex}.adaptive_marking_for_each_question`
                 );
+                setIsAIQuestionDialog1(false);
+                setIsAIQuestionDialog2(false);
+                setIsAIQuestionDialog3(false);
+                setIsAIQuestionDialog4(false);
+                setIsAIQuestionDialog5(false);
+                setIsAIQuestionDialog6(false);
+                setIsAIQuestionDialog7(false);
+                setIsAIQuestionDialog8(false);
+                setIsAIQuestionDialog9(false);
+                setOpenQuestionsPreview(false);
             }
             queryClient.invalidateQueries({ queryKey: ['GET_QUESTION_PAPER_FILTERED_DATA'] });
         },

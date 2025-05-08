@@ -17,6 +17,7 @@ import GenerateAiQuestionFromImageComponent from '@/routes/ai-center/ai-tools/vs
 import { UseFormReturn } from 'react-hook-form';
 import sectionDetailsSchema from '../../../-utils/section-details-schema';
 import { z } from 'zod';
+import { useAIQuestionDialogStore } from '../../../-utils/zustand-global-states/ai-add-questions-dialog-zustand';
 
 type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 const Step2GenerateQuestionsFromAI = ({
@@ -26,8 +27,26 @@ const Step2GenerateQuestionsFromAI = ({
     form: UseFormReturn<SectionFormType>;
     index: number;
 }) => {
+    const {
+        isAIQuestionDialog1,
+        setIsAIQuestionDialog1,
+        isAIQuestionDialog2,
+        setIsAIQuestionDialog2,
+        isAIQuestionDialog3,
+        setIsAIQuestionDialog3,
+        isAIQuestionDialog4,
+        setIsAIQuestionDialog4,
+        isAIQuestionDialog5,
+        setIsAIQuestionDialog5,
+        isAIQuestionDialog6,
+        setIsAIQuestionDialog6,
+        isAIQuestionDialog7,
+        setIsAIQuestionDialog7,
+        isAIQuestionDialog8,
+        setIsAIQuestionDialog8,
+    } = useAIQuestionDialogStore();
     return (
-        <AlertDialog>
+        <AlertDialog open={isAIQuestionDialog6} onOpenChange={setIsAIQuestionDialog6}>
             <AlertDialogTrigger>
                 <MyButton type="button" scale="large" buttonType="secondary" className="font-thin">
                     <StarFour weight="fill" className="text-primary-500" />
@@ -45,7 +64,7 @@ const Step2GenerateQuestionsFromAI = ({
                 </div>
                 <div className="flex flex-col gap-4 px-4 pb-4">
                     {/* Generate Questions */}
-                    <Dialog>
+                    <Dialog open={isAIQuestionDialog7} onOpenChange={setIsAIQuestionDialog7}>
                         <DialogTrigger>
                             <Card>
                                 <CardHeader>
@@ -65,7 +84,10 @@ const Step2GenerateQuestionsFromAI = ({
                                 Generate Questions
                             </h1>
                             <div className="flex flex-col gap-4 overflow-auto p-4">
-                                <Dialog>
+                                <Dialog
+                                    open={isAIQuestionDialog1}
+                                    onOpenChange={setIsAIQuestionDialog1}
+                                >
                                     <DialogTrigger>
                                         <Card className="flex h-fit w-full cursor-pointer items-center justify-center gap-10 border-neutral-300 bg-neutral-50 text-neutral-600 sm:flex-wrap md:flex-nowrap">
                                             <CardHeader className="flex h-fit flex-col gap-3">
@@ -116,7 +138,10 @@ const Step2GenerateQuestionsFromAI = ({
                                         </AICenterProvider>
                                     </DialogContent>
                                 </Dialog>
-                                <Dialog>
+                                <Dialog
+                                    open={isAIQuestionDialog2}
+                                    onOpenChange={setIsAIQuestionDialog2}
+                                >
                                     <DialogTrigger>
                                         <Card className="flex h-fit w-full cursor-pointer items-center justify-center gap-10 border-neutral-300 bg-neutral-50 text-neutral-600 sm:flex-wrap md:flex-nowrap">
                                             <CardHeader className="flex h-fit flex-col gap-3">
@@ -164,7 +189,10 @@ const Step2GenerateQuestionsFromAI = ({
                                         </AICenterProvider>
                                     </DialogContent>
                                 </Dialog>
-                                <Dialog>
+                                <Dialog
+                                    open={isAIQuestionDialog3}
+                                    onOpenChange={setIsAIQuestionDialog3}
+                                >
                                     <DialogTrigger>
                                         <Card className="flex h-fit w-full cursor-pointer items-center justify-center gap-10 border-neutral-300 bg-neutral-50 text-neutral-600 sm:flex-wrap md:flex-nowrap">
                                             <CardHeader className="flex h-fit flex-col gap-3">
@@ -214,7 +242,7 @@ const Step2GenerateQuestionsFromAI = ({
                     </Dialog>
 
                     {/* Extract Questions */}
-                    <Dialog>
+                    <Dialog open={isAIQuestionDialog8} onOpenChange={setIsAIQuestionDialog8}>
                         <DialogTrigger>
                             <Card>
                                 <CardHeader>
@@ -234,7 +262,10 @@ const Step2GenerateQuestionsFromAI = ({
                                 Extract Questions
                             </h1>
                             <div className="flex flex-col gap-4 overflow-auto p-4">
-                                <Dialog>
+                                <Dialog
+                                    open={isAIQuestionDialog4}
+                                    onOpenChange={setIsAIQuestionDialog4}
+                                >
                                     <DialogTrigger>
                                         <Card className="flex h-fit w-full cursor-pointer items-center justify-center gap-10 border-neutral-300 bg-neutral-50 text-neutral-600 sm:flex-wrap md:flex-nowrap">
                                             <CardHeader className="flex h-fit flex-col gap-3">
@@ -280,7 +311,10 @@ const Step2GenerateQuestionsFromAI = ({
                                         </AICenterProvider>
                                     </DialogContent>
                                 </Dialog>
-                                <Dialog>
+                                <Dialog
+                                    open={isAIQuestionDialog5}
+                                    onOpenChange={setIsAIQuestionDialog5}
+                                >
                                     <DialogTrigger>
                                         <Card className="flex h-fit w-full cursor-pointer items-center justify-center gap-10 border-neutral-300 bg-neutral-50 text-neutral-600 sm:flex-wrap md:flex-nowrap">
                                             <CardHeader className="flex h-fit flex-col gap-3">

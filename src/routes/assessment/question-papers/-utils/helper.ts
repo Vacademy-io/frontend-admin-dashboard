@@ -55,7 +55,7 @@ export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
     const tokenData = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
     return {
-        title: data.title,
+        title: data.title || '',
         institute_id: INSTITUTE_ID, // Assuming there's no direct mapping for institute_id
         level_id: data.yearClass, // Assuming there's no direct mapping for level_id
         subject_id: data.subject, // Assuming there's no direct mapping for subject_id
