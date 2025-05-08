@@ -44,7 +44,7 @@ export function transformFilterData(data: Record<string, FilterOption[]>) {
 export function transformQuestionPaperDataAI(data: AIAssessmentResponseInterface) {
     const instituteId = getInstituteId();
     return {
-        title: data.title,
+        title: data.title || '',
         institute_id: instituteId,
         questions: data?.questions,
     };
