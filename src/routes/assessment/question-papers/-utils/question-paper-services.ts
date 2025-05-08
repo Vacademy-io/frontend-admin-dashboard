@@ -28,8 +28,8 @@ export const addQuestionPaper = async (
             method: 'POST',
             url: `${ADD_QUESTION_PAPER}`,
             data: isAddingAIQuestions
-                ? transformQuestionPaperDataAI(data)
-                : transformQuestionPaperData(data),
+                ? transformQuestionPaperDataAI(data as AIAssessmentResponseInterface)
+                : transformQuestionPaperData(data as MyQuestionPaperFormInterface),
         });
         return response?.data;
     } catch (error: unknown) {
