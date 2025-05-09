@@ -5,52 +5,50 @@ import { AddModulesForm } from './add-modules-form';
 import { Module } from '@/stores/study-library/use-modules-with-chapters-store';
 
 interface AddModuleButtonProps {
-  onAddModule?: (module: Module) => void;
-  onAddModuleBySubjectId?: (subjectId: string, module: Module) => void;
-  isTextButton?: boolean;
-  subjectId?: string;
+    onAddModule?: (module: Module) => void;
+    onAddModuleBySubjectId?: (subjectId: string, module: Module) => void;
+    isTextButton?: boolean;
+    subjectId?: string;
 }
 
 export const AddModulesButton = ({
-  onAddModule,
-  isTextButton = false,
-  onAddModuleBySubjectId,
-  subjectId,
+    onAddModule,
+    isTextButton = false,
+    onAddModuleBySubjectId,
+    subjectId,
 }: AddModuleButtonProps) => {
-  const [openDialog, setOpenDialog] = useState(false);
+    const [openDialog, setOpenDialog] = useState(false);
 
-  const triggerButton = isTextButton ? (
-    <MyButton buttonType="text" scale="large" layoutVariant="default">
-      Add Module
-    </MyButton>
-  ) : (
-    <MyButton buttonType="primary" scale="large" layoutVariant="default" id="add-modules">
-      Add Module
-    </MyButton>
-  );
-  const handleOpenChange = () => {
-    setOpenDialog(!openDialog);
-  };
+    const triggerButton = isTextButton ? (
+        <div className="m-0 w-fit text-primary-500">Add Module</div>
+    ) : (
+        <MyButton buttonType="primary" scale="large" layoutVariant="default" id="add-modules">
+            Add Module
+        </MyButton>
+    );
+    const handleOpenChange = () => {
+        setOpenDialog(!openDialog);
+    };
 
-  return (
-    <MyDialog
-      trigger={triggerButton}
-      heading="Add Module"
-      dialogWidth="w-[400px]"
-      open={openDialog}
-      onOpenChange={handleOpenChange}
-    >
-      <AddModulesForm
-        onSubmitSuccess={(module) => {
-          if (subjectId && onAddModuleBySubjectId) {
-            onAddModuleBySubjectId(subjectId, module);
-          } else if (onAddModule) {
-            onAddModule(module);
-          }
+    return (
+        <MyDialog
+            trigger={triggerButton}
+            heading="Add Module"
+            dialogWidth="w-[400px]"
+            open={openDialog}
+            onOpenChange={handleOpenChange}
+        >
+            <AddModulesForm
+                onSubmitSuccess={(module) => {
+                    if (subjectId && onAddModuleBySubjectId) {
+                        onAddModuleBySubjectId(subjectId, module);
+                    } else if (onAddModule) {
+                        onAddModule(module);
+                    }
 
-          handleOpenChange();
-        }}
-      />
-    </MyDialog>
-  );
+                    handleOpenChange();
+                }}
+            />
+        </MyDialog>
+    );
 };
