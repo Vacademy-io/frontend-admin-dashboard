@@ -1,39 +1,37 @@
-import { MyButton } from "@/components/design-system/button";
-import { MyDropdown } from "@/components/design-system/dropdown";
-import { useSidebar } from "@/components/ui/sidebar";
-import { Plus, FilePdf, FileDoc, YoutubeLogo, Question } from "@phosphor-icons/react";
-import { MyDialog } from "@/components/design-system/dialog";
-import { AddVideoDialog } from "./add-video-dialog";
-import { AddDocDialog } from "./add-doc-dialog";
-import { AddPdfDialog } from "./add-pdf-dialog";
-import { useRouter } from "@tanstack/react-router";
-import { useSlides } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides";
-import { formatHTMLString } from "../slide-material";
-import { useContentStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store";
-import { useDialogStore } from "@/routes/study-library/courses/-stores/slide-add-dialogs-store";
-import AddQuestionDialog from "./add-question-dialog";
-import { File } from "phosphor-react";
-import { useForm } from "react-hook-form";
-import { assignmentFormSchema, AssignmentFormType } from "../../-form-schemas/assignmentFormSchema";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { MyButton } from '@/components/design-system/button';
+import { MyDropdown } from '@/components/design-system/dropdown';
+import { Plus, FilePdf, FileDoc, YoutubeLogo, Question } from '@phosphor-icons/react';
+import { MyDialog } from '@/components/design-system/dialog';
+import { AddVideoDialog } from './add-video-dialog';
+import { AddDocDialog } from './add-doc-dialog';
+import { AddPdfDialog } from './add-pdf-dialog';
+import { useRouter } from '@tanstack/react-router';
+import { useSlides } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides';
+import { formatHTMLString } from '../slide-material';
+import { useContentStore } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
+import { useDialogStore } from '@/routes/study-library/courses/-stores/slide-add-dialogs-store';
+import AddQuestionDialog from './add-question-dialog';
+import { File } from 'phosphor-react';
+import { useForm } from 'react-hook-form';
+import { assignmentFormSchema, AssignmentFormType } from '../../-form-schemas/assignmentFormSchema';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 export const ChapterSidebarAddButton = () => {
     const form = useForm<AssignmentFormType>({
         resolver: zodResolver(assignmentFormSchema),
         defaultValues: {
-            task: "",
-            taskDescription: "",
-            startDate: "",
-            endDate: "",
-            reattemptCount: "0",
+            task: '',
+            taskDescription: '',
+            startDate: '',
+            endDate: '',
+            reattemptCount: '0',
             uploaded_question_paper: null,
             adaptive_marking_for_each_question: [],
         },
     });
-    const { open } = useSidebar();
     const route = useRouter();
     const { chapterId } = route.state.location.search;
-    const { addUpdateDocumentSlide } = useSlides(chapterId || "");
+    const { addUpdateDocumentSlide } = useSlides(chapterId || '');
     const { setActiveItem, getSlideById, setItems, items } = useContentStore();
 
     // Use the Zustand store instead of useState
@@ -54,65 +52,65 @@ export const ChapterSidebarAddButton = () => {
 
     const dropdownList = [
         {
-            label: "Pdf",
-            value: "pdf",
+            label: 'Pdf',
+            value: 'pdf',
             icon: <FilePdf className="size-4" />,
         },
         {
-            label: "Doc",
-            value: "doc",
+            label: 'Doc',
+            value: 'doc',
             icon: <FileDoc className="size-4" />,
             subItems: [
-                { label: "Upload from device", value: "upload-doc" },
-                { label: "Create new doc", value: "create-doc" },
+                { label: 'Upload from device', value: 'upload-doc' },
+                { label: 'Create new doc', value: 'create-doc' },
             ],
         },
         {
-            label: "Video",
-            value: "video",
+            label: 'Video',
+            value: 'video',
             icon: <YoutubeLogo className="size-4" />,
         },
         {
-            label: "Question",
-            value: "question",
+            label: 'Question',
+            value: 'question',
             icon: <Question className="size-4" />,
         },
         {
-            label: "Assignment",
-            value: "assignment",
+            label: 'Assignment',
+            value: 'assignment',
             icon: <File className="size-4" />,
         },
     ];
 
     const handleSelect = async (value: string) => {
         switch (value) {
-            case "pdf":
+            case 'pdf':
                 openPdfDialog(); // Use store action instead of setState
                 break;
-            case "upload-doc":
+            case 'upload-doc':
                 openDocUploadDialog(); // Use store action instead of setState
                 break;
-            case "create-doc": {
+            case 'create-doc': {
                 try {
-                    const documentData = formatHTMLString("");
+                    const documentData = formatHTMLString('');
                     const slideId = crypto.randomUUID();
                     const response = await addUpdateDocumentSlide({
                         id: slideId,
-                        title: "New Doc",
-                        image_file_id: "",
-                        description: "",
+                        title: 'New Doc',
+                        image_file_id: '',
+                        description: '',
                         slide_order: null,
                         document_slide: {
                             id: crypto.randomUUID(),
-                            type: "DOC",
+                            type: 'DOC',
                             data: documentData,
-                            title: "New Document",
-                            cover_file_id: "",
+                            title: 'New Document',
+                            cover_file_id: '',
                             total_pages: 1,
                             published_data: null,
                             published_document_total_pages: 0,
                         },
-                        status: "DRAFT",
+                        status: 'DRAFT',
                         new_slide: true,
                         notify: false,
                     });
@@ -123,23 +121,23 @@ export const ChapterSidebarAddButton = () => {
                         }, 500);
                     }
                 } catch (err) {
-                    console.error("Error creating new doc:", err);
+                    console.error('Error creating new doc:', err);
                 }
                 break;
             }
-            case "video":
+            case 'video':
                 openVideoDialog(); // Use store action instead of setState
                 break;
-            case "question":
+            case 'question':
                 openQuestionDialog(); // Use store action instead of setState
                 break;
-            case "assignment":
+            case 'assignment':
                 setItems([
                     {
                         slide_title: null,
                         document_id: null,
                         document_title: `Assignment ${items.length + 1}`,
-                        document_type: "",
+                        document_type: '',
                         slide_description: null,
                         document_cover_file_id: null,
                         video_description: null,
@@ -148,10 +146,10 @@ export const ChapterSidebarAddButton = () => {
                         video_title: null,
                         video_url: null,
                         slide_id: String(items.length + 1),
-                        source_type: "ASSIGNMENT",
-                        status: "DRAFT",
-                        published_data: "",
-                        published_url: "",
+                        source_type: 'ASSIGNMENT',
+                        status: 'DRAFT',
+                        published_data: '',
+                        published_url: '',
                         last_sync_date: null,
                     },
                     ...items,
@@ -163,15 +161,9 @@ export const ChapterSidebarAddButton = () => {
     return (
         <>
             <MyDropdown dropdownList={dropdownList} onSelect={handleSelect}>
-                <MyButton
-                    buttonType="primary"
-                    scale="large"
-                    layoutVariant={open ? "default" : "icon"}
-                    className={`${open ? "" : ""}`}
-                    id="add-slides"
-                >
+                <MyButton buttonType="primary" scale="large" id="add-slides">
                     <Plus />
-                    <p className={`${open ? "visible" : "hidden"}`}>Add</p>
+                    <p>Add</p>
                 </MyButton>
             </MyDropdown>
 

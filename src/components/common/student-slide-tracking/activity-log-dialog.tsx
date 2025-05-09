@@ -1,21 +1,21 @@
 // activity-log-dialog.tsx
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { MyTable } from "@/components/design-system/table";
-import { MyPagination } from "@/components/design-system/pagination";
-import { ACTIVITY_LOG_COLUMN_WIDTHS } from "@/components/design-system/utils/constants/table-layout";
-import { usePaginationState } from "@/hooks/pagination";
-import { useMemo } from "react";
-import { activityLogColumns } from "@/components/design-system/utils/constants/table-column-data";
-import { useActivityStatsStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/activity-stats-store";
-import { useContentStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store";
-import { useQuery } from "@tanstack/react-query";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { MyTable } from '@/components/design-system/table';
+import { MyPagination } from '@/components/design-system/pagination';
+import { ACTIVITY_LOG_COLUMN_WIDTHS } from '@/components/design-system/utils/constants/table-layout';
+import { usePaginationState } from '@/hooks/pagination';
+import { useMemo } from 'react';
+import { activityLogColumns } from '@/components/design-system/utils/constants/table-column-data';
+import { useActivityStatsStore } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/activity-stats-store';
+import { useContentStore } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
+import { useQuery } from '@tanstack/react-query';
 import {
     getUserVideoSlideActivityLogs,
     getUserDocActivityLogs,
-} from "@/services/study-library/slide-operations/user-slide-activity-logs";
-import { ActivityContent } from "@/types/study-library/user-slide-activity-response-type";
-import { StudentTable } from "@/types/student-table-types";
-import { SlideWithStatusType } from "@/routes/students/students-list/-types/student-slides-progress-type";
+} from '@/services/study-library/slide-operations/user-slide-activity-logs';
+import { ActivityContent } from '@/types/study-library/user-slide-activity-response-type';
+import { StudentTable } from '@/types/student-table-types';
+import { SlideWithStatusType } from '@/routes/manage-students/students-list/-types/student-slides-progress-type';
 
 export const ActivityLogDialog = ({
     selectedUser,
@@ -33,8 +33,8 @@ export const ActivityLogDialog = ({
     });
 
     const queryConfig = useMemo(() => {
-        const userId = selectedUser && slideData ? selectedUser.user_id : selectedUserId || "";
-        const slideId = selectedUser && slideData ? slideData.slide_id : activeItem?.slide_id || "";
+        const userId = selectedUser && slideData ? selectedUser.user_id : selectedUserId || '';
+        const slideId = selectedUser && slideData ? slideData.slide_id : activeItem?.slide_id || '';
 
         return activeItem?.video_url != null
             ? getUserVideoSlideActivityLogs({
@@ -70,9 +70,9 @@ export const ActivityLogDialog = ({
         }
 
         const transformedContent = activityLogs.content.map((item: ActivityContent) => ({
-            activityDate: formatDateTime(item.start_time_in_millis).split(",")[0],
-            startTime: formatDateTime(item.start_time_in_millis).split(",")[1],
-            endTime: formatDateTime(item.end_time_in_millis).split(",")[1],
+            activityDate: formatDateTime(item.start_time_in_millis).split(',')[0],
+            startTime: formatDateTime(item.start_time_in_millis).split(',')[1],
+            endTime: formatDateTime(item.end_time_in_millis).split(',')[1],
             duration: `${(
                 (item.end_time_in_millis - item.start_time_in_millis) /
                 1000 /

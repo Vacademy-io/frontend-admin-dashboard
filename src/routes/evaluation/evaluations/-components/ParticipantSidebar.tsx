@@ -4,27 +4,27 @@ import {
     SidebarHeader,
     SidebarMenu,
     SidebarMenuItem,
-} from "@/components/ui/sidebar";
-import { useSidebar } from "@/components/ui/sidebar";
-import { X } from "@phosphor-icons/react";
-import { useState, useEffect, useRef } from "react";
-import { StatusChips } from "@/components/design-system/chips";
-import { useStudentSidebar } from "@/routes/students/students-list/-context/selected-student-sidebar-context";
-import { useMutation } from "@tanstack/react-query";
-import { FileUploadComponent } from "@/components/design-system/file-upload";
-import { MyButton } from "@/components/design-system/button";
-import { useFileUpload } from "@/hooks/use-file-upload";
-import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
-import { TokenKey } from "@/constants/auth/tokens";
-import { useForm } from "react-hook-form";
-import { Form } from "@/components/ui/form";
-import { cn } from "@/lib/utils";
-import { toast } from "sonner";
-import { useNavigate } from "@tanstack/react-router";
-import { handleUpdateAttempt } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-services/assessment-details-services";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { DummyProfile } from "@/assets/svgs";
-import { MyDialog } from "@/components/design-system/dialog";
+} from '@/components/ui/sidebar';
+import { useSidebar } from '@/components/ui/sidebar';
+import { X } from '@phosphor-icons/react';
+import { useState, useEffect, useRef } from 'react';
+import { StatusChips } from '@/components/design-system/chips';
+import { useStudentSidebar } from '@/routes/manage-students/students-list/-context/selected-student-sidebar-context';
+import { useMutation } from '@tanstack/react-query';
+import { FileUploadComponent } from '@/components/design-system/file-upload';
+import { MyButton } from '@/components/design-system/button';
+import { useFileUpload } from '@/hooks/use-file-upload';
+import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
+import { useForm } from 'react-hook-form';
+import { Form } from '@/components/ui/form';
+import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+import { useNavigate } from '@tanstack/react-router';
+import { handleUpdateAttempt } from '@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-services/assessment-details-services';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { DummyProfile } from '@/assets/svgs';
+import { MyDialog } from '@/components/design-system/dialog';
 
 interface FormData {
     file: FileList | null;
@@ -56,20 +56,20 @@ export const ParticipantSidebar = ({
     const form = useForm<FormData>({
         defaultValues: {
             file: null,
-            fileId: "",
+            fileId: '',
         },
     });
 
     useEffect(() => {
-        if (state == "expanded") {
-            document.body.classList.add("sidebar-open");
+        if (state == 'expanded') {
+            document.body.classList.add('sidebar-open');
         } else {
-            document.body.classList.remove("sidebar-open");
+            document.body.classList.remove('sidebar-open');
         }
 
         // Cleanup on unmount
         return () => {
-            document.body.classList.remove("sidebar-open");
+            document.body.classList.remove('sidebar-open');
         };
     }, [state]);
 
@@ -82,7 +82,7 @@ export const ParticipantSidebar = ({
                     setImageUrl(url);
                     setFaceLoader(false);
                 } catch (error) {
-                    console.error("Failed to fetch image URL:", error);
+                    console.error('Failed to fetch image URL:', error);
                 }
             } else setImageUrl(null);
         };
@@ -96,7 +96,7 @@ export const ParticipantSidebar = ({
             return data;
         },
         onSuccess: () => {
-            toast.success("Attempt uploaded successfully");
+            toast.success('Attempt uploaded successfully');
             setFileId(undefined);
         },
     });
@@ -107,18 +107,18 @@ export const ParticipantSidebar = ({
             const uploadedFileId = await uploadFile({
                 file,
                 setIsUploading,
-                userId: "your-user-id",
+                userId: 'your-user-id',
                 source: INSTITUTE_ID,
-                sourceId: "SUBJECTS",
+                sourceId: 'SUBJECTS',
             });
 
             if (uploadedFileId) {
                 setFileId(uploadedFileId);
-                form.setValue("fileId", uploadedFileId);
-                toast.success("File uploaded successfully");
+                form.setValue('fileId', uploadedFileId);
+                toast.success('File uploaded successfully');
             }
         } catch (error) {
-            console.error("Upload failed:", error);
+            console.error('Upload failed:', error);
         } finally {
             setIsUploading(false);
         }
@@ -130,7 +130,7 @@ export const ParticipantSidebar = ({
         console.log(data);
         try {
             if (fileId) {
-                form.setValue("fileId", fileId);
+                form.setValue('fileId', fileId);
                 form.reset();
                 if (selectedStudent?.attempt_id)
                     await uploadAttempt.mutateAsync({
@@ -140,7 +140,7 @@ export const ParticipantSidebar = ({
             }
         } catch (err) {
             const errorMessage =
-                err instanceof Error ? err.message : "Upload failed. Please try again.";
+                err instanceof Error ? err.message : 'Upload failed. Please try again.';
             setError(errorMessage);
             toast.error(errorMessage);
         } finally {
@@ -192,7 +192,7 @@ export const ParticipantSidebar = ({
                             <div className="text-h3 font-semibold text-neutral-600">
                                 {selectedStudent?.full_name}
                             </div>
-                            <StatusChips status={selectedStudent?.status || "ACTIVE"} />
+                            <StatusChips status={selectedStudent?.status || 'ACTIVE'} />
                         </div>
                     </SidebarMenuItem>
 
@@ -218,9 +218,9 @@ export const ParticipantSidebar = ({
                                     scale="large"
                                     layoutVariant="default"
                                     type="button"
-                                    className={cn("block", fileId && "hidden")}
+                                    className={cn('block', fileId && 'hidden')}
                                 >
-                                    {isUploading ? "Uploading" : "Upload Attempt"}
+                                    {isUploading ? 'Uploading' : 'Upload Attempt'}
                                 </MyButton>
 
                                 <MyButton
@@ -229,9 +229,9 @@ export const ParticipantSidebar = ({
                                     layoutVariant="default"
                                     type="submit"
                                     disabled={isUploading}
-                                    className={cn("block", !fileId && "hidden")}
+                                    className={cn('block', !fileId && 'hidden')}
                                 >
-                                    {"Submit"}
+                                    {'Submit'}
                                 </MyButton>
                             </form>
                         </Form>
@@ -244,7 +244,7 @@ export const ParticipantSidebar = ({
                             onClick={() => {
                                 if (selectedStudent?.attempt_id)
                                     navigate({
-                                        to: "/evaluation/evaluate/$assessmentId/$attemptId/$examType",
+                                        to: '/evaluation/evaluate/$assessmentId/$attemptId/$examType',
                                         params: {
                                             attemptId: selectedStudent?.attempt_id,
                                             assessmentId: assessmentId,

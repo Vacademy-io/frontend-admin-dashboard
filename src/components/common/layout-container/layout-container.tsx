@@ -1,11 +1,11 @@
-import { MySidebar } from "./sidebar/mySidebar";
-import { useSidebar } from "@/components/ui/sidebar";
-import { Navbar } from "./top-navbar.tsx/navbar";
-import { cn } from "@/lib/utils";
-import React from "react";
-import { InternalSideBar } from "./internal-sidebar/internalSideBar";
-import { StudentSidebarProvider } from "@/routes/students/students-list/-providers/student-sidebar-provider";
-import { InternalSidebarComponent } from "./internal-sidebar/internalSidebarComponent";
+import { MySidebar } from './sidebar/mySidebar';
+import { useSidebar } from '@/components/ui/sidebar';
+import { Navbar } from './top-navbar.tsx/navbar';
+import { cn } from '@/lib/utils';
+import React, { useEffect } from 'react';
+import { InternalSideBar } from './internal-sidebar/internalSideBar';
+import { StudentSidebarProvider } from '@/routes/manage-students/students-list/-providers/student-sidebar-provider';
+import { InternalSidebarComponent } from './internal-sidebar/internalSidebarComponent';
 
 export const LayoutContainer = ({
     children,
@@ -28,36 +28,46 @@ export const LayoutContainer = ({
     hasInternalSidebarComponent?: boolean;
     internalSidebarComponent?: React.ReactNode;
 }) => {
-    const { open } = useSidebar();
+    const { open, setOpen } = useSidebar();
+    useEffect(() => {
+        const isCollapse = !(internalSideBar || hasInternalSidebarComponent);
+        setOpen(isCollapse);
+    }, [internalSideBar, hasInternalSidebarComponent]);
     return (
-        <div className={`flex h-screen w-full ${open ? "gap-12" : "gap-16"}`}>
-            <div>
-                <MySidebar sidebarComponent={sidebarComponent} />
-            </div>
-            <div className="flex h-full flex-1 flex-row">
-                {(hasInternalSidebarComponent && internalSidebarComponent) ? <InternalSidebarComponent sidebarComponent={internalSidebarComponent} /> : internalSideBar && (
-                    <InternalSideBar sideBarList={sideBarList} sideBarData={sideBarData} />
-                )}
-                <div className="flex w-full flex-1 flex-col text-neutral-600">
-                    <Navbar />
-                    <StudentSidebarProvider>
-                        <div
-                            className={cn(
-                                intrnalMargin ? `m-7 flex flex-1 flex-col` : `m-0`,
-                                open
-                                    ? intrnalMargin
-                                        ? `max-w-[calc(100vw-322px-56px)]`
-                                        : `max-w-[calc(100vw-320px)]`
-                                    : intrnalMargin
-                                      ? `max-w-[calc(100vw-132px-56px)]`
-                                      : `max-w-[calc(100vw-132px)]`,
-                                className,
-                            )}
-                        >
-                            {children}
-                        </div>
-                    </StudentSidebarProvider>
+        <div className={`flex w-full`}>
+            <div className={`flex  ${open ? 'gap-12' : 'gap-16'}`}>
+                <div>
+                    <MySidebar sidebarComponent={sidebarComponent} />
                 </div>
+                <div className="sticky top-0 h-screen">
+                    {hasInternalSidebarComponent && internalSidebarComponent ? (
+                        <InternalSidebarComponent sidebarComponent={internalSidebarComponent} />
+                    ) : (
+                        internalSideBar && (
+                            <InternalSideBar sideBarList={sideBarList} sideBarData={sideBarData} />
+                        )
+                    )}
+                </div>
+            </div>
+            <div className="flex w-full flex-1 flex-col text-neutral-600">
+                <Navbar />
+                <StudentSidebarProvider>
+                    <div
+                        className={cn(
+                            intrnalMargin ? `m-7 flex flex-1 flex-col` : `m-0`,
+                            open
+                                ? intrnalMargin
+                                    ? `max-w-[calc(100vw-322px-56px)]`
+                                    : `max-w-[calc(100vw-320px)]`
+                                : intrnalMargin
+                                  ? `max-w-[calc(100vw-132px-56px)]`
+                                  : `max-w-[calc(100vw-132px)]`,
+                            className
+                        )}
+                    >
+                        {children}
+                    </div>
+                </StudentSidebarProvider>
             </div>
         </div>
     );

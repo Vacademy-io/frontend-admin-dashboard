@@ -1,18 +1,18 @@
-import { ColumnDef, Row } from "@tanstack/react-table";
-import { StudentTable } from "@/types/student-table-types";
-import { ArrowSquareOut, CaretUpDown, Info } from "@phosphor-icons/react";
-import { Checkbox } from "@/components/ui/checkbox";
-import { MyDropdown } from "../../dropdown";
-import { useGetStudentBatch } from "@/routes/students/students-list/-hooks/useGetStudentBatch";
-import { ActivityStatus } from "../types/chips-types";
-import { StatusChips } from "../../chips";
-import { StudentMenuOptions } from "../../table-components/student-menu-options/student-menu-options";
-import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
-import { useActivityStatsStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/activity-stats-store";
-import { useContentStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store";
-import { useState, useRef } from "react";
-import { LogDetailsDialog } from "@/components/common/student-slide-tracking/log-details-dialog";
-import { useStudentSidebar } from "@/routes/students/students-list/-context/selected-student-sidebar-context";
+import { ColumnDef, Row } from '@tanstack/react-table';
+import { StudentTable } from '@/types/student-table-types';
+import { ArrowSquareOut, CaretUpDown, Info } from '@phosphor-icons/react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { MyDropdown } from '../../dropdown';
+import { useGetStudentBatch } from '@/routes/manage-students/students-list/-hooks/useGetStudentBatch';
+import { ActivityStatus } from '../types/chips-types';
+import { StatusChips } from '../../chips';
+import { StudentMenuOptions } from '../../table-components/student-menu-options/student-menu-options';
+import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
+import { useActivityStatsStore } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/activity-stats-store';
+import { useContentStore } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
+import { useState, useRef } from 'react';
+import { LogDetailsDialog } from '@/components/common/student-slide-tracking/log-details-dialog';
+import { useStudentSidebar } from '@/routes/manage-students/students-list/-context/selected-student-sidebar-context';
 
 interface CustomTableMeta {
     onSort?: (columnId: string, direction: string) => void;
@@ -49,8 +49,8 @@ const BatchCell = ({
 
     return (
         <div
-            onClick={() => handleClick("package_session_id", row)}
-            onDoubleClick={(e) => handleDoubleClick(e, "package_session_id", row)}
+            onClick={() => handleClick('package_session_id', row)}
+            onDoubleClick={(e) => handleDoubleClick(e, 'package_session_id', row)}
         >
             {levelName} {packageName}
         </div>
@@ -97,10 +97,10 @@ const useClickHandlers = () => {
 
     const handleClick = (columnId: string, row: Row<StudentTable>) => {
         if (clickTimeout.current) clearTimeout(clickTimeout.current);
-        console.log("clicked on column:", columnId, "row:", row.original);
+        console.log('clicked on column:', columnId, 'row:', row.original);
         clickTimeout.current = setTimeout(() => {
             if (selectedStudent?.id != row.original.id) {
-                console.log("single clicked");
+                console.log('single clicked');
                 setSelectedStudent(row.original);
                 setOpen(true);
             } else {
@@ -116,7 +116,7 @@ const useClickHandlers = () => {
             clearTimeout(clickTimeout.current);
             clickTimeout.current = null;
         }
-        console.log("double clicked on column:", columnId, "row:", row.original);
+        console.log('double clicked on column:', columnId, 'row:', row.original);
         // Add your double click logic here
     };
 
@@ -141,8 +141,8 @@ const BatchCellComponent = ({ row }: { row: Row<StudentTable> }) => {
     const { handleClick, handleDoubleClick } = useClickHandlers();
     return (
         <div
-            onClick={() => handleClick("package_session_id", row)}
-            onDoubleClick={(e) => handleDoubleClick(e, "package_session_id", row)}
+            onClick={() => handleClick('package_session_id', row)}
+            onDoubleClick={(e) => handleDoubleClick(e, 'package_session_id', row)}
         >
             <BatchCell package_session_id={row.original.package_session_id} row={row} />
         </div>
@@ -165,13 +165,13 @@ const ExpiryDateCell = ({ row }: { row: Row<StudentTable> }) => {
         <div
             className={`${
                 daysLeft < 30
-                    ? "text-danger-600"
+                    ? 'text-danger-600'
                     : daysLeft < 180
-                      ? "text-warning-500"
-                      : "text-success-500"
+                      ? 'text-warning-500'
+                      : 'text-success-500'
             }`}
-            onClick={() => handleClick("expiry_date", row)}
-            onDoubleClick={(e) => handleDoubleClick(e, "expiry_date", row)}
+            onClick={() => handleClick('expiry_date', row)}
+            onDoubleClick={(e) => handleDoubleClick(e, 'expiry_date', row)}
         >
             {daysLeft > 0 ? daysLeft : 0}
         </div>
@@ -182,15 +182,15 @@ const StatusCell = ({ row }: { row: Row<StudentTable> }) => {
     const { handleClick, handleDoubleClick } = useClickHandlers();
     const status = row.original.status;
     const statusMapping: Record<string, ActivityStatus> = {
-        ACTIVE: "active",
-        TERMINATED: "inactive",
+        ACTIVE: 'active',
+        TERMINATED: 'inactive',
     };
 
-    const mappedStatus = statusMapping[status] || "inactive";
+    const mappedStatus = statusMapping[status] || 'inactive';
     return (
         <div
-            onClick={() => handleClick("status", row)}
-            onDoubleClick={(e) => handleDoubleClick(e, "status", row)}
+            onClick={() => handleClick('status', row)}
+            onDoubleClick={(e) => handleDoubleClick(e, 'status', row)}
         >
             <StatusChips status={mappedStatus} />
         </div>
@@ -199,7 +199,7 @@ const StatusCell = ({ row }: { row: Row<StudentTable> }) => {
 
 export const myColumns: ColumnDef<StudentTable>[] = [
     {
-        id: "checkbox",
+        id: 'checkbox',
         header: ({ table }) => (
             <Checkbox
                 checked={table.getIsAllRowsSelected()}
@@ -216,20 +216,20 @@ export const myColumns: ColumnDef<StudentTable>[] = [
         ),
     },
     {
-        id: "details",
-        header: "Details",
+        id: 'details',
+        header: 'Details',
         cell: ({ row }) => <DetailsCell row={row} />,
     },
     {
-        accessorKey: "full_name",
+        accessorKey: 'full_name',
         header: (props) => {
             const meta = props.table.options.meta as CustomTableMeta;
             return (
                 <div className="relative">
                     <MyDropdown
-                        dropdownList={["ASC", "DESC"]}
+                        dropdownList={['ASC', 'DESC']}
                         onSelect={(value) => {
-                            if (typeof value == "string") meta.onSort?.("full_name", value);
+                            if (typeof value == 'string') meta.onSort?.('full_name', value);
                         }}
                     >
                         <button className="flex w-full cursor-pointer items-center justify-between">
@@ -245,88 +245,88 @@ export const myColumns: ColumnDef<StudentTable>[] = [
         cell: ({ row }) => <CreateClickableCell row={row} columnId="full_name" />,
     },
     {
-        accessorKey: "username",
-        header: "Username",
+        accessorKey: 'username',
+        header: 'Username',
         cell: ({ row }) => <CreateClickableCell row={row} columnId="username" />,
     },
     {
-        accessorKey: "package_session_id",
-        header: "Batch",
+        accessorKey: 'package_session_id',
+        header: 'Batch',
         cell: ({ row }) => <BatchCellComponent row={row} />,
     },
     {
-        accessorKey: "institute_enrollment_id",
-        header: "Enrollment Number",
+        accessorKey: 'institute_enrollment_id',
+        header: 'Enrollment Number',
         cell: ({ row }) => <CreateClickableCell row={row} columnId="institute_enrollment_id" />,
     },
     {
-        accessorKey: "linked_institute_name",
-        header: "College/School",
+        accessorKey: 'linked_institute_name',
+        header: 'College/School',
         cell: ({ row }) => <CreateClickableCell row={row} columnId="linked_institute_name" />,
     },
     {
-        accessorKey: "gender",
-        header: "Gender",
+        accessorKey: 'gender',
+        header: 'Gender',
         cell: ({ row }) => <CreateClickableCell row={row} columnId="gender" />,
     },
     {
-        accessorKey: "mobile_number",
-        header: "Mobile Number",
+        accessorKey: 'mobile_number',
+        header: 'Mobile Number',
         cell: ({ row }) => <CreateClickableCell row={row} columnId="mobile_number" />,
     },
     {
-        accessorKey: "email",
-        header: "Email ID",
+        accessorKey: 'email',
+        header: 'Email ID',
         cell: ({ row }) => <CreateClickableCell row={row} columnId="email" />,
     },
     {
-        accessorKey: "father_name",
+        accessorKey: 'father_name',
         header: "Father's Name",
         cell: ({ row }) => <CreateClickableCell row={row} columnId="father_name" />,
     },
     {
-        accessorKey: "mother_name",
+        accessorKey: 'mother_name',
         header: "Mother's Name",
         cell: ({ row }) => <CreateClickableCell row={row} columnId="mother_name" />,
     },
     {
-        accessorKey: "guardian_name",
+        accessorKey: 'guardian_name',
         header: "Guardian's Name",
         cell: ({ row }) => <CreateClickableCell row={row} columnId="guardian_name" />,
     },
     {
-        accessorKey: "parents_mobile_number",
+        accessorKey: 'parents_mobile_number',
         header: "Parent/Guardian's Mobile Number",
         cell: ({ row }) => <CreateClickableCell row={row} columnId="parents_mobile_number" />,
     },
     {
-        accessorKey: "parents_email",
+        accessorKey: 'parents_email',
         header: "Parent/Guardian's Email ID",
         cell: ({ row }) => <CreateClickableCell row={row} columnId="parents_email" />,
     },
     {
-        accessorKey: "city",
-        header: "City",
+        accessorKey: 'city',
+        header: 'City',
         cell: ({ row }) => <CreateClickableCell row={row} columnId="city" />,
     },
     {
-        accessorKey: "region",
-        header: "State",
+        accessorKey: 'region',
+        header: 'State',
         cell: ({ row }) => <CreateClickableCell row={row} columnId="region" />,
     },
     {
-        accessorKey: "expiry_date",
-        header: "Session Expiry",
+        accessorKey: 'expiry_date',
+        header: 'Session Expiry',
         cell: ({ row }) => <ExpiryDateCell row={row} />,
     },
     {
-        accessorKey: "status",
-        header: "Status",
+        accessorKey: 'status',
+        header: 'Status',
         cell: ({ row }) => <StatusCell row={row} />,
     },
     {
-        id: "options",
-        header: "",
+        id: 'options',
+        header: '',
         cell: ({ row }) => <StudentMenuOptions student={row.original} />,
     },
 ];
@@ -344,40 +344,40 @@ const LastPageReadHeader = () => {
     return (
         <>
             {activeItem?.video_url != null || activeItem?.published_url != null
-                ? "Percentage Watched"
-                : "Total Pages Read"}
+                ? 'Percentage Watched'
+                : 'Total Pages Read'}
         </>
     );
 };
 
 export const activityLogColumns: ColumnDef<ActivityLogType>[] = [
     {
-        accessorKey: "activityDate",
-        header: "Activity Date",
+        accessorKey: 'activityDate',
+        header: 'Activity Date',
     },
     {
-        accessorKey: "startTime",
-        header: "Start Time",
+        accessorKey: 'startTime',
+        header: 'Start Time',
     },
     {
-        accessorKey: "endTime",
-        header: "End Time",
+        accessorKey: 'endTime',
+        header: 'End Time',
     },
     {
-        accessorKey: "duration",
-        header: "Duration",
+        accessorKey: 'duration',
+        header: 'Duration',
     },
     {
-        accessorKey: "concentrationScore",
-        header: "Concentration Score",
+        accessorKey: 'concentrationScore',
+        header: 'Concentration Score',
     },
     {
-        accessorKey: "lastPageRead",
+        accessorKey: 'lastPageRead',
         header: () => <LastPageReadHeader />,
     },
     {
-        accessorKey: "Details",
-        header: "Info",
+        accessorKey: 'Details',
+        header: 'Info',
         cell: ({ row }) => <InfoCell row={row} />,
     },
 ];
@@ -394,8 +394,8 @@ export interface ActivityStatsColumnsType {
 
 export const ActivityStatsColumns: ColumnDef<ActivityStatsColumnsType>[] = [
     {
-        accessorKey: "details",
-        header: "Details",
+        accessorKey: 'details',
+        header: 'Details',
         cell: ({ row }) => {
             // Create a regular function to handle the click
             const handleClick = () => {
@@ -412,15 +412,15 @@ export const ActivityStatsColumns: ColumnDef<ActivityStatsColumnsType>[] = [
         },
     },
     {
-        accessorKey: "full_name",
-        header: "Student Name",
+        accessorKey: 'full_name',
+        header: 'Student Name',
     },
     {
-        accessorKey: "time_spent",
-        header: "Time Spent",
+        accessorKey: 'time_spent',
+        header: 'Time Spent',
     },
     {
-        accessorKey: "last_active",
-        header: "Last Active",
+        accessorKey: 'last_active',
+        header: 'Last Active',
     },
 ];

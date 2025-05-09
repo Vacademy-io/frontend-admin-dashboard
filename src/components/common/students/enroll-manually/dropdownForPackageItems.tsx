@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { CaretDown, CaretUp, CaretRight } from "@phosphor-icons/react";
+import { useEffect, useRef, useState } from 'react';
+import { CaretDown, CaretUp, CaretRight } from '@phosphor-icons/react';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -9,29 +9,29 @@ import {
     DropdownMenuSub,
     DropdownMenuSubTrigger,
     DropdownMenuSubContent,
-} from "@radix-ui/react-dropdown-menu";
-import { myDropDownProps, DropdownItem, DropdownItemType } from "./dropdownTypesForPackageItems";
-import { AddCourseButton } from "@/components/common/study-library/add-course/add-course-button";
-import { AddSessionDialog } from "@/routes/study-library/session/-components/session-operations/add-session/add-session-dialog";
-import { AddLevelButton } from "@/routes/study-library/courses/levels/-components/add-level-button";
-import { MyButton } from "@/components/design-system/button";
-import { Plus } from "lucide-react";
-import { AddCourseData } from "@/components/common/study-library/add-course/add-course-form";
-import { AddSessionDataType } from "@/routes/study-library/session/-components/session-operations/add-session/add-session-form";
-import { AddLevelData } from "@/routes/study-library/courses/levels/-components/add-level-form";
-import { useAddCourse } from "@/services/study-library/course-operations/add-course";
-import { useAddSession } from "@/services/study-library/session-management/addSession";
-import { useAddLevel } from "@/routes/study-library/courses/levels/-services/add-level";
-import { toast } from "sonner";
+} from '@radix-ui/react-dropdown-menu';
+import { myDropDownProps, DropdownItem, DropdownItemType } from './dropdownTypesForPackageItems';
+import { AddCourseButton } from '@/components/common/study-library/add-course/add-course-button';
+import { AddSessionDialog } from '@/routes/manage-institute/sessions/-components/session-operations/add-session/add-session-dialog';
+import { AddLevelButton } from '@/routes/study-library/courses/levels/-components/add-level-button';
+import { MyButton } from '@/components/design-system/button';
+import { Plus } from 'lucide-react';
+import { AddCourseData } from '@/components/common/study-library/add-course/add-course-form';
+import { AddSessionDataType } from '@/routes/manage-institute/sessions/-components/session-operations/add-session/add-session-form';
+import { AddLevelData } from '@/routes/study-library/courses/levels/-components/add-level-form';
+import { useAddCourse } from '@/services/study-library/course-operations/add-course';
+import { useAddSession } from '@/services/study-library/session-management/addSession';
+import { useAddLevel } from '@/routes/study-library/courses/levels/-services/add-level';
+import { toast } from 'sonner';
 
 const isDropdownItem = (item: string | DropdownItem | DropdownItemType): item is DropdownItem => {
-    return typeof item !== "string" && "label" in item;
+    return typeof item !== 'string' && 'label' in item;
 };
 
 const isDropdownItemType = (
-    item: string | DropdownItem | DropdownItemType,
+    item: string | DropdownItem | DropdownItemType
 ): item is DropdownItemType => {
-    return typeof item !== "string" && "id" in item && "name" in item;
+    return typeof item !== 'string' && 'id' in item && 'name' in item;
 };
 
 export const MyDropdown = ({
@@ -40,7 +40,7 @@ export const MyDropdown = ({
     dropdownList,
     children,
     onSelect,
-    placeholder = "Select an option",
+    placeholder = 'Select an option',
     error,
     disable,
     required = false,
@@ -50,7 +50,7 @@ export const MyDropdown = ({
     onAddCourse,
     onAddSession,
     onAddLevel,
-    packageId = "",
+    packageId = '',
     disableAddLevelButton = false,
 }: myDropDownProps & {
     showAddCourseButton?: boolean;
@@ -100,7 +100,7 @@ export const MyDropdown = ({
     };
 
     const handleClearAll = () => {
-        handleValueChange(""); // Reset the value to an empty string or null
+        handleValueChange(''); // Reset the value to an empty string or null
     };
 
     // Helper function to get display text from the currentValue
@@ -124,12 +124,12 @@ export const MyDropdown = ({
                 { requestData: requestData },
                 {
                     onSuccess: () => {
-                        toast.success("Course created successfully");
+                        toast.success('Course created successfully');
                     },
                     onError: () => {
-                        toast.error("Failed to create course");
+                        toast.error('Failed to create course');
                     },
-                },
+                }
             );
         }
     };
@@ -156,13 +156,13 @@ export const MyDropdown = ({
                 { requestData: transformedData as unknown as AddSessionDataType },
                 {
                     onSuccess: () => {
-                        toast.success("Session added successfully");
+                        toast.success('Session added successfully');
                         setIsAddSessionDialogOpen(false);
                     },
                     onError: (error) => {
-                        toast.error(error.message || "Failed to add session");
+                        toast.error(error.message || 'Failed to add session');
                     },
-                },
+                }
             );
         }
     };
@@ -180,15 +180,15 @@ export const MyDropdown = ({
             onAddLevel({ requestData, packageId: pId, sessionId: sId });
         } else {
             addLevelMutation.mutate(
-                { requestData: requestData, packageId: pId || "", sessionId: sId || "" },
+                { requestData: requestData, packageId: pId || '', sessionId: sId || '' },
                 {
                     onSuccess: () => {
-                        toast.success("Level added successfully");
+                        toast.success('Level added successfully');
                     },
                     onError: (error) => {
-                        toast.error(error.message || "Failed to add level");
+                        toast.error(error.message || 'Failed to add level');
                     },
-                },
+                }
             );
         }
     };
@@ -217,7 +217,7 @@ export const MyDropdown = ({
                 <DropdownMenuItem
                     key={item.value}
                     className={`cursor-pointer truncate px-3 py-2 text-subtitle text-neutral-600 hover:bg-primary-50 ${
-                        currentValue === item.value ? "bg-primary-50" : "bg-none"
+                        currentValue === item.value ? 'bg-primary-50' : 'bg-none'
                     } hover:outline-none`}
                     onClick={() => handleValueChange(item)}
                     disabled={disable}
@@ -235,7 +235,7 @@ export const MyDropdown = ({
                 <DropdownMenuItem
                     key={item.id}
                     className={`cursor-pointer truncate px-3 py-2 text-subtitle text-neutral-600 hover:bg-primary-50 ${
-                        currentValue === item.id ? "bg-primary-50" : "bg-none"
+                        currentValue === item.id ? 'bg-primary-50' : 'bg-none'
                     } hover:outline-none`}
                     onClick={() => handleValueChange(item)}
                     disabled={disable}
@@ -249,7 +249,7 @@ export const MyDropdown = ({
             <DropdownMenuItem
                 key={item}
                 className={`cursor-pointer truncate px-3 py-2 text-subtitle text-neutral-600 hover:bg-primary-50 ${
-                    currentValue === item ? "bg-primary-50" : "bg-none"
+                    currentValue === item ? 'bg-primary-50' : 'bg-none'
                 } hover:outline-none`}
                 onClick={() => handleValueChange(item)}
                 disabled={disable}
@@ -270,23 +270,23 @@ export const MyDropdown = ({
                     <DropdownMenuTrigger
                         className={`inline-flex h-9 min-w-60 items-center justify-between rounded-lg border px-3 py-2 text-subtitle text-neutral-600 focus:outline-none ${
                             error
-                                ? "border-danger-600"
+                                ? 'border-danger-600'
                                 : isOpen
-                                  ? "border-primary-500"
-                                  : "border-neutral-300 hover:border-primary-200 focus:border-primary-500"
+                                  ? 'border-primary-500'
+                                  : 'border-neutral-300 hover:border-primary-200 focus:border-primary-500'
                         }`}
                         disabled={disable}
                     >
-                        <div className={`truncate ${!currentValue ? "text-neutral-400" : ""}`}>
+                        <div className={`truncate ${!currentValue ? 'text-neutral-400' : ''}`}>
                             {getDisplayText()}
                         </div>
                         <div className="ml-2 shrink-0">
-                            <CaretDown className={`${isOpen ? "hidden" : "visible"} size-[18px]`} />
-                            <CaretUp className={`${isOpen ? "visible" : "hidden"} size-[18px]`} />
+                            <CaretDown className={`${isOpen ? 'hidden' : 'visible'} size-[18px]`} />
+                            <CaretUp className={`${isOpen ? 'visible' : 'hidden'} size-[18px]`} />
                         </div>
                     </DropdownMenuTrigger>
                 )}
-                <DropdownMenuPortal container={document.getElementById("portal-root")}>
+                <DropdownMenuPortal container={document.getElementById('portal-root')}>
                     <DropdownMenuContent
                         className="z-[9999] mt-2 min-w-60 rounded-lg bg-white py-2 shadow focus:outline-none"
                         sideOffset={5}
@@ -376,15 +376,15 @@ export const MyDropdown = ({
                                                         <Plus
                                                             className={`${
                                                                 disableAddLevelButton
-                                                                    ? "text-primary-300"
-                                                                    : "text-primary-500"
+                                                                    ? 'text-primary-300'
+                                                                    : 'text-primary-500'
                                                             }`}
-                                                        />{" "}
+                                                        />{' '}
                                                         <p
                                                             className={
                                                                 disableAddLevelButton
-                                                                    ? "text-primary-300"
-                                                                    : "text-primary-500"
+                                                                    ? 'text-primary-300'
+                                                                    : 'text-primary-500'
                                                             }
                                                         >
                                                             Create Level

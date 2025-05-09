@@ -9,7 +9,7 @@ import { StudentTable } from '@/types/student-table-types';
 import { AssessmentStatusOptions } from '../-components/AssessmentStatusOptions';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { ArrowSquareOut } from 'phosphor-react';
-import { useStudentSidebar } from '@/routes/students/students-list/-context/selected-student-sidebar-context';
+import { useStudentSidebar } from '@/routes/manage-students/students-list/-context/selected-student-sidebar-context';
 import { StatusChips } from '@/components/design-system/chips';
 
 interface CustomTableMeta {

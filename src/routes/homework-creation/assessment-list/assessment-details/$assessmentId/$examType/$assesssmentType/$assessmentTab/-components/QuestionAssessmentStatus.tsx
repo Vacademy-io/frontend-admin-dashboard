@@ -6,7 +6,7 @@ import { MyPagination } from '@/components/design-system/pagination';
 import { MyTable } from '@/components/design-system/table';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { StudentSidebarContext } from '@/routes/students/students-list/-context/selected-student-sidebar-context';
+import { StudentSidebarContext } from '@/routes/manage-students/students-list/-context/selected-student-sidebar-context';
 import { StudentTable } from '@/types/student-table-types';
 import { ArrowCounterClockwise } from 'phosphor-react';
 import { useEffect, useState } from 'react';
