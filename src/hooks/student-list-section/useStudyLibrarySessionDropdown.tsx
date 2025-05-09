@@ -1,7 +1,7 @@
 // hooks/useSessionDropdown.ts
-import { useState, useCallback } from "react";
-import { useGetSessions } from "@/routes/students/students-list/-hooks/useFilters";
-import { StudyLibrarySessionType } from "@/stores/study-library/use-study-library-store";
+import { useState, useCallback } from 'react';
+import { useGetSessions } from '@/routes/manage-students/students-list/-hooks/useFilters';
+import { StudyLibrarySessionType } from '@/stores/study-library/use-study-library-store';
 
 interface UseSessionDropdownProps {
     defaultSession?: string | StudyLibrarySessionType;
@@ -13,7 +13,7 @@ export const useSessionDropdown = ({
     onSessionChange,
 }: UseSessionDropdownProps = {}) => {
     const sessionList = useGetSessions();
-    const initialSession = defaultSession || sessionList[0] || "";
+    const initialSession = defaultSession || sessionList[0] || '';
     const [currentSession, setCurrentSession] = useState(initialSession);
 
     const handleSessionChange = useCallback(
@@ -21,7 +21,7 @@ export const useSessionDropdown = ({
             setCurrentSession(session);
             onSessionChange?.(session);
         },
-        [onSessionChange],
+        [onSessionChange]
     );
 
     return {

@@ -1,8 +1,8 @@
-import { MyDropdown } from "@/components/design-system/dropdown";
-import { dropdownSchema } from "@/components/design-system/utils/schema/dropdown-schema";
-import { useState, useMemo } from "react";
-import { useGetBatchNames } from "@/routes/students/students-list/-hooks/useFilters";
-import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
+import { MyDropdown } from '@/components/design-system/dropdown';
+import { dropdownSchema } from '@/components/design-system/utils/schema/dropdown-schema';
+import { useState, useMemo } from 'react';
+import { useGetBatchNames } from '@/routes/manage-students/students-list/-hooks/useFilters';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 // components/common/students/batch-dropdown.tsx
 
@@ -21,13 +21,13 @@ export const BatchDropdown = ({
 }: BatchDropdownInterface) => {
     const { instituteDetails } = useInstituteDetailsStore();
     const sessionList = useGetBatchNames(session);
-    const [currentBatch, setCurrentBatch] = useState("");
+    const [currentBatch, setCurrentBatch] = useState('');
 
     const filteredBatchList = useMemo(() => {
         if (!currentPackageSessionId) return sessionList;
 
         const currentBatchInfo = instituteDetails?.batches_for_sessions.find(
-            (batch) => batch.id === currentPackageSessionId,
+            (batch) => batch.id === currentPackageSessionId
         );
 
         if (!currentBatchInfo) return sessionList;
@@ -42,7 +42,7 @@ export const BatchDropdown = ({
 
         // Find the batch ID from the institute details
         const selectedBatch = instituteDetails?.batches_for_sessions.find(
-            (batch) => `${batch.level.level_name} ${batch.package_dto.package_name}` === batchName,
+            (batch) => `${batch.level.level_name} ${batch.package_dto.package_name}` === batchName
         );
 
         if (selectedBatch) {

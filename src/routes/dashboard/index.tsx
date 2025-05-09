@@ -1,34 +1,34 @@
-import { createFileRoute, useLocation, useNavigate, useRouter } from "@tanstack/react-router";
-import { LayoutContainer } from "@/components/common/layout-container/layout-container";
-import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
-import { useEffect, useState } from "react";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { MyButton } from "@/components/design-system/button";
-import { ArrowSquareOut, Plus } from "phosphor-react";
-import { CreateAssessmentDashboardLogo, DashboardCreateCourse } from "@/svgs";
-import { Badge } from "@/components/ui/badge";
-import { CompletionStatusComponent } from "./-components/CompletionStatusComponent";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { IntroKey } from "@/constants/storage/introKey";
-import useIntroJsTour from "@/hooks/use-intro";
-import { dashboardSteps } from "@/constants/intro/steps";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
+import { createFileRoute, useLocation, useNavigate, useRouter } from '@tanstack/react-router';
+import { LayoutContainer } from '@/components/common/layout-container/layout-container';
+import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
+import { useEffect, useState } from 'react';
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { MyButton } from '@/components/design-system/button';
+import { ArrowSquareOut, Plus } from 'phosphor-react';
+import { CreateAssessmentDashboardLogo, DashboardCreateCourse } from '@/svgs';
+import { Badge } from '@/components/ui/badge';
+import { CompletionStatusComponent } from './-components/CompletionStatusComponent';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { IntroKey } from '@/constants/storage/introKey';
+import useIntroJsTour from '@/hooks/use-intro';
+import { dashboardSteps } from '@/constants/intro/steps';
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
 import {
     getAssessmentsCountsData,
     getInstituteDashboardData,
-} from "./-services/dashboard-services";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { SSDC_INSTITUTE_ID } from "@/constants/urls";
-import { Helmet } from "react-helmet";
-import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
-import { TokenKey } from "@/constants/auth/tokens";
-import { getModuleFlags } from "@/components/common/layout-container/sidebar/helper";
-import RoleTypeComponent from "./-components/RoleTypeComponent";
-import useLocalStorage from "@/hooks/use-local-storage";
-import EditDashboardProfileComponent from "./-components/EditDashboardProfileComponent";
+} from './-services/dashboard-services';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { SSDC_INSTITUTE_ID } from '@/constants/urls';
+import { Helmet } from 'react-helmet';
+import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
+import { getModuleFlags } from '@/components/common/layout-container/sidebar/helper';
+import RoleTypeComponent from './-components/RoleTypeComponent';
+import useLocalStorage from '@/hooks/use-local-storage';
+import EditDashboardProfileComponent from './-components/EditDashboardProfileComponent';
 
-export const Route = createFileRoute("/dashboard/")({
+export const Route = createFileRoute('/dashboard/')({
     component: () => (
         <LayoutContainer>
             <DashboardComponent />
@@ -46,18 +46,18 @@ export function DashboardComponent() {
     const subModules = getModuleFlags(instituteDetails?.sub_modules);
 
     const { data, isLoading: isDashboardLoading } = useSuspenseQuery(
-        getInstituteDashboardData(instituteDetails?.id),
+        getInstituteDashboardData(instituteDetails?.id)
     );
 
     const { data: assessmentCount, isLoading: isAssessmentCountLoading } = useSuspenseQuery(
-        getAssessmentsCountsData(instituteDetails?.id),
+        getAssessmentsCountsData(instituteDetails?.id)
     );
     const navigate = useNavigate();
     const { setNavHeading } = useNavHeadingStore();
     const [roleTypeCount, setRoleTypeCount] = useState({
         ADMIN: 0,
-        "COURSE CREATOR": 0,
-        "ASSESSMENT CREATOR": 0,
+        'COURSE CREATOR': 0,
+        'ASSESSMENT CREATOR': 0,
         EVALUATOR: 0,
     });
 
@@ -65,15 +65,15 @@ export function DashboardComponent() {
         key: IntroKey.dashboardFirstTimeVisit,
         steps: dashboardSteps,
         onTourExit: () => {
-            console.log("Tour Completed");
+            console.log('Tour Completed');
         },
     });
 
     const handleAssessmentTypeRoute = (type: string) => {
         navigate({
-            to: "/assessment/create-assessment/$assessmentId/$examtype",
+            to: '/assessment/create-assessment/$assessmentId/$examtype',
             params: {
-                assessmentId: "defaultId",
+                assessmentId: 'defaultId',
                 examtype: type,
             },
             search: {
@@ -86,7 +86,7 @@ export function DashboardComponent() {
 
     const handleEnrollButtonClick = () => {
         router.navigate({
-            to: `/students/students-list`,
+            to: `/manage-students/students-list`,
         });
     };
 
@@ -95,7 +95,7 @@ export function DashboardComponent() {
     }, []);
 
     useEffect(() => {
-        if (location.pathname !== "/dashboard") {
+        if (location.pathname !== '/dashboard') {
             setValue(false);
         }
     }, [location.pathname, setValue]);
@@ -146,10 +146,10 @@ export function DashboardComponent() {
                         </CardDescription>
                     </CardHeader>
                 </Card>
-                <div className={`flex ${subModules.assess ? "flex-col" : "flex-row"} gap-6`}>
+                <div className={`flex ${subModules.assess ? 'flex-col' : 'flex-row'} gap-6`}>
                     <div
                         className={`flex flex-1 ${
-                            subModules.assess ? "flex-row" : "flex-col"
+                            subModules.assess ? 'flex-row' : 'flex-col'
                         } gap-6`}
                     >
                         <Card className="flex-1 bg-neutral-50 shadow-none">
@@ -169,13 +169,13 @@ export function DashboardComponent() {
                                         Course Creator
                                     </Badge>
                                     <span className="font-thin text-primary-500">
-                                        {roleTypeCount["COURSE CREATOR"]}
+                                        {roleTypeCount['COURSE CREATOR']}
                                     </span>
                                     <Badge className="whitespace-nowrap rounded-lg border border-neutral-300 bg-[#FFF4F5] py-1.5 font-thin shadow-none">
                                         Assessment Creator
                                     </Badge>
                                     <span className="font-thin text-primary-500">
-                                        {roleTypeCount["ASSESSMENT CREATOR"]}
+                                        {roleTypeCount['ASSESSMENT CREATOR']}
                                     </span>
                                     <Badge className="whitespace-nowrap rounded-lg border border-neutral-300 bg-[#F5F0FF] py-1.5 font-thin shadow-none">
                                         Evaluator
@@ -207,7 +207,7 @@ export function DashboardComponent() {
                                         className="flex cursor-pointer items-center gap-1"
                                         onClick={() =>
                                             navigate({
-                                                to: "/students/manage-batches",
+                                                to: '/manage-institute/batches',
                                             })
                                         }
                                     >
@@ -221,7 +221,7 @@ export function DashboardComponent() {
                                         className="flex cursor-pointer items-center gap-1"
                                         onClick={() =>
                                             navigate({
-                                                to: "/students/students-list",
+                                                to: '/manage-students/students-list',
                                             })
                                         }
                                     >
@@ -271,7 +271,7 @@ export function DashboardComponent() {
                                             className="flex items-center gap-1"
                                             onClick={() =>
                                                 navigate({
-                                                    to: "/study-library/courses",
+                                                    to: '/study-library/courses',
                                                 })
                                             }
                                         >
@@ -330,7 +330,7 @@ export function DashboardComponent() {
                                                         buttonType="secondary"
                                                         className="mt-2 font-medium"
                                                         onClick={() =>
-                                                            handleAssessmentTypeRoute("EXAM")
+                                                            handleAssessmentTypeRoute('EXAM')
                                                         }
                                                     >
                                                         Examination
@@ -341,7 +341,7 @@ export function DashboardComponent() {
                                                         buttonType="secondary"
                                                         className="font-medium"
                                                         onClick={() =>
-                                                            handleAssessmentTypeRoute("MOCK")
+                                                            handleAssessmentTypeRoute('MOCK')
                                                         }
                                                     >
                                                         Mock
@@ -352,7 +352,7 @@ export function DashboardComponent() {
                                                         buttonType="secondary"
                                                         className="font-medium"
                                                         onClick={() =>
-                                                            handleAssessmentTypeRoute("PRACTICE")
+                                                            handleAssessmentTypeRoute('PRACTICE')
                                                         }
                                                     >
                                                         Practice
@@ -363,7 +363,7 @@ export function DashboardComponent() {
                                                         buttonType="secondary"
                                                         className="mb-6 font-medium"
                                                         onClick={() =>
-                                                            handleAssessmentTypeRoute("SURVEY")
+                                                            handleAssessmentTypeRoute('SURVEY')
                                                         }
                                                     >
                                                         Survey
@@ -377,8 +377,8 @@ export function DashboardComponent() {
                                             className="flex cursor-pointer items-center gap-1"
                                             onClick={() =>
                                                 navigate({
-                                                    to: "/assessment/assessment-list",
-                                                    search: { selectedTab: "liveTests" },
+                                                    to: '/assessment/assessment-list',
+                                                    search: { selectedTab: 'liveTests' },
                                                 })
                                             }
                                         >
@@ -394,8 +394,8 @@ export function DashboardComponent() {
                                             className="flex cursor-pointer items-center gap-1"
                                             onClick={() =>
                                                 navigate({
-                                                    to: "/assessment/assessment-list",
-                                                    search: { selectedTab: "upcomingTests" },
+                                                    to: '/assessment/assessment-list',
+                                                    search: { selectedTab: 'upcomingTests' },
                                                 })
                                             }
                                         >
@@ -411,8 +411,8 @@ export function DashboardComponent() {
                                             className="flex cursor-pointer items-center gap-1"
                                             onClick={() =>
                                                 navigate({
-                                                    to: "/assessment/assessment-list",
-                                                    search: { selectedTab: "previousTests" },
+                                                    to: '/assessment/assessment-list',
+                                                    search: { selectedTab: 'previousTests' },
                                                 })
                                             }
                                         >
@@ -428,8 +428,8 @@ export function DashboardComponent() {
                                             className="flex cursor-pointer items-center gap-1"
                                             onClick={() =>
                                                 navigate({
-                                                    to: "/assessment/assessment-list",
-                                                    search: { selectedTab: "draftTests" },
+                                                    to: '/assessment/assessment-list',
+                                                    search: { selectedTab: 'draftTests' },
                                                 })
                                             }
                                         >

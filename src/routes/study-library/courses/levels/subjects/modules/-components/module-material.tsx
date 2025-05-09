@@ -1,20 +1,20 @@
-import { useEffect, useState } from "react";
-import { AddModulesButton } from "./add-modules.tsx/add-modules-button";
-import { Modules } from "./add-modules.tsx/modules";
-import { Module } from "@/stores/study-library/use-modules-with-chapters-store";
-import { useRouter } from "@tanstack/react-router";
+import { useEffect } from 'react';
+import { AddModulesButton } from './add-modules.tsx/add-modules-button';
+import { Modules } from './add-modules.tsx/modules';
+import { Module } from '@/stores/study-library/use-modules-with-chapters-store';
+import { useRouter } from '@tanstack/react-router';
 // import { SearchInput } from "@/components/common/students/students-list/student-list-section/search-input";
-import { useModulesWithChaptersStore } from "@/stores/study-library/use-modules-with-chapters-store";
-import { useAddModule } from "@/routes/study-library/courses/levels/subjects/modules/-services/add-module";
-import { useUpdateModule } from "@/routes/study-library/courses/levels/subjects/modules/-services/update-module";
-import { useDeleteModule } from "@/routes/study-library/courses/levels/subjects/modules/-services/delete-module";
-import { getLevelName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getLevelNameById";
-import { getSubjectName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getSubjectNameById";
-import { useUpdateModuleOrder } from "@/routes/study-library/courses/levels/subjects/modules/-services/update-modules-order";
-import { orderModulePayloadType } from "@/routes/study-library/courses/-types/order-payload";
-import useIntroJsTour from "@/hooks/use-intro";
-import { StudyLibraryIntroKey } from "@/constants/storage/introKey";
-import { studyLibrarySteps } from "@/constants/intro/steps";
+import { useModulesWithChaptersStore } from '@/stores/study-library/use-modules-with-chapters-store';
+import { useAddModule } from '@/routes/study-library/courses/levels/subjects/modules/-services/add-module';
+import { useUpdateModule } from '@/routes/study-library/courses/levels/subjects/modules/-services/update-module';
+import { useDeleteModule } from '@/routes/study-library/courses/levels/subjects/modules/-services/delete-module';
+import { getLevelName } from '@/utils/helpers/study-library-helpers.ts/get-name-by-id/getLevelNameById';
+import { getSubjectName } from '@/utils/helpers/study-library-helpers.ts/get-name-by-id/getSubjectNameById';
+import { useUpdateModuleOrder } from '@/routes/study-library/courses/levels/subjects/modules/-services/update-modules-order';
+import { orderModulePayloadType } from '@/routes/study-library/courses/-types/order-payload';
+import useIntroJsTour from '@/hooks/use-intro';
+import { StudyLibraryIntroKey } from '@/constants/storage/introKey';
+import { studyLibrarySteps } from '@/constants/intro/steps';
 
 export const ModuleMaterial = () => {
     const router = useRouter();
@@ -25,10 +25,9 @@ export const ModuleMaterial = () => {
     const deleteModuleMutation = useDeleteModule();
     const updateModuleOrderMutation = useUpdateModuleOrder();
 
-    useEffect(()=>{
-        console.log(modulesWithChaptersData)
-    }, [modulesWithChaptersData])
-
+    useEffect(() => {
+        console.log(modulesWithChaptersData);
+    }, [modulesWithChaptersData]);
 
     const { courseId, subjectId, levelId, sessionId } = router.state.location.search;
 
