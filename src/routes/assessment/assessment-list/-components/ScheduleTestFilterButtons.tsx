@@ -1,5 +1,5 @@
-import { MyButton } from "@/components/design-system/button";
-import { SelectedQuestionPaperFilters } from "./ScheduleTestMainComponent";
+import { MyButton } from '@/components/design-system/button';
+import { SelectedQuestionPaperFilters } from './ScheduleTestMainComponent';
 
 interface ScheduleTestFilterButtonsProps {
     selectedQuestionPaperFilters: SelectedQuestionPaperFilters;
@@ -25,7 +25,7 @@ const ScheduleTestFilterButtons = ({
         } = selectedQuestionPaperFilters;
 
         // Check if 'name' is a string and call trim on it, otherwise check if it's an array
-        const isNameValid = typeof name === "string" ? name.trim() !== "" : name.length > 0;
+        const isNameValid = typeof name === 'string' ? name.trim() !== '' : name.length > 0;
 
         return (
             isNameValid ||

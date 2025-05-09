@@ -100,6 +100,8 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
         mode: 'onChange',
     });
 
+    console.log(assessmentDetails[currentStep]?.saved_data);
+
     const { handleSubmit, getValues, control, watch } = form;
     // Store initial data in useRef to ensure it remains constant throughout the form updates
     const oldData = useRef(getValues());
@@ -223,9 +225,12 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                     entireTestDuration: {
                         checked:
                             assessmentDetails[currentStep]?.saved_data?.duration_distribution ===
-                            'ASSESSMENT'
+                            null
                                 ? true
-                                : false,
+                                : assessmentDetails[currentStep]?.saved_data
+                                        ?.duration_distribution === 'ASSESSMENT'
+                                  ? true
+                                  : false,
                         testDuration: {
                             hrs:
                                 assessmentDetails[currentStep]?.saved_data

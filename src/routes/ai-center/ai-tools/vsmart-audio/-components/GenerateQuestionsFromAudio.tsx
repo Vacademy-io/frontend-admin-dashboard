@@ -11,8 +11,16 @@ import { useAICenter } from '../../../-contexts/useAICenterContext';
 import GenerateQuestionsFromAudioForm from './GenerateQuestionsFromAudioForm';
 import { QuestionsFromTextData } from '@/routes/ai-center/ai-tools/vsmart-prompt/-components/GenerateQuestionsFromText';
 import AITasksList from '@/routes/ai-center/-components/AITasksList';
+import { UseFormReturn } from 'react-hook-form';
+import { SectionFormType } from '@/types/assessments/assessment-steps';
 
-export const GenerateQuestionsFromAudio = () => {
+export const GenerateQuestionsFromAudio = ({
+    form,
+    currentSectionIndex,
+}: {
+    form?: UseFormReturn<SectionFormType>;
+    currentSectionIndex?: number;
+}) => {
     const [audioId, setAudioId] = useState('');
     const queryClient = useQueryClient();
     const [taskName, setTaskName] = useState('');
@@ -138,6 +146,8 @@ export const GenerateQuestionsFromAudio = () => {
                 taskName={taskName}
                 setTaskName={setTaskName}
                 pollGenerateQuestionsFromAudio={pollGenerateQuestionsFromAudio}
+                sectionsForm={form}
+                currentSectionIndex={currentSectionIndex}
             />
             {audioId !== '' && (
                 <GenerateQuestionsFromAudioForm
@@ -147,7 +157,12 @@ export const GenerateQuestionsFromAudio = () => {
                 />
             )}
             {getQuestionsFromAudioMutation.status === 'success' && (
-                <AITasksList heading="Vsmart Audio" enableDialog={true} />
+                <AITasksList
+                    heading="Vsmart Audio"
+                    enableDialog={true}
+                    sectionsForm={form}
+                    currentSectionIndex={currentSectionIndex}
+                />
             )}
         </>
     );

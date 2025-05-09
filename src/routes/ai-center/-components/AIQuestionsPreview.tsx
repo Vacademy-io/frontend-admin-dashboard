@@ -344,12 +344,14 @@ const AIQuestionsPreview = ({
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-4">
-                                            <MyButton
-                                                onClick={handleSaveQuestionsInSection}
-                                                type="button"
-                                            >
-                                                Save
-                                            </MyButton>
+                                            {currentSectionIndex !== undefined && (
+                                                <MyButton
+                                                    onClick={handleSaveQuestionsInSection}
+                                                    type="button"
+                                                >
+                                                    Save
+                                                </MyButton>
+                                            )}
                                             <MyButton
                                                 type="button"
                                                 scale="medium"

@@ -1,33 +1,32 @@
-import { LayoutContainer } from "@/components/common/layout-container/layout-container";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { MyButton } from "@/components/design-system/button";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
+import { LayoutContainer } from '@/components/common/layout-container/layout-container';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { MyButton } from '@/components/design-system/button';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Separator } from '@/components/ui/separator';
 import {
     getAssessmentDetails,
     getQuestionDataForSection,
-} from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-services/assessment-services";
-import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
-import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
-import { DotIcon, DotIconOffline } from "@/svgs";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { CaretLeft, CheckCircle, LockSimple, PauseCircle, PencilSimpleLine } from "phosphor-react";
-import { useEffect, useState } from "react";
-import { Helmet } from "react-helmet";
-import { toast } from "sonner";
-import AssessmentPreview from "./-components/AssessmentPreview";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import AssessmentOverviewTab from "./-components/AssessmentOverviewTab";
-import { AssessmentBasicInfoTab } from "./-components/AssessmentBasicInfoTab";
-import { AssessmentQuestionsTab } from "./-components/AssessmentQuestionsTab";
-import AssessmentSubmissionsTab from "./-components/AssessmentSubmissionsTab";
-import AssessmentParticipantsTab from "./-components/AssessmentParticipantsTab";
-import AssessmentAccessControlTab from "./-components/AssessmentAccessControlTab";
+} from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-services/assessment-services';
+import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
+import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { CaretLeft, CheckCircle, LockSimple, PauseCircle, PencilSimpleLine } from 'phosphor-react';
+import { useEffect, useState } from 'react';
+import { Helmet } from 'react-helmet';
+import { toast } from 'sonner';
+import AssessmentPreview from './-components/AssessmentPreview';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import AssessmentOverviewTab from './-components/AssessmentOverviewTab';
+import { AssessmentBasicInfoTab } from './-components/AssessmentBasicInfoTab';
+import { AssessmentQuestionsTab } from './-components/AssessmentQuestionsTab';
+import AssessmentSubmissionsTab from './-components/AssessmentSubmissionsTab';
+import AssessmentParticipantsTab from './-components/AssessmentParticipantsTab';
+import AssessmentAccessControlTab from './-components/AssessmentAccessControlTab';
 
 export const Route = createFileRoute(
-    "/homework-creation/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/",
+    '/homework-creation/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/'
 )({
     component: () => (
         <LayoutContainer>
@@ -39,7 +38,7 @@ export const Route = createFileRoute(
 const heading = (
     <div className="flex items-center gap-4">
         <CaretLeft onClick={() => window.history.back()} className="cursor-pointer" />
-        <h1 className="text-lg">Assessment Details</h1>
+        <h1 className="text-lg">Homework Details</h1>
     </div>
 );
 
@@ -51,7 +50,7 @@ const AssessmentDetailsComponent = () => {
             assessmentId: assessmentId,
             instituteId: instituteDetails?.id,
             type: examType,
-        }),
+        })
     );
 
     const { data: questionsDataSectionWise, isLoading: isQuestionsLoading } = useSuspenseQuery(
@@ -59,12 +58,12 @@ const AssessmentDetailsComponent = () => {
             assessmentId,
             sectionIds: assessmentDetails[1]?.saved_data.sections
                 ?.map((section) => section.id)
-                .join(","),
-        }),
+                .join(','),
+        })
     );
 
     const navigate = useNavigate();
-    const [selectedTab, setSelectedTab] = useState("overview");
+    const [selectedTab, setSelectedTab] = useState('overview');
     const { setNavHeading } = useNavHeadingStore();
 
     const handleNavigateToSteps = () => {
@@ -76,7 +75,7 @@ const AssessmentDetailsComponent = () => {
         };
 
         navigate({
-            to: "/homework-creation/create-assessment/$assessmentId/$examtype",
+            to: '/homework-creation/create-assessment/$assessmentId/$examtype',
             params: {
                 assessmentId: assessmentId,
                 examtype: examType,
@@ -91,7 +90,7 @@ const AssessmentDetailsComponent = () => {
 
     const handleOpenDialog = () => {
         if (Object.keys(questionsDataSectionWise).length === 0) {
-            toast.error("No sections have been added for this assessment.");
+            toast.error('No sections have been added for this homework.');
         } else {
             setIsPreviewAssessmentDialogOpen(true);
         }
@@ -99,10 +98,10 @@ const AssessmentDetailsComponent = () => {
     const handleCloseDialog = () => setIsPreviewAssessmentDialogOpen(false);
     const handleExportAssessment = () => {
         if (Object.keys(questionsDataSectionWise).length === 0) {
-            toast.error("No sections have been added for this assessment.");
+            toast.error('No sections have been added for this homework.');
         } else {
             navigate({
-                to: "/assessment/export/$assessmentId",
+                to: '/assessment/export/$assessmentId',
                 params: {
                     assessmentId: assessmentId,
                 },
@@ -118,10 +117,10 @@ const AssessmentDetailsComponent = () => {
     return (
         <>
             <Helmet>
-                <title>Assessment Details</title>
+                <title>Homework Details</title>
                 <meta
                     name="description"
-                    content="This page shows all details related to an assessment."
+                    content="This page shows all details related to an homework."
                 />
             </Helmet>
             <div>
@@ -130,9 +129,9 @@ const AssessmentDetailsComponent = () => {
                         <h1 className="font-semibold">{assessmentDetails[0]?.saved_data.name}</h1>
                         <Badge
                             className={`rounded-md border border-neutral-300 ${
-                                assessmentDetails[0]?.saved_data.assessment_visibility === "PRIVATE"
-                                    ? "bg-primary-50"
-                                    : "bg-info-50"
+                                assessmentDetails[0]?.saved_data.assessment_visibility === 'PRIVATE'
+                                    ? 'bg-primary-50'
+                                    : 'bg-info-50'
                             } py-1.5 shadow-none`}
                         >
                             <LockSimple size={16} className="mr-2" />
@@ -141,12 +140,12 @@ const AssessmentDetailsComponent = () => {
                         <Separator orientation="vertical" className="h-8 w-px bg-neutral-300" />
                         <Badge
                             className={`rounded-md border ${
-                                assessmentDetails?.[0]?.status === "COMPLETED"
-                                    ? "bg-success-50"
-                                    : "bg-neutral-100"
+                                assessmentDetails?.[0]?.status === 'COMPLETED'
+                                    ? 'bg-success-50'
+                                    : 'bg-neutral-100'
                             } border-neutral-300 py-1.5 shadow-none`}
                         >
-                            {assessmentDetails?.[0]?.status === "COMPLETED" ? (
+                            {assessmentDetails?.[0]?.status === 'COMPLETED' ? (
                                 <CheckCircle
                                     size={16}
                                     weight="fill"
@@ -174,7 +173,7 @@ const AssessmentDetailsComponent = () => {
                                     buttonType="secondary"
                                     onClick={handleOpenDialog}
                                 >
-                                    Preview Assessment
+                                    Preview Homework
                                 </MyButton>
                             </DialogTrigger>
                             {Object.keys(questionsDataSectionWise).length > 0 && (
@@ -195,31 +194,31 @@ const AssessmentDetailsComponent = () => {
                             <TabsTrigger
                                 value="overview"
                                 className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
-                                    selectedTab === "overview"
-                                        ? "rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50"
-                                        : "border-none bg-transparent"
+                                    selectedTab === 'overview'
+                                        ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                        : 'border-none bg-transparent'
                                 }`}
                             >
                                 <span
                                     className={`${
-                                        selectedTab === "overview" ? "text-primary-500" : ""
+                                        selectedTab === 'overview' ? 'text-primary-500' : ''
                                     }`}
                                 >
                                     Overview
                                 </span>
                             </TabsTrigger>
-                            {assessmentTab !== "upcomingTests" && (
+                            {assessmentTab !== 'upcomingTests' && (
                                 <TabsTrigger
                                     value="submissions"
                                     className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
-                                        selectedTab === "submissions"
-                                            ? "rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50"
-                                            : "border-none bg-transparent"
+                                        selectedTab === 'submissions'
+                                            ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                            : 'border-none bg-transparent'
                                     }`}
                                 >
                                     <span
                                         className={`${
-                                            selectedTab === "submissions" ? "text-primary-500" : ""
+                                            selectedTab === 'submissions' ? 'text-primary-500' : ''
                                         }`}
                                     >
                                         Submissions
@@ -229,14 +228,14 @@ const AssessmentDetailsComponent = () => {
                             <TabsTrigger
                                 value="basicInfo"
                                 className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
-                                    selectedTab === "basicInfo"
-                                        ? "rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50"
-                                        : "border-none bg-transparent"
+                                    selectedTab === 'basicInfo'
+                                        ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                        : 'border-none bg-transparent'
                                 }`}
                             >
                                 <span
                                     className={`${
-                                        selectedTab === "basicInfo" ? "text-primary-500" : ""
+                                        selectedTab === 'basicInfo' ? 'text-primary-500' : ''
                                     }`}
                                 >
                                     Basic Info
@@ -245,14 +244,14 @@ const AssessmentDetailsComponent = () => {
                             <TabsTrigger
                                 value="questions"
                                 className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
-                                    selectedTab === "questions"
-                                        ? "rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50"
-                                        : "border-none bg-transparent"
+                                    selectedTab === 'questions'
+                                        ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                        : 'border-none bg-transparent'
                                 }`}
                             >
                                 <span
                                     className={`${
-                                        selectedTab === "questions" ? "text-primary-500" : ""
+                                        selectedTab === 'questions' ? 'text-primary-500' : ''
                                     }`}
                                 >
                                     Questions
@@ -261,14 +260,14 @@ const AssessmentDetailsComponent = () => {
                             <TabsTrigger
                                 value="participants"
                                 className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
-                                    selectedTab === "participants"
-                                        ? "rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50"
-                                        : "border-none bg-transparent"
+                                    selectedTab === 'participants'
+                                        ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                        : 'border-none bg-transparent'
                                 }`}
                             >
                                 <span
                                     className={`${
-                                        selectedTab === "participants" ? "text-primary-500" : ""
+                                        selectedTab === 'participants' ? 'text-primary-500' : ''
                                     }`}
                                 >
                                     Participants
@@ -277,21 +276,21 @@ const AssessmentDetailsComponent = () => {
                             <TabsTrigger
                                 value="accessControl"
                                 className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
-                                    selectedTab === "accessControl"
-                                        ? "rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50"
-                                        : "border-none bg-transparent"
+                                    selectedTab === 'accessControl'
+                                        ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                        : 'border-none bg-transparent'
                                 }`}
                             >
                                 <span
                                     className={`${
-                                        selectedTab === "accessControl" ? "text-primary-500" : ""
+                                        selectedTab === 'accessControl' ? 'text-primary-500' : ''
                                     }`}
                                 >
                                     Access Control
                                 </span>
                             </TabsTrigger>
                         </TabsList>
-                        {selectedTab !== "overview" && selectedTab !== "submissions" && (
+                        {selectedTab !== 'overview' && selectedTab !== 'submissions' && (
                             <MyButton
                                 type="button"
                                 scale="large"

@@ -1,12 +1,12 @@
-import { MyButton } from "@/components/design-system/button";
-import { MyInput } from "@/components/design-system/input";
-import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
-import { FormControl, FormField, FormItem } from "@/components/ui/form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
-import { FormProvider, useForm } from "react-hook-form";
-import { z } from "zod";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { MyButton } from '@/components/design-system/button';
+import { MyInput } from '@/components/design-system/input';
+import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
+import { FormControl, FormField, FormItem } from '@/components/ui/form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useState } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 
 interface Announcement {
     id: string;
@@ -20,7 +20,7 @@ interface AnnouncementProps {
 }
 
 const formSchema = z.object({
-    title: z.string().min(1, "Title is required"), // Ensures title is a non-empty string
+    title: z.string().min(1, 'Title is required'), // Ensures title is a non-empty string
     instructions: z.string().optional(), // Instructions are optional
 });
 
@@ -34,10 +34,10 @@ export const AnnouncementComponent = ({
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            title: "",
-            instructions: "",
+            title: '',
+            instructions: '',
         },
-        mode: "onChange",
+        mode: 'onChange',
     });
 
     function onSubmit(values: FormValues) {

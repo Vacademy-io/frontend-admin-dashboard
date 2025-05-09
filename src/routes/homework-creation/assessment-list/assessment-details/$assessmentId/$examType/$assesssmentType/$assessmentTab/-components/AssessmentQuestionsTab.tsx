@@ -1,10 +1,10 @@
-import { Accordion } from "@/components/ui/accordion";
-import { Route } from "..";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
-import { getAssessmentDetails } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-services/assessment-services";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import AssessmentQuestionsSection from "./AssessmentQuestionsSection";
+import { Accordion } from '@/components/ui/accordion';
+import { Route } from '..';
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
+import { getAssessmentDetails } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-services/assessment-services';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import AssessmentQuestionsSection from './AssessmentQuestionsSection';
 
 export const AssessmentQuestionsTab = () => {
     const { assessmentId, examType } = Route.useParams();
@@ -14,7 +14,7 @@ export const AssessmentQuestionsTab = () => {
             assessmentId: assessmentId,
             instituteId: instituteDetails?.id,
             type: examType,
-        }),
+        })
     );
     if (isLoading) return <DashboardLoader />;
     return (
