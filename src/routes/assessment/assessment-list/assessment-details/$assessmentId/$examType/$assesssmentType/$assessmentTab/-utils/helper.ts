@@ -960,38 +960,39 @@ export const transformQuestionInsightsQuestionsData = (data: QuestionInsightDTO[
 export function getCorrectOptionsForQuestion(question: MyQuestion) {
     if (question.questionType === 'MCQS') {
         return question.singleChoiceOptions
-            .map((option, index) =>
-                option.isSelected
-                    ? { optionType: String.fromCharCode(97 + index), optionName: option.name }
-                    : null
-            )
-            .filter((option) => option !== null);
+            .filter((option) => option.isSelected)
+            .map((option, index) => ({
+                optionType: String.fromCharCode(97 + index),
+                optionName: option.name,
+            }));
     } else if (question.questionType === 'MCQM') {
         return question.multipleChoiceOptions
-            .map((option, index) =>
-                option.isSelected
-                    ? { optionType: String.fromCharCode(97 + index), optionName: option.name }
-                    : null
-            )
-            .filter((option) => option !== null);
+            .filter((option) => option.isSelected)
+            .map((option, index) => ({
+                optionType: String.fromCharCode(97 + index),
+                optionName: option.name,
+            }));
     } else if (question.questionType === 'LONG_ANSWER' || question.questionType === 'ONE_WORD') {
-        return question.subjectiveAnswerText;
+        return [
+            {
+                optionType: '',
+                optionName: question.subjectiveAnswerText,
+            },
+        ];
     } else if (question.questionType === 'TRUE_FALSE') {
         return question.trueFalseOptions
-            .map((option, index) =>
-                option.isSelected
-                    ? { optionType: String.fromCharCode(97 + index), optionName: option.name }
-                    : null
-            )
-            .filter((option) => option !== null);
+            .filter((option) => option.isSelected)
+            .map((option) => ({
+                optionType: '',
+                optionName: option.name,
+            }));
     } else if (question.questionType === 'NUMERIC') {
-        return question.validAnswers?.map((answer, index) => {
-            return {
-                optionType: String.fromCharCode(97 + index),
-                optionName: answer,
-            };
-        });
+        return question.validAnswers?.map((ans: number) => ({
+            optionType: '',
+            optionName: ans,
+        }));
     }
+    return [];
 }
 
 export function transformQuestionsDataToRevaluateAPI(data: { [sectionId: string]: string[] }) {

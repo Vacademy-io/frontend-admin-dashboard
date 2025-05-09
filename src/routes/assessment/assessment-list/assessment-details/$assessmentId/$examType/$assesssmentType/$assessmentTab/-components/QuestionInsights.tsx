@@ -185,43 +185,24 @@ export function QuestionInsightsComponent() {
                                 <div className="flex flex-nowrap items-center gap-8 text-sm font-semibold">
                                     <p className="whitespace-nowrap font-normal">Correct Answer:</p>
                                     <p className="flex w-full flex-col items-center gap-4 rounded-md bg-primary-50 p-4">
-                                        {Array.isArray(
-                                            getCorrectOptionsForQuestion(
-                                                question.assessment_question_preview_dto
-                                            )
-                                        ) ? (
-                                            getCorrectOptionsForQuestion(
-                                                question.assessment_question_preview_dto
-                                            )?.map((option, idx) => (
-                                                <div
-                                                    className="flex w-full items-center justify-start"
-                                                    key={idx}
-                                                >
-                                                    <span>({option?.optionType}.)&nbsp;</span>
-                                                    <span
-                                                        dangerouslySetInnerHTML={{
-                                                            __html: option?.optionName || '',
-                                                        }}
-                                                    />
-                                                </div>
-                                            ))
-                                        ) : (
-                                            <div className="flex w-full items-center justify-start">
+                                        {getCorrectOptionsForQuestion(
+                                            question.assessment_question_preview_dto
+                                        )?.map((option, idx) => (
+                                            <div
+                                                className="flex w-full items-center justify-start"
+                                                key={idx}
+                                            >
                                                 <span>
-                                                    {typeof getCorrectOptionsForQuestion(
-                                                        question.assessment_question_preview_dto
-                                                    ) === 'string'
-                                                        ? getCorrectOptionsForQuestion(
-                                                              question.assessment_question_preview_dto
-                                                          )
-                                                        : JSON.stringify(
-                                                              getCorrectOptionsForQuestion(
-                                                                  question.assessment_question_preview_dto
-                                                              )
-                                                          )}
+                                                    {option.optionType &&
+                                                        `(${option.optionType}.) `}
                                                 </span>
+                                                <span
+                                                    dangerouslySetInnerHTML={{
+                                                        __html: String(option.optionName) || '',
+                                                    }}
+                                                />
                                             </div>
-                                        )}
+                                        ))}
                                     </p>
                                 </div>
                                 {question.assessment_question_preview_dto.explanation && (
