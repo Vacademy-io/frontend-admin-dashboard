@@ -34,6 +34,7 @@ interface RoleTypeProps {
             "COURSE CREATOR": number;
             "ASSESSMENT CREATOR": number;
             EVALUATOR: number;
+            TEACHER: number;
         }>
     >;
 }
@@ -102,6 +103,7 @@ const RoleTypeComponent = ({ setRoleTypeCount }: RoleTypeProps) => {
                     { id: "2", name: "COURSE CREATOR" },
                     { id: "3", name: "ASSESSMENT CREATOR" },
                     { id: "4", name: "EVALUATOR" },
+                    { id: "5", name: "TEACHER" },
                 ],
                 status:
                     selectedTab === "instituteUsers"
@@ -125,6 +127,7 @@ const RoleTypeComponent = ({ setRoleTypeCount }: RoleTypeProps) => {
                         { id: "2", name: "COURSE CREATOR" },
                         { id: "3", name: "ASSESSMENT CREATOR" },
                         { id: "4", name: "EVALUATOR" },
+                        { id: "5", name: "TEACHER" },
                     ],
                     status:
                         value === "instituteUsers"
@@ -147,6 +150,7 @@ const RoleTypeComponent = ({ setRoleTypeCount }: RoleTypeProps) => {
                         { id: "2", name: "COURSE CREATOR" },
                         { id: "3", name: "ASSESSMENT CREATOR" },
                         { id: "4", name: "EVALUATOR" },
+                        { id: "5", name: "TEACHER" },
                     ],
                     status: [
                         { id: "1", name: "ACTIVE" },
@@ -159,6 +163,7 @@ const RoleTypeComponent = ({ setRoleTypeCount }: RoleTypeProps) => {
                         { id: "2", name: "COURSE CREATOR" },
                         { id: "3", name: "ASSESSMENT CREATOR" },
                         { id: "4", name: "EVALUATOR" },
+                        { id: "5", name: "TEACHER" },
                     ],
                     status: [{ id: "1", name: "INVITED" }],
                 }),
@@ -191,6 +196,7 @@ const RoleTypeComponent = ({ setRoleTypeCount }: RoleTypeProps) => {
             "COURSE CREATOR": cnt1["COURSE CREATOR"] + cnt2["COURSE CREATOR"],
             "ASSESSMENT CREATOR": cnt1["ASSESSMENT CREATOR"] + cnt2["ASSESSMENT CREATOR"],
             EVALUATOR: cnt1.EVALUATOR + cnt2.EVALUATOR,
+            TEACHER: cnt1.TEACHER + cnt2.TEACHER,
         });
     }, [dashboardUsers]);
 
@@ -210,6 +216,7 @@ const RoleTypeComponent = ({ setRoleTypeCount }: RoleTypeProps) => {
                         { id: "2", name: "COURSE CREATOR" },
                         { id: "3", name: "ASSESSMENT CREATOR" },
                         { id: "4", name: "EVALUATOR" },
+                        { id: "5", name: "TEACHER" },
                     ],
                     status: [
                         { id: "1", name: "ACTIVE" },
@@ -222,6 +229,7 @@ const RoleTypeComponent = ({ setRoleTypeCount }: RoleTypeProps) => {
                         { id: "2", name: "COURSE CREATOR" },
                         { id: "3", name: "ASSESSMENT CREATOR" },
                         { id: "4", name: "EVALUATOR" },
+                        { id: "5", name: "TEACHER" },
                     ],
                     status: [{ id: "1", name: "INVITED" }],
                 }),
