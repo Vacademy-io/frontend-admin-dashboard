@@ -1,4 +1,4 @@
-import { MyButton } from "@/components/design-system/button";
+import { MyButton } from '@/components/design-system/button';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -7,18 +7,18 @@ import {
     // DropdownMenuSub,
     // DropdownMenuSubTrigger,
     // DropdownMenuSubContent,
-} from "@/components/ui/dropdown-menu";
-import { useNavigate } from "@tanstack/react-router";
-import { DotsThree, Info } from "phosphor-react";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { TestContent } from "@/types/assessments/schedule-test-list";
-import { useMutation } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { AxiosError } from "axios";
-import { getInstituteId } from "@/constants/helper";
-import { handleDeleteAssessment } from "../-services/assessment-services";
+} from '@/components/ui/dropdown-menu';
+import { useNavigate } from '@tanstack/react-router';
+import { DotsThree, Info } from 'phosphor-react';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { useState } from 'react';
+import { Input } from '@/components/ui/input';
+import { TestContent } from '@/types/assessments/schedule-test-list';
+import { useMutation } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { AxiosError } from 'axios';
+import { getInstituteId } from '@/constants/helper';
+import { handleDeleteAssessment } from '../-services/assessment-services';
 
 export function ScheduleTestDetailsDropdownLive({
     scheduleTestContent,
@@ -36,7 +36,7 @@ export function ScheduleTestDetailsDropdownLive({
     const navigate = useNavigate();
     const handleNavigateAssessment = (assessmentId: string) => {
         navigate({
-            to: "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab",
+            to: '/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab',
             params: {
                 assessmentId: assessmentId,
                 examType: scheduleTestContent.play_mode,
@@ -95,7 +95,7 @@ export function ScheduleTestDetailsDropdownLive({
                         className="cursor-pointer"
                         onClick={() => handleNavigateAssessment(scheduleTestContent.assessment_id)}
                     >
-                        View Assessment Details
+                        View Homework Details
                     </DropdownMenuItem>
                     {/* <DropdownMenuItem
                         className="cursor-pointer"
@@ -173,7 +173,7 @@ export function ScheduleTestDetailsDropdownLive({
                             handleDeleteAssessmentClick(scheduleTestContent.assessment_id);
                         }}
                     >
-                        Delete Assessment
+                        Delete Homework
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
@@ -210,7 +210,7 @@ export function ScheduleTestDetailsDropdownUpcoming({
     const navigate = useNavigate();
     const handleNavigateAssessment = (assessmentId: string) => {
         navigate({
-            to: "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab",
+            to: '/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab',
             params: {
                 assessmentId: assessmentId,
                 examType: scheduleTestContent.play_mode,
@@ -251,7 +251,7 @@ export function ScheduleTestDetailsDropdownUpcoming({
                         className="cursor-pointer"
                         onClick={() => handleNavigateAssessment(scheduleTestContent.assessment_id)}
                     >
-                        View Assessment Details
+                        View Homework Details
                     </DropdownMenuItem>
                     {/* <DropdownMenuItem
                         className="cursor-pointer"
@@ -274,7 +274,7 @@ export function ScheduleTestDetailsDropdownUpcoming({
                             handleDeleteAssessmentClick(scheduleTestContent.assessment_id);
                         }}
                     >
-                        Delete Assessment
+                        Delete Homework
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
@@ -303,7 +303,7 @@ export function ScheduleTestDetailsDropdownPrevious({
     const navigate = useNavigate();
     const handleNavigateAssessment = (assessmentId: string) => {
         navigate({
-            to: "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab",
+            to: '/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab',
             params: {
                 assessmentId: assessmentId,
                 examType: scheduleTestContent.play_mode,
@@ -349,7 +349,7 @@ export function ScheduleTestDetailsDropdownPrevious({
                         className="cursor-pointer"
                         onClick={() => handleNavigateAssessment(scheduleTestContent.assessment_id)}
                     >
-                        View Assessment Details
+                        View Homework Details
                     </DropdownMenuItem>
                     {/* <DropdownMenuItem
                         className="cursor-pointer"
@@ -378,7 +378,7 @@ export function ScheduleTestDetailsDropdownPrevious({
                             handleDeleteAssessmentClick(scheduleTestContent.assessment_id);
                         }}
                     >
-                        Delete Assessment
+                        Delete Homework
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
@@ -409,7 +409,7 @@ export function ScheduleTestDetailsDropdowDrafts({
     const navigate = useNavigate();
     const handleNavigateAssessment = (assessmentId: string) => {
         navigate({
-            to: "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab",
+            to: '/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab',
             params: {
                 assessmentId: assessmentId,
                 examType: scheduleTestContent.play_mode,
@@ -440,7 +440,7 @@ export function ScheduleTestDetailsDropdowDrafts({
                         className="cursor-pointer"
                         onClick={() => handleNavigateAssessment(scheduleTestContent.assessment_id)}
                     >
-                        View Assessment Details
+                        View Homework Details
                     </DropdownMenuItem>
                     <DropdownMenuItem
                         className="cursor-pointer"
@@ -449,7 +449,7 @@ export function ScheduleTestDetailsDropdowDrafts({
                             handleDeleteAssessmentClick(scheduleTestContent.assessment_id);
                         }}
                     >
-                        Delete Assessment
+                        Delete Homework
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
@@ -474,7 +474,7 @@ export function ScheduleTestMainDropdownComponent({
     handleRefetchData: () => void;
 }) {
     switch (selectedTab) {
-        case "liveTests":
+        case 'liveTests':
             return (
                 <ScheduleTestDetailsDropdownLive
                     scheduleTestContent={scheduleTestContent}
@@ -482,7 +482,7 @@ export function ScheduleTestMainDropdownComponent({
                     selectedTab={selectedTab}
                 />
             );
-        case "upcomingTests":
+        case 'upcomingTests':
             return (
                 <ScheduleTestDetailsDropdownUpcoming
                     scheduleTestContent={scheduleTestContent}
@@ -490,7 +490,7 @@ export function ScheduleTestMainDropdownComponent({
                     selectedTab={selectedTab}
                 />
             );
-        case "previousTests":
+        case 'previousTests':
             return (
                 <ScheduleTestDetailsDropdownPrevious
                     scheduleTestContent={scheduleTestContent}
@@ -498,7 +498,7 @@ export function ScheduleTestMainDropdownComponent({
                     selectedTab={selectedTab}
                 />
             );
-        case "draftTests":
+        case 'draftTests':
             return (
                 <ScheduleTestDetailsDropdowDrafts
                     scheduleTestContent={scheduleTestContent}
@@ -523,7 +523,7 @@ const ScheduleTestReminderDialog = ({ onClose }: { onClose: () => void }) => {
                         <Info size={18} className="text-danger-600" />
                     </div>
                     <h1 className="-mt-2 font-thin">
-                        A Assessment reminder will be sent to all
+                        A Homework reminder will be sent to all
                         <span className="text-primary-500"> 56 participants </span>
                         who have not yet appeared from the assigned batches.
                     </h1>
@@ -557,8 +557,8 @@ const ScheduleTestDeleteDialog = ({
             instituteId: string | undefined;
         }) => handleDeleteAssessment(assessmentId, instituteId),
         onSuccess: async () => {
-            toast.success("Assessment has been deleted successfully!", {
-                className: "success-toast",
+            toast.success('Assessment has been deleted successfully!', {
+                className: 'success-toast',
                 duration: 2000,
             });
             onClose();
@@ -567,12 +567,12 @@ const ScheduleTestDeleteDialog = ({
         onError: (error: unknown) => {
             if (error instanceof AxiosError) {
                 toast.error(error.message, {
-                    className: "error-toast",
+                    className: 'error-toast',
                     duration: 2000,
                 });
             } else {
                 // Handle non-Axios errors if necessary
-                console.error("Unexpected error:", error);
+                console.error('Unexpected error:', error);
             }
         },
     });
@@ -588,7 +588,7 @@ const ScheduleTestDeleteDialog = ({
         <Dialog open={true} onOpenChange={onClose}>
             <DialogTrigger>Open</DialogTrigger>
             <DialogContent className="flex w-[500px] flex-col p-0">
-                <h1 className="rounded-lg bg-primary-50 p-4 text-primary-500">Delete Assessment</h1>
+                <h1 className="rounded-lg bg-primary-50 p-4 text-primary-500">Delete Homework</h1>
                 <div className="flex flex-col gap-4 p-4 pt-3">
                     <div className="flex items-center gap-1">
                         <span className="text-danger-600">Attention</span>
@@ -658,7 +658,7 @@ const ScheduleTestResumeDialog = ({ onClose }: { onClose: () => void }) => {
                         <Info size={18} className="text-danger-600" />
                     </div>
                     <h1 className="-mt-2 font-thin">
-                        Do you want to resume your Live assessment
+                        Do you want to resume your Live homework
                         <span className="text-primary-500">
                             &nbsp;The Human Eye and The Colourful World
                         </span>
@@ -680,7 +680,7 @@ const ScheduleTestReopenDialog = ({ onClose }: { onClose: () => void }) => {
         <Dialog open={true} onOpenChange={onClose}>
             <DialogTrigger>Open</DialogTrigger>
             <DialogContent className="flex w-[500px] flex-col p-0">
-                <h1 className="rounded-lg bg-primary-50 p-4 text-primary-500">Reopen Assessment</h1>
+                <h1 className="rounded-lg bg-primary-50 p-4 text-primary-500">Reopen Homework</h1>
                 <div className="flex flex-col gap-4 p-4 pt-3">
                     <div className="flex flex-col gap-4">
                         <div className="flex items-center gap-1">
@@ -688,12 +688,12 @@ const ScheduleTestReopenDialog = ({ onClose }: { onClose: () => void }) => {
                             <Info size={18} className="text-danger-600" />
                         </div>
                         <h1 className="-mt-2 font-thin">
-                            A Assessment reminder will be sent to all
+                            A Homework reminder will be sent to all
                             <span className="text-primary-500"> 56 participants </span>
                             who have not yet appeared from the assigned batches.
                         </h1>
                     </div>
-                    <h1>Select assessment reopening date and time</h1>
+                    <h1>Select homework reopening date and time</h1>
                     <div className="flex items-center justify-between">
                         <div>
                             <h1 className="mb-1 text-sm">

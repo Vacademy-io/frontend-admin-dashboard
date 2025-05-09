@@ -110,7 +110,7 @@ export interface AssessmentPreviewSectionsInterface {
 
 interface transformSectionsAndQuestionsDataQuestionText {
     id: string;
-    type: "HTML" | string;
+    type: 'HTML' | string;
     content: string;
 }
 

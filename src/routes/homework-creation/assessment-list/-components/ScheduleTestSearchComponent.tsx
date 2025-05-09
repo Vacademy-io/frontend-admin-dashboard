@@ -1,5 +1,5 @@
-import { Input } from "@/components/ui/input";
-import { MagnifyingGlass, XCircle } from "phosphor-react";
+import { Input } from '@/components/ui/input';
+import { MagnifyingGlass, XCircle } from 'phosphor-react';
 
 interface ScheduleTestSearchComponent {
     onSearch: (searchValue: string) => void;
@@ -15,7 +15,7 @@ export const ScheduleTestSearchComponent = ({
     clearSearch,
 }: ScheduleTestSearchComponent) => {
     const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === "Enter") {
+        if (e.key === 'Enter') {
             onSearch(searchText);
         }
     };
