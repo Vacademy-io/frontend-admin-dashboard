@@ -2,7 +2,7 @@ import { MySidebar } from './sidebar/mySidebar';
 import { useSidebar } from '@/components/ui/sidebar';
 import { Navbar } from './top-navbar.tsx/navbar';
 import { cn } from '@/lib/utils';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { InternalSideBar } from './internal-sidebar/internalSideBar';
 import { StudentSidebarProvider } from '@/routes/manage-students/students-list/-providers/student-sidebar-provider';
 import { InternalSidebarComponent } from './internal-sidebar/internalSidebarComponent';
@@ -28,13 +28,17 @@ export const LayoutContainer = ({
     hasInternalSidebarComponent?: boolean;
     internalSidebarComponent?: React.ReactNode;
 }) => {
-    const { open } = useSidebar();
+    const { open, setOpen } = useSidebar();
+    useEffect(() => {
+        const isCollapse = !(internalSideBar || hasInternalSidebarComponent);
+        setOpen(isCollapse);
+    }, [internalSideBar, hasInternalSidebarComponent]);
     return (
-        <div className={`flex h-screen w-full ${open ? 'gap-12' : 'gap-16'}`}>
+        <div className={`flex w-full ${open ? 'gap-12' : 'gap-16'}`}>
             <div>
                 <MySidebar sidebarComponent={sidebarComponent} />
             </div>
-            <div className="flex h-full flex-1 flex-row">
+            <div className="flex h-full min-h-screen flex-1 flex-row">
                 {hasInternalSidebarComponent && internalSidebarComponent ? (
                     <InternalSidebarComponent sidebarComponent={internalSidebarComponent} />
                 ) : (
