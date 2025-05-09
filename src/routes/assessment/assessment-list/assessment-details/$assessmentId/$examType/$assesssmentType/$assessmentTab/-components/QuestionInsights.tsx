@@ -1,27 +1,27 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useEffect, useState } from "react";
-import { DotOutline } from "@phosphor-icons/react";
-import { Separator } from "@/components/ui/separator";
-import { MyButton } from "@/components/design-system/button";
-import { ArrowCounterClockwise } from "phosphor-react";
-import { QuestionInsightsAnalysisChartComponent } from "./QuestionInsightsAnalysisChartComponent";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { getInstituteId } from "@/constants/helper";
-import { Route } from "..";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
-import { getAssessmentDetails } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-services/assessment-services";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useEffect, useState } from 'react';
+import { DotOutline } from '@phosphor-icons/react';
+import { Separator } from '@/components/ui/separator';
+import { MyButton } from '@/components/design-system/button';
+import { ArrowCounterClockwise } from 'phosphor-react';
+import { QuestionInsightsAnalysisChartComponent } from './QuestionInsightsAnalysisChartComponent';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { getInstituteId } from '@/constants/helper';
+import { Route } from '..';
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
+import { getAssessmentDetails } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-services/assessment-services';
 import {
     getQuestionsInsightsData,
     handleGetQuestionInsightsData,
     handleGetStudentQuestionInsightsExportPDF,
-} from "../-services/assessment-details-services";
+} from '../-services/assessment-details-services';
 import {
     getCorrectOptionsForQuestion,
     transformQuestionInsightsQuestionsData,
-} from "../-utils/helper";
-import QuestionAssessmentStatus from "./QuestionAssessmentStatus";
-import { toast } from "sonner";
-import ExportDialogPDFCSV from "@/components/common/export-dialog-pdf-csv";
+} from '../-utils/helper';
+import QuestionAssessmentStatus from './QuestionAssessmentStatus';
+import { toast } from 'sonner';
+import ExportDialogPDFCSV from '@/components/common/export-dialog-pdf-csv';
 
 export function QuestionInsightsComponent() {
     const instituteId = getInstituteId();
@@ -31,21 +31,21 @@ export function QuestionInsightsComponent() {
             assessmentId: assessmentId,
             instituteId: instituteId,
             type: examType,
-        }),
+        })
     );
     const sectionsInfo = assessmentDetails[1]?.saved_data.sections?.map((section) => ({
         name: section.name,
         id: section.id,
     }));
 
-    const [selectedSection, setSelectedSection] = useState(sectionsInfo ? sectionsInfo[0]?.id : "");
+    const [selectedSection, setSelectedSection] = useState(sectionsInfo ? sectionsInfo[0]?.id : '');
 
     const { data } = useSuspenseQuery(
-        handleGetQuestionInsightsData({ instituteId, assessmentId, sectionId: selectedSection }),
+        handleGetQuestionInsightsData({ instituteId, assessmentId, sectionId: selectedSection })
     );
 
     const [selectedSectionData, setSelectedSectionData] = useState(
-        transformQuestionInsightsQuestionsData(data?.question_insight_dto),
+        transformQuestionInsightsQuestionsData(data?.question_insight_dto)
     );
 
     const getQuestionInsightsData = useMutation({
@@ -60,7 +60,7 @@ export function QuestionInsightsComponent() {
         }) => getQuestionsInsightsData(assessmentId, instituteId, sectionId),
         onSuccess: (data) => {
             setSelectedSectionData(
-                transformQuestionInsightsQuestionsData(data?.question_insight_dto),
+                transformQuestionInsightsQuestionsData(data?.question_insight_dto)
             );
         },
         onError: (error: unknown) => {
@@ -70,7 +70,7 @@ export function QuestionInsightsComponent() {
 
     const handleRefreshLeaderboard = () => {
         getQuestionInsightsData.mutate({
-            assessmentId: assessmentId ? assessmentId : "",
+            assessmentId: assessmentId ? assessmentId : '',
             instituteId,
             sectionId: selectedSection,
         });
@@ -89,17 +89,17 @@ export function QuestionInsightsComponent() {
         onSuccess: async (response) => {
             const date = new Date();
             const url = window.URL.createObjectURL(new Blob([response]));
-            const link = document.createElement("a");
+            const link = document.createElement('a');
             link.href = url;
             link.setAttribute(
-                "download",
-                `pdf_student_question_insights_report_${date.toLocaleString()}.pdf`,
+                'download',
+                `pdf_student_question_insights_report_${date.toLocaleString()}.pdf`
             );
             document.body.appendChild(link);
             link.click();
             link.remove();
             window.URL.revokeObjectURL(url);
-            toast.success("Student question insights data for PDF exported successfully");
+            toast.success('Student question insights data for PDF exported successfully');
         },
         onError: (error: unknown) => {
             throw error;
@@ -111,8 +111,8 @@ export function QuestionInsightsComponent() {
             assessmentId,
             instituteId,
             sectionIds:
-                assessmentDetails[1]?.saved_data.sections?.map((section) => section.id).join(",") ||
-                "",
+                assessmentDetails[1]?.saved_data.sections?.map((section) => section.id).join(',') ||
+                '',
         });
     };
 
@@ -130,13 +130,13 @@ export function QuestionInsightsComponent() {
                             value={section.id}
                             className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
                                 selectedSection === section.id
-                                    ? "rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50"
-                                    : "border-none bg-transparent"
+                                    ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                    : 'border-none bg-transparent'
                             }`}
                         >
                             <span
                                 className={`${
-                                    selectedSection === section.id ? "text-primary-500" : ""
+                                    selectedSection === section.id ? 'text-primary-500' : ''
                                 }`}
                             >
                                 {section.name}
@@ -148,7 +148,7 @@ export function QuestionInsightsComponent() {
                     <ExportDialogPDFCSV
                         handleExportPDF={handleExportPDF}
                         isPDFLoading={
-                            getExportQuestionInsightsDataPDF.status === "pending" ? true : false
+                            getExportQuestionInsightsDataPDF.status === 'pending' ? true : false
                         }
                         isEnablePDF={true}
                         isEnableCSV={false}
@@ -165,7 +165,7 @@ export function QuestionInsightsComponent() {
                 </div>
             </div>
             <TabsContent
-                value={selectedSection || ""}
+                value={selectedSection || ''}
                 className="max-h-[calc(100vh-220px)] overflow-y-auto"
             >
                 {selectedSectionData.map((question, index) => (
@@ -178,42 +178,49 @@ export function QuestionInsightsComponent() {
                                         dangerouslySetInnerHTML={{
                                             __html:
                                                 question.assessment_question_preview_dto
-                                                    .questionName || "",
+                                                    .questionName || '',
                                         }}
                                     />
                                 </h3>
                                 <div className="flex flex-nowrap items-center gap-8 text-sm font-semibold">
                                     <p className="whitespace-nowrap font-normal">Correct Answer:</p>
                                     <p className="flex w-full flex-col items-center gap-4 rounded-md bg-primary-50 p-4">
-                                        {getCorrectOptionsForQuestion(
-                                            question.assessment_question_preview_dto
-                                                .questionType === "MCQM"
-                                                ? question.assessment_question_preview_dto
-                                                      .multipleChoiceOptions
-                                                : question.assessment_question_preview_dto
-                                                      .singleChoiceOptions,
-                                        )?.map(
-                                            (
-                                                option: {
-                                                    optionType: string;
-                                                    optionName: string | undefined;
-                                                } | null,
-                                                idx: number,
-                                            ) => {
-                                                return (
-                                                    <div
-                                                        className="flex w-full items-center justify-start"
-                                                        key={idx}
-                                                    >
-                                                        <span>({option?.optionType}.)&nbsp;</span>
-                                                        <span
-                                                            dangerouslySetInnerHTML={{
-                                                                __html: option?.optionName || "",
-                                                            }}
-                                                        />
-                                                    </div>
-                                                );
-                                            },
+                                        {Array.isArray(
+                                            getCorrectOptionsForQuestion(
+                                                question.assessment_question_preview_dto
+                                            )
+                                        ) ? (
+                                            getCorrectOptionsForQuestion(
+                                                question.assessment_question_preview_dto
+                                            )?.map((option, idx) => (
+                                                <div
+                                                    className="flex w-full items-center justify-start"
+                                                    key={idx}
+                                                >
+                                                    <span>({option?.optionType}.)&nbsp;</span>
+                                                    <span
+                                                        dangerouslySetInnerHTML={{
+                                                            __html: option?.optionName || '',
+                                                        }}
+                                                    />
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="flex w-full items-center justify-start">
+                                                <span>
+                                                    {typeof getCorrectOptionsForQuestion(
+                                                        question.assessment_question_preview_dto
+                                                    ) === 'string'
+                                                        ? getCorrectOptionsForQuestion(
+                                                              question.assessment_question_preview_dto
+                                                          )
+                                                        : JSON.stringify(
+                                                              getCorrectOptionsForQuestion(
+                                                                  question.assessment_question_preview_dto
+                                                              )
+                                                          )}
+                                                </span>
+                                            </div>
                                         )}
                                     </p>
                                 </div>
@@ -242,12 +249,12 @@ export function QuestionInsightsComponent() {
                                                                 <h1>{response.name}</h1>
                                                                 &nbsp;:&nbsp;
                                                                 <h1>
-                                                                    {response.timeTakenInSeconds}{" "}
+                                                                    {response.timeTakenInSeconds}{' '}
                                                                     sec
                                                                 </h1>
                                                             </div>
                                                         );
-                                                    },
+                                                    }
                                                 )}
                                             </div>
                                         </div>
@@ -288,8 +295,8 @@ export function QuestionInsightsComponent() {
                                                                           ?.incorrectAttempt +
                                                                       question?.skipped)) *
                                                               100
-                                                          ).toFixed(2) + "%"
-                                                        : "N/A"}
+                                                          ).toFixed(2) + '%'
+                                                        : 'N/A'}
                                                     )
                                                 </p>
                                                 <Dialog>
@@ -347,8 +354,8 @@ export function QuestionInsightsComponent() {
                                                                           ?.incorrectAttempt +
                                                                       question?.skipped)) *
                                                               100
-                                                          ).toFixed(2) + "%"
-                                                        : "N/A"}
+                                                          ).toFixed(2) + '%'
+                                                        : 'N/A'}
                                                     )
                                                 </p>
                                                 <Dialog>
@@ -401,8 +408,8 @@ export function QuestionInsightsComponent() {
                                                                           ?.incorrectAttempt +
                                                                       question?.skipped)) *
                                                               100
-                                                          ).toFixed(2) + "%"
-                                                        : "N/A"}
+                                                          ).toFixed(2) + '%'
+                                                        : 'N/A'}
                                                     )
                                                 </p>
                                                 <Dialog>
@@ -454,8 +461,8 @@ export function QuestionInsightsComponent() {
                                                                           ?.incorrectAttempt +
                                                                       question?.skipped)) *
                                                               100
-                                                          ).toFixed(2) + "%"
-                                                        : "N/A"}
+                                                          ).toFixed(2) + '%'
+                                                        : 'N/A'}
                                                     )
                                                 </p>
                                                 <Dialog>
