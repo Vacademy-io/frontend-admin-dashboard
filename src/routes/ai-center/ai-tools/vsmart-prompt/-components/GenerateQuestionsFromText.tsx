@@ -4,7 +4,7 @@ import { QuestionsFromTextDialog } from './QuestionsFromTextDialog';
 import { useRef, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { handleGetQuestionsFromText } from '../../../-services/ai-center-service';
-import { useForm } from 'react-hook-form';
+import { useForm, UseFormReturn } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
@@ -14,6 +14,7 @@ import { AIToolPageData } from '@/routes/ai-center/-constants/AIToolPageData';
 import { Separator } from '@/components/ui/separator';
 import AITasksList from '@/routes/ai-center/-components/AITasksList';
 import { languageSupport } from '@/constants/dummy-data';
+import { SectionFormType } from '@/types/assessments/assessment-steps';
 
 const formSchema = z.object({
     taskName: z.string().min(1),
@@ -27,7 +28,13 @@ const formSchema = z.object({
 
 export type QuestionsFromTextData = z.infer<typeof formSchema>;
 
-export const GenerateQuestionsFromText = () => {
+export const GenerateQuestionsFromText = ({
+    form,
+    currentSectionIndex,
+}: {
+    form?: UseFormReturn<SectionFormType>;
+    currentSectionIndex?: number;
+}) => {
     const queryClient = useQueryClient();
     const [open, setOpen] = useState(false);
     const [disableSubmitBtn, setDisableSubmitBtn] = useState(false);
@@ -145,6 +152,8 @@ export const GenerateQuestionsFromText = () => {
                         <AITasksList
                             heading={toolData.heading}
                             pollGenerateQuestionsFromText={pollGenerateQuestionsFromText}
+                            sectionsForm={form}
+                            currentSectionIndex={currentSectionIndex}
                         />
                     </div>
                     {GetImagesForAITools(toolData.key)}
@@ -210,7 +219,12 @@ export const GenerateQuestionsFromText = () => {
                 taskId=""
             />
             {getQuestionsFromTextMutation.status === 'success' && (
-                <AITasksList heading="Vsmart Topics" enableDialog={true} />
+                <AITasksList
+                    heading="Vsmart Topics"
+                    enableDialog={true}
+                    sectionsForm={form}
+                    currentSectionIndex={currentSectionIndex}
+                />
             )}
         </>
     );

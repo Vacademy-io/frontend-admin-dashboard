@@ -10,6 +10,8 @@ import { GenerateCard } from '@/routes/ai-center/-components/GenerateCard';
 import { useAICenter } from '@/routes/ai-center/-contexts/useAICenterContext';
 import AITasksList from '@/routes/ai-center/-components/AITasksList';
 import { jsPDF } from 'jspdf';
+import { UseFormReturn } from 'react-hook-form';
+import { SectionFormType } from '@/types/assessments/assessment-steps';
 
 interface ConvertImageToPDFResult {
     pdfFile: File;
@@ -70,7 +72,13 @@ const convertImageToPDF = async (file: File): Promise<ConvertImageToPDFResult> =
     });
 };
 
-const GenerateAiQuestionFromImageComponent = () => {
+const GenerateAiQuestionFromImageComponent = ({
+    form,
+    currentSectionIndex,
+}: {
+    form?: UseFormReturn<SectionFormType>;
+    currentSectionIndex?: number;
+}) => {
     const queryClient = useQueryClient();
     const [taskName, setTaskName] = useState('');
     const instituteId = getInstituteId();
@@ -171,9 +179,16 @@ const GenerateAiQuestionFromImageComponent = () => {
                 keyProp="image"
                 taskName={taskName}
                 setTaskName={setTaskName}
+                sectionsForm={form}
+                currentSectionIndex={currentSectionIndex}
             />
             {generateAssessmentMutation.status === 'success' && (
-                <AITasksList heading="Vsmart Image" enableDialog={true} />
+                <AITasksList
+                    heading="Vsmart Image"
+                    enableDialog={true}
+                    sectionsForm={form}
+                    currentSectionIndex={currentSectionIndex}
+                />
             )}
         </>
     );
