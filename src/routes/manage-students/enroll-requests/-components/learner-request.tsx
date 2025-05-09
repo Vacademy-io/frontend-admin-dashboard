@@ -98,7 +98,7 @@ export const LearnerRequest = ({ obj }: { obj: ContentType }) => {
     if (selectedBatches.length === 0) {
         return (
             <div className="p-4 text-neutral-600">
-                No batch details available for {obj.learner_invitation_response_dto.full_name}
+                <RequestCard obj={obj} />
             </div>
         );
     }

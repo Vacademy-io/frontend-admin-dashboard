@@ -12,7 +12,7 @@ export const RequestCard = ({
     batchDetails,
 }: {
     obj: ContentType;
-    batchDetails: BatchForSessionType;
+    batchDetails?: BatchForSessionType;
 }) => {
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
     const [studentData, setStudentData] = useState<StudentTable | undefined>();
@@ -68,7 +68,7 @@ export const RequestCard = ({
                 )?.value || '',
             parents_to_mother_email: '',
             parents_to_mother_mobile_number: '',
-            package_session_id: batchDetails.id,
+            package_session_id: batchDetails?.id || '',
             institute_enrollment_id: '',
             status: 'INACTIVE',
             session_expiry_days: 0,
@@ -111,10 +111,10 @@ export const RequestCard = ({
                     </div>
                     <div className="grid grid-cols-4 gap-x-20 gap-y-4">
                         <p>
-                            Batch: {batchDetails.level.level_name}{' '}
-                            {batchDetails.package_dto.package_name}
+                            Batch: {batchDetails ? batchDetails.level.level_name : 'N/A'}{' '}
+                            {batchDetails?.package_dto.package_name}
                         </p>
-                        <p>Session: {batchDetails.session.session_name}</p>
+                        <p>Session: {batchDetails ? batchDetails.session.session_name : 'N/A'}</p>
                         <p>Email: {obj.learner_invitation_response_dto.email}</p>
                         <p>Mobile Number: {obj.learner_invitation_response_dto.contact_number}</p>
                         <p>
