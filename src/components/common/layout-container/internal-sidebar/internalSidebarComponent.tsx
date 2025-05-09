@@ -24,8 +24,8 @@ export const InternalSidebarComponent = ({
         return <DashboardLoader />;
     }
     return (
-        <div className="relative flex h-full w-[280px] flex-col gap-6 bg-primary-50 py-10">
-            <div className="sticky top-10">
+        <div className="relative flex h-screen w-[280px] flex-col gap-6 overflow-y-scroll bg-primary-50 py-10">
+            <div>
                 {sidebarComponent
                     ? sidebarComponent
                     : sideBarItems.map((obj, key) => (

@@ -112,7 +112,7 @@ function RouteComponent() {
 
     const SidebarComponent = (
         <div className="flex w-full flex-col items-center">
-            <div className={`flex w-full flex-col gap-6 px-3 pb-8 `}>
+            <div className={`flex w-full flex-col gap-6 px-3 pb-3 `}>
                 <div className="flex flex-wrap items-center gap-1 text-neutral-500">
                     <p onClick={handleSubjectRoute}>{subjectName}</p>
                     <ChevronRightIcon className={`size-4 `} />
@@ -122,10 +122,10 @@ function RouteComponent() {
                 </div>
                 <div className="flex w-full flex-col items-center gap-6">
                     <ChapterSidebarSlides handleSlideOrderChange={handleSlideOrderChange} />
+                    <div className=" flex w-full items-center justify-center bg-primary-50">
+                        <ChapterSidebarAddButton />
+                    </div>
                 </div>
-            </div>
-            <div className="fixed bottom-0 flex w-fit items-center justify-center bg-primary-50 pb-3">
-                <ChapterSidebarAddButton />
             </div>
         </div>
     );
