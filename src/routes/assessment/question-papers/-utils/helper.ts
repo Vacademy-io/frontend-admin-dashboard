@@ -1,19 +1,22 @@
-import { FilterOption } from "@/types/assessments/question-paper-filter";
-import { Level, QuestionResponse, Subject } from "@/types/assessments/question-paper-template";
+import { FilterOption } from '@/types/assessments/question-paper-filter';
+import { Level, QuestionResponse, Subject } from '@/types/assessments/question-paper-template';
 import {
     MyQuestion,
     MyQuestionPaperFormEditInterface,
     MyQuestionPaperFormInterface,
-} from "../../../../types/assessments/question-paper-form";
-import { useMutation } from "@tanstack/react-query";
-import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
-import { TokenKey } from "@/constants/auth/tokens";
-import { QuestionType, QUESTION_TYPES } from "@/constants/dummy-data";
+} from '../../../../types/assessments/question-paper-form';
+import { useMutation } from '@tanstack/react-query';
+import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
+import { QuestionType, QUESTION_TYPES } from '@/constants/dummy-data';
+import { getInstituteId } from '@/constants/helper';
+import { AIAssessmentResponseInterface } from '@/types/ai/generate-assessment/generate-complete-assessment';
 
 export function getPPTViewTitle(type: QuestionType): string {
     const question = QUESTION_TYPES.find((q) => q.code === type);
-    if (question) return question.display; // Return the display text or undefined if not found
-    else return "";
+    if (question)
+        return question.display; // Return the display text or undefined if not found
+    else return '';
 }
 
 export function formatStructure(structure: string, value: string | number): string {
@@ -29,13 +32,22 @@ export function transformFilterData(data: Record<string, FilterOption[]>) {
         const items = data[key] || [];
         result[key] = items.map((item) => item.id);
 
-        if (key === "name" && Array.isArray(result[key])) {
+        if (key === 'name' && Array.isArray(result[key])) {
             // Perform join only if result[key] is an array
-            result[key] = (result[key] as string[]).join("");
+            result[key] = (result[key] as string[]).join('');
         }
     });
 
     return result;
+}
+
+export function transformQuestionPaperDataAI(data: AIAssessmentResponseInterface) {
+    const instituteId = getInstituteId();
+    return {
+        title: data.title || '',
+        institute_id: instituteId,
+        questions: data?.questions,
+    };
 }
 
 export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
@@ -43,7 +55,7 @@ export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
     const tokenData = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
     return {
-        title: data.title,
+        title: data.title || '',
         institute_id: INSTITUTE_ID, // Assuming there's no direct mapping for institute_id
         level_id: data.yearClass, // Assuming there's no direct mapping for level_id
         subject_id: data.subject, // Assuming there's no direct mapping for subject_id
@@ -56,8 +68,8 @@ export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
                     question_id: null,
                     text: {
                         id: null, // Assuming no direct mapping for option text ID
-                        type: "HTML", // Assuming option content is HTML
-                        content: opt?.name?.replace(/<\/?p>/g, ""), // Remove <p> tags from content
+                        type: 'HTML', // Assuming option content is HTML
+                        content: opt?.name?.replace(/<\/?p>/g, ''), // Remove <p> tags from content
                     },
                     media_id: null, // Assuming no direct mapping for option media ID
                     option_order: null,
@@ -65,7 +77,7 @@ export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
                     updated_on: null,
                     explanation_text: {
                         id: null, // Assuming no direct mapping for explanation text ID
-                        type: "HTML", // Assuming explanation for options is in HTML
+                        type: 'HTML', // Assuming explanation for options is in HTML
                         content: question.explanation, // Assuming no explanation provided for options
                     },
                 }));
@@ -76,8 +88,8 @@ export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
                     question_id: null,
                     text: {
                         id: null, // Assuming no direct mapping for option text ID
-                        type: "HTML", // Assuming option content is HTML
-                        content: opt?.name?.replace(/<\/?p>/g, ""), // Remove <p> tags from content
+                        type: 'HTML', // Assuming option content is HTML
+                        content: opt?.name?.replace(/<\/?p>/g, ''), // Remove <p> tags from content
                     },
                     media_id: null, // Assuming no direct mapping for option media ID
                     option_order: null,
@@ -85,7 +97,7 @@ export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
                     updated_on: null,
                     explanation_text: {
                         id: null, // Assuming no direct mapping for explanation text ID
-                        type: "HTML", // Assuming explanation for options is in HTML
+                        type: 'HTML', // Assuming explanation for options is in HTML
                         content: question.explanation, // Assuming no explanation provided for options
                     },
                 }));
@@ -96,8 +108,8 @@ export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
                     question_id: null,
                     text: {
                         id: null, // Assuming no direct mapping for option text ID
-                        type: "HTML", // Assuming option content is HTML
-                        content: opt?.name?.replace(/<\/?p>/g, ""), // Remove <p> tags from content
+                        type: 'HTML', // Assuming option content is HTML
+                        content: opt?.name?.replace(/<\/?p>/g, ''), // Remove <p> tags from content
                     },
                     media_id: null, // Assuming no direct mapping for option media ID
                     option_order: null,
@@ -105,7 +117,7 @@ export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
                     updated_on: null,
                     explanation_text: {
                         id: null, // Assuming no direct mapping for explanation text ID
-                        type: "HTML", // Assuming explanation for options is in HTML
+                        type: 'HTML', // Assuming explanation for options is in HTML
                         content: question.explanation, // Assuming no explanation provided for options
                     },
                 }));
@@ -116,8 +128,8 @@ export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
                     question_id: null,
                     text: {
                         id: null, // Assuming no direct mapping for option text ID
-                        type: "HTML", // Assuming option content is HTML
-                        content: opt?.name?.replace(/<\/?p>/g, ""), // Remove <p> tags from content
+                        type: 'HTML', // Assuming option content is HTML
+                        content: opt?.name?.replace(/<\/?p>/g, ''), // Remove <p> tags from content
                     },
                     media_id: null, // Assuming no direct mapping for option media ID
                     option_order: null,
@@ -125,7 +137,7 @@ export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
                     updated_on: null,
                     explanation_text: {
                         id: null, // Assuming no direct mapping for explanation text ID
-                        type: "HTML", // Assuming explanation for options is in HTML
+                        type: 'HTML', // Assuming explanation for options is in HTML
                         content: question.explanation, // Assuming no explanation provided for options
                     },
                 }));
@@ -136,8 +148,8 @@ export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
                     question_id: null,
                     text: {
                         id: null, // Assuming no direct mapping for option text ID
-                        type: "HTML", // Assuming option content is HTML
-                        content: opt?.name?.replace(/<\/?p>/g, ""), // Remove <p> tags from content
+                        type: 'HTML', // Assuming option content is HTML
+                        content: opt?.name?.replace(/<\/?p>/g, ''), // Remove <p> tags from content
                     },
                     media_id: null, // Assuming no direct mapping for option media ID
                     option_order: null,
@@ -145,7 +157,7 @@ export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
                     updated_on: null,
                     explanation_text: {
                         id: null, // Assuming no direct mapping for explanation text ID
-                        type: "HTML", // Assuming explanation for options is in HTML
+                        type: 'HTML', // Assuming explanation for options is in HTML
                         content: question.explanation, // Assuming no explanation provided for options
                     },
                 }));
@@ -180,13 +192,13 @@ export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
                 question,
                 correctOptionIds,
                 question.validAnswers,
-                question.subjectiveAnswerText,
+                question.subjectiveAnswerText
             );
             const options_json = getOptionsJson(question);
             const parent_rich_text = question.parentRichTextContent
                 ? {
                       id: null,
-                      type: "HTML",
+                      type: 'HTML',
                       content: question.parentRichTextContent,
                   }
                 : null;
@@ -198,8 +210,8 @@ export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
                 preview_id: question.questionId, // Assuming no direct mapping for preview_id
                 text: {
                     id: null, // Assuming no direct mapping for text ID
-                    type: "HTML", // Assuming the content is HTML
-                    content: question.questionName.replace(/<\/?p>/g, ""), // Remove <p> tags from content
+                    type: 'HTML', // Assuming the content is HTML
+                    content: question.questionName.replace(/<\/?p>/g, ''), // Remove <p> tags from content
                 },
                 media_id: null, // Assuming no direct mapping for media_id
                 created_at: null,
@@ -211,7 +223,7 @@ export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
                 evaluation_type: null, // Assuming no direct mapping for evaluation type
                 explanation_text: {
                     id: null, // Assuming no direct mapping for explanation text ID
-                    type: "HTML", // Assuming explanation is in HTML
+                    type: 'HTML', // Assuming explanation is in HTML
                     content: question.explanation,
                 },
                 default_question_time_mins:
@@ -228,22 +240,22 @@ export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
 }
 
 function stripHtmlTags(str: string) {
-    return str.replace(/<[^>]*>/g, "").trim();
+    return str.replace(/<[^>]*>/g, '').trim();
 }
 
 function cleanQuestionData(question: MyQuestion) {
     return {
         ...question,
-        questionName: stripHtmlTags(question.questionName || ""),
+        questionName: stripHtmlTags(question.questionName || ''),
         singleChoiceOptions:
             question.singleChoiceOptions?.map((option) => ({
                 ...option,
-                name: stripHtmlTags(option.name || ""),
+                name: stripHtmlTags(option.name || ''),
             })) || [],
         multipleChoiceOptions:
             question.multipleChoiceOptions?.map((option) => ({
                 ...option,
-                name: stripHtmlTags(option.name || ""),
+                name: stripHtmlTags(option.name || ''),
             })) || [],
     };
 }
@@ -251,15 +263,15 @@ function cleanQuestionData(question: MyQuestion) {
 export function convertQuestionsDataToResponse(questions: MyQuestion[], key: string) {
     const convertedQuestions = questions?.map((question) => {
         const options =
-            question.questionType === "MCQS"
+            question.questionType === 'MCQS'
                 ? question.singleChoiceOptions.map((opt, idx) => ({
-                      id: key === "added" ? null : opt.id, // Set to null if it's a new question
-                      preview_id: key === "added" ? idx : opt.id, // Always use index as preview_id
+                      id: key === 'added' ? null : opt.id, // Set to null if it's a new question
+                      preview_id: key === 'added' ? idx : opt.id, // Always use index as preview_id
                       question_id: question.questionId,
                       text: {
                           id: null, // Assuming no mapping for text ID
-                          type: "HTML",
-                          content: opt?.name?.replace(/<\/?p>/g, ""),
+                          type: 'HTML',
+                          content: opt?.name?.replace(/<\/?p>/g, ''),
                       },
                       media_id: null,
                       option_order: null,
@@ -267,18 +279,18 @@ export function convertQuestionsDataToResponse(questions: MyQuestion[], key: str
                       updated_on: null,
                       explanation_text: {
                           id: null,
-                          type: "HTML",
+                          type: 'HTML',
                           content: question.explanation,
                       },
                   }))
                 : question.multipleChoiceOptions.map((opt, idx) => ({
-                      id: key === "added" ? null : opt.id, // Set to null if it's a new question
-                      preview_id: key === "added" ? idx : opt.id, // Always use index as preview_id
+                      id: key === 'added' ? null : opt.id, // Set to null if it's a new question
+                      preview_id: key === 'added' ? idx : opt.id, // Always use index as preview_id
                       question_id: question.questionId,
                       text: {
                           id: null,
-                          type: "HTML",
-                          content: opt?.name?.replace(/<\/?p>/g, ""),
+                          type: 'HTML',
+                          content: opt?.name?.replace(/<\/?p>/g, ''),
                       },
                       media_id: null,
                       option_order: null,
@@ -286,13 +298,13 @@ export function convertQuestionsDataToResponse(questions: MyQuestion[], key: str
                       updated_on: null,
                       explanation_text: {
                           id: null,
-                          type: "HTML",
+                          type: 'HTML',
                           content: question.explanation,
                       },
                   }));
 
         const correctOptionIds = (
-            question.questionType === "MCQS"
+            question.questionType === 'MCQS'
                 ? question.singleChoiceOptions
                 : question.multipleChoiceOptions
         )
@@ -300,19 +312,19 @@ export function convertQuestionsDataToResponse(questions: MyQuestion[], key: str
             .filter((idx) => idx !== null);
 
         const auto_evaluation_json = JSON.stringify({
-            type: question.questionType === "MCQS" ? "MCQS" : "MCQM",
+            type: question.questionType === 'MCQS' ? 'MCQS' : 'MCQM',
             data: {
                 correctOptionIds,
             },
         });
 
         return {
-            id: key === "added" ? null : question.questionId, // Set to null if it's a new question
+            id: key === 'added' ? null : question.questionId, // Set to null if it's a new question
             preview_id: question.questionId, // Keep preview_id as the questionId
             text: {
                 id: null,
-                type: "HTML",
-                content: question.questionName.replace(/<\/?p>/g, ""),
+                type: 'HTML',
+                content: question.questionName.replace(/<\/?p>/g, ''),
             },
             media_id: null,
             created_at: null,
@@ -324,7 +336,7 @@ export function convertQuestionsDataToResponse(questions: MyQuestion[], key: str
             evaluation_type: null,
             explanation_text: {
                 id: null,
-                type: "HTML",
+                type: 'HTML',
                 content: question.explanation,
             },
             default_question_time_mins: null,
@@ -338,13 +350,13 @@ export function convertQuestionsDataToResponse(questions: MyQuestion[], key: str
 
 export function compareQuestions(
     oldData: MyQuestionPaperFormInterface,
-    newData: MyQuestionPaperFormInterface,
+    newData: MyQuestionPaperFormInterface
 ) {
     const oldQuestionsMap = new Map(
-        oldData.questions?.map((q) => [q.questionId, cleanQuestionData(q)]),
+        oldData.questions?.map((q) => [q.questionId, cleanQuestionData(q)])
     );
     const newQuestionsMap = new Map(
-        newData.questions?.map((q) => [q.questionId, cleanQuestionData(q)]),
+        newData.questions?.map((q) => [q.questionId, cleanQuestionData(q)])
     );
 
     let added_questions = [];
@@ -369,16 +381,16 @@ export function compareQuestions(
             deleted_questions.push(oldQuestion);
         }
     }
-    added_questions = convertQuestionsDataToResponse(added_questions, "added");
-    deleted_questions = convertQuestionsDataToResponse(deleted_questions, "deleted");
-    updated_questions = convertQuestionsDataToResponse(updated_questions, "updated");
+    added_questions = convertQuestionsDataToResponse(added_questions, 'added');
+    deleted_questions = convertQuestionsDataToResponse(deleted_questions, 'deleted');
+    updated_questions = convertQuestionsDataToResponse(updated_questions, 'updated');
 
     return { added_questions, deleted_questions, updated_questions };
 }
 
 export function transformQuestionPaperEditData(
     data: MyQuestionPaperFormInterface,
-    previousQuestionPaperData: MyQuestionPaperFormEditInterface,
+    previousQuestionPaperData: MyQuestionPaperFormEditInterface
 ) {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
@@ -388,33 +400,33 @@ export function transformQuestionPaperEditData(
         id: data.questionPaperId,
         title: data.title,
         institute_id: INSTITUTE_ID,
-        ...(data.yearClass !== "N/A" && { level_id: data.yearClass }),
-        ...(data.subject !== "N/A" && { subject_id: data.subject }),
+        ...(data.yearClass !== 'N/A' && { level_id: data.yearClass }),
+        ...(data.subject !== 'N/A' && { subject_id: data.subject }),
         ...compareQuestions(previousQuestionPaperData, data),
     };
 }
 
 export const getLevelNameById = (levels: Level[], id: string | null): string => {
     const level = levels.find((item) => item.id === id);
-    return level?.level_name || "N/A";
+    return level?.level_name || 'N/A';
 };
 
 export const getSubjectNameById = (subjects: Subject[], id: string | null): string => {
     const subject = subjects.find((item) => item.id === id);
-    return subject?.subject_name || "N/A";
+    return subject?.subject_name || 'N/A';
 };
 
 export const getIdByLevelName = (levels: Level[], name: string | null | undefined): string => {
     const level = levels.find((item) => item.level_name === name);
-    return level?.id || "N/A";
+    return level?.id || 'N/A';
 };
 
 export const getIdBySubjectName = (
     subjects: Subject[],
-    name: string | null | undefined,
+    name: string | null | undefined
 ): string => {
     const subject = subjects.find((item) => item.subject_name === name);
-    return subject?.id || "N/A";
+    return subject?.id || 'N/A';
 };
 
 export const transformResponseDataToMyQuestionsSchema = (data: QuestionResponse[]) => {
@@ -427,50 +439,50 @@ export const transformResponseDataToMyQuestionsSchema = (data: QuestionResponse[
         let subjectiveAnswerText;
         if (item.options_json) {
             decimals = JSON.parse(item.options_json)?.decimals || 0;
-            numericType = JSON.parse(item.options_json)?.numeric_type || "";
+            numericType = JSON.parse(item.options_json)?.numeric_type || '';
         }
         if (item.auto_evaluation_json) {
-            if (item.question_type === "ONE_WORD") {
+            if (item.question_type === 'ONE_WORD') {
                 subjectiveAnswerText = JSON.parse(item.auto_evaluation_json)?.data?.answer;
-            } else if (item.question_type === "LONG_ANSWER") {
+            } else if (item.question_type === 'LONG_ANSWER') {
                 subjectiveAnswerText = JSON.parse(item.auto_evaluation_json)?.data?.answer?.content;
             }
         }
         const baseQuestion: MyQuestion = {
-            id: item.id || "",
+            id: item.id || '',
             questionId: item.id || item.preview_id || undefined,
-            questionName: item.text?.content || "",
-            explanation: item.explanation_text?.content || "",
+            questionName: item.text?.content || '',
+            explanation: item.explanation_text?.content || '',
             questionType: item.question_type,
-            questionMark: "",
-            questionPenalty: "",
+            questionMark: '',
+            questionPenalty: '',
             questionDuration: {
                 hrs: String(Math.floor((item.default_question_time_mins ?? 0) / 60)), // Extract hours
                 min: String((item.default_question_time_mins ?? 0) % 60), // Extract remaining minutes
             },
             singleChoiceOptions: Array(4).fill({
-                id: "",
-                name: "",
+                id: '',
+                name: '',
                 isSelected: false,
             }),
             multipleChoiceOptions: Array(4).fill({
-                id: "",
-                name: "",
+                id: '',
+                name: '',
                 isSelected: false,
             }),
             csingleChoiceOptions: Array(4).fill({
-                id: "",
-                name: "",
+                id: '',
+                name: '',
                 isSelected: false,
             }),
             cmultipleChoiceOptions: Array(4).fill({
-                id: "",
-                name: "",
+                id: '',
+                name: '',
                 isSelected: false,
             }),
             trueFalseOptions: Array(2).fill({
-                id: "",
-                name: "",
+                id: '',
+                name: '',
                 isSelected: false,
             }),
             validAnswers: [],
@@ -480,37 +492,37 @@ export const transformResponseDataToMyQuestionsSchema = (data: QuestionResponse[
             subjectiveAnswerText,
         };
 
-        if (item.question_type === "MCQS") {
+        if (item.question_type === 'MCQS') {
             baseQuestion.singleChoiceOptions = item.options.map((option) => ({
-                id: option.id ? option.id : "",
-                name: option.text?.content || "",
+                id: option.id ? option.id : '',
+                name: option.text?.content || '',
                 isSelected: correctOptionIds.includes(option.id || option.preview_id),
             }));
-        } else if (item.question_type === "MCQM") {
+        } else if (item.question_type === 'MCQM') {
             baseQuestion.multipleChoiceOptions = item.options.map((option) => ({
-                id: option.id ? option.id : "",
-                name: option.text?.content || "",
+                id: option.id ? option.id : '',
+                name: option.text?.content || '',
                 isSelected: correctOptionIds.includes(option.id || option.preview_id),
             }));
-        } else if (item.question_type === "CMCQS") {
+        } else if (item.question_type === 'CMCQS') {
             baseQuestion.csingleChoiceOptions = item.options.map((option) => ({
-                id: option.id ? option.id : "",
-                name: option.text?.content || "",
+                id: option.id ? option.id : '',
+                name: option.text?.content || '',
                 isSelected: correctOptionIds.includes(option.id || option.preview_id),
             }));
-        } else if (item.question_type === "CMCQM") {
+        } else if (item.question_type === 'CMCQM') {
             baseQuestion.cmultipleChoiceOptions = item.options.map((option) => ({
-                id: option.id ? option.id : "",
-                name: option.text?.content || "",
+                id: option.id ? option.id : '',
+                name: option.text?.content || '',
                 isSelected: correctOptionIds.includes(option.id || option.preview_id),
             }));
-        } else if (item.question_type === "TRUE_FALSE") {
+        } else if (item.question_type === 'TRUE_FALSE') {
             baseQuestion.trueFalseOptions = item.options.map((option) => ({
-                id: option.id ? option.id : "",
-                name: option.text?.content || "",
+                id: option.id ? option.id : '',
+                name: option.text?.content || '',
                 isSelected: correctOptionIds.includes(option.id || option.preview_id),
             }));
-        } else if (item.question_type === "NUMERIC") {
+        } else if (item.question_type === 'NUMERIC') {
             baseQuestion.validAnswers = validAnswers;
         }
         return baseQuestion;
@@ -533,7 +545,7 @@ export const convertQuestionsToExportSchema = (rawQuestions: QuestionResponse[])
         })),
         marking_json: q.auto_evaluation_json,
         question_type: q.question_type,
-        section_id: q.section_id ?? "",
+        section_id: q.section_id ?? '',
         question_duration: q.default_question_time_mins ?? 1, // default to 1 if null
         question_order: idx + 1,
     }));
@@ -543,7 +555,7 @@ export const handleRefetchData = (
     getFilteredFavouriteData: ReturnType<typeof useMutation>,
     getFilteredActiveData: ReturnType<typeof useMutation>,
     pageNo: number,
-    selectedQuestionPaperFilters: Record<string, FilterOption[]>,
+    selectedQuestionPaperFilters: Record<string, FilterOption[]>
 ) => {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const data = getTokenDecodedData(accessToken);
@@ -554,7 +566,7 @@ export const handleRefetchData = (
         instituteId: INSTITUTE_ID,
         data: {
             ...selectedQuestionPaperFilters,
-            statuses: [{ id: "FAVOURITE", name: "FAVOURITE" }],
+            statuses: [{ id: 'FAVOURITE', name: 'FAVOURITE' }],
         },
     });
     getFilteredActiveData.mutate({
@@ -563,7 +575,7 @@ export const handleRefetchData = (
         instituteId: INSTITUTE_ID,
         data: {
             ...selectedQuestionPaperFilters,
-            statuses: [{ id: "ACTIVE", name: "ACTIVE" }],
+            statuses: [{ id: 'ACTIVE', name: 'ACTIVE' }],
         },
     });
 };
@@ -573,10 +585,10 @@ export const isQuillContentEmpty = (content: string) => {
     if (!content) return true;
 
     // Check for common Quill empty patterns
-    if (content === "<p><br></p>" || content === "<p></p>") return true;
+    if (content === '<p><br></p>' || content === '<p></p>') return true;
 
     // Strip all HTML tags and check if there's any text content left
-    const textOnly = content.replace(/<[^>]*>/g, "").trim();
+    const textOnly = content.replace(/<[^>]*>/g, '').trim();
     return textOnly.length === 0;
 };
 
@@ -584,87 +596,87 @@ export function getEvaluationJSON(
     question: MyQuestion,
     correctOptionIds?: (string | null)[],
     validAnswers?: number[],
-    subjectiveAnswerText?: string,
+    subjectiveAnswerText?: string
 ): string {
     switch (question.questionType) {
-        case "TRUE_FALSE":
+        case 'TRUE_FALSE':
             return JSON.stringify({
-                type: "TRUE_FALSE",
+                type: 'TRUE_FALSE',
                 data: {
                     correctOptionIds,
                 },
             });
-        case "MCQS":
+        case 'MCQS':
             return JSON.stringify({
-                type: "MCQS",
+                type: 'MCQS',
                 data: {
                     correctOptionIds,
                 },
             });
-        case "CMCQS":
+        case 'CMCQS':
             return JSON.stringify({
-                type: "MCQS",
+                type: 'MCQS',
                 data: {
                     correctOptionIds,
                 },
             });
-        case "MCQM":
+        case 'MCQM':
             return JSON.stringify({
-                type: "MCQM",
+                type: 'MCQM',
                 data: {
                     correctOptionIds,
                 },
             });
-        case "CMCQM":
+        case 'CMCQM':
             return JSON.stringify({
-                type: "MCQM",
+                type: 'MCQM',
                 data: {
                     correctOptionIds,
                 },
             });
-        case "NUMERIC":
+        case 'NUMERIC':
             return JSON.stringify({
-                type: "NUMERIC",
+                type: 'NUMERIC',
                 data: {
                     validAnswers,
                 },
             });
-        case "CNUMERIC":
+        case 'CNUMERIC':
             return JSON.stringify({
-                type: "NUMERIC",
+                type: 'NUMERIC',
                 data: {
                     validAnswers,
                 },
             });
-        case "ONE_WORD":
+        case 'ONE_WORD':
             return JSON.stringify({
-                type: "ONE_WORD",
+                type: 'ONE_WORD',
                 data: {
-                    answer: subjectiveAnswerText?.replace(/<\/?p>/g, ""),
+                    answer: subjectiveAnswerText?.replace(/<\/?p>/g, ''),
                 },
             });
-        case "LONG_ANSWER":
+        case 'LONG_ANSWER':
             return JSON.stringify({
-                type: "ONE_WORD",
+                type: 'ONE_WORD',
                 data: {
                     answer: {
                         id: null,
-                        type: "HTML",
-                        content: subjectiveAnswerText?.replace(/<\/?p>/g, ""),
+                        type: 'HTML',
+                        content: subjectiveAnswerText?.replace(/<\/?p>/g, ''),
                     },
                 },
             });
         default:
-            return "";
+            return '';
     }
 }
 export function getOptionsJson(question: MyQuestion): string | null {
     switch (question.questionType) {
-        case "MCQS":
+        case 'MCQS':
             return null;
-        case "MCQM":
+        case 'MCQM':
             return null;
-        case "NUMERIC":
+        case 'NUMERIC':
             return JSON.stringify({
                 decimals: question.decimals,
                 numericType: question.numericType,
@@ -674,8 +686,8 @@ export function getOptionsJson(question: MyQuestion): string | null {
     }
 }
 export const getQuestionType = (type: string): string => {
-    if (type === "CMCQS") return "MCQS";
-    else if (type === "CMCQM") return "MCQM";
-    else if (type === "CNUMERIC") return "NUMERIC";
+    if (type === 'CMCQS') return 'MCQS';
+    else if (type === 'CMCQM') return 'MCQM';
+    else if (type === 'CNUMERIC') return 'NUMERIC';
     else return type;
 };

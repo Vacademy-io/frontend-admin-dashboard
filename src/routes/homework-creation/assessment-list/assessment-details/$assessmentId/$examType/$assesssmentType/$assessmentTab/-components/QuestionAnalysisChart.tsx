@@ -1,39 +1,39 @@
-import { useEffect, useState } from "react";
-import { Bar, BarChart, XAxis, YAxis } from "recharts";
+import { useEffect, useState } from 'react';
+import { Bar, BarChart, XAxis, YAxis } from 'recharts';
 import {
     ChartConfig,
     ChartContainer,
     ChartTooltip,
     ChartTooltipContent,
-} from "@/components/ui/chart";
-import { DotOutline } from "@phosphor-icons/react";
-import { MyButton } from "@/components/design-system/button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { QuestionInsightsComponent } from "./QuestionInsights";
+} from '@/components/ui/chart';
+import { DotOutline } from '@phosphor-icons/react';
+import { MyButton } from '@/components/design-system/button';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { QuestionInsightsComponent } from './QuestionInsights';
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select";
-import { ArrowCounterClockwise, Export } from "phosphor-react";
-import { getInstituteId } from "@/constants/helper";
-import { Route } from "..";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
+} from '@/components/ui/select';
+import { ArrowCounterClockwise, Export } from 'phosphor-react';
+import { getInstituteId } from '@/constants/helper';
+import { Route } from '..';
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import {
     getQuestionsInsightsData,
     handleGetQuestionInsightsData,
-} from "../-services/assessment-details-services";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { getAssessmentDetails } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-services/assessment-services";
-import { QuestionInsightResponse } from "../-utils/assessment-details-interface";
+} from '../-services/assessment-details-services';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { getAssessmentDetails } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-services/assessment-services';
+import { QuestionInsightResponse } from '../-utils/assessment-details-interface';
 
 const chartConfig = {
-    correct: { label: "Correct", color: "#97D4B4" },
-    partiallyCorrect: { label: "Partially Correct", color: "#FFDD82" },
-    wrongResponses: { label: "Wrong Responses", color: "#F49898" },
-    skip: { label: "Skip", color: "#EEE" },
+    correct: { label: 'Correct', color: '#97D4B4' },
+    partiallyCorrect: { label: 'Partially Correct', color: '#FFDD82' },
+    wrongResponses: { label: 'Wrong Responses', color: '#F49898' },
+    skip: { label: 'Skip', color: '#EEE' },
 } satisfies ChartConfig;
 
 export function AssessmentDetailsQuestionAnalysisChart({
@@ -42,10 +42,10 @@ export function AssessmentDetailsQuestionAnalysisChart({
     selectedSectionData: QuestionInsightResponse;
 }) {
     const [visibleKeys, setVisibleKeys] = useState<string[]>([
-        "correct",
-        "partiallyCorrect",
-        "wrongResponses",
-        "skip",
+        'correct',
+        'partiallyCorrect',
+        'wrongResponses',
+        'skip',
     ]);
 
     const toggleKey = (key: string) => {
@@ -96,13 +96,13 @@ export function AssessmentDetailsQuestionAnalysisChart({
                             style={{
                                 color: visibleKeys.includes(key)
                                     ? chartConfig[key as keyof typeof chartConfig].color
-                                    : "#D1D5DB",
-                                marginRight: "-1.5rem",
+                                    : '#D1D5DB',
+                                marginRight: '-1.5rem',
                             }}
                         />
                         <p
                             className={`text-[14px] ${
-                                visibleKeys.includes(key) ? "" : "line-through"
+                                visibleKeys.includes(key) ? '' : 'line-through'
                             }`}
                         >
                             {chartConfig[key as keyof typeof chartConfig].label}
@@ -138,11 +138,11 @@ export function AssessmentDetailsQuestionAnalysisChart({
                         tickMargin={10}
                         axisLine={true}
                         label={{
-                            value: "Question",
-                            position: "left",
+                            value: 'Question',
+                            position: 'left',
                             dx: 60,
                             dy: 30,
-                            style: { fontSize: "14px", fill: "#ED7424" },
+                            style: { fontSize: '14px', fill: '#ED7424' },
                         }}
                     />
                     <YAxis
@@ -151,32 +151,32 @@ export function AssessmentDetailsQuestionAnalysisChart({
                         axisLine={true}
                         tickMargin={8}
                         label={{
-                            value: "Number of Participants",
+                            value: 'Number of Participants',
                             angle: -90,
-                            position: "left",
+                            position: 'left',
                             dx: 10,
                             dy: 10,
-                            style: { fontSize: "14px", fill: "#ED7424" },
+                            style: { fontSize: '14px', fill: '#ED7424' },
                         }}
                     />
-                    {visibleKeys.includes("correct") && (
+                    {visibleKeys.includes('correct') && (
                         <Bar dataKey="correct" stackId="a" fill={chartConfig.correct.color} />
                     )}
-                    {visibleKeys.includes("partiallyCorrect") && (
+                    {visibleKeys.includes('partiallyCorrect') && (
                         <Bar
                             dataKey="partiallyCorrect"
                             stackId="a"
                             fill={chartConfig.partiallyCorrect.color}
                         />
                     )}
-                    {visibleKeys.includes("wrongResponses") && (
+                    {visibleKeys.includes('wrongResponses') && (
                         <Bar
                             dataKey="wrongResponses"
                             stackId="a"
                             fill={chartConfig.wrongResponses.color}
                         />
                     )}
-                    {visibleKeys.includes("skip") && (
+                    {visibleKeys.includes('skip') && (
                         <Bar dataKey="skip" stackId="a" fill={chartConfig.skip.color} />
                     )}
                     <ChartTooltip
@@ -198,17 +198,17 @@ export function QuestionAnalysisChart() {
             assessmentId: assessmentId,
             instituteId: instituteId,
             type: examType,
-        }),
+        })
     );
     const sectionsInfo = assessmentDetails[1]?.saved_data.sections?.map((section) => ({
         name: section.name,
         id: section.id,
     }));
 
-    const [selectedSection, setSelectedSection] = useState(sectionsInfo ? sectionsInfo[0]?.id : "");
+    const [selectedSection, setSelectedSection] = useState(sectionsInfo ? sectionsInfo[0]?.id : '');
 
     const { data } = useSuspenseQuery(
-        handleGetQuestionInsightsData({ instituteId, assessmentId, sectionId: selectedSection }),
+        handleGetQuestionInsightsData({ instituteId, assessmentId, sectionId: selectedSection })
     );
 
     const [selectedSectionData, setSelectedSectionData] = useState(data);
@@ -233,7 +233,7 @@ export function QuestionAnalysisChart() {
 
     const handleRefreshLeaderboard = () => {
         getQuestionInsightsData.mutate({
-            assessmentId: assessmentId ? assessmentId : "",
+            assessmentId: assessmentId ? assessmentId : '',
             instituteId,
             sectionId: selectedSection,
         });
@@ -280,7 +280,7 @@ export function QuestionAnalysisChart() {
                     </MyButton>
                 </div>
             </div>
-            {getQuestionInsightsData.status === "pending" ? (
+            {getQuestionInsightsData.status === 'pending' ? (
                 <DashboardLoader />
             ) : (
                 <AssessmentDetailsQuestionAnalysisChart selectedSectionData={selectedSectionData} />

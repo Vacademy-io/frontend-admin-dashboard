@@ -1,41 +1,41 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 
-import { MyButton } from "@/components/design-system/button";
-import { MyPagination } from "@/components/design-system/pagination";
-import { MyTable } from "@/components/design-system/table";
-import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { StudentSidebarContext } from "@/routes/students/students-list/-context/selected-student-sidebar-context";
-import { StudentTable } from "@/types/student-table-types";
-import { ArrowCounterClockwise } from "phosphor-react";
-import { useEffect, useState } from "react";
+import { MyButton } from '@/components/design-system/button';
+import { MyPagination } from '@/components/design-system/pagination';
+import { MyTable } from '@/components/design-system/table';
+import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { StudentSidebarContext } from '@/routes/students/students-list/-context/selected-student-sidebar-context';
+import { StudentTable } from '@/types/student-table-types';
+import { ArrowCounterClockwise } from 'phosphor-react';
+import { useEffect, useState } from 'react';
 import {
     getAllColumnsForTableQuestionWise,
     getAllColumnsForTableWidthQuestionWise,
     getQuestionWiseFilteredDataStudentData,
-} from "../-utils/helper";
-import { OnChangeFn, RowSelectionState } from "@tanstack/react-table";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
+} from '../-utils/helper';
+import { OnChangeFn, RowSelectionState } from '@tanstack/react-table';
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import {
     getParticipantsListQuestionwise,
     handleGetRespondentExportCSV,
     handleGetRespondentExportPDF,
-} from "../-services/assessment-details-services";
-import { ScheduleTestFilters } from "@/routes/assessment/assessment-list/-components/ScheduleTestFilters";
-import { AssessmentDetailsSearchComponent } from "./SearchComponent";
-import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
-import { useFilterDataForAssesment } from "@/routes/assessment/assessment-list/-utils.ts/useFiltersData";
-import { MyFilterOption } from "@/types/assessments/my-filter";
-import StudentQuestionwiseFilterButtons from "./StudentQuestionwiseFilterButtons";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
+} from '../-services/assessment-details-services';
+import { ScheduleTestFilters } from '@/routes/assessment/assessment-list/-components/ScheduleTestFilters';
+import { AssessmentDetailsSearchComponent } from './SearchComponent';
+import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
+import { useFilterDataForAssesment } from '@/routes/assessment/assessment-list/-utils.ts/useFiltersData';
+import { MyFilterOption } from '@/types/assessments/my-filter';
+import StudentQuestionwiseFilterButtons from './StudentQuestionwiseFilterButtons';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
 import {
     QuestionAssessmentStatusProps,
     SelectedFilterQuestionWise,
     StudentQuestionwiseContent,
-} from "@/types/assessments/student-questionwise-status";
-import ExportDialogPDFCSV from "@/components/common/export-dialog-pdf-csv";
-import Papa from "papaparse";
+} from '@/types/assessments/student-questionwise-status';
+import ExportDialogPDFCSV from '@/components/common/export-dialog-pdf-csv';
+import Papa from 'papaparse';
 
 const QuestionAssessmentStatus = ({
     assessmentId,
@@ -47,17 +47,17 @@ const QuestionAssessmentStatus = ({
     const [isLoading, setIsLoading] = useState(false);
     const { data: initData } = useSuspenseQuery(useInstituteQuery());
     const { BatchesFilterData } = useFilterDataForAssesment(initData);
-    const [selectedParticipantsTab, setSelectedParticipantsTab] = useState("internal");
+    const [selectedParticipantsTab, setSelectedParticipantsTab] = useState('internal');
     const [selectedFilter, setSelectedFilter] = useState<SelectedFilterQuestionWise>({
-        name: "",
+        name: '',
         status: [questionStatus],
         assessment_visibility: [assesssmentType], // Fixed typo
         registration_source:
-            assesssmentType === "PRIVATE"
-                ? ["BATCH_PREVIEW_REGISTRATION", "ADMIN_PRE_REGISTRATION"]
-                : selectedParticipantsTab === "internal"
-                  ? ["ADMIN_REGISTRATION"]
-                  : ["OPEN_REGISTRATION"],
+            assesssmentType === 'PRIVATE'
+                ? ['BATCH_PREVIEW_REGISTRATION', 'ADMIN_PRE_REGISTRATION']
+                : selectedParticipantsTab === 'internal'
+                  ? ['ADMIN_REGISTRATION']
+                  : ['OPEN_REGISTRATION'],
         registration_source_id: [],
         sort_columns: {},
     });
@@ -74,7 +74,7 @@ const QuestionAssessmentStatus = ({
         total_elements: 0,
         last: false,
     });
-    const [searchText, setSearchText] = useState("");
+    const [searchText, setSearchText] = useState('');
     const handleRefreshList = () => {
         getParticipantsListData.mutate({
             assessmentId,
@@ -87,7 +87,7 @@ const QuestionAssessmentStatus = ({
     };
     const handleRowSelectionChange: OnChangeFn<RowSelectionState> = (updaterOrValue) => {
         const newSelection =
-            typeof updaterOrValue === "function"
+            typeof updaterOrValue === 'function'
                 ? updaterOrValue(rowSelections[pageNo] || {})
                 : updaterOrValue;
 
@@ -119,7 +119,7 @@ const QuestionAssessmentStatus = ({
                 questionId,
                 pageNo,
                 pageSize,
-                selectedFilter,
+                selectedFilter
             ),
         onSuccess: (data) => {
             setParticipantsData(data);
@@ -140,11 +140,11 @@ const QuestionAssessmentStatus = ({
             selectedFilter: {
                 ...selectedFilter,
                 registration_source:
-                    assesssmentType === "PRIVATE"
-                        ? ["BATCH_PREVIEW_REGISTRATION", "ADMIN_PRE_REGISTRATION"]
-                        : value === "internal"
-                          ? ["ADMIN_REGISTRATION"]
-                          : ["OPEN_REGISTRATION"],
+                    assesssmentType === 'PRIVATE'
+                        ? ['BATCH_PREVIEW_REGISTRATION', 'ADMIN_PRE_REGISTRATION']
+                        : value === 'internal'
+                          ? ['ADMIN_REGISTRATION']
+                          : ['OPEN_REGISTRATION'],
             },
         });
     };
@@ -160,11 +160,11 @@ const QuestionAssessmentStatus = ({
             selectedFilter: {
                 ...selectedFilter,
                 registration_source:
-                    assesssmentType === "PRIVATE"
-                        ? ["BATCH_PREVIEW_REGISTRATION", "ADMIN_PRE_REGISTRATION"]
-                        : selectedParticipantsTab === "internal"
-                          ? ["ADMIN_REGISTRATION"]
-                          : ["OPEN_REGISTRATION"],
+                    assesssmentType === 'PRIVATE'
+                        ? ['BATCH_PREVIEW_REGISTRATION', 'ADMIN_PRE_REGISTRATION']
+                        : selectedParticipantsTab === 'internal'
+                          ? ['ADMIN_REGISTRATION']
+                          : ['OPEN_REGISTRATION'],
             },
         });
     };
@@ -181,18 +181,18 @@ const QuestionAssessmentStatus = ({
                 ...selectedFilter,
                 name: searchValue,
                 registration_source:
-                    assesssmentType === "PRIVATE"
-                        ? ["BATCH_PREVIEW_REGISTRATION", "ADMIN_PRE_REGISTRATION"]
-                        : selectedParticipantsTab === "internal"
-                          ? ["ADMIN_REGISTRATION"]
-                          : ["OPEN_REGISTRATION"],
+                    assesssmentType === 'PRIVATE'
+                        ? ['BATCH_PREVIEW_REGISTRATION', 'ADMIN_PRE_REGISTRATION']
+                        : selectedParticipantsTab === 'internal'
+                          ? ['ADMIN_REGISTRATION']
+                          : ['OPEN_REGISTRATION'],
             },
         });
     };
 
     const clearSearch = () => {
-        setSearchText("");
-        selectedFilter["name"] = "";
+        setSearchText('');
+        selectedFilter['name'] = '';
         getParticipantsListData.mutate({
             assessmentId,
             sectionId,
@@ -202,11 +202,11 @@ const QuestionAssessmentStatus = ({
             selectedFilter: {
                 ...selectedFilter,
                 registration_source:
-                    assesssmentType === "PRIVATE"
-                        ? ["BATCH_PREVIEW_REGISTRATION", "ADMIN_PRE_REGISTRATION"]
-                        : selectedParticipantsTab === "internal"
-                          ? ["ADMIN_REGISTRATION"]
-                          : ["OPEN_REGISTRATION"],
+                    assesssmentType === 'PRIVATE'
+                        ? ['BATCH_PREVIEW_REGISTRATION', 'ADMIN_PRE_REGISTRATION']
+                        : selectedParticipantsTab === 'internal'
+                          ? ['ADMIN_REGISTRATION']
+                          : ['OPEN_REGISTRATION'],
             },
         });
     };
@@ -221,10 +221,10 @@ const QuestionAssessmentStatus = ({
     const handleResetFilters = () => {
         setSelectedFilter((prevFilter) => ({
             ...prevFilter,
-            name: "",
+            name: '',
             registration_source_id: [],
         }));
-        setSearchText("");
+        setSearchText('');
         getParticipantsListData.mutate({
             assessmentId,
             sectionId,
@@ -233,14 +233,14 @@ const QuestionAssessmentStatus = ({
             pageSize: 10,
             selectedFilter: {
                 ...selectedFilter,
-                name: "",
+                name: '',
                 registration_source_id: [],
                 registration_source:
-                    assesssmentType === "PRIVATE"
-                        ? ["BATCH_PREVIEW_REGISTRATION", "ADMIN_PRE_REGISTRATION"]
-                        : selectedParticipantsTab === "internal"
-                          ? ["ADMIN_REGISTRATION"]
-                          : ["OPEN_REGISTRATION"],
+                    assesssmentType === 'PRIVATE'
+                        ? ['BATCH_PREVIEW_REGISTRATION', 'ADMIN_PRE_REGISTRATION']
+                        : selectedParticipantsTab === 'internal'
+                          ? ['ADMIN_REGISTRATION']
+                          : ['OPEN_REGISTRATION'],
             },
         });
     };
@@ -264,22 +264,22 @@ const QuestionAssessmentStatus = ({
                 sectionId,
                 questionId,
                 assessmentId,
-                selectedFilter,
+                selectedFilter
             ),
         onSuccess: async (response) => {
             const date = new Date();
             const url = window.URL.createObjectURL(new Blob([response]));
-            const link = document.createElement("a");
+            const link = document.createElement('a');
             link.href = url;
             link.setAttribute(
-                "download",
-                `pdf_student_respondent_list_${date.toLocaleString()}.pdf`,
+                'download',
+                `pdf_student_respondent_list_${date.toLocaleString()}.pdf`
             );
             document.body.appendChild(link);
             link.click();
             link.remove();
             window.URL.revokeObjectURL(url);
-            toast.success("Student respondent list data for PDF exported successfully");
+            toast.success('Student respondent list data for PDF exported successfully');
         },
         onError: (error: unknown) => {
             throw error;
@@ -305,7 +305,7 @@ const QuestionAssessmentStatus = ({
                 sectionId,
                 questionId,
                 assessmentId,
-                selectedFilter,
+                selectedFilter
             ),
         onSuccess: (data) => {
             const date = new Date();
@@ -317,14 +317,14 @@ const QuestionAssessmentStatus = ({
 
             const csv = Papa.unparse(parsedData);
 
-            const blob = new Blob([csv], { type: "text/csv" });
+            const blob = new Blob([csv], { type: 'text/csv' });
             const url = URL.createObjectURL(blob);
 
-            const link = document.createElement("a");
+            const link = document.createElement('a');
             link.href = url;
             link.setAttribute(
-                "download",
-                `csv_student_respondent_list_${date.toLocaleString()}.csv`,
+                'download',
+                `csv_student_respondent_list_${date.toLocaleString()}.csv`
             );
             document.body.appendChild(link);
             link.click();
@@ -332,7 +332,7 @@ const QuestionAssessmentStatus = ({
 
             // Clean up the created URL object
             URL.revokeObjectURL(url);
-            toast.success("Student respondent list data for CSV exported successfully");
+            toast.success('Student respondent list data for CSV exported successfully');
         },
         onError: (error: unknown) => {
             throw error;
@@ -369,7 +369,7 @@ const QuestionAssessmentStatus = ({
                         questionId,
                         pageNo,
                         10,
-                        selectedFilter,
+                        selectedFilter
                     );
                     setParticipantsData(response);
                 } catch (err) {
@@ -384,7 +384,7 @@ const QuestionAssessmentStatus = ({
         return () => clearTimeout(timer); // Cleanup the timeout on component unmount
     }, []);
 
-    if (isLoading || getParticipantsListData.status === "pending")
+    if (isLoading || getParticipantsListData.status === 'pending')
         return (
             <div className="w-screen">
                 <DashboardLoader />
@@ -410,9 +410,9 @@ const QuestionAssessmentStatus = ({
                             <ScheduleTestFilters
                                 label="Batches"
                                 data={BatchesFilterData}
-                                selectedItems={selectedFilter["registration_source_id"] || []}
+                                selectedItems={selectedFilter['registration_source_id'] || []}
                                 onSelectionChange={(items) =>
-                                    handleFilterChange("registration_source_id", items)
+                                    handleFilterChange('registration_source_id', items)
                                 }
                             />
                             <StudentQuestionwiseFilterButtons
@@ -426,10 +426,10 @@ const QuestionAssessmentStatus = ({
                                 handleExportPDF={handleExportPDF}
                                 handleExportCSV={handleExportCSV}
                                 isPDFLoading={
-                                    getRespondentDataPDF.status === "pending" ? true : false
+                                    getRespondentDataPDF.status === 'pending' ? true : false
                                 }
                                 isCSVLoading={
-                                    getRespondentDataCSV.status === "pending" ? true : false
+                                    getRespondentDataCSV.status === 'pending' ? true : false
                                 }
                             />
                             <MyButton
@@ -443,21 +443,21 @@ const QuestionAssessmentStatus = ({
                             </MyButton>
                         </div>
                     </div>
-                    {assesssmentType === "PUBLIC" && (
+                    {assesssmentType === 'PUBLIC' && (
                         <TabsList className="flex h-auto flex-wrap justify-start border border-gray-500 !bg-transparent p-0">
                             <TabsTrigger
                                 value="internal"
                                 className={`flex gap-1.5 rounded-l-lg rounded-r-none p-2 px-4 ${
-                                    selectedParticipantsTab === "internal"
-                                        ? "!bg-primary-100"
-                                        : "bg-transparent"
+                                    selectedParticipantsTab === 'internal'
+                                        ? '!bg-primary-100'
+                                        : 'bg-transparent'
                                 }`}
                             >
                                 <span
                                     className={`${
-                                        selectedParticipantsTab === "internal"
-                                            ? "text-teal-800 dark:text-teal-400"
-                                            : ""
+                                        selectedParticipantsTab === 'internal'
+                                            ? 'text-teal-800 dark:text-teal-400'
+                                            : ''
                                     }`}
                                 >
                                     Internal Participants
@@ -467,16 +467,16 @@ const QuestionAssessmentStatus = ({
                             <TabsTrigger
                                 value="external"
                                 className={`flex gap-1.5 rounded-l-none rounded-r-lg p-2 px-4 ${
-                                    selectedParticipantsTab === "external"
-                                        ? "!bg-primary-100"
-                                        : "bg-transparent"
+                                    selectedParticipantsTab === 'external'
+                                        ? '!bg-primary-100'
+                                        : 'bg-transparent'
                                 }`}
                             >
                                 <span
                                     className={`${
-                                        selectedParticipantsTab === "external"
-                                            ? "text-teal-800 dark:text-teal-400"
-                                            : ""
+                                        selectedParticipantsTab === 'external'
+                                            ? 'text-teal-800 dark:text-teal-400'
+                                            : ''
                                     }`}
                                 >
                                     External Participants
@@ -493,7 +493,7 @@ const QuestionAssessmentStatus = ({
                                     participantsData.content,
                                     assesssmentType,
                                     selectedParticipantsTab,
-                                    initData?.batches_for_sessions,
+                                    initData?.batches_for_sessions
                                 ),
                                 total_pages: participantsData.total_pages,
                                 page_no: pageNo,
@@ -502,27 +502,27 @@ const QuestionAssessmentStatus = ({
                                 last: participantsData.last,
                             }}
                             columns={
-                                assesssmentType === "PRIVATE" ||
-                                selectedParticipantsTab === "internal"
+                                assesssmentType === 'PRIVATE' ||
+                                selectedParticipantsTab === 'internal'
                                     ? getAllColumnsForTableQuestionWise(
                                           assesssmentType,
-                                          selectedParticipantsTab,
+                                          selectedParticipantsTab
                                       ).studentInternalOrCloseQuestionWise
                                     : getAllColumnsForTableQuestionWise(
                                           assesssmentType,
-                                          selectedParticipantsTab,
+                                          selectedParticipantsTab
                                       ).studentExternalQuestionWise || []
                             }
                             columnWidths={
-                                assesssmentType === "PRIVATE" ||
-                                selectedParticipantsTab === "internal"
+                                assesssmentType === 'PRIVATE' ||
+                                selectedParticipantsTab === 'internal'
                                     ? getAllColumnsForTableWidthQuestionWise(
                                           assesssmentType,
-                                          selectedParticipantsTab,
+                                          selectedParticipantsTab
                                       ).QUESTION_WISE_COLUMNS_INTERNAL_OR_CLOSE_WIDTH
                                     : getAllColumnsForTableWidthQuestionWise(
                                           assesssmentType,
-                                          selectedParticipantsTab,
+                                          selectedParticipantsTab
                                       ).QUESTION_WISE_COLUMNS_EXTERNAL_WIDTH || []
                             }
                             rowSelection={currentPageSelection}

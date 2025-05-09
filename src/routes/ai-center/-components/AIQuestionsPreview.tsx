@@ -8,14 +8,17 @@ import {
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { handleGetQuestionsInvidualTask, handleRetryAITask } from '../-services/ai-center-service';
 import { Dispatch, SetStateAction, useState } from 'react';
-import { FormProvider, useFieldArray, useForm } from 'react-hook-form';
+import { FormProvider, useFieldArray, useForm, UseFormReturn } from 'react-hook-form';
 import { z } from 'zod';
 import { generateCompleteAssessmentFormSchema } from '../-utils/generate-complete-assessment-schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { transformQuestionsToGenerateAssessmentAI } from '../-utils/helper';
 import useInstituteLogoStore from '@/components/common/layout-container/sidebar/institutelogo-global-zustand';
 import { Sortable, SortableDragHandle, SortableItem } from '@/components/ui/sortable';
-import { getPPTViewTitle } from '@/routes/assessment/question-papers/-utils/helper';
+import {
+    getPPTViewTitle,
+    transformResponseDataToMyQuestionsSchema,
+} from '@/routes/assessment/question-papers/-utils/helper';
 import { QuestionType } from '@/constants/dummy-data';
 import { DotsSixVertical } from 'phosphor-react';
 import { PPTComponentFactory } from '@/routes/assessment/question-papers/-components/QuestionPaperTemplatesTypes/PPTComponentFactory';
@@ -24,16 +27,14 @@ import { MainViewComponentFactory } from '@/routes/assessment/question-papers/-c
 import ExportQuestionPaperAI from './export-ai-question-paper/ExportQuestionPaperAI';
 import { toast } from 'sonner';
 import { QuestionsFromTextData } from '../ai-tools/vsmart-prompt/-components/GenerateQuestionsFromText';
-// import { handleGenerateAssessmentQuestions } from '../-services/ai-center-service';
-// import { VsmartUpload } from './regenerate-dialogs/VsmartUpload';
-// import VsmartAudio from './regenerate-dialogs/VsmartAudio';
-// import { VsmartPrompt } from './regenerate-dialogs/VsmartPrompt';
-// import { VsmartExtract } from './regenerate-dialogs/VsmartExtract';
-// import { VsmartImage } from './regenerate-dialogs/VsmartImage';
-// import { VsmartOrganizer } from './regenerate-dialogs/VsmartOrganizer';
 import { Badge } from '@/components/ui/badge';
 import { AxiosError } from 'axios';
-// import { VsmartSorter } from "./regenerate-dialogs/VsmartSorter";
+import { MyQuestion } from '@/types/assessments/question-paper-form';
+import { SectionFormType } from '@/types/assessments/assessment-steps';
+import { addQuestionPaper } from '@/routes/assessment/question-papers/-utils/question-paper-services';
+import { getQuestionPaperById } from '@/routes/community/question-paper/-service/utils';
+import { useAIQuestionDialogStore } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/zustand-global-states/ai-add-questions-dialog-zustand';
+
 interface AIQuestionsPreviewProps {
     task: AITaskIndividualListInterface;
     pollGenerateAssessment?: (prompt?: string, taskId?: string) => void;
@@ -47,43 +48,29 @@ interface AIQuestionsPreviewProps {
     heading?: string;
     openQuestionsPreview: boolean;
     setOpenQuestionsPreview: Dispatch<SetStateAction<boolean>>;
+    sectionsForm?: UseFormReturn<SectionFormType>;
+    currentSectionIndex?: number;
 }
 
 const AIQuestionsPreview = ({
     task,
     openQuestionsPreview,
     setOpenQuestionsPreview,
+    sectionsForm,
+    currentSectionIndex,
 }: AIQuestionsPreviewProps) => {
+    const {
+        setIsAIQuestionDialog1,
+        setIsAIQuestionDialog2,
+        setIsAIQuestionDialog3,
+        setIsAIQuestionDialog4,
+        setIsAIQuestionDialog5,
+        setIsAIQuestionDialog6,
+        setIsAIQuestionDialog7,
+        setIsAIQuestionDialog8,
+        setIsAIQuestionDialog9,
+    } = useAIQuestionDialogStore();
     const queryClient = useQueryClient();
-    // const [openVsmartUpload, setOpenVsmartUpload] = useState(false);
-    // const [openVsmartAudio, setOpenVsmartAudio] = useState(false);
-    // const [openVsmartPrompt, setOpenVsmartPrompt] = useState(false);
-    // const [openVsmartExtract, setOpenVsmartExtract] = useState(false);
-    // const [openVsmartImage, setOpenVsmartImage] = useState(false);
-    // const [openVsmartOrganizer, setOpenVsmartOrganizer] = useState(false);
-    // // const [openVsmartSorter, setOpenVsmartSorter] = useState(false);
-    // const handleOpenVsmartUpload = (open: boolean) => {
-    //     setOpenVsmartUpload(open);
-    // };
-    // const handleOpenVsmartAudio = (open: boolean) => {
-    //     setOpenVsmartAudio(open);
-    // };
-    // const handleOpenVsmartPrompt = (open: boolean) => {
-    //     setOpenVsmartPrompt(open);
-    // };
-    // const handleOpenVsmartExtract = (open: boolean) => {
-    //     setOpenVsmartExtract(open);
-    // };
-    // const handleOpenVsmartImage = (open: boolean) => {
-    //     setOpenVsmartImage(open);
-    // };
-    // const handleOpenVsmartOrganizer = (open: boolean) => {
-    //     setOpenVsmartOrganizer(open);
-    // };
-    // const handleOpenVsmartSorter = (open: boolean) => {
-    //     setOpenVsmartSorter(open);
-    // };
-
     const { instituteLogo } = useInstituteLogoStore();
     const [assessmentData, setAssessmentData] = useState<AIAssessmentResponseInterface>({
         title: '',
@@ -170,35 +157,6 @@ const AIQuestionsPreview = ({
         });
     };
 
-    // const handleGenerateClick = () => {
-    //     switch (heading) {
-    //         case 'Vsmart Upload':
-    //             setOpenVsmartUpload(true);
-    //             break;
-    //         case 'Vsmart Audio':
-    //             setOpenVsmartAudio(true);
-    //             break;
-    //         case 'Vsmart Topics':
-    //             setOpenVsmartPrompt(true);
-    //             break;
-    //         case 'Vsmart Extract':
-    //             setOpenVsmartExtract(true);
-    //             break;
-    //         case 'Vsmart Image':
-    //             setOpenVsmartImage(true);
-    //             break;
-    //         case 'Vsmart Organizer':
-    //             setOpenVsmartOrganizer(true);
-    //             break;
-    //         // case "Vsmart Sorter":
-    //         //     setOpenVsmartSorter(true);
-    //         //     break;
-    //         default:
-    //             console.log('Vsmart Upload');
-    //             break;
-    //     }
-    // };
-
     const getRetryMutation = useMutation({
         mutationFn: async ({ taskId }: { taskId: string }) => {
             return handleRetryAITask(taskId);
@@ -242,6 +200,64 @@ const AIQuestionsPreview = ({
     const handleRetryTask = (taskId: string) => {
         getRetryMutation.mutate({
             taskId,
+        });
+    };
+
+    const handleSubmitFormData = useMutation({
+        mutationFn: ({ data }: { data: AIAssessmentResponseInterface }) =>
+            addQuestionPaper(data, true),
+        onSuccess: async (data) => {
+            const getQuestionPaper = await getQuestionPaperById(data.saved_question_paper_id);
+            const transformQuestionsData: MyQuestion[] = transformResponseDataToMyQuestionsSchema(
+                getQuestionPaper.question_dtolist
+            );
+            if (currentSectionIndex !== undefined) {
+                // Check if index is defined
+
+                sectionsForm?.setValue(
+                    `section.${currentSectionIndex}.adaptive_marking_for_each_question`,
+                    transformQuestionsData.map((question) => ({
+                        questionId: question.questionId,
+                        questionName: question.questionName,
+                        questionType: question.questionType,
+                        questionMark: question.questionMark,
+                        questionPenalty: question.questionPenalty,
+                        ...(question.questionType === 'MCQM' && {
+                            correctOptionIdsCnt: question?.multipleChoiceOptions?.filter(
+                                (item) => item.isSelected
+                            ).length,
+                        }),
+                        questionDuration: {
+                            hrs: question.questionDuration.hrs,
+                            min: question.questionDuration.min,
+                        },
+                        parentRichText: question.parentRichTextContent,
+                    }))
+                );
+                sectionsForm?.trigger(
+                    `section.${currentSectionIndex}.adaptive_marking_for_each_question`
+                );
+                setIsAIQuestionDialog1(false);
+                setIsAIQuestionDialog2(false);
+                setIsAIQuestionDialog3(false);
+                setIsAIQuestionDialog4(false);
+                setIsAIQuestionDialog5(false);
+                setIsAIQuestionDialog6(false);
+                setIsAIQuestionDialog7(false);
+                setIsAIQuestionDialog8(false);
+                setIsAIQuestionDialog9(false);
+                setOpenQuestionsPreview(false);
+            }
+            queryClient.invalidateQueries({ queryKey: ['GET_QUESTION_PAPER_FILTERED_DATA'] });
+        },
+        onError: (error: unknown) => {
+            toast.error(error as string);
+        },
+    });
+
+    const handleSaveQuestionsInSection = () => {
+        handleSubmitFormData.mutate({
+            data: assessmentData,
         });
     };
 
@@ -328,9 +344,14 @@ const AIQuestionsPreview = ({
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-4">
-                                            {/* <MyButton onClick={handleGenerateClick} type="button">
-                                                Generate
-                                            </MyButton> */}
+                                            {currentSectionIndex !== undefined && (
+                                                <MyButton
+                                                    onClick={handleSaveQuestionsInSection}
+                                                    type="button"
+                                                >
+                                                    Save
+                                                </MyButton>
+                                            )}
                                             <MyButton
                                                 type="button"
                                                 scale="medium"

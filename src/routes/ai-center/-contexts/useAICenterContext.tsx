@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, ReactNode } from 'react';
 
 interface AICenterContextType {
     loader: boolean;
@@ -23,7 +23,7 @@ export function AICenterProvider({ children }: { children: ReactNode }) {
 export function useAICenter() {
     const context = useContext(AICenterContext);
     if (context === undefined) {
-        throw new Error("useAICenter must be used within an AICenterProvider");
+        throw new Error('useAICenter must be used within an AICenterProvider');
     }
     return context;
 }

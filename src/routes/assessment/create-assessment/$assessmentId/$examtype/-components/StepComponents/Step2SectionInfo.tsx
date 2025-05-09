@@ -1,24 +1,24 @@
-import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import React, { MutableRefObject, useEffect, useState } from "react";
-import { useFieldArray, UseFormReturn } from "react-hook-form";
-import { PencilSimpleLine, TrashSimple, X } from "phosphor-react";
+import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import React, { MutableRefObject, useEffect, useState } from 'react';
+import { useFieldArray, UseFormReturn } from 'react-hook-form';
+import { PencilSimpleLine, TrashSimple, X } from 'phosphor-react';
 import {
     AlertDialog,
     AlertDialogCancel,
     AlertDialogContent,
     AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import useDialogStore from "@/routes/assessment/question-papers/-global-states/question-paper-dialogue-close";
-import { MyButton } from "@/components/design-system/button";
-import { QuestionPaperUpload } from "@/routes/assessment/question-papers/-components/QuestionPaperUpload";
-import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { QuestionPapersTabs } from "@/routes/assessment/question-papers/-components/QuestionPapersTabs";
-import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-import { FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
-import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
-import { calculateTotalMarks, getQuestionTypeCounts, getStepKey } from "../../-utils/helper";
-import { MyInput } from "@/components/design-system/input";
-import { Switch } from "@/components/ui/switch";
+} from '@/components/ui/alert-dialog';
+import useDialogStore from '@/routes/assessment/question-papers/-global-states/question-paper-dialogue-close';
+import { MyButton } from '@/components/design-system/button';
+import { QuestionPaperUpload } from '@/routes/assessment/question-papers/-components/QuestionPaperUpload';
+import { Dialog, DialogClose, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { QuestionPapersTabs } from '@/routes/assessment/question-papers/-components/QuestionPapersTabs';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
+import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
+import { calculateTotalMarks, getQuestionTypeCounts, getStepKey } from '../../-utils/helper';
+import { MyInput } from '@/components/design-system/input';
+import { Switch } from '@/components/ui/switch';
 import {
     Table,
     TableBody,
@@ -26,17 +26,18 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table";
-import { getAssessmentDetails } from "../../-services/assessment-services";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { Input } from "@/components/ui/input";
-import { z } from "zod";
-import sectionDetailsSchema from "../../-utils/section-details-schema";
-import { useSavedAssessmentStore } from "../../-utils/global-states";
-import { Route } from "../..";
-import { useQuestionsForSection } from "../../-hooks/getQuestionsDataForSection";
-import { calculateAveragePenalty } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-utils/helper";
+} from '@/components/ui/table';
+import { getAssessmentDetails } from '../../-services/assessment-services';
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { Input } from '@/components/ui/input';
+import { z } from 'zod';
+import sectionDetailsSchema from '../../-utils/section-details-schema';
+import { useSavedAssessmentStore } from '../../-utils/global-states';
+import { Route } from '../..';
+import { useQuestionsForSection } from '../../-hooks/getQuestionsDataForSection';
+import { calculateAveragePenalty } from '@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-utils/helper';
+import Step2GenerateQuestionsFromAI from './-components/Step2GenerateQuestionsFromAI';
 
 type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 
@@ -58,15 +59,15 @@ export const Step2SectionInfo = ({
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const { data: assessmentDetails, isLoading } = useSuspenseQuery(
         getAssessmentDetails({
-            assessmentId: assessmentId !== "defaultId" ? assessmentId : savedAssessmentId,
+            assessmentId: assessmentId !== 'defaultId' ? assessmentId : savedAssessmentId,
             instituteId: instituteDetails?.id,
             type: examtype,
-        }),
+        })
     );
 
     const adaptiveMarking = useQuestionsForSection(
         assessmentId,
-        form.getValues(`section.${index}.sectionId`),
+        form.getValues(`section.${index}.sectionId`)
     );
 
     const {
@@ -79,11 +80,11 @@ export const Step2SectionInfo = ({
     } = useDialogStore();
 
     const { setValue, getValues, control, watch } = form;
-    const allSections = getValues("section");
+    const allSections = getValues('section');
 
     const { remove } = useFieldArray({
         control,
-        name: "section", // Matches the key in defaultValues
+        name: 'section', // Matches the key in defaultValues
     });
 
     const handleDeleteSection = (e: React.MouseEvent, index: number) => {
@@ -96,7 +97,7 @@ export const Step2SectionInfo = ({
 
         // Loop through adaptive_marking_for_each_question and assign questionMark
         const updatedQuestions = getValues(
-            `section.${index}`,
+            `section.${index}`
         ).adaptive_marking_for_each_question.map((question) => ({
             ...question,
             questionMark: marksPerQuestion, // Assign marks_per_question to questionMark
@@ -106,7 +107,7 @@ export const Step2SectionInfo = ({
         setValue(`section.${index}.adaptive_marking_for_each_question`, updatedQuestions);
         setValue(
             `section.${index}.total_marks`,
-            calculateTotalMarks(getValues(`section.${index}.adaptive_marking_for_each_question`)),
+            calculateTotalMarks(getValues(`section.${index}.adaptive_marking_for_each_question`))
         );
     }, [watch(`section.${index}.marks_per_question`)]);
 
@@ -115,7 +116,7 @@ export const Step2SectionInfo = ({
 
         // Loop through adaptive_marking_for_each_question and assign questionMark
         const updatedQuestions = getValues(
-            `section.${index}`,
+            `section.${index}`
         ).adaptive_marking_for_each_question.map((question) => ({
             ...question,
             questionPenalty: negative_marking, // Assign marks_per_question to questionMark
@@ -131,7 +132,7 @@ export const Step2SectionInfo = ({
 
         // Loop through adaptive_marking_for_each_question and assign questionMark
         const updatedQuestions = getValues(
-            `section.${index}`,
+            `section.${index}`
         ).adaptive_marking_for_each_question.map((question) => ({
             ...question,
             questionDuration: {
@@ -148,10 +149,10 @@ export const Step2SectionInfo = ({
     ]);
 
     useEffect(() => {
-        if (assessmentId !== "defaultId") {
+        if (assessmentId !== 'defaultId') {
             setValue(
                 `section.${index}.adaptive_marking_for_each_question`,
-                adaptiveMarking.adaptiveMarking,
+                adaptiveMarking.adaptiveMarking
             );
             // setValue(
             //     `section.${index}.marks_per_question`,
@@ -159,11 +160,11 @@ export const Step2SectionInfo = ({
             // );
             setValue(
                 `section.${index}.negative_marking.checked`,
-                calculateAveragePenalty(adaptiveMarking.adaptiveMarking) > 0 ? true : false,
+                calculateAveragePenalty(adaptiveMarking.adaptiveMarking) > 0 ? true : false
             );
             setValue(
                 `section.${index}.negative_marking.value`,
-                String(calculateAveragePenalty(adaptiveMarking.adaptiveMarking)),
+                String(calculateAveragePenalty(adaptiveMarking.adaptiveMarking))
             );
             if (oldData.current?.section && oldData.current.section[index]) {
                 oldData.current.section[index]!.adaptive_marking_for_each_question =
@@ -206,22 +207,19 @@ export const Step2SectionInfo = ({
                                     (MCQ(Single Correct):&nbsp;
                                     {allSections?.[index]?.adaptive_marking_for_each_question
                                         ? getQuestionTypeCounts(
-                                              allSections[index]!
-                                                  .adaptive_marking_for_each_question,
+                                              allSections[index]!.adaptive_marking_for_each_question
                                           ).MCQS
                                         : 0}
                                     ,&nbsp; MCQ(Multiple Correct):&nbsp;
                                     {allSections?.[index]?.adaptive_marking_for_each_question
                                         ? getQuestionTypeCounts(
-                                              allSections[index]!
-                                                  .adaptive_marking_for_each_question,
+                                              allSections[index]!.adaptive_marking_for_each_question
                                           ).MCQM
                                         : 0}
                                     ,&nbsp; Total:&nbsp;
                                     {allSections?.[index]?.adaptive_marking_for_each_question
                                         ? getQuestionTypeCounts(
-                                              allSections[index]!
-                                                  .adaptive_marking_for_each_question,
+                                              allSections[index]!.adaptive_marking_for_each_question
                                           ).totalQuestions
                                         : 0}
                                     )
@@ -377,6 +375,7 @@ export const Step2SectionInfo = ({
                             </div>
                         </DialogContent>
                     </Dialog>
+                    <Step2GenerateQuestionsFromAI form={form} index={index} />
                 </div>
                 <div className="flex flex-col gap-2" id="section-instructions">
                     <h1 className="font-thin">Section Description</h1>
@@ -398,12 +397,12 @@ export const Step2SectionInfo = ({
                 {watch(`testDuration.questionWiseDuration`) && (
                     <div className="flex w-96 items-center justify-between text-sm font-thin">
                         <h1 className="font-normal">
-                            Question Duration{" "}
+                            Question Duration{' '}
                             {getStepKey({
                                 assessmentDetails,
                                 currentStep,
-                                key: "section_duration",
-                            }) === "REQUIRED" && (
+                                key: 'section_duration',
+                            }) === 'REQUIRED' && (
                                 <span className="text-subtitle text-danger-600">*</span>
                             )}
                         </h1>
@@ -427,7 +426,7 @@ export const Step2SectionInfo = ({
                                                 onChangeFunction={(e) => {
                                                     const inputValue = e.target.value.replace(
                                                         /[^0-9]/g,
-                                                        "",
+                                                        ''
                                                     ); // Remove non-numeric characters
                                                     field.onChange(inputValue); // Call onChange with the sanitized value
                                                 }}
@@ -460,7 +459,7 @@ export const Step2SectionInfo = ({
                                                 onChangeFunction={(e) => {
                                                     const inputValue = e.target.value.replace(
                                                         /[^0-9]/g,
-                                                        "",
+                                                        ''
                                                     ); // Remove non-numeric characters
                                                     field.onChange(inputValue); // Call onChange with the sanitized value
                                                 }}
@@ -479,12 +478,12 @@ export const Step2SectionInfo = ({
                 {watch(`testDuration.sectionWiseDuration`) && (
                     <div className="flex w-96 items-center justify-between text-sm font-thin">
                         <h1 className="font-normal">
-                            Section Duration{" "}
+                            Section Duration{' '}
                             {getStepKey({
                                 assessmentDetails,
                                 currentStep,
-                                key: "section_duration",
-                            }) === "REQUIRED" && (
+                                key: 'section_duration',
+                            }) === 'REQUIRED' && (
                                 <span className="text-subtitle text-danger-600">*</span>
                             )}
                         </h1>
@@ -508,7 +507,7 @@ export const Step2SectionInfo = ({
                                                 onChangeFunction={(e) => {
                                                     const inputValue = e.target.value.replace(
                                                         /[^0-9]/g,
-                                                        "",
+                                                        ''
                                                     ); // Remove non-numeric characters
                                                     field.onChange(inputValue); // Call onChange with the sanitized value
                                                 }}
@@ -541,7 +540,7 @@ export const Step2SectionInfo = ({
                                                 onChangeFunction={(e) => {
                                                     const inputValue = e.target.value.replace(
                                                         /[^0-9]/g,
-                                                        "",
+                                                        ''
                                                     ); // Remove non-numeric characters
                                                     field.onChange(inputValue); // Call onChange with the sanitized value
                                                 }}
@@ -557,7 +556,7 @@ export const Step2SectionInfo = ({
                         </div>
                     </div>
                 )}
-                {examtype !== "SURVEY" && (
+                {examtype !== 'SURVEY' && (
                     <div id="marking-scheme" className="flex flex-col gap-8">
                         <div
                             className="flex items-center gap-4 text-sm font-thin"
@@ -569,8 +568,8 @@ export const Step2SectionInfo = ({
                                     {getStepKey({
                                         assessmentDetails,
                                         currentStep,
-                                        key: "marks_per_question",
-                                    }) === "REQUIRED" && (
+                                        key: 'marks_per_question',
+                                    }) === 'REQUIRED' && (
                                         <span className="text-subtitle text-danger-600">*</span>
                                     )}
                                 </h1>
@@ -590,8 +589,8 @@ export const Step2SectionInfo = ({
                                                     const charCode = e.key;
                                                     if (
                                                         !/[0-9.]/.test(charCode) ||
-                                                        (charCode === "." &&
-                                                            field.value.includes("."))
+                                                        (charCode === '.' &&
+                                                            field.value.includes('.'))
                                                     ) {
                                                         e.preventDefault(); // Prevent non-numeric and multiple decimals
                                                     }
@@ -599,9 +598,9 @@ export const Step2SectionInfo = ({
                                                 onChangeFunction={(e) => {
                                                     const inputValue = e.target.value.replace(
                                                         /[^0-9.]/g,
-                                                        "",
+                                                        ''
                                                     ); // Allow numbers and decimal
-                                                    if (inputValue.split(".").length > 2) return; // Prevent multiple decimals
+                                                    if (inputValue.split('.').length > 2) return; // Prevent multiple decimals
                                                     field.onChange(inputValue);
                                                 }}
                                                 size="large"
@@ -620,8 +619,8 @@ export const Step2SectionInfo = ({
                                     {getStepKey({
                                         assessmentDetails,
                                         currentStep,
-                                        key: "negative_marking",
-                                    }) === "REQUIRED" && (
+                                        key: 'negative_marking',
+                                    }) === 'REQUIRED' && (
                                         <span className="text-subtitle text-danger-600">*</span>
                                     )}
                                 </h1>
@@ -634,7 +633,7 @@ export const Step2SectionInfo = ({
                                                 <MyInput
                                                     disabled={
                                                         form.getValues(
-                                                            `section.${index}.negative_marking.checked`,
+                                                            `section.${index}.negative_marking.checked`
                                                         )
                                                             ? false
                                                             : true
@@ -646,8 +645,8 @@ export const Step2SectionInfo = ({
                                                         const charCode = e.key;
                                                         if (
                                                             !/[0-9.]/.test(charCode) ||
-                                                            (charCode === "." &&
-                                                                field.value.includes("."))
+                                                            (charCode === '.' &&
+                                                                field.value.includes('.'))
                                                         ) {
                                                             e.preventDefault(); // Prevent non-numeric and multiple decimals
                                                         }
@@ -655,9 +654,9 @@ export const Step2SectionInfo = ({
                                                     onChangeFunction={(e) => {
                                                         const inputValue = e.target.value.replace(
                                                             /[^0-9.]/g,
-                                                            "",
+                                                            ''
                                                         ); // Allow numbers and decimal
-                                                        if (inputValue.split(".").length > 2)
+                                                        if (inputValue.split('.').length > 2)
                                                             return; // Prevent multiple decimals
                                                         field.onChange(inputValue);
                                                     }}
@@ -695,8 +694,8 @@ export const Step2SectionInfo = ({
                                         {getStepKey({
                                             assessmentDetails,
                                             currentStep,
-                                            key: "partial_marking",
-                                        }) === "REQUIRED" && (
+                                            key: 'partial_marking',
+                                        }) === 'REQUIRED' && (
                                             <span className="text-subtitle text-danger-600">*</span>
                                         )}
                                     </FormLabel>
@@ -775,7 +774,7 @@ export const Step2SectionInfo = ({
                         </div> */}
                     </div>
                 )}
-                {examtype !== "SURVEY" && (
+                {examtype !== 'SURVEY' && (
                     <FormField
                         control={form.control}
                         name={`section.${index}.problem_randomization`}
@@ -786,8 +785,8 @@ export const Step2SectionInfo = ({
                                     {getStepKey({
                                         assessmentDetails,
                                         currentStep,
-                                        key: "problem_randomization",
-                                    }) === "REQUIRED" && (
+                                        key: 'problem_randomization',
+                                    }) === 'REQUIRED' && (
                                         <span className="text-subtitle text-danger-600">*</span>
                                     )}
                                 </FormLabel>
@@ -826,7 +825,7 @@ export const Step2SectionInfo = ({
                                                     <TableCell>{idx + 1}</TableCell>
                                                     <TableCell
                                                         dangerouslySetInnerHTML={{
-                                                            __html: question.questionName || "",
+                                                            __html: question.questionName || '',
                                                         }}
                                                     />
                                                     <TableCell>{question.questionType}</TableCell>
@@ -861,7 +860,7 @@ export const Step2SectionInfo = ({
                                                                         <Input
                                                                             disabled={
                                                                                 form.getValues(
-                                                                                    `section.${index}.negative_marking.checked`,
+                                                                                    `section.${index}.negative_marking.checked`
                                                                                 )
                                                                                     ? false
                                                                                     : true
@@ -934,13 +933,13 @@ export const Step2SectionInfo = ({
                                                     )}
                                                 </TableRow>
                                             );
-                                        },
+                                        }
                                     )}
                             </TableBody>
                         </Table>
                     </div>
                 )}
-                {examtype !== "SURVEY" &&
+                {examtype !== 'SURVEY' &&
                     (watch(`section.${index}.marks_per_question`) ||
                         watch(`section.${index}.total_marks`)) && (
                         <div className="flex items-center justify-end gap-1">
@@ -948,9 +947,7 @@ export const Step2SectionInfo = ({
                             <span>:</span>
                             <h1>
                                 {calculateTotalMarks(
-                                    getValues(
-                                        `section.${index}.adaptive_marking_for_each_question`,
-                                    ),
+                                    getValues(`section.${index}.adaptive_marking_for_each_question`)
                                 )}
                             </h1>
                         </div>

@@ -1,7 +1,7 @@
-import { Separator } from "@/components/ui/separator";
-import { QuestionsPieChart } from "./QuestionsPieChart";
-import { QuestionsMarkRankGraph } from "./QuestionsMarkRankGraph";
-import { QuestionAnalysisChart } from "./QuestionAnalysisChart";
+import { Separator } from '@/components/ui/separator';
+import { QuestionsPieChart } from './QuestionsPieChart';
+import { QuestionsMarkRankGraph } from './QuestionsMarkRankGraph';
+import { QuestionAnalysisChart } from './QuestionAnalysisChart';
 
 const AssessmentOverviewTab = () => {
     return (

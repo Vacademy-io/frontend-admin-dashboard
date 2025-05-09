@@ -1,12 +1,12 @@
-import { MyDialog } from "@/components/design-system/dialog";
-import { MyInput } from "@/components/design-system/input";
-import { FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
-import { Textarea } from "@/components/ui/textarea";
-import { useEffect, useRef } from "react";
-import { FormProvider, UseFormReturn } from "react-hook-form";
-import { QuestionsFromTextData } from "./GenerateQuestionsFromText";
-import SelectField from "@/components/design-system/select-field";
-import { languageSupport } from "@/constants/dummy-data";
+import { MyDialog } from '@/components/design-system/dialog';
+import { MyInput } from '@/components/design-system/input';
+import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
+import { Textarea } from '@/components/ui/textarea';
+import { useEffect, useRef } from 'react';
+import { FormProvider, UseFormReturn } from 'react-hook-form';
+import { QuestionsFromTextData } from './GenerateQuestionsFromText';
+import SelectField from '@/components/design-system/select-field';
+import { languageSupport } from '@/constants/dummy-data';
 
 export const QuestionsFromTextDialog = ({
     open,
@@ -72,7 +72,7 @@ export const QuestionsFromTextDialog = ({
                             <FormItem>
                                 <FormControl>
                                     <MyInput
-                                        input={field.value?.toString() || ""}
+                                        input={field.value?.toString() || ''}
                                         onChangeFunction={(e) => field.onChange(e.target.value)}
                                         label="Task Name"
                                         required={true}
@@ -91,7 +91,7 @@ export const QuestionsFromTextDialog = ({
                             <FormItem>
                                 <FormControl>
                                     <MyInput
-                                        input={field.value?.toString() || ""}
+                                        input={field.value?.toString() || ''}
                                         onChangeFunction={(e) => field.onChange(e.target.value)}
                                         label="Topics"
                                         required={true}
@@ -111,7 +111,7 @@ export const QuestionsFromTextDialog = ({
                                 <FormControl>
                                     <div className="flex flex-col gap-2">
                                         <FormLabel>
-                                            Details of topics{" "}
+                                            Details of topics{' '}
                                             <span className="text-red-500">*</span>
                                         </FormLabel>
                                         <Textarea
@@ -133,7 +133,8 @@ export const QuestionsFromTextDialog = ({
                             <FormItem>
                                 <FormControl>
                                     <MyInput
-                                        input={field.value?.toString() || ""}
+                                        min={0}
+                                        input={field.value?.toString() || ''}
                                         onChangeFunction={(e) => {
                                             // Convert to number for validation, floor it
                                             const numValue = Math.floor(Number(e.target.value));
@@ -142,6 +143,7 @@ export const QuestionsFromTextDialog = ({
                                                 field.onChange(numValue); // Store as number in form
                                             }
                                         }}
+                                        onWheel={(e) => e.currentTarget.blur()}
                                         label="Number of Questions"
                                         required={true}
                                         inputType="number"
@@ -159,7 +161,7 @@ export const QuestionsFromTextDialog = ({
                             <FormItem>
                                 <FormControl>
                                     <MyInput
-                                        input={field.value?.toString() || ""}
+                                        input={field.value?.toString() || ''}
                                         onChangeFunction={(e) => field.onChange(e.target.value)}
                                         label="Level"
                                         required={true}
@@ -179,7 +181,7 @@ export const QuestionsFromTextDialog = ({
                             <FormItem>
                                 <FormControl>
                                     <MyInput
-                                        input={field.value?.toString() || ""}
+                                        input={field.value?.toString() || ''}
                                         onChangeFunction={(e) => field.onChange(e.target.value)}
                                         label="Question Type"
                                         required={true}

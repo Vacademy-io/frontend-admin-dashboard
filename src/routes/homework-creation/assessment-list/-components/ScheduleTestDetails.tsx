@@ -1,24 +1,24 @@
-import { TestContent } from "@/types/assessments/schedule-test-list";
-import { MyButton } from "@/components/design-system/button";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { CheckCircle, Copy, DownloadSimple, LockSimple, PauseCircle } from "phosphor-react";
-import QRCode from "react-qr-code";
-import { convertToLocalDateTime } from "@/constants/helper";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
+import { TestContent } from '@/types/assessments/schedule-test-list';
+import { MyButton } from '@/components/design-system/button';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { CheckCircle, Copy, DownloadSimple, LockSimple, PauseCircle } from 'phosphor-react';
+import QRCode from 'react-qr-code';
+import { convertToLocalDateTime } from '@/constants/helper';
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
 import {
     copyToClipboard,
     handleDownloadQRCode,
-} from "../../create-assessment/$assessmentId/$examtype/-utils/helper";
-import { ScheduleTestMainDropdownComponent } from "./ScheduleTestDetailsDropdownMenu";
-import { BASE_URL_LEARNER_DASHBOARD } from "@/constants/urls";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
-import { getBatchNamesByIds } from "../assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-utils/helper";
-import { getSubjectNameById } from "@/routes/assessment/question-papers/-utils/helper";
+} from '../../create-assessment/$assessmentId/$examtype/-utils/helper';
+import { ScheduleTestMainDropdownComponent } from './ScheduleTestDetailsDropdownMenu';
+import { BASE_URL_LEARNER_DASHBOARD } from '@/constants/urls';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { useNavigate } from '@tanstack/react-router';
+import { useState } from 'react';
+import { getBatchNamesByIds } from '../assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-utils/helper';
+import { getSubjectNameById } from '@/routes/assessment/question-papers/-utils/helper';
 
 const ScheduleTestDetails = ({
     scheduleTestContent,
@@ -34,12 +34,12 @@ const ScheduleTestDetails = ({
     const { data: instituteDetails, isLoading } = useSuspenseQuery(useInstituteQuery());
     const batchIdsList = getBatchNamesByIds(
         instituteDetails?.batches_for_sessions,
-        scheduleTestContent.batch_ids,
+        scheduleTestContent.batch_ids
     );
     const handleNavigateAssessment = (assessmentId: string) => {
         if (!isDialogOpen) {
             navigate({
-                to: "/homework-creation/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab",
+                to: '/homework-creation/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab',
                 params: {
                     assessmentId: assessmentId,
                     examType: scheduleTestContent.play_mode,
@@ -61,9 +61,9 @@ const ScheduleTestDetails = ({
                     <h1 className="font-semibold">{scheduleTestContent.name}</h1>
                     <Badge
                         className={`rounded-md border border-neutral-300 ${
-                            scheduleTestContent.assessment_visibility === "PRIVATE"
-                                ? "bg-primary-50"
-                                : "bg-info-50"
+                            scheduleTestContent.assessment_visibility === 'PRIVATE'
+                                ? 'bg-primary-50'
+                                : 'bg-info-50'
                         } py-1.5 shadow-none`}
                     >
                         <LockSimple size={16} className="mr-2" />
@@ -72,12 +72,12 @@ const ScheduleTestDetails = ({
                     <Separator orientation="vertical" className="h-8 w-px bg-neutral-300" />
                     <Badge
                         className={`rounded-md border ${
-                            scheduleTestContent.status === "PUBLISHED"
-                                ? "bg-success-50"
-                                : "bg-neutral-100"
+                            scheduleTestContent.status === 'PUBLISHED'
+                                ? 'bg-success-50'
+                                : 'bg-neutral-100'
                         } border-neutral-300 py-1.5 shadow-none`}
                     >
-                        {scheduleTestContent.status === "PUBLISHED" ? (
+                        {scheduleTestContent.status === 'PUBLISHED' ? (
                             <CheckCircle
                                 size={16}
                                 weight="fill"
@@ -108,7 +108,7 @@ const ScheduleTestDetails = ({
                             </DialogTrigger>
                             <DialogContent className="p-0">
                                 <h1 className="rounded-t-lg bg-primary-50 p-4 font-semibold text-primary-500">
-                                    Assessment Batches
+                                    Homework Batches
                                 </h1>
                                 <ul className="flex list-disc flex-col gap-4 pb-4 pl-8 pr-4">
                                     {batchIdsList.map((batchId, idx) => {
@@ -130,31 +130,38 @@ const ScheduleTestDetails = ({
                 <div className="flex flex-col gap-4">
                     <p>Created on: {convertToLocalDateTime(scheduleTestContent.created_at)}</p>
                     <p>
-                        Subject:{" "}
+                        Subject:{' '}
                         {getSubjectNameById(
                             instituteDetails?.subjects || [],
-                            scheduleTestContent.subject_id || "",
+                            scheduleTestContent.subject_id || ''
                         )}
                     </p>
                 </div>
                 <div className="flex flex-col gap-4">
-                    {(scheduleTestContent.play_mode === "EXAM" ||
-                        scheduleTestContent.play_mode === "SURVEY") && (
+                    {(scheduleTestContent.play_mode === 'EXAM' ||
+                        scheduleTestContent.play_mode === 'SURVEY') && (
                         <p>
-                            Start Date and Time:{" "}
+                            Start Date and Time:{' '}
                             {convertToLocalDateTime(scheduleTestContent.bound_start_time)}
                         </p>
                     )}
-                    {(scheduleTestContent.play_mode === "EXAM" ||
-                        scheduleTestContent.play_mode === "MOCK") && (
-                        <p>Duration: {scheduleTestContent.duration} min</p>
+                    {(scheduleTestContent.play_mode === 'EXAM' ||
+                        scheduleTestContent.play_mode === 'MOCK') && (
+                        <p>
+                            <span className="font-normal text-black">Duration: </span>
+                            {scheduleTestContent.duration >= 60 ? (
+                                <span>{(scheduleTestContent.duration / 60).toFixed(2)} hrs</span>
+                            ) : (
+                                <span>{scheduleTestContent.duration} min</span>
+                            )}
+                        </p>
                     )}
                 </div>
                 <div className="flex flex-col gap-4">
-                    {(scheduleTestContent.play_mode === "EXAM" ||
-                        scheduleTestContent.play_mode === "SURVEY") && (
+                    {(scheduleTestContent.play_mode === 'EXAM' ||
+                        scheduleTestContent.play_mode === 'SURVEY') && (
                         <p>
-                            End Date and Time:{" "}
+                            End Date and Time:{' '}
                             {convertToLocalDateTime(scheduleTestContent.bound_end_time)}
                         </p>
                     )}
@@ -195,7 +202,7 @@ const ScheduleTestDetails = ({
                         className="h-8 min-w-8"
                         onClick={(e) => {
                             handleDownloadQRCode(
-                                `qr-code-svg-assessment-list-${BASE_URL_LEARNER_DASHBOARD}/register?code=${scheduleTestContent.join_link}`,
+                                `qr-code-svg-assessment-list-${BASE_URL_LEARNER_DASHBOARD}/register?code=${scheduleTestContent.join_link}`
                             );
                             e.stopPropagation();
                         }}
