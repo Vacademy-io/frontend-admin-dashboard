@@ -120,12 +120,12 @@ function RouteComponent() {
                     <ChevronRightIcon className={`size-4 `} />
                     <p className="cursor-pointer text-primary-500">{chapterName}</p>
                 </div>
-                <div className="flex w-full flex-col items-center gap-6">
+                <div className="flex w-full flex-col items-center gap-6 pb-10">
                     <ChapterSidebarSlides handleSlideOrderChange={handleSlideOrderChange} />
-                    <div className=" flex w-full items-center justify-center bg-primary-50">
-                        <ChapterSidebarAddButton />
-                    </div>
                 </div>
+            </div>
+            <div className="fixed bottom-0 flex w-[280px] items-center justify-center bg-primary-50 pb-3">
+                <ChapterSidebarAddButton />
             </div>
         </div>
     );

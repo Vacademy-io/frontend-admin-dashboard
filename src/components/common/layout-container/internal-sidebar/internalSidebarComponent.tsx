@@ -24,12 +24,12 @@ export const InternalSidebarComponent = ({
         return <DashboardLoader />;
     }
     return (
-        <div className="relative flex h-screen w-[280px] flex-col gap-6 overflow-y-scroll bg-primary-50 py-10">
+        <div className="relative flex h-screen w-[307px] flex-col gap-6 overflow-y-scroll bg-primary-50 pb-5 pt-10">
             <div>
                 {sidebarComponent
                     ? sidebarComponent
                     : sideBarItems.map((obj, key) => (
-                          <div key={key} id={obj.id}>
+                          <div key={key} id={obj.id} className="pb-5">
                               <SidebarItem
                                   icon={obj.icon}
                                   subItems={obj.subItems}
