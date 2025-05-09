@@ -162,7 +162,14 @@ const ScheduleTestDetails = ({
                     )}
                     {(scheduleTestContent.play_mode === 'EXAM' ||
                         scheduleTestContent.play_mode === 'MOCK') && (
-                        <p>Duration: {scheduleTestContent.duration} min</p>
+                        <p>
+                            <span className="font-normal text-black">Duration: </span>
+                            {scheduleTestContent.duration >= 60 ? (
+                                <span>{(scheduleTestContent.duration / 60).toFixed(2)} hrs</span>
+                            ) : (
+                                <span>{scheduleTestContent.duration} min</span>
+                            )}
+                        </p>
                     )}
                 </div>
                 <div className="flex flex-col gap-4">
