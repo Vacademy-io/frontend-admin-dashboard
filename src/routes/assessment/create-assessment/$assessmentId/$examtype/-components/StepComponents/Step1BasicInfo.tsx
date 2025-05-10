@@ -93,10 +93,6 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
 
     const { SubjectFilterData } = useFilterDataForAssesment(instituteDetails);
 
-    const [assessmentDetails, setAssessmentDetails] = useState<Steps>([]);
-    const [dataLoaded, setDataLoaded] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
-
     const form = useForm<z.infer<typeof BasicInfoFormSchema>>({
         resolver: zodResolver(BasicInfoFormSchema),
         defaultValues: {
@@ -106,24 +102,24 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                 subject: storeDataStep1.testCreation?.subject || '',
                 assessmentInstructions: storeDataStep1.testCreation?.assessmentInstructions || '',
                 liveDateRange: {
-                    startDate: storeDataStep1.testCreation?.liveDateRange?.startDate || '',
-                    endDate: storeDataStep1.testCreation?.liveDateRange?.endDate || '',
+                    startDate: storeDataStep1.testCreation?.liveDateRange?.startDate || '', // Default start date
+                    endDate: storeDataStep1.testCreation?.liveDateRange?.endDate || '', // Default end date
                 },
             },
             assessmentPreview: {
-                checked: storeDataStep1.assessmentPreview?.checked || true,
+                checked: storeDataStep1.assessmentPreview?.checked || true, // Default to true
                 previewTimeLimit:
-                    storeDataStep1.assessmentPreview?.previewTimeLimit || timeLimit[0],
+                    storeDataStep1.assessmentPreview?.previewTimeLimit || timeLimit[0], // Default preview time
             },
             reattemptCount: storeDataStep1.reattemptCount || '1',
             submissionType: storeDataStep1.submissionType || '',
             durationDistribution: storeDataStep1.durationDistribution || '',
             evaluationType: storeDataStep1.evaluationType || '',
-            switchSections: storeDataStep1.switchSections || true,
-            raiseReattemptRequest: storeDataStep1.raiseReattemptRequest || true,
-            raiseTimeIncreaseRequest: storeDataStep1.raiseTimeIncreaseRequest || true,
+            switchSections: storeDataStep1.switchSections || true, // Default to false
+            raiseReattemptRequest: storeDataStep1.raiseReattemptRequest || true, // Default to true
+            raiseTimeIncreaseRequest: storeDataStep1.raiseTimeIncreaseRequest || true, // Default to false
         },
-        mode: 'onChange',
+        mode: 'onChange', // Validate as user types
     });
 
     const { handleSubmit, control, watch } = form;
@@ -182,6 +178,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                     duration: 2000,
                 });
             } else {
+                // Handle non-Axios errors if necessary
                 console.error('Unexpected error:', error);
             }
         },
@@ -218,7 +215,31 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
             .filter((subStep): subStep is Step => subStep !== undefined),
     });
 
-    // Set the navigation heading
+    const [assessmentDetails, setAssessmentDetails] = useState<Steps>([]);
+    const [isLoading, setIsLoading] = useState(false);
+
+    console.log(assessmentDetails);
+
+    useEffect(() => {
+        setIsLoading(true);
+        const fetchAssessmentDetails = async () => {
+            try {
+                const response = await getAssessmentDetailsData({
+                    assessmentId,
+                    instituteId: instituteDetails?.id,
+                    type: examType,
+                });
+                setAssessmentDetails(response);
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchAssessmentDetails();
+    }, [assessmentId, instituteDetails?.id, examType]);
+
     useEffect(() => {
         if (assessmentId !== 'defaultId') {
             setNavHeading(headingUpdate);
@@ -227,37 +248,8 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
         }
     }, []);
 
-    // Fetch assessment details
     useEffect(() => {
-        const fetchAssessmentDetails = async () => {
-            setIsLoading(true);
-            try {
-                if (assessmentId !== 'defaultId' && instituteDetails?.id) {
-                    const response = await getAssessmentDetailsData({
-                        assessmentId,
-                        instituteId: instituteDetails?.id,
-                        type: examType,
-                    });
-                    setAssessmentDetails(response);
-                }
-            } catch (err) {
-                console.error('Error fetching assessment details:', err);
-                toast.error('Failed to load assessment details', {
-                    className: 'error-toast',
-                    duration: 2000,
-                });
-            } finally {
-                setIsLoading(false);
-                setDataLoaded(true);
-            }
-        };
-
-        fetchAssessmentDetails();
-    }, [assessmentId, instituteDetails?.id, examType]);
-
-    // Update form values after data is loaded
-    useEffect(() => {
-        if (dataLoaded && assessmentId !== 'defaultId' && assessmentDetails.length > 0) {
+        if (assessmentId !== 'defaultId') {
             form.reset({
                 status: assessmentDetails[currentStep]?.status,
                 testCreation: {
@@ -268,7 +260,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                             assessmentDetails[currentStep]?.saved_data?.subject_selection || ''
                         ) || '',
                     assessmentInstructions:
-                        assessmentDetails[currentStep]?.saved_data?.instructions?.content || '',
+                        assessmentDetails[currentStep]?.saved_data?.instructions.content || '',
                     liveDateRange: {
                         startDate:
                             convertDateFormat(
@@ -284,15 +276,17 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                 },
                 assessmentPreview: {
                     checked:
-                        (assessmentDetails[currentStep]?.saved_data?.assessment_preview ?? 0) > 0,
+                        (assessmentDetails[currentStep]?.saved_data?.assessment_preview ?? 0) > 0
+                            ? true
+                            : false, // Default to false if undefined or 0
                     previewTimeLimit:
                         assessmentDetails[currentStep]?.saved_data?.assessment_preview !== undefined
                             ? getTimeLimitString(
                                   assessmentDetails[currentStep]?.saved_data?.assessment_preview ??
-                                      0,
+                                      0, // Default to 0 if undefined
                                   timeLimit
                               )
-                            : timeLimit[0],
+                            : timeLimit[0], // Default preview time
                 },
                 reattemptCount:
                     String(assessmentDetails[currentStep]?.saved_data?.reattempt_count) || '1',
@@ -300,15 +294,14 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                 durationDistribution:
                     assessmentDetails[currentStep]?.saved_data?.duration_distribution || '',
                 evaluationType: assessmentDetails[currentStep]?.saved_data?.evaluation_type || '',
-                switchSections:
-                    assessmentDetails[currentStep]?.saved_data?.can_switch_section ?? true,
+                switchSections: assessmentDetails[currentStep]?.saved_data?.can_switch_section, // Default to false
                 raiseReattemptRequest:
-                    assessmentDetails[currentStep]?.saved_data?.reattempt_consent ?? true,
+                    assessmentDetails[currentStep]?.saved_data?.reattempt_consent, // Default to true
                 raiseTimeIncreaseRequest:
-                    assessmentDetails[currentStep]?.saved_data?.add_time_consent ?? true,
+                    assessmentDetails[currentStep]?.saved_data?.add_time_consent, // Default to false
             });
         }
-    }, [dataLoaded, assessmentDetails, currentStep, instituteDetails?.subjects, assessmentId]);
+    }, [assessmentDetails, currentStep, instituteDetails?.subjects, assessmentId]);
 
     if (isLoading || handleSubmitStep1Form.status === 'pending') return <DashboardLoader />;
 
@@ -538,7 +531,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                             label: distribution.value,
                                             _id: index,
                                         })
-                                    ) || []
+                                    ) || [] // Fallback to an empty array if undefined
                                 }
                                 control={form.control}
                                 className="w-56 font-thin"
@@ -569,7 +562,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                                 label: distribution.value,
                                                 _id: index,
                                             })
-                                        ) || []
+                                        ) || [] // Fallback to an empty array if undefined
                                     }
                                     control={form.control}
                                     className="w-56 font-thin"
@@ -664,7 +657,71 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                 )}
                             />
                         )}
-                        {/* Commented sections for reattempt and time increase requests */}
+                        {/* will be adding this later
+                        {getStepKey({
+                            assessmentDetails,
+                            currentStep,
+                            key: "reattempt_consent",
+                        }) && (
+                            <FormField
+                                control={form.control}
+                                name="raiseReattemptRequest"
+                                render={({ field }) => (
+                                    <FormItem className="flex w-1/2 items-center justify-between">
+                                        <FormLabel>
+                                            Allow students to raise reattempt request
+                                            {getStepKey({
+                                                assessmentDetails,
+                                                currentStep,
+                                                key: "reattempt_consent",
+                                            }) === "REQUIRED" && (
+                                                <span className="text-subtitle text-danger-600">
+                                                    *
+                                                </span>
+                                            )}
+                                        </FormLabel>
+                                        <FormControl>
+                                            <Switch
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                        )}
+                        {getStepKey({
+                            assessmentDetails,
+                            currentStep,
+                            key: "add_time_consent",
+                        }) && (
+                            <FormField
+                                control={form.control}
+                                name="raiseTimeIncreaseRequest"
+                                render={({ field }) => (
+                                    <FormItem className="flex w-1/2 items-center justify-between">
+                                        <FormLabel>
+                                            Allow students to raise time increase request
+                                            {getStepKey({
+                                                assessmentDetails,
+                                                currentStep,
+                                                key: "add_time_consent",
+                                            }) === "REQUIRED" && (
+                                                <span className="text-subtitle text-danger-600">
+                                                    *
+                                                </span>
+                                            )}
+                                        </FormLabel>
+                                        <FormControl>
+                                            <Switch
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                        )} */}
                     </div>
                 </div>
             </form>
