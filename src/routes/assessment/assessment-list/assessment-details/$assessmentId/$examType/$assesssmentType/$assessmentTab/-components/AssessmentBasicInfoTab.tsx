@@ -72,7 +72,7 @@ export const AssessmentBasicInfoTab = () => {
                         </div>
                     </div>
                 )}
-                <Separator className="my-6" />
+                <Separator className={examType === 'EXAM' || examType === 'SURVEY' ? 'my-6' : ''} />
                 <div className="flex w-1/2 flex-col gap-4">
                     <h1 className="font-semibold">Attempt settings</h1>
                     {examType === 'EXAM' && (
