@@ -16,7 +16,7 @@ import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-q
 import { getAssessmentDetails, handlePostStep1Data } from '../../-services/assessment-services';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { getStepKey, getTimeLimitString, syncStep1DataWithStore } from '../../-utils/helper';
-import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
+// import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
 import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
 import {
     getIdBySubjectName,
@@ -356,7 +356,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                             />
                         )}
                     </div>
-                    <div className="flex flex-col gap-6" id="assessment-instructions">
+                    {/* <div className="flex flex-col gap-6" id="assessment-instructions">
                         <h1 className="-mb-5 font-thin">Assessment Instructions</h1>
                         <FormField
                             control={control}
@@ -372,7 +372,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                 </FormItem>
                             )}
                         />
-                    </div>
+                    </div> */}
 
                     {getStepKey({
                         assessmentDetails,
