@@ -6,24 +6,24 @@ import {
     SidebarMenu,
     SidebarMenuItem,
     useSidebar,
-} from "@/components/ui/sidebar";
-import { SidebarStateType } from "../../../../types/layout-container/layout-container-types";
-import { SidebarItem } from "./sidebar-item";
-import { SidebarItemsData } from "./utils";
-import "./scrollbarStyle.css";
-import React, { useEffect, useState } from "react";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { filterMenuItems, filterMenuList, getModuleFlags } from "./helper";
-import { useFileUpload } from "@/hooks/use-file-upload";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn, goToMailSupport, goToWhatsappSupport } from "@/lib/utils";
-import { Question } from "phosphor-react";
-import { Command, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
-import { WhatsappLogo, EnvelopeSimple } from "@phosphor-icons/react";
-import { useNavigate, useRouter } from "@tanstack/react-router";
-import useInstituteLogoStore from "./institutelogo-global-zustand";
+} from '@/components/ui/sidebar';
+import { SidebarStateType } from '../../../../types/layout-container/layout-container-types';
+import { SidebarItem } from './sidebar-item';
+import { SidebarItemsData } from './utils';
+import './scrollbarStyle.css';
+import React, { useEffect, useState } from 'react';
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { filterMenuItems, filterMenuList, getModuleFlags } from './helper';
+import { useFileUpload } from '@/hooks/use-file-upload';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn, goToMailSupport, goToWhatsappSupport } from '@/lib/utils';
+import { Question } from 'phosphor-react';
+import { Command, CommandGroup, CommandItem, CommandList } from '@/components/ui/command';
+import { WhatsappLogo, EnvelopeSimple } from '@phosphor-icons/react';
+import { useNavigate, useRouter } from '@tanstack/react-router';
+import useInstituteLogoStore from './institutelogo-global-zustand';
 
 export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.ReactNode }) => {
     const navigate = useNavigate();
@@ -56,18 +56,18 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
     return (
         <Sidebar collapsible="icon" className="z-20">
             <SidebarContent
-                className={`sidebar-content flex flex-col gap-14 border-r border-r-neutral-300 bg-primary-50 py-10 ${
-                    state == "expanded" ? "w-[307px]" : "w-28"
+                className={`sidebar-content flex flex-col gap-4 border-r border-r-neutral-300 bg-primary-50 py-10 ${
+                    state == 'expanded' ? 'w-[307px]' : 'w-28'
                 }`}
             >
                 <SidebarHeader className="">
                     <div
                         className={`flex cursor-pointer items-center justify-center gap-2 ${
-                            state == "expanded" ? "pl-4" : "pl-0"
+                            state == 'expanded' ? 'pl-4' : 'pl-0'
                         }`}
-                        onClick={() => navigate({ to: "/dashboard" })}
+                        onClick={() => navigate({ to: '/dashboard' })}
                     >
-                        {instituteLogo !== "" && (
+                        {instituteLogo !== '' && (
                             <img src={instituteLogo} alt="logo" className="size-12 rounded-full" />
                         )}
                         <SidebarGroup
@@ -78,8 +78,8 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                     </div>
                 </SidebarHeader>
                 <SidebarMenu
-                    className={`flex shrink-0 flex-col justify-center gap-6 py-4 ${
-                        state == "expanded" ? "items-stretch" : "items-center"
+                    className={`flex shrink-0 flex-col justify-center gap-2 py-4 ${
+                        state == 'expanded' ? 'items-stretch' : 'items-center'
                     }`}
                 >
                     {sidebarComponent
@@ -97,11 +97,11 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                 </SidebarMenu>
                 <div
                     className={cn(
-                        "mt-auto flex items-center justify-center",
-                        state === "collapsed" ? "mx-auto px-1" : "px-1",
+                        'mt-auto flex items-center justify-center',
+                        state === 'collapsed' ? 'mx-auto px-1' : 'px-1'
                     )}
                 >
-                    {!currentRoute.includes("slides") && <SupportOptions />}
+                    {!currentRoute.includes('slides') && <SupportOptions />}
                 </div>
             </SidebarContent>
         </Sidebar>
@@ -123,15 +123,15 @@ function SupportOptions() {
                     onMouseLeave={toggleHover}
                 >
                     <Question
-                        className={cn("size-7", hover ? "text-primary-500" : "text-neutral-400")}
+                        className={cn('size-7', hover ? 'text-primary-500' : 'text-neutral-400')}
                         weight="fill"
                     />
                     <div
                         className={`${
-                            hover ? "text-primary-500" : "text-neutral-600"
+                            hover ? 'text-primary-500' : 'text-neutral-600'
                         } text-body font-regular text-neutral-600 group-data-[collapsible=icon]:hidden`}
                     >
-                        {"Support"}
+                        {'Support'}
                     </div>
                 </div>
             </PopoverTrigger>
