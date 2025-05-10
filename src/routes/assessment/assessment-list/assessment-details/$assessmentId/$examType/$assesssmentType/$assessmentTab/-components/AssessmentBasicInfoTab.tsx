@@ -46,29 +46,32 @@ export const AssessmentBasicInfoTab = () => {
                         />
                     </div>
                 </div>
-                <div className="flex flex-col gap-1 font-semibold">
-                    <h1>Live Date Range</h1>
-                    <div className="flex items-center gap-8">
-                        <h1 className="text-sm">
-                            Start Date and Time:{' '}
-                            <span className="font-thin">
-                                {' '}
-                                {convertToLocalDateTime(
-                                    assessmentDetails[0]?.saved_data?.boundation_start_date ?? ''
-                                )}
-                            </span>{' '}
-                        </h1>
-                        <h1 className="text-sm">
-                            End Date and Time:{' '}
-                            <span className="font-thin">
-                                {' '}
-                                {convertToLocalDateTime(
-                                    assessmentDetails[0]?.saved_data?.boundation_end_date ?? ''
-                                )}
-                            </span>{' '}
-                        </h1>
+                {(examType === 'EXAM' || examType === 'SURVEY') && (
+                    <div className="flex flex-col gap-1 font-semibold">
+                        <h1>Live Date Range</h1>
+                        <div className="flex items-center gap-8">
+                            <h1 className="text-sm">
+                                Start Date and Time:{' '}
+                                <span className="font-thin">
+                                    {' '}
+                                    {convertToLocalDateTime(
+                                        assessmentDetails[0]?.saved_data?.boundation_start_date ??
+                                            ''
+                                    )}
+                                </span>{' '}
+                            </h1>
+                            <h1 className="text-sm">
+                                End Date and Time:{' '}
+                                <span className="font-thin">
+                                    {' '}
+                                    {convertToLocalDateTime(
+                                        assessmentDetails[0]?.saved_data?.boundation_end_date ?? ''
+                                    )}
+                                </span>{' '}
+                            </h1>
+                        </div>
                     </div>
-                </div>
+                )}
                 <Separator className="my-6" />
                 <div className="flex w-1/2 flex-col gap-4">
                     <h1 className="font-semibold">Attempt settings</h1>
