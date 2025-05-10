@@ -1,19 +1,19 @@
-import katex from "katex";
+import katex from 'katex';
 window.katex = katex;
-import "katex/dist/katex.css";
+import 'katex/dist/katex.css';
 
-import ReactQuill, { Quill } from "react-quill";
-import "react-quill/dist/quill.snow.css";
-import "./jquery";
+import ReactQuill, { Quill } from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
+import './jquery';
 
-import "@edtr-io/mathquill/build/mathquill.js";
-import "@edtr-io/mathquill/build/mathquill.css";
+import '@edtr-io/mathquill/build/mathquill.js';
+import '@edtr-io/mathquill/build/mathquill.css';
 
-import mathquill4quill from "mathquill4quill";
-import "mathquill4quill/mathquill4quill.css";
-import "./index.css";
-import { useEffect, useRef } from "react";
-import { ALL_OPERATORS } from "./Operators";
+import mathquill4quill from 'mathquill4quill';
+import 'mathquill4quill/mathquill4quill.css';
+import './index.css';
+import { useEffect, useRef } from 'react';
+import { ALL_OPERATORS } from './Operators';
 
 // Function to resize an image to 300x300 px
 const resizeImage = (file, callback) => {
@@ -25,8 +25,8 @@ const resizeImage = (file, callback) => {
         img.src = event.target.result;
 
         img.onload = () => {
-            const canvas = document.createElement("canvas");
-            const ctx = canvas.getContext("2d");
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
 
             // Set the canvas size to 300x300
             canvas.width = 200;
@@ -36,7 +36,7 @@ const resizeImage = (file, callback) => {
             ctx.drawImage(img, 0, 0, 200, 200);
 
             // Convert canvas back to base64
-            const resizedImage = canvas.toDataURL("image/png");
+            const resizedImage = canvas.toDataURL('image/png');
             callback(resizedImage);
         };
     };
@@ -44,9 +44,9 @@ const resizeImage = (file, callback) => {
 
 // Custom Image Handler for Quill Editor
 const imageHandler = function () {
-    const input = document.createElement("input");
-    input.setAttribute("type", "file");
-    input.setAttribute("accept", "image/*");
+    const input = document.createElement('input');
+    input.setAttribute('type', 'file');
+    input.setAttribute('accept', 'image/*');
     input.click();
 
     input.onchange = async () => {
@@ -55,7 +55,7 @@ const imageHandler = function () {
             resizeImage(file, (resizedImage) => {
                 const quill = this.quill;
                 const range = quill.getSelection();
-                quill.insertEmbed(range.index, "image", resizedImage);
+                quill.insertEmbed(range.index, 'image', resizedImage);
             });
         }
     };
@@ -77,7 +77,7 @@ export const MainViewQuillEditor = ({ value, onChange }) => {
     }, []);
 
     useEffect(() => {
-        const styleElement = document.createElement("style");
+        const styleElement = document.createElement('style');
         styleElement.innerHTML = `
             .ql-action::after {
                 content: 'Insert' !important;
@@ -94,11 +94,11 @@ export const MainViewQuillEditor = ({ value, onChange }) => {
     const rightBarmodules = {
         toolbar: {
             container: [
-                ["bold", "italic", "underline"],
+                ['bold', 'italic', 'underline'],
                 [{ align: [] }],
-                [{ list: "ordered" }, { list: "bullet" }],
-                ["formula"], // Formula button
-                ["image"], // Image button
+                [{ list: 'ordered' }, { list: 'bullet' }],
+                ['formula'], // Formula button
+                ['image'], // Image button
             ],
             handlers: {
                 image: imageHandler, // Custom image handler
