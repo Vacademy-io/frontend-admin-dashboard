@@ -111,7 +111,7 @@ export function DashboardComponent() {
                     content="This page shows the dashboard of the institute."
                 />
             </Helmet>
-            <h1 className="text-2xl">
+            <h1 className="text-base">
                 Hello <span className="text-primary-500">{tokenData?.fullname}!</span>
             </h1>
             {getValue() && (
