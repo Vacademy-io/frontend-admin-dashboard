@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 import YooptaEditor, { createYooptaEditor } from '@yoopta/editor';
-import { Dispatch, SetStateAction, useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { MyButton } from '@/components/design-system/button';
 import PDFViewer from './pdf-viewer';
 import { ActivityStatsSidebar } from './stats-dialog/activity-sidebar';
@@ -20,52 +20,29 @@ import {
 } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides';
 import { toast } from 'sonner';
 import { Check, DownloadSimple, PencilSimpleLine } from 'phosphor-react';
-import { convertHtmlToPdf, convertToSlideFormat } from '../-helper/helper';
+import { convertToSlideFormat } from '../-helper/helper';
 import { StudyLibraryQuestionsPreview } from './questions-preview';
-import { UploadQuestionPaperFormType } from '@/routes/assessment/question-papers/-components/QuestionPaperUpload';
 import StudyLibraryAssignmentPreview from './assignment-preview';
 import VideoSlidePreview from './video-slide-preview';
-
-export const formatHTMLString = (htmlString: string) => {
-    // Remove the body tag and its attributes
-    let cleanedHtml = htmlString.replace(/<body[^>]*>|<\/body>/g, '');
-
-    // Remove data-meta attributes and style from paragraphs
-    cleanedHtml = cleanedHtml.replace(/<p[^>]*data-meta[^>]*style="[^"]*"[^>]*>/g, '<p>');
-
-    // Add proper HTML structure
-    const formattedHtml = `<html>
-    <head></head>
-    <body>
-        <div>
-            ${cleanedHtml}
-        </div>
-    </body>
-</html>`;
-
-    return formattedHtml;
-};
+import { handlePublishSlide } from './slide-operations/handlePublishSlide';
+import { handleUnpublishSlide } from './slide-operations/handleUnpublishSlide';
+import { updateHeading } from './slide-operations/updateSlideHeading';
+import { formatHTMLString } from './slide-operations/formatHtmlString';
+import { handleConvertAndUpload } from './slide-operations/handleConvertUpload';
+import { UploadQuestionPaperFormType } from '@/routes/assessment/question-papers/-components/QuestionPaperUpload';
 
 export const SlideMaterial = ({
     setGetCurrentEditorHTMLContent,
     setSaveDraft,
 }: {
     setGetCurrentEditorHTMLContent: (fn: () => string) => void;
-    setSaveDraft: (fn: (slide: Slide) => Promise<void>) => void;
+    setSaveDraft: (fn: (activeItem: Slide) => Promise<void>) => void;
 }) => {
     const { items, activeItem, setActiveItem } = useContentStore();
     const editor = useMemo(() => createYooptaEditor(), []);
     const selectionRef = useRef(null);
     const [isEditing, setIsEditing] = useState(false);
     const [slideTitle, setSlideTitle] = useState('');
-
-    useEffect(() => {
-        setSlideTitle(
-            (activeItem?.source_type === 'DOCUMENT' && activeItem?.document_slide?.title) ||
-                (activeItem?.source_type === 'VIDEO' && activeItem?.video_slide?.title) ||
-                ''
-        );
-    }, [activeItem]);
 
     const [heading, setHeading] = useState(slideTitle);
     const router = useRouter();
@@ -80,66 +57,6 @@ export const SlideMaterial = ({
 
     const handleHeadingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setHeading(e.target.value);
-    };
-
-    const updateHeading = async () => {
-        const status = activeItem?.status == 'DRAFT' ? 'DRAFT' : 'UNSYNC';
-        if (activeItem) {
-            if (activeItem.source_type == 'VIDEO') {
-                const url =
-                    activeItem?.status == 'PUBLISHED'
-                        ? activeItem.video_slide?.published_url
-                        : activeItem.video_slide?.url;
-                await addUpdateVideoSlide({
-                    id: activeItem?.id,
-                    title: heading,
-                    description: activeItem.description,
-                    image_file_id: activeItem.image_file_id,
-                    slide_order: null,
-                    video_slide: {
-                        id: activeItem.video_slide?.id || '',
-                        description: activeItem.video_slide?.description || '',
-                        url: url || null,
-                        title: heading,
-                        video_length_in_millis: 0,
-                        published_url: null,
-                        published_video_length_in_millis: 0,
-                    },
-                    status: status,
-                    new_slide: false,
-                    notify: false,
-                });
-                return;
-            } else {
-                if (activeItem.source_type === 'DOCUMENT') {
-                    if (activeItem.document_slide?.type == 'DOC') await SaveDraft();
-                    await addUpdateDocumentSlide({
-                        id: activeItem?.id || '',
-                        title: heading,
-                        image_file_id: activeItem.image_file_id || '',
-                        description: activeItem?.description || '',
-                        slide_order: null,
-                        document_slide: {
-                            id: activeItem?.document_slide?.id || '',
-                            type: activeItem?.document_slide?.type || '',
-                            data:
-                                activeItem.status == 'PUBLISHED'
-                                    ? activeItem.document_slide?.published_data || null
-                                    : activeItem.document_slide?.data || null,
-                            title: heading,
-                            cover_file_id: activeItem.document_slide?.cover_file_id || '',
-                            total_pages: 0,
-                            published_data: null,
-                            published_document_total_pages: 0,
-                        },
-                        status: status,
-                        new_slide: false,
-                        notify: false,
-                    });
-                }
-            }
-        }
-        setIsEditing(false);
     };
 
     const setEditorContent = () => {
@@ -167,6 +84,13 @@ export const SlideMaterial = ({
         );
         // editor.insertBlock('Paragraph',{ at: 1, focus: true });
         editor.focus();
+    };
+
+    const getCurrentEditorHTMLContent: () => string = () => {
+        const data = editor.getEditorValue();
+        const htmlString = html.serialize(editor, data);
+        const formattedHtmlString = formatHTMLString(htmlString);
+        return formattedHtmlString;
     };
 
     const loadContent = async () => {
@@ -213,169 +137,9 @@ export const SlideMaterial = ({
             setContent(<StudyLibraryAssignmentPreview activeItem={activeItem} />);
             return;
         }
-
         return;
     };
 
-    const handlePublishSlide = async (
-        setIsOpen: Dispatch<SetStateAction<boolean>>,
-        notify: boolean
-    ) => {
-        const status = 'PUBLISHED';
-        if (activeItem?.source_type === 'QUESTION') {
-            const questionsData: UploadQuestionPaperFormType = JSON.parse('');
-            // need to add my question logic
-            const convertedData = convertToSlideFormat(questionsData, status);
-            try {
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-expect-error
-                await updateQuestionOrder(convertedData!);
-            } catch {
-                toast.error('error saving slide');
-            }
-            return;
-        }
-        if (activeItem?.source_type == 'DOCUMENT') {
-            if (activeItem?.document_slide?.type == 'DOC') SaveDraft();
-            const publishedData = activeItem.document_slide?.data;
-            try {
-                await addUpdateDocumentSlide({
-                    id: activeItem?.id || '',
-                    title: activeItem.title || '',
-                    image_file_id: activeItem?.image_file_id || '',
-                    description: activeItem?.description || '',
-                    slide_order: null,
-                    document_slide: {
-                        id: activeItem?.document_slide?.id || '',
-                        type: activeItem?.document_slide?.type || '',
-                        data: null,
-                        title: activeItem?.document_slide?.title || '',
-                        cover_file_id: activeItem?.document_slide?.cover_file_id || '',
-                        total_pages: 0,
-                        published_data: publishedData || null,
-                        published_document_total_pages: 0,
-                    },
-                    status: status,
-                    new_slide: false,
-                    notify: notify,
-                });
-                toast.success(`slide published successfully!`);
-                setIsOpen(false);
-            } catch {
-                toast.error(`Error in publishing the slide`);
-            }
-        } else {
-            try {
-                await addUpdateVideoSlide({
-                    id: activeItem?.id || '',
-                    title: activeItem?.title || '',
-                    description: activeItem?.description || '',
-                    image_file_id: activeItem?.image_file_id || '',
-                    slide_order: null,
-                    video_slide: {
-                        id: activeItem?.video_slide?.id || '',
-                        description: activeItem?.video_slide?.description || '',
-                        url: null,
-                        title: activeItem?.video_slide?.title || '',
-                        video_length_in_millis: 0,
-                        published_url: activeItem?.video_slide?.url || null,
-                        published_video_length_in_millis: 0,
-                    },
-                    status: status,
-                    new_slide: false,
-                    notify: notify,
-                });
-                toast.success(`slide published successfully!`);
-                setIsOpen(false);
-            } catch {
-                toast.error(`Error in publishing the slide`);
-            }
-        }
-    };
-    const handleUnpublishSlide = async (
-        setIsOpen: Dispatch<SetStateAction<boolean>>,
-        notify: boolean
-    ) => {
-        const status = 'DRAFT';
-        if (activeItem?.source_type === 'QUESTION') {
-            const questionsData: UploadQuestionPaperFormType = JSON.parse('');
-            // need to add my question logic
-            const convertedData = convertToSlideFormat(questionsData, status);
-            try {
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-expect-error
-                await updateQuestionOrder(convertedData!);
-            } catch {
-                toast.error('error saving slide');
-            }
-            return;
-        }
-        if (activeItem?.source_type == 'DOCUMENT') {
-            if (activeItem.document_slide?.type == 'DOC') SaveDraft();
-            const draftData = activeItem.document_slide?.data;
-            try {
-                await addUpdateDocumentSlide({
-                    id: activeItem?.id || '',
-                    title: activeItem?.title || '',
-                    image_file_id: activeItem?.image_file_id || '',
-                    description: activeItem?.description || '',
-                    slide_order: null,
-                    document_slide: {
-                        id: activeItem?.document_slide?.id || '',
-                        type: activeItem?.document_slide?.type || '',
-                        data: draftData || null,
-                        title: activeItem?.document_slide?.title || '',
-                        cover_file_id: activeItem?.document_slide?.cover_file_id || '',
-                        total_pages: 0,
-                        published_data: null,
-                        published_document_total_pages: 0,
-                    },
-                    status: status,
-                    new_slide: false,
-                    notify: notify,
-                });
-                toast.success(`slide unpublished successfully!`);
-                setIsOpen(false);
-            } catch {
-                toast.error(`Error in unpublishing the slide`);
-            }
-        } else {
-            try {
-                await addUpdateVideoSlide({
-                    id: activeItem?.id || '',
-                    title: activeItem?.title || '',
-                    description: activeItem?.description || '',
-                    image_file_id: activeItem?.image_file_id || '',
-                    slide_order: null,
-                    video_slide: {
-                        id: activeItem?.video_slide?.id || '',
-                        description: activeItem?.video_slide?.description || '',
-                        url: activeItem?.video_slide?.url || null,
-                        title: activeItem?.video_slide?.title || '',
-                        video_length_in_millis: 0,
-                        published_url: null,
-                        published_video_length_in_millis: 0,
-                    },
-                    status: status,
-                    new_slide: false,
-                    notify: notify,
-                });
-                toast.success(`slide unpublished successfully!`);
-                setIsOpen(false);
-            } catch {
-                toast.error(`Error in unpublishing the slide`);
-            }
-        }
-    };
-
-    const getCurrentEditorHTMLContent: () => string = () => {
-        const data = editor.getEditorValue();
-        const htmlString = html.serialize(editor, data);
-        const formattedHtmlString = formatHTMLString(htmlString);
-        return formattedHtmlString;
-    };
-
-    // Modified SaveDraft function
     const SaveDraft = async (slideToSave?: Slide | null) => {
         const slide = slideToSave ? slideToSave : activeItem;
         const status = slide
@@ -429,37 +193,20 @@ export const SlideMaterial = ({
 
     const handleSaveDraftClick = async () => {
         try {
-            await SaveDraft();
+            await SaveDraft(activeItem);
             toast.success('Slide saved successfully');
         } catch {
             toast.error('error saving document');
         }
     };
 
-    const handleConvertAndUpload = async (htmlString: string | null): Promise<string | null> => {
-        if (htmlString == null) return null;
-        try {
-            // Step 1: Convert HTML to PDF
-            const pdfBlob = await convertHtmlToPdf(htmlString);
-
-            // Step 2: Create a download link
-            const url = window.URL.createObjectURL(pdfBlob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'document.pdf';
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-
-            toast.success('Document downloaded successfully');
-            return null;
-        } catch (error) {
-            console.error('Download Failed:', error);
-            toast.error('Failed to download document. Please try again.');
-        }
-        return null;
-    };
+    useEffect(() => {
+        setSlideTitle(
+            (activeItem?.source_type === 'DOCUMENT' && activeItem?.document_slide?.title) ||
+                (activeItem?.source_type === 'VIDEO' && activeItem?.video_slide?.title) ||
+                ''
+        );
+    }, [activeItem]);
 
     useEffect(() => {
         if (items.length == 0) setActiveItem(null);
@@ -483,7 +230,7 @@ export const SlideMaterial = ({
                 // Only save if the content has changed
                 if (formattedHtmlString !== previousHtmlString) {
                     previousHtmlString = formattedHtmlString;
-                    SaveDraft();
+                    SaveDraft(activeItem);
                 }
             }, 60000);
         }
@@ -516,7 +263,16 @@ export const SlideMaterial = ({
                                     autoFocus
                                 />
                                 <Check
-                                    onClick={updateHeading}
+                                    onClick={() =>
+                                        updateHeading(
+                                            activeItem,
+                                            addUpdateVideoSlide,
+                                            SaveDraft,
+                                            heading,
+                                            setIsEditing,
+                                            addUpdateDocumentSlide
+                                        )
+                                    }
                                     className="cursor-pointer hover:text-primary-500"
                                 />
                             </div>
@@ -544,7 +300,7 @@ export const SlideMaterial = ({
                                     <MyButton
                                         layoutVariant="icon"
                                         onClick={async () => {
-                                            await SaveDraft();
+                                            await SaveDraft(activeItem);
                                             if (activeItem.status == 'PUBLISHED') {
                                                 await handleConvertAndUpload(
                                                     activeItem.document_slide?.published_data ||
@@ -576,12 +332,32 @@ export const SlideMaterial = ({
                             <UnpublishDialog
                                 isOpen={isUnpublishDialogOpen}
                                 setIsOpen={setIsUnpublishDialogOpen}
-                                handlePublishUnpublishSlide={handleUnpublishSlide}
+                                handlePublishUnpublishSlide={() =>
+                                    handleUnpublishSlide(
+                                        setIsUnpublishDialogOpen,
+                                        false,
+                                        activeItem,
+                                        addUpdateDocumentSlide,
+                                        addUpdateVideoSlide,
+                                        updateQuestionOrder,
+                                        SaveDraft
+                                    )
+                                }
                             />
                             <PublishDialog
                                 isOpen={isPublishDialogOpen}
                                 setIsOpen={setIsPublishDialogOpen}
-                                handlePublishUnpublishSlide={handlePublishSlide}
+                                handlePublishUnpublishSlide={() =>
+                                    handlePublishSlide(
+                                        setIsPublishDialogOpen,
+                                        false,
+                                        activeItem,
+                                        addUpdateDocumentSlide,
+                                        addUpdateVideoSlide,
+                                        updateQuestionOrder,
+                                        SaveDraft
+                                    )
+                                }
                             />
                         </div>
                         <SlidesMenuOption />

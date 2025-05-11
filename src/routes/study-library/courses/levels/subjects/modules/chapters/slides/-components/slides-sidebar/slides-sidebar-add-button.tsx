@@ -7,7 +7,7 @@ import { AddDocDialog } from './add-doc-dialog';
 import { AddPdfDialog } from './add-pdf-dialog';
 import { useRouter } from '@tanstack/react-router';
 import { useSlides } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides';
-import { formatHTMLString } from '../slide-material';
+import { formatHTMLString } from '../slide-operations/formatHtmlString';
 import { useContentStore } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
 import { useDialogStore } from '@/routes/study-library/courses/-stores/slide-add-dialogs-store';
 import AddQuestionDialog from './add-question-dialog';

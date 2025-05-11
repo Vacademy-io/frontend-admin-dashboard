@@ -124,7 +124,7 @@ export interface Slide {
     new_slide: boolean;
 }
 
-interface VideoSlidePayload {
+export interface VideoSlidePayload {
     id?: string | null;
     title: string;
     description: string | null;
@@ -144,7 +144,7 @@ interface VideoSlidePayload {
     notify: boolean;
 }
 
-interface DocumentSlidePayload {
+export interface DocumentSlidePayload {
     id: string | null;
     title: string;
     image_file_id: string;
