@@ -1,8 +1,8 @@
-export const BASE_URL = "https://backend-stage.vacademy.io";
-export const BASE_URL_LEARNER_DASHBOARD = "https://frontend-learner-dashboard-app.pages.dev";
+export const BASE_URL = 'https://backend-stage.vacademy.io';
+export const BASE_URL_LEARNER_DASHBOARD = 'https://frontend-learner-dashboard-app.pages.dev';
 
-export const SSDC_INSTITUTE_ID = "69ca11c6-54e1-4e99-9498-50c9a4272ce6";
-export const SHUBHAM_INSTITUTE_ID = "d0de8707-f36c-43a0-953c-019ca507c81d";
+export const SSDC_INSTITUTE_ID = '69ca11c6-54e1-4e99-9498-50c9a4272ce6';
+export const SHUBHAM_INSTITUTE_ID = 'd0de8707-f36c-43a0-953c-019ca507c81d';
 
 // urls
 export const LOGIN_URL = `${BASE_URL}/auth-service/v1/login-root`;
@@ -109,7 +109,7 @@ export const ADD_SESSION = `${BASE_URL}/admin-core-service/sessions/v1/add`;
 export const EDIT_SESSION = `${BASE_URL}/admin-core-service/sessions/v1/edit`;
 export const DELETE_SESSION = `${BASE_URL}/admin-core-service/sessions/v1/delete-sessions`;
 
-export const GET_SLIDES = `${BASE_URL}/admin-core-service/slide/v1/get-slides`;
+export const GET_SLIDES = `${BASE_URL}/admin-core-service/slide/v1/slides`;
 export const ADD_UPDATE_VIDEO_SLIDE = `${BASE_URL}/admin-core-service/slide/v1/add-update-video-slide`;
 export const ADD_UPDATE_DOCUMENT_SLIDE = `${BASE_URL}/admin-core-service/slide/v1/add-update-document-slide`;
 export const UPDATE_SLIDE_STATUS = `${BASE_URL}/admin-core-service/slide/v1/update-status`;
@@ -161,8 +161,6 @@ export const GET_USER_CREDENTIALS = `${BASE_URL}/auth-service/v1/user/user-crede
 export const EDIT_STUDENT_DETAILS = `${BASE_URL}/admin-core-service/learner/info/v1/edit`;
 export const USERS_CREDENTIALS = `${BASE_URL}/auth-service/v1/user/users-credential`;
 export const EXPORT_ACCOUNT_DETAILS = `${BASE_URL}/admin-core-service/institute/institute_learner/get/v1/basic-details-csv`;
-
-
 
 //slides endpoints
 export const GET_PRESENTATION_LIST = `${BASE_URL}/community-service/presentation/get-all-presentation`;

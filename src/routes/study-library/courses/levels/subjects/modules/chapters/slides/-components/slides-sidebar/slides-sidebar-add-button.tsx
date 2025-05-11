@@ -7,32 +7,29 @@ import { AddDocDialog } from './add-doc-dialog';
 import { AddPdfDialog } from './add-pdf-dialog';
 import { useRouter } from '@tanstack/react-router';
 import { useSlides } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides';
-import { formatHTMLString } from '../slide-material';
+import { formatHTMLString } from '../slide-operations/formatHtmlString';
 import { useContentStore } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
 import { useDialogStore } from '@/routes/study-library/courses/-stores/slide-add-dialogs-store';
 import AddQuestionDialog from './add-question-dialog';
 import { File } from 'phosphor-react';
-import { useForm } from 'react-hook-form';
-import { assignmentFormSchema, AssignmentFormType } from '../../-form-schemas/assignmentFormSchema';
-import { zodResolver } from '@hookform/resolvers/zod';
 
 export const ChapterSidebarAddButton = () => {
-    const form = useForm<AssignmentFormType>({
-        resolver: zodResolver(assignmentFormSchema),
-        defaultValues: {
-            task: '',
-            taskDescription: '',
-            startDate: '',
-            endDate: '',
-            reattemptCount: '0',
-            uploaded_question_paper: null,
-            adaptive_marking_for_each_question: [],
-        },
-    });
+    // const form = useForm<AssignmentFormType>({
+    //     resolver: zodResolver(assignmentFormSchema),
+    //     defaultValues: {
+    //         task: '',
+    //         taskDescription: '',
+    //         startDate: '',
+    //         endDate: '',
+    //         reattemptCount: '0',
+    //         uploaded_question_paper: null,
+    //         adaptive_marking_for_each_question: [],
+    //     },
+    // });
     const route = useRouter();
     const { chapterId } = route.state.location.search;
     const { addUpdateDocumentSlide } = useSlides(chapterId || '');
-    const { setActiveItem, getSlideById, setItems, items } = useContentStore();
+    const { setActiveItem, getSlideById } = useContentStore();
 
     // Use the Zustand store instead of useState
     const {
@@ -132,28 +129,28 @@ export const ChapterSidebarAddButton = () => {
                 openQuestionDialog(); // Use store action instead of setState
                 break;
             case 'assignment':
-                setItems([
-                    {
-                        slide_title: null,
-                        document_id: null,
-                        document_title: `Assignment ${items.length + 1}`,
-                        document_type: '',
-                        slide_description: null,
-                        document_cover_file_id: null,
-                        video_description: null,
-                        document_data: JSON.stringify(form.getValues()),
-                        video_id: null,
-                        video_title: null,
-                        video_url: null,
-                        slide_id: String(items.length + 1),
-                        source_type: 'ASSIGNMENT',
-                        status: 'DRAFT',
-                        published_data: '',
-                        published_url: '',
-                        last_sync_date: null,
-                    },
-                    ...items,
-                ]);
+                // setItems([
+                //     {
+                //         slide_title: null,
+                //         document_id: null,
+                //         document_title: `Assignment ${items.length + 1}`,
+                //         document_type: '',
+                //         slide_description: null,
+                //         document_cover_file_id: null,
+                //         video_description: null,
+                //         document_data: JSON.stringify(form.getValues()),
+                //         video_id: null,
+                //         video_title: null,
+                //         video_url: null,
+                //         slide_id: String(items.length + 1),
+                //         source_type: 'ASSIGNMENT',
+                //         status: 'DRAFT',
+                //         published_data: '',
+                //         published_url: '',
+                //         last_sync_date: null,
+                //     },
+                //     ...items,
+                // ]);
                 break;
         }
     };

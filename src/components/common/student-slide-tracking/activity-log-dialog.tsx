@@ -34,9 +34,9 @@ export const ActivityLogDialog = ({
 
     const queryConfig = useMemo(() => {
         const userId = selectedUser && slideData ? selectedUser.user_id : selectedUserId || '';
-        const slideId = selectedUser && slideData ? slideData.slide_id : activeItem?.slide_id || '';
+        const slideId = selectedUser && slideData ? slideData.slide_id : activeItem?.id || '';
 
-        return activeItem?.video_url != null
+        return activeItem?.video_slide?.url != null
             ? getUserVideoSlideActivityLogs({
                   userId,
                   slideId,

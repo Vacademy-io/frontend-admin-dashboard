@@ -343,7 +343,7 @@ const LastPageReadHeader = () => {
     const { activeItem } = useContentStore();
     return (
         <>
-            {activeItem?.video_url != null || activeItem?.published_url != null
+            {activeItem?.video_slide?.url != null || activeItem?.video_slide?.published_url != null
                 ? 'Percentage Watched'
                 : 'Total Pages Read'}
         </>

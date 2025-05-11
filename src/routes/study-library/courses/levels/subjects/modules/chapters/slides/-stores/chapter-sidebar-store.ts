@@ -1,6 +1,6 @@
 // stores/content-store.ts
-import { create } from "zustand";
-import { Slide } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides";
+import { create } from 'zustand';
+import { Slide } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides';
 
 interface ContentStore {
     items: Slide[];
@@ -41,6 +41,6 @@ export const useContentStore = create<ContentStore>((set, get) => ({
     resetChapterSidebarStore: () => set({ items: undefined, activeItem: null }),
     getSlideById: (slideId: string) => {
         const state = get();
-        return state.items.find((slide) => slide.slide_id === slideId) || null;
+        return state.items.find((slide) => slide.id === slideId) || null;
     },
 }));
