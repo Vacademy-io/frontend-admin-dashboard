@@ -1,17 +1,16 @@
-import { MCQS, MCQM, Numerical, TrueFalse, LongAnswer, SingleWord, CMCQS, CMCQM } from "@/svgs";
-import { QuestionType as QuestionTypeList } from "@/constants/dummy-data";
-import { Separator } from "@/components/ui/separator";
-import { z } from "zod";
-import { questionsFormSchema } from "@/routes/assessment/question-papers/-utils/question-form-schema";
-import { useFieldArray, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useContentStore } from "../../-stores/chapter-sidebar-store";
-import { UploadQuestionPaperFormType } from "@/routes/assessment/question-papers/-components/QuestionPaperUpload";
-import { uploadQuestionPaperFormSchema } from "@/routes/assessment/question-papers/-utils/upload-question-paper-form-schema";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { MyInput } from "@/components/design-system/input";
-import { MyButton } from "@/components/design-system/button";
-import { useState } from "react";
+import { MCQS, MCQM, Numerical, TrueFalse, LongAnswer, SingleWord, CMCQS, CMCQM } from '@/svgs';
+import { QuestionType as QuestionTypeList } from '@/constants/dummy-data';
+import { Separator } from '@/components/ui/separator';
+import { z } from 'zod';
+import { questionsFormSchema } from '@/routes/assessment/question-papers/-utils/question-form-schema';
+import { useFieldArray, useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { UploadQuestionPaperFormType } from '@/routes/assessment/question-papers/-components/QuestionPaperUpload';
+import { uploadQuestionPaperFormSchema } from '@/routes/assessment/question-papers/-utils/upload-question-paper-form-schema';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { MyInput } from '@/components/design-system/input';
+import { MyButton } from '@/components/design-system/button';
+import { useState } from 'react';
 
 export interface QuestionTypeProps {
     icon: React.ReactNode; // Accepts an SVG or any React component
@@ -20,7 +19,7 @@ export interface QuestionTypeProps {
     handleAddQuestion: (
         type: string,
         questionPoints: string | undefined,
-        reattemptCount: string | undefined,
+        reattemptCount: string | undefined
     ) => void;
 }
 
@@ -31,28 +30,27 @@ const AddQuestionDialog = ({
 }: {
     openState?: ((open: boolean) => void) | undefined;
 }) => {
-    const { setItems, items } = useContentStore();
     const form = useForm<UploadQuestionPaperFormType>({
         resolver: zodResolver(uploadQuestionPaperFormSchema),
-        mode: "onChange",
+        mode: 'onChange',
         defaultValues: {
-            questionPaperId: "1",
+            questionPaperId: '1',
             isFavourite: false,
-            title: "",
+            title: '',
             createdOn: new Date(),
-            yearClass: "",
-            subject: "",
-            questionsType: "",
-            optionsType: "",
-            answersType: "",
-            explanationsType: "",
+            yearClass: '',
+            subject: '',
+            questionsType: '',
+            optionsType: '',
+            answersType: '',
+            explanationsType: '',
             fileUpload: undefined,
             questions: [],
         },
     });
 
-    const [localPoints, setLocalPoints] = useState("");
-    const [localReattempts, setLocalReattempts] = useState("");
+    const [localPoints, setLocalPoints] = useState('');
+    const [localReattempts, setLocalReattempts] = useState('');
     const [activeQuestionDialog, setActiveQuestionDialog] = useState<QuestionTypeList | null>(null);
 
     const QuestionType = ({ icon, text, type = QuestionTypeList.MCQS }: QuestionTypeProps) => {
@@ -69,87 +67,87 @@ const AddQuestionDialog = ({
 
     const { fields, append } = useFieldArray({
         control: form.control,
-        name: "questions", // Name of the field array
+        name: 'questions', // Name of the field array
     });
 
     // Function to handle adding a new question
     const handleAddQuestion = (
         newQuestionType: string,
         questionPoints: string | undefined,
-        reattemptCount: string | undefined,
+        reattemptCount: string | undefined
     ) => {
         append({
-            id: "",
+            id: '',
             questionId: String(fields.length + 1),
-            questionName: "",
-            explanation: "",
+            questionName: '',
+            explanation: '',
             questionType: newQuestionType,
-            questionPenalty: "",
+            questionPenalty: '',
             questionDuration: {
-                hrs: "",
-                min: "",
+                hrs: '',
+                min: '',
             },
-            questionMark: "",
+            questionMark: '',
             singleChoiceOptions: Array(4).fill({
-                id: "",
-                name: "",
+                id: '',
+                name: '',
                 isSelected: false,
             }),
             multipleChoiceOptions: Array(4).fill({
-                id: "",
-                name: "",
+                id: '',
+                name: '',
                 isSelected: false,
             }),
             csingleChoiceOptions: Array(4).fill({
-                id: "",
-                name: "",
+                id: '',
+                name: '',
                 isSelected: false,
             }),
             cmultipleChoiceOptions: Array(4).fill({
-                id: "",
-                name: "",
+                id: '',
+                name: '',
                 isSelected: false,
             }),
             trueFalseOptions: Array(2).fill({
-                id: "",
-                name: "",
+                id: '',
+                name: '',
                 isSelected: false,
             }),
-            parentRichTextContent: "",
+            parentRichTextContent: '',
             decimals: 0,
-            numericType: "",
+            numericType: '',
             validAnswers: [],
-            questionResponseType: "",
-            subjectiveAnswerText: "",
-            questionPoints: questionPoints || "",
-            reattemptCount: reattemptCount || "",
+            questionResponseType: '',
+            subjectiveAnswerText: '',
+            questionPoints: questionPoints || '',
+            reattemptCount: reattemptCount || '',
         });
-        setItems([
-            {
-                slide_title: null,
-                document_id: null,
-                document_title: `${form.getValues(`questions.${0}.questionType`)} slide`,
-                document_type: form.getValues(`questions.${0}.questionType`),
-                slide_description: null,
-                document_cover_file_id: null,
-                video_description: null,
-                document_data: JSON.stringify(form.getValues()),
-                video_id: null,
-                video_title: null,
-                video_url: null,
-                slide_id: String(items.length + 1),
-                source_type: "QUESTION",
-                status: "DRAFT",
-                published_data: "",
-                published_url: "",
-                last_sync_date: null,
-            },
-            ...items,
-        ]);
+        // setItems([
+        //     {
+        //         slide_title: null,
+        //         document_id: null,
+        //         document_title: `${form.getValues(`questions.${0}.questionType`)} slide`,
+        //         document_type: form.getValues(`questions.${0}.questionType`),
+        //         slide_description: null,
+        //         document_cover_file_id: null,
+        //         video_description: null,
+        //         document_data: JSON.stringify(form.getValues()),
+        //         video_id: null,
+        //         video_title: null,
+        //         video_url: null,
+        //         slide_id: String(items.length + 1),
+        //         source_type: "QUESTION",
+        //         status: "DRAFT",
+        //         published_data: "",
+        //         published_url: "",
+        //         last_sync_date: null,
+        //     },
+        //     ...items,
+        // ]);
         form.trigger();
         setActiveQuestionDialog(null); // Close the dialog
-        setLocalPoints(""); // Reset input fields
-        setLocalReattempts("");
+        setLocalPoints(''); // Reset input fields
+        setLocalReattempts('');
         openState && openState(false);
     };
 
@@ -253,8 +251,8 @@ const AddQuestionDialog = ({
                 onOpenChange={(open) => {
                     if (!open) {
                         setActiveQuestionDialog(null);
-                        setLocalPoints("");
-                        setLocalReattempts("");
+                        setLocalPoints('');
+                        setLocalReattempts('');
                     }
                 }}
             >
@@ -292,7 +290,7 @@ const AddQuestionDialog = ({
                                         handleAddQuestion(
                                             activeQuestionDialog,
                                             localPoints,
-                                            localReattempts,
+                                            localReattempts
                                         );
                                     }
                                 }}

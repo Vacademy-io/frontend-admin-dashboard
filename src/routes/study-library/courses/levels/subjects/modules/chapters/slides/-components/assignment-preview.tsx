@@ -1,26 +1,26 @@
-import { useEffect, useState } from "react";
-import { updateDocumentDataInSlides } from "../-helper/helper";
-import { Slide } from "../-hooks/use-slides";
-import { useContentStore } from "../-stores/chapter-sidebar-store";
-import { assignmentFormSchema, AssignmentFormType } from "../-form-schemas/assignmentFormSchema";
-import { FormProvider, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { FormControl, FormField, FormItem } from "@/components/ui/form";
-import { MyInput } from "@/components/design-system/input";
-import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
-import { Separator } from "@/components/ui/separator";
-import useDialogStore from "@/routes/assessment/question-papers/-global-states/question-paper-dialogue-close";
+import { useEffect, useState } from 'react';
+import { updateDocumentDataInSlides } from '../-helper/helper';
+import { Slide } from '../-hooks/use-slides';
+import { useContentStore } from '../-stores/chapter-sidebar-store';
+import { assignmentFormSchema, AssignmentFormType } from '../-form-schemas/assignmentFormSchema';
+import { FormProvider, useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { FormControl, FormField, FormItem } from '@/components/ui/form';
+import { MyInput } from '@/components/design-system/input';
+import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
+import { Separator } from '@/components/ui/separator';
+import useDialogStore from '@/routes/assessment/question-papers/-global-states/question-paper-dialogue-close';
 import {
     AlertDialog,
     AlertDialogCancel,
     AlertDialogContent,
     AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { MyButton } from "@/components/design-system/button";
-import { X } from "phosphor-react";
-import { QuestionPaperUpload } from "@/routes/assessment/question-papers/-components/QuestionPaperUpload";
-import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { QuestionPapersTabs } from "@/routes/assessment/question-papers/-components/QuestionPapersTabs";
+} from '@/components/ui/alert-dialog';
+import { MyButton } from '@/components/design-system/button';
+import { X } from 'phosphor-react';
+import { QuestionPaperUpload } from '@/routes/assessment/question-papers/-components/QuestionPaperUpload';
+import { Dialog, DialogClose, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { QuestionPapersTabs } from '@/routes/assessment/question-papers/-components/QuestionPapersTabs';
 import {
     Table,
     TableBody,
@@ -28,12 +28,12 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table";
-import { ReverseProgressBar } from "@/components/ui/progress";
+} from '@/components/ui/table';
+import { ReverseProgressBar } from '@/components/ui/progress';
 
 const StudyLibraryAssignmentPreview = ({ activeItem }: { activeItem: Slide }) => {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-    const defaultValues = JSON.parse(activeItem.document_data!);
+    const defaultValues = JSON.parse('');
     const { setItems, setActiveItem, items } = useContentStore();
     const {
         isManualQuestionPaperDialogOpen,
@@ -49,10 +49,10 @@ const StudyLibraryAssignmentPreview = ({ activeItem }: { activeItem: Slide }) =>
         defaultValues,
     });
 
-    const adaptive_marking_for_each_question = form.getValues("adaptive_marking_for_each_question");
+    const adaptive_marking_for_each_question = form.getValues('adaptive_marking_for_each_question');
     const { watch, getValues } = form;
-    const totalParticipants = Number(getValues("totalParticipants")) || 0;
-    const submittedParticipants = Number(getValues("submittedParticipants")) || 0;
+    const totalParticipants = Number(getValues('totalParticipants')) || 0;
+    const submittedParticipants = Number(getValues('submittedParticipants')) || 0;
 
     useEffect(() => {
         const subscription = watch(() => {
@@ -60,7 +60,7 @@ const StudyLibraryAssignmentPreview = ({ activeItem }: { activeItem: Slide }) =>
                 items,
                 activeItem,
                 form.getValues(),
-                setActiveItem,
+                setActiveItem
             );
             setItems(modifiedItems);
         });
@@ -69,7 +69,7 @@ const StudyLibraryAssignmentPreview = ({ activeItem }: { activeItem: Slide }) =>
     }, [watch, items, activeItem, form, setItems]);
 
     return (
-        <div key={`assignment-${activeItem.slide_id}`} className="flex size-full flex-col gap-8">
+        <div key={`assignment-${activeItem.id}`} className="flex size-full flex-col gap-8">
             <FormProvider {...form}>
                 <FormField
                     control={form.control}
@@ -305,7 +305,7 @@ const StudyLibraryAssignmentPreview = ({ activeItem }: { activeItem: Slide }) =>
                                             <TableCell>{idx + 1}</TableCell>
                                             <TableCell
                                                 dangerouslySetInnerHTML={{
-                                                    __html: question.questionName || "",
+                                                    __html: question.questionName || '',
                                                 }}
                                             />
                                             <TableCell>{question.questionType}</TableCell>
@@ -331,7 +331,7 @@ const StudyLibraryAssignmentPreview = ({ activeItem }: { activeItem: Slide }) =>
                                     ((totalParticipants - submittedParticipants) /
                                         totalParticipants) *
                                     100
-                                ).toFixed(2),
+                                ).toFixed(2)
                             )}
                         />
                     </div>

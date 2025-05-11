@@ -35,19 +35,18 @@ export const ChapterSidebarSlides = ({
         if (
             activeItem &&
             activeItem.source_type === 'DOCUMENT' &&
-            activeItem.document_type === 'DOC'
+            activeItem.document_slide?.type === 'DOC'
         ) {
             const currentContent = getCurrentEditorHTMLContent();
-            console.log('currentContent: ', currentContent);
             if (currentContent) {
                 if (
                     (activeItem.status === 'UNSYNC' || activeItem.status === 'DRAFT') &&
-                    activeItem.document_data !== currentContent
+                    activeItem.document_slide.data !== currentContent
                 ) {
                     await saveDraft(activeItem);
                 } else if (
                     activeItem.status === 'PUBLISHED' &&
-                    activeItem.published_data !== currentContent
+                    activeItem.document_slide.published_data !== currentContent
                 ) {
                     await saveDraft(activeItem);
                 }
@@ -64,7 +63,7 @@ export const ChapterSidebarSlides = ({
         },
     });
 
-    const { fields, move } = useFieldArray({
+    const { move } = useFieldArray({
         control: form.control,
         name: 'slides',
     });
@@ -76,9 +75,9 @@ export const ChapterSidebarSlides = ({
         const type =
             slide.source_type === 'QUESTION'
                 ? 'QUESTION'
-                : slide.published_url != null || slide.video_url != null
+                : slide.source_type === 'VIDEO'
                   ? 'VIDEO'
-                  : slide.document_type;
+                  : slide.source_type === 'DOCUMENT' && slide.document_slide?.type;
         switch (type) {
             case 'PDF':
                 return <FilePdf className="size-6" />;
@@ -103,7 +102,7 @@ export const ChapterSidebarSlides = ({
 
         // Create order payload with the updated order
         const orderPayload = updatedFields.map((slide, index) => ({
-            slide_id: slide.slide_id,
+            slide_id: slide.id,
             slide_order: index + 1,
         }));
 
@@ -122,7 +121,7 @@ export const ChapterSidebarSlides = ({
 
             if (slideId) {
                 const targetSlide: Slide | undefined = items.find(
-                    (item: Slide) => item.slide_id === slideId
+                    (item: Slide) => item.id === slideId
                 );
                 if (targetSlide) {
                     setActiveItem(targetSlide);
@@ -141,14 +140,14 @@ export const ChapterSidebarSlides = ({
     }
 
     return (
-        <Sortable value={fields} onMove={handleMove} fast={false}>
+        <Sortable value={items} onMove={handleMove} fast={false}>
             <div className="flex w-full flex-col items-center gap-6 text-neutral-600">
-                {fields.map((slide, index) => (
+                {items.map((slide, index) => (
                     <SortableItem key={index} value={slide.id} asChild className="cursor-pointer">
                         <div className="w-full" onClick={() => handleSlideClick(slide)}>
                             <div
                                 className={`flex w-full items-center gap-3 rounded-xl px-4 py-2 ${
-                                    slide.slide_id === activeItem?.slide_id
+                                    slide.id === activeItem?.id
                                         ? 'border border-neutral-200 bg-white text-primary-500'
                                         : 'hover:border hover:border-neutral-200 hover:bg-white hover:text-primary-500'
                                 }`}
@@ -162,8 +161,10 @@ export const ChapterSidebarSlides = ({
                                                     {getIcon(slide)}
                                                     <p className={`flex-1 text-subtitle`}>
                                                         {truncateString(
-                                                            slide.document_title ||
-                                                                slide.video_title ||
+                                                            (slide.source_type === 'DOCUMENT' &&
+                                                                slide.document_slide?.title) ||
+                                                                (slide.source_type === 'VIDEO' &&
+                                                                    slide.video_slide?.title) ||
                                                                 '',
                                                             12
                                                         )}
@@ -179,7 +180,13 @@ export const ChapterSidebarSlides = ({
                                             </div>
                                         </TooltipTrigger>
                                         <TooltipContent className="border border-neutral-300 bg-primary-100 text-neutral-600">
-                                            <p>{slide.document_title || slide.video_title || ''}</p>
+                                            <p>
+                                                {(slide.source_type === 'DOCUMENT' &&
+                                                    slide.document_slide?.title) ||
+                                                    (slide.source_type === 'VIDEO' &&
+                                                        slide.video_slide?.title) ||
+                                                    ''}
+                                            </p>
                                         </TooltipContent>
                                     </Tooltip>
                                 </TooltipProvider>

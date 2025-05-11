@@ -141,7 +141,7 @@ function RouteComponent() {
                 subjectId,
                 moduleId,
                 chapterId,
-                slideId: activeItem?.slide_id || '',
+                slideId: activeItem?.id || '',
                 sessionId: sessionId,
             },
             replace: true,
