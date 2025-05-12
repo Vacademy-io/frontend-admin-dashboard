@@ -26,13 +26,13 @@ export const EnrollStudentsButton = () => {
                     layoutVariant="default"
                     id="enroll-students"
                 >
-                    Enroll Students
+                    Enroll Learner
                 </MyButton>
             </DialogTrigger>
             <DialogContent className="p-0 font-normal">
                 <DialogTitle>
                     <div className="bg-primary-50 px-6 py-4 text-h3 font-semibold text-primary-500">
-                        Enroll Students
+                        Enroll Learner
                     </div>
                     <DialogDescription className="flex flex-col items-center justify-center gap-6 p-6 text-neutral-600">
                         <EnrollManuallyButton />

@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { Checkbox } from "@/components/ui/checkbox";
+import { useState, useEffect } from 'react';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     Table,
     TableBody,
@@ -9,33 +9,33 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table';
 import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogTitle,
     DialogFooter,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { Label } from "@/components/ui/label";
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { Label } from '@/components/ui/label';
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select";
-import { Loader2, ChevronDown } from "lucide-react";
-import { useLoaderStore } from "../-hooks/loader";
+} from '@/components/ui/select';
+import { Loader2, ChevronDown } from 'lucide-react';
+import { useLoaderStore } from '../-hooks/loader';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
+} from '@/components/ui/dropdown-menu';
+import { cn } from '@/lib/utils';
 
 interface AttemptData {
     id: string;
@@ -67,13 +67,13 @@ export function StudentSelectionDialog({
 }: StudentSelectionDialogProps) {
     const [selected, setSelected] = useState<number[]>([]);
     const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
-    const [selectedAssessment, setSelectedAssessment] = useState<string>("");
+    const [selectedAssessment, setSelectedAssessment] = useState<string>('');
     const [isEvaluating, setIsEvaluating] = useState(false);
     const [attemptDropdownOpen, setAttemptDropdownOpen] = useState<Record<number, boolean>>({});
 
     const { setLoading } = useLoaderStore();
-    const studentData = JSON.parse(localStorage.getItem("students") || "[]") as StudentData[];
-    const assessments = JSON.parse(localStorage.getItem("assessments") || "[]") as {
+    const studentData = JSON.parse(localStorage.getItem('students') || '[]') as StudentData[];
+    const assessments = JSON.parse(localStorage.getItem('assessments') || '[]') as {
         assessmentId: string;
         title: string;
     }[];
@@ -83,27 +83,27 @@ export function StudentSelectionDialog({
     const totalPages = Math.ceil(studentData.length / itemsPerPage);
     const paginatedStudents = studentData.slice(
         (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage,
+        currentPage * itemsPerPage
     );
 
     useEffect(() => {
         if (isOpen) {
             setSelected([]);
             setCurrentPage(1);
-            setSelectedAssessment("");
+            setSelectedAssessment('');
         }
     }, [isOpen]);
 
     const toggleSelect = (index: number) => {
         setSelected((prev) =>
-            prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index],
+            prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
         );
     };
 
     const handleSelectAll = (checked: boolean) => {
         if (checked) {
             const allIndices = paginatedStudents.map(
-                (_, index) => (currentPage - 1) * itemsPerPage + index,
+                (_, index) => (currentPage - 1) * itemsPerPage + index
             );
             setSelected(allIndices);
         } else {
@@ -113,7 +113,7 @@ export function StudentSelectionDialog({
 
     const handleOpenAssessmentModal = () => {
         if (selected.length === 0) {
-            toast.warning("Please select at least one student");
+            toast.warning('Please select at least one student');
             return;
         }
         setIsAssessmentModalOpen(true);
@@ -121,7 +121,7 @@ export function StudentSelectionDialog({
 
     const handleEvaluate = async () => {
         if (!selectedAssessment) {
-            toast.warning("Please select an assessment");
+            toast.warning('Please select an assessment');
             return;
         }
         setIsEvaluating(true);
@@ -131,7 +131,7 @@ export function StudentSelectionDialog({
             // @ts-expect-error : //FIXME this error
             onSubmit(selectedStudents, selectedAssessment);
         } catch (error) {
-            toast.error("Evaluation failed. Please try again.");
+            toast.error('Evaluation failed. Please try again.');
         } finally {
             setIsEvaluating(false);
             setIsAssessmentModalOpen(false);
@@ -155,7 +155,7 @@ export function StudentSelectionDialog({
             studentToUpdate.currentAttemptIndex = attemptIndex;
         }
         // Update localStorage
-        localStorage.setItem("students", JSON.stringify(updatedStudentData));
+        localStorage.setItem('students', JSON.stringify(updatedStudentData));
 
         // Close the dropdown
         setAttemptDropdownOpen({ ...attemptDropdownOpen, [studentIndex]: false });
@@ -166,12 +166,12 @@ export function StudentSelectionDialog({
 
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
-        return date.toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
         });
     };
 
@@ -181,7 +181,7 @@ export function StudentSelectionDialog({
                 <DialogContent className="w-[60vw]">
                     <DialogHeader className="mb-2">
                         <DialogTitle className="font-bold">
-                            {"Select Students for Evaluation"}
+                            {'Select Students for Evaluation'}
                         </DialogTitle>
                     </DialogHeader>
                     <div className="mx-auto mb-4 w-full max-w-4xl">
@@ -202,7 +202,7 @@ export function StudentSelectionDialog({
                                                 />
                                             </TableHead>
                                             <TableHead className="sticky left-12 z-10 bg-primary-50">
-                                                Student Name
+                                                Learner Name
                                             </TableHead>
                                             <TableHead>Enrollment ID</TableHead>
                                             <TableHead>Attempt Count</TableHead>
@@ -240,7 +240,7 @@ export function StudentSelectionDialog({
                                                         <div className="flex items-center justify-center gap-2">
                                                             <Loader2 className="size-4 animate-spin" />
                                                             <span>
-                                                                Evaluating students with{" "}
+                                                                Evaluating students with{' '}
                                                                 {selectedAssessment}...
                                                             </span>
                                                         </div>
@@ -259,7 +259,7 @@ export function StudentSelectionDialog({
                                                         <TableCell className="sticky left-0 z-10 bg-white text-center">
                                                             <Checkbox
                                                                 checked={selected.includes(
-                                                                    actualIndex,
+                                                                    actualIndex
                                                                 )}
                                                                 onCheckedChange={() =>
                                                                     toggleSelect(actualIndex)
@@ -286,7 +286,7 @@ export function StudentSelectionDialog({
                                                                         size="sm"
                                                                         className="flex items-center gap-1"
                                                                     >
-                                                                        {student.attempts.length}{" "}
+                                                                        {student.attempts.length}{' '}
                                                                         Attempts
                                                                         <ChevronDown className="size-4" />
                                                                     </Button>
@@ -300,36 +300,36 @@ export function StudentSelectionDialog({
                                                                             <DropdownMenuItem
                                                                                 key={attempt.id}
                                                                                 className={cn(
-                                                                                    "flex cursor-pointer justify-between",
+                                                                                    'flex cursor-pointer justify-between',
                                                                                     student.currentAttemptIndex ===
                                                                                         attemptIndex &&
-                                                                                        "bg-muted",
+                                                                                        'bg-muted'
                                                                                 )}
                                                                                 onClick={() =>
                                                                                     handleSelectAttempt(
                                                                                         index,
-                                                                                        attemptIndex,
+                                                                                        attemptIndex
                                                                                     )
                                                                                 }
                                                                             >
                                                                                 <span>
-                                                                                    Attempt{" "}
+                                                                                    Attempt{' '}
                                                                                     {attemptIndex +
                                                                                         1}
                                                                                 </span>
                                                                                 <span className="text-xs text-muted-foreground">
                                                                                     {formatDate(
-                                                                                        attempt.date,
+                                                                                        attempt.date
                                                                                     )}
                                                                                 </span>
                                                                             </DropdownMenuItem>
-                                                                        ),
+                                                                        )
                                                                     )}
                                                                 </DropdownMenuContent>
                                                             </DropdownMenu>
                                                         </TableCell>
                                                         <TableCell>
-                                                            {currentAttempt?.pdfId || "N/A"}
+                                                            {currentAttempt?.pdfId || 'N/A'}
                                                             {/* {currentAttempt ? currentAttempt.pdfId : "N/A"} */}
                                                         </TableCell>
                                                     </TableRow>
@@ -442,7 +442,7 @@ export function StudentSelectionDialog({
                                     Evaluating...
                                 </>
                             ) : (
-                                "Evaluate"
+                                'Evaluate'
                             )}
                         </Button>
                     </DialogFooter>

@@ -1,29 +1,29 @@
-import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-import { useState, useEffect } from "react";
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { useState, useEffect } from 'react';
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select";
-import { Command, CommandInput, CommandList } from "@/components/ui/command";
-import { LevelType } from "@/schemas/student/student-list/institute-schema";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { MyButton } from "@/components/design-system/button";
-import ReportRecipientsDialogBox from "./reportRecipientsDialogBox";
-import { useMutation } from "@tanstack/react-query";
+} from '@/components/ui/select';
+import { Command, CommandInput, CommandList } from '@/components/ui/command';
+import { LevelType } from '@/schemas/student/student-list/institute-schema';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { MyButton } from '@/components/design-system/button';
+import ReportRecipientsDialogBox from './reportRecipientsDialogBox';
+import { useMutation } from '@tanstack/react-query';
 import {
     fetchLearnersReport,
     fetchSlideWiseProgress,
     exportLearnersReport,
-} from "../../-services/utils";
-import { useLearnerDetails, UserResponse } from "../../-store/useLearnersDetails";
-import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
-import { TokenKey } from "@/constants/auth/tokens";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
+} from '../../-services/utils';
+import { useLearnerDetails, UserResponse } from '../../-store/useLearnersDetails';
+import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
 import {
     LearnersReportResponse,
     LEARNERS_REPORTS_COLUMNS,
@@ -31,28 +31,28 @@ import {
     SlideData,
     SLIDES_WIDTH,
     SlidesColumns,
-} from "../../-types/types";
-import { MyTable } from "@/components/design-system/table";
-import { LineChartComponent } from "./lineChart";
+} from '../../-types/types';
+import { MyTable } from '@/components/design-system/table';
+import { LineChartComponent } from './lineChart';
 import {
     transformLearnersReport,
     transformToChartData,
     formatToTwoDecimalPlaces,
     convertMinutesToTimeFormat,
-} from "../../-services/helper";
-import dayjs from "dayjs";
-import { useSearch } from "@tanstack/react-router";
-import { Route } from "@/routes/study-library/reports";
-import { toast } from "sonner";
+} from '../../-services/helper';
+import dayjs from 'dayjs';
+import { useSearch } from '@tanstack/react-router';
+import { Route } from '@/routes/study-library/reports';
+import { toast } from 'sonner';
 
 const formSchema = z
     .object({
-        course: z.string().min(1, "Course is required"),
-        session: z.string().min(1, "Session is required"),
-        level: z.string().min(1, "Level is required"),
-        student: z.string().min(1, "Student is required"),
-        startDate: z.string().min(1, "Start Date is required"),
-        endDate: z.string().min(1, "End Date is required"),
+        course: z.string().min(1, 'Course is required'),
+        session: z.string().min(1, 'Session is required'),
+        level: z.string().min(1, 'Level is required'),
+        student: z.string().min(1, 'Student is required'),
+        startDate: z.string().min(1, 'Start Date is required'),
+        endDate: z.string().min(1, 'End Date is required'),
     })
     .refine(
         (data) => {
@@ -63,9 +63,9 @@ const formSchema = z
         },
         {
             message:
-                "The difference between Start Date and End Date should be less than one month.",
-            path: ["startDate"],
-        },
+                'The difference between Start Date and End Date should be less than one month.',
+            path: ['startDate'],
+        }
     );
 
 type FormValues = z.infer<typeof formSchema>;
@@ -86,9 +86,9 @@ export default function TimelineReports() {
     const [studentList, setStudentList] = useState<UserResponse>([]);
     const [reportData, setReportData] = useState<LearnersReportResponse>();
     const [slideData, setSlideData] = useState<SlideData[]>();
-    const [searchTerm, setSearchTerm] = useState("");
+    const [searchTerm, setSearchTerm] = useState('');
     const filteredStudents = studentList.filter((student) =>
-        student.full_name.toLowerCase().includes(searchTerm.toLowerCase()),
+        student.full_name.toLowerCase().includes(searchTerm.toLowerCase())
     );
     const search = useSearch({ from: Route.id });
 
@@ -101,26 +101,26 @@ export default function TimelineReports() {
     } = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            course: "",
-            session: "",
-            level: "",
-            student: "",
-            startDate: "",
-            endDate: "",
+            course: '',
+            session: '',
+            level: '',
+            student: '',
+            startDate: '',
+            endDate: '',
         },
     });
 
-    const selectedCourse = watch("course");
-    const selectedSession = watch("session");
-    const selectedLevel = watch("level");
-    const selectedStudent = watch("student");
-    const startDate = watch("startDate");
-    const endDate = watch("endDate");
+    const selectedCourse = watch('course');
+    const selectedSession = watch('session');
+    const selectedLevel = watch('level');
+    const selectedStudent = watch('student');
+    const startDate = watch('startDate');
+    const endDate = watch('endDate');
 
     useEffect(() => {
         if (selectedCourse) {
             setSessionList(getSessionFromPackage({ courseId: selectedCourse }));
-            setValue("session", "");
+            setValue('session', '');
         } else {
             setSessionList([]);
             setStudentList([]);
@@ -128,13 +128,13 @@ export default function TimelineReports() {
     }, [selectedCourse]);
 
     useEffect(() => {
-        if (selectedSession === "") {
-            setValue("level", "");
+        if (selectedSession === '') {
+            setValue('level', '');
             setLevelList([]);
             setStudentList([]);
         } else if (selectedCourse && selectedSession) {
             setLevelList(
-                getLevelsFromPackage2({ courseId: selectedCourse, sessionId: selectedSession }),
+                getLevelsFromPackage2({ courseId: selectedCourse, sessionId: selectedSession })
             );
         }
     }, [selectedSession]);
@@ -145,8 +145,8 @@ export default function TimelineReports() {
             courseId: selectedCourse,
             sessionId: selectedSession,
             levelId: selectedLevel,
-        }) || "",
-        INSTITUTE_ID || "",
+        }) || '',
+        INSTITUTE_ID || ''
     );
     useEffect(() => {
         if (data) {
@@ -164,7 +164,7 @@ export default function TimelineReports() {
                         courseId: data.course,
                         sessionId: data.session,
                         levelId: data.level,
-                    }) || "",
+                    }) || '',
                 user_id: data.student,
             },
             {
@@ -172,9 +172,9 @@ export default function TimelineReports() {
                     setReportData(data);
                 },
                 onError: (error) => {
-                    console.error("Error:", error);
+                    console.error('Error:', error);
                 },
-            },
+            }
         );
         generateSlideMutation.mutate(
             {
@@ -185,7 +185,7 @@ export default function TimelineReports() {
                         courseId: data.course,
                         sessionId: data.session,
                         levelId: data.level,
-                    }) || "",
+                    }) || '',
                 user_id: data.student,
             },
             {
@@ -193,9 +193,9 @@ export default function TimelineReports() {
                     setSlideData(data);
                 },
                 onError: (error) => {
-                    console.error("Error:", error);
+                    console.error('Error:', error);
                 },
-            },
+            }
         );
         // api call
     };
@@ -210,19 +210,19 @@ export default function TimelineReports() {
                         courseId: selectedCourse,
                         sessionId: selectedSession,
                         levelId: selectedLevel,
-                    }) || "",
+                    }) || '',
                 userId: selectedStudent,
             }),
         onSuccess: async (response) => {
             const url = window.URL.createObjectURL(new Blob([response]));
-            const link = document.createElement("a");
+            const link = document.createElement('a');
             link.href = url;
-            link.setAttribute("download", `learners_report.pdf`);
+            link.setAttribute('download', `learners_report.pdf`);
             document.body.appendChild(link);
             link.click();
             link.remove();
             window.URL.revokeObjectURL(url);
-            toast.success("Learners Report PDF exported successfully");
+            toast.success('Learners Report PDF exported successfully');
         },
         onError: (error: unknown) => {
             throw error;
@@ -254,10 +254,10 @@ export default function TimelineReports() {
                         <div>Course</div>
                         <Select
                             onValueChange={(value) => {
-                                setValue("course", value);
+                                setValue('course', value);
                             }}
-                            {...register("course")}
-                            defaultValue={search.studentReport ? search.studentReport.courseId : ""}
+                            {...register('course')}
+                            defaultValue={search.studentReport ? search.studentReport.courseId : ''}
                         >
                             <SelectTrigger className="h-[40px] w-[320px]">
                                 <SelectValue placeholder="Select a Course" />
@@ -276,11 +276,11 @@ export default function TimelineReports() {
                         <div>Session</div>
                         <Select
                             onValueChange={(value) => {
-                                setValue("session", value);
+                                setValue('session', value);
                             }}
-                            {...register("session")}
+                            {...register('session')}
                             defaultValue={
-                                search.studentReport ? search.studentReport.sessionId : ""
+                                search.studentReport ? search.studentReport.sessionId : ''
                             }
                             disabled={!sessionList.length}
                             value={selectedSession}
@@ -302,12 +302,12 @@ export default function TimelineReports() {
                         <div>Level</div>
                         <Select
                             onValueChange={(value) => {
-                                setValue("level", value);
+                                setValue('level', value);
                             }}
-                            defaultValue={search.studentReport ? search.studentReport.levelId : ""}
+                            defaultValue={search.studentReport ? search.studentReport.levelId : ''}
                             value={selectedLevel}
                             disabled={!levelList.length}
-                            {...register("level")}
+                            {...register('level')}
                         >
                             <SelectTrigger className="h-[40px] w-[320px]">
                                 <SelectValue placeholder="Select a Level" />
@@ -324,12 +324,12 @@ export default function TimelineReports() {
                 </div>
 
                 <div>
-                    <div>Student Name</div>
+                    <div>Learner Name</div>
                     <Select
                         onValueChange={(value) => {
-                            setValue("student", value);
+                            setValue('student', value);
                         }}
-                        {...register("student")}
+                        {...register('student')}
                         defaultValue=""
                         disabled={!studentList.length}
                     >
@@ -351,7 +351,7 @@ export default function TimelineReports() {
                                                 key={index}
                                                 value={student.user_id}
                                                 onSelect={() =>
-                                                    setValue("student", student.user_id)
+                                                    setValue('student', student.user_id)
                                                 }
                                             >
                                                 {student.full_name}
@@ -372,7 +372,7 @@ export default function TimelineReports() {
                         <input
                             className="h-[40px] w-[320px] rounded-md border px-3 py-[10px]"
                             type="date"
-                            {...register("startDate")}
+                            {...register('startDate')}
                         />
                     </div>
                     <div>
@@ -380,7 +380,7 @@ export default function TimelineReports() {
                         <input
                             className="h-[40px] w-[320px] rounded-md border px-3 py-[10px]"
                             type="date"
-                            {...register("endDate")}
+                            {...register('endDate')}
                         />
                     </div>
                     <div>
@@ -419,7 +419,7 @@ export default function TimelineReports() {
                                     handleExportPDF();
                                 }}
                             >
-                                {isExporting ? <DashboardLoader size={20} /> : "Export"}
+                                {isExporting ? <DashboardLoader size={20} /> : 'Export'}
                             </MyButton>
                         </div>
                     </div>
@@ -428,8 +428,7 @@ export default function TimelineReports() {
                             <div className="text-h3 font-[600]">Course Completed</div>
                             <div>
                                 {`${formatToTwoDecimalPlaces(
-                                    reportData?.learner_progress_report
-                                        ?.percentage_course_completed,
+                                    reportData?.learner_progress_report?.percentage_course_completed
                                 )} %`}
                             </div>
                         </div>
@@ -437,7 +436,7 @@ export default function TimelineReports() {
                             <div className="text-h3 font-[600]">Daily Time spent (Avg)</div>
                             <div>
                                 {convertMinutesToTimeFormat(
-                                    reportData?.learner_progress_report?.avg_time_spent_in_minutes,
+                                    reportData?.learner_progress_report?.avg_time_spent_in_minutes
                                 )}
                             </div>
                         </div>
@@ -446,7 +445,7 @@ export default function TimelineReports() {
                             <div>
                                 {`${formatToTwoDecimalPlaces(
                                     reportData?.learner_progress_report
-                                        ?.percentage_concentration_score || 0,
+                                        ?.percentage_concentration_score || 0
                                 )} %`}
                             </div>
                         </div>
@@ -456,7 +455,7 @@ export default function TimelineReports() {
                             <div className="text-h3 font-[600]">Course Completed by batch</div>
                             <div>
                                 {`${formatToTwoDecimalPlaces(
-                                    reportData?.batch_progress_report?.percentage_course_completed,
+                                    reportData?.batch_progress_report?.percentage_course_completed
                                 )} %`}
                             </div>
                         </div>
@@ -466,7 +465,7 @@ export default function TimelineReports() {
                             </div>
                             <div>
                                 {convertMinutesToTimeFormat(
-                                    reportData?.batch_progress_report?.avg_time_spent_in_minutes,
+                                    reportData?.batch_progress_report?.avg_time_spent_in_minutes
                                 )}
                             </div>
                         </div>
@@ -477,7 +476,7 @@ export default function TimelineReports() {
                             <div>
                                 {`${formatToTwoDecimalPlaces(
                                     reportData?.batch_progress_report
-                                        ?.percentage_concentration_score || 0,
+                                        ?.percentage_concentration_score || 0
                                 )} %`}
                             </div>
                         </div>
@@ -512,9 +511,9 @@ export default function TimelineReports() {
                             {slideData?.map((slide, idx) => (
                                 <div key={idx} className="flex flex-col gap-1">
                                     <div className="flex flex-row gap-1 font-[600]">
-                                        Date:{" "}
+                                        Date:{' '}
                                         <div className="text-primary-500">
-                                            {dayjs(slide.date).format("DD-MM-YYYY")}
+                                            {dayjs(slide.date).format('DD-MM-YYYY')}
                                         </div>
                                     </div>
                                     <MyTable
@@ -525,10 +524,10 @@ export default function TimelineReports() {
                                                 module: slide.module_name,
                                                 chapter: slide.chapter_name,
                                                 concentration_score: `${slide.concentration_score.toFixed(
-                                                    2,
+                                                    2
                                                 )} %`, // Formatting as string
                                                 time_spent: convertMinutesToTimeFormat(
-                                                    parseFloat(slide.time_spent),
+                                                    parseFloat(slide.time_spent)
                                                 ),
                                             })),
                                             total_pages: 0,

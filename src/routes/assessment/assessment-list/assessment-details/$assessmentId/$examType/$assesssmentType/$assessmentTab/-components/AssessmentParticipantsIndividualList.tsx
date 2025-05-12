@@ -1,17 +1,17 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { useMutation } from "@tanstack/react-query";
-import { useState } from "react";
-import { getBatchDetailsListOfIndividualStudents } from "../-services/assessment-details-services";
-import { MyTable } from "@/components/design-system/table";
-import { step3ParticipantsListIndividualStudentColumn } from "../-utils/student-columns";
-import { getAssessmentStep3ParticipantsListIndividualStudents } from "../-utils/helper";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { MyFilterOption } from "@/types/assessments/my-filter";
-import { Route } from "..";
-import { getInstituteId } from "@/constants/helper";
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { useMutation } from '@tanstack/react-query';
+import { useState } from 'react';
+import { getBatchDetailsListOfIndividualStudents } from '../-services/assessment-details-services';
+import { MyTable } from '@/components/design-system/table';
+import { step3ParticipantsListIndividualStudentColumn } from '../-utils/student-columns';
+import { getAssessmentStep3ParticipantsListIndividualStudents } from '../-utils/helper';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { MyFilterOption } from '@/types/assessments/my-filter';
+import { Route } from '..';
+import { getInstituteId } from '@/constants/helper';
 
 export interface AssessmentParticipantsInterface {
     name: string;
@@ -65,9 +65,9 @@ export const AssessmentParticipantsIndividualList = ({ type }: { type: string })
             </DialogTrigger>
             <DialogContent className="no-scrollbar !m-0 flex h-[90vh] !w-full !max-w-[90vw] flex-col gap-6 overflow-y-auto !p-0">
                 <h1 className="rounded-t-lg bg-primary-100 p-4 font-semibold text-primary-500">
-                    Individual Students List
+                    Individual Learner List
                 </h1>
-                {getParticipantsData.status === "pending" ? (
+                {getParticipantsData.status === 'pending' ? (
                     <DashboardLoader />
                 ) : (
                     <div className="flex flex-col gap-6 px-4">
@@ -75,11 +75,11 @@ export const AssessmentParticipantsIndividualList = ({ type }: { type: string })
                             data={{
                                 content: getAssessmentStep3ParticipantsListIndividualStudents(
                                     participantsData.filter((item) =>
-                                        type === "internal"
-                                            ? item.source === "ADMIN_PRE_REGISTRATION" ||
-                                              item.source === "BATCH_PREVIEW_REGISTRATION"
-                                            : item.source === "OPEN_REGISTRATION",
-                                    ),
+                                        type === 'internal'
+                                            ? item.source === 'ADMIN_PRE_REGISTRATION' ||
+                                              item.source === 'BATCH_PREVIEW_REGISTRATION'
+                                            : item.source === 'OPEN_REGISTRATION'
+                                    )
                                 ),
                                 total_pages: 0,
                                 page_no: 0,

@@ -111,7 +111,7 @@ export const assessmentStatusStudentAttemptedColumnsInternal: ColumnDef<StudentT
                         }}
                     >
                         <button className="flex w-full cursor-pointer items-center justify-between">
-                            <div>Student Name</div>
+                            <div>Learner Name</div>
                             <div>
                                 <CaretUp />
                                 <CaretDown />
@@ -213,7 +213,7 @@ export const assessmentStatusStudentOngoingColumnsInternal: ColumnDef<StudentTab
                         }}
                     >
                         <button className="flex w-full cursor-pointer items-center justify-between">
-                            <div>Student Name</div>
+                            <div>Learner Name</div>
                             <div>
                                 <CaretUp />
                                 <CaretDown />

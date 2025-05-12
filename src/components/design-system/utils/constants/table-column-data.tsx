@@ -233,7 +233,7 @@ export const myColumns: ColumnDef<StudentTable>[] = [
                         }}
                     >
                         <button className="flex w-full cursor-pointer items-center justify-between">
-                            <div>Student Name</div>
+                            <div>Learner Name</div>
                             <div>
                                 <CaretUpDown />
                             </div>
@@ -413,7 +413,7 @@ export const ActivityStatsColumns: ColumnDef<ActivityStatsColumnsType>[] = [
     },
     {
         accessorKey: 'full_name',
-        header: 'Student Name',
+        header: 'Learner Name',
     },
     {
         accessorKey: 'time_spent',
