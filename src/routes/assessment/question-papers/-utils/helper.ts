@@ -11,6 +11,7 @@ import { TokenKey } from '@/constants/auth/tokens';
 import { QuestionType, QUESTION_TYPES } from '@/constants/dummy-data';
 import { getInstituteId } from '@/constants/helper';
 import { AIAssessmentResponseInterface } from '@/types/ai/generate-assessment/generate-complete-assessment';
+import { formatTimeStudyLibraryInSeconds } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-helper/helper';
 
 export function getPPTViewTitle(type: QuestionType): string {
     const question = QUESTION_TYPES.find((q) => q.code === type);
@@ -451,8 +452,9 @@ export const transformResponseDataToMyQuestionsSchema = (data: QuestionResponse[
         const baseQuestion: MyQuestion = {
             id: item.id || '',
             questionId: item.id || item.preview_id || undefined,
-            questionName: item.text?.content || '',
-            explanation: item.explanation_text?.content || '',
+            questionName: item.text?.content || item.text_data?.content || '',
+            explanation:
+                item.explanation_text?.content || item.explanation_text_data?.content || '',
             questionType: item.question_type,
             questionMark: '',
             questionPenalty: '',
@@ -485,6 +487,9 @@ export const transformResponseDataToMyQuestionsSchema = (data: QuestionResponse[
                 name: '',
                 isSelected: false,
             }),
+            timestamp: item.question_time_in_millis
+                ? formatTimeStudyLibraryInSeconds(item.question_time_in_millis / 1000)
+                : '0:0:0',
             validAnswers: [],
             decimals,
             numericType,
