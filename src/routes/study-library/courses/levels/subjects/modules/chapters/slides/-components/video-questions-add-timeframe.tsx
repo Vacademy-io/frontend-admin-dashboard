@@ -1,15 +1,15 @@
-import { MyButton } from "@/components/design-system/button";
-import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { FormProvider } from "react-hook-form";
-import { FormControl, FormField, FormItem } from "@/components/ui/form";
-import { MyInput } from "@/components/design-system/input";
-import AddVideoQuestionDialog from "./slides-sidebar/add-video-question-dialog";
-import { Dispatch, MutableRefObject, SetStateAction } from "react";
-import { UseFormReturn } from "react-hook-form";
-import { UploadQuestionPaperFormType } from "@/routes/assessment/question-papers/-components/QuestionPaperUpload";
-import { VideoPlayerTimeFormType } from "../-form-schemas/video-player-time-schema";
-import { uploadQuestionPaperFormSchema } from "@/routes/assessment/question-papers/-utils/upload-question-paper-form-schema";
-import { z } from "zod";
+import { MyButton } from '@/components/design-system/button';
+import { Dialog, DialogClose, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { FormProvider } from 'react-hook-form';
+import { FormControl, FormField, FormItem } from '@/components/ui/form';
+import { MyInput } from '@/components/design-system/input';
+import AddVideoQuestionDialog from './slides-sidebar/add-video-question-dialog';
+import { Dispatch, MutableRefObject, SetStateAction } from 'react';
+import { UseFormReturn } from 'react-hook-form';
+import { UploadQuestionPaperFormType } from '@/routes/assessment/question-papers/-components/QuestionPaperUpload';
+import { VideoPlayerTimeFormType } from '../-form-schemas/video-player-time-schema';
+import { uploadQuestionPaperFormSchema } from '@/routes/assessment/question-papers/-utils/upload-question-paper-form-schema';
+import { z } from 'zod';
 
 type QuestionPaperForm = z.infer<typeof uploadQuestionPaperFormSchema>;
 
@@ -85,7 +85,7 @@ const VideoQuestionsTimeFrameAddDialog = ({
                                                 onChangeFunction={(e) => {
                                                     const inputValue = e.target.value.replace(
                                                         /[^0-9]/g,
-                                                        "",
+                                                        ''
                                                     ); // Remove non-numeric characters
                                                     field.onChange(inputValue); // Call onChange with the sanitized value
                                                 }}
@@ -118,7 +118,7 @@ const VideoQuestionsTimeFrameAddDialog = ({
                                                 onChangeFunction={(e) => {
                                                     const inputValue = e.target.value.replace(
                                                         /[^0-9]/g,
-                                                        "",
+                                                        ''
                                                     ); // Remove non-numeric characters
                                                     field.onChange(inputValue); // Call onChange with the sanitized value
                                                 }}
@@ -151,7 +151,7 @@ const VideoQuestionsTimeFrameAddDialog = ({
                                                 onChangeFunction={(e) => {
                                                     const inputValue = e.target.value.replace(
                                                         /[^0-9]/g,
-                                                        "",
+                                                        ''
                                                     ); // Remove non-numeric characters
                                                     field.onChange(inputValue); // Call onChange with the sanitized value
                                                 }}
