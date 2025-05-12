@@ -1,32 +1,32 @@
-import React, { useEffect, useRef } from "react";
-import { z } from "zod";
-import sectionDetailsSchema from "../../-utils/section-details-schema";
-import { FormProvider, useFieldArray, useForm } from "react-hook-form";
-import { MyButton } from "@/components/design-system/button";
-import { Separator } from "@/components/ui/separator";
-import { Plus } from "phosphor-react";
-import { Accordion } from "@/components/ui/accordion";
-import { StepContentProps } from "@/types/assessments/step-content-props";
-import { getAssessmentDetails, handlePostStep2Data } from "../../-services/assessment-services";
-import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-import { useSavedAssessmentStore } from "../../-utils/global-states";
-import { zodResolver } from "@hookform/resolvers/zod";
-import Step2SectionInfo from "./Step2SectionInfo";
-import { toast } from "sonner";
-import { AxiosError } from "axios";
-import { getFieldOptions, getStepKey, syncStep2DataWithStore } from "../../-utils/helper";
-import { useSectionDetailsStore } from "../../-utils/zustand-global-states/step2-add-questions";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { useParams } from "@tanstack/react-router";
-import { useTestAccessStore } from "../../-utils/zustand-global-states/step3-adding-participants";
-import { getSubjectNameById } from "@/routes/assessment/question-papers/-utils/helper";
-import { FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { MyInput } from "@/components/design-system/input";
-import useIntroJsTour, { Step } from "@/hooks/use-intro";
-import { IntroKey } from "@/constants/storage/introKey";
-import { createAssesmentSteps } from "@/constants/intro/steps";
+import React, { useEffect, useRef } from 'react';
+import { z } from 'zod';
+import sectionDetailsSchema from '../../-utils/section-details-schema';
+import { FormProvider, useFieldArray, useForm } from 'react-hook-form';
+import { MyButton } from '@/components/design-system/button';
+import { Separator } from '@/components/ui/separator';
+import { Plus } from 'phosphor-react';
+import { Accordion } from '@/components/ui/accordion';
+import { StepContentProps } from '@/types/assessments/step-content-props';
+import { getAssessmentDetails, handlePostStep2Data } from '../../-services/assessment-services';
+import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { useSavedAssessmentStore } from '../../-utils/global-states';
+import { zodResolver } from '@hookform/resolvers/zod';
+import Step2SectionInfo from './Step2SectionInfo';
+import { toast } from 'sonner';
+import { AxiosError } from 'axios';
+import { getFieldOptions, getStepKey, syncStep2DataWithStore } from '../../-utils/helper';
+import { useSectionDetailsStore } from '../../-utils/zustand-global-states/step2-add-questions';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { useParams } from '@tanstack/react-router';
+import { useTestAccessStore } from '../../-utils/zustand-global-states/step3-adding-participants';
+import { getSubjectNameById } from '@/routes/assessment/question-papers/-utils/helper';
+import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { MyInput } from '@/components/design-system/input';
+import useIntroJsTour, { Step } from '@/hooks/use-intro';
+import { IntroKey } from '@/constants/storage/introKey';
+import { createAssesmentSteps } from '@/constants/intro/steps';
 type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 
 const Step2AddingQuestions: React.FC<StepContentProps> = ({
@@ -36,29 +36,29 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
 }) => {
     const queryClient = useQueryClient();
     const params = useParams({ strict: false });
-    const examType = params.examtype ?? ""; // Ensure it's a string
-    const assessmentId = params.assessmentId ?? ""; // Ensure it's string | null
+    const examType = params.examtype ?? ''; // Ensure it's a string
+    const assessmentId = params.assessmentId ?? ''; // Ensure it's string | null
     const storeDataStep2 = useSectionDetailsStore((state) => state);
     const { savedAssessmentId } = useSavedAssessmentStore();
     const { instituteDetails } = useInstituteDetailsStore();
     const { data: assessmentDetails, isLoading } = useSuspenseQuery(
         getAssessmentDetails({
-            assessmentId: assessmentId !== "defaultId" ? assessmentId : savedAssessmentId,
+            assessmentId: assessmentId !== 'defaultId' ? assessmentId : savedAssessmentId,
             instituteId: instituteDetails?.id,
-            type: "EXAM",
-        }),
+            type: 'EXAM',
+        })
     );
 
     const form = useForm<SectionFormType>({
         resolver: zodResolver(sectionDetailsSchema),
         defaultValues: {
-            status: completedSteps[currentStep] ? "COMPLETE" : "INCOMPLETE",
+            status: completedSteps[currentStep] ? 'COMPLETE' : 'INCOMPLETE',
             testDuration: storeDataStep2.testDuration || {
                 entireTestDuration: {
                     checked: true, // Default to true
                     testDuration: {
-                        hrs: "0",
-                        min: "0",
+                        hrs: '0',
+                        min: '0',
                     },
                 },
                 sectionWiseDuration: false, // Default to false
@@ -66,44 +66,46 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
             },
             section: storeDataStep2.section || [
                 {
-                    sectionId: "",
-                    sectionName: "Section 1",
-                    questionPaperTitle: "",
-                    subject: "",
-                    yearClass: "",
+                    sectionId: '',
+                    sectionName: 'Section 1',
+                    questionPaperTitle: '',
+                    subject: '',
+                    yearClass: '',
                     uploaded_question_paper: null,
                     question_duration: {
-                        hrs: "0",
-                        min: "0",
+                        hrs: '0',
+                        min: '0',
                     },
-                    section_description: "",
+                    section_description: '',
                     section_duration: {
-                        hrs: "0",
-                        min: "0",
+                        hrs: '0',
+                        min: '0',
                     },
-                    marks_per_question: "0",
-                    total_marks: "",
+                    marks_per_question: '0',
+                    total_marks: '',
                     negative_marking: {
                         checked: false,
-                        value: "0",
+                        value: '0',
                     },
                     partial_marking: false,
                     cutoff_marks: {
                         checked: false,
-                        value: "0",
+                        value: '0',
                     },
                     problem_randomization: false,
                     adaptive_marking_for_each_question: [],
                 },
             ],
         },
-        mode: "onChange",
+        mode: 'onChange',
     });
+
+    console.log(assessmentDetails[currentStep]?.saved_data);
 
     const { handleSubmit, getValues, control, watch } = form;
     // Store initial data in useRef to ensure it remains constant throughout the form updates
     const oldData = useRef(getValues());
-    const allSections = getValues("section");
+    const allSections = getValues('section');
 
     const handleSubmitStep2Form = useMutation({
         mutationFn: ({
@@ -120,34 +122,34 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
             type: string | undefined;
         }) => handlePostStep2Data(oldData, data, assessmentId, instituteId, type),
         onSuccess: async () => {
-            if (assessmentId !== "defaultId") {
+            if (assessmentId !== 'defaultId') {
                 useTestAccessStore.getState().reset();
                 window.history.back();
-                toast.success("Step 2 data has been updated successfully!", {
-                    className: "success-toast",
+                toast.success('Step 2 data has been updated successfully!', {
+                    className: 'success-toast',
                     duration: 2000,
                 });
-                queryClient.invalidateQueries({ queryKey: ["GET_ASSESSMENT_DETAILS"] });
-                queryClient.invalidateQueries({ queryKey: ["GET_QUESTIONS_DATA_FOR_SECTIONS"] });
+                queryClient.invalidateQueries({ queryKey: ['GET_ASSESSMENT_DETAILS'] });
+                queryClient.invalidateQueries({ queryKey: ['GET_QUESTIONS_DATA_FOR_SECTIONS'] });
             } else {
                 syncStep2DataWithStore(form);
-                toast.success("Step 2 data has been saved successfully!", {
-                    className: "success-toast",
+                toast.success('Step 2 data has been saved successfully!', {
+                    className: 'success-toast',
                     duration: 2000,
                 });
                 handleCompleteCurrentStep();
-                queryClient.invalidateQueries({ queryKey: ["GET_QUESTIONS_DATA_FOR_SECTIONS"] });
+                queryClient.invalidateQueries({ queryKey: ['GET_QUESTIONS_DATA_FOR_SECTIONS'] });
             }
         },
         onError: (error: unknown) => {
             if (error instanceof AxiosError) {
                 toast.error(error.message, {
-                    className: "error-toast",
+                    className: 'error-toast',
                     duration: 2000,
                 });
             } else {
                 // Handle non-Axios errors if necessary
-                console.error("Unexpected error:", error);
+                console.error('Unexpected error:', error);
             }
         },
     });
@@ -156,7 +158,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
         handleSubmitStep2Form.mutate({
             oldData: oldData.current,
             data: data,
-            assessmentId: assessmentId !== "defaultId" ? assessmentId : savedAssessmentId,
+            assessmentId: assessmentId !== 'defaultId' ? assessmentId : savedAssessmentId,
             instituteId: instituteDetails?.id,
             type: examType,
         });
@@ -168,46 +170,46 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
 
     const { append } = useFieldArray({
         control,
-        name: "section", // Matches the key in defaultValues
+        name: 'section', // Matches the key in defaultValues
     });
 
-    const entireTestDuration = watch("testDuration.entireTestDuration.testDuration");
-    const isAssessWiseCheck = watch("testDuration.entireTestDuration.checked");
-    const isSectionWiseCheck = watch("testDuration.sectionWiseDuration");
-    const isQuestionWiseCheck = watch("testDuration.questionWiseDuration");
+    const entireTestDuration = watch('testDuration.entireTestDuration.testDuration');
+    const isAssessWiseCheck = watch('testDuration.entireTestDuration.checked');
+    const isSectionWiseCheck = watch('testDuration.sectionWiseDuration');
+    const isQuestionWiseCheck = watch('testDuration.questionWiseDuration');
 
     const isAssessmentDurationMissing =
         isAssessWiseCheck &&
-        (!entireTestDuration?.hrs || entireTestDuration?.hrs === "0") &&
-        (!entireTestDuration?.min || entireTestDuration?.min === "0");
+        (!entireTestDuration?.hrs || entireTestDuration?.hrs === '0') &&
+        (!entireTestDuration?.min || entireTestDuration?.min === '0');
 
     const handleAddSection = () => {
         append({
-            sectionId: "",
+            sectionId: '',
             sectionName: `Section ${allSections.length + 1}`,
-            questionPaperTitle: "",
-            subject: "",
-            yearClass: "",
+            questionPaperTitle: '',
+            subject: '',
+            yearClass: '',
             uploaded_question_paper: null,
             question_duration: {
-                hrs: "0",
-                min: "0",
+                hrs: '0',
+                min: '0',
             },
-            section_description: "",
+            section_description: '',
             section_duration: {
-                hrs: "0",
-                min: "0",
+                hrs: '0',
+                min: '0',
             },
-            marks_per_question: "0",
-            total_marks: "0",
+            marks_per_question: '0',
+            total_marks: '0',
             negative_marking: {
                 checked: false,
-                value: "0",
+                value: '0',
             },
             partial_marking: false,
             cutoff_marks: {
                 checked: false,
-                value: "0",
+                value: '0',
             },
             problem_randomization: false,
             adaptive_marking_for_each_question: [],
@@ -215,118 +217,121 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
     };
 
     useEffect(() => {
-        if (assessmentId !== "defaultId") {
+        if (assessmentId !== 'defaultId') {
             const sections = assessmentDetails[currentStep]?.saved_data?.sections;
             const initialFormValues = {
-                status: assessmentDetails[currentStep]?.status || "INCOMPLETE",
+                status: assessmentDetails[currentStep]?.status || 'INCOMPLETE',
                 testDuration: {
                     entireTestDuration: {
                         checked:
                             assessmentDetails[currentStep]?.saved_data?.duration_distribution ===
-                            "ASSESSMENT"
+                            null
                                 ? true
-                                : false,
+                                : assessmentDetails[currentStep]?.saved_data
+                                        ?.duration_distribution === 'ASSESSMENT'
+                                  ? true
+                                  : false,
                         testDuration: {
                             hrs:
                                 assessmentDetails[currentStep]?.saved_data
-                                    ?.duration_distribution === "ASSESSMENT" &&
+                                    ?.duration_distribution === 'ASSESSMENT' &&
                                 assessmentDetails[currentStep]?.saved_data?.duration != null &&
                                 (assessmentDetails[currentStep]?.saved_data?.duration ?? 0) > 0
                                     ? String(
                                           Math.floor(
                                               (assessmentDetails[currentStep]?.saved_data
-                                                  ?.duration ?? 0) / 60,
-                                          ),
+                                                  ?.duration ?? 0) / 60
+                                          )
                                       )
-                                    : "",
+                                    : '',
                             min:
                                 assessmentDetails[currentStep]?.saved_data
-                                    ?.duration_distribution === "ASSESSMENT" &&
+                                    ?.duration_distribution === 'ASSESSMENT' &&
                                 assessmentDetails[currentStep]?.saved_data?.duration != null &&
                                 (assessmentDetails[currentStep]?.saved_data?.duration ?? 0) > 0
                                     ? String(
                                           Math.floor(
                                               (assessmentDetails[currentStep]?.saved_data
-                                                  ?.duration ?? 0) % 60,
-                                          ),
+                                                  ?.duration ?? 0) % 60
+                                          )
                                       )
-                                    : "",
+                                    : '',
                         },
                     },
                     sectionWiseDuration:
                         assessmentDetails[currentStep]?.saved_data?.duration_distribution ===
-                        "SECTION"
+                        'SECTION'
                             ? true
                             : false, // Default to false
                     questionWiseDuration:
                         assessmentDetails[currentStep]?.saved_data?.duration_distribution ===
-                        "QUESTION"
+                        'QUESTION'
                             ? true
                             : false, // Default to false
                 },
                 section:
                     Array.isArray(sections) && sections.length > 0
                         ? sections.map((sectionDetails) => ({
-                              sectionId: sectionDetails.id || "",
-                              sectionName: sectionDetails.name || "",
-                              questionPaperTitle: "",
-                              uploaded_question_paper: "",
+                              sectionId: sectionDetails.id || '',
+                              sectionName: sectionDetails.name || '',
+                              questionPaperTitle: '',
+                              uploaded_question_paper: '',
                               subject: getSubjectNameById(
                                   instituteDetails?.subjects || [],
-                                  assessmentDetails[0]?.saved_data?.subject_selection ?? "",
+                                  assessmentDetails[0]?.saved_data?.subject_selection ?? ''
                               ),
-                              yearClass: "",
+                              yearClass: '',
                               question_duration: {
-                                  hrs: String(Math.floor(sectionDetails.duration / 60)) || "",
-                                  min: String(sectionDetails.duration % 60) || "",
+                                  hrs: String(Math.floor(sectionDetails.duration / 60)) || '',
+                                  min: String(sectionDetails.duration % 60) || '',
                               },
-                              section_description: sectionDetails.description?.content || "",
+                              section_description: sectionDetails.description?.content || '',
                               section_duration: {
-                                  hrs: String(Math.floor(sectionDetails.duration / 60)) || "",
-                                  min: String(sectionDetails.duration % 60) || "",
+                                  hrs: String(Math.floor(sectionDetails.duration / 60)) || '',
+                                  min: String(sectionDetails.duration % 60) || '',
                               },
-                              marks_per_question: "",
-                              total_marks: String(sectionDetails.total_marks) || "",
+                              marks_per_question: '',
+                              total_marks: String(sectionDetails.total_marks) || '',
                               negative_marking: {
                                   checked: false,
-                                  value: "",
+                                  value: '',
                               },
                               partial_marking: false,
                               cutoff_marks: {
                                   checked: sectionDetails.cutoff_marks > 0 ? true : false,
-                                  value: String(sectionDetails.cutoff_marks) || "",
+                                  value: String(sectionDetails.cutoff_marks) || '',
                               },
                               problem_randomization:
-                                  sectionDetails.problem_randomization === "RANDOM" ? true : false,
+                                  sectionDetails.problem_randomization === 'RANDOM' ? true : false,
                               adaptive_marking_for_each_question: [],
                           }))
                         : [
                               {
-                                  sectionId: "",
+                                  sectionId: '',
                                   sectionName: `Section 1`,
-                                  questionPaperTitle: "",
-                                  subject: "",
-                                  yearClass: "",
+                                  questionPaperTitle: '',
+                                  subject: '',
+                                  yearClass: '',
                                   uploaded_question_paper: null,
                                   question_duration: {
-                                      hrs: "",
-                                      min: "",
+                                      hrs: '',
+                                      min: '',
                                   },
-                                  section_description: "",
+                                  section_description: '',
                                   section_duration: {
-                                      hrs: "",
-                                      min: "",
+                                      hrs: '',
+                                      min: '',
                                   },
-                                  marks_per_question: "",
-                                  total_marks: "",
+                                  marks_per_question: '',
+                                  total_marks: '',
                                   negative_marking: {
                                       checked: false,
-                                      value: "",
+                                      value: '',
                                   },
                                   partial_marking: false,
                                   cutoff_marks: {
                                       checked: false,
-                                      value: "",
+                                      value: '',
                                   },
                                   problem_randomization: false,
                                   adaptive_marking_for_each_question: [],
@@ -345,12 +350,12 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
     useIntroJsTour({
         key: IntroKey.assessmentStep2Questions,
         steps: createAssesmentSteps
-            .filter((step) => step.element === "#add-question")
+            .filter((step) => step.element === '#add-question')
             .flatMap((step) => step.subStep || [])
             .filter((subStep): subStep is Step => subStep !== undefined),
     });
 
-    if (isLoading || handleSubmitStep2Form.status === "pending") return <DashboardLoader />;
+    if (isLoading || handleSubmitStep2Form.status === 'pending') return <DashboardLoader />;
 
     return (
         <FormProvider {...form}>
@@ -364,27 +369,27 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                 scale="large"
                                 buttonType="primary"
                                 disable={
-                                    assessmentId === "defaultId"
+                                    assessmentId === 'defaultId'
                                         ? allSections.some((section) => {
                                               // Check if section duration fields are valid based on durationDistribution
                                               const isSectionDurationMissing =
                                                   isSectionWiseCheck &&
                                                   (!section.section_duration?.hrs ||
-                                                      section.section_duration?.hrs === "0") &&
+                                                      section.section_duration?.hrs === '0') &&
                                                   (!section.section_duration?.min ||
-                                                      section.section_duration?.min === "0");
+                                                      section.section_duration?.min === '0');
 
                                               // Check if question duration fields are valid based on durationDistribution
                                               const isQuestionDurationMissing =
                                                   isQuestionWiseCheck &&
                                                   (!section.question_duration?.hrs ||
-                                                      section.question_duration?.hrs === "0") &&
+                                                      section.question_duration?.hrs === '0') &&
                                                   (!section.question_duration?.min ||
-                                                      section.question_duration?.min === "0");
+                                                      section.question_duration?.min === '0');
 
                                               // Check if marks per question is provided
                                               const isMarksPerQuestionMissing =
-                                                  section.marks_per_question === "0" ||
+                                                  section.marks_per_question === '0' ||
                                                   !section.marks_per_question
                                                       ? true
                                                       : false;
@@ -395,9 +400,9 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                                       .length > 0
                                                       ? false
                                                       : true;
-                                              if (examType === "SURVEY")
+                                              if (examType === 'SURVEY')
                                                   return isQuestionPaperMissing;
-                                              if (examType === "PRACTICE") {
+                                              if (examType === 'PRACTICE') {
                                                   // Return true if any of the above conditions are true
                                                   return (
                                                       isQuestionPaperMissing ||
@@ -418,17 +423,17 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                 }
                                 onClick={handleSubmit(onSubmit, onInvalid)}
                             >
-                                {assessmentId !== "defaultId" ? "Update" : "Next"}
+                                {assessmentId !== 'defaultId' ? 'Update' : 'Next'}
                             </MyButton>
                         </div>
-                        {(examType === "EXAM" || examType === "MOCK") && (
+                        {(examType === 'EXAM' || examType === 'MOCK') && (
                             <>
                                 <Separator className="my-4" />
                                 <div id="duration-settings">
                                     {getStepKey({
                                         assessmentDetails,
                                         currentStep,
-                                        key: "duration_distribution",
+                                        key: 'duration_distribution',
                                     }) && (
                                         <FormField
                                             control={form.control}
@@ -439,34 +444,34 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                                         <RadioGroup
                                                             onValueChange={(value) => {
                                                                 form.setValue(
-                                                                    "testDuration.entireTestDuration.checked",
-                                                                    value === "ASSESSMENT",
+                                                                    'testDuration.entireTestDuration.checked',
+                                                                    value === 'ASSESSMENT'
                                                                 );
                                                                 form.setValue(
-                                                                    "testDuration.sectionWiseDuration",
-                                                                    value === "SECTION",
+                                                                    'testDuration.sectionWiseDuration',
+                                                                    value === 'SECTION'
                                                                 );
                                                                 form.setValue(
-                                                                    "testDuration.questionWiseDuration",
-                                                                    value === "QUESTION",
+                                                                    'testDuration.questionWiseDuration',
+                                                                    value === 'QUESTION'
                                                                 );
                                                             }}
                                                             defaultValue={
                                                                 field.value.entireTestDuration
                                                                     .checked
-                                                                    ? "ASSESSMENT"
+                                                                    ? 'ASSESSMENT'
                                                                     : field.value
                                                                             .sectionWiseDuration
-                                                                      ? "SECTION"
-                                                                      : "QUESTION"
+                                                                      ? 'SECTION'
+                                                                      : 'QUESTION'
                                                             }
                                                             className="flex items-start gap-6"
                                                         >
                                                             {getFieldOptions({
                                                                 assessmentDetails,
                                                                 currentStep,
-                                                                key: "duration_distribution",
-                                                                value: "ASSESSMENT",
+                                                                key: 'duration_distribution',
+                                                                value: 'ASSESSMENT',
                                                             }) && (
                                                                 <FormItem className="flex items-center space-x-3 space-y-0">
                                                                     <FormControl>
@@ -480,8 +485,8 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                                             {getFieldOptions({
                                                                 assessmentDetails,
                                                                 currentStep,
-                                                                key: "duration_distribution",
-                                                                value: "SECTION",
+                                                                key: 'duration_distribution',
+                                                                value: 'SECTION',
                                                             }) && (
                                                                 <FormItem className="flex items-center space-x-3 space-y-0">
                                                                     <FormControl>
@@ -495,8 +500,8 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                                             {getFieldOptions({
                                                                 assessmentDetails,
                                                                 currentStep,
-                                                                key: "duration_distribution",
-                                                                value: "QUESTION",
+                                                                key: 'duration_distribution',
+                                                                value: 'QUESTION',
                                                             }) && (
                                                                 <FormItem className="flex items-center space-x-3 space-y-0">
                                                                     <FormControl>
@@ -513,10 +518,10 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                             )}
                                         />
                                     )}
-                                    {form.getValues("testDuration.entireTestDuration.checked") && (
+                                    {form.getValues('testDuration.entireTestDuration.checked') && (
                                         <div className="mt-3 text-sm">
                                             <p>
-                                                Entire Assessment Duration –{" "}
+                                                Entire Assessment Duration –{' '}
                                                 <span className="font-light">
                                                     Set a single time limit for the whole
                                                     assessement.
@@ -524,10 +529,10 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                             </p>
                                         </div>
                                     )}
-                                    {form.getValues("testDuration.sectionWiseDuration") && (
+                                    {form.getValues('testDuration.sectionWiseDuration') && (
                                         <div className="mt-3 text-sm">
                                             <p>
-                                                Section-wise Duration –{" "}
+                                                Section-wise Duration –{' '}
                                                 <span className="font-light">
                                                     Assign a specific time for each section in the
                                                     Sections tab. The total assessment duration will
@@ -536,10 +541,10 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                             </p>
                                         </div>
                                     )}
-                                    {form.getValues("testDuration.questionWiseDuration") && (
+                                    {form.getValues('testDuration.questionWiseDuration') && (
                                         <div className="mt-3 text-sm">
                                             <p>
-                                                Question-wise Duration –{" "}
+                                                Question-wise Duration –{' '}
                                                 <span className="font-light">
                                                     Define individual time limits for each question
                                                     in the Sections tab, where a time input field is
@@ -548,11 +553,11 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                             </p>
                                         </div>
                                     )}
-                                    {form.watch("testDuration").entireTestDuration.checked &&
+                                    {form.watch('testDuration').entireTestDuration.checked &&
                                         getStepKey({
                                             assessmentDetails,
                                             currentStep,
-                                            key: "duration",
+                                            key: 'duration',
                                         }) && (
                                             <div className="mt-4 flex items-center gap-4 text-sm font-thin">
                                                 <h1>
@@ -560,8 +565,8 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                                     {getStepKey({
                                                         assessmentDetails,
                                                         currentStep,
-                                                        key: "duration",
-                                                    }) === "REQUIRED" && (
+                                                        key: 'duration',
+                                                    }) === 'REQUIRED' && (
                                                         <span className="text-subtitle text-danger-600">
                                                             *
                                                         </span>
@@ -589,7 +594,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                                                         const inputValue =
                                                                             e.target.value.replace(
                                                                                 /[^0-9]/g,
-                                                                                "",
+                                                                                ''
                                                                             ); // Sanitize input
                                                                         field.onChange(inputValue); // Update field value
                                                                     }}
@@ -632,7 +637,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                                                         const inputValue =
                                                                             e.target.value.replace(
                                                                                 /[^0-9]/g,
-                                                                                "",
+                                                                                ''
                                                                             ); // Remove non-numeric characters
                                                                         field.onChange(inputValue); // Call onChange with the sanitized value
                                                                     }}
@@ -676,7 +681,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                     scale="large"
                     buttonType="secondary"
                     id="add-section"
-                    className={`${allSections.length > 0 ? "mt-8" : ""} font-thin`}
+                    className={`${allSections.length > 0 ? 'mt-8' : ''} font-thin`}
                     onClick={handleAddSection}
                 >
                     <Plus size={32} />

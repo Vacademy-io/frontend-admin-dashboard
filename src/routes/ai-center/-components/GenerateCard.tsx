@@ -14,6 +14,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useState } from 'react';
 import { PromptDummyData } from './Prompt-dummy-data';
 import { QuestionsFromTextData } from '../ai-tools/vsmart-prompt/-components/GenerateQuestionsFromText';
+import { UseFormReturn } from 'react-hook-form';
+import { SectionFormType } from '@/types/assessments/assessment-steps';
 
 type PromptType = keyof typeof PromptDummyData;
 
@@ -38,6 +40,8 @@ interface GenerateCardProps {
     ) => void;
     pollGenerateQuestionsFromText?: (data: QuestionsFromTextData) => void;
     pollGenerateQuestionsFromAudio?: (data: QuestionsFromTextData, taskId: string) => void;
+    sectionsForm?: UseFormReturn<SectionFormType>;
+    currentSectionIndex?: number;
 }
 export const GenerateCard = ({
     handleUploadClick,
@@ -53,6 +57,8 @@ export const GenerateCard = ({
     handleGenerateQuestionsForAssessment,
     pollGenerateQuestionsFromText,
     pollGenerateQuestionsFromAudio,
+    sectionsForm,
+    currentSectionIndex,
 }: GenerateCardProps) => {
     const [selectedValue, setSelectedValue] = useState<PromptType>('topic');
     const { key: keyContext, loader } = useAICenter();
@@ -74,6 +80,8 @@ export const GenerateCard = ({
                             }
                             pollGenerateQuestionsFromText={pollGenerateQuestionsFromText}
                             pollGenerateQuestionsFromAudio={pollGenerateQuestionsFromAudio}
+                            sectionsForm={sectionsForm}
+                            currentSectionIndex={currentSectionIndex}
                         />
                     </div>
                     <div className="flex items-center justify-between">

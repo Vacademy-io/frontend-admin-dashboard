@@ -1,5 +1,5 @@
-import { Input } from "@/components/ui/input";
-import { MagnifyingGlass, XCircle } from "phosphor-react";
+import { Input } from '@/components/ui/input';
+import { MagnifyingGlass, XCircle } from 'phosphor-react';
 
 interface AssessmentDetailsSearchComponentProps {
     onSearch: (searchValue: string) => void;
@@ -17,7 +17,7 @@ export const AssessmentDetailsSearchComponent = ({
     placeholderText,
 }: AssessmentDetailsSearchComponentProps) => {
     const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === "Enter") {
+        if (e.key === 'Enter') {
             onSearch(searchText);
         }
     };
@@ -30,7 +30,7 @@ export const AssessmentDetailsSearchComponent = ({
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
                 onKeyDown={handleSearch}
-                placeholder={placeholderText ? placeholderText : "Search By Student Name"}
+                placeholder={placeholderText ? placeholderText : 'Search By Student Name'}
                 className="pl-8 pr-12"
             />
             {searchText && (

@@ -1,6 +1,6 @@
-import { AssessmentSubmissionsBulkActionInfo } from "@/routes/students/students-list/-types/bulk-actions-types";
-import { ReactNode } from "react";
-import { SubmissionStudentData } from "@/types/assessments/assessment-overview";
+import { AssessmentSubmissionsBulkActionInfo } from '@/routes/manage-students/students-list/-types/bulk-actions-types';
+import { ReactNode } from 'react';
+import { SubmissionStudentData } from '@/types/assessments/assessment-overview';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -9,9 +9,9 @@ import {
     DropdownMenuSub,
     DropdownMenuSubTrigger,
     DropdownMenuSubContent,
-} from "@/components/ui/dropdown-menu";
-import { MyButton } from "@/components/design-system/button";
-import { useSubmissionsBulkActionsDialogStoreAttempted } from "../bulk-actions-zustand-store/useSubmissionsBulkActionsDialogStoreAttempted";
+} from '@/components/ui/dropdown-menu';
+import { MyButton } from '@/components/design-system/button';
+import { useSubmissionsBulkActionsDialogStoreAttempted } from '../bulk-actions-zustand-store/useSubmissionsBulkActionsDialogStoreAttempted';
 
 interface BulkActionsMenuProps {
     selectedCount: number;
@@ -32,7 +32,7 @@ export const BulkActionsMenuAttempted = ({ selectedStudents, trigger }: BulkActi
         const validStudents = selectedStudents.filter((student) => student && student.user_id);
 
         if (validStudents.length === 0) {
-            console.error("No valid students selected");
+            console.error('No valid students selected');
             return;
         }
 
@@ -43,16 +43,16 @@ export const BulkActionsMenuAttempted = ({ selectedStudents, trigger }: BulkActi
         };
 
         switch (value) {
-            case "Provide Reattempt":
+            case 'Provide Reattempt':
                 openBulkProvideReattemptDialog(bulkActionInfo);
                 break;
-            case "Revaluate Question Wise":
+            case 'Revaluate Question Wise':
                 openBulkProvideRevaluateQuestionWiseDialog(bulkActionInfo);
                 break;
-            case "Revaluate Entire Assessment":
+            case 'Revaluate Entire Assessment':
                 openBulkProvideRevaluateAssessmentDialog(bulkActionInfo);
                 break;
-            case "Release Result":
+            case 'Release Result':
                 openBulkProvideReleaseDialog(bulkActionInfo);
                 break;
         }
@@ -74,7 +74,7 @@ export const BulkActionsMenuAttempted = ({ selectedStudents, trigger }: BulkActi
                 <DropdownMenuContent>
                     <DropdownMenuItem
                         className="cursor-pointer"
-                        onClick={() => handleMenuOptionsChange("Provide Reattempt")}
+                        onClick={() => handleMenuOptionsChange('Provide Reattempt')}
                     >
                         Provide Reattempt
                     </DropdownMenuItem>
@@ -85,14 +85,14 @@ export const BulkActionsMenuAttempted = ({ selectedStudents, trigger }: BulkActi
                         <DropdownMenuSubContent>
                             <DropdownMenuItem
                                 className="cursor-pointer"
-                                onClick={() => handleMenuOptionsChange("Revaluate Question Wise")}
+                                onClick={() => handleMenuOptionsChange('Revaluate Question Wise')}
                             >
                                 Question Wise
                             </DropdownMenuItem>
                             <DropdownMenuItem
                                 className="cursor-pointer"
                                 onClick={() =>
-                                    handleMenuOptionsChange("Revaluate Entire Assessment")
+                                    handleMenuOptionsChange('Revaluate Entire Assessment')
                                 }
                             >
                                 Entire Assessment
@@ -101,7 +101,7 @@ export const BulkActionsMenuAttempted = ({ selectedStudents, trigger }: BulkActi
                     </DropdownMenuSub>
                     <DropdownMenuItem
                         className="cursor-pointer"
-                        onClick={() => handleMenuOptionsChange("Release Result")}
+                        onClick={() => handleMenuOptionsChange('Release Result')}
                     >
                         Release Result
                     </DropdownMenuItem>

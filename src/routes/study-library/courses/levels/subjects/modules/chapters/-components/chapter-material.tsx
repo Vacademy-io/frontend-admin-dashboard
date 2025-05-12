@@ -1,27 +1,23 @@
 // module-material.tsx
-import { useEffect, useState } from "react";
-import { SessionDropdown } from "@/components/common/study-library/study-library-session-dropdown";
-import { AddChapterButton } from "./chapter-material/add-chapters/add-chapter-button";
-import { useForm } from "react-hook-form";
+import { useEffect, useState } from 'react';
+import { AddChapterButton } from './chapter-material/add-chapters/add-chapter-button';
+import { useForm } from 'react-hook-form';
 import {
     ChapterWithSlides,
     useModulesWithChaptersStore,
-} from "@/stores/study-library/use-modules-with-chapters-store";
+} from '@/stores/study-library/use-modules-with-chapters-store';
 // import { getModuleById } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getModulesWithChaptersByModuleId";
-import { Chapters } from "./chapter-material/chapters";
-import { getChaptersByModuleId } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getChaptersByModuleId";
-import { useRouter } from "@tanstack/react-router";
-import { getSubjectSessions } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSessionsForModules";
-import { useSelectedSessionStore } from "@/stores/study-library/selected-session-store";
-import { StudyLibrarySessionType } from "@/stores/study-library/use-study-library-store";
-import { orderChapterPayloadType } from "@/routes/study-library/courses/-types/order-payload";
-import { useUpdateChapterOrder } from "@/routes/study-library/courses/levels/subjects/modules/chapters/-services/update-chapter-order";
-import useIntroJsTour from "@/hooks/use-intro";
-import { StudyLibraryIntroKey } from "@/constants/storage/introKey";
-import { studyLibrarySteps } from "@/constants/intro/steps";
-import { useDeleteChapter } from "@/routes/study-library/courses/levels/subjects/modules/chapters/-services/delete-chapter";
-import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-import { toast } from "sonner";
+import { Chapters } from './chapter-material/chapters';
+import { getChaptersByModuleId } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getChaptersByModuleId';
+import { useRouter } from '@tanstack/react-router';
+import { orderChapterPayloadType } from '@/routes/study-library/courses/-types/order-payload';
+import { useUpdateChapterOrder } from '@/routes/study-library/courses/levels/subjects/modules/chapters/-services/update-chapter-order';
+import useIntroJsTour from '@/hooks/use-intro';
+import { StudyLibraryIntroKey } from '@/constants/storage/introKey';
+import { studyLibrarySteps } from '@/constants/intro/steps';
+import { useDeleteChapter } from '@/routes/study-library/courses/levels/subjects/modules/chapters/-services/delete-chapter';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { toast } from 'sonner';
 
 export interface FormValues {
     chapters: ChapterWithSlides[];
@@ -32,28 +28,15 @@ export const ChapterMaterial = ({ currentModuleId }: { currentModuleId: string }
     const { modulesWithChaptersData } = useModulesWithChaptersStore();
     // const [moduleWithChapters, setModulesWithChapters] = useState(getModuleById(currentModuleId));
     const [existingChapters, setExistingChapters] = useState(
-        getChaptersByModuleId(currentModuleId) || [],
+        getChaptersByModuleId(currentModuleId) || []
     );
-    const { selectedSession, setSelectedSession } = useSelectedSessionStore();
     const updateChapterOrderMutation = useUpdateChapterOrder();
     const deleteChapterMutation = useDeleteChapter();
-    const { getPackageSessionId } = useInstituteDetailsStore();
+    const { getPackageSessionId, getSessionNameById } = useInstituteDetailsStore();
 
     const router = useRouter();
 
-    const { subjectId, courseId, levelId } = router.state.location.search;
-    const sessionList = subjectId ? getSubjectSessions(subjectId) : [];
-    const initialSession =
-        selectedSession && sessionList.includes(selectedSession) ? selectedSession : sessionList[0];
-    // const initialSession = sessionList[0];
-
-    const [currentSession, setCurrentSession] = useState(initialSession);
-
-    const handleSessionChange = (value: string | StudyLibrarySessionType) => {
-        if (typeof value !== "string" && value) {
-            setCurrentSession(value);
-        }
-    };
+    const { courseId, levelId, sessionId } = router.state.location.search;
 
     const form = useForm<FormValues>({
         defaultValues: {
@@ -68,19 +51,19 @@ export const ChapterMaterial = ({ currentModuleId }: { currentModuleId: string }
 
     const handleDeleteChapter = async ({ chapter }: { chapter: ChapterWithSlides }) => {
         const packageSessionId = getPackageSessionId({
-            courseId: courseId || "",
-            levelId: levelId || "",
-            sessionId: currentSession?.id || "",
+            courseId: courseId || '',
+            levelId: levelId || '',
+            sessionId: sessionId || '',
         });
         const chapterIds: string[] = [chapter.chapter.id];
         try {
             await deleteChapterMutation.mutateAsync({
-                packageSessionIds: packageSessionId || "",
+                packageSessionIds: packageSessionId || '',
                 chapterIds: chapterIds,
             });
-            toast.success("Chapter deleted successfully");
+            toast.success('Chapter deleted successfully');
         } catch {
-            toast.error("Failed to delete chapter");
+            toast.error('Failed to delete chapter');
         }
     };
 
@@ -93,14 +76,12 @@ export const ChapterMaterial = ({ currentModuleId }: { currentModuleId: string }
             form.reset({ chapters: existingChapters });
             setIsChapterLoading(false);
         }
-        console.log("remount");
+        console.log('remount');
     }, [existingChapters, form]);
 
     useEffect(() => {
-        setSelectedSession(currentSession);
-        // setModulesWithChapters(getModuleById(currentModuleId));
         setExistingChapters(getChaptersByModuleId(currentModuleId) || []);
-    }, [currentSession, modulesWithChaptersData, currentModuleId]);
+    }, [modulesWithChaptersData, currentModuleId]);
 
     return (
         <div className="flex size-full flex-col gap-8 text-neutral-600">
@@ -117,16 +98,13 @@ export const ChapterMaterial = ({ currentModuleId }: { currentModuleId: string }
                     <AddChapterButton />
                 </div>
             </div>
-            <SessionDropdown
-                currentSession={currentSession ?? undefined}
-                onSessionChange={handleSessionChange}
-                className="text-title font-semibold"
-                sessionList={sessionList}
-            />
+            <div className="flex items-center gap-6">
+                <p>Session: {getSessionNameById(sessionId || '')}</p>
+            </div>
             {/* Add your module content here */}
             <Chapters
                 form={form}
-                chapters={form.watch("chapters")}
+                chapters={form.watch('chapters')}
                 onDeleteChapter={handleDeleteChapter}
                 isLoading={isChapterLoading}
                 onOrderChange={handleChapterOrderChange}

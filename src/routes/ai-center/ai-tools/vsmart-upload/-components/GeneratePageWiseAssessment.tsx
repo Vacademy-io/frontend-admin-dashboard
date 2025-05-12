@@ -1,19 +1,19 @@
-import { useEffect, useRef, useState } from "react";
-import ReactQuill from "react-quill";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { MyButton } from "@/components/design-system/button";
+import { useEffect, useRef, useState } from 'react';
+import ReactQuill from 'react-quill';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { MyButton } from '@/components/design-system/button';
 import {
     convertSVGsToBase64,
     transformQuestionsToGenerateAssessmentAI,
-} from "@/routes/ai-center/-utils/helper";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { generateCompleteAssessmentFormSchema } from "@/routes/ai-center/-utils/generate-complete-assessment-schema";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { AIAssessmentResponseInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
-import GeneratePageWiseAssessmentQuestionsDialog from "./GeneratePageWiseAssessmentQuestionsDialog";
-import { useMutation } from "@tanstack/react-query";
-import { handleGenerateAssessmentQuestionsPageWise } from "@/routes/ai-center/-services/ai-center-service";
+} from '@/routes/ai-center/-utils/helper';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { generateCompleteAssessmentFormSchema } from '@/routes/ai-center/-utils/generate-complete-assessment-schema';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { AIAssessmentResponseInterface } from '@/types/ai/generate-assessment/generate-complete-assessment';
+import GeneratePageWiseAssessmentQuestionsDialog from './GeneratePageWiseAssessmentQuestionsDialog';
+import { useMutation } from '@tanstack/react-query';
+import { handleGenerateAssessmentQuestionsPageWise } from '@/routes/ai-center/-services/ai-center-service';
 
 interface GeneratePageWiseAssessmentProps {
     openPageWiseAssessmentDialog: boolean;
@@ -30,34 +30,34 @@ const GeneratePageWiseAssessment = ({
     const leftContentRef = useRef<HTMLDivElement | null>(null);
 
     const [popupVisible, setPopupVisible] = useState(false);
-    const [selectedText, setSelectedText] = useState("");
+    const [selectedText, setSelectedText] = useState('');
     const [assessmentData, setAssessmentData] = useState<AIAssessmentResponseInterface>({
-        title: "",
+        title: '',
         tags: [],
-        difficulty: "",
-        description: "",
+        difficulty: '',
+        description: '',
         subjects: [],
         classes: [],
         questions: [],
     });
     const [openCompleteAssessmentDialog, setOpenCompleteAssessmentDialog] = useState(false);
-    const [propmtInput, setPropmtInput] = useState("");
+    const [propmtInput, setPropmtInput] = useState('');
     const [isMoreQuestionsDialog, setIsMoreQuestionsDialog] = useState(false);
 
     const form = useForm<z.infer<typeof generateCompleteAssessmentFormSchema>>({
         resolver: zodResolver(generateCompleteAssessmentFormSchema),
-        mode: "onChange",
+        mode: 'onChange',
         defaultValues: {
-            questionPaperId: "1",
+            questionPaperId: '1',
             isFavourite: false,
-            title: "",
+            title: '',
             createdOn: new Date(),
-            yearClass: "",
-            subject: "",
-            questionsType: "",
-            optionsType: "",
-            answersType: "",
-            explanationsType: "",
+            yearClass: '',
+            subject: '',
+            questionsType: '',
+            optionsType: '',
+            answersType: '',
+            explanationsType: '',
             fileUpload: undefined,
             questions: [],
         },
@@ -68,7 +68,7 @@ const GeneratePageWiseAssessment = ({
 
         if (selection && selection.rangeCount > 0) {
             const range = selection.getRangeAt(0);
-            const container = document.createElement("div");
+            const container = document.createElement('div');
             container.appendChild(range.cloneContents());
             const html = container.innerHTML.trim();
 
@@ -81,8 +81,8 @@ const GeneratePageWiseAssessment = ({
 
         // Handle direct clicks on images or SVGs (no selection)
         const target = event.target as HTMLElement;
-        const closestSvg = target.closest("svg");
-        const closestImg = target.closest("img");
+        const closestSvg = target.closest('svg');
+        const closestImg = target.closest('img');
 
         if (closestSvg) {
             setSelectedText(closestSvg.outerHTML);
@@ -103,7 +103,7 @@ const GeneratePageWiseAssessment = ({
         }
 
         setPopupVisible(false);
-        setSelectedText("");
+        setSelectedText('');
     };
 
     /* Generate Assessment Complete */
@@ -131,7 +131,7 @@ const GeneratePageWiseAssessment = ({
         }) => handleGenerateAssessmentQuestionsPageWise(html, userPrompt, taskId),
         onSuccess: (response) => {
             // Check if response indicates pending state
-            if (response?.status === "pending") {
+            if (response?.status === 'pending') {
                 pendingRef.current = true;
                 // Don't schedule next poll - we'll wait for an error to resume
                 return;
@@ -141,7 +141,7 @@ const GeneratePageWiseAssessment = ({
             pendingRef.current = false;
 
             // If we have complete data, we're done
-            if (response === "Done" || response?.questions) {
+            if (response === 'Done' || response?.questions) {
                 setAssessmentData((prev) => ({
                     ...prev,
                     questions: [...(prev.questions ?? []), ...(response?.questions ?? [])],
@@ -159,7 +159,7 @@ const GeneratePageWiseAssessment = ({
                 });
                 form.trigger();
                 clearPolling();
-                setPropmtInput("");
+                setPropmtInput('');
                 setIsMoreQuestionsDialog(false);
                 return;
             }
@@ -206,7 +206,7 @@ const GeneratePageWiseAssessment = ({
         generateAssessmentMutation.mutate({
             html: String(rightEditorRef.current?.value),
             userPrompt: propmtInput,
-            taskId: "",
+            taskId: '',
         });
     };
 
@@ -273,7 +273,7 @@ const GeneratePageWiseAssessment = ({
                                 onMouseUp={handleLeftSelection}
                                 className="rounded border p-4"
                                 dangerouslySetInnerHTML={{
-                                    __html: convertSVGsToBase64(htmlData ?? "") || "",
+                                    __html: convertSVGsToBase64(htmlData ?? '') || '',
                                 }}
                             />
                         </div>

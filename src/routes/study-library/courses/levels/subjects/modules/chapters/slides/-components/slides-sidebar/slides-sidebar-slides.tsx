@@ -1,13 +1,12 @@
-import { useSidebar } from '@/components/ui/sidebar';
 import { Sortable, SortableDragHandle, SortableItem } from '@/components/ui/sortable';
 import { truncateString } from '@/lib/reusable/truncateString';
 import { useContentStore } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
 import { DotsSixVertical, FileDoc, FilePdf, PlayCircle } from '@phosphor-icons/react';
 import { ReactNode, useEffect } from 'react';
 import {
-  Slide,
-  slideOrderPayloadType,
-  useSlides,
+    Slide,
+    slideOrderPayloadType,
+    useSlides,
 } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { useRouter } from '@tanstack/react-router';
@@ -17,187 +16,194 @@ import { useSaveDraft } from '../../-context/saveDraftContext';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface FormValues {
-  slides: Slide[];
+    slides: Slide[];
 }
 
 export const ChapterSidebarSlides = ({
-  handleSlideOrderChange,
+    handleSlideOrderChange,
 }: {
-  handleSlideOrderChange: (slideOrderPayload: slideOrderPayloadType) => void;
+    handleSlideOrderChange: (slideOrderPayload: slideOrderPayloadType) => void;
 }) => {
-  const { open, state } = useSidebar();
-  const { setItems, activeItem, setActiveItem, items } = useContentStore();
-  const router = useRouter();
-  const { chapterId, slideId } = router.state.location.search;
-  const { slides, isLoading } = useSlides(chapterId || '');
-  const { getCurrentEditorHTMLContent, saveDraft } = useSaveDraft();
+    const { setItems, activeItem, setActiveItem, items } = useContentStore();
+    const router = useRouter();
+    const { chapterId, slideId } = router.state.location.search;
+    const { slides, isLoading } = useSlides(chapterId || '');
+    const { getCurrentEditorHTMLContent, saveDraft } = useSaveDraft();
 
-  const handleSlideClick = async (slide: Slide) => {
-    // Check if we need to save the current slide before switching
-    if (activeItem && activeItem.source_type === 'DOCUMENT' && activeItem.document_type === 'DOC') {
-      const currentContent = getCurrentEditorHTMLContent();
-      console.log('currentContent: ', currentContent);
-      if (currentContent) {
+    const handleSlideClick = async (slide: Slide) => {
+        // Check if we need to save the current slide before switching
         if (
-          (activeItem.status === 'UNSYNC' || activeItem.status === 'DRAFT') &&
-          activeItem.document_data !== currentContent
+            activeItem &&
+            activeItem.source_type === 'DOCUMENT' &&
+            activeItem.document_slide?.type === 'DOC'
         ) {
-          await saveDraft(activeItem);
-        } else if (
-          activeItem.status === 'PUBLISHED' &&
-          activeItem.published_data !== currentContent
-        ) {
-          await saveDraft(activeItem);
+            const currentContent = getCurrentEditorHTMLContent();
+            if (currentContent) {
+                if (
+                    (activeItem.status === 'UNSYNC' || activeItem.status === 'DRAFT') &&
+                    activeItem.document_slide.data !== currentContent
+                ) {
+                    await saveDraft(activeItem);
+                } else if (
+                    activeItem.status === 'PUBLISHED' &&
+                    activeItem.document_slide.published_data !== currentContent
+                ) {
+                    await saveDraft(activeItem);
+                }
+            }
         }
-      }
-    }
 
-    // Now set the new active item
-    setActiveItem(slide);
-  };
+        // Now set the new active item
+        setActiveItem(slide);
+    };
 
-  const form = useForm<FormValues>({
-    defaultValues: {
-      slides: items || [],
-    },
-  });
+    const form = useForm<FormValues>({
+        defaultValues: {
+            slides: items || [],
+        },
+    });
 
-  const { fields, move } = useFieldArray({
-    control: form.control,
-    name: 'slides',
-  });
+    const { move } = useFieldArray({
+        control: form.control,
+        name: 'slides',
+    });
 
-  const getIcon = (slide: Slide): ReactNode => {
-    if (slide.source_type === 'ASSIGNMENT') {
-      return <File className="size-6" />;
-    }
-    const type =
-      slide.source_type === 'QUESTION'
-        ? 'QUESTION'
-        : slide.published_url != null || slide.video_url != null
-          ? 'VIDEO'
-          : slide.document_type;
-    switch (type) {
-      case 'PDF':
-        return <FilePdf className="size-6" />;
-      case 'VIDEO':
-        return <PlayCircle className="size-6" />;
-      case 'DOC':
-        return <FileDoc className="size-6" />;
-      case 'DOCX':
-        return <FileDoc className="size-6" />;
-      case 'QUESTION':
-        return <Question className="size-6" />;
-      default:
-        return <></>;
-    }
-  };
-
-  const handleMove = ({ activeIndex, overIndex }: { activeIndex: number; overIndex: number }) => {
-    move(activeIndex, overIndex);
-
-    // Create order payload after move
-    const updatedFields = form.getValues('slides');
-
-    // Create order payload with the updated order
-    const orderPayload = updatedFields.map((slide, index) => ({
-      slide_id: slide.slide_id,
-      slide_order: index + 1,
-    }));
-
-    // Call the handler to update the order through API
-    handleSlideOrderChange(orderPayload);
-  };
-
-  useEffect(() => {
-    form.setValue('slides', items || []);
-  }, [items]);
-
-  useEffect(() => {
-    if (slides?.length) {
-      form.reset({ slides: items });
-      setItems(items);
-
-      if (slideId) {
-        const targetSlide: Slide | undefined = items.find(
-          (item: Slide) => item.slide_id === slideId
-        );
-        if (targetSlide) {
-          setActiveItem(targetSlide);
-          return;
+    const getIcon = (slide: Slide): ReactNode => {
+        if (slide.source_type === 'ASSIGNMENT') {
+            return <File className="size-6" />;
         }
-      }
+        const type =
+            slide.source_type === 'QUESTION'
+                ? 'QUESTION'
+                : slide.source_type === 'VIDEO'
+                  ? 'VIDEO'
+                  : slide.source_type === 'DOCUMENT' && slide.document_slide?.type;
+        switch (type) {
+            case 'PDF':
+                return <FilePdf className="size-6" />;
+            case 'VIDEO':
+                return <PlayCircle className="size-6" />;
+            case 'DOC':
+                return <FileDoc className="size-6" />;
+            case 'DOCX':
+                return <FileDoc className="size-6" />;
+            case 'QUESTION':
+                return <Question className="size-6" />;
+            default:
+                return <></>;
+        }
+    };
 
-      setActiveItem(slides[0]);
-    } else {
-      setActiveItem(null);
+    const handleMove = ({ activeIndex, overIndex }: { activeIndex: number; overIndex: number }) => {
+        move(activeIndex, overIndex);
+
+        // Create order payload after move
+        const updatedFields = form.getValues('slides');
+
+        // Create order payload with the updated order
+        const orderPayload = updatedFields.map((slide, index) => ({
+            slide_id: slide.id,
+            slide_order: index + 1,
+        }));
+
+        // Call the handler to update the order through API
+        handleSlideOrderChange(orderPayload);
+    };
+
+    useEffect(() => {
+        form.setValue('slides', items || []);
+    }, [items]);
+
+    useEffect(() => {
+        if (slides?.length) {
+            form.reset({ slides: items });
+            setItems(items);
+
+            if (slideId) {
+                const targetSlide: Slide | undefined = items.find(
+                    (item: Slide) => item.id === slideId
+                );
+                if (targetSlide) {
+                    setActiveItem(targetSlide);
+                    return;
+                }
+            }
+
+            setActiveItem(slides[0]);
+        } else {
+            setActiveItem(null);
+        }
+    }, [slides, slideId]);
+
+    if (isLoading) {
+        return <DashboardLoader />;
     }
-  }, [slides, slideId]);
 
-  if (isLoading) {
-    return <DashboardLoader />;
-  }
-
-  return (
-    <Sortable value={fields} onMove={handleMove} fast={false}>
-      <div className="flex w-full flex-col items-center gap-6 text-neutral-600">
-        {fields.map((slide, index) => (
-          <SortableItem key={index} value={slide.id} asChild className="cursor-pointer">
-            <div className="w-full" onClick={() => handleSlideClick(slide)}>
-              <div
-                className={`flex w-full items-center gap-3 rounded-xl ${
-                  open ? 'px-4 py-2' : 'p-4'
-                } ${
-                  slide.slide_id === activeItem?.slide_id
-                    ? 'border border-neutral-200 bg-white text-primary-500'
-                    : 'hover:border hover:border-neutral-200 hover:bg-white hover:text-primary-500'
-                }`}
-              >
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger className="w-full">
-                      <div className="flex flex-1 items-center gap-2">
-                        <div className="flex gap-3">
-                          <p className={`${open ? 'visible' : 'hidden'} font-semibold`}>
-                            S{index + 1}
-                          </p>
-                          {getIcon(slide)}
-                          <p
-                            className={`flex-1 text-subtitle ${
-                              open ? 'visible' : 'hidden'
-                            } text-body`}
-                          >
-                            {truncateString(slide.document_title || slide.video_title || '', 12)}
-                          </p>
+    return (
+        <Sortable value={items} onMove={handleMove} fast={false}>
+            <div className="flex w-full flex-col items-center gap-6 text-neutral-600">
+                {items.map((slide, index) => (
+                    <SortableItem key={index} value={slide.id} asChild className="cursor-pointer">
+                        <div className="w-full" onClick={() => handleSlideClick(slide)}>
+                            <div
+                                className={`flex w-full items-center gap-3 rounded-xl px-4 py-2 ${
+                                    slide.id === activeItem?.id
+                                        ? 'border border-neutral-200 bg-white text-primary-500'
+                                        : 'hover:border hover:border-neutral-200 hover:bg-white hover:text-primary-500'
+                                }`}
+                            >
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger className="w-full">
+                                            <div className="flex flex-1 items-center gap-2">
+                                                <div className="flex gap-3">
+                                                    <p className={` font-semibold`}>S{index + 1}</p>
+                                                    {getIcon(slide)}
+                                                    <p className={`flex-1 text-subtitle`}>
+                                                        {truncateString(
+                                                            (slide.source_type === 'DOCUMENT' &&
+                                                                slide.document_slide?.title) ||
+                                                                (slide.source_type === 'VIDEO' &&
+                                                                    slide.video_slide?.title) ||
+                                                                '',
+                                                            12
+                                                        )}
+                                                    </p>
+                                                </div>
+                                                {slide.status != 'DRAFT' && (
+                                                    <CheckCircle
+                                                        weight="fill"
+                                                        className="text-success-600"
+                                                        size={20}
+                                                    />
+                                                )}
+                                            </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent className="border border-neutral-300 bg-primary-100 text-neutral-600">
+                                            <p>
+                                                {(slide.source_type === 'DOCUMENT' &&
+                                                    slide.document_slide?.title) ||
+                                                    (slide.source_type === 'VIDEO' &&
+                                                        slide.video_slide?.title) ||
+                                                    ''}
+                                            </p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                                <div className="drag-handle-container">
+                                    <SortableDragHandle
+                                        variant="ghost"
+                                        size="icon"
+                                        className="cursor-grab hover:bg-neutral-100 active:cursor-grabbing"
+                                    >
+                                        <DotsSixVertical className={`size-6 shrink-0 `} />
+                                    </SortableDragHandle>
+                                </div>
+                            </div>
                         </div>
-                        {slide.status != 'DRAFT' && state == 'expanded' && (
-                          <CheckCircle weight="fill" className="text-success-600" size={20} />
-                        )}
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent className="border border-neutral-300 bg-primary-100 text-neutral-600">
-                      <p>{slide.document_title || slide.video_title || ''}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                {open && (
-                  <div className="drag-handle-container">
-                    <SortableDragHandle
-                      variant="ghost"
-                      size="icon"
-                      className="cursor-grab hover:bg-neutral-100 active:cursor-grabbing"
-                    >
-                      <DotsSixVertical
-                        className={`size-6 shrink-0 ${open ? 'visible' : 'hidden'}`}
-                      />
-                    </SortableDragHandle>
-                  </div>
-                )}
-              </div>
+                    </SortableItem>
+                ))}
             </div>
-          </SortableItem>
-        ))}
-      </div>
-    </Sortable>
-  );
+        </Sortable>
+    );
 };

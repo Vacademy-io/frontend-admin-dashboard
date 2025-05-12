@@ -1,16 +1,16 @@
 // StudentMenuOptions.tsx
-import { MyDropdown } from "../../dropdown";
-import { MyButton } from "../../button";
-import { DotsThree } from "@phosphor-icons/react";
-import { useDialogStore } from "../../../../routes/students/students-list/-hooks/useDialogStore";
-import { StudentTable } from "@/types/student-table-types";
-import { useState } from "react";
-import { EnrollManuallyButton } from "@/components/common/students/enroll-manually/enroll-manually-button";
+import { MyDropdown } from '../../dropdown';
+import { MyButton } from '../../button';
+import { DotsThree } from '@phosphor-icons/react';
+import { useDialogStore } from '../../../../routes/manage-students/students-list/-hooks/useDialogStore';
+import { StudentTable } from '@/types/student-table-types';
+import { useState } from 'react';
+import { EnrollManuallyButton } from '@/components/common/students/enroll-manually/enroll-manually-button';
 
 const getMenuOptions = (status?: string) => {
-    if (status === "INACTIVE") {
+    if (status === 'INACTIVE') {
         // return ["View Student Portal", "Re-enroll Student", "Delete Student"];
-        return ["Re-enroll Student"];
+        return ['Re-enroll Student'];
     }
 
     // return [
@@ -21,7 +21,7 @@ const getMenuOptions = (status?: string) => {
     //     "Terminate Registration",
     //     "Delete Student",
     // ];
-    return ["Change Batch", "Terminate Registration", "Re-register for Next Session"];
+    return ['Change Batch', 'Terminate Registration', 'Re-register for Next Session'];
 };
 
 export const StudentMenuOptions = ({ student }: { student: StudentTable }) => {
@@ -38,26 +38,26 @@ export const StudentMenuOptions = ({ student }: { student: StudentTable }) => {
 
     const handleMenuOptionsChange = (value: string) => {
         switch (value) {
-            case "Re-enroll Student":
+            case 'Re-enroll Student':
                 setShowReEnrollDialog(true);
                 break;
-            case "Change Batch":
+            case 'Change Batch':
                 openChangeBatchDialog(student);
                 break;
-            case "Extend Session":
+            case 'Extend Session':
                 openExtendSessionDialog(student);
                 break;
-            case "Re-register for Next Session":
+            case 'Re-register for Next Session':
                 openReRegisterDialog(student);
                 break;
-            case "Terminate Registration":
+            case 'Terminate Registration':
                 openTerminateRegistrationDialog(student);
                 break;
-            case "Delete Student":
+            case 'Delete Student':
                 openDeleteDialog(student);
                 break;
             // Handle View Student Portal if needed
-            case "View Student Portal":
+            case 'View Student Portal':
                 // Add portal view logic here
                 break;
         }

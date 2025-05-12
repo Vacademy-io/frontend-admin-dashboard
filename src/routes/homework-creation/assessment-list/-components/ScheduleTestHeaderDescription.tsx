@@ -1,10 +1,10 @@
-import { useIsMobile } from "@/hooks/use-mobile";
-import { MyButton } from "@/components/design-system/button";
-import { CalendarBlank } from "phosphor-react";
-import { useNavigate } from "@tanstack/react-router";
-import useIntroJsTour from "@/hooks/use-intro";
-import { IntroKey } from "@/constants/storage/introKey";
-import { createAssesmentSteps } from "@/constants/intro/steps";
+import { useIsMobile } from '@/hooks/use-mobile';
+import { MyButton } from '@/components/design-system/button';
+import { CalendarBlank } from 'phosphor-react';
+import { useNavigate } from '@tanstack/react-router';
+import useIntroJsTour from '@/hooks/use-intro';
+import { IntroKey } from '@/constants/storage/introKey';
+import { createAssesmentSteps } from '@/constants/intro/steps';
 
 export const ScheduleTestHeaderDescription = () => {
     const isMobile = useIsMobile();
@@ -12,9 +12,9 @@ export const ScheduleTestHeaderDescription = () => {
 
     const handleRedirectRoute = (type: string) => {
         navigate({
-            to: "/homework-creation/create-assessment/$assessmentId/$examtype",
+            to: '/homework-creation/create-assessment/$assessmentId/$examtype',
             params: {
-                assessmentId: "defaultId",
+                assessmentId: 'defaultId',
                 examtype: type,
             },
             search: {
@@ -25,17 +25,17 @@ export const ScheduleTestHeaderDescription = () => {
 
     useIntroJsTour({
         key: IntroKey.assessmentFirstTimeVisit,
-        steps: createAssesmentSteps.filter((step) => step.element === "#create-assessment"),
+        steps: createAssesmentSteps.filter((step) => step.element === '#create-assessment'),
         partial: true,
         onTourExit: () => {
-            console.log("Tour Completed");
+            console.log('Tour Completed');
         },
     });
 
     return (
         <div
             className={`mb-8 flex items-center justify-between ${
-                isMobile ? "flex-wrap gap-4" : "gap-10"
+                isMobile ? 'flex-wrap gap-4' : 'gap-10'
             }`}
         >
             <div className="flex flex-col">
@@ -54,7 +54,7 @@ export const ScheduleTestHeaderDescription = () => {
                 buttonType="primary"
                 layoutVariant="default"
                 id="create-assessment"
-                onClick={() => handleRedirectRoute("EXAM")}
+                onClick={() => handleRedirectRoute('EXAM')}
             >
                 <CalendarBlank size={32} />
                 Create Homework

@@ -1,12 +1,12 @@
 // extend-session-dialog.tsx
-import { MyDialog } from "../../dialog";
-import React, { ReactNode } from "react";
-import { useDialogStore } from "../../../../routes/students/students-list/-hooks/useDialogStore";
-import { useState } from "react";
-import { MyButton } from "../../button";
-import { MyInput } from "../../input";
-import { useExtendSessionMutation } from "@/routes/students/students-list/-services/useStudentOperations";
-import { useBulkExtendSessionMutation } from "@/routes/students/students-list/-services/useBulkOperations";
+import { MyDialog } from '../../dialog';
+import React, { ReactNode } from 'react';
+import { useDialogStore } from '../../../../routes/manage-students/students-list/-hooks/useDialogStore';
+import { useState } from 'react';
+import { MyButton } from '../../button';
+import { MyInput } from '../../input';
+import { useExtendSessionMutation } from '@/routes/manage-students/students-list/-services/useStudentOperations';
+import { useBulkExtendSessionMutation } from '@/routes/manage-students/students-list/-services/useBulkOperations';
 
 interface ExtendSessionDialogProps {
     trigger: ReactNode;
@@ -18,7 +18,7 @@ const ExtendSessionDialogContent = () => {
     const { selectedStudent, bulkActionInfo, isBulkAction, closeAllDialogs } = useDialogStore();
     const displayText = isBulkAction ? bulkActionInfo?.displayText : selectedStudent?.full_name;
 
-    const [date, setDate] = useState("");
+    const [date, setDate] = useState('');
 
     const { mutate: extendSingleSession, isPending: isSinglePending } = useExtendSessionMutation();
     const { mutate: extendBulkSession, isPending: isBulkPending } = useBulkExtendSessionMutation();
@@ -29,11 +29,11 @@ const ExtendSessionDialogContent = () => {
         // For bulk actions
         if (isBulkAction && bulkActionInfo?.selectedStudents) {
             const validStudents = bulkActionInfo.selectedStudents.filter(
-                (student) => student && student.user_id && student.package_session_id,
+                (student) => student && student.user_id && student.package_session_id
             );
 
             if (validStudents.length === 0) {
-                console.error("No valid students found for bulk action");
+                console.error('No valid students found for bulk action');
                 return;
             }
 
@@ -41,13 +41,13 @@ const ExtendSessionDialogContent = () => {
                 {
                     students: validStudents.map((student) => ({
                         userId: student.user_id,
-                        currentPackageSessionId: student.package_session_id || "",
+                        currentPackageSessionId: student.package_session_id || '',
                     })),
                     newExpiryDate: formattedDate,
                 },
                 {
                     onSuccess: closeAllDialogs,
-                },
+                }
             );
         }
         // For single student
@@ -64,7 +64,7 @@ const ExtendSessionDialogContent = () => {
                 },
                 {
                     onSuccess: closeAllDialogs,
-                },
+                }
             );
         }
     };
@@ -75,8 +75,8 @@ const ExtendSessionDialogContent = () => {
 
     const formatDateForApi = (dateString: string) => {
         const date = new Date(dateString);
-        const day = String(date.getDate()).padStart(2, "0");
-        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
         const year = date.getFullYear();
         return `${day}-${month}-${year}`;
     };
@@ -105,7 +105,7 @@ const ExtendSessionDialogContent = () => {
                 disable={!date || isLoading}
                 onClick={handleSubmit}
             >
-                {isLoading ? "Extending..." : "Extend Session"}
+                {isLoading ? 'Extending...' : 'Extend Session'}
             </MyButton>
         </div>
     );

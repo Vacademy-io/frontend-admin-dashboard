@@ -1,7 +1,7 @@
 // components/StudentSearchBox.tsx
-import { MyInput } from "@/components/design-system/input";
-import { MagnifyingGlass, KeyReturn, XCircle } from "@phosphor-icons/react";
-import { StudentSearchBoxProps } from "@/routes/students/students-list/-types/students-list-types";
+import { MyInput } from '@/components/design-system/input';
+import { MagnifyingGlass, KeyReturn, XCircle } from '@phosphor-icons/react';
+import { StudentSearchBoxProps } from '@/routes/manage-students/students-list/-types/students-list-types';
 
 export const StudentSearchBox = ({
     searchInput,
@@ -16,7 +16,7 @@ export const StudentSearchBox = ({
             input={searchInput}
             onChangeFunction={onSearchChange}
             inputPlaceholder="Search by name, enroll..."
-            className="pl-9 pr-9"
+            className="px-9"
         />
         <MagnifyingGlass className="absolute left-3 top-1/4 size-[18px] text-neutral-600" />
         <KeyReturn
@@ -24,14 +24,14 @@ export const StudentSearchBox = ({
             className={`absolute right-3 top-1/4 size-[18px] cursor-pointer text-primary-500 ${
                 (searchInput.length || (searchFilter.length && !searchInput.length)) &&
                 searchFilter != searchInput
-                    ? "visible"
-                    : "hidden"
+                    ? 'visible'
+                    : 'hidden'
             }`}
             onClick={onSearchEnter}
         />
         <XCircle
             className={`absolute right-3 top-1/4 size-[18px] cursor-pointer text-neutral-400 ${
-                searchInput == searchFilter && searchInput != "" ? "visible" : "hidden"
+                searchInput == searchFilter && searchInput != '' ? 'visible' : 'hidden'
             }`}
             onClick={onClearSearch}
         />

@@ -9,8 +9,16 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { GenerateCard } from '../../../-components/GenerateCard';
 import { useAICenter } from '../../../-contexts/useAICenterContext';
 import AITasksList from '@/routes/ai-center/-components/AITasksList';
+import { UseFormReturn } from 'react-hook-form';
+import { SectionFormType } from '@/types/assessments/assessment-steps';
 
-const GenerateAiQuestionPaperComponent = () => {
+const GenerateAiQuestionPaperComponent = ({
+    form,
+    currentSectionIndex,
+}: {
+    form?: UseFormReturn<SectionFormType>;
+    currentSectionIndex?: number;
+}) => {
     const queryClient = useQueryClient();
     const [taskName, setTaskName] = useState('');
     const instituteId = getInstituteId();
@@ -101,9 +109,16 @@ const GenerateAiQuestionPaperComponent = () => {
                 taskName={taskName}
                 setTaskName={setTaskName}
                 pollGenerateAssessment={pollGenerateAssessment}
+                sectionsForm={form}
+                currentSectionIndex={currentSectionIndex}
             />
             {generateAssessmentMutation.status === 'success' && (
-                <AITasksList heading="Vsmart Extract" enableDialog={true} />
+                <AITasksList
+                    heading="Vsmart Extract"
+                    enableDialog={true}
+                    sectionsForm={form}
+                    currentSectionIndex={currentSectionIndex}
+                />
             )}
         </>
     );

@@ -24,22 +24,22 @@ import {
     STUDENT_REPORT_DETAIL_URL,
     STUDENT_REPORT_URL,
     UPDATE_ATTEMPT,
-} from "@/constants/urls";
-import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
-import { AssessmentStudentLeaderboardInterface } from "../-components/AssessmentStudentLeaderboard";
-import { AssessmentDetailQuestions } from "../-utils/assessment-details-interface";
+} from '@/constants/urls';
+import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
+import { AssessmentStudentLeaderboardInterface } from '../-components/AssessmentStudentLeaderboard';
+import { AssessmentDetailQuestions } from '../-utils/assessment-details-interface';
 import {
     SelectedReleaseResultFilterInterface,
     SelectedSubmissionsFilterInterface,
-} from "../-components/AssessmentSubmissionsTab";
-import { StudentReportFilterInterface } from "@/routes/students/students-list/-components/students-list/student-side-view/student-test-records/student-test-record";
-import { SelectedFilterQuestionWise } from "@/types/assessments/student-questionwise-status";
-import { SelectedFilterRevaluateInterface } from "@/types/assessments/assessment-revaluate-question-wise";
-import { AssessmentParticipantsInterface } from "../-components/AssessmentParticipantsList";
+} from '../-components/AssessmentSubmissionsTab';
+import { StudentReportFilterInterface } from '@/routes/manage-students/students-list/-components/students-list/student-side-view/student-test-records/student-test-record';
+import { SelectedFilterQuestionWise } from '@/types/assessments/student-questionwise-status';
+import { SelectedFilterRevaluateInterface } from '@/types/assessments/assessment-revaluate-question-wise';
+import { AssessmentParticipantsInterface } from '../-components/AssessmentParticipantsList';
 
 export const savePrivateQuestions = async (questions: AssessmentDetailQuestions) => {
     const response = await authenticatedAxiosInstance({
-        method: "POST",
+        method: 'POST',
         url: PRIVATE_ADD_QUESTIONS,
         data: questions,
     });
@@ -48,7 +48,7 @@ export const savePrivateQuestions = async (questions: AssessmentDetailQuestions)
 
 export const getOverviewDetials = async (assessmentId: string, instituteId: string | undefined) => {
     const response = await authenticatedAxiosInstance({
-        method: "GET",
+        method: 'GET',
         url: GET_OVERVIEW_URL,
         params: {
             assessmentId,
@@ -61,10 +61,10 @@ export const getOverviewDetials = async (assessmentId: string, instituteId: stri
 export const getQuestionsInsightsData = async (
     assessmentId: string,
     instituteId: string | undefined,
-    sectionId: string | undefined,
+    sectionId: string | undefined
 ) => {
     const response = await authenticatedAxiosInstance({
-        method: "GET",
+        method: 'GET',
         url: GET_QUESTIONS_INSIGHTS_URL,
         params: {
             assessmentId,
@@ -78,14 +78,14 @@ export const getQuestionsInsightsData = async (
 export const handleGetQuestionInsightsData = ({
     assessmentId,
     instituteId,
-    sectionId = "",
+    sectionId = '',
 }: {
     assessmentId: string;
     instituteId: string | undefined;
     sectionId: string | undefined;
 }) => {
     return {
-        queryKey: ["GET_QUESTION_INSIGHTS_DETAILS", assessmentId, instituteId, sectionId],
+        queryKey: ['GET_QUESTION_INSIGHTS_DETAILS', assessmentId, instituteId, sectionId],
         queryFn: () => getQuestionsInsightsData(assessmentId, instituteId, sectionId),
         staleTime: 60 * 60 * 1000,
         enabled: !!sectionId,
@@ -97,10 +97,10 @@ export const getStudentLeaderboardDetails = async (
     instituteId: string | undefined,
     pageNo: number,
     pageSize: number,
-    selectedFilter: AssessmentStudentLeaderboardInterface,
+    selectedFilter: AssessmentStudentLeaderboardInterface
 ) => {
     const response = await authenticatedAxiosInstance({
-        method: "POST",
+        method: 'POST',
         url: GET_LEADERBOARD_URL,
         params: {
             assessmentId,
@@ -115,13 +115,13 @@ export const getStudentLeaderboardDetails = async (
 
 export const handleGetStudentLeaderboardExportPDF = async (
     assessmentId: string,
-    instituteId: string | undefined,
+    instituteId: string | undefined
 ) => {
     const response = await authenticatedAxiosInstance({
-        method: "GET",
-        responseType: "blob",
+        method: 'GET',
+        responseType: 'blob',
         headers: {
-            Accept: "application/pdf",
+            Accept: 'application/pdf',
         },
         url: GET_EXPORT_PDF_URL_LEADERBOARD,
         params: {
@@ -134,10 +134,10 @@ export const handleGetStudentLeaderboardExportPDF = async (
 
 export const handleGetStudentLeaderboardExportCSV = async (
     assessmentId: string,
-    instituteId: string | undefined,
+    instituteId: string | undefined
 ) => {
     const response = await authenticatedAxiosInstance({
-        method: "GET",
+        method: 'GET',
         url: GET_EXPORT_CSV_URL_LEADERBOARD,
         params: {
             assessmentId,
@@ -149,10 +149,10 @@ export const handleGetStudentLeaderboardExportCSV = async (
 
 export const handleGetStudentRankMarkExportCSV = async (
     assessmentId: string,
-    instituteId: string | undefined,
+    instituteId: string | undefined
 ) => {
     const response = await authenticatedAxiosInstance({
-        method: "GET",
+        method: 'GET',
         url: GET_EXPORT_CSV_URL_RANK_MARK,
         params: {
             assessmentId,
@@ -164,13 +164,13 @@ export const handleGetStudentRankMarkExportCSV = async (
 
 export const handleGetStudentRankMarkExportPDF = async (
     assessmentId: string,
-    instituteId: string | undefined,
+    instituteId: string | undefined
 ) => {
     const response = await authenticatedAxiosInstance({
-        method: "GET",
-        responseType: "blob",
+        method: 'GET',
+        responseType: 'blob',
         headers: {
-            Accept: "application/pdf",
+            Accept: 'application/pdf',
         },
         url: GET_EXPORT_PDF_URL_RANK_MARK,
         params: {
@@ -184,13 +184,13 @@ export const handleGetStudentRankMarkExportPDF = async (
 export const handleGetStudentQuestionInsightsExportPDF = async (
     assessmentId: string,
     instituteId: string | undefined,
-    sectionIds: string,
+    sectionIds: string
 ) => {
     const response = await authenticatedAxiosInstance({
-        method: "GET",
-        responseType: "blob",
+        method: 'GET',
+        responseType: 'blob',
         headers: {
-            Accept: "application/pdf",
+            Accept: 'application/pdf',
         },
         url: GET_EXPORT_PDF_URL_QUESTION_INSIGHTS,
         params: {
@@ -205,13 +205,13 @@ export const handleGetStudentQuestionInsightsExportPDF = async (
 export const handleGetStudentReportExportPDF = async (
     assessmentId: string,
     instituteId: string | undefined,
-    attemptId: string,
+    attemptId: string
 ) => {
     const response = await authenticatedAxiosInstance({
-        method: "GET",
-        responseType: "blob",
+        method: 'GET',
+        responseType: 'blob',
         headers: {
-            Accept: "application/pdf",
+            Accept: 'application/pdf',
         },
         url: GET_EXPORT_PDF_URL_STUDENT_REPORT,
         params: {
@@ -228,13 +228,13 @@ export const handleGetRespondentExportPDF = async (
     sectionId: string,
     questionId: string,
     assessmentId: string,
-    selectedFilter: SelectedFilterQuestionWise,
+    selectedFilter: SelectedFilterQuestionWise
 ) => {
     const response = await authenticatedAxiosInstance({
-        method: "POST",
-        responseType: "blob",
+        method: 'POST',
+        responseType: 'blob',
         headers: {
-            Accept: "application/pdf",
+            Accept: 'application/pdf',
         },
         url: GET_EXPORT_PDF_URL_RESPONDENT_LIST,
         params: {
@@ -253,10 +253,10 @@ export const handleGetRespondentExportCSV = async (
     sectionId: string,
     questionId: string,
     assessmentId: string,
-    selectedFilter: SelectedFilterQuestionWise,
+    selectedFilter: SelectedFilterQuestionWise
 ) => {
     const response = await authenticatedAxiosInstance({
-        method: "POST",
+        method: 'POST',
         url: GET_EXPORT_CSV_URL_RESPONDENT_LIST,
         params: {
             instituteId,
@@ -272,13 +272,13 @@ export const handleGetRespondentExportCSV = async (
 export const handleGetSubmissionsExportPDF = async (
     instituteId: string | undefined,
     assessmentId: string,
-    selectedFilter: SelectedSubmissionsFilterInterface,
+    selectedFilter: SelectedSubmissionsFilterInterface
 ) => {
     const response = await authenticatedAxiosInstance({
-        method: "POST",
-        responseType: "blob",
+        method: 'POST',
+        responseType: 'blob',
         headers: {
-            Accept: "application/pdf",
+            Accept: 'application/pdf',
         },
         url: GET_EXPORT_PDF_URL_SUBMISSIONS_LIST,
         params: {
@@ -293,10 +293,10 @@ export const handleGetSubmissionsExportPDF = async (
 export const handleGetSubmissionsExportCSV = async (
     instituteId: string | undefined,
     assessmentId: string,
-    selectedFilter: SelectedSubmissionsFilterInterface,
+    selectedFilter: SelectedSubmissionsFilterInterface
 ) => {
     const response = await authenticatedAxiosInstance({
-        method: "POST",
+        method: 'POST',
         url: GET_EXPORT_CSV_URL_SUBMISSIONS_LIST,
         params: {
             instituteId,
@@ -315,7 +315,7 @@ export const handleGetOverviewData = ({
     instituteId: string | undefined;
 }) => {
     return {
-        queryKey: ["GET_ASSESSMENT_DETAILS", assessmentId, instituteId],
+        queryKey: ['GET_ASSESSMENT_DETAILS', assessmentId, instituteId],
         queryFn: () => getOverviewDetials(assessmentId, instituteId),
         staleTime: 60 * 60 * 1000,
     };
@@ -323,7 +323,7 @@ export const handleGetOverviewData = ({
 
 export const getAssessmentTotalMarks = async (assessmentId: string) => {
     const response = await authenticatedAxiosInstance({
-        method: "GET",
+        method: 'GET',
         url: GET_ASSESSMENT_TOTAL_MARKS_URL,
         params: {
             assessmentId,
@@ -334,7 +334,7 @@ export const getAssessmentTotalMarks = async (assessmentId: string) => {
 
 export const handleGetAssessmentTotalMarksData = ({ assessmentId }: { assessmentId: string }) => {
     return {
-        queryKey: ["GET_ASSESSMENT_TOTAL_MARKS", assessmentId],
+        queryKey: ['GET_ASSESSMENT_TOTAL_MARKS', assessmentId],
         queryFn: () => getAssessmentTotalMarks(assessmentId),
         staleTime: 60 * 60 * 1000,
     };
@@ -355,7 +355,7 @@ export const handleGetLeaderboardData = ({
 }) => {
     return {
         queryKey: [
-            "GET_STUDENT_LEADERBOARD_DETAILS",
+            'GET_STUDENT_LEADERBOARD_DETAILS',
             assessmentId,
             instituteId,
             pageNo,
@@ -368,7 +368,7 @@ export const handleGetLeaderboardData = ({
                 instituteId,
                 pageNo,
                 pageSize,
-                selectedFilter,
+                selectedFilter
             ),
         staleTime: 60 * 60 * 1000,
     };
@@ -379,10 +379,10 @@ export const getAdminParticipants = async (
     instituteId: string | undefined,
     pageNo: number,
     pageSize: number,
-    selectedFilter: SelectedSubmissionsFilterInterface,
+    selectedFilter: SelectedSubmissionsFilterInterface
 ) => {
     const response = await authenticatedAxiosInstance({
-        method: "POST",
+        method: 'POST',
         url: GET_ADMIN_PARTICIPANTS,
         params: {
             instituteId,
@@ -413,7 +413,7 @@ export const handleAdminParticipantsData = ({
 }) => {
     return {
         queryKey: [
-            "GET_ADMIN_PARTICIPANTS_DETAILS",
+            'GET_ADMIN_PARTICIPANTS_DETAILS',
             assessmentId,
             instituteId,
             pageNo,
@@ -431,10 +431,10 @@ export const getStudentReport = async (
     instituteId: string | undefined,
     pageNo: number,
     pageSize: number,
-    selectedFilter: StudentReportFilterInterface,
+    selectedFilter: StudentReportFilterInterface
 ) => {
     const response = await authenticatedAxiosInstance({
-        method: "POST",
+        method: 'POST',
         url: STUDENT_REPORT_URL,
         params: {
             studentId,
@@ -450,10 +450,10 @@ export const getStudentReport = async (
 export const viewStudentReport = async (
     assessmentId: string,
     attemptId: string,
-    instituteId: string | undefined,
+    instituteId: string | undefined
 ) => {
     const response = await authenticatedAxiosInstance({
-        method: "GET",
+        method: 'GET',
         url: STUDENT_REPORT_DETAIL_URL,
         params: {
             assessmentId,
@@ -479,7 +479,7 @@ export const handleStudentReportData = ({
 }) => {
     return {
         queryKey: [
-            "GET_STUDENT_REPORT_DETAILS",
+            'GET_STUDENT_REPORT_DETAILS',
             studentId,
             instituteId,
             pageNo,
@@ -497,10 +497,10 @@ export const getParticipantsListQuestionwise = async (
     questionId: string | undefined,
     pageNo: number,
     pageSize: number,
-    selectedFilter: SelectedFilterQuestionWise,
+    selectedFilter: SelectedFilterQuestionWise
 ) => {
     const response = await authenticatedAxiosInstance({
-        method: "POST",
+        method: 'POST',
         url: GET_PARTICIPANTS_QUESTION_WISE,
         params: {
             assessmentId,
@@ -512,7 +512,7 @@ export const getParticipantsListQuestionwise = async (
         data: {
             ...selectedFilter,
             registration_source_id: selectedFilter.registration_source_id.map(
-                (batch: { id: string; name: string }) => batch.id,
+                (batch: { id: string; name: string }) => batch.id
             ),
         },
     });
@@ -536,7 +536,7 @@ export const handleParticipantsListQuestionwise = ({
 }) => {
     return {
         queryKey: [
-            "GET_PARTICIPANTS_LIST_QUESTION_WISE",
+            'GET_PARTICIPANTS_LIST_QUESTION_WISE',
             assessmentId,
             sectionId,
             questionId,
@@ -551,7 +551,7 @@ export const handleParticipantsListQuestionwise = ({
                 questionId,
                 pageNo,
                 pageSize,
-                selectedFilter,
+                selectedFilter
             ),
         staleTime: 60 * 60 * 1000,
     };
@@ -561,10 +561,10 @@ export const getRevaluateStudentResult = async (
     assessmentId: string,
     instituteId: string | undefined,
     methodType: string,
-    selectedFilter: SelectedFilterRevaluateInterface,
+    selectedFilter: SelectedFilterRevaluateInterface
 ) => {
     const response = await authenticatedAxiosInstance({
-        method: "POST",
+        method: 'POST',
         url: GET_REVALUATE_STUDENT_RESULT,
         params: {
             assessmentId,
@@ -580,10 +580,10 @@ export const getReleaseStudentResult = async (
     assessmentId: string,
     instituteId: string | undefined,
     methodType: string,
-    selectedFilter: SelectedReleaseResultFilterInterface,
+    selectedFilter: SelectedReleaseResultFilterInterface
 ) => {
     const response = await authenticatedAxiosInstance({
-        method: "POST",
+        method: 'POST',
         url: GET_RELEASE_STUDENT_RESULT,
         params: {
             assessmentId,
@@ -598,10 +598,10 @@ export const getReleaseStudentResult = async (
 export const getBatchDetailsListOfStudents = async (
     pageNo: number,
     pageSize: number,
-    selectedFilter: AssessmentParticipantsInterface,
+    selectedFilter: AssessmentParticipantsInterface
 ) => {
     const response = await authenticatedAxiosInstance({
-        method: "POST",
+        method: 'POST',
         url: GET_BATCH_DETAILS_URL,
         params: {
             pageNo,
@@ -617,10 +617,10 @@ export const getBatchDetailsListOfStudents = async (
 
 export const getBatchDetailsListOfIndividualStudents = async (
     instituteId: string | undefined,
-    assessmentId: string,
+    assessmentId: string
 ) => {
     const response = await authenticatedAxiosInstance({
-        method: "GET",
+        method: 'GET',
         url: GET_INDIVIDUAL_STUDENT_DETAILS_URL,
         params: {
             instituteId,
@@ -638,16 +638,16 @@ export const handleGetIndividualStudentList = ({
     assessmentId: string;
 }) => {
     return {
-        queryKey: ["GET_INDIVIDUAL_STUDENT_DETAILS", instituteId, assessmentId],
+        queryKey: ['GET_INDIVIDUAL_STUDENT_DETAILS', instituteId, assessmentId],
         queryFn: () => getBatchDetailsListOfIndividualStudents(instituteId, assessmentId),
         staleTime: 60 * 60 * 1000,
-        enabled: assessmentId !== "defaultId" ? true : false,
+        enabled: assessmentId !== 'defaultId' ? true : false,
     };
 };
 
 export const getAttemptData = async (attemptId: string) => {
     const response = await authenticatedAxiosInstance({
-        method: "GET",
+        method: 'GET',
         url: `${GET_ATTEMPT_DATA}`,
         params: {
             attemptId,
@@ -658,7 +658,7 @@ export const getAttemptData = async (attemptId: string) => {
 
 export const getAttemptDetails = (attemptId: string) => {
     return {
-        queryKey: ["GET_ASSESSMENT_DETAILS", attemptId],
+        queryKey: ['GET_ASSESSMENT_DETAILS', attemptId],
         queryFn: () => getAttemptData(attemptId),
         staleTime: 60 * 60 * 1000,
         enabled: !!attemptId,
@@ -667,7 +667,7 @@ export const getAttemptDetails = (attemptId: string) => {
 
 export const handleUpdateAttempt = async (attemptId: string, fileId: string) => {
     const response = await authenticatedAxiosInstance({
-        method: "POST",
+        method: 'POST',
         url: UPDATE_ATTEMPT,
         params: {
             attemptId,
