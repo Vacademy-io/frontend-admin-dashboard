@@ -10,13 +10,16 @@ import { OPTIONS_LABELS, RoleType } from "@/constants/dummy-data";
 import { getInstituteId } from "@/constants/helper";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { handleInviteUsers } from "../-services/dashboard-services";
-import { useState, useEffect } from "react"; // Added useEffect
+import { useState, useEffect, lazy, Suspense } from "react"; // Added useEffect
 import { useStudyLibraryStore } from "@/stores/study-library/use-study-library-store";
 import SelectField from "@/components/design-system/select-field";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { useStudyLibraryQuery } from "@/routes/study-library/courses/-services/getStudyLibraryDetails";
-import {getCourseSubjects} from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSubjects"
+import { getCourseSubjects } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSubjects"
 import BatchSubjectForm from "./BatchAndSubjectSelection";
+import { Loader, Loader2 } from "lucide-react";
+
+const LazyBatchSubjectForm = lazy(() => import('./BatchAndSubjectSelection'));
 
 export const inviteUsersSchema = z.object({
     name: z.string().min(1, "Full name is required"),
@@ -44,7 +47,7 @@ export type inviteUsersFormValues = z.infer<typeof inviteUsersSchema>;
 
 const InviteUsersComponent = ({ refetchData }: { refetchData: () => void }) => {
     const [open, setOpen] = useState(false);
-    const instituteId = getInstituteId();  
+    const instituteId = getInstituteId();
     const form = useForm<inviteUsersFormValues>({
         resolver: zodResolver(inviteUsersSchema),
         defaultValues: {
@@ -87,18 +90,18 @@ const InviteUsersComponent = ({ refetchData }: { refetchData: () => void }) => {
         },
     });
 
-    const checkIsTeacherValid = ()=>{
+    const checkIsTeacherValid = () => {
         const selectedRoles = watch("roleType"); // Watch roleType for changes
         if (selectedRoles && selectedRoles.includes("TEACHER")) {
             const batch = form.watch("batch_subject_mappings");
-            if(!batch || batch.length === 0) {
+            if (!batch || batch.length === 0) {
                 return false;
             }
             return true;
         }
         return true;
     }
-    
+
     function onSubmit(values: inviteUsersFormValues) {
         // console.log(values)
         handleInviteUsersMutation.mutate({
@@ -179,7 +182,11 @@ const InviteUsersComponent = ({ refetchData }: { refetchData: () => void }) => {
                         />
                         {/* Conditional fields for Teacher */}
                         {selectedRoles?.includes("TEACHER") && (
-                            <BatchSubjectForm/>
+                            <Suspense fallback={<div className="flex justify-center w-full py-4">
+                                <Loader2 className="size-6 text-primary-500 animate-spin" />
+                            </div>}>
+                                <LazyBatchSubjectForm />
+                            </Suspense>
                         )}
                         <div className="flex w-96 items-center justify-center text-center">
                             <MyButton

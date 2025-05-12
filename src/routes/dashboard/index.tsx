@@ -149,9 +149,8 @@ export function DashboardComponent() {
                 </Card>
                 <div className={`flex ${subModules.assess ? "flex-col" : "flex-row"} gap-6`}>
                     <div
-                        className={`flex flex-1 ${
-                            subModules.assess ? "flex-row" : "flex-col"
-                        } gap-6`}
+                        className={`flex flex-1 ${subModules.assess ? "flex-row" : "flex-col"
+                            } gap-6`}
                     >
                         <Card className="flex-1 bg-neutral-50 shadow-none">
                             <CardHeader className="flex flex-col gap-4">
@@ -159,7 +158,8 @@ export function DashboardComponent() {
                                     <CardTitle>Role Type Users</CardTitle>
                                     <RoleTypeComponent setRoleTypeCount={setRoleTypeCount} />
                                 </div>
-                                <div className="flex items-center gap-3">
+                                <div className="flex items-start gap-3 flex-col">
+                                    <div className="flex gap-3">
                                     <Badge className="whitespace-nowrap rounded-lg border border-neutral-300 bg-[#F4F9FF] py-1.5 font-thin shadow-none">
                                         Admin
                                     </Badge>
@@ -178,18 +178,21 @@ export function DashboardComponent() {
                                     <span className="font-thin text-primary-500">
                                         {roleTypeCount["ASSESSMENT CREATOR"]}
                                     </span>
-                                    <Badge className="whitespace-nowrap rounded-lg border border-neutral-300 bg-[#FFF4F5] py-1.5 font-thin shadow-none">
-                                        Teacher
-                                    </Badge>
-                                    <span className="font-thin text-primary-500">
-                                        {roleTypeCount["TEACHER"]}
-                                    </span>
-                                    <Badge className="whitespace-nowrap rounded-lg border border-neutral-300 bg-[#F5F0FF] py-1.5 font-thin shadow-none">
-                                        Evaluator
-                                    </Badge>
-                                    <span className="font-thin text-primary-500">
-                                        {roleTypeCount.EVALUATOR}
-                                    </span>
+                                    </div>
+                                    <div className="flex gap-3">
+                                        <Badge className="whitespace-nowrap rounded-lg border border-neutral-300 bg-[#FFF4F5] py-1.5 font-thin shadow-none">
+                                            Teacher
+                                        </Badge>
+                                        <span className="font-thin text-primary-500">
+                                            {roleTypeCount["TEACHER"]}
+                                        </span>
+                                        <Badge className="whitespace-nowrap rounded-lg border border-neutral-300 bg-[#F5F0FF] py-1.5 font-thin shadow-none">
+                                            Evaluator
+                                        </Badge>
+                                        <span className="font-thin text-primary-500">
+                                            {roleTypeCount.EVALUATOR}
+                                        </span>
+                                    </div>
                                 </div>
                             </CardHeader>
                         </Card>
