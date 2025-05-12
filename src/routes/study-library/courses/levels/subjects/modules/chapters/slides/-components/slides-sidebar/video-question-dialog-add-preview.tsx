@@ -8,6 +8,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { MyButton } from '@/components/design-system/button';
 import { UploadQuestionPaperFormType } from '@/routes/assessment/question-papers/-components/QuestionPaperUpload';
 import { VideoPlayerTimeFormType } from '../../-form-schemas/video-player-time-schema';
+import { useContentStore } from '../../-stores/chapter-sidebar-store';
 type QuestionPaperForm = z.infer<typeof uploadQuestionPaperFormSchema>;
 
 const VideoQuestionDialogAddPreview = ({
@@ -37,7 +38,7 @@ const VideoQuestionDialogAddPreview = ({
     isAddTimeFrameRef: React.RefObject<HTMLButtonElement>;
     isAddQuestionTypeRef: React.RefObject<HTMLButtonElement>;
 }) => {
-    console.log(formData);
+    const { activeItem, setActiveItem } = useContentStore();
     const handleClose = () => {
         setCurrentQuestionIndex(0);
         videoQuestionForm.reset({
@@ -86,9 +87,21 @@ const VideoQuestionDialogAddPreview = ({
             questions: [...prevData.questions, ...videoQuestions],
         }));
 
+        setActiveItem({
+            ...activeItem,
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            video_slide: {
+                ...activeItem?.video_slide,
+                questions: [...formData.questions, ...videoQuestions],
+            },
+        });
+
         // Close after data is properly updated
         handleClose();
     };
+
+    console.log(activeItem);
 
     return (
         <Dialog open={previewQuestionDialog} onOpenChange={setPreviewQuestionDialog}>

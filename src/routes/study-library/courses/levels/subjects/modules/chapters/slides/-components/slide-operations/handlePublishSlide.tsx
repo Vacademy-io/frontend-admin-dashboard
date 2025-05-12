@@ -8,7 +8,7 @@ import {
     VideoSlidePayload,
 } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides';
 import { SlideQuestionsDataInterface } from '@/types/study-library/study-library-slides-type';
-import { convertToSlideFormat } from '../../-helper/helper';
+import { converDataToVideoFormat, convertToSlideFormat } from '../../-helper/helper';
 
 type SlideResponse = {
     id: string;
@@ -36,7 +36,6 @@ export const handlePublishSlide = async (
     >,
     SaveDraft: (activeItem: Slide) => Promise<void>
 ) => {
-    console.log(updateQuestionOrder);
     const status = 'PUBLISHED';
     if (activeItem?.source_type === 'QUESTION') {
         const questionsData: UploadQuestionPaperFormType = JSON.parse('');
@@ -50,6 +49,7 @@ export const handlePublishSlide = async (
         }
         return;
     }
+
     if (activeItem?.source_type == 'DOCUMENT') {
         if (activeItem?.document_slide?.type == 'DOC') SaveDraft(activeItem);
         const publishedData = activeItem.document_slide?.data;
@@ -79,27 +79,12 @@ export const handlePublishSlide = async (
         } catch {
             toast.error(`Error in publishing the slide`);
         }
-    } else {
+    }
+
+    if (activeItem?.source_type == 'VIDEO') {
+        const convertedData = converDataToVideoFormat({ activeItem, status, notify });
         try {
-            await addUpdateVideoSlide({
-                id: activeItem?.id || '',
-                title: activeItem?.title || '',
-                description: activeItem?.description || '',
-                image_file_id: activeItem?.image_file_id || '',
-                slide_order: null,
-                video_slide: {
-                    id: activeItem?.video_slide?.id || '',
-                    description: activeItem?.video_slide?.description || '',
-                    url: null,
-                    title: activeItem?.video_slide?.title || '',
-                    video_length_in_millis: 0,
-                    published_url: activeItem?.video_slide?.url || null,
-                    published_video_length_in_millis: 0,
-                },
-                status: status,
-                new_slide: false,
-                notify: notify,
-            });
+            await addUpdateVideoSlide(convertedData);
             toast.success(`slide published successfully!`);
             setIsOpen(false);
         } catch {
