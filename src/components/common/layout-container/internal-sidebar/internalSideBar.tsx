@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useNavigate, useRouter } from "@tanstack/react-router";
+import { useState } from 'react';
+import { useNavigate, useRouter } from '@tanstack/react-router';
 // import { useStudyLibraryStore } from "@/stores/study-library/use-study-library-store";
 
 export const InternalSideBar = ({
@@ -36,7 +36,7 @@ export const InternalSideBar = ({
         return null;
     }
     return (
-        <div className="flex w-[307px] flex-col gap-6 bg-primary-50 p-10">
+        <div className="flex h-full w-[307px] flex-col gap-6 bg-primary-50 px-3 py-10">
             <div className="text-subtitle font-bold">{sideBarData?.title}</div>
             <div className="flex flex-col gap-2">
                 {sideBarList?.map((item, index) => (
@@ -44,8 +44,8 @@ export const InternalSideBar = ({
                         key={index}
                         className={`flex cursor-pointer flex-row items-center gap-3 p-4 py-2 ${
                             activeItem == item.id
-                                ? "rounded-lg border-2 bg-white text-primary-500"
-                                : ""
+                                ? 'rounded-lg border-2 bg-white text-primary-500'
+                                : ''
                         }`}
                         onClick={() => {
                             handleClick(item.id);
@@ -53,7 +53,7 @@ export const InternalSideBar = ({
                     >
                         <div
                             className={`text-h3 font-bold text-neutral-500 ${
-                                activeItem == item.id ? "text-primary-500" : ""
+                                activeItem == item.id ? 'text-primary-500' : ''
                             }`}
                         >{`${sideBarData?.listIconText}${index + 1}`}</div>
                         <div>{item.value}</div>

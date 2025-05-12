@@ -185,7 +185,10 @@ const Step2GenerateQuestionsFromAI = ({
                                     </DialogTrigger>
                                     <DialogContent className="no-scrollbar !m-0 flex h-full !w-full !max-w-full flex-col !gap-0 overflow-y-auto !rounded-none !p-0">
                                         <AICenterProvider>
-                                            <GenerateQuestionsFromAudio />
+                                            <GenerateQuestionsFromAudio
+                                                form={form}
+                                                currentSectionIndex={index}
+                                            />
                                         </AICenterProvider>
                                     </DialogContent>
                                 </Dialog>
@@ -233,7 +236,10 @@ const Step2GenerateQuestionsFromAI = ({
                                     </DialogTrigger>
                                     <DialogContent className="no-scrollbar !m-0 flex h-full !w-full !max-w-full flex-col !gap-0 overflow-y-auto !rounded-none !p-0">
                                         <AICenterProvider>
-                                            <GenerateQuestionsFromText />
+                                            <GenerateQuestionsFromText
+                                                form={form}
+                                                currentSectionIndex={index}
+                                            />
                                         </AICenterProvider>
                                     </DialogContent>
                                 </Dialog>
@@ -307,7 +313,10 @@ const Step2GenerateQuestionsFromAI = ({
                                     </DialogTrigger>
                                     <DialogContent className="no-scrollbar !m-0 flex h-full !w-full !max-w-full flex-col !gap-0 overflow-y-auto !rounded-none !p-0">
                                         <AICenterProvider>
-                                            <GenerateAiQuestionPaperComponent />
+                                            <GenerateAiQuestionPaperComponent
+                                                form={form}
+                                                currentSectionIndex={index}
+                                            />
                                         </AICenterProvider>
                                     </DialogContent>
                                 </Dialog>
@@ -355,7 +364,10 @@ const Step2GenerateQuestionsFromAI = ({
                                     </DialogTrigger>
                                     <DialogContent className="no-scrollbar !m-0 flex h-full !w-full !max-w-full flex-col !gap-0 overflow-y-auto !rounded-none !p-0">
                                         <AICenterProvider>
-                                            <GenerateAiQuestionFromImageComponent />
+                                            <GenerateAiQuestionFromImageComponent
+                                                form={form}
+                                                currentSectionIndex={index}
+                                            />
                                         </AICenterProvider>
                                     </DialogContent>
                                 </Dialog>

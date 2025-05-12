@@ -1,23 +1,23 @@
 // re-register-dialog.tsx
-import { MyDialog } from "../../dialog";
-import { ReactNode, useEffect, useRef, useState } from "react";
-import { useDialogStore } from "../../../../routes/students/students-list/-hooks/useDialogStore";
-import { MyButton } from "../../button";
-import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-import { SessionWithAccessDays } from "../../sessionWithAccessDays";
-import { useForm, FormProvider } from "react-hook-form";
-import { AddSessionDialog } from "@/routes/study-library/session/-components/session-operations/add-session/add-session-dialog";
-import { useAddSession } from "@/services/study-library/session-management/addSession";
-import { AddSessionDataType } from "@/routes/study-library/session/-components/session-operations/add-session/add-session-form";
-import { toast } from "sonner";
-import { ArrowUpRight, Plus } from "phosphor-react";
-import { useRouter } from "@tanstack/react-router";
+import { MyDialog } from '../../dialog';
+import { ReactNode, useEffect, useRef, useState } from 'react';
+import { useDialogStore } from '../../../../routes/manage-students/students-list/-hooks/useDialogStore';
+import { MyButton } from '../../button';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { SessionWithAccessDays } from '../../sessionWithAccessDays';
+import { useForm, FormProvider } from 'react-hook-form';
+import { AddSessionDialog } from '@/routes/manage-institute/sessions/-components/session-operations/add-session/add-session-dialog';
+import { useAddSession } from '@/services/study-library/session-management/addSession';
+import { AddSessionDataType } from '@/routes/manage-institute/sessions/-components/session-operations/add-session/add-session-form';
+import { toast } from 'sonner';
+import { ArrowUpRight, Plus } from 'phosphor-react';
+import { useRouter } from '@tanstack/react-router';
 import {
     ReRegisterStudentRequestType,
     useReRegisterStudent,
-} from "@/routes/students/students-list/-services/reRegisterStudent";
-import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
-import { TokenKey } from "@/constants/auth/tokens";
+} from '@/routes/manage-students/students-list/-services/reRegisterStudent';
+import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
 
 interface ReRegisterDialogProps {
     trigger: ReactNode;
@@ -65,7 +65,7 @@ export const ReRegisterDialog = ({ trigger, open, onOpenChange }: ReRegisterDial
     useEffect(() => {
         if (instituteDetails && packageSessionId) {
             const filteredBatch = instituteDetails.batches_for_sessions.find(
-                (batch) => batch.id === packageSessionId,
+                (batch) => batch.id === packageSessionId
             );
 
             if (filteredBatch) {
@@ -73,7 +73,7 @@ export const ReRegisterDialog = ({ trigger, open, onOpenChange }: ReRegisterDial
                     .filter(
                         (batch) =>
                             batch.id !== packageSessionId &&
-                            batch.package_dto.id === filteredBatch.package_dto.id,
+                            batch.package_dto.id === filteredBatch.package_dto.id
                     )
                     .map((mappedBatch) => ({
                         id: mappedBatch.id,
@@ -86,18 +86,18 @@ export const ReRegisterDialog = ({ trigger, open, onOpenChange }: ReRegisterDial
     }, [instituteDetails, packageSessionId]);
 
     const handleReRegister = async () => {
-        const selectedPackages = form.getValues("selectedPackages") || [];
-        console.log("Selected packages with days:", selectedPackages);
+        const selectedPackages = form.getValues('selectedPackages') || [];
+        console.log('Selected packages with days:', selectedPackages);
         // TODO: Implement re-registration logic with selectedPackages
 
-        const values = form.getValues("selectedPackages");
+        const values = form.getValues('selectedPackages');
         const userIds =
             isBulkAction && bulkActionInfo?.selectedStudents
                 ? bulkActionInfo?.selectedStudents.map((student) => student.user_id)
-                : [selectedStudent?.user_id || ""];
+                : [selectedStudent?.user_id || ''];
         const request: ReRegisterStudentRequestType = {
             user_ids: userIds,
-            institute_id: INSTITUTE_ID || "",
+            institute_id: INSTITUTE_ID || '',
             learner_batch_register_infos: values.map((value) => ({
                 package_session_id: value.id,
                 access_days: value.days,
@@ -106,10 +106,10 @@ export const ReRegisterDialog = ({ trigger, open, onOpenChange }: ReRegisterDial
         };
         try {
             await reRegisterMutation.mutateAsync({ request: request });
-            toast.success("Student re-registered successfully");
+            toast.success('Student re-registered successfully');
             closeAllDialogs();
         } catch {
-            toast.error("Failed to re-register student");
+            toast.error('Failed to re-register student');
         }
     };
 
@@ -168,19 +168,19 @@ export const ReRegisterDialog = ({ trigger, open, onOpenChange }: ReRegisterDial
             { requestData: transformedData as unknown as AddSessionDataType },
             {
                 onSuccess: () => {
-                    toast.success("Session added successfully");
+                    toast.success('Session added successfully');
                     setIsAddSessionDiaogOpen(false);
                 },
                 onError: (error) => {
-                    toast.error(error.message || "Failed to add session");
+                    toast.error(error.message || 'Failed to add session');
                 },
-            },
+            }
         );
     };
 
     const handleUpdateExistingSessions = () => {
         router.navigate({
-            to: "/study-library/session",
+            to: '/manage-institute/sessions',
         });
     };
 

@@ -1,9 +1,9 @@
-import { MyDialog } from "../../dialog";
-import { ReactNode } from "react";
-import { useDialogStore } from "../../../../routes/students/students-list/-hooks/useDialogStore";
-import { MyButton } from "../../button";
-import { useDeleteStudentMutation } from "@/routes/students/students-list/-services/useStudentOperations";
-import { useBulkDeleteStudentsMutation } from "@/routes/students/students-list/-services/useBulkOperations";
+import { MyDialog } from '../../dialog';
+import { ReactNode } from 'react';
+import { useDialogStore } from '../../../../routes/manage-students/students-list/-hooks/useDialogStore';
+import { MyButton } from '../../button';
+import { useDeleteStudentMutation } from '@/routes/manage-students/students-list/-services/useStudentOperations';
+import { useBulkDeleteStudentsMutation } from '@/routes/manage-students/students-list/-services/useBulkOperations';
 
 interface DeleteStudentDialogProps {
     trigger: ReactNode;
@@ -21,11 +21,11 @@ const DeleteStudentDialogContent = () => {
     const handleSubmit = () => {
         if (isBulkAction && bulkActionInfo?.selectedStudents) {
             const validStudents = bulkActionInfo.selectedStudents.filter(
-                (student) => student && student.user_id && student.package_session_id,
+                (student) => student && student.user_id && student.package_session_id
             );
 
             if (validStudents.length === 0) {
-                console.error("No valid students found for bulk action");
+                console.error('No valid students found for bulk action');
                 return;
             }
 
@@ -33,12 +33,12 @@ const DeleteStudentDialogContent = () => {
                 {
                     students: validStudents.map((student) => ({
                         userId: student.user_id,
-                        currentPackageSessionId: student.package_session_id || "",
+                        currentPackageSessionId: student.package_session_id || '',
                     })),
                 },
                 {
                     onSuccess: closeAllDialogs,
-                },
+                }
             );
         } else if (selectedStudent?.user_id && selectedStudent?.package_session_id) {
             deleteSingle(
@@ -52,7 +52,7 @@ const DeleteStudentDialogContent = () => {
                 },
                 {
                     onSuccess: closeAllDialogs,
-                },
+                }
             );
         }
     };
@@ -62,7 +62,7 @@ const DeleteStudentDialogContent = () => {
     return (
         <div className="flex flex-col gap-6 p-6 text-neutral-600">
             <div>
-                Are you sure you want to delete{" "}
+                Are you sure you want to delete{' '}
                 <span className="text-primary-500">{displayText}</span>?
             </div>
             <MyButton
@@ -72,7 +72,7 @@ const DeleteStudentDialogContent = () => {
                 disable={isLoading}
                 onClick={handleSubmit}
             >
-                {isLoading ? "Deleting..." : "Delete"}
+                {isLoading ? 'Deleting...' : 'Delete'}
             </MyButton>
         </div>
     );

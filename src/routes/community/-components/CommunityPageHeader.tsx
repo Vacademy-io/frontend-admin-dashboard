@@ -1,26 +1,26 @@
-import HeadingSvg1 from "../-svgs/headerDisplay-1.svg";
-import HeadingSvg2 from "../-svgs/headerDisplay-2.svg";
-import HeadingSvg3 from "../-svgs/headerDisplay-3.svg";
-import HeadingSvg4 from "../-svgs/headerDisplay-4.svg";
-import HeadingSvg5 from "../-svgs/headerDisplay-5.svg";
-import HeadingSvg6 from "../-svgs/headerDisplay-6.svg";
-import { FilterLevelDropdown } from "../-components/FilterDropdown";
-import { useFilterStore } from "../-store/useFilterOptions";
-import { useSelectedFilterStore } from "../-store/useSlectedFilterOption";
-import { SearchInput } from "@/routes/students/students-list/-components/students-list/student-list-section/search-input";
-import { useState } from "react";
-import { debounce } from "lodash";
-import { useCallback } from "react";
+import HeadingSvg1 from '../-svgs/headerDisplay-1.svg';
+import HeadingSvg2 from '../-svgs/headerDisplay-2.svg';
+import HeadingSvg3 from '../-svgs/headerDisplay-3.svg';
+import HeadingSvg4 from '../-svgs/headerDisplay-4.svg';
+import HeadingSvg5 from '../-svgs/headerDisplay-5.svg';
+import HeadingSvg6 from '../-svgs/headerDisplay-6.svg';
+import { FilterLevelDropdown } from '../-components/FilterDropdown';
+import { useFilterStore } from '../-store/useFilterOptions';
+import { useSelectedFilterStore } from '../-store/useSlectedFilterOption';
+import { SearchInput } from '@/routes/manage-students/students-list/-components/students-list/student-list-section/search-input';
+import { useState } from 'react';
+import { debounce } from 'lodash';
+import { useCallback } from 'react';
 
 export const CommunityPageHeader = () => {
     const { options } = useFilterStore();
     const { setName } = useSelectedFilterStore();
-    const [search, setSearch] = useState<string>("");
+    const [search, setSearch] = useState<string>('');
     const debouncedSetName = useCallback(
         debounce((value: string) => {
             setName(value);
         }, 1000), // 300ms delay
-        [],
+        []
     );
     const onSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         debouncedSetName(e.target.value);
@@ -54,7 +54,7 @@ export const CommunityPageHeader = () => {
                         placeholder="Search Question Papers"
                     />
                     <FilterLevelDropdown
-                        placeholder={"Select Level/Grade"}
+                        placeholder={'Select Level/Grade'}
                         FilterList={options.levels}
                     />
                 </div>

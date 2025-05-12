@@ -5,7 +5,7 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table';
 import {
     flexRender,
     getCoreRowModel,
@@ -14,18 +14,18 @@ import {
     OnChangeFn,
     ColumnDef,
     VisibilityState,
-} from "@tanstack/react-table";
-import { ChangeBatchDialog } from "./table-components/student-menu-options/change-batch-dialog";
-import { ExtendSessionDialog } from "./table-components/student-menu-options/extend-session-dialog";
-import { ReRegisterDialog } from "./table-components/student-menu-options/re-register-dialog";
-import { TerminateRegistrationDialog } from "./table-components/student-menu-options/terminate-registration-dialog";
-import { useDialogStore } from "../../routes/students/students-list/-hooks/useDialogStore";
-import { DeleteStudentDialog } from "./table-components/student-menu-options/delete-student-dialog";
-import { ColumnWidthConfig } from "./utils/constants/table-layout";
-import { DashboardLoader } from "../core/dashboard-loader";
+} from '@tanstack/react-table';
+import { ChangeBatchDialog } from './table-components/student-menu-options/change-batch-dialog';
+import { ExtendSessionDialog } from './table-components/student-menu-options/extend-session-dialog';
+import { ReRegisterDialog } from './table-components/student-menu-options/re-register-dialog';
+import { TerminateRegistrationDialog } from './table-components/student-menu-options/terminate-registration-dialog';
+import { useDialogStore } from '../../routes/manage-students/students-list/-hooks/useDialogStore';
+import { DeleteStudentDialog } from './table-components/student-menu-options/delete-student-dialog';
+import { ColumnWidthConfig } from './utils/constants/table-layout';
+import { DashboardLoader } from '../core/dashboard-loader';
 
-const headerTextCss = "p-3 border-r border-neutral-300";
-const cellCommonCss = "p-3";
+const headerTextCss = 'p-3 border-r border-neutral-300';
+const cellCommonCss = 'p-3';
 
 export interface TableData<T> {
     content: T[];
@@ -63,7 +63,7 @@ export function MyTable<T>({
     rowSelection,
     onRowSelectionChange,
     scrollable = false,
-    className = "",
+    className = '',
     tableState,
     onCellClick,
     onHeaderClick,
@@ -79,7 +79,7 @@ export function MyTable<T>({
         },
         enableRowSelection: true,
         onRowSelectionChange: (updaterOrValue) => {
-            if (typeof updaterOrValue === "function") {
+            if (typeof updaterOrValue === 'function') {
                 if (rowSelection) {
                     const newSelection = updaterOrValue(rowSelection);
                     if (onRowSelectionChange) {
@@ -112,7 +112,7 @@ export function MyTable<T>({
     return (
         <div
             className={`h-auto w-full ${
-                scrollable ? "overflow-auto" : "overflow-visible"
+                scrollable ? 'overflow-auto' : 'overflow-visible'
             } rounded-lg border ${className}`}
         >
             <div className="max-w-full overflow-visible rounded-lg">
@@ -126,10 +126,10 @@ export function MyTable<T>({
                                         <TableHead
                                             key={header.id}
                                             className={`${headerTextCss} overflow-visible bg-primary-100 text-subtitle font-semibold text-neutral-600 ${
-                                                columnWidths?.[header.column.id] || ""
+                                                columnWidths?.[header.column.id] || ''
                                             }`}
                                             style={{
-                                                width: columnWidths?.[header.id] || "auto",
+                                                width: columnWidths?.[header.id] || 'auto',
                                             }}
                                             onClick={() => {
                                                 if (onHeaderClick) {
@@ -141,7 +141,7 @@ export function MyTable<T>({
                                                 ? null
                                                 : flexRender(
                                                       header.column.columnDef.header,
-                                                      header.getContext(),
+                                                      header.getContext()
                                                   )}
                                         </TableHead>
                                     ))}
@@ -155,7 +155,7 @@ export function MyTable<T>({
                                     <TableCell
                                         key={cell.id}
                                         className={`${cellCommonCss} z-10 bg-white text-body font-regular text-neutral-600 ${
-                                            columnWidths?.[cell.column.id] || ""
+                                            columnWidths?.[cell.column.id] || ''
                                         }`}
                                         onClick={() => {
                                             if (onCellClick) {

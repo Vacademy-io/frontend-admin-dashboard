@@ -1,9 +1,9 @@
-import { ColumnDef } from "@tanstack/react-table";
-import { CaretUp, CaretDown } from "@phosphor-icons/react";
-import { Checkbox } from "@/components/ui/checkbox";
-import { useGetStudentBatch } from "@/routes/students/students-list/-hooks/useGetStudentBatch";
-import { MyDropdown } from "@/components/design-system/dropdown";
-import { StudentTable } from "@/types/student-table-types";
+import { ColumnDef } from '@tanstack/react-table';
+import { CaretUp, CaretDown } from '@phosphor-icons/react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { useGetStudentBatch } from '@/routes/manage-students/students-list/-hooks/useGetStudentBatch';
+import { MyDropdown } from '@/components/design-system/dropdown';
+import { StudentTable } from '@/types/student-table-types';
 
 interface CustomTableMeta {
     onSort?: (columnId: string, direction: string) => void;
@@ -20,7 +20,7 @@ const BatchCell = ({ package_session_id }: { package_session_id: string }) => {
 
 export const myAssessmentColumns: ColumnDef<StudentTable>[] = [
     {
-        id: "checkbox",
+        id: 'checkbox',
         header: ({ table }) => (
             <Checkbox
                 checked={table.getIsAllRowsSelected()}
@@ -37,15 +37,15 @@ export const myAssessmentColumns: ColumnDef<StudentTable>[] = [
         ),
     },
     {
-        accessorKey: "full_name",
+        accessorKey: 'full_name',
         header: (props) => {
             const meta = props.table.options.meta as CustomTableMeta;
             return (
                 <div className="relative">
                     <MyDropdown
-                        dropdownList={["ASC", "DESC"]}
+                        dropdownList={['ASC', 'DESC']}
                         onSelect={(value) => {
-                            meta.onSort?.("full_name", value);
+                            meta.onSort?.('full_name', value);
                         }}
                     >
                         <button className="flex w-full cursor-pointer items-center justify-between">
@@ -61,36 +61,36 @@ export const myAssessmentColumns: ColumnDef<StudentTable>[] = [
         },
     },
     {
-        accessorKey: "package_session_id",
-        header: "Batch",
+        accessorKey: 'package_session_id',
+        header: 'Batch',
         cell: ({ row }) => <BatchCell package_session_id={row.original.package_session_id} />,
     },
     {
-        accessorKey: "institute_enrollment_id",
-        header: "Enrollment Number",
+        accessorKey: 'institute_enrollment_id',
+        header: 'Enrollment Number',
     },
     {
-        accessorKey: "linked_institute_name",
-        header: "College/School",
+        accessorKey: 'linked_institute_name',
+        header: 'College/School',
     },
     {
-        accessorKey: "gender",
-        header: "Gender",
+        accessorKey: 'gender',
+        header: 'Gender',
     },
     {
-        accessorKey: "mobile_number",
-        header: "Mobile Number",
+        accessorKey: 'mobile_number',
+        header: 'Mobile Number',
     },
     {
-        accessorKey: "email",
-        header: "Email ID",
+        accessorKey: 'email',
+        header: 'Email ID',
     },
     {
-        accessorKey: "city",
-        header: "City",
+        accessorKey: 'city',
+        header: 'City',
     },
     {
-        accessorKey: "region",
-        header: "State",
+        accessorKey: 'region',
+        header: 'State',
     },
 ];

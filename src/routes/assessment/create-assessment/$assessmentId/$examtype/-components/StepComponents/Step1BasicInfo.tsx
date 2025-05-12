@@ -2,7 +2,7 @@ import { MyButton } from '@/components/design-system/button';
 import { Separator } from '@/components/ui/separator';
 import { StepContentProps } from '@/types/assessments/step-content-props';
 import { zodResolver } from '@hookform/resolvers/zod';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { useFilterDataForAssesment } from '../../../../../assessment-list/-utils.ts/useFiltersData';
@@ -13,7 +13,7 @@ import { Switch } from '@/components/ui/switch';
 import { timeLimit } from '@/constants/dummy-data';
 import { BasicInfoFormSchema } from '../../-utils/basic-info-form-schema';
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
-import { getAssessmentDetails, handlePostStep1Data } from '../../-services/assessment-services';
+import { getAssessmentDetailsData, handlePostStep1Data } from '../../-services/assessment-services';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { getStepKey, getTimeLimitString, syncStep1DataWithStore } from '../../-utils/helper';
 import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
@@ -35,8 +35,10 @@ import { createAssesmentSteps } from '@/constants/intro/steps';
 import { useSectionDetailsStore } from '../../-utils/zustand-global-states/step2-add-questions';
 import { useTestAccessStore } from '../../-utils/zustand-global-states/step3-adding-participants';
 import { useAccessControlStore } from '../../-utils/zustand-global-states/step4-access-control';
+import { Steps } from '@/types/assessments/assessment-data-type';
 
 export function convertDateFormat(dateStr: string) {
+    if (dateStr === '') return '';
     const date = new Date(dateStr);
 
     // Format it properly for datetime-local input
@@ -88,13 +90,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
     const storeDataStep1 = useBasicInfoStore((state) => state);
     const { setSavedAssessmentId } = useSavedAssessmentStore();
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
-    const { data: assessmentDetails, isLoading } = useSuspenseQuery(
-        getAssessmentDetails({
-            assessmentId: assessmentId !== 'defaultId' ? assessmentId : null,
-            instituteId: instituteDetails?.id,
-            type: examType,
-        })
-    );
+
     const { SubjectFilterData } = useFilterDataForAssesment(instituteDetails);
 
     const form = useForm<z.infer<typeof BasicInfoFormSchema>>({
@@ -219,6 +215,31 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
             .filter((subStep): subStep is Step => subStep !== undefined),
     });
 
+    const [assessmentDetails, setAssessmentDetails] = useState<Steps>([]);
+    const [isLoading, setIsLoading] = useState(false);
+
+    console.log(assessmentDetails);
+
+    useEffect(() => {
+        setIsLoading(true);
+        const fetchAssessmentDetails = async () => {
+            try {
+                const response = await getAssessmentDetailsData({
+                    assessmentId,
+                    instituteId: instituteDetails?.id,
+                    type: examType,
+                });
+                setAssessmentDetails(response);
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchAssessmentDetails();
+    }, [assessmentId, instituteDetails?.id, examType]);
+
     useEffect(() => {
         if (assessmentId !== 'defaultId') {
             setNavHeading(headingUpdate);
@@ -280,7 +301,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                     assessmentDetails[currentStep]?.saved_data?.add_time_consent, // Default to false
             });
         }
-    }, []);
+    }, [assessmentDetails, currentStep, instituteDetails?.subjects, assessmentId]);
 
     if (isLoading || handleSubmitStep1Form.status === 'pending') return <DashboardLoader />;
 

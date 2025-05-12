@@ -344,7 +344,11 @@ const AIQuestionsPreview = ({
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-4">
-                                            {currentSectionIndex !== undefined && (
+                                            {handleSubmitFormData.status === 'pending' ? (
+                                                <MyButton type="button">
+                                                    <DashboardLoader size={18} color="#ffffff" />
+                                                </MyButton>
+                                            ) : (
                                                 <MyButton
                                                     onClick={handleSaveQuestionsInSection}
                                                     type="button"

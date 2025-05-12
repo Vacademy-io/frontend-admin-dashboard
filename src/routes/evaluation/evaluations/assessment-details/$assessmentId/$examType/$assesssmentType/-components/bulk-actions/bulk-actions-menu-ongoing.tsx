@@ -1,14 +1,14 @@
-import { AssessmentSubmissionsBulkActionInfo } from "@/routes/students/students-list/-types/bulk-actions-types";
-import { ReactNode } from "react";
-import { SubmissionStudentData } from "@/types/assessments/assessment-overview";
+import { AssessmentSubmissionsBulkActionInfo } from '@/routes/manage-students/students-list/-types/bulk-actions-types';
+import { ReactNode } from 'react';
+import { SubmissionStudentData } from '@/types/assessments/assessment-overview';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { MyButton } from "@/components/design-system/button";
-import { useSubmissionsBulkActionsDialogStoreOngoing } from "../bulk-actions-zustand-store/useSubmissionsBulkActionsDialogStoreOngoing";
+} from '@/components/ui/dropdown-menu';
+import { MyButton } from '@/components/design-system/button';
+import { useSubmissionsBulkActionsDialogStoreOngoing } from '../bulk-actions-zustand-store/useSubmissionsBulkActionsDialogStoreOngoing';
 
 interface BulkActionsMenuProps {
     selectedCount: number;
@@ -25,7 +25,7 @@ export const BulkActionsMenuOngoing = ({ selectedStudents, trigger }: BulkAction
         const validStudents = selectedStudents.filter((student) => student && student.user_id);
 
         if (validStudents.length === 0) {
-            console.error("No valid students selected");
+            console.error('No valid students selected');
             return;
         }
 
@@ -36,10 +36,10 @@ export const BulkActionsMenuOngoing = ({ selectedStudents, trigger }: BulkAction
         };
 
         switch (value) {
-            case "Increase Assessment Time":
+            case 'Increase Assessment Time':
                 openBulkIncreaseAssessmentTimeDialog(bulkActionInfo);
                 break;
-            case "Close Submission":
+            case 'Close Submission':
                 openBulkCloseSubmissionDialog(bulkActionInfo);
                 break;
         }
@@ -61,13 +61,13 @@ export const BulkActionsMenuOngoing = ({ selectedStudents, trigger }: BulkAction
                 <DropdownMenuContent>
                     <DropdownMenuItem
                         className="cursor-pointer"
-                        onClick={() => handleMenuOptionsChange("Increase Assessment Time")}
+                        onClick={() => handleMenuOptionsChange('Increase Assessment Time')}
                     >
                         Increase Assessment Time
                     </DropdownMenuItem>
                     <DropdownMenuItem
                         className="cursor-pointer"
-                        onClick={() => handleMenuOptionsChange("Close Submission")}
+                        onClick={() => handleMenuOptionsChange('Close Submission')}
                     >
                         Close Submission
                     </DropdownMenuItem>
