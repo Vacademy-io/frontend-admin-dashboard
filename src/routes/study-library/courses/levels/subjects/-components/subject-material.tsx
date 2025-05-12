@@ -20,6 +20,12 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { tabs, TabType } from '../-constants/constant';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { fetchModulesWithChapters } from '../../../-services/getModulesWithChapters';
+import {
+    UseSlidesFromModulesInput,
+    fetchChaptersWithSlides,
+    ChapterWithSlides,
+    Slide,
+} from '../../../-services/getAllSlides';
 import { MyDropdown } from '@/components/common/students/enroll-manually/dropdownForPackageItems';
 import { DropdownValueType } from '@/components/common/students/enroll-manually/dropdownTypesForPackageItems';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
@@ -27,7 +33,7 @@ import { DropdownItemType } from '@/components/common/students/enroll-manually/d
 import { useAddModule } from '@/routes/study-library/courses/levels/subjects/modules/-services/add-module';
 import { AddModulesButton } from '../modules/-components/add-modules.tsx/add-modules-button';
 import { AddChapterButton } from '../modules/chapters/-components/chapter-material/add-chapters/add-chapter-button';
-import { CaretDown, Plus } from 'phosphor-react';
+import { CaretDown, CaretRight, Plus, ArrowSquareOut } from 'phosphor-react';
 
 export interface Chapter {
     id: string;
@@ -111,6 +117,7 @@ export const SubjectMaterial = () => {
         setSelectedTab(value);
     };
     const [subjectModulesMap, setSubjectModulesMap] = useState<SubjectModulesMap>({});
+    const [chapterSlidesMap, setChapterSlidesMap] = useState<{ [chapterId: string]: Slide[] }>({});
 
     const getTabClass = (isActive: boolean) =>
         `flex gap-1.5 rounded-none pb-2 pl-12 pr-12 pt-2 !shadow-none ${
@@ -141,6 +148,32 @@ export const SubjectMaterial = () => {
     }, [currentSession, studyLibraryData]);
     const packageSessionIds =
         useGetPackageSessionId(courseId, currentSession?.id ?? '', levelId) || '';
+
+    const useSlidesByChapterMutation = () => {
+        return useMutation({
+            mutationFn: async ({ modules, packageSessionId }: UseSlidesFromModulesInput) => {
+                const chapterSlidesMap: { [chapterId: string]: Slide[] } = {};
+
+                await Promise.all(
+                    modules.map(async (module) => {
+                        const chaptersWithSlides = await fetchChaptersWithSlides(
+                            module.id,
+                            packageSessionId
+                        );
+
+                        chaptersWithSlides.forEach((chapterWithSlides: ChapterWithSlides) => {
+                            chapterSlidesMap[chapterWithSlides.chapter.id] =
+                                chapterWithSlides.slides;
+                        });
+                    })
+                );
+
+                return chapterSlidesMap;
+            },
+        });
+    };
+
+    const { mutateAsync: fetchSlides } = useSlidesByChapterMutation();
 
     const useModulesMutation = () => {
         return useMutation({
@@ -200,6 +233,23 @@ export const SubjectMaterial = () => {
 
         loadModules();
     }, [subjects, packageSessionIds]);
+    useEffect(() => {
+        const loadModules = async () => {
+            // Extract module IDs from subjectModulesMap
+            const modules: { id: string }[] = Object.values(subjectModulesMap)
+                .flat() // flatten array of ModuleWithChapters[]
+                .map((moduleWithChapters) => ({
+                    id: moduleWithChapters.module.id,
+                }));
+
+            const slideMap = await fetchSlides({ modules, packageSessionId: packageSessionIds }); // or useSlidesByChapterMutation().mutateAsync(input)
+            setChapterSlidesMap(slideMap);
+        };
+
+        if (Object.keys(subjectModulesMap).length && packageSessionIds) {
+            loadModules();
+        }
+    }, [subjectModulesMap, packageSessionIds]);
 
     // const classNumber = getLevelName(levelId);
 
@@ -259,8 +309,51 @@ export const SubjectMaterial = () => {
                 levelId: searchParams.levelId,
                 subjectId: subjectId,
                 moduleId: id,
-                sessionId: searchParams.sessionId,
+                sessionId: currentSession?.id,
             },
+        });
+    };
+    const handleChapterNavigation = (subjectId: string, moduleId: string, chapterId: string) => {
+        const currentPath = router.state.location.pathname;
+        router.navigate({
+            to: `${currentPath}/modules/chapters/slides`,
+            search: {
+                courseId: courseId,
+                levelId: levelId,
+                subjectId: subjectId,
+                moduleId: moduleId,
+                chapterId: chapterId,
+                sessionId: currentSession?.id,
+            },
+        });
+    };
+
+    const [openSubjects, setOpenSubjects] = useState<Set<string>>(new Set());
+    const [openModules, setOpenModules] = useState<Set<string>>(new Set());
+    const [openChapters, setOpenChapters] = useState<Set<string>>(new Set());
+
+    // Helper toggle functions
+    const toggleSubject = (id: string) => {
+        setOpenSubjects((prev) => {
+            const updated = new Set(prev);
+            updated.has(id) ? updated.delete(id) : updated.add(id);
+            return updated;
+        });
+    };
+
+    const toggleModule = (id: string) => {
+        setOpenModules((prev) => {
+            const updated = new Set(prev);
+            updated.has(id) ? updated.delete(id) : updated.add(id);
+            return updated;
+        });
+    };
+
+    const toggleChapter = (id: string) => {
+        setOpenChapters((prev) => {
+            const updated = new Set(prev);
+            updated.has(id) ? updated.delete(id) : updated.add(id);
+            return updated;
         });
     };
 
@@ -275,74 +368,157 @@ export const SubjectMaterial = () => {
                         handleChange={handleSessionChange}
                     />
                 </div>
-                <div className="flex flex-col">
-                    {subjects.map((subject, idx) => (
-                        <Collapsible key={subject.id}>
-                            <CollapsibleTrigger
-                                className="flex flex-row items-center gap-2 font-bold"
-                                onDoubleClick={() => {
-                                    handleSubjectNavigation(subject.id);
-                                }}
-                            >
-                                <CaretDown size={16} />
-                                <div className="text-gray-400">S{idx + 1}</div>
-                                {subject.subject_name}
-                            </CollapsibleTrigger>
-                            <CollapsibleContent>
-                                <div className="ml-4">
-                                    {subjectModulesMap[subject.id]?.map((mod, idx) => (
-                                        <Collapsible key={mod.module.id}>
-                                            <CollapsibleTrigger
-                                                onDoubleClick={() => {
-                                                    handleModuleNavigation(
-                                                        subject.id,
-                                                        mod.module.id
-                                                    );
-                                                }}
-                                                className="flex flex-row items-center gap-2 font-medium"
-                                            >
-                                                <CaretDown size={16} />
-                                                <div className="text-gray-400">M{idx + 1}</div>
-                                                {mod.module.module_name}
-                                            </CollapsibleTrigger>
-                                            <CollapsibleContent className="ml-8 flex flex-col">
-                                                {mod.chapters.map((ch, idx) => (
-                                                    <div
-                                                        key={ch.chapter.id}
-                                                        className="flex flex-row items-center gap-2"
-                                                    >
-                                                        <div className="text-gray-400">
-                                                            C{idx + 1}
-                                                        </div>
-                                                        <div className="">
-                                                            {ch.chapter.chapter_name}
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                                <AddChapterButton
-                                                    moduleId={mod.module.id}
-                                                    sessionId={currentSession?.id}
-                                                    isTextButton
-                                                />
-                                            </CollapsibleContent>
-                                        </Collapsible>
-                                    ))}
-                                    <div className="flex flex-row items-center gap-2 text-primary-500">
-                                        <Plus></Plus>
-                                        <AddModulesButton
-                                            isTextButton
-                                            subjectId={subject.id}
-                                            onAddModuleBySubjectId={handleAddModule}
-                                        />
-                                    </div>
-                                </div>
-                            </CollapsibleContent>
-                        </Collapsible>
-                    ))}
+                <div className="flex flex-col gap-4">
                     <div className="flex flex-row items-center gap-2 text-primary-500">
                         <Plus></Plus>
                         <AddSubjectButton isTextButton onAddSubject={handleAddSubject} />
                     </div>
+                    {subjects.map((subject, idx) => {
+                        const isSubjectOpen = openSubjects.has(subject.id);
+                        return (
+                            <Collapsible
+                                key={subject.id}
+                                open={isSubjectOpen}
+                                onOpenChange={() => toggleSubject(subject.id)}
+                            >
+                                <CollapsibleTrigger className="flex flex-row items-center gap-2 text-lg font-[600]">
+                                    {isSubjectOpen ? (
+                                        <CaretDown size={16} />
+                                    ) : (
+                                        <CaretRight size={16} />
+                                    )}
+                                    <div className="text-gray-400">S{idx + 1}</div>
+                                    {subject.subject_name}
+                                    <ArrowSquareOut
+                                        onClick={() => handleSubjectNavigation(subject.id)}
+                                    />
+                                </CollapsibleTrigger>
+                                <CollapsibleContent>
+                                    <div className="ml-4 flex flex-col gap-2 border-l-2 pl-2">
+                                        <div className="flex flex-row items-center gap-2 text-primary-500">
+                                            <Plus />
+                                            <AddModulesButton
+                                                isTextButton
+                                                subjectId={subject.id}
+                                                onAddModuleBySubjectId={handleAddModule}
+                                            />
+                                        </div>
+                                        {subjectModulesMap[subject.id]?.map((mod, modIdx) => {
+                                            const isModuleOpen = openModules.has(mod.module.id);
+                                            return (
+                                                <Collapsible
+                                                    key={mod.module.id}
+                                                    open={isModuleOpen}
+                                                    onOpenChange={() => toggleModule(mod.module.id)}
+                                                >
+                                                    <CollapsibleTrigger className="flex flex-row items-center gap-2 font-medium">
+                                                        {isModuleOpen ? (
+                                                            <CaretDown size={16} />
+                                                        ) : (
+                                                            <CaretRight size={16} />
+                                                        )}
+                                                        <div className="text-gray-400">
+                                                            M{modIdx + 1}
+                                                        </div>
+                                                        {mod.module.module_name}
+                                                        <ArrowSquareOut
+                                                            onClick={() =>
+                                                                handleModuleNavigation(
+                                                                    subject.id,
+                                                                    mod.module.id
+                                                                )
+                                                            }
+                                                        />
+                                                    </CollapsibleTrigger>
+                                                    <CollapsibleContent className=" ml-8 flex flex-col gap-1 border-l-2 pl-2">
+                                                        <AddChapterButton
+                                                            moduleId={mod.module.id}
+                                                            sessionId={currentSession?.id}
+                                                            isTextButton
+                                                        />
+                                                        {mod.chapters.map((ch, chIdx) => {
+                                                            const isChapterOpen = openChapters.has(
+                                                                ch.chapter.id
+                                                            );
+                                                            const slides =
+                                                                chapterSlidesMap[ch.chapter.id] ??
+                                                                [];
+                                                            return (
+                                                                <Collapsible
+                                                                    open={isChapterOpen}
+                                                                    onOpenChange={() =>
+                                                                        toggleChapter(ch.chapter.id)
+                                                                    }
+                                                                    key={ch.chapter.id}
+                                                                >
+                                                                    <CollapsibleTrigger className="flex flex-row items-center gap-2">
+                                                                        {isChapterOpen ? (
+                                                                            <CaretDown size={16} />
+                                                                        ) : (
+                                                                            <CaretRight size={16} />
+                                                                        )}
+                                                                        <div className="text-gray-400">
+                                                                            C{chIdx + 1}
+                                                                        </div>
+                                                                        <div>
+                                                                            {
+                                                                                ch.chapter
+                                                                                    .chapter_name
+                                                                            }
+                                                                        </div>
+                                                                        <ArrowSquareOut
+                                                                            className="cursor-pointer"
+                                                                            onClick={() => {
+                                                                                handleChapterNavigation(
+                                                                                    subject.id,
+                                                                                    mod.module.id,
+                                                                                    ch.chapter.id
+                                                                                );
+                                                                            }}
+                                                                        />
+                                                                    </CollapsibleTrigger>
+
+                                                                    <CollapsibleContent className="ml-8 flex flex-col gap-1 border-l-2 pl-2">
+                                                                        {slides.length === 0 ? (
+                                                                            <div className="text-sm text-muted-foreground">
+                                                                                No slides available
+                                                                            </div>
+                                                                        ) : (
+                                                                            slides.map(
+                                                                                (slide, sIdx) => (
+                                                                                    <div
+                                                                                        key={
+                                                                                            slide.id
+                                                                                        }
+                                                                                        className="flex flex-row items-center gap-2"
+                                                                                    >
+                                                                                        <div className="text-gray-400">
+                                                                                            S
+                                                                                            {sIdx +
+                                                                                                1}
+                                                                                        </div>
+                                                                                        <div>
+                                                                                            {
+                                                                                                slide.title
+                                                                                            }
+                                                                                        </div>
+                                                                                    </div>
+                                                                                )
+                                                                            )
+                                                                        )}
+                                                                    </CollapsibleContent>
+                                                                </Collapsible>
+                                                            );
+                                                        })}
+                                                    </CollapsibleContent>
+                                                </Collapsible>
+                                            );
+                                        })}
+                                    </div>
+                                </CollapsibleContent>
+                            </Collapsible>
+                        );
+                    })}
                 </div>
             </div>
         ),
