@@ -76,7 +76,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
     // Convert formRefData from a ref to useState to trigger re-renders
     const isAddTimeFrameRef = useRef<HTMLButtonElement | null>(null);
     const isAddQuestionTypeRef = useRef<HTMLButtonElement | null>(null);
-    const { activeItem } = useContentStore();
+    const { activeItem, setActiveItem } = useContentStore();
 
     const [formData, setFormData] = useState<UploadQuestionPaperFormType>({
         questionPaperId: '1',
@@ -90,10 +90,35 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
         answersType: '',
         explanationsType: '',
         fileUpload: undefined,
-        questions: [
-            ...transformResponseDataToMyQuestionsSchema(activeItem?.video_slide?.questions || []),
-        ],
+        questions: [],
     });
+
+    console.log(activeItem);
+
+    useEffect(() => {
+        setFormData((prev) => ({
+            ...prev,
+            questions: [
+                ...transformResponseDataToMyQuestionsSchema(
+                    activeItem?.video_slide?.questions || []
+                ),
+            ],
+        }));
+
+        setActiveItem({
+            ...activeItem,
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            video_slide: {
+                ...activeItem?.video_slide,
+                questions: [
+                    ...transformResponseDataToMyQuestionsSchema(
+                        activeItem?.video_slide?.questions || []
+                    ),
+                ],
+            },
+        });
+    }, []);
 
     // Keep ref for compatibility with existing code
     const formRefData = useRef<UploadQuestionPaperFormType>(formData);

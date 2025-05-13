@@ -432,9 +432,12 @@ export const getIdBySubjectName = (
 
 export const transformResponseDataToMyQuestionsSchema = (data: QuestionResponse[]) => {
     return data?.map((item) => {
-        const correctOptionIds =
-            JSON.parse(item.auto_evaluation_json)?.data?.correctOptionIds || [];
-        const validAnswers = JSON.parse(item.auto_evaluation_json)?.data?.validAnswers || [];
+        const correctOptionIds = item.auto_evaluation_json
+            ? JSON.parse(item.auto_evaluation_json)?.data?.correctOptionIds
+            : [];
+        const validAnswers = item.auto_evaluation_json
+            ? JSON.parse(item.auto_evaluation_json)?.data?.validAnswers
+            : [];
         let decimals;
         let numericType;
         let subjectiveAnswerText;

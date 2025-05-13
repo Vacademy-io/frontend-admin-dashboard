@@ -348,17 +348,19 @@ export const converDataToVideoFormat = ({
     activeItem,
     status,
     notify,
+    newSlide,
 }: {
     activeItem: Slide;
     status: string;
     notify: boolean;
+    newSlide: boolean;
 }) => {
     return {
         id: activeItem?.id || '',
         title: activeItem?.title || '',
         description: activeItem?.description || '',
         image_file_id: activeItem?.image_file_id || '',
-        source_id: '',
+        source_id: activeItem?.video_slide?.id || '',
         source_type: activeItem?.source_type || '',
         status: status,
         slide_order: 0,
@@ -382,7 +384,7 @@ export const converDataToVideoFormat = ({
         question_slide: null,
         assignment_slide: null,
         is_loaded: true,
-        new_slide: true,
+        new_slide: newSlide,
         notify,
     };
 };

@@ -198,6 +198,7 @@ export const useSlides = (chapterId: string) => {
             setItems(response.data);
             return response.data;
         },
+        staleTime: 3600000,
     });
 
     const addUpdateVideoSlideMutation = useMutation({

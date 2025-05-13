@@ -82,7 +82,12 @@ export const handlePublishSlide = async (
     }
 
     if (activeItem?.source_type == 'VIDEO') {
-        const convertedData = converDataToVideoFormat({ activeItem, status, notify });
+        const convertedData = converDataToVideoFormat({
+            activeItem,
+            status,
+            notify,
+            newSlide: false,
+        });
         try {
             await addUpdateVideoSlide(convertedData);
             toast.success(`slide published successfully!`);
