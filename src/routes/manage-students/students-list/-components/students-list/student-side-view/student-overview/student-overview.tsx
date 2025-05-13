@@ -72,7 +72,7 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
             session_expiry_days: 0,
             institute_id: '',
             expiry_date: 0,
-            face_file_id: '',
+            face_file_id: studentDetails?.face_file_id || '',
             attempt_id: '',
             parents_to_mother_mobile_number: '',
             parents_to_mother_email: '',
@@ -117,7 +117,7 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
 
     return (
         <div className="flex flex-col gap-10 text-neutral-600">
-            <EditStudentDetails selectedStudent={selectedStudent} />
+            <EditStudentDetails />
             <SidebarMenuItem className="flex w-full flex-col gap-2">
                 <div className="flex gap-2">
                     <div className="text-subtitle font-semibold">Session Expiry (Days)</div>

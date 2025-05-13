@@ -39,7 +39,6 @@ export const StudentsListSection = () => {
     const { isError, isLoading } = useSuspenseQuery(useInstituteQuery());
     const [isOpen, setIsOpen] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const [selectedStudent] = useState<StudentTable | null>(null);
     const { getCourseFromPackage, instituteDetails, getDetailsFromPackageSessionId } =
         useInstituteDetailsStore();
     const tableRef = useRef<HTMLDivElement>(null);
@@ -298,7 +297,6 @@ export const StudentsListSection = () => {
                                             selectedTab={'ENDED,PENDING,LIVE'}
                                             examType={'EXAM'}
                                             isStudentList={true}
-                                            selectedStudent={selectedStudent}
                                         />
                                     </div>
                                 </SidebarProvider>
