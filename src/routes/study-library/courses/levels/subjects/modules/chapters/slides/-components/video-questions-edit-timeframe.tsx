@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import { formatTimeStudyLibraryInSeconds, timestampToSeconds } from '../-helper/helper';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { YTPlayer } from './youtube-player';
+import { useContentStore } from '../-stores/chapter-sidebar-store';
 
 interface VideoQuestionsTimeFrameDialogProps {
     playerRef: MutableRefObject<YTPlayer | null>;
@@ -37,6 +38,7 @@ const VideoQuestionsTimeFrameEditDialog = ({
             sec: question?.timestamp?.split(':')[2],
         },
     });
+    const { activeItem, setActiveItem } = useContentStore();
     const closeRef = useRef<HTMLButtonElement | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const { hrs, min, sec } = tempEditQuestionTimeFrameForm.watch();
@@ -69,6 +71,21 @@ const VideoQuestionsTimeFrameEditDialog = ({
             tempEditQuestionTimeFrameForm.getValues('min') +
             ':' +
             tempEditQuestionTimeFrameForm.getValues('sec');
+
+        const updatedQuestions = activeItem?.video_slide?.questions?.map((q) =>
+            q.id === question?.questionId ? { ...q, timestamp: currentQuestion.timestamp } : q
+        );
+
+        setActiveItem({
+            ...activeItem,
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            video_slide: {
+                ...activeItem?.video_slide,
+                questions: updatedQuestions || [],
+            },
+        });
+
         closeRef.current?.click();
     };
 

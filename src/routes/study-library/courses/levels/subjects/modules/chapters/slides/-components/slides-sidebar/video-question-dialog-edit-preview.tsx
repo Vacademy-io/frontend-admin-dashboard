@@ -15,6 +15,7 @@ type QuestionPaperForm = z.infer<typeof uploadQuestionPaperFormSchema>;
 
 import { useRef } from 'react'; // Add useRef import
 import { StudyLibraryQuestion } from '@/types/study-library/study-library-video-questions';
+import { useContentStore } from '../../-stores/chapter-sidebar-store';
 
 const VideoQuestionDialogEditPreview = ({
     formRefData,
@@ -29,6 +30,7 @@ const VideoQuestionDialogEditPreview = ({
     setCurrentQuestionIndex: Dispatch<SetStateAction<number>>;
     updateQuestion?: (question: StudyLibraryQuestion) => void; // New prop for updating state
 }) => {
+    const { activeItem, setActiveItem } = useContentStore();
     const form = useForm<QuestionPaperForm>({
         resolver: zodResolver(uploadQuestionPaperFormSchema),
         mode: 'onChange',
@@ -74,6 +76,16 @@ const VideoQuestionDialogEditPreview = ({
         if (updatedQuestion) {
             // Update the ref for compatibility with existing code
             formRefData.current.questions[currentQIndex] = updatedQuestion;
+
+            setActiveItem({
+                ...activeItem,
+                video_slide: {
+                    ...activeItem?.video_slide,
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-expect-error
+                    questions: updatedQuestions || [],
+                },
+            });
 
             // Call updateQuestion to update the state and trigger re-render
             if (updateQuestion) {
