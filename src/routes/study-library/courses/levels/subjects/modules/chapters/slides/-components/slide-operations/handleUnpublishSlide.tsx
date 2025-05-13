@@ -74,7 +74,9 @@ export const handleUnpublishSlide = async (
         } catch {
             toast.error(`Error in unpublishing the slide`);
         }
-    } else {
+    }
+
+    if (activeItem?.source_type == 'VIDEO') {
         const convertedData = converDataToVideoFormat({
             activeItem,
             status,
