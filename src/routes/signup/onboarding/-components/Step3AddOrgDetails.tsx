@@ -21,6 +21,7 @@ export interface FormValuesStep1Signup {
     instituteProfilePic?: string;
     instituteName: string;
     instituteType: string;
+    instituteThemeCode?: string;
 }
 
 export const organizationDetailsSignupStep1 = z
@@ -43,7 +44,7 @@ export const organizationDetailsSignupStep1 = z
     });
 type FormValues = z.infer<typeof organizationDetailsSignupStep1>;
 
-const Step2AddOrgDetails: React.FC<OrganizationOnboardingProps> = ({
+const Step3AddOrgDetails: React.FC<OrganizationOnboardingProps> = ({
     currentStep,
     handleCompleteCurrentStep,
     completedSteps,
@@ -250,4 +251,4 @@ const Step2AddOrgDetails: React.FC<OrganizationOnboardingProps> = ({
     );
 };
 
-export default Step2AddOrgDetails;
+export default Step3AddOrgDetails;

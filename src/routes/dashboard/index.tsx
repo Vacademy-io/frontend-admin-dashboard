@@ -443,7 +443,7 @@ export function DashboardComponent() {
                                         </div>
                                     </CardDescription>
                                     <CardDescription className="mt-2 flex items-center justify-center">
-                                        <CreateAssessmentDashboardLogo className="mt-4" />
+                                        <CreateAssessmentDashboardLogo className="mt-4 text-blue-600" fill='blue' />
                                     </CardDescription>
                                 </CardHeader>
                             </Card>

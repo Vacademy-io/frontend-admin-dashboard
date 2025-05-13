@@ -30,6 +30,7 @@ import authenticatedAxiosInstance from "@/lib/auth/axiosInstance"
 import { toast } from "sonner"
 import { EDIT_PRESENTATION } from "@/constants/urls"
 import { useQueryClient } from "@tanstack/react-query"
+import { MyButton } from "@/components/design-system/button"
 
 
 export default function ManagePresentation() {
@@ -196,9 +197,9 @@ export default function ManagePresentation() {
         </div>
         <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-rose-600 hover:bg-rose-700 text-white self-start md:self-center">
+            <MyButton >
               <Plus className="h-4 w-4 mr-2" /> New Presentation
-            </Button>
+            </MyButton>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
@@ -237,12 +238,12 @@ export default function ManagePresentation() {
                 </div>
               </div>
               <DialogFooter >
-                <Button type="button" variant="outline" onClick={() => setIsCreateModalOpen(false)} className="flex-1">
+                <MyButton type="button" buttonType="secondary" onClick={() => setIsCreateModalOpen(false)} className="flex-1 ">
                   Cancel
-                </Button>
-                <Button type="submit" variant={"destructive"} className="flex-1">
+                </MyButton>
+                <MyButton type="submit"  className="flex-1">
                   Next
-                </Button>
+                </MyButton>
               </DialogFooter>
             </form>
           </DialogContent>

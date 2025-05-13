@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { useTheme } from "@/providers/theme/theme-provider";
 import ClipLoader from "react-spinners/ClipLoader";
 export function DashboardLoader({
     height = "100vh",
@@ -11,12 +12,13 @@ export function DashboardLoader({
     color?: string;
     className?: string;
 }) {
+    const {primaryColor} = useTheme()
     return (
         <div
             className={cn(`flex flex-col items-center justify-center`, className)}
             style={{ height }}
         >
-            <ClipLoader size={size} color={color} />
+            <ClipLoader size={size} color={primaryColor} />
         </div>
     );
 }

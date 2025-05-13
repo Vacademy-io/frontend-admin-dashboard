@@ -1,5 +1,6 @@
 import { PolarGrid, PolarRadiusAxis, RadialBar, RadialBarChart } from "recharts";
 import { ChartConfig, ChartContainer } from "@/components/ui/chart";
+import { useTheme } from "@/providers/theme/theme-provider";
 
 const chartConfig = {
     visitors: {
@@ -13,11 +14,12 @@ export function CompletionStatusComponent({
 }: {
     profileCompletionPercentage: number;
 }) {
+    const {primaryColor} = useTheme();
     const chartData = [
         {
             browser: "visitors",
             visitors: profileCompletionPercentage,
-            fill: "var(--color-visitors)",
+            fill: primaryColor ? primaryColor :"var(--color-visitors)",
         },
     ];
     return (

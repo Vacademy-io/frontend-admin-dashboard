@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { lazy, Suspense } from "react";
+import {DashboardLoader} from "@/components/core/dashboard-loader";
 
 const SlidesEditorComponent = lazy(() => import("@/components/common/slides/SlideEditorComponent"));
 
@@ -26,7 +27,12 @@ function RouteComponent() {
   const { title = "", description = "", id, isEdit } = Route.useSearch();
 
   return (
-    <Suspense fallback={<div>Loading editor...</div>}>
+    <Suspense fallback={
+      <div className="w-full h-full flex items-center justify-center">
+    <DashboardLoader/>
+      </div>
+
+    }>
       <SlidesEditorComponent
         metaData={{ title, description }}
         presentationId={id}
