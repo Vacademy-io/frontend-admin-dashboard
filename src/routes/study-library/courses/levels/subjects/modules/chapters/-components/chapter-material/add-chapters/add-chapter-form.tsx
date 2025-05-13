@@ -9,7 +9,6 @@ import { useAddChapter } from '@/routes/study-library/courses/levels/subjects/mo
 import { useRouter } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import { useUpdateChapter } from '@/routes/study-library/courses/levels/subjects/modules/chapters/-services/update-chapter';
-import { useSelectedSessionStore } from '@/stores/study-library/selected-session-store';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { levelsWithPackageDetails } from '@/schemas/student/student-list/institute-schema';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -35,13 +34,11 @@ export const AddChapterForm = ({
     onSubmitSuccess,
     mode,
     module_id,
-    session_id,
 }: AddChapterFormProps) => {
     const router = useRouter();
     const courseId: string = router.state.location.search.courseId || '';
     const levelId: string = router.state.location.search.levelId || '';
-    const { selectedSession } = useSelectedSessionStore();
-    const sessionId: string = selectedSession?.id || session_id || '';
+    const sessionId: string = router.state.location.search.sessionId || '';
     const moduleId: string = router.state.location.search.moduleId || module_id || '';
     const addChapterMutation = useAddChapter();
     const updateChapterMutation = useUpdateChapter();
@@ -150,8 +147,6 @@ export const AddChapterForm = ({
                 return psId;
             })
             .filter((id): id is string => id !== null);
-
-        console.log('All Package Session IDs:', allPackageSessionIds);
 
         const areAllSelected = allPackageSessionIds.every((psId) => field.value?.includes(psId));
 
