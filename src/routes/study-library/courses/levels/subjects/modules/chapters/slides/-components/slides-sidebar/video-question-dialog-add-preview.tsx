@@ -101,8 +101,6 @@ const VideoQuestionDialogAddPreview = ({
         handleClose();
     };
 
-    console.log(activeItem);
-
     return (
         <Dialog open={previewQuestionDialog} onOpenChange={setPreviewQuestionDialog}>
             <DialogContent className="no-scrollbar !m-0 flex h-full !w-full !max-w-full flex-col !gap-0 overflow-y-auto !rounded-none !p-0">

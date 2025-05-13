@@ -81,6 +81,8 @@ const AddVideoQuestionDialog = ({
 
     // Function to handle adding a new question
     const handleAddQuestion = (newQuestionType: string) => {
+        setCurrentQuestionIndex(0);
+        videoQuestionForm.reset();
         appendVideoQuestion({
             id: '',
             questionId: String(formRefData.current.questions.length + 1),
