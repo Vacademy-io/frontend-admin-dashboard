@@ -370,7 +370,8 @@ export const converDataToVideoFormat = ({
             title: activeItem?.video_slide?.title || '',
             url: '',
             video_length_in_millis: 0,
-            published_url: activeItem?.video_slide?.url || '',
+            published_url:
+                activeItem?.video_slide?.url || activeItem?.video_slide?.published_url || '',
             published_video_length_in_millis: 0,
             source_type: '',
             questions:
