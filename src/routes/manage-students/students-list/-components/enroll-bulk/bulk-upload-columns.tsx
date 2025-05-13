@@ -148,11 +148,22 @@ export const createEditableBulkUploadColumns = ({
                 accessorKey: header.column_name,
                 header: () => {
                     return (
-                        <div className="flex items-center">
-                            <span>{header.column_name.replace(/_/g, ' ')}</span>
-                            {!header.optional && <span className="text-xs text-danger-500">*</span>}
-                            {header.type === 'date' && header.format && (
-                                <span className="text-xs text-neutral-500">({header.format})</span>
+                        <div className="flex flex-col gap-1">
+                            <div className="flex items-center">
+                                <span>{header.column_name.replace(/_/g, ' ')}</span>
+                                {!header.optional && (
+                                    <span className="text-xs text-danger-500">*</span>
+                                )}
+                                {header.type === 'date' && header.format && (
+                                    <span className="text-xs text-neutral-500">
+                                        ({header.format})
+                                    </span>
+                                )}
+                            </div>
+                            {header.column_name.includes('MOBILE_NUMBER') && (
+                                <span className="text-xs text-neutral-500">
+                                    (Eg. +91-1234567890)
+                                </span>
                             )}
                         </div>
                     );

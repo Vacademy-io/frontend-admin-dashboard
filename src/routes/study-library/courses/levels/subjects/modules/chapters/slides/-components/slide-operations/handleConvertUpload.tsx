@@ -6,7 +6,7 @@ export const handleConvertAndUpload = async (htmlString: string | null): Promise
     if (htmlString == null) return null;
     try {
         // Step 1: Convert HTML to PDF
-        const pdfBlob = await convertHtmlToPdf(htmlString);
+        const { pdfBlob } = await convertHtmlToPdf(htmlString);
 
         // Step 2: Create a download link
         const url = window.URL.createObjectURL(pdfBlob);
@@ -18,7 +18,7 @@ export const handleConvertAndUpload = async (htmlString: string | null): Promise
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
 
-        toast.success('Document downloaded successfully');
+        toast.success(`Document downloaded successfully)`);
         return null;
     } catch (error) {
         console.error('Download Failed:', error);

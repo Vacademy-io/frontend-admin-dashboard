@@ -15,26 +15,26 @@ import { StudentLearningProgress } from './student-learning-progress/student-lea
 import { StudentTestRecord } from './student-test-records/student-test-record';
 import { getPublicUrl } from '@/services/upload_file';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
-import { StudentTable } from '@/types/student-table-types';
+import { useStudentSidebar } from '../../../-context/selected-student-sidebar-context';
 
 export const StudentSidebar = ({
     selectedTab,
     examType,
     isStudentList,
     isSubmissionTab,
-    selectedStudent,
 }: {
     selectedTab?: string;
     examType?: string;
     isStudentList?: boolean;
     isSubmissionTab?: boolean;
-    selectedStudent: StudentTable | null;
 }) => {
     const { state } = useSidebar();
     const [category, setCategory] = useState('overview');
     const { toggleSidebar } = useSidebar();
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [faceLoader, setFaceLoader] = useState(false);
+
+    const { selectedStudent } = useStudentSidebar();
 
     useEffect(() => {
         if (state == 'expanded') {
@@ -49,24 +49,26 @@ export const StudentSidebar = ({
         };
     }, [state]);
 
-    useEffect(() => {
-        const fetchImageUrl = async () => {
-            if (selectedStudent?.face_file_id) {
-                console.log('inside if');
-                try {
-                    setFaceLoader(true);
-                    const url = await getPublicUrl(selectedStudent.face_file_id);
-                    setImageUrl(url);
-                    console.log('url', url);
-                    setFaceLoader(false);
-                } catch (error) {
-                    console.error('Failed to fetch image URL:', error);
-                }
-            } else setImageUrl(null);
-        };
+    const fetchImageUrl = async () => {
+        if (selectedStudent?.face_file_id) {
+            try {
+                setFaceLoader(true);
+                const url = await getPublicUrl(selectedStudent.face_file_id);
+                setImageUrl(url);
+                setFaceLoader(false);
+            } catch (error) {
+                console.error('Failed to fetch image URL:', error);
+                setFaceLoader(false);
+            }
+        } else {
+            setImageUrl(null);
+        }
+    };
 
+    useEffect(() => {
         fetchImageUrl();
-    }, [selectedStudent?.face_file_id, selectedStudent]);
+        console.log('selectedStudent from student side view: ', selectedStudent);
+    }, [selectedStudent, selectedStudent?.face_file_id]);
 
     return (
         <Sidebar side="right">

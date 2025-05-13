@@ -101,7 +101,7 @@ export const ChapterSidebarAddButton = () => {
                             id: crypto.randomUUID(),
                             type: 'DOC',
                             data: documentData,
-                            title: 'New Document',
+                            title: 'New Doc',
                             cover_file_id: '',
                             total_pages: 1,
                             published_data: null,

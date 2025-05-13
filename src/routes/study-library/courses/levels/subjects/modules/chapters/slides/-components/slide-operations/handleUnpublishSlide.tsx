@@ -62,7 +62,7 @@ export const handleUnpublishSlide = async (
                     data: draftData || null,
                     title: activeItem?.document_slide?.title || '',
                     cover_file_id: activeItem?.document_slide?.cover_file_id || '',
-                    total_pages: 0,
+                    total_pages: activeItem?.document_slide?.total_pages || 0,
                     published_data: null,
                     published_document_total_pages: 0,
                 },
@@ -88,7 +88,8 @@ export const handleUnpublishSlide = async (
                     description: activeItem?.video_slide?.description || '',
                     url: activeItem?.video_slide?.url || null,
                     title: activeItem?.video_slide?.title || '',
-                    video_length_in_millis: 0,
+                    video_length_in_millis:
+                        activeItem?.video_slide?.published_video_length_in_millis || 0,
                     published_url: null,
                     published_video_length_in_millis: 0,
                 },
