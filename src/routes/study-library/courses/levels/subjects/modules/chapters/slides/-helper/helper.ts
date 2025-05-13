@@ -328,7 +328,7 @@ export function convertStudyLibraryQuestion(question: MyQuestion) {
         media_id: '',
         question_response_type: 'OPTION',
         question_type: question?.questionType,
-        access_level: '',
+        access_level: 'PUBLIC',
         auto_evaluation_json: auto_evaluation_json,
         evaluation_type: 'AUTO',
         question_time_in_millis: timestampToSeconds(question.timestamp) * 1000,
