@@ -321,7 +321,7 @@ export function convertStudyLibraryQuestion(question: MyQuestion) {
     );
 
     return {
-        id: crypto.randomUUID(),
+        id: question.id ? question.id : crypto.randomUUID(),
         parent_rich_text: generateTextBlock(question?.parentRichTextContent),
         text_data: generateTextBlock(question?.questionName),
         explanation_text_data: generateTextBlock(question?.explanation),
