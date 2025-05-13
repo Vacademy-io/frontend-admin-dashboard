@@ -18,7 +18,7 @@ import { formatTimeStudyLibraryInSeconds, timestampToSeconds } from '../-helper/
 import { transformResponseDataToMyQuestionsSchema } from '@/routes/assessment/question-papers/-utils/helper';
 import { useContentStore } from '../-stores/chapter-sidebar-store';
 
-interface YTPlayer {
+export interface YTPlayer {
     destroy(): void;
     getCurrentTime(): number;
     getDuration(): number;
@@ -97,15 +97,6 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
     const formRefData = useRef<UploadQuestionPaperFormType>(formData);
 
     const videoPlayerTimeFrameForm = useForm<VideoPlayerTimeFormType>({
-        resolver: zodResolver(videoPlayerTimeSchema),
-        defaultValues: {
-            hrs: '',
-            min: '',
-            sec: '',
-        },
-    });
-
-    const editQuestionTimeFrameForm = useForm<VideoPlayerTimeFormType>({
         resolver: zodResolver(videoPlayerTimeSchema),
         defaultValues: {
             hrs: '',
@@ -234,13 +225,11 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
             const min = String(parseInt(parts[1] as string, 10));
             const sec = String(parseInt(parts[2] as string, 10));
             videoPlayerTimeFrameForm.reset({ hrs, min, sec });
-            editQuestionTimeFrameForm.reset({ hrs, min, sec });
         } else if (parts.length === 2) {
             // MM:SS format
             const min = String(parseInt(parts[0] as string, 10));
             const sec = String(parseInt(parts[1] as string, 10));
             videoPlayerTimeFrameForm.reset({ hrs: '0', min, sec });
-            editQuestionTimeFrameForm.reset({ hrs: '0', min, sec });
         }
     };
 
@@ -516,11 +505,9 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                                         )}
                                     </p>
                                     <VideoQuestionsTimeFrameEditDialog
-                                        form={editQuestionTimeFrameForm}
+                                        playerRef={playerRef}
                                         formRefData={formRefData}
-                                        handleSetCurrentTimeStamp={handleSetCurrentTimeStamp}
                                         question={question}
-                                        updateQuestion={updateQuestion} // Pass updateQuestion function
                                         videoDuration={videoDuration}
                                     />
                                 </div>
