@@ -380,8 +380,6 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
 
         setActiveItem({
             ...activeItem,
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
             video_slide: {
                 ...activeItem?.video_slide,
                 questions: [
