@@ -93,31 +93,6 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
         questions: [],
     });
 
-    useEffect(() => {
-        setFormData((prev) => ({
-            ...prev,
-            questions: [
-                ...transformResponseDataToMyQuestionsSchema(
-                    activeItem?.video_slide?.questions || []
-                ),
-            ],
-        }));
-
-        setActiveItem({
-            ...activeItem,
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
-            video_slide: {
-                ...activeItem?.video_slide,
-                questions: [
-                    ...transformResponseDataToMyQuestionsSchema(
-                        activeItem?.video_slide?.questions || []
-                    ),
-                ],
-            },
-        });
-    }, []);
-
     // Keep ref for compatibility with existing code
     const formRefData = useRef<UploadQuestionPaperFormType>(formData);
 
@@ -403,6 +378,31 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
     useEffect(() => {
         formRefData.current = formData;
     }, [formData]);
+
+    useEffect(() => {
+        setFormData((prev) => ({
+            ...prev,
+            questions: [
+                ...transformResponseDataToMyQuestionsSchema(
+                    activeItem?.video_slide?.questions || []
+                ),
+            ],
+        }));
+
+        setActiveItem({
+            ...activeItem,
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            video_slide: {
+                ...activeItem?.video_slide,
+                questions: [
+                    ...transformResponseDataToMyQuestionsSchema(
+                        activeItem?.video_slide?.questions || []
+                    ),
+                ],
+            },
+        });
+    }, []);
 
     return (
         <div className="flex w-full flex-col">
