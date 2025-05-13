@@ -493,6 +493,7 @@ export const transformResponseDataToMyQuestionsSchema = (data: QuestionResponse[
             timestamp: item.question_time_in_millis
                 ? formatTimeStudyLibraryInSeconds(item.question_time_in_millis / 1000)
                 : '0:0:0',
+            newQuestion: item?.new_question,
             validAnswers: [],
             decimals,
             numericType,

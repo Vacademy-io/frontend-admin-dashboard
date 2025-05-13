@@ -110,6 +110,7 @@ export interface QuestionResponse {
     evaluation_type: string;
     explanation_text: ExplanationText;
     explanation_text_data?: ExplanationText;
+    new_question?: boolean;
     default_question_time_mins: number | null;
     options: OptionText[];
     parent_rich_text: TextContent | null;

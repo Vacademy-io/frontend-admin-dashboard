@@ -93,8 +93,6 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
         questions: [],
     });
 
-    console.log(activeItem);
-
     useEffect(() => {
         setFormData((prev) => ({
             ...prev,

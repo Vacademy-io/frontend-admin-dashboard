@@ -340,7 +340,7 @@ export function convertStudyLibraryQuestion(question: MyQuestion) {
             explanationTextData: generateTextBlock(opt.explanation_text.content),
             mediaId: '',
         })),
-        new_question: true,
+        new_question: question.newQuestion === false ? false : true,
     };
 }
 
