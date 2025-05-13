@@ -64,6 +64,19 @@ export interface AITaskIndividualListInterface {
     input_type: string; // Add more input types as needed
     created_at: string; // ISO datetime string
     updated_at: string; // ISO datetime string
+    file_detail: {
+        id: string;
+        url: string;
+        file_name: string;
+        file_type: string;
+        source: string;
+        source_id: string;
+        expiry: string; // ISO datetime string
+        width: number;
+        height: number;
+        created_on: string; // ISO datetime string
+        updated_on: string; // ISO datetime string
+    } | null; // Making file_detail potentially null if a task might not have one
 }
 
 interface TimeWiseSection {
