@@ -403,7 +403,7 @@ export const converDataToVideoFormat = ({
     };
 };
 
-export function convertToQuestionSlideFormat(question: MyQuestion) {
+export function convertToQuestionSlideFormat(question: MyQuestion, sourceId?: string) {
     let options;
     if (question?.questionType === QuestionType.MCQS) {
         options = question?.singleChoiceOptions?.map((opt, idx) => ({
@@ -513,7 +513,7 @@ export function convertToQuestionSlideFormat(question: MyQuestion) {
     );
 
     return {
-        id: crypto.randomUUID(),
+        id: sourceId ? sourceId : crypto.randomUUID(),
         parent_rich_text: generateTextBlock(question?.parentRichTextContent),
         text_data: generateTextBlock(question?.questionName),
         explanation_text_data: generateTextBlock(question?.explanation),
@@ -560,9 +560,12 @@ export function convertToQuestionBackendSlideFormat({
         slide_order: 0,
         video_slide: null,
         document_slide: null,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
-        question_slide: convertToQuestionSlideFormat(activeItem.question_slide),
+        question_slide: convertToQuestionSlideFormat(
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            activeItem.question_slide,
+            activeItem?.source_id
+        ),
         assignment_slide: null,
         is_loaded: true,
         new_slide: newSlide,
