@@ -7,7 +7,6 @@ import { FormControl, FormField, FormItem } from '@/components/ui/form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, FormProvider } from 'react-hook-form';
 import { z } from 'zod';
-import { useGetGenders } from '@/routes/manage-students/students-list/-hooks/useFilters';
 import { useEffect, useRef, useState } from 'react';
 import { EnrollFormUploadImage } from '@/assets/svgs';
 import { FileUploadComponent } from '@/components/design-system/file-upload';
@@ -17,6 +16,8 @@ import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtili
 import { useEditStudentDetails } from '@/routes/manage-students/students-list/-services/editStudentDetails';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { useStudentSidebar } from '@/routes/manage-students/students-list/-context/selected-student-sidebar-context';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { DropdownValueType } from '@/components/common/students/enroll-manually/dropdownTypesForPackageItems';
 
 const EditStudentDetailsFormSchema = z.object({
     user_id: z.string().min(1, 'This field is required'),
@@ -81,8 +82,14 @@ export const EditStudentDetails = () => {
     });
 
     const { setValue } = form;
+    const { instituteDetails } = useInstituteDetailsStore();
 
-    const genderList = useGetGenders();
+    const genderList: DropdownValueType[] =
+        instituteDetails?.genders.map((gender) => ({
+            id: crypto.randomUUID(),
+            name: gender as string,
+        })) || [];
+
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const data = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = data && Object.keys(data.authorities)[0];

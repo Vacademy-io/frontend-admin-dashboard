@@ -166,7 +166,7 @@ export const FilterChips = ({
                         <CommandGroup>
                             {filterList?.map((option) => (
                                 <CommandItem
-                                    key={String(option)}
+                                    key={option.id}
                                     onSelect={() => handleSelect && handleSelect(option)}
                                 >
                                     <div

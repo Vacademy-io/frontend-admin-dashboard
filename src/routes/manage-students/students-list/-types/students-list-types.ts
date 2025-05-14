@@ -28,7 +28,7 @@ export interface FilterConfig {
 export interface StudentFiltersProps {
     currentSession: DropdownItemType;
     sessionList: DropdownItemType[];
-    sessions?: string[];
+    sessions?: { id: string; name: string }[];
     filters: FilterConfig[];
     searchInput: string;
     searchFilter: string;

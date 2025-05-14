@@ -59,23 +59,12 @@ export const useStudentFilters = () => {
         }
     }, [instituteDetails]);
 
-    const [currentPackageSessionIds, setCurrentPackageSessionIds] = useState<string[]>([]);
-
-    useEffect(() => {
-        setCurrentPackageSessionIds(
-            columnFilters
-                .find((filter) => filter.id === 'batch')
-                ?.value.map((option) => option.id) ||
-                (instituteDetails?.batches_for_sessions || [])
-                    .filter((batch) => batch.session.id === currentSession.id)
-                    .map((batch) => batch.id)
-        );
-    }, [currentSession]);
+    const [allPackageSessionIds, setAllPackageSessionIds] = useState<string[]>([]);
 
     const [appliedFilters, setAppliedFilters] = useState<StudentFilterRequest>({
         name: '',
         institute_ids: INSTITUTE_ID ? [INSTITUTE_ID] : [],
-        package_session_ids: currentPackageSessionIds,
+        package_session_ids: allPackageSessionIds,
         group_ids: [],
         gender: [],
         statuses: instituteDetails?.student_statuses || [],
@@ -84,10 +73,20 @@ export const useStudentFilters = () => {
     });
 
     useEffect(() => {
+        const pksIds =
+            columnFilters
+                .find((filter) => filter.id === 'batch')
+                ?.value.map((option) => option.id) ||
+            (instituteDetails?.batches_for_sessions || [])
+                .filter((batch) => batch.session.id === currentSession.id)
+                .map((batch) => batch.id);
+
+        setAllPackageSessionIds(pksIds);
+
         if (currentSession) {
             setAppliedFilters((prev) => ({
                 ...prev,
-                package_session_ids: currentPackageSessionIds,
+                package_session_ids: pksIds,
             }));
         }
     }, [currentSession]);
@@ -139,10 +138,15 @@ export const useStudentFilters = () => {
             instituteDetails?.student_statuses ||
             [];
 
+        const pksids =
+            columnFilters
+                .find((filter) => filter.id === 'batch')
+                ?.value.map((option) => option.id) || allPackageSessionIds;
+
         setAppliedFilters((prev) => ({
             ...prev,
             name: searchFilter,
-            package_session_ids: currentPackageSessionIds,
+            package_session_ids: pksids,
             gender:
                 columnFilters
                     .find((filter) => filter.id === 'gender')
@@ -158,10 +162,14 @@ export const useStudentFilters = () => {
         setSearchFilter('');
         setSearchInput('');
 
+        const pksids = (instituteDetails?.batches_for_sessions || [])
+            .filter((batch) => batch.session.id === currentSession.id)
+            .map((batch) => batch.id);
+
         setAppliedFilters((prev) => ({
             ...prev,
             name: '',
-            package_session_ids: currentPackageSessionIds,
+            package_session_ids: pksids,
             gender: [],
             // When clearing filters, use all API-provided statuses
             statuses: instituteDetails?.student_statuses || [],
