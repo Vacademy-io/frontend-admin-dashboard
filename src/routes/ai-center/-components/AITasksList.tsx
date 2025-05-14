@@ -152,6 +152,23 @@ const AITasksList = ({
                             </div>
                         ) : (
                             allTasks?.map((task: AITaskIndividualListInterface) => {
+                                async function handleDownload(url: string, file_name: string) {
+                                    try {
+                                        const response = await fetch(url);
+                                        const blob = await response.blob();
+                                        const downloadUrl = window.URL.createObjectURL(blob);
+                                        const a = document.createElement('a');
+                                        a.href = downloadUrl;
+                                        a.download = file_name;
+                                        document.body.appendChild(a);
+                                        a.click();
+                                        window.URL.revokeObjectURL(downloadUrl);
+                                        document.body.removeChild(a);
+                                    } catch (error) {
+                                        console.error('Download failed:', error);
+                                    }
+                                }
+
                                 return (
                                     <div
                                         key={task.id}
@@ -163,6 +180,7 @@ const AITasksList = ({
                                                 {convertToLocalDateTime(task.updated_at)}
                                             </h1>
                                         </div>
+
                                         <div className="flex items-center justify-start">
                                             <Badge
                                                 className={`border border-gray-200 text-neutral-600 shadow-none ${
@@ -236,6 +254,33 @@ const AITasksList = ({
                                                     />
                                                 )}
                                         </div>
+                                        {task.file_detail && (
+                                            <div className="mt-2 flex items-center justify-between rounded-md bg-neutral-100 p-3">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="max-w-[200px] truncate text-sm text-neutral-600">
+                                                        {task.file_detail.file_name}
+                                                    </span>
+                                                </div>
+                                                <MyButton
+                                                    type="button"
+                                                    scale="small"
+                                                    buttonType="secondary"
+                                                    className="text-sm"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        if (task.file_detail) {
+                                                            handleDownload(
+                                                                task.file_detail.url,
+                                                                task.file_detail.file_name
+                                                            );
+                                                        }
+                                                    }}
+                                                >
+                                                    Download File
+                                                </MyButton>
+                                            </div>
+                                        )}
                                     </div>
                                 );
                             })

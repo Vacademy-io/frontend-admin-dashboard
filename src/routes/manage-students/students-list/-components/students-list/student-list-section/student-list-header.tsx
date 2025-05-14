@@ -84,7 +84,7 @@ export const StudentListHeader = ({ currentSession }: { currentSession?: Dropdow
     };
     return (
         <div className="flex items-center justify-between">
-            <div className="text-h3 font-semibold">Students List</div>
+            <div className="text-h3 font-semibold">Learner List</div>
             <div className="flex items-center gap-4">
                 <MyButton
                     onClick={() => {
@@ -93,7 +93,7 @@ export const StudentListHeader = ({ currentSession }: { currentSession?: Dropdow
                     scale="large"
                     buttonType="secondary"
                 >
-                    Invite Students
+                    Invite Learner
                 </MyButton>
                 <BulkDialogProvider>
                     {!instituteDetails?.batches_for_sessions.length ? (

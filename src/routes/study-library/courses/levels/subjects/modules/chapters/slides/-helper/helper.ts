@@ -6,7 +6,9 @@ import jsPDF from 'jspdf';
 import { Slide } from '../-hooks/use-slides';
 import { MyQuestion } from '@/types/assessments/question-paper-form';
 
-export const convertHtmlToPdf = async (htmlString: string): Promise<Blob> => {
+export const convertHtmlToPdf = async (
+    htmlString: string
+): Promise<{ pdfBlob: Blob; totalPages: number }> => {
     // Create temporary div to hold the HTML content
     const tempDiv: HTMLElement = document.createElement('div');
     tempDiv.innerHTML = htmlString;
@@ -134,7 +136,10 @@ export const convertHtmlToPdf = async (htmlString: string): Promise<Blob> => {
         // Generate the PDF blob
         const pdfOutput = pdf.output('datauristring');
         const pdfBlob = await fetch(pdfOutput).then((res) => res.blob());
-        return new Blob([pdfBlob], { type: 'application/pdf' });
+        return {
+            pdfBlob: new Blob([pdfBlob], { type: 'application/pdf' }),
+            totalPages,
+        };
     } finally {
         // Clean up
         if (document.body.contains(tempDiv)) {

@@ -65,7 +65,7 @@ export const AssessmentParticipantsIndividualList = ({ type }: { type: string })
             </DialogTrigger>
             <DialogContent className="no-scrollbar !m-0 flex h-[90vh] !w-full !max-w-[90vw] flex-col gap-6 overflow-y-auto !p-0">
                 <h1 className="rounded-t-lg bg-primary-100 p-4 font-semibold text-primary-500">
-                    Individual Students List
+                    Individual Learner List
                 </h1>
                 {getParticipantsData.status === 'pending' ? (
                     <DashboardLoader />

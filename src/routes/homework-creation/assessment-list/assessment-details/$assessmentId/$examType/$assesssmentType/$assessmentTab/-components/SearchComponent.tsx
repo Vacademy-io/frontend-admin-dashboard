@@ -30,7 +30,7 @@ export const AssessmentDetailsSearchComponent = ({
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
                 onKeyDown={handleSearch}
-                placeholder={placeholderText ? placeholderText : 'Search By Student Name'}
+                placeholder={placeholderText ? placeholderText : 'Search By Learner Name'}
                 className="pl-8 pr-12"
             />
             {searchText && (

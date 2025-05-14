@@ -1,22 +1,21 @@
-import { ControllerRenderProps, useForm } from "react-hook-form";
-import * as z from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
-import { MyInput } from "@/components/design-system/input";
-import { MyButton } from "@/components/design-system/button";
-import { ChapterWithSlides } from "@/stores/study-library/use-modules-with-chapters-store";
-import { useAddChapter } from "@/routes/study-library/courses/levels/subjects/modules/chapters/-services/add-chapter";
-import { useRouter } from "@tanstack/react-router";
-import { toast } from "sonner";
-import { useUpdateChapter } from "@/routes/study-library/courses/levels/subjects/modules/chapters/-services/update-chapter";
-import { useSelectedSessionStore } from "@/stores/study-library/selected-session-store";
-import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-import { levelsWithPackageDetails } from "@/schemas/student/student-list/institute-schema";
-import { Checkbox } from "@/components/ui/checkbox";
-import { useGetPackageSessionId } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionId";
+import { ControllerRenderProps, useForm } from 'react-hook-form';
+import * as z from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
+import { MyInput } from '@/components/design-system/input';
+import { MyButton } from '@/components/design-system/button';
+import { ChapterWithSlides } from '@/stores/study-library/use-modules-with-chapters-store';
+import { useAddChapter } from '@/routes/study-library/courses/levels/subjects/modules/chapters/-services/add-chapter';
+import { useRouter } from '@tanstack/react-router';
+import { toast } from 'sonner';
+import { useUpdateChapter } from '@/routes/study-library/courses/levels/subjects/modules/chapters/-services/update-chapter';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { levelsWithPackageDetails } from '@/schemas/student/student-list/institute-schema';
+import { Checkbox } from '@/components/ui/checkbox';
+import { useGetPackageSessionId } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionId';
 
 const formSchema = z.object({
-    chapterName: z.string().min(1, "Chapter name is required"),
+    chapterName: z.string().min(1, 'Chapter name is required'),
     visibility: z.record(z.string(), z.array(z.string())),
 });
 
@@ -25,19 +24,25 @@ type FormValues = z.infer<typeof formSchema>;
 interface AddChapterFormProps {
     initialValues?: ChapterWithSlides;
     onSubmitSuccess: () => void;
-    mode: "create" | "edit";
+    mode: 'create' | 'edit';
+    module_id?: string;
+    session_id?: string;
 }
 
-export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChapterFormProps) => {
+export const AddChapterForm = ({
+    initialValues,
+    onSubmitSuccess,
+    mode,
+    module_id,
+}: AddChapterFormProps) => {
     const router = useRouter();
-    const courseId: string = router.state.location.search.courseId || "";
-    const levelId: string = router.state.location.search.levelId || "";
-    const { selectedSession } = useSelectedSessionStore();
-    const sessionId: string = selectedSession?.id || "";
-    const moduleId: string = router.state.location.search.moduleId || "";
+    const courseId: string = router.state.location.search.courseId || '';
+    const levelId: string = router.state.location.search.levelId || '';
+    const sessionId: string = router.state.location.search.sessionId || '';
+    const moduleId: string = router.state.location.search.moduleId || module_id || '';
     const addChapterMutation = useAddChapter();
     const updateChapterMutation = useUpdateChapter();
-    const package_session_id = useGetPackageSessionId(courseId, sessionId, levelId) || "";
+    const package_session_id = useGetPackageSessionId(courseId, sessionId, levelId) || '';
     const { getPackageWiseLevels, getPackageSessionId } = useInstituteDetailsStore();
 
     // Get courses from current sessionId
@@ -47,9 +52,9 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
 
     // Get courses from DEFAULT sessionId
     const defaultSessionCourses =
-        sessionId !== "DEFAULT"
+        sessionId !== 'DEFAULT'
             ? getPackageWiseLevels({
-                  sessionId: "DEFAULT",
+                  sessionId: 'DEFAULT',
               })
             : [];
 
@@ -60,7 +65,7 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
     defaultSessionCourses.forEach((defaultCourse) => {
         if (
             !combinedCourses.some(
-                (course) => course.package_dto.id === defaultCourse.package_dto.id,
+                (course) => course.package_dto.id === defaultCourse.package_dto.id
             )
         ) {
             combinedCourses.push(defaultCourse);
@@ -76,13 +81,13 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
             acc[course.package_dto.id] = [];
             return acc;
         },
-        {} as Record<string, string[]>,
+        {} as Record<string, string[]>
     );
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            chapterName: initialValues?.chapter.chapter_name || "",
+            chapterName: initialValues?.chapter.chapter_name || '',
             visibility: initialValues?.chapter_in_package_sessions
                 ? initialValues.chapter_in_package_sessions.reduce(
                       (acc, psId) => {
@@ -90,10 +95,10 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
                           for (const course of coursesWithLevels) {
                               const isDefaultSessionCourse = defaultSessionCourses.some(
                                   (defaultCourse) =>
-                                      defaultCourse.package_dto.id === course.package_dto.id,
+                                      defaultCourse.package_dto.id === course.package_dto.id
                               );
                               const courseSessionId = isDefaultSessionCourse
-                                  ? "DEFAULT"
+                                  ? 'DEFAULT'
                                   : sessionId;
 
                               for (const level of course.level) {
@@ -115,7 +120,7 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
                           }
                           return acc;
                       },
-                      { ...defaultVisibility },
+                      { ...defaultVisibility }
                   )
                 : {
                       ...defaultVisibility,
@@ -128,9 +133,9 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
         courseId: string,
         levels: levelsWithPackageDetails,
         field: ControllerRenderProps<FormValues, `visibility.${string}`>,
-        isDefaultSessionCourse: boolean,
+        isDefaultSessionCourse: boolean
     ) => {
-        const courseSessionId = isDefaultSessionCourse ? "DEFAULT" : sessionId;
+        const courseSessionId = isDefaultSessionCourse ? 'DEFAULT' : sessionId;
 
         const allPackageSessionIds = levels
             .map((level) => {
@@ -143,8 +148,6 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
             })
             .filter((id): id is string => id !== null);
 
-        console.log("All Package Session IDs:", allPackageSessionIds);
-
         const areAllSelected = allPackageSessionIds.every((psId) => field.value?.includes(psId));
 
         field.onChange(areAllSelected ? [] : allPackageSessionIds);
@@ -152,20 +155,20 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
 
     const onSubmit = async (data: FormValues) => {
         try {
-            const selectedPackageSessionIds = Object.values(data.visibility).flat().join(",");
+            const selectedPackageSessionIds = Object.values(data.visibility).flat().join(',');
             if (!selectedPackageSessionIds) {
-                toast.error("Please select at least one package for visibility");
+                toast.error('Please select at least one package for visibility');
                 return;
             }
 
-            if (mode === "create") {
+            if (mode === 'create') {
                 const newChapter = {
                     id: crypto.randomUUID(),
                     chapter_name: data.chapterName,
-                    status: "true",
-                    file_id: "",
+                    status: 'true',
+                    file_id: '',
                     description:
-                        "Click to view and access eBooks and video lectures for this chapter.",
+                        'Click to view and access eBooks and video lectures for this chapter.',
                     chapter_order: 0,
                 };
 
@@ -175,10 +178,10 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
                     chapter: newChapter,
                 });
 
-                toast.success("Chapter added successfully");
+                toast.success('Chapter added successfully');
             } else {
                 if (!initialValues) {
-                    toast.error("No chapter to update");
+                    toast.error('No chapter to update');
                     return;
                 }
 
@@ -194,18 +197,18 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
                     chapter: updatedChapter,
                 });
 
-                toast.success("Chapter updated successfully");
+                toast.success('Chapter updated successfully');
             }
 
             onSubmitSuccess();
         } catch (error) {
-            console.error("Error handling chapter:", error);
+            console.error('Error handling chapter:', error);
             toast.error(`Failed to ${mode} chapter. Please try again.`);
         }
     };
 
     const isPending =
-        mode === "create" ? addChapterMutation.isPending : updateChapterMutation.isPending;
+        mode === 'create' ? addChapterMutation.isPending : updateChapterMutation.isPending;
 
     return (
         <Form {...form}>
@@ -246,7 +249,7 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
                             // Determine if this course is from DEFAULT session
                             const isDefaultSessionCourse = defaultSessionCourses.some(
                                 (defaultCourse) =>
-                                    defaultCourse.package_dto.id === course.package_dto.id,
+                                    defaultCourse.package_dto.id === course.package_dto.id
                             );
 
                             return (
@@ -257,7 +260,7 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
                                     render={({ field }) => {
                                         // Use the appropriate sessionId based on course source
                                         const courseSessionId = isDefaultSessionCourse
-                                            ? "DEFAULT"
+                                            ? 'DEFAULT'
                                             : sessionId;
 
                                         const levelPackageSessionIds = course.level
@@ -266,12 +269,12 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
                                                     courseId: course.package_dto.id,
                                                     sessionId: courseSessionId,
                                                     levelId: level.level_dto.id,
-                                                }),
+                                                })
                                             )
                                             .filter((id): id is string => id !== null);
 
-                                        const allSelected = levelPackageSessionIds.every(
-                                            (psId) => field.value?.includes(psId),
+                                        const allSelected = levelPackageSessionIds.every((psId) =>
+                                            field.value?.includes(psId)
                                         );
 
                                         return (
@@ -288,14 +291,14 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
                                                                 course.package_dto.id,
                                                                 course.level,
                                                                 field,
-                                                                isDefaultSessionCourse,
+                                                                isDefaultSessionCourse
                                                             );
                                                         }}
                                                         aria-label="Select all"
                                                     />
                                                     <span className="font-semibold">
                                                         {course.package_dto.package_name}
-                                                        {isDefaultSessionCourse && " (Default)"}
+                                                        {isDefaultSessionCourse && ' (Default)'}
                                                     </span>
                                                 </div>
 
@@ -324,12 +327,12 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
                                                                                           field.value ||
                                                                                           []
                                                                                       ).includes(
-                                                                                          packageSessionId,
+                                                                                          packageSessionId
                                                                                       )
                                                                                     : false
                                                                             }
                                                                             onCheckedChange={(
-                                                                                checked: boolean,
+                                                                                checked: boolean
                                                                             ) => {
                                                                                 if (
                                                                                     !packageSessionId
@@ -348,14 +351,14 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
                                                                                               []
                                                                                           ).filter(
                                                                                               (
-                                                                                                  id,
+                                                                                                  id
                                                                                               ) =>
                                                                                                   id !==
-                                                                                                  packageSessionId,
+                                                                                                  packageSessionId
                                                                                           );
 
                                                                                 field.onChange(
-                                                                                    newValue,
+                                                                                    newValue
                                                                                 );
                                                                             }}
                                                                         />
@@ -391,10 +394,10 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
                         disabled={isPending}
                     >
                         {isPending
-                            ? `${mode === "create" ? "Adding" : "Updating"}...`
-                            : mode === "create"
-                              ? "Add Chapter"
-                              : "Edit Chapter"}
+                            ? `${mode === 'create' ? 'Adding' : 'Updating'}...`
+                            : mode === 'create'
+                              ? 'Add Chapter'
+                              : 'Edit Chapter'}
                     </MyButton>
                 </div>
             </form>

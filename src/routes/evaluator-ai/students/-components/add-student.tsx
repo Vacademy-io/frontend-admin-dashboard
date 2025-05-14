@@ -1,19 +1,19 @@
-"use client";
+'use client';
 
-import type React from "react";
+import type React from 'react';
 
-import { useEffect, useState } from "react";
-import { DialogFooter } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Loader2, MoreVertical, Pencil, Trash2, FileText, Plus, ChevronDown } from "lucide-react";
-import { MyDialog } from "@/components/design-system/dialog";
-import { MyButton } from "@/components/design-system/button";
-import { handleStartProcessUploadedFile } from "@/routes/ai-center/-services/ai-center-service";
-import { UploadFileInS3Public } from "@/routes/signup/-services/signup-services";
-import { toast } from "sonner";
-import { cn } from "@/lib/utils";
-import axios from "axios";
+import { useEffect, useState } from 'react';
+import { DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Loader2, MoreVertical, Pencil, Trash2, FileText, Plus, ChevronDown } from 'lucide-react';
+import { MyDialog } from '@/components/design-system/dialog';
+import { MyButton } from '@/components/design-system/button';
+import { handleStartProcessUploadedFile } from '@/routes/ai-center/-services/ai-center-service';
+import { UploadFileInS3Public } from '@/routes/signup/-services/signup-services';
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+import axios from 'axios';
 import {
     Table,
     TableBody,
@@ -21,8 +21,8 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table";
-import { Checkbox } from "@/components/ui/checkbox";
+} from '@/components/ui/table';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     Pagination,
     PaginationContent,
@@ -31,17 +31,17 @@ import {
     PaginationLink,
     PaginationNext,
     PaginationPrevious,
-} from "@/components/ui/pagination";
+} from '@/components/ui/pagination';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useSearch } from "@tanstack/react-router";
-import { Button } from "@/components/ui/button";
-import { GET_PUBLIC_URL_PUBLIC } from "@/constants/urls";
-import { FilePlus } from "phosphor-react";
+} from '@/components/ui/dropdown-menu';
+import { useSearch } from '@tanstack/react-router';
+import { Button } from '@/components/ui/button';
+import { GET_PUBLIC_URL_PUBLIC } from '@/constants/urls';
+import { FilePlus } from 'phosphor-react';
 
 // Helper functions for API calls using axios directly
 export const getPublicUrl = async (fileId: string | undefined | null): Promise<string> => {
@@ -66,12 +66,12 @@ interface StudentData {
 }
 
 export function StudentEnrollment() {
-    const { q } = useSearch({ from: "/evaluator-ai/students/" }) as { q: string };
+    const { q } = useSearch({ from: '/evaluator-ai/students/' }) as { q: string };
     const [open, setOpen] = useState(q ? true : false);
-    const [name, setName] = useState("");
-    const [enrollId, setEnrollId] = useState("");
-    const [pdfId, setPdfId] = useState("");
-    const [fileId, setFileId] = useState("");
+    const [name, setName] = useState('');
+    const [enrollId, setEnrollId] = useState('');
+    const [pdfId, setPdfId] = useState('');
+    const [fileId, setFileId] = useState('');
     const [isUploading, setIsUploading] = useState(false);
     const [file, setFile] = useState<File | null>(null);
     const [students, setStudents] = useState<StudentData[]>([]);
@@ -91,12 +91,12 @@ export function StudentEnrollment() {
     const totalPages = Math.ceil(students.length / itemsPerPage);
     const paginatedStudents = students.slice(
         (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage,
+        currentPage * itemsPerPage
     );
 
     useEffect(() => {
         // Convert old format to new format with attempts
-        const savedStudents = JSON.parse(localStorage.getItem("students") || "[]");
+        const savedStudents = JSON.parse(localStorage.getItem('students') || '[]');
         // eslint-disable-next-line
         const convertedStudents = savedStudents.map((student: any) => {
             // If the student already has attempts array, return as is
@@ -130,10 +130,10 @@ export function StudentEnrollment() {
     }, [open]);
 
     const resetForm = () => {
-        setName("");
-        setEnrollId("");
-        setPdfId("");
-        setFileId("");
+        setName('');
+        setEnrollId('');
+        setPdfId('');
+        setFileId('');
         setFile(null);
         setIsEditMode(false);
         setEditIndex(null);
@@ -142,8 +142,8 @@ export function StudentEnrollment() {
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             setFile(e.target.files[0]);
-            setPdfId("");
-            setFileId("");
+            setPdfId('');
+            setFileId('');
         }
     };
 
@@ -152,17 +152,17 @@ export function StudentEnrollment() {
 
         setIsUploading(true);
         try {
-            const uploadedFileId = await UploadFileInS3Public(file, setIsUploading, "RESPONSES");
+            const uploadedFileId = await UploadFileInS3Public(file, setIsUploading, 'RESPONSES');
             if (uploadedFileId) {
                 setFileId(uploadedFileId); // Store the fileId
                 const response: { pdf_id: string } =
                     await handleStartProcessUploadedFile(uploadedFileId);
                 setPdfId(response.pdf_id);
-                toast("File uploaded successfully");
+                toast('File uploaded successfully');
             }
         } catch (error) {
-            console.error("Error uploading file:", error);
-            toast.error("Upload failed");
+            console.error('Error uploading file:', error);
+            toast.error('Upload failed');
         } finally {
             setIsUploading(false);
         }
@@ -171,7 +171,7 @@ export function StudentEnrollment() {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!name || !enrollId || !pdfId) {
-            toast.warning("Please fill in all fields and upload a file.");
+            toast.warning('Please fill in all fields and upload a file.');
             return;
         }
         try {
@@ -194,7 +194,7 @@ export function StudentEnrollment() {
                         student.attempts.push({
                             id: crypto.randomUUID(),
                             pdfId,
-                            fileId: fileId || "",
+                            fileId: fileId || '',
                             date: new Date().toISOString(),
                         });
                         student.currentAttemptIndex = 0;
@@ -205,13 +205,13 @@ export function StudentEnrollment() {
                             student.attempts[currentAttemptIndex] = {
                                 ...currentAttempt,
                                 pdfId,
-                                fileId: fileId || "",
+                                fileId: fileId || '',
                             };
                         }
                     }
                 }
 
-                toast.success("Student updated successfully!");
+                toast.success('Student updated successfully!');
             } else {
                 // Add new student
                 const newStudent: StudentData = {
@@ -229,18 +229,18 @@ export function StudentEnrollment() {
                 };
 
                 updatedStudents = [...students, newStudent];
-                toast.success("Student enrolled successfully!");
+                toast.success('Student enrolled successfully!');
             }
 
-            localStorage.setItem("students", JSON.stringify(updatedStudents));
+            localStorage.setItem('students', JSON.stringify(updatedStudents));
             setStudents(updatedStudents);
 
             // Reset form and close dialog
             resetForm();
             setOpen(false);
         } catch (error) {
-            console.error("Error saving to localStorage:", error);
-            toast.error(isEditMode ? "Failed to update student" : "Failed to enroll student");
+            console.error('Error saving to localStorage:', error);
+            toast.error(isEditMode ? 'Failed to update student' : 'Failed to enroll student');
         }
     };
 
@@ -258,11 +258,11 @@ export function StudentEnrollment() {
                 const currentAttempt = student.attempts[student.currentAttemptIndex];
                 if (currentAttempt) {
                     setPdfId(currentAttempt.pdfId);
-                    setFileId(currentAttempt.fileId || "");
+                    setFileId(currentAttempt.fileId || '');
                 }
             } else {
-                setPdfId("");
-                setFileId("");
+                setPdfId('');
+                setFileId('');
             }
         }
 
@@ -282,7 +282,7 @@ export function StudentEnrollment() {
             prev
                 .filter((i) => i !== actualIndex)
                 // Adjust indices for items after the deleted one
-                .map((i) => (i > actualIndex ? i - 1 : i)),
+                .map((i) => (i > actualIndex ? i - 1 : i))
         );
 
         // Remove from students array
@@ -291,9 +291,9 @@ export function StudentEnrollment() {
         setStudents(updatedStudents);
 
         // Update localStorage
-        localStorage.setItem("students", JSON.stringify(updatedStudents));
+        localStorage.setItem('students', JSON.stringify(updatedStudents));
 
-        toast.success("Student deleted successfully!");
+        toast.success('Student deleted successfully!');
 
         // If we deleted the last item on the current page, go to previous page
         if (paginatedStudents.length === 1 && currentPage > 1) {
@@ -306,7 +306,7 @@ export function StudentEnrollment() {
         const student = students[actualIndex];
 
         if (!student || student.attempts.length === 0) {
-            toast.error("No file available");
+            toast.error('No file available');
             return;
         }
 
@@ -314,7 +314,7 @@ export function StudentEnrollment() {
         const fileId = currentAttempt?.fileId;
 
         if (!fileId) {
-            toast.error("No file ID available");
+            toast.error('No file ID available');
             return;
         }
 
@@ -324,13 +324,13 @@ export function StudentEnrollment() {
 
             if (url) {
                 // Open in new tab
-                window.open(url, "_blank");
+                window.open(url, '_blank');
             } else {
-                toast.error("Could not retrieve PDF URL");
+                toast.error('Could not retrieve PDF URL');
             }
         } catch (error) {
-            console.error("Error fetching PDF URL:", error);
-            toast.error("Failed to retrieve PDF");
+            console.error('Error fetching PDF URL:', error);
+            toast.error('Failed to retrieve PDF');
         } finally {
             setLoadingPdf({ ...loadingPdf, [fileId]: false });
         }
@@ -348,7 +348,7 @@ export function StudentEnrollment() {
         e.preventDefault();
 
         if (!pdfId || currentStudentIndex === null) {
-            toast.warning("Please upload a file.");
+            toast.warning('Please upload a file.');
             return;
         }
 
@@ -371,14 +371,14 @@ export function StudentEnrollment() {
 
             // Update state and localStorage
             setStudents(updatedStudents);
-            localStorage.setItem("students", JSON.stringify(updatedStudents));
+            localStorage.setItem('students', JSON.stringify(updatedStudents));
 
-            toast.success("New attempt added successfully!");
+            toast.success('New attempt added successfully!');
             setAttemptDialogOpen(false);
             resetForm();
         } catch (error) {
-            console.error("Error adding attempt:", error);
-            toast.error("Failed to add attempt");
+            console.error('Error adding attempt:', error);
+            toast.error('Failed to add attempt');
         }
     };
 
@@ -388,12 +388,12 @@ export function StudentEnrollment() {
         const student = updatedStudents[actualIndex];
 
         if (!student) {
-            toast.error("Student not found.");
+            toast.error('Student not found.');
             return;
         }
 
         if (student.attempts.length <= 1) {
-            toast.warning("Cannot delete the only attempt. Delete the student instead.");
+            toast.warning('Cannot delete the only attempt. Delete the student instead.');
             return;
         }
 
@@ -407,9 +407,9 @@ export function StudentEnrollment() {
 
         // Update state and localStorage
         setStudents(updatedStudents);
-        localStorage.setItem("students", JSON.stringify(updatedStudents));
+        localStorage.setItem('students', JSON.stringify(updatedStudents));
 
-        toast.success("Attempt deleted successfully!");
+        toast.success('Attempt deleted successfully!');
     };
 
     const handleSelectAttempt = (studentIndex: number, attemptIndex: number) => {
@@ -426,7 +426,7 @@ export function StudentEnrollment() {
 
         // Update state and localStorage
         setStudents(updatedStudents);
-        localStorage.setItem("students", JSON.stringify(updatedStudents));
+        localStorage.setItem('students', JSON.stringify(updatedStudents));
 
         // Close the dropdown
         setAttemptDropdownOpen({ ...attemptDropdownOpen, [studentIndex]: false });
@@ -434,14 +434,14 @@ export function StudentEnrollment() {
 
     const toggleSelect = (index: number) => {
         setSelected((prev) =>
-            prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index],
+            prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
         );
     };
 
     const handleSelectAll = (checked: boolean) => {
         if (checked) {
             const allIndices = paginatedStudents.map(
-                (_, index) => (currentPage - 1) * itemsPerPage + index,
+                (_, index) => (currentPage - 1) * itemsPerPage + index
             );
             setSelected(allIndices);
         } else {
@@ -451,12 +451,12 @@ export function StudentEnrollment() {
 
     const handleSubmitSelected = () => {
         if (selected.length === 0) {
-            toast.warning("Please select at least one student");
+            toast.warning('Please select at least one student');
             return;
         }
 
         const selectedStudents = selected.map((index) => students[index]);
-        console.log("Selected students:", selectedStudents);
+        console.log('Selected students:', selectedStudents);
 
         // Here you would typically send this data to your backend
         toast.success(`Submitted ${selected.length} student(s)`);
@@ -470,12 +470,12 @@ export function StudentEnrollment() {
 
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
-        return date.toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
         });
     };
 
@@ -485,7 +485,7 @@ export function StudentEnrollment() {
                 <h1 className="text-xl font-semibold">Student List</h1>
 
                 <MyDialog
-                    heading={isEditMode ? "Edit Student" : "Student Enrollment"}
+                    heading={isEditMode ? 'Edit Student' : 'Student Enrollment'}
                     open={open}
                     onOpenChange={(newOpen) => {
                         if (!newOpen) {
@@ -495,7 +495,7 @@ export function StudentEnrollment() {
                     }}
                     trigger={
                         <MyButton scale="large" buttonType="primary" type="button">
-                            Enroll Students
+                            Enroll Learner
                         </MyButton>
                     }
                 >
@@ -507,7 +507,7 @@ export function StudentEnrollment() {
                                     id="name"
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    placeholder="Student name"
+                                    placeholder="Learner name"
                                     required
                                 />
                             </div>
@@ -524,8 +524,8 @@ export function StudentEnrollment() {
                             <div className="flex flex-col items-start gap-2">
                                 <Label htmlFor="file">
                                     {isEditMode && pdfId
-                                        ? "Replace Response (optional)"
-                                        : "Upload Response (optional)"}
+                                        ? 'Replace Response (optional)'
+                                        : 'Upload Response (optional)'}
                                 </Label>
                                 <div className="w-full space-y-2">
                                     {isEditMode && pdfId && (
@@ -552,7 +552,7 @@ export function StudentEnrollment() {
                                                     Uploading...
                                                 </>
                                             ) : (
-                                                "Upload file"
+                                                'Upload file'
                                             )}
                                         </MyButton>
                                     )}
@@ -565,12 +565,12 @@ export function StudentEnrollment() {
                                 type="submit"
                                 className={cn(
                                     !name || !enrollId || !pdfId
-                                        ? "pointer-events-none opacity-50"
-                                        : "cursor-pointer",
+                                        ? 'pointer-events-none opacity-50'
+                                        : 'cursor-pointer'
                                 )}
                                 disabled={!name && !enrollId}
                             >
-                                {isEditMode ? "Update" : "Enroll"}
+                                {isEditMode ? 'Update' : 'Enroll'}
                             </MyButton>
                         </DialogFooter>
                     </form>
@@ -613,7 +613,7 @@ export function StudentEnrollment() {
                                                     Uploading...
                                                 </>
                                             ) : (
-                                                "Upload file"
+                                                'Upload file'
                                             )}
                                         </MyButton>
                                     )}
@@ -625,7 +625,7 @@ export function StudentEnrollment() {
                                 layoutVariant="default"
                                 type="submit"
                                 className={cn(
-                                    !pdfId ? "pointer-events-none opacity-50" : "cursor-pointer",
+                                    !pdfId ? 'pointer-events-none opacity-50' : 'cursor-pointer'
                                 )}
                                 disabled={!pdfId}
                             >
@@ -654,7 +654,7 @@ export function StudentEnrollment() {
                                         />
                                     </TableHead>
                                     <TableHead className="sticky left-12 z-10 bg-primary-50">
-                                        Student Name
+                                        Learner Name
                                     </TableHead>
                                     <TableHead>Enrollment ID</TableHead>
                                     <TableHead>Attempt Count</TableHead>
@@ -714,15 +714,15 @@ export function StudentEnrollment() {
                                                                 <DropdownMenuItem
                                                                     key={attempt.id}
                                                                     className={cn(
-                                                                        "flex cursor-pointer justify-between",
+                                                                        'flex cursor-pointer justify-between',
                                                                         student.currentAttemptIndex ===
                                                                             attemptIndex &&
-                                                                            "bg-muted",
+                                                                            'bg-muted'
                                                                     )}
                                                                     onClick={() =>
                                                                         handleSelectAttempt(
                                                                             index,
-                                                                            attemptIndex,
+                                                                            attemptIndex
                                                                         )
                                                                     }
                                                                 >
@@ -733,7 +733,7 @@ export function StudentEnrollment() {
                                                                         {formatDate(attempt.date)}
                                                                     </span>
                                                                 </DropdownMenuItem>
-                                                            ),
+                                                            )
                                                         )}
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
@@ -745,11 +745,11 @@ export function StudentEnrollment() {
                                                         size="sm"
                                                         onClick={() => handleViewPdf(index)}
                                                         disabled={
-                                                            loadingPdf[currentAttempt.fileId || ""]
+                                                            loadingPdf[currentAttempt.fileId || '']
                                                         }
                                                         className="flex items-center gap-1"
                                                     >
-                                                        {loadingPdf[currentAttempt.fileId || ""] ? (
+                                                        {loadingPdf[currentAttempt.fileId || ''] ? (
                                                             <Loader2 className="size-4 animate-spin" />
                                                         ) : (
                                                             <FileText className="size-4" />
@@ -794,7 +794,7 @@ export function StudentEnrollment() {
                                                                 onClick={() =>
                                                                     handleDeleteAttempt(
                                                                         index,
-                                                                        student.currentAttemptIndex,
+                                                                        student.currentAttemptIndex
                                                                     )
                                                                 }
                                                                 className="cursor-pointer text-destructive focus:text-destructive"
@@ -845,8 +845,8 @@ export function StudentEnrollment() {
                                         onClick={() => goToPage(currentPage - 1)}
                                         className={
                                             currentPage === 1
-                                                ? "pointer-events-none opacity-50"
-                                                : ""
+                                                ? 'pointer-events-none opacity-50'
+                                                : ''
                                         }
                                     />
                                 </PaginationItem>
@@ -888,8 +888,8 @@ export function StudentEnrollment() {
                                         onClick={() => goToPage(currentPage + 1)}
                                         className={
                                             currentPage === totalPages
-                                                ? "pointer-events-none opacity-50"
-                                                : ""
+                                                ? 'pointer-events-none opacity-50'
+                                                : ''
                                         }
                                     />
                                 </PaginationItem>

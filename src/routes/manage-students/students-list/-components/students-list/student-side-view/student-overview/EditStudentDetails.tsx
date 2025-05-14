@@ -15,8 +15,8 @@ import { useFileUpload } from '@/hooks/use-file-upload';
 import { TokenKey } from '@/constants/auth/tokens';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { useEditStudentDetails } from '@/routes/manage-students/students-list/-services/editStudentDetails';
-import { StudentTable } from '@/types/student-table-types';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { useStudentSidebar } from '@/routes/manage-students/students-list/-context/selected-student-sidebar-context';
 
 const EditStudentDetailsFormSchema = z.object({
     user_id: z.string().min(1, 'This field is required'),
@@ -37,11 +37,8 @@ const EditStudentDetailsFormSchema = z.object({
 
 export type EditStudentDetailsFormValues = z.infer<typeof EditStudentDetailsFormSchema>;
 
-export const EditStudentDetails = ({
-    selectedStudent,
-}: {
-    selectedStudent: StudentTable | null;
-}) => {
+export const EditStudentDetails = () => {
+    const { selectedStudent } = useStudentSidebar();
     useEffect(() => {
         if (selectedStudent) {
             form.reset({
@@ -62,6 +59,7 @@ export const EditStudentDetails = ({
             });
         }
     }, [selectedStudent]);
+
     const form = useForm<z.infer<typeof EditStudentDetailsFormSchema>>({
         resolver: zodResolver(EditStudentDetailsFormSchema),
         defaultValues: {
@@ -108,13 +106,14 @@ export const EditStudentDetails = ({
     const fileInputRef = useRef<HTMLInputElement>(null);
     const editStudentDetailsMutation = useEditStudentDetails();
     const [openDialog, setOpenDialog] = useState(false);
+
     const handleDialogChange = () => {
         if (openDialog) {
-            setFaceUrl(null);
             form.reset();
         }
         setOpenDialog(!openDialog);
     };
+
     useEffect(() => {
         const fetchFaceUrl = async () => {
             if (selectedStudent?.face_file_id) {
@@ -150,6 +149,10 @@ export const EditStudentDetails = ({
             setIsUploading(false);
         }
     };
+
+    useEffect(() => {
+        console.log('faceUrl from edit student details: ', faceUrl);
+    }, [faceUrl]);
 
     const submitButton = (
         <MyButton

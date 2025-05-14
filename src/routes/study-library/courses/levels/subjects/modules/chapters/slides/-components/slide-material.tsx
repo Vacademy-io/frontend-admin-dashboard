@@ -20,7 +20,7 @@ import {
 } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides';
 import { toast } from 'sonner';
 import { Check, DownloadSimple, PencilSimpleLine } from 'phosphor-react';
-import { convertToSlideFormat } from '../-helper/helper';
+import { convertHtmlToPdf, convertToSlideFormat } from '../-helper/helper';
 import { StudyLibraryQuestionsPreview } from './questions-preview';
 import StudyLibraryAssignmentPreview from './assignment-preview';
 import VideoSlidePreview from './video-slide-preview';
@@ -164,6 +164,7 @@ export const SlideMaterial = ({
         }
 
         const currentHtml = getCurrentEditorHTMLContent();
+        const { totalPages } = await convertHtmlToPdf(currentHtml);
 
         try {
             await addUpdateDocumentSlide({
@@ -178,9 +179,10 @@ export const SlideMaterial = ({
                     data: currentHtml,
                     title: slide?.document_slide?.title || '',
                     cover_file_id: '',
-                    total_pages: 0,
+                    total_pages: totalPages,
                     published_data: null,
-                    published_document_total_pages: 0,
+                    published_document_total_pages:
+                        slide?.document_slide?.published_document_total_pages || 0,
                 },
                 status: status,
                 new_slide: false,
@@ -367,7 +369,7 @@ export const SlideMaterial = ({
             <div
                 className={`mx-auto mt-14 ${
                     activeItem?.document_slide?.type == 'PDF' ? 'h-[calc(100vh-200px)]' : 'h-full'
-                } w-full overflow-hidden px-10`}
+                } w-full overflow-hidden`}
             >
                 {content}
             </div>
