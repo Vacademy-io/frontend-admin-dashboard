@@ -20,7 +20,7 @@ import {
 } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides';
 import { toast } from 'sonner';
 import { Check, DownloadSimple, PencilSimpleLine } from 'phosphor-react';
-import { convertHtmlToPdf, convertToSlideFormat } from '../-helper/helper';
+import { convertHtmlToPdf } from '../-helper/helper';
 import { StudyLibraryQuestionsPreview } from './questions-preview';
 import StudyLibraryAssignmentPreview from './assignment-preview';
 import VideoSlidePreview from './video-slide-preview';
@@ -29,7 +29,6 @@ import { handleUnpublishSlide } from './slide-operations/handleUnpublishSlide';
 import { updateHeading } from './slide-operations/updateSlideHeading';
 import { formatHTMLString } from './slide-operations/formatHtmlString';
 import { handleConvertAndUpload } from './slide-operations/handleConvertUpload';
-import { UploadQuestionPaperFormType } from '@/routes/assessment/question-papers/-components/QuestionPaperUpload';
 
 export const SlideMaterial = ({
     setGetCurrentEditorHTMLContent,
@@ -150,13 +149,12 @@ export const SlideMaterial = ({
                   : 'DRAFT'
             : 'DRAFT';
         if (activeItem?.source_type === 'QUESTION') {
-            const questionsData: UploadQuestionPaperFormType = JSON.parse('');
+            // const questionsData: UploadQuestionPaperFormType = JSON.parse('');
             // need to add my question logic
-            const convertedData = convertToSlideFormat(questionsData, status);
+            // const convertedData = convertToSlideFormat(questionsData, status);
             try {
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-expect-error
-                await updateQuestionOrder(convertedData!);
+                // await updateQuestionOrder(convertedData!);
             } catch {
                 toast.error('error saving slide');
             }

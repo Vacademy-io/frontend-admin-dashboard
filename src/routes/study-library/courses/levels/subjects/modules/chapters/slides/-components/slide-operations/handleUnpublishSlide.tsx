@@ -1,10 +1,9 @@
-import { UploadQuestionPaperFormType } from '@/routes/assessment/question-papers/-components/QuestionPaperUpload';
 import { Dispatch, SetStateAction } from 'react';
 import { toast } from 'sonner';
 import { DocumentSlidePayload, Slide, VideoSlidePayload } from '../../-hooks/use-slides';
 import { UseMutateAsyncFunction } from '@tanstack/react-query';
 import { SlideQuestionsDataInterface } from '@/types/study-library/study-library-slides-type';
-import { converDataToVideoFormat, convertToSlideFormat } from '../../-helper/helper';
+import { converDataToVideoFormat } from '../../-helper/helper';
 
 type SlideResponse = {
     id: string;
@@ -34,10 +33,10 @@ export const handleUnpublishSlide = async (
 ) => {
     const status = 'DRAFT';
     if (activeItem?.source_type === 'QUESTION') {
-        const questionsData: UploadQuestionPaperFormType = JSON.parse('');
+        // const questionsData: UploadQuestionPaperFormType = JSON.parse('');
         // need to add my question logic
-        const convertedData = convertToSlideFormat(questionsData, status);
-        console.log(convertedData);
+        // const convertedData = convertToSlideFormat(questionsData, status);
+        // console.log(convertedData);
         try {
             // await updateQuestionOrder(convertedData!);
         } catch {

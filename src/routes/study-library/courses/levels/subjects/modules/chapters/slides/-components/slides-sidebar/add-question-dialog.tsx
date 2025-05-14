@@ -11,6 +11,11 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { MyInput } from '@/components/design-system/input';
 import { MyButton } from '@/components/design-system/button';
 import { useState } from 'react';
+import { useContentStore } from '../../-stores/chapter-sidebar-store';
+import { toast } from 'sonner';
+import { useSlides } from '../../-hooks/use-slides';
+import { Route } from '../..';
+import { convertToQuestionSlideFormat } from '../../-helper/helper';
 
 export interface QuestionTypeProps {
     icon: React.ReactNode; // Accepts an SVG or any React component
@@ -30,6 +35,7 @@ const AddQuestionDialog = ({
 }: {
     openState?: ((open: boolean) => void) | undefined;
 }) => {
+    const { setActiveItem, getSlideById } = useContentStore();
     const form = useForm<UploadQuestionPaperFormType>({
         resolver: zodResolver(uploadQuestionPaperFormSchema),
         mode: 'onChange',
@@ -49,7 +55,9 @@ const AddQuestionDialog = ({
         },
     });
 
-    const [localPoints, setLocalPoints] = useState('');
+    const { chapterId } = Route.useSearch();
+    const { updateQuestionOrder } = useSlides(chapterId);
+    const [title, setTitle] = useState('');
     const [localReattempts, setLocalReattempts] = useState('');
     const [activeQuestionDialog, setActiveQuestionDialog] = useState<QuestionTypeList | null>(null);
 
@@ -65,18 +73,17 @@ const AddQuestionDialog = ({
         );
     };
 
-    const { fields, append } = useFieldArray({
+    const { fields } = useFieldArray({
         control: form.control,
         name: 'questions', // Name of the field array
     });
 
-    // Function to handle adding a new question
-    const handleAddQuestion = (
+    const handleAddQuestion = async (
         newQuestionType: string,
-        questionPoints: string | undefined,
+        title: string | undefined,
         reattemptCount: string | undefined
     ) => {
-        append({
+        const responseData = {
             id: '',
             questionId: String(fields.length + 1),
             questionName: '',
@@ -119,36 +126,34 @@ const AddQuestionDialog = ({
             validAnswers: [],
             questionResponseType: '',
             subjectiveAnswerText: '',
-            questionPoints: questionPoints || '',
             reattemptCount: reattemptCount || '',
-        });
-        // setItems([
-        //     {
-        //         slide_title: null,
-        //         document_id: null,
-        //         document_title: `${form.getValues(`questions.${0}.questionType`)} slide`,
-        //         document_type: form.getValues(`questions.${0}.questionType`),
-        //         slide_description: null,
-        //         document_cover_file_id: null,
-        //         video_description: null,
-        //         document_data: JSON.stringify(form.getValues()),
-        //         video_id: null,
-        //         video_title: null,
-        //         video_url: null,
-        //         slide_id: String(items.length + 1),
-        //         source_type: "QUESTION",
-        //         status: "DRAFT",
-        //         published_data: "",
-        //         published_url: "",
-        //         last_sync_date: null,
-        //     },
-        //     ...items,
-        // ]);
-        form.trigger();
-        setActiveQuestionDialog(null); // Close the dialog
-        setLocalPoints(''); // Reset input fields
-        setLocalReattempts('');
-        openState && openState(false);
+        };
+        try {
+            const response: string = await updateQuestionOrder({
+                id: '',
+                source_id: '',
+                source_type: 'QUESTION',
+                title: title || '',
+                image_file_id: '',
+                description: '',
+                status: 'DRAFT',
+                slide_order: 0,
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-expect-error
+                question_slide: convertToQuestionSlideFormat(responseData),
+                is_loaded: true,
+                new_slide: true,
+            });
+
+            toast.success('Question added successfully!');
+            form.reset();
+            openState?.(false);
+            setTimeout(() => {
+                setActiveItem(getSlideById(response));
+            }, 500);
+        } catch (error) {
+            toast.error('Failed to add video');
+        }
     };
 
     return (
@@ -251,7 +256,7 @@ const AddQuestionDialog = ({
                 onOpenChange={(open) => {
                     if (!open) {
                         setActiveQuestionDialog(null);
-                        setLocalPoints('');
+                        setTitle('');
                         setLocalReattempts('');
                     }
                 }}
@@ -262,9 +267,9 @@ const AddQuestionDialog = ({
                     </h1>
                     <div className="flex flex-col gap-4 p-4">
                         <MyInput
-                            input={localPoints}
-                            onChangeFunction={(e) => setLocalPoints(e.target.value)}
-                            label="Question Points"
+                            input={title}
+                            onChangeFunction={(e) => setTitle(e.target.value)}
+                            label="Title"
                             required={true}
                             inputType="text"
                             inputPlaceholder="00"
@@ -289,7 +294,7 @@ const AddQuestionDialog = ({
                                     if (activeQuestionDialog) {
                                         handleAddQuestion(
                                             activeQuestionDialog,
-                                            localPoints,
+                                            title,
                                             localReattempts
                                         );
                                     }

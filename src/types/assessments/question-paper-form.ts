@@ -39,7 +39,7 @@ export interface MyQuestion {
     subjectiveAnswerText?: string;
     timestamp?: string;
     newQuestion?: boolean;
-    // optionsJson: string | null; //Array for numerical answers
+    reattemptCount?: string;
 }
 
 export interface MySingleChoiceOption {
