@@ -59,6 +59,7 @@ export function DashboardComponent() {
         'COURSE CREATOR': 0,
         'ASSESSMENT CREATOR': 0,
         EVALUATOR: 0,
+        TEACHER: 0,
     });
 
     useIntroJsTour({
@@ -158,31 +159,41 @@ export function DashboardComponent() {
                                     <CardTitle>Role Type Users</CardTitle>
                                     <RoleTypeComponent setRoleTypeCount={setRoleTypeCount} />
                                 </div>
-                                <div className="flex items-center gap-3">
-                                    <Badge className="whitespace-nowrap rounded-lg border border-neutral-300 bg-[#F4F9FF] py-1.5 font-thin shadow-none">
-                                        Admin
-                                    </Badge>
-                                    <span className="font-thin text-primary-500">
-                                        {roleTypeCount.ADMIN}
-                                    </span>
-                                    <Badge className="whitespace-nowrap rounded-lg border border-neutral-300 bg-[#F4FFF9] py-1.5 font-thin shadow-none">
-                                        Course Creator
-                                    </Badge>
-                                    <span className="font-thin text-primary-500">
-                                        {roleTypeCount['COURSE CREATOR']}
-                                    </span>
-                                    <Badge className="whitespace-nowrap rounded-lg border border-neutral-300 bg-[#FFF4F5] py-1.5 font-thin shadow-none">
-                                        Assessment Creator
-                                    </Badge>
-                                    <span className="font-thin text-primary-500">
-                                        {roleTypeCount['ASSESSMENT CREATOR']}
-                                    </span>
-                                    <Badge className="whitespace-nowrap rounded-lg border border-neutral-300 bg-[#F5F0FF] py-1.5 font-thin shadow-none">
-                                        Evaluator
-                                    </Badge>
-                                    <span className="font-thin text-primary-500">
-                                        {roleTypeCount.EVALUATOR}
-                                    </span>
+                                <div className="flex flex-col items-start gap-3">
+                                    <div className="flex items-center gap-3">
+                                        <Badge className="whitespace-nowrap rounded-lg border border-neutral-300 bg-[#F4F9FF] py-1.5 font-thin shadow-none">
+                                            Admin
+                                        </Badge>
+                                        <span className="font-thin text-primary-500">
+                                            {roleTypeCount.ADMIN}
+                                        </span>
+                                        <Badge className="whitespace-nowrap rounded-lg border border-neutral-300 bg-[#F4FFF9] py-1.5 font-thin shadow-none">
+                                            Course Creator
+                                        </Badge>
+                                        <span className="font-thin text-primary-500">
+                                            {roleTypeCount['COURSE CREATOR']}
+                                        </span>
+                                        <Badge className="whitespace-nowrap rounded-lg border border-neutral-300 bg-[#FFF4F5] py-1.5 font-thin shadow-none">
+                                            Assessment Creator
+                                        </Badge>
+                                        <span className="font-thin text-primary-500">
+                                            {roleTypeCount['ASSESSMENT CREATOR']}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <Badge className="whitespace-nowrap rounded-lg border border-neutral-300 bg-[#FFF4F5] py-1.5 font-thin shadow-none">
+                                            Teacher
+                                        </Badge>
+                                        <span className="font-thin text-primary-500">
+                                            {roleTypeCount['TEACHER']}
+                                        </span>
+                                        <Badge className="whitespace-nowrap rounded-lg border border-neutral-300 bg-[#F5F0FF] py-1.5 font-thin shadow-none">
+                                            Evaluator
+                                        </Badge>
+                                        <span className="font-thin text-primary-500">
+                                            {roleTypeCount.EVALUATOR}
+                                        </span>
+                                    </div>
                                 </div>
                             </CardHeader>
                         </Card>

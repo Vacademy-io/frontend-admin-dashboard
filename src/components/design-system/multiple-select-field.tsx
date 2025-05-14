@@ -34,8 +34,9 @@ export default function MultiSelectDropdown({
     className,
 }: SelectFieldProps) {
     const [selectedOptions, setSelectedOptions] = useState<(string | number)[]>([
-        ...form.getValues('roleType'),
+        ...form.getValues(name),
     ]);
+    const [tags, setTags] = useState<(string | undefined)[]>([]);
 
     const [isOpen, setIsOpen] = useState(false);
 
@@ -43,14 +44,23 @@ export default function MultiSelectDropdown({
         setSelectedOptions((prev) =>
             prev.includes(value) ? prev.filter((item) => item !== value) : [...prev, value]
         );
+        setTags(
+            selectedOptions.map((option) => options.find((opt) => opt.value === option)?.label)
+        );
     };
 
     useEffect(() => {
-        form.setValue('roleType', selectedOptions);
+        form.setValue(name, selectedOptions);
+        setTags(
+            selectedOptions.map((option) => options.find((opt) => opt.value === option)?.label)
+        );
     }, [selectedOptions]);
 
     useEffect(() => {
-        setSelectedOptions(form.getValues('roleType'));
+        setSelectedOptions(form.getValues(name));
+        setTags(
+            selectedOptions.map((option) => options.find((opt) => opt.value === option)?.label)
+        );
     }, []);
     return (
         <>
@@ -98,7 +108,7 @@ export default function MultiSelectDropdown({
                                 </FormControl>
                             </FormItem>
                             <div className="mt-4 flex flex-wrap justify-start gap-4">
-                                {selectedOptions.map((value, index) => (
+                                {tags.map((value, index) => (
                                     <Badge key={index} className="bg-[#F4F9FF] px-2 py-1">
                                         {value}
                                     </Badge>

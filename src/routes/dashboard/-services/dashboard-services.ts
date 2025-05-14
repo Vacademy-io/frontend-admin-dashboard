@@ -4,6 +4,7 @@ import {
     GET_DASHBOARD_ASSESSMENT_COUNT_URL,
     GET_DASHBOARD_URL,
     GET_INSTITUTE_USERS,
+    INVITE_TEACHERS_URL,
     INVITE_USERS_URL,
     RESEND_INVITATION_URL,
     UPDATE_DASHBOARD_URL,
@@ -96,29 +97,40 @@ export const handleInviteUsers = async (
     instituteId: string | undefined,
     data: z.infer<typeof inviteUsersSchema>
 ) => {
+    let url = INVITE_USERS_URL;
+    const userData = {
+        email: data.email,
+        full_name: data.name,
+        roles: data.roleType,
+        root_user: false,
+    };
+    type UserPayload =
+        | typeof userData
+        | {
+              user: typeof userData;
+              batch_subject_mappings: typeof data.batch_subject_mappings;
+              new_user: boolean;
+          };
+    let payload: UserPayload = userData;
+    if (data.roleType.includes('TEACHER') && data.batch_subject_mappings) {
+        url = INVITE_TEACHERS_URL;
+        payload = {
+            user: userData,
+            // @ts-expect-error : batch_subject_mappings is not defined in the type
+            batch_subject_mappings: data.batch_subject_mappings.map((batch) => ({
+                batch_id: batch.batchId,
+                subject_ids: batch.subjectIds,
+            })),
+            new_user: true,
+        };
+    }
     const response = await authenticatedAxiosInstance({
         method: 'POST',
-        url: INVITE_USERS_URL,
+        url,
         params: {
             instituteId,
         },
-        data: {
-            id: null,
-            username: null,
-            email: data.email,
-            full_name: data.name,
-            address_line: null,
-            city: null,
-            region: null,
-            pin_code: null,
-            mobile_number: null,
-            date_of_birth: null,
-            gender: null,
-            password: null,
-            profile_pic_file_id: null,
-            roles: data.roleType,
-            root_user: false,
-        },
+        data: payload,
     });
     return response.data;
 };
