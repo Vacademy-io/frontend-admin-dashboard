@@ -13,6 +13,7 @@ import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtili
 import { TokenKey } from '@/constants/auth/tokens';
 import { useContentStore } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
 import { SlideQuestionsDataInterface } from '@/types/study-library/study-library-slides-type';
+import { transformResponseDataToMyQuestionsSchema } from '@/routes/assessment/question-papers/-utils/helper';
 
 // Common interfaces
 export interface TextData {
@@ -182,6 +183,23 @@ interface UpdateSlideOrderParams {
     slideOrderPayload: slideOrderPayloadType;
 }
 
+function cleanVideoQuestions(data: Slide[]) {
+    return data.map((item) => {
+        if (item.source_type === 'VIDEO' && item.video_slide) {
+            return {
+                ...item,
+                video_slide: {
+                    ...item.video_slide,
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-expect-error
+                    questions: transformResponseDataToMyQuestionsSchema(item.video_slide.questions),
+                },
+            };
+        }
+        return item;
+    });
+}
+
 export const useSlides = (chapterId: string) => {
     const queryClient = useQueryClient();
     const { setItems } = useContentStore();
@@ -195,8 +213,10 @@ export const useSlides = (chapterId: string) => {
             const response = await authenticatedAxiosInstance.get(
                 `${GET_SLIDES}?chapterId=${chapterId}`
             );
-            setItems(response.data);
-            return response.data;
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            setItems(cleanVideoQuestions(response.data));
+            return cleanVideoQuestions(response.data);
         },
         staleTime: 3600000,
     });
