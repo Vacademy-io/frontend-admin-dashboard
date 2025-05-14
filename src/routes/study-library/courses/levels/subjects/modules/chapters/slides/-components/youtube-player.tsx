@@ -389,7 +389,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                 ],
             },
         });
-    }, []);
+    }, [videoUrl]);
 
     return (
         <div className="flex w-full flex-col">
