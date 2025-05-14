@@ -1,13 +1,13 @@
-import React, { ReactNode, useEffect } from "react";
-import { cn } from "@/lib/utils";
+import React, { ReactNode, useEffect } from 'react';
+import { cn } from '@/lib/utils';
 import {
     InputChipsProps,
     FilterChipsProps,
     ChipsProps,
     ChipsWrapperProps,
-} from "./utils/types/chips-types";
-import { PlusCircle, Check } from "@phosphor-icons/react";
-import { ActivityStatusData } from "./utils/constants/chips-data";
+} from './utils/types/chips-types';
+import { PlusCircle, Check } from '@phosphor-icons/react';
+import { ActivityStatusData } from './utils/constants/chips-data';
 import {
     Command,
     CommandEmpty,
@@ -16,17 +16,17 @@ import {
     CommandItem,
     CommandList,
     CommandSeparator,
-} from "../ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { Separator } from "../ui/separator";
-import { ActivityStatus } from "./utils/types/chips-types";
+} from '../ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { Separator } from '../ui/separator';
+import { ActivityStatus } from './utils/types/chips-types';
 
 const ChipsWrapper = ({ children, className }: ChipsWrapperProps) => {
     return (
         <div
             className={cn(
-                "inline-flex h-8 flex-shrink-0 cursor-pointer items-center justify-center gap-2 rounded-lg border border-neutral-300 px-3 py-[6px] text-body font-regular text-neutral-600",
-                className,
+                'inline-flex h-8 flex-shrink-0 cursor-pointer items-center justify-center gap-2 rounded-lg border border-neutral-300 px-3 py-[6px] text-body font-regular text-neutral-600',
+                className
             )}
         >
             {children}
@@ -46,21 +46,21 @@ const Chips = ({
     return (
         <ChipsWrapper
             className={cn(
-                avatarAddress ? "rounded-full" : "rounded-lg",
-                "active:bg-[#f5e6d1]",
+                avatarAddress ? 'rounded-full' : 'rounded-lg',
+                'active:bg-[#f5e6d1]',
                 disabled
-                    ? "border-neutral-100"
+                    ? 'border-neutral-100'
                     : selected
-                      ? "border-primary-500 bg-primary-100"
-                      : "hover:border-primary-500 hover:bg-primary-50",
-                className,
+                      ? 'border-primary-500 bg-primary-100'
+                      : 'hover:border-primary-500 hover:bg-primary-50',
+                className
             )}
         >
             {leadingIcon &&
                 React.createElement(leadingIcon, {
                     className: cn(
-                        "size-[18px]",
-                        disabled ? "text-neutral-300" : "text-neutral-600",
+                        'size-[18px]',
+                        disabled ? 'text-neutral-300' : 'text-neutral-600'
                     ),
                 })}
 
@@ -73,8 +73,8 @@ const Chips = ({
             {label && (
                 <div
                     className={cn(
-                        "flex items-center text-[14px] leading-[22px]",
-                        disabled ? "text-neutral-300" : "text-neutral-600",
+                        'flex items-center text-[14px] leading-[22px]',
+                        disabled ? 'text-neutral-300' : 'text-neutral-600'
                     )}
                 >
                     {label}
@@ -82,7 +82,7 @@ const Chips = ({
             )}
             {trailingIcon &&
                 React.createElement(trailingIcon, {
-                    className: cn("size-4", disabled ? "text-neutral-300" : "text-neutral-600"),
+                    className: cn('size-4', disabled ? 'text-neutral-300' : 'text-neutral-600'),
                 })}
         </ChipsWrapper>
     );
@@ -101,7 +101,8 @@ export const FilterChips = ({
     handleSelect,
     handleClearFilters,
 }: FilterChipsProps) => {
-    const isSelected = (option: string | number) => selectedFilters.includes(String(option));
+    const isSelected = (option: { id: string; label: string }) =>
+        selectedFilters.some((filter) => filter.id === option.id);
 
     useEffect(() => {
         if (clearFilters) handleClearFilters && handleClearFilters();
@@ -114,31 +115,31 @@ export const FilterChips = ({
                     <ChipsWrapper
                         className={cn(
                             disabled
-                                ? "border-neutral-100"
+                                ? 'border-neutral-100'
                                 : selectedFilters.length > 0
-                                  ? "border-primary-500 bg-primary-100"
-                                  : "hover:border-primary-500 hover:bg-primary-50",
+                                  ? 'border-primary-500 bg-primary-100'
+                                  : 'hover:border-primary-500 hover:bg-primary-50'
                         )}
                     >
                         <div className="flex items-center gap-2">
                             {React.createElement(PlusCircle, {
                                 className: cn(
-                                    "size-[18px]",
-                                    disabled ? "text-neutral-300" : "text-neutral-600",
+                                    'size-[18px]',
+                                    disabled ? 'text-neutral-300' : 'text-neutral-600'
                                 ),
                             })}
                             <div
                                 className={cn(
-                                    "flex items-center text-[14px] leading-[22px]",
-                                    disabled ? "text-neutral-300" : "text-neutral-600",
+                                    'flex items-center text-[14px] leading-[22px]',
+                                    disabled ? 'text-neutral-300' : 'text-neutral-600'
                                 )}
                             >
-                                {label}{" "}
+                                {label}{' '}
                             </div>
 
                             <div
                                 className={`${
-                                    selectedFilters.length > 0 ? "visible" : "hidden"
+                                    selectedFilters.length > 0 ? 'visible' : 'hidden'
                                 } flex items-center gap-2`}
                             >
                                 <Separator
@@ -147,7 +148,7 @@ export const FilterChips = ({
                                 />
                                 <div
                                     className={`inline-flex items-center rounded-md bg-primary-200 px-2.5 py-0.5 text-caption font-normal ${
-                                        selectedFilters.length > 0 ? "visible" : "hidden"
+                                        selectedFilters.length > 0 ? 'visible' : 'hidden'
                                     }`}
                                 >
                                     {selectedFilters.length} selected
@@ -170,15 +171,15 @@ export const FilterChips = ({
                                 >
                                     <div
                                         className={cn(
-                                            "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-gray-300",
+                                            'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-gray-300',
                                             isSelected(option)
-                                                ? "text-base-white border-none bg-primary-300"
-                                                : "opacity-70 [&_svg]:invisible",
+                                                ? 'text-base-white border-none bg-primary-300'
+                                                : 'opacity-70 [&_svg]:invisible'
                                         )}
                                     >
-                                        <Check className={cn("h-4 w-4")} />
+                                        <Check className={cn('h-4 w-4')} />
                                     </div>
-                                    <span>{option}</span>
+                                    <span>{option.label}</span>
                                 </CommandItem>
                             ))}
                         </CommandGroup>
@@ -205,31 +206,31 @@ export const StatusChips = ({
     className,
     showIcon = true,
 }: {
-    status: ActivityStatus | "ACTIVE" | "TERMINATED" | "INACTIVE" | "EVALUATED";
+    status: ActivityStatus | 'ACTIVE' | 'TERMINATED' | 'INACTIVE' | 'EVALUATED';
     children?: ReactNode;
     className?: string;
     showIcon?: boolean;
 }) => {
     const normalizedStatus =
-        status === "ACTIVE"
-            ? "active"
-            : status === "INACTIVE"
-              ? "inactive"
+        status === 'ACTIVE'
+            ? 'active'
+            : status === 'INACTIVE'
+              ? 'inactive'
               : (status as ActivityStatus);
 
     const statusData = ActivityStatusData[normalizedStatus];
     const StatusIcon = statusData.icon;
 
     return (
-        <ChipsWrapper className={cn(statusData.color.bg, "")}>
+        <ChipsWrapper className={cn(statusData.color.bg, '')}>
             <div className="flex items-center gap-1">
                 {showIcon && (
                     <StatusIcon
-                        className={cn(statusData.color.icon, "size-[18px]")}
+                        className={cn(statusData.color.icon, 'size-[18px]')}
                         weight="fill"
                     />
                 )}
-                <div className={cn("text-body capitalize text-neutral-600", className)}>
+                <div className={cn('text-body capitalize text-neutral-600', className)}>
                     {children ? children : status}
                 </div>
             </div>

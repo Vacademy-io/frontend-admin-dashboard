@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { StudentFilterRequest } from '@/types/student-table-types';
-import { usePackageSessionIds } from './getPackageSessionId';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
@@ -16,7 +15,9 @@ export const useStudentFilters = () => {
     const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
     const { getAllSessions, instituteDetails } = useInstituteDetailsStore();
     const { selectedSession, setSelectedSession } = useSelectedSessionStore();
-    const [columnFilters, setColumnFilters] = useState<{ id: string; value: string[] }[]>([]);
+    const [columnFilters, setColumnFilters] = useState<
+        { id: string; value: { id: string; label: string }[] }[]
+    >([]);
     const [searchInput, setSearchInput] = useState<string>('');
     const [searchFilter, setSearchFilter] = useState('');
     const [clearFilters, setClearFilters] = useState<boolean>(false);
@@ -58,10 +59,18 @@ export const useStudentFilters = () => {
         }
     }, [instituteDetails]);
 
-    const currentPackageSessionIds = usePackageSessionIds(
-        currentSession.name,
-        columnFilters.find((filter) => filter.id === 'batch')?.value
-    );
+    const [currentPackageSessionIds, setCurrentPackageSessionIds] = useState<string[]>([]);
+
+    useEffect(() => {
+        setCurrentPackageSessionIds(
+            columnFilters
+                .find((filter) => filter.id === 'batch')
+                ?.value.map((option) => option.id) ||
+                (instituteDetails?.batches_for_sessions || [])
+                    .filter((batch) => batch.session.id === currentSession.id)
+                    .map((batch) => batch.id)
+        );
+    }, [currentSession]);
 
     const [appliedFilters, setAppliedFilters] = useState<StudentFilterRequest>({
         name: '',
@@ -101,15 +110,15 @@ export const useStudentFilters = () => {
         }
     };
 
-    const handleFilterChange = (filterId: string, values: string[]) => {
+    const handleFilterChange = (filterId: string, options: { id: string; label: string }[]) => {
         setColumnFilters((prev) => {
             const existing = prev.filter((f) => f.id !== filterId);
-            if (values.length === 0 && filterId === 'statuses') {
+            if (options.length === 0 && filterId === 'statuses') {
                 // If clearing status filter, use all API-provided statuses
                 return existing;
             }
-            if (values.length === 0) return existing;
-            return [...existing, { id: filterId, value: values }];
+            if (options.length === 0) return existing;
+            return [...existing, { id: filterId, value: options }];
         });
     };
 
@@ -118,20 +127,26 @@ export const useStudentFilters = () => {
             (filter) => filter.id === 'session_expiry_days'
         );
         const sessionExpiryDays = sessionExpiryFilter?.value.map((value) => {
-            const numberMatch = value.match(/\d+/);
+            const numberMatch = value.label.match(/\d+/);
             return numberMatch ? parseInt(numberMatch[0]) : 0;
         });
 
         const statusFilter = columnFilters.find((filter) => filter.id === 'statuses');
         // If status filter is selected in UI, use those values
         // Otherwise, use all available statuses from API
-        const statusesToApply = statusFilter?.value || instituteDetails?.student_statuses || [];
+        const statusesToApply =
+            statusFilter?.value.map((option) => option.label) ||
+            instituteDetails?.student_statuses ||
+            [];
 
         setAppliedFilters((prev) => ({
             ...prev,
             name: searchFilter,
             package_session_ids: currentPackageSessionIds,
-            gender: columnFilters.find((filter) => filter.id === 'gender')?.value || [],
+            gender:
+                columnFilters
+                    .find((filter) => filter.id === 'gender')
+                    ?.value.map((option) => option.label) || [],
             statuses: statusesToApply,
             session_expiry_days: sessionExpiryDays || [],
         }));

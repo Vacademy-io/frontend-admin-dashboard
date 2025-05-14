@@ -6,10 +6,10 @@ import { useStudentFiltersContext } from '../../../-context/StudentFiltersContex
 export const Filters = ({ filterDetails, onFilterChange, clearFilters, id }: FilterProps) => {
     const { selectedFilterList, setSelectedFilterList } = useStudentFiltersContext();
 
-    const handleSelect = (option: string | number) => {
+    const handleSelect = (option: { id: string; label: string }) => {
         setSelectedFilterList((prev) => ({
             ...prev,
-            [id]: [...prev[id], String(option)],
+            [id]: [...prev[id], option],
         }));
     };
 
@@ -25,8 +25,8 @@ export const Filters = ({ filterDetails, onFilterChange, clearFilters, id }: Fil
             // If this is a session expiry filter, extract only the numbers
             if (filterDetails.label === 'Session Expiry') {
                 const processedValues = selectedFilterList[id].map((filter) => {
-                    const numberMatch = filter.match(/\d+/);
-                    return numberMatch ? numberMatch[0] : filter;
+                    const numberMatch = filter.label.match(/\d+/);
+                    return numberMatch ? { id: filter.id, label: numberMatch[0] } : filter;
                 });
                 onFilterChange(processedValues);
             } else {

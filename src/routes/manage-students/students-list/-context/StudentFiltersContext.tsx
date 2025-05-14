@@ -2,7 +2,7 @@
 import React, { createContext, useState, useContext } from 'react';
 import { FilterId } from '@/routes/manage-students/students-list/-types/students-list-types';
 
-type SelectedFilterListType = Record<FilterId, string[]>;
+type SelectedFilterListType = Record<FilterId, { id: string; label: string }[]>;
 
 interface StudentFiltersContextType {
     selectedFilterList: SelectedFilterListType;
