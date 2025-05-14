@@ -1,6 +1,6 @@
-import { Link, useRouter } from "@tanstack/react-router";
-import { Helmet } from "react-helmet";
-import { Button } from "../ui/button";
+import { Link, useRouter } from '@tanstack/react-router';
+import { Helmet } from 'react-helmet';
+import { Button } from '../ui/button';
 
 function RootErrorComponent() {
     const router = useRouter();

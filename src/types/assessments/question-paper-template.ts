@@ -1,7 +1,7 @@
-import { uploadQuestionPaperFormSchema } from "@/routes/assessment/question-papers/-utils/upload-question-paper-form-schema";
-import { Dispatch, SetStateAction } from "react";
-import { UseFormReturn } from "react-hook-form";
-import { z } from "zod";
+import { uploadQuestionPaperFormSchema } from '@/routes/assessment/question-papers/-utils/upload-question-paper-form-schema';
+import { Dispatch, SetStateAction } from 'react';
+import { UseFormReturn } from 'react-hook-form';
+import { z } from 'zod';
 
 type QuestionPaperForm = z.infer<typeof uploadQuestionPaperFormSchema>;
 export interface QuestionPaperTemplateProps {
@@ -96,7 +96,9 @@ export interface QuestionResponse {
     preview_id: string | null;
     section_id: string | null;
     section_order: number | null;
+    question_time_in_millis?: number;
     text: TextContent;
+    text_data?: TextContent;
     media_id: string | null;
     created_at: string;
     updated_at: string;
@@ -107,6 +109,8 @@ export interface QuestionResponse {
     options_json: string | null;
     evaluation_type: string;
     explanation_text: ExplanationText;
+    explanation_text_data?: ExplanationText;
+    new_question?: boolean;
     default_question_time_mins: number | null;
     options: OptionText[];
     parent_rich_text: TextContent | null;

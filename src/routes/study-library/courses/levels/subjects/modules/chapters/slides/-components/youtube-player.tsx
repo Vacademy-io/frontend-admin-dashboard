@@ -14,9 +14,10 @@ import VideoQuestionsTimeFrameAddDialog from './video-questions-add-timeframe';
 import VideoQuestionsTimeFrameEditDialog from './video-questions-edit-timeframe';
 import VideoQuestionDialogEditPreview from './slides-sidebar/video-question-dialog-edit-preview';
 import { StudyLibraryQuestion } from '@/types/study-library/study-library-video-questions';
-import { timestampToSeconds } from '../-helper/helper';
+import { formatTimeStudyLibraryInSeconds, timestampToSeconds } from '../-helper/helper';
+import { useContentStore } from '../-stores/chapter-sidebar-store';
 
-interface YTPlayer {
+export interface YTPlayer {
     destroy(): void;
     getCurrentTime(): number;
     getDuration(): number;
@@ -74,6 +75,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
     // Convert formRefData from a ref to useState to trigger re-renders
     const isAddTimeFrameRef = useRef<HTMLButtonElement | null>(null);
     const isAddQuestionTypeRef = useRef<HTMLButtonElement | null>(null);
+    const { activeItem } = useContentStore();
 
     const [formData, setFormData] = useState<UploadQuestionPaperFormType>({
         questionPaperId: '1',
@@ -94,15 +96,6 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
     const formRefData = useRef<UploadQuestionPaperFormType>(formData);
 
     const videoPlayerTimeFrameForm = useForm<VideoPlayerTimeFormType>({
-        resolver: zodResolver(videoPlayerTimeSchema),
-        defaultValues: {
-            hrs: '',
-            min: '',
-            sec: '',
-        },
-    });
-
-    const editQuestionTimeFrameForm = useForm<VideoPlayerTimeFormType>({
         resolver: zodResolver(videoPlayerTimeSchema),
         defaultValues: {
             hrs: '',
@@ -200,18 +193,6 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
         firstScriptTag?.parentNode?.insertBefore(tag, firstScriptTag);
     };
 
-    const formatTime = (seconds: number) => {
-        const hrs = Math.floor(seconds / 3600);
-        const mins = Math.floor((seconds % 3600) / 60);
-        const secs = Math.floor(seconds % 60);
-
-        if (hrs > 0) {
-            return `${hrs}:${mins < 10 ? '0' + mins : mins}:${secs < 10 ? '0' + secs : secs}`;
-        } else {
-            return `${mins}:${secs < 10 ? '0' + secs : secs}`;
-        }
-    };
-
     const handleTimelineClick = (e: React.MouseEvent<HTMLDivElement>) => {
         if (!playerRef.current || !timelineRef.current) return;
 
@@ -232,7 +213,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
 
     const handleSetCurrentTimeStamp = () => {
         if (!playerRef.current) return;
-        const timestamp = formatTime(playerRef.current.getCurrentTime());
+        const timestamp = formatTimeStudyLibraryInSeconds(playerRef.current.getCurrentTime());
 
         // Handle HH:MM:SS or MM:SS format
         const parts = timestamp.split(':');
@@ -243,13 +224,11 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
             const min = String(parseInt(parts[1] as string, 10));
             const sec = String(parseInt(parts[2] as string, 10));
             videoPlayerTimeFrameForm.reset({ hrs, min, sec });
-            editQuestionTimeFrameForm.reset({ hrs, min, sec });
         } else if (parts.length === 2) {
             // MM:SS format
             const min = String(parseInt(parts[0] as string, 10));
             const sec = String(parseInt(parts[1] as string, 10));
             videoPlayerTimeFrameForm.reset({ hrs: '0', min, sec });
-            editQuestionTimeFrameForm.reset({ hrs: '0', min, sec });
         }
     };
 
@@ -388,6 +367,13 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
         formRefData.current = formData;
     }, [formData]);
 
+    useEffect(() => {
+        setFormData((prev) => ({
+            ...prev,
+            questions: activeItem?.video_slide?.questions || [],
+        }));
+    }, [videoUrl]);
+
     return (
         <div className="flex w-full flex-col">
             {/* Video Player Container (preserving your aspect ratio) */}
@@ -435,7 +421,9 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                                 <div className="absolute bottom-5 left-1/2 z-10 w-48 -translate-x-1/2 rounded border border-gray-300 bg-white p-4 shadow-xl">
                                     <p className="text-sm text-gray-500">
                                         Timestamp:{' '}
-                                        {formatTime(timestampToSeconds(question.timestamp))}
+                                        {formatTimeStudyLibraryInSeconds(
+                                            timestampToSeconds(question.timestamp)
+                                        )}
                                     </p>
                                     <span
                                         className="text-sm font-medium"
@@ -449,8 +437,8 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                     ))}
                 </div>
                 <div className="mt-1 flex justify-between text-xs text-gray-500">
-                    <span>{formatTime(currentTime)}</span>
-                    <span>{formatTime(videoDuration)}</span>
+                    <span>{formatTimeStudyLibraryInSeconds(currentTime)}</span>
+                    <span>{formatTimeStudyLibraryInSeconds(videoDuration)}</span>
                 </div>
             </div>
 
@@ -493,14 +481,14 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                                 <div className="flex items-center gap-2">
                                     <p className="font-semibold">
                                         {idx + 1}. Time stamp -{' '}
-                                        {formatTime(timestampToSeconds(question.timestamp))}
+                                        {formatTimeStudyLibraryInSeconds(
+                                            timestampToSeconds(question.timestamp)
+                                        )}
                                     </p>
                                     <VideoQuestionsTimeFrameEditDialog
-                                        form={editQuestionTimeFrameForm}
+                                        playerRef={playerRef}
                                         formRefData={formRefData}
-                                        handleSetCurrentTimeStamp={handleSetCurrentTimeStamp}
                                         question={question}
-                                        updateQuestion={updateQuestion} // Pass updateQuestion function
                                         videoDuration={videoDuration}
                                     />
                                 </div>

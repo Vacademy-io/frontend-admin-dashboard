@@ -21,6 +21,7 @@ const organizationSetupSchema = z.object({
     instituteProfilePic: z.union([z.string(), z.undefined()]),
     instituteName: z.string().min(1, "Institute Name is required"),
     instituteType: z.string().min(1, "Select institute type"),
+    instituteThemeCode: z.union([z.string(), z.undefined()]),
 });
 
 type FormValues = z.infer<typeof organizationSetupSchema>;
@@ -44,6 +45,7 @@ const Step1OrganizationSetup: React.FC<OrganizationOnboardingProps> = ({
             instituteProfilePic: formData.instituteProfilePic || undefined,
             instituteName: formData.instituteName || "",
             instituteType: formData.instituteType || "",
+            instituteThemeCode: formData.instituteThemeCode ?? "",
         },
         mode: "onChange",
     });

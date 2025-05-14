@@ -83,7 +83,7 @@ export function Navbar() {
                 <div className="flex items-center gap-1">
                     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
                         <DropdownMenuTrigger className="flex items-center gap-2">
-                            <DummyProfile />
+                            <DummyProfile className=""/>
                             {isOpen ? <CaretDown /> : <CaretUp />}
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
@@ -91,7 +91,7 @@ export function Navbar() {
                                 View Profile Details
                             </DropdownMenuItem> */}
                             <Sheet>
-                                <SheetTrigger className="px-2 py-2 text-sm hover:rounded-sm hover:bg-gray-100">
+                                <SheetTrigger className="px-2 py-2 text-sm hover:rounded-sm hover:bg-accent hover:text-accent-foreground">
                                     View Institute Details
                                 </SheetTrigger>
                                 <SheetContent className="max-h-screen !min-w-[565px] overflow-y-auto !border-l border-gray-200 bg-primary-50 p-8 shadow-none [&>button>svg]:size-6 [&>button>svg]:font-thin [&>button>svg]:text-neutral-600 [&>button]:mt-[19px]">
@@ -159,7 +159,7 @@ export function Navbar() {
                                     </div>
                                 </SheetContent>
                             </Sheet>
-                            <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                            <DropdownMenuItem onClick={handleLogout} className="cursor-pointer ">
                                 Logout
                             </DropdownMenuItem>
                         </DropdownMenuContent>

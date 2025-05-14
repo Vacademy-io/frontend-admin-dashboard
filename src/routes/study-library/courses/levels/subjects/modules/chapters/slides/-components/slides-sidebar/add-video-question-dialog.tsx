@@ -1,18 +1,18 @@
-import { MCQS, MCQM, Numerical, TrueFalse, LongAnswer, SingleWord, CMCQS, CMCQM } from "@/svgs";
-import { QuestionType as QuestionTypeList } from "@/constants/dummy-data";
-import { Separator } from "@/components/ui/separator";
-import { z } from "zod";
-import { questionsFormSchema } from "@/routes/assessment/question-papers/-utils/question-form-schema";
-import { useFieldArray, UseFormReturn } from "react-hook-form";
-import { UploadQuestionPaperFormType } from "@/routes/assessment/question-papers/-components/QuestionPaperUpload";
-import { uploadQuestionPaperFormSchema } from "@/routes/assessment/question-papers/-utils/upload-question-paper-form-schema";
-import { Dialog, DialogClose, DialogContent } from "@/components/ui/dialog";
-import { MyButton } from "@/components/design-system/button";
-import { Dispatch, MutableRefObject, SetStateAction, useState } from "react";
-import { VideoPlayerTimeFormType } from "../../-form-schemas/video-player-time-schema";
-import VideoQuestionDialogAddPreview from "./video-question-dialog-add-preview";
-import { toast } from "sonner";
-import { timestampToSeconds } from "../../-helper/helper";
+import { MCQS, MCQM, Numerical, TrueFalse, LongAnswer, SingleWord, CMCQS, CMCQM } from '@/svgs';
+import { QuestionType as QuestionTypeList } from '@/constants/dummy-data';
+import { Separator } from '@/components/ui/separator';
+import { z } from 'zod';
+import { questionsFormSchema } from '@/routes/assessment/question-papers/-utils/question-form-schema';
+import { useFieldArray, UseFormReturn } from 'react-hook-form';
+import { UploadQuestionPaperFormType } from '@/routes/assessment/question-papers/-components/QuestionPaperUpload';
+import { uploadQuestionPaperFormSchema } from '@/routes/assessment/question-papers/-utils/upload-question-paper-form-schema';
+import { Dialog, DialogClose, DialogContent } from '@/components/ui/dialog';
+import { MyButton } from '@/components/design-system/button';
+import { Dispatch, MutableRefObject, SetStateAction, useState } from 'react';
+import { VideoPlayerTimeFormType } from '../../-form-schemas/video-player-time-schema';
+import VideoQuestionDialogAddPreview from './video-question-dialog-add-preview';
+import { toast } from 'sonner';
+import { timestampToSeconds } from '../../-helper/helper';
 
 export interface QuestionTypeProps {
     icon: React.ReactNode; // Accepts an SVG or any React component
@@ -72,7 +72,7 @@ const AddVideoQuestionDialog = ({
 }) => {
     const { append: appendVideoQuestion } = useFieldArray({
         control: videoQuestionForm.control,
-        name: "questions", // Name of the field array
+        name: 'questions', // Name of the field array
     });
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -81,53 +81,55 @@ const AddVideoQuestionDialog = ({
 
     // Function to handle adding a new question
     const handleAddQuestion = (newQuestionType: string) => {
+        setCurrentQuestionIndex(0);
+        videoQuestionForm.reset();
         appendVideoQuestion({
-            id: "",
+            id: '',
             questionId: String(formRefData.current.questions.length + 1),
-            questionName: "",
-            explanation: "",
+            questionName: '',
+            explanation: '',
             questionType: newQuestionType,
-            questionPenalty: "",
+            questionPenalty: '',
             questionDuration: {
-                hrs: "",
-                min: "",
+                hrs: '',
+                min: '',
             },
-            questionMark: "",
+            questionMark: '',
             singleChoiceOptions: Array(4).fill({
-                id: "",
-                name: "",
+                id: '',
+                name: '',
                 isSelected: false,
             }),
             multipleChoiceOptions: Array(4).fill({
-                id: "",
-                name: "",
+                id: '',
+                name: '',
                 isSelected: false,
             }),
             csingleChoiceOptions: Array(4).fill({
-                id: "",
-                name: "",
+                id: '',
+                name: '',
                 isSelected: false,
             }),
             cmultipleChoiceOptions: Array(4).fill({
-                id: "",
-                name: "",
+                id: '',
+                name: '',
                 isSelected: false,
             }),
             trueFalseOptions: Array(2).fill({
-                id: "",
-                name: "",
+                id: '',
+                name: '',
                 isSelected: false,
             }),
-            parentRichTextContent: "",
+            parentRichTextContent: '',
             decimals: 0,
-            numericType: "",
+            numericType: '',
             validAnswers: [],
-            questionResponseType: "",
-            subjectiveAnswerText: "",
+            questionResponseType: '',
+            subjectiveAnswerText: '',
             timestamp: `${videoPlayerTimeFrameForm.getValues(
-                "hrs",
-            )}:${videoPlayerTimeFrameForm.getValues("min")}:${videoPlayerTimeFrameForm.getValues(
-                "sec",
+                'hrs'
+            )}:${videoPlayerTimeFrameForm.getValues('min')}:${videoPlayerTimeFrameForm.getValues(
+                'sec'
             )}`,
         });
         videoQuestionForm.trigger();
@@ -142,17 +144,17 @@ const AddVideoQuestionDialog = ({
 
     const handleCheckEligibilityForNext = () => {
         const timestamp = timestampToSeconds(
-            `${videoPlayerTimeFrameForm.getValues("hrs")}:${videoPlayerTimeFrameForm.getValues(
-                "min",
-            )}:${videoPlayerTimeFrameForm.getValues("sec")}`,
+            `${videoPlayerTimeFrameForm.getValues('hrs')}:${videoPlayerTimeFrameForm.getValues(
+                'min'
+            )}:${videoPlayerTimeFrameForm.getValues('sec')}`
         );
         if (timestamp === null || timestamp < 0 || timestamp > videoDuration) {
             toast.error(
-                "Invalid timestamp. Please enter a valid time in MM:SS format or seconds also current timestamp should be less than video length",
+                'Invalid timestamp. Please enter a valid time in MM:SS format or seconds also current timestamp should be less than video length',
                 {
-                    className: "error-toast",
+                    className: 'error-toast',
                     duration: 3000,
-                },
+                }
             );
             return false;
         }

@@ -1,13 +1,14 @@
-import { QuestionType } from "@/constants/dummy-data";
-import { MainViewComponentFactory } from "@/routes/assessment/question-papers/-components/QuestionPaperTemplatesTypes/MainViewComponentFactory";
-import { uploadQuestionPaperFormSchema } from "@/routes/assessment/question-papers/-utils/upload-question-paper-form-schema";
-import { Dispatch, MutableRefObject, SetStateAction } from "react";
-import { FormProvider, UseFormReturn } from "react-hook-form";
-import { z } from "zod";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { MyButton } from "@/components/design-system/button";
-import { UploadQuestionPaperFormType } from "@/routes/assessment/question-papers/-components/QuestionPaperUpload";
-import { VideoPlayerTimeFormType } from "../../-form-schemas/video-player-time-schema";
+import { QuestionType } from '@/constants/dummy-data';
+import { MainViewComponentFactory } from '@/routes/assessment/question-papers/-components/QuestionPaperTemplatesTypes/MainViewComponentFactory';
+import { uploadQuestionPaperFormSchema } from '@/routes/assessment/question-papers/-utils/upload-question-paper-form-schema';
+import { Dispatch, MutableRefObject, SetStateAction } from 'react';
+import { FormProvider, UseFormReturn } from 'react-hook-form';
+import { z } from 'zod';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { MyButton } from '@/components/design-system/button';
+import { UploadQuestionPaperFormType } from '@/routes/assessment/question-papers/-components/QuestionPaperUpload';
+import { VideoPlayerTimeFormType } from '../../-form-schemas/video-player-time-schema';
+import { useContentStore } from '../../-stores/chapter-sidebar-store';
 type QuestionPaperForm = z.infer<typeof uploadQuestionPaperFormSchema>;
 
 const VideoQuestionDialogAddPreview = ({
@@ -37,51 +38,66 @@ const VideoQuestionDialogAddPreview = ({
     isAddTimeFrameRef: React.RefObject<HTMLButtonElement>;
     isAddQuestionTypeRef: React.RefObject<HTMLButtonElement>;
 }) => {
+    const { activeItem, setActiveItem } = useContentStore();
     const handleClose = () => {
         setCurrentQuestionIndex(0);
         videoQuestionForm.reset({
-            questionPaperId: "1",
+            questionPaperId: '1',
             isFavourite: false,
-            title: "",
+            title: '',
             createdOn: new Date(),
-            yearClass: "",
-            subject: "",
-            questionsType: "",
-            optionsType: "",
-            answersType: "",
-            explanationsType: "",
+            yearClass: '',
+            subject: '',
+            questionsType: '',
+            optionsType: '',
+            answersType: '',
+            explanationsType: '',
             fileUpload: undefined,
             questions: [],
         });
 
         videoPlayerTimeFrameForm.reset({
-            hrs: "",
-            min: "",
-            sec: "",
+            hrs: '',
+            min: '',
+            sec: '',
         });
         setPreviewQuestionDialog(false);
         isAddTimeFrameRef.current?.click();
         isAddQuestionTypeRef.current?.click();
     };
     const handleAddQuestionInAddedForm = () => {
+        // Clone the questions properly to avoid reference issues
+        const videoQuestions = JSON.parse(JSON.stringify(videoQuestionForm.getValues('questions')));
+
+        // Update addedQuestionForm with deep-cloned data
         addedQuestionForm.reset({
             ...addedQuestionForm.getValues(),
-            questions: [
-                ...addedQuestionForm.getValues("questions"),
-                ...videoQuestionForm.getValues("questions"),
-            ],
+            questions: [...addedQuestionForm.getValues('questions'), ...videoQuestions],
         });
+
+        // Update formRefData with deep-cloned data
         formRefData.current = {
             ...formRefData.current,
-            questions: [
-                ...formRefData.current.questions,
-                ...videoQuestionForm.getValues("questions"),
-            ],
+            questions: [...formRefData.current.questions, ...videoQuestions],
         };
-        setFormData({
-            ...formData,
-            questions: [...formData.questions, ...videoQuestionForm.getValues("questions")],
+
+        // Update formData state with deep-cloned data
+        setFormData((prevData) => ({
+            ...prevData,
+            questions: [...prevData.questions, ...videoQuestions],
+        }));
+
+        setActiveItem({
+            ...activeItem,
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            video_slide: {
+                ...activeItem?.video_slide,
+                questions: [...formData.questions, ...videoQuestions],
+            },
         });
+
+        // Close after data is properly updated
         handleClose();
     };
 
@@ -91,7 +107,7 @@ const VideoQuestionDialogAddPreview = ({
                 <h1 className="bg-primary-50 p-4 font-semibold text-primary-500">Question</h1>
                 <div>
                     <FormProvider {...videoQuestionForm}>
-                        {videoQuestionForm.getValues("questions")?.length === 0 ? (
+                        {videoQuestionForm.getValues('questions')?.length === 0 ? (
                             <p>Nothing to show</p>
                         ) : (
                             <div className="my-4 flex flex-col gap-2">
@@ -99,7 +115,7 @@ const VideoQuestionDialogAddPreview = ({
                                     key={currentQuestionIndex}
                                     type={
                                         videoQuestionForm.getValues(
-                                            `questions.${currentQuestionIndex}.questionType`,
+                                            `questions.${currentQuestionIndex}.questionType`
                                         ) as QuestionType
                                     }
                                     props={{
@@ -107,7 +123,7 @@ const VideoQuestionDialogAddPreview = ({
                                         currentQuestionIndex,
                                         setCurrentQuestionIndex,
                                         className:
-                                            "dialog-height overflow-auto ml-6 flex w-full flex-col gap-6 pr-6 pt-4",
+                                            'dialog-height overflow-auto ml-6 flex w-full flex-col gap-6 pr-6 pt-4',
                                     }}
                                 />
                                 <div className="flex justify-end">

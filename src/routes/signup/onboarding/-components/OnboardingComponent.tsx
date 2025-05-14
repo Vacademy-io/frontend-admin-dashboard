@@ -7,7 +7,7 @@ import { Route } from "..";
 
 export function OnboardingComponent() {
     const searchParams = Route.useSearch();
-    const steps = ["Organization Setup", "Add Your Details"];
+    const steps = ["Organization Setup", "Organization Theme","Add Your Details"];
     const [currentStep, setCurrentStep] = useState(0);
     const [completedSteps, setCompletedSteps] = useState([false, false]);
 
@@ -35,7 +35,7 @@ export function OnboardingComponent() {
                         {searchParams.assess && <VacademyAssessLogo />}
                         {searchParams.lms && <VacademyLMSLogo />}
                     </div>
-                    <p>Fast-track your access in 2 steps—explore the tool now!</p>
+                    <p>Fast-track your access in 3 steps—explore the tool now!</p>
                     <Separator className="my-6" />
                     <CreateOnboardingSidebar
                         steps={steps}
