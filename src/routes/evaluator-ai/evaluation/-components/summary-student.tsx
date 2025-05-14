@@ -1,8 +1,8 @@
-import { Button } from "@/components/ui/button";
-import { useSearch, useRouter } from "@tanstack/react-router";
-import { usePDF } from "react-to-pdf";
-import useLocalStorage from "../../-hooks/useLocalStorage";
-import { useEffect, useState } from "react";
+import { Button } from '@/components/ui/button';
+import { useSearch, useRouter } from '@tanstack/react-router';
+import { usePDF } from 'react-to-pdf';
+import useLocalStorage from '../../-hooks/useLocalStorage';
+import { useEffect, useState } from 'react';
 import {
     Dialog,
     DialogTrigger,
@@ -10,21 +10,21 @@ import {
     DialogHeader,
     DialogTitle,
     DialogFooter,
-} from "@/components/ui/dialog";
-import axios from "axios";
-import { GET_PUBLIC_URL } from "@/constants/urls";
-import emailjs from "emailjs-com";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { z } from "zod";
-import { Loader2, Mail } from "lucide-react";
-import { UploadFileInS3Public } from "@/routes/signup/-services/signup-services";
-import { toast } from "sonner";
-import { MyDialog } from "@/components/design-system/dialog";
+} from '@/components/ui/dialog';
+import axios from 'axios';
+import { GET_PUBLIC_URL } from '@/constants/urls';
+import emailjs from 'emailjs-com';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { z } from 'zod';
+import { Loader2, Mail } from 'lucide-react';
+import { UploadFileInS3Public } from '@/routes/signup/-services/signup-services';
+import { toast } from 'sonner';
+import { MyDialog } from '@/components/design-system/dialog';
 
 interface ISummary {
     evaluation_result: {
@@ -67,10 +67,10 @@ interface IEvaluationData {
 }
 
 const DEFAULT_ACCESS_TOKEN =
-    "eyJhbGciOiJIUzI1NiJ9.eyJmdWxsbmFtZSI6IkRvZSBXYWxrZXIiLCJ1c2VyIjoiOTE3YjI1YWMtZjZhZi00ZjM5LTkwZGYtYmQxZDIxZTQyNTkzIiwiZW1haWwiOiJkb2VAZXhhbXBsZS5jb20iLCJpc19yb290X3VzZXIiOmZhbHNlLCJhdXRob3JpdGllcyI6eyI5ZDNmNGNjYi1hN2Y2LTQyM2YtYmM0Zi03NWM2ZDYxNzYzNDYiOnsicGVybWlzc2lvbnMiOltdLCJyb2xlcyI6WyJTVFVERU5UIl19fSwidXNlcm5hbWUiOiJkb2V3NjA2OSIsInN1YiI6ImRvZXc2MDY5IiwiaWF0IjoxNzQ1MzI2ODI2LCJleHAiOjE3NDU5MzE2MjZ9._O0T3Q0kxXLE9JnwC79IQCpwl-sAdFqR8nHa3MTpE5U";
+    'eyJhbGciOiJIUzI1NiJ9.eyJmdWxsbmFtZSI6IkRvZSBXYWxrZXIiLCJ1c2VyIjoiOTE3YjI1YWMtZjZhZi00ZjM5LTkwZGYtYmQxZDIxZTQyNTkzIiwiZW1haWwiOiJkb2VAZXhhbXBsZS5jb20iLCJpc19yb290X3VzZXIiOmZhbHNlLCJhdXRob3JpdGllcyI6eyI5ZDNmNGNjYi1hN2Y2LTQyM2YtYmM0Zi03NWM2ZDYxNzYzNDYiOnsicGVybWlzc2lvbnMiOltdLCJyb2xlcyI6WyJTVFVERU5UIl19fSwidXNlcm5hbWUiOiJkb2V3NjA2OSIsInN1YiI6ImRvZXc2MDY5IiwiaWF0IjoxNzQ1MzI2ODI2LCJleHAiOjE3NDU5MzE2MjZ9._O0T3Q0kxXLE9JnwC79IQCpwl-sAdFqR8nHa3MTpE5U';
 
 const reportSchema = z.object({
-    email: z.string().email("Invalid email address"),
+    email: z.string().email('Invalid email address'),
     subject: z.string().optional(),
     remarks: z.string().optional(),
 });
@@ -78,27 +78,27 @@ const reportSchema = z.object({
 type ReportFormValues = z.infer<typeof reportSchema>;
 
 export default function EvaluationSummary() {
-    const { toPDF, targetRef } = usePDF({ filename: "report.pdf" });
+    const { toPDF, targetRef } = usePDF({ filename: 'report.pdf' });
     const [studentSummary, setSummaryData] = useState<IEvaluationData>();
     const [open, setOpen] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [sendingMail, setSendlingMail] = useState(false);
     const [openPreview, setOpenPreview] = useState(false);
     const [previewText, setPreviewText] = useState({
-        first: "",
-        second: "",
+        first: '',
+        second: '',
     });
 
     const router = useRouter();
 
-    const { studentId } = useSearch({ from: "/evaluator-ai/evaluation/student-summary/" }) as {
+    const { studentId } = useSearch({ from: '/evaluator-ai/evaluation/student-summary/' }) as {
         studentId: number;
     };
-    const [evaluationData] = useLocalStorage("evaluatedStudentData", []) as [IEvaluationData[]];
+    const [evaluationData] = useLocalStorage('evaluatedStudentData', []) as [IEvaluationData[]];
 
     useEffect(() => {
         const studentData = evaluationData.find(
-            (data) => data.enrollmentId === studentId.toString(),
+            (data) => data.enrollmentId === studentId.toString()
         );
         setSummaryData(studentData);
     }, []);
@@ -127,50 +127,50 @@ export default function EvaluationSummary() {
 
         // Generate PDF
         const canvas = await html2canvas(targetRef.current);
-        const imgData = canvas.toDataURL("image/png");
+        const imgData = canvas.toDataURL('image/png');
         const pdf = new jsPDF();
         const width = pdf.internal.pageSize.getWidth();
         const height = pdf.internal.pageSize.getHeight();
         console.log(width, height);
-        pdf.addImage(imgData, "PNG", 0, 0, width, height);
-        const blob = pdf.output("blob");
+        pdf.addImage(imgData, 'PNG', 0, 0, width, height);
+        const blob = pdf.output('blob');
 
         // Convert blob to File and append to FormData
-        const file = new File([blob], "evaluation.pdf", { type: "application/pdf" });
+        const file = new File([blob], 'evaluation.pdf', { type: 'application/pdf' });
         const formData = new FormData();
-        console.log("File to upload:", file);
-        formData.append("file", file);
+        console.log('File to upload:', file);
+        formData.append('file', file);
 
         // upload to s3
-        const uploadedFileId = await UploadFileInS3Public(file, setIsUploading, "REPORT");
+        const uploadedFileId = await UploadFileInS3Public(file, setIsUploading, 'REPORT');
         setIsUploading(false);
         // Upload file via axios
         try {
             setSendlingMail(true);
-            if (!uploadedFileId) throw new Error("File id not found");
+            if (!uploadedFileId) throw new Error('File id not found');
             const fileUrl = await getPublicUrl(uploadedFileId);
-            console.log("File URL:", fileUrl);
+            console.log('File URL:', fileUrl);
             // Send Email via emailjs
             await emailjs.send(
-                "service_7lkigf5",
-                "template_iixl5pv",
+                'service_7lkigf5',
+                'template_iixl5pv',
                 {
                     to_email: data.email,
-                    subject: data.subject || "Evaluation Report",
-                    name: studentSummary?.name || "Student",
+                    subject: data.subject || 'Evaluation Report',
+                    name: studentSummary?.name || 'Student',
                     message:
                         data.remarks ||
                         studentSummary?.summary.evaluation_result.overall_description,
                     buttonLink: fileUrl,
                 },
-                "Ui2SejB0xwurTySXJ",
+                'Ui2SejB0xwurTySXJ'
             );
 
-            console.log("Email sent with PDF link:", fileUrl);
-            toast.success("Email sent successfully");
+            console.log('Email sent with PDF link:', fileUrl);
+            toast.success('Email sent successfully');
         } catch (err) {
-            toast.error("Error sending mail");
-            console.error("Error uploading PDF or sending email:", err);
+            toast.error('Error sending mail');
+            console.error('Error uploading PDF or sending email:', err);
         } finally {
             setSendlingMail(false);
         }
@@ -182,8 +182,8 @@ export default function EvaluationSummary() {
                 <div className="flex w-80 flex-col items-center gap-4 rounded-lg bg-white p-6 shadow-xl">
                     <Loader2 className="size-12 animate-spin text-primary-500" />
                     <h2 className="text-lg font-semibold">
-                        {isUploading && "Generating Pdf..."}
-                        {sendingMail && "Sending Mail..."}
+                        {isUploading && 'Generating Pdf...'}
+                        {sendingMail && 'Sending Mail...'}
                     </h2>
                     <p className="text-sm text-muted-foreground">
                         This might take a while, please wait.
@@ -210,7 +210,7 @@ export default function EvaluationSummary() {
                 </div>
                 <span className="flex items-center gap-2">
                     <Button
-                        variant={"outline"}
+                        variant={'outline'}
                         onClick={() => {
                             toPDF();
                         }}
@@ -219,7 +219,7 @@ export default function EvaluationSummary() {
                     </Button>
                     <Dialog open={open} onOpenChange={setOpen}>
                         <DialogTrigger asChild>
-                            <Button variant={"outline"}>
+                            <Button variant={'outline'}>
                                 <Mail className="size-4" />
                                 Send Report
                             </Button>
@@ -233,7 +233,7 @@ export default function EvaluationSummary() {
                                     <Input
                                         type="email"
                                         placeholder="Recipient Email"
-                                        {...register("email")}
+                                        {...register('email')}
                                     />
                                     {errors.email && (
                                         <p className="text-xs text-red-500">
@@ -245,13 +245,13 @@ export default function EvaluationSummary() {
                                     <Input
                                         type="text"
                                         placeholder="Subject (optional)"
-                                        {...register("subject")}
+                                        {...register('subject')}
                                     />
                                 </div>
                                 <div>
                                     <Textarea
                                         placeholder="Remarks (optional)"
-                                        {...register("remarks")}
+                                        {...register('remarks')}
                                     />
                                 </div>
                                 <DialogFooter>
@@ -273,11 +273,11 @@ export default function EvaluationSummary() {
 
                 <div className="-mt-4 flex flex-wrap justify-between px-1 text-sm">
                     <div className="flex gap-2">
-                        <span className="text-gray-600">Student Name:</span>
+                        <span className="text-gray-600">Learner Name:</span>
                         <span>{studentSummary?.name}</span>
                     </div>
                     <div className="flex gap-2">
-                        <span className="text-gray-600">Student ID:</span>
+                        <span className="text-gray-600">LEARNER ID:</span>
                         <span>{studentSummary?.id}</span>
                     </div>
                 </div>
@@ -355,7 +355,7 @@ export default function EvaluationSummary() {
                                     <tr className="bg-[#faf9f5]" key={question.question_id}>
                                         <td className="border border-[#e6e3d8] p-2">
                                             {question.question_order}
-                                            {")"}
+                                            {')'}
                                         </td>
                                         <td
                                             className="border border-[#e6e3d8] p-2"
@@ -363,8 +363,8 @@ export default function EvaluationSummary() {
                                                 __html:
                                                     question.question_text.replace(
                                                         /^\[\[(.*)\]\]$/s,
-                                                        "$1",
-                                                    ) ?? "",
+                                                        '$1'
+                                                    ) ?? '',
                                             }}
                                         />
                                         <td className="border border-[#e6e3d8] p-2">
@@ -374,18 +374,18 @@ export default function EvaluationSummary() {
                                                         .find(
                                                             (ans) =>
                                                                 ans.question_id ===
-                                                                question.question_id,
+                                                                question.question_id
                                                         )
                                                         ?.answer_html.replace(
                                                             /^\[\[(.*)\]\]$/s,
-                                                            "$1",
-                                                        ) ?? "";
+                                                            '$1'
+                                                        ) ?? '';
 
                                                 const plainText = answerHtml
-                                                    .replace(/<[^>]+>/g, "") // Strip HTML tags
+                                                    .replace(/<[^>]+>/g, '') // Strip HTML tags
                                                     .trim();
                                                 const words = plainText.split(/\s+/);
-                                                const preview = words.slice(0, 5).join(" ");
+                                                const preview = words.slice(0, 5).join(' ');
                                                 const hasMore = words.length > 5;
 
                                                 return (
@@ -393,7 +393,7 @@ export default function EvaluationSummary() {
                                                         <span>{preview}</span>
                                                         {hasMore && (
                                                             <>
-                                                                {"... "}
+                                                                {'... '}
                                                                 <button
                                                                     className="text-primary-500 underline"
                                                                     onClick={() => {
@@ -402,12 +402,12 @@ export default function EvaluationSummary() {
                                                                                 question.question_text
                                                                                     .replace(
                                                                                         /<[^>]+>/g,
-                                                                                        "",
+                                                                                        ''
                                                                                     )
                                                                                     .replace(
                                                                                         /^\[\[(.*)\]\]$/s,
-                                                                                        "$1",
-                                                                                    ) ?? "".trim(),
+                                                                                        '$1'
+                                                                                    ) ?? ''.trim(),
                                                                             second: answerHtml,
                                                                         });
                                                                         setOpenPreview(true);
@@ -424,7 +424,7 @@ export default function EvaluationSummary() {
 
                                         <td className="border border-[#e6e3d8] p-2">
                                             {question.marks_obtained}
-                                            {"/"}
+                                            {'/'}
                                             {question.total_marks}
                                         </td>
                                         <td className="w-72 border border-[#e6e3d8] p-2">
@@ -434,7 +434,7 @@ export default function EvaluationSummary() {
                                             {question.description}
                                         </td>
                                     </tr>
-                                ),
+                                )
                             )}
                         </tbody>
                     </table>
@@ -442,8 +442,8 @@ export default function EvaluationSummary() {
                         open={openPreview}
                         onOpenChange={() => {
                             setPreviewText({
-                                first: "",
-                                second: "",
+                                first: '',
+                                second: '',
                             });
                             setOpenPreview(false);
                         }}

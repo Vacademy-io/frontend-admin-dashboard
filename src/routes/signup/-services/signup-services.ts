@@ -5,7 +5,7 @@ import { convertedSignupData } from "../-utils/helper";
 import {
     FormValuesStep1Signup,
     organizationDetailsSignupStep1,
-} from "../onboarding/-components/Step2AddOrgDetails";
+} from "../onboarding/-components/Step3AddOrgDetails";
 import { z } from "zod";
 
 export const UploadFileInS3Public = async (

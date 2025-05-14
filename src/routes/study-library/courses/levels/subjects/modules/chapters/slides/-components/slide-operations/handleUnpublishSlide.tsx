@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { DocumentSlidePayload, Slide, VideoSlidePayload } from '../../-hooks/use-slides';
 import { UseMutateAsyncFunction } from '@tanstack/react-query';
 import { SlideQuestionsDataInterface } from '@/types/study-library/study-library-slides-type';
-import { convertToSlideFormat } from '../../-helper/helper';
+import { converDataToVideoFormat, convertToSlideFormat } from '../../-helper/helper';
 
 type SlideResponse = {
     id: string;
@@ -33,7 +33,6 @@ export const handleUnpublishSlide = async (
     SaveDraft: (activeItem: Slide) => Promise<void>
 ) => {
     const status = 'DRAFT';
-    console.log(updateQuestionOrder);
     if (activeItem?.source_type === 'QUESTION') {
         const questionsData: UploadQuestionPaperFormType = JSON.parse('');
         // need to add my question logic
@@ -62,7 +61,7 @@ export const handleUnpublishSlide = async (
                     data: draftData || null,
                     title: activeItem?.document_slide?.title || '',
                     cover_file_id: activeItem?.document_slide?.cover_file_id || '',
-                    total_pages: 0,
+                    total_pages: activeItem?.document_slide?.total_pages || 0,
                     published_data: null,
                     published_document_total_pages: 0,
                 },
@@ -75,27 +74,17 @@ export const handleUnpublishSlide = async (
         } catch {
             toast.error(`Error in unpublishing the slide`);
         }
-    } else {
+    }
+
+    if (activeItem?.source_type == 'VIDEO') {
+        const convertedData = converDataToVideoFormat({
+            activeItem,
+            status,
+            notify,
+            newSlide: false,
+        });
         try {
-            await addUpdateVideoSlide({
-                id: activeItem?.id || '',
-                title: activeItem?.title || '',
-                description: activeItem?.description || '',
-                image_file_id: activeItem?.image_file_id || '',
-                slide_order: null,
-                video_slide: {
-                    id: activeItem?.video_slide?.id || '',
-                    description: activeItem?.video_slide?.description || '',
-                    url: activeItem?.video_slide?.url || null,
-                    title: activeItem?.video_slide?.title || '',
-                    video_length_in_millis: 0,
-                    published_url: null,
-                    published_video_length_in_millis: 0,
-                },
-                status: status,
-                new_slide: false,
-                notify: notify,
-            });
+            await addUpdateVideoSlide(convertedData);
             toast.success(`slide unpublished successfully!`);
             setIsOpen(false);
         } catch {

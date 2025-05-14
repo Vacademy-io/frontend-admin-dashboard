@@ -129,7 +129,9 @@ export const ChapterSidebarSlides = ({
                 }
             }
 
-            setActiveItem(slides[0]);
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            setActiveItem(slides[0] ?? null);
         } else {
             setActiveItem(null);
         }

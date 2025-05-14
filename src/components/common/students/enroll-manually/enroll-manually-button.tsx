@@ -1,14 +1,14 @@
-import { MyButton } from "@/components/design-system/button";
-import { StepOneForm } from "./forms/step-one-form";
-import { StepTwoForm } from "./forms/step-two-form";
-import { StepThreeForm } from "./forms/step-three-form";
-import { StepFourForm } from "./forms/step-four-form";
-import { StepFiveForm } from "./forms/step-five-form";
-import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
-import { MyDialog } from "@/components/design-system/dialog";
-import { StudentTable } from "@/types/student-table-types";
-import { useEffect, useRef, useState } from "react";
-import { FormSubmitButtons } from "./form-components/form-submit-buttons";
+import { MyButton } from '@/components/design-system/button';
+import { StepOneForm } from './forms/step-one-form';
+import { StepTwoForm } from './forms/step-two-form';
+import { StepThreeForm } from './forms/step-three-form';
+import { StepFourForm } from './forms/step-four-form';
+import { StepFiveForm } from './forms/step-five-form';
+import { useFormStore } from '@/stores/students/enroll-students-manually/enroll-manually-form-store';
+import { MyDialog } from '@/components/design-system/dialog';
+import { StudentTable } from '@/types/student-table-types';
+import { useEffect, useRef, useState } from 'react';
+import { FormSubmitButtons } from './form-components/form-submit-buttons';
 
 interface EnrollManuallyButtonProps {
     triggerButton?: JSX.Element;
@@ -138,7 +138,7 @@ export const EnrollManuallyButton = ({
     };
 
     // Determine the dialog title based on whether it's a re-enrollment
-    const dialogTitle = initialValues ? "Re-enroll Student" : "Enroll Student";
+    const dialogTitle = initialValues ? 'Re-enroll Learner' : 'Enroll Learner';
 
     return (
         <MyDialog

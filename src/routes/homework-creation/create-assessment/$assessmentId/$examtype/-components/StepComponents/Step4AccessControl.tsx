@@ -1,45 +1,45 @@
-import { StepContentProps } from "@/types/assessments/step-content-props";
-import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { FormProvider, useForm, UseFormReturn } from "react-hook-form";
-import { z } from "zod";
-import { AccessControlFormSchema } from "../../-utils/access-control-form-schema";
-import { MyButton } from "@/components/design-system/button";
-import { Separator } from "@/components/ui/separator";
-import { Info, Plus, X } from "phosphor-react";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { StepContentProps } from '@/types/assessments/step-content-props';
+import React, { Dispatch, SetStateAction, useEffect, useState } from 'react';
+import { FormProvider, useForm, UseFormReturn } from 'react-hook-form';
+import { z } from 'zod';
+import { AccessControlFormSchema } from '../../-utils/access-control-form-schema';
+import { MyButton } from '@/components/design-system/button';
+import { Separator } from '@/components/ui/separator';
+import { Info, Plus, X } from 'phosphor-react';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import {
     getAssessmentDetails,
     handlePostStep4Data,
     publishAssessment,
-} from "../../-services/assessment-services";
-import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { getStepKey, syncStep4DataWithStore } from "../../-utils/helper";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useSavedAssessmentStore } from "../../-utils/global-states";
-import { toast } from "sonner";
-import { AxiosError } from "axios";
-import { useAccessControlStore } from "../../-utils/zustand-global-states/step4-access-control";
-import { useNavigate, useParams } from "@tanstack/react-router";
-import { useSectionDetailsStore } from "../../-utils/zustand-global-states/step2-add-questions";
-import { useTestAccessStore } from "../../-utils/zustand-global-states/step3-adding-participants";
-import { useBasicInfoStore } from "../../-utils/zustand-global-states/step1-basic-info";
-import { getInstituteId } from "@/constants/helper";
+} from '../../-services/assessment-services';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { getStepKey, syncStep4DataWithStore } from '../../-utils/helper';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useSavedAssessmentStore } from '../../-utils/global-states';
+import { toast } from 'sonner';
+import { AxiosError } from 'axios';
+import { useAccessControlStore } from '../../-utils/zustand-global-states/step4-access-control';
+import { useNavigate, useParams } from '@tanstack/react-router';
+import { useSectionDetailsStore } from '../../-utils/zustand-global-states/step2-add-questions';
+import { useTestAccessStore } from '../../-utils/zustand-global-states/step3-adding-participants';
+import { useBasicInfoStore } from '../../-utils/zustand-global-states/step1-basic-info';
+import { getInstituteId } from '@/constants/helper';
 import {
     fetchInstituteDashboardUsers,
     handleDeleteDisableDashboardUsers,
-} from "@/routes/dashboard/-services/dashboard-services";
-import { RoleTypeUserIcon } from "@/svgs";
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import RoleTypeFilterButtons from "@/routes/dashboard/-components/RoleTypeFilterButtons";
-import { ScheduleTestFilters } from "@/routes/assessment/assessment-list/-components/ScheduleTestFilters";
-import { RoleType } from "@/constants/dummy-data";
-import { MyFilterOption } from "@/types/assessments/my-filter";
-import { RoleTypeSelectedFilter } from "@/routes/dashboard/-components/RoleTypeComponent";
-import { UserRolesDataEntry } from "@/types/dashboard/user-roles";
-import Step4InviteUsers from "./-components/Step4InviteUsers";
+} from '@/routes/dashboard/-services/dashboard-services';
+import { RoleTypeUserIcon } from '@/svgs';
+import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import RoleTypeFilterButtons from '@/routes/dashboard/-components/RoleTypeFilterButtons';
+import { ScheduleTestFilters } from '@/routes/assessment/assessment-list/-components/ScheduleTestFilters';
+import { RoleType } from '@/constants/dummy-data';
+import { MyFilterOption } from '@/types/assessments/my-filter';
+import { RoleTypeSelectedFilter } from '@/routes/dashboard/-components/RoleTypeComponent';
+import { UserRolesDataEntry } from '@/types/dashboard/user-roles';
+import Step4InviteUsers from './-components/Step4InviteUsers';
 
 interface Role {
     roleId: string;
@@ -66,16 +66,16 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
     const queryClient = useQueryClient();
     const navigate = useNavigate();
     const params = useParams({ strict: false });
-    const examType = params.examtype ?? ""; // Ensure it's a string
+    const examType = params.examtype ?? ''; // Ensure it's a string
     const assessmentId = params.assessmentId ?? null; // Ensure it's string | null
     const { savedAssessmentId, setSavedAssessmentId } = useSavedAssessmentStore();
     const { instituteDetails } = useInstituteDetailsStore();
     const { data: assessmentDetails, isLoading } = useSuspenseQuery(
         getAssessmentDetails({
-            assessmentId: assessmentId !== "defaultId" ? assessmentId : savedAssessmentId,
+            assessmentId: assessmentId !== 'defaultId' ? assessmentId : savedAssessmentId,
             instituteId: instituteDetails?.id,
             type: examType,
-        }),
+        })
     );
     const [isAdminLoading, setIsAdminLoading] = useState(false);
     const [existingInstituteUsersData, setExistingInstituteUsersData] = useState<
@@ -84,13 +84,13 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
     const form = useForm<AccessControlFormValues>({
         resolver: zodResolver(AccessControlFormSchema),
         defaultValues: {
-            status: completedSteps[currentStep] ? "COMPLETE" : "INCOMPLETE",
+            status: completedSteps[currentStep] ? 'COMPLETE' : 'INCOMPLETE',
             assessment_creation_access: [],
             live_assessment_notification: [],
             assessment_submission_and_report_access: [],
             evaluation_process: [],
         },
-        mode: "onChange",
+        mode: 'onChange',
     });
     const { handleSubmit } = form;
 
@@ -107,31 +107,31 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
             type: string | undefined;
         }) => handlePostStep4Data(data, assessmentId, instituteId, type),
         onSuccess: async () => {
-            queryClient.invalidateQueries({ queryKey: ["GET_QUESTIONS_DATA_FOR_SECTIONS"] });
-            if (assessmentId !== "defaultId") {
+            queryClient.invalidateQueries({ queryKey: ['GET_QUESTIONS_DATA_FOR_SECTIONS'] });
+            if (assessmentId !== 'defaultId') {
                 useAccessControlStore.getState().reset();
                 window.history.back();
-                toast.success("Your assessment has been updated successfully!", {
-                    className: "success-toast",
+                toast.success('Your assessment has been updated successfully!', {
+                    className: 'success-toast',
                     duration: 2000,
                 });
-                queryClient.invalidateQueries({ queryKey: ["GET_ASSESSMENT_DETAILS"] });
+                queryClient.invalidateQueries({ queryKey: ['GET_ASSESSMENT_DETAILS'] });
             } else {
                 syncStep4DataWithStore(form);
-                setSavedAssessmentId("");
+                setSavedAssessmentId('');
                 useBasicInfoStore.getState().reset();
                 useSectionDetailsStore.getState().reset();
                 useTestAccessStore.getState().reset();
                 useAccessControlStore.getState().reset();
-                toast.success("Your assessment has been saved successfully!", {
-                    className: "success-toast",
+                toast.success('Your assessment has been saved successfully!', {
+                    className: 'success-toast',
                     duration: 2000,
                 });
                 handleCompleteCurrentStep();
                 navigate({
-                    to: "/homework-creation/assessment-list",
+                    to: '/homework-creation/assessment-list',
                     params: {
-                        selectedTab: "liveTests",
+                        selectedTab: 'liveTests',
                     },
                 });
             }
@@ -139,12 +139,12 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
         onError: (error: unknown) => {
             if (error instanceof AxiosError) {
                 toast.error(error.message, {
-                    className: "error-toast",
+                    className: 'error-toast',
                     duration: 2000,
                 });
             } else {
                 // Handle non-Axios errors if necessary
-                console.error("Unexpected error:", error);
+                console.error('Unexpected error:', error);
             }
         },
     });
@@ -152,7 +152,7 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
     const onSubmit = (data: z.infer<typeof AccessControlFormSchema>) => {
         handleSubmitStep4Form.mutate({
             data: data,
-            assessmentId: assessmentId !== "defaultId" ? assessmentId : savedAssessmentId,
+            assessmentId: assessmentId !== 'defaultId' ? assessmentId : savedAssessmentId,
             instituteId: instituteDetails?.id,
             type: examType,
         });
@@ -169,42 +169,42 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
             type: string | undefined;
         }) => publishAssessment({ assessmentId, instituteId, type }),
         onSuccess: async () => {
-            queryClient.invalidateQueries({ queryKey: ["GET_QUESTIONS_DATA_FOR_SECTIONS"] });
-            if (assessmentId !== "defaultId") {
+            queryClient.invalidateQueries({ queryKey: ['GET_QUESTIONS_DATA_FOR_SECTIONS'] });
+            if (assessmentId !== 'defaultId') {
                 useAccessControlStore.getState().reset();
                 window.history.back();
-                toast.success("Your assessment has been updated and published successfully!", {
-                    className: "success-toast",
+                toast.success('Your assessment has been updated and published successfully!', {
+                    className: 'success-toast',
                     duration: 2000,
                 });
-                queryClient.invalidateQueries({ queryKey: ["GET_ASSESSMENT_DETAILS"] });
+                queryClient.invalidateQueries({ queryKey: ['GET_ASSESSMENT_DETAILS'] });
             } else {
                 syncStep4DataWithStore(form);
-                setSavedAssessmentId("");
+                setSavedAssessmentId('');
                 useBasicInfoStore.getState().reset();
                 useSectionDetailsStore.getState().reset();
                 useTestAccessStore.getState().reset();
                 useAccessControlStore.getState().reset();
-                toast.success("Your assessment has been published successfully!", {
-                    className: "success-toast",
+                toast.success('Your assessment has been published successfully!', {
+                    className: 'success-toast',
                     duration: 2000,
                 });
                 handleCompleteCurrentStep();
-                queryClient.invalidateQueries({ queryKey: ["GET_ASSESSMENT_DETAILS"] });
+                queryClient.invalidateQueries({ queryKey: ['GET_ASSESSMENT_DETAILS'] });
                 navigate({
-                    to: "/assessment/assessment-list",
+                    to: '/assessment/assessment-list',
                 });
             }
         },
         onError: (error: unknown) => {
             if (error instanceof AxiosError) {
                 toast.error(error.message, {
-                    className: "error-toast",
+                    className: 'error-toast',
                     duration: 2000,
                 });
             } else {
                 // Handle non-Axios errors if necessary
-                console.error("Unexpected error:", error);
+                console.error('Unexpected error:', error);
             }
         },
     });
@@ -222,12 +222,12 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
 
             // After successful form submission, trigger the publish mutation
             handlePublishAssessmentMutation.mutate({
-                assessmentId: assessmentId !== "defaultId" ? assessmentId : savedAssessmentId,
+                assessmentId: assessmentId !== 'defaultId' ? assessmentId : savedAssessmentId,
                 instituteId: instituteDetails?.id,
                 type: examType,
             });
         } catch (error) {
-            console.error("Error during form submission or publish mutation", error);
+            console.error('Error during form submission or publish mutation', error);
         }
     };
     const onInvalid = (err: unknown) => {
@@ -239,16 +239,16 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
             setIsAdminLoading(true);
             fetchInstituteDashboardUsers(instituteId, {
                 roles: [
-                    { id: "1", name: "ADMIN" },
-                    { id: "2", name: "COURSE CREATOR" },
-                    { id: "3", name: "ASSESSMENT CREATOR" },
-                    { id: "4", name: "EVALUATOR" },
-                    { id: "5", name: "TEACHER" },
+                    { id: '1', name: 'ADMIN' },
+                    { id: '2', name: 'COURSE CREATOR' },
+                    { id: '3', name: 'ASSESSMENT CREATOR' },
+                    { id: '4', name: 'EVALUATOR' },
+                    { id: '5', name: 'TEACHER' },
                 ],
                 status: [
-                    { id: "1", name: "ACTIVE" },
-                    { id: "2", name: "DISABLED" },
-                    { id: "3", name: "INVITED" },
+                    { id: '1', name: 'ACTIVE' },
+                    { id: '2', name: 'DISABLED' },
+                    { id: '3', name: 'INVITED' },
                 ],
             })
                 .then((data) => {
@@ -264,13 +264,13 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
                                         roleId: role.role_id,
                                         roleName: role.role_name,
                                     },
-                                ]),
-                            ).values(),
+                                ])
+                            ).values()
                         ),
                         status: user.status,
                     }));
                     setExistingInstituteUsersData(filteredData);
-                    if (assessmentId !== "defaultId") {
+                    if (assessmentId !== 'defaultId') {
                         console.log(filteredData);
                         form.reset({
                             status: assessmentDetails[currentStep]?.status,
@@ -278,29 +278,28 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
                                 (user: InvitedUsersInterface) =>
                                     assessmentDetails[
                                         currentStep
-                                    ]?.saved_data.creation_access.user_ids.includes(user.userId),
+                                    ]?.saved_data.creation_access.user_ids.includes(user.userId)
                             ),
                             live_assessment_notification: filteredData.filter(
                                 (user: InvitedUsersInterface) =>
                                     assessmentDetails[
                                         currentStep
                                     ]?.saved_data.live_assessment_access.user_ids.includes(
-                                        user.userId,
-                                    ),
+                                        user.userId
+                                    )
                             ),
                             assessment_submission_and_report_access: filteredData.filter(
                                 (user: InvitedUsersInterface) =>
                                     assessmentDetails[
                                         currentStep
                                     ]?.saved_data.report_and_submission_access.user_ids.includes(
-                                        user.userId,
-                                    ),
+                                        user.userId
+                                    )
                             ),
-                            evaluation_process: filteredData.filter(
-                                (user: InvitedUsersInterface) =>
-                                    assessmentDetails[
-                                        currentStep
-                                    ]?.saved_data.evaluation_access.user_ids.includes(user.userId),
+                            evaluation_process: filteredData.filter((user: InvitedUsersInterface) =>
+                                assessmentDetails[
+                                    currentStep
+                                ]?.saved_data.evaluation_access.user_ids.includes(user.userId)
                             ),
                         });
                     }
@@ -320,7 +319,7 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
 
     if (isLoading) return <DashboardLoader />;
 
-    if (isLoading || handleSubmitStep4Form.status === "pending" || isAdminLoading)
+    if (isLoading || handleSubmitStep4Form.status === 'pending' || isAdminLoading)
         return <DashboardLoader />;
 
     return (
@@ -335,7 +334,7 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
                             buttonType="secondary"
                             onClick={handleSubmit(onSubmit, onInvalid)}
                         >
-                            {assessmentId !== "defaultId" ? "Update" : "Save"}
+                            {assessmentId !== 'defaultId' ? 'Update' : 'Save'}
                         </MyButton>
                         <MyButton
                             type="button"
@@ -352,8 +351,8 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
                     {getStepKey({
                         assessmentDetails,
                         currentStep,
-                        key: "creation_access",
-                    }) === "REQUIRED" && (
+                        key: 'creation_access',
+                    }) === 'REQUIRED' && (
                         <AccessControlCards
                             heading="Assessment Creation Access"
                             keyVal="assessment_creation_access"
@@ -365,8 +364,8 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
                     {getStepKey({
                         assessmentDetails,
                         currentStep,
-                        key: "live_assessment_access",
-                    }) === "REQUIRED" && (
+                        key: 'live_assessment_access',
+                    }) === 'REQUIRED' && (
                         <AccessControlCards
                             heading="Live Assessment Notification"
                             keyVal="live_assessment_notification"
@@ -378,8 +377,8 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
                     {getStepKey({
                         assessmentDetails,
                         currentStep,
-                        key: "report_and_submission_access",
-                    }) === "REQUIRED" && (
+                        key: 'report_and_submission_access',
+                    }) === 'REQUIRED' && (
                         <AccessControlCards
                             heading="Assessment Submission & Report Access"
                             keyVal="assessment_submission_and_report_access"
@@ -391,8 +390,8 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
                     {getStepKey({
                         assessmentDetails,
                         currentStep,
-                        key: "evaluation_access",
-                    }) === "REQUIRED" && (
+                        key: 'evaluation_access',
+                    }) === 'REQUIRED' && (
                         <AccessControlCards
                             heading="Evaluation Process"
                             keyVal="evaluation_process"
@@ -416,20 +415,20 @@ const AccessControlCards = ({
 }: {
     heading: string;
     keyVal:
-        | "assessment_creation_access"
-        | "live_assessment_notification"
-        | "assessment_submission_and_report_access"
-        | "evaluation_process";
+        | 'assessment_creation_access'
+        | 'live_assessment_notification'
+        | 'assessment_submission_and_report_access'
+        | 'evaluation_process';
     form: UseFormReturn<AccessControlFormValues>;
     existingInstituteUsersData: InvitedUsersInterface[];
     setExistingInstituteUsersData: Dispatch<SetStateAction<InvitedUsersInterface[]>>;
 }) => {
     const [selectedUsers, setSelectedUsers] = useState<string[]>(
-        form.getValues(keyVal).map((user) => user.userId),
+        form.getValues(keyVal).map((user) => user.userId)
     );
     const [isSelectAllChecked, setIsSelectAllChecked] = useState(
         existingInstituteUsersData.length > 0 &&
-            existingInstituteUsersData.every((user) => selectedUsers.includes(user.userId)),
+            existingInstituteUsersData.every((user) => selectedUsers.includes(user.userId))
     );
     const [open, setOpen] = useState(false);
     const instituteId = getInstituteId();
@@ -454,8 +453,8 @@ const AccessControlCards = ({
                                 roleId: role.role_id,
                                 roleName: role.role_name,
                             },
-                        ]),
-                    ).values(),
+                        ])
+                    ).values()
                 ),
                 status: user.status,
             }));
@@ -488,9 +487,9 @@ const AccessControlCards = ({
             selectedFilter: {
                 roles: selectedFilter.roles,
                 status: [
-                    { id: "1", name: "ACTIVE" },
-                    { id: "2", name: "DISABLED" },
-                    { id: "3", name: "INVITED" },
+                    { id: '1', name: 'ACTIVE' },
+                    { id: '2', name: 'DISABLED' },
+                    { id: '3', name: 'INVITED' },
                 ],
             },
         });
@@ -505,16 +504,16 @@ const AccessControlCards = ({
             instituteId,
             selectedFilter: {
                 roles: [
-                    { id: "1", name: "ADMIN" },
-                    { id: "2", name: "COURSE CREATOR" },
-                    { id: "3", name: "ASSESSMENT CREATOR" },
-                    { id: "4", name: "EVALUATOR" },
-                    { id: "5", name: "TEACHER" },
+                    { id: '1', name: 'ADMIN' },
+                    { id: '2', name: 'COURSE CREATOR' },
+                    { id: '3', name: 'ASSESSMENT CREATOR' },
+                    { id: '4', name: 'EVALUATOR' },
+                    { id: '5', name: 'TEACHER' },
                 ],
                 status: [
-                    { id: "1", name: "ACTIVE" },
-                    { id: "2", name: "DISABLED" },
-                    { id: "3", name: "INVITED" },
+                    { id: '1', name: 'ACTIVE' },
+                    { id: '2', name: 'DISABLED' },
+                    { id: '3', name: 'INVITED' },
                 ],
             },
         });
@@ -525,16 +524,16 @@ const AccessControlCards = ({
             instituteId,
             selectedFilter: {
                 roles: [
-                    { id: "1", name: "ADMIN" },
-                    { id: "2", name: "COURSE CREATOR" },
-                    { id: "3", name: "ASSESSMENT CREATOR" },
-                    { id: "4", name: "EVALUATOR" },
-                    { id: "5", name: "TEACHER" },
+                    { id: '1', name: 'ADMIN' },
+                    { id: '2', name: 'COURSE CREATOR' },
+                    { id: '3', name: 'ASSESSMENT CREATOR' },
+                    { id: '4', name: 'EVALUATOR' },
+                    { id: '5', name: 'TEACHER' },
                 ],
                 status: [
-                    { id: "1", name: "ACTIVE" },
-                    { id: "2", name: "DISABLED" },
-                    { id: "3", name: "INVITED" },
+                    { id: '1', name: 'ACTIVE' },
+                    { id: '2', name: 'DISABLED' },
+                    { id: '3', name: 'INVITED' },
                 ],
             },
         });
@@ -553,32 +552,32 @@ const AccessControlCards = ({
         onSuccess: (_, { userId }) => {
             // Remove user from all access control arrays
             form.setValue(
-                "assessment_creation_access",
+                'assessment_creation_access',
                 form
-                    .getValues("assessment_creation_access")
-                    .filter((user) => user.userId !== userId),
+                    .getValues('assessment_creation_access')
+                    .filter((user) => user.userId !== userId)
             );
             form.setValue(
-                "live_assessment_notification",
+                'live_assessment_notification',
                 form
-                    .getValues("live_assessment_notification")
-                    .filter((user) => user.userId !== userId),
+                    .getValues('live_assessment_notification')
+                    .filter((user) => user.userId !== userId)
             );
             form.setValue(
-                "assessment_submission_and_report_access",
+                'assessment_submission_and_report_access',
                 form
-                    .getValues("assessment_submission_and_report_access")
-                    .filter((user) => user.userId !== userId),
+                    .getValues('assessment_submission_and_report_access')
+                    .filter((user) => user.userId !== userId)
             );
             form.setValue(
-                "evaluation_process",
-                form.getValues("evaluation_process").filter((user) => user.userId !== userId),
+                'evaluation_process',
+                form.getValues('evaluation_process').filter((user) => user.userId !== userId)
             );
 
             // Refetch data to update the user list
             handleRefetchData();
-            toast.success("Invitation for this user has been cancelled successfully!", {
-                className: "success-toast",
+            toast.success('Invitation for this user has been cancelled successfully!', {
+                className: 'success-toast',
                 duration: 2000,
             });
         },
@@ -590,7 +589,7 @@ const AccessControlCards = ({
     const handlCancelInviteUser = (userId: string) => {
         handleDisableUserMutation.mutate({
             instituteId,
-            status: "CANCEL",
+            status: 'CANCEL',
             userId: userId,
         });
     };
@@ -618,14 +617,14 @@ const AccessControlCards = ({
     const handleDone = () => {
         // Update the form values with selected users for this specific key
         const selectedUserDetails = existingInstituteUsersData.filter((user) =>
-            selectedUsers.includes(user.userId),
+            selectedUsers.includes(user.userId)
         );
 
         form.setValue(keyVal, selectedUserDetails);
 
         // Close the dialog
         const dialogCloseButton = document.querySelector(
-            "[data-radix-dialog-close]",
+            '[data-radix-dialog-close]'
         ) as HTMLButtonElement;
         if (dialogCloseButton) {
             dialogCloseButton.click();
@@ -636,7 +635,7 @@ const AccessControlCards = ({
     const handleDeleteUserFromList = (userId: string) => {
         form.setValue(
             keyVal,
-            form.getValues(keyVal).filter((user) => user.userId !== userId),
+            form.getValues(keyVal).filter((user) => user.userId !== userId)
         );
     };
 
@@ -644,7 +643,7 @@ const AccessControlCards = ({
         // Update isSelectAllChecked whenever selectedUsers or existingInstituteUsersData changes
         setIsSelectAllChecked(
             existingInstituteUsersData.length > 0 &&
-                existingInstituteUsersData.every((user) => selectedUsers.includes(user.userId)),
+                existingInstituteUsersData.every((user) => selectedUsers.includes(user.userId))
         );
     }, [selectedUsers, existingInstituteUsersData]);
 
@@ -674,9 +673,9 @@ const AccessControlCards = ({
                                         <ScheduleTestFilters
                                             label="Role Type"
                                             data={RoleType}
-                                            selectedItems={selectedFilter["roles"] || []}
+                                            selectedItems={selectedFilter['roles'] || []}
                                             onSelectionChange={(items) =>
-                                                handleFilterChange("roles", items)
+                                                handleFilterChange('roles', items)
                                             }
                                         />
                                         <RoleTypeFilterButtons
@@ -710,7 +709,7 @@ const AccessControlCards = ({
                                                             handleUserSelect(user.userId)
                                                         }
                                                     />
-                                                    {user.status !== "INVITED" && (
+                                                    {user.status !== 'INVITED' && (
                                                         <RoleTypeUserIcon />
                                                     )}
                                                     <div className="flex flex-col gap-2">
@@ -722,15 +721,15 @@ const AccessControlCards = ({
                                                                         key={role.roleId}
                                                                         className={`whitespace-nowrap rounded-lg border border-neutral-300 ${
                                                                             role.roleName ===
-                                                                            "ADMIN"
-                                                                                ? "bg-[#F4F9FF]"
+                                                                            'ADMIN'
+                                                                                ? 'bg-[#F4F9FF]'
                                                                                 : role.roleName ===
-                                                                                    "COURSE CREATOR"
-                                                                                  ? "bg-[#F4FFF9]"
+                                                                                    'COURSE CREATOR'
+                                                                                  ? 'bg-[#F4FFF9]'
                                                                                   : role.roleName ===
-                                                                                      "ASSESSMENT CREATOR"
-                                                                                    ? "bg-[#FFF4F5]"
-                                                                                    : "bg-[#F5F0FF]"
+                                                                                      'ASSESSMENT CREATOR'
+                                                                                    ? 'bg-[#FFF4F5]'
+                                                                                    : 'bg-[#F5F0FF]'
                                                                         } py-1.5 font-thin shadow-none`}
                                                                     >
                                                                         {role.roleName}
@@ -743,7 +742,7 @@ const AccessControlCards = ({
                                                 </div>
 
                                                 {/* Cancel Invitation Dialog */}
-                                                {user.status === "INVITED" && (
+                                                {user.status === 'INVITED' && (
                                                     <Dialog>
                                                         <DialogTrigger className="text-sm font-semibold text-primary-500">
                                                             Cancel Invitation
@@ -777,7 +776,7 @@ const AccessControlCards = ({
                                                                         buttonType="primary"
                                                                         onClick={() =>
                                                                             handlCancelInviteUser(
-                                                                                user.userId,
+                                                                                user.userId
                                                                             )
                                                                         }
                                                                     >
@@ -819,7 +818,7 @@ const AccessControlCards = ({
                                 className="flex items-center justify-between gap-4"
                             >
                                 <div className="flex items-center gap-4">
-                                    {user.status !== "INVITED" && <RoleTypeUserIcon />}
+                                    {user.status !== 'INVITED' && <RoleTypeUserIcon />}
                                     <div className="flex flex-col gap-2">
                                         <div className="flex items-center gap-4">
                                             <p>{user.name}</p>
@@ -830,15 +829,15 @@ const AccessControlCards = ({
                                                             <Badge
                                                                 key={role.roleId}
                                                                 className={`whitespace-nowrap rounded-lg border border-neutral-300 ${
-                                                                    role.roleName === "ADMIN"
-                                                                        ? "bg-[#F4F9FF]"
+                                                                    role.roleName === 'ADMIN'
+                                                                        ? 'bg-[#F4F9FF]'
                                                                         : role.roleName ===
-                                                                            "COURSE CREATOR"
-                                                                          ? "bg-[#F4FFF9]"
+                                                                            'COURSE CREATOR'
+                                                                          ? 'bg-[#F4FFF9]'
                                                                           : role.roleName ===
-                                                                              "ASSESSMENT CREATOR"
-                                                                            ? "bg-[#FFF4F5]"
-                                                                            : "bg-[#F5F0FF]"
+                                                                              'ASSESSMENT CREATOR'
+                                                                            ? 'bg-[#FFF4F5]'
+                                                                            : 'bg-[#F5F0FF]'
                                                                 } py-1.5 font-thin shadow-none`}
                                                             >
                                                                 {role.roleName}

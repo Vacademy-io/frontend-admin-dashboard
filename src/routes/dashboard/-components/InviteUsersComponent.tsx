@@ -1,47 +1,45 @@
-import { MyButton } from "@/components/design-system/button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { FormProvider, useForm } from "react-hook-form";
-import { FormControl, FormField, FormItem } from "@/components/ui/form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { MyInput } from "@/components/design-system/input";
-import MultiSelectDropdown from "@/components/design-system/multiple-select-field";
-import { OPTIONS_LABELS, RoleType } from "@/constants/dummy-data";
-import { getInstituteId } from "@/constants/helper";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
-import { handleInviteUsers } from "../-services/dashboard-services";
-import { useState, useEffect, lazy, Suspense } from "react"; // Added useEffect
-import { useStudyLibraryStore } from "@/stores/study-library/use-study-library-store";
-import SelectField from "@/components/design-system/select-field";
-import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-import { useStudyLibraryQuery } from "@/routes/study-library/courses/-services/getStudyLibraryDetails";
-import { getCourseSubjects } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSubjects"
-import BatchSubjectForm from "./BatchAndSubjectSelection";
-import { Loader, Loader2 } from "lucide-react";
+import { MyButton } from '@/components/design-system/button';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { FormProvider, useForm } from 'react-hook-form';
+import { FormControl, FormField, FormItem } from '@/components/ui/form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { MyInput } from '@/components/design-system/input';
+import MultiSelectDropdown from '@/components/design-system/multiple-select-field';
+import { RoleType } from '@/constants/dummy-data';
+import { getInstituteId } from '@/constants/helper';
+import { useMutation } from '@tanstack/react-query';
+import { handleInviteUsers } from '../-services/dashboard-services';
+import { useState, useEffect, lazy, Suspense } from 'react'; // Added useEffect
+import { Loader2 } from 'lucide-react';
 
 const LazyBatchSubjectForm = lazy(() => import('./BatchAndSubjectSelection'));
 
 export const inviteUsersSchema = z.object({
-    name: z.string().min(1, "Full name is required"),
-    email: z.string().min(1, "Email is required").email("Invalid email format"),
+    name: z.string().min(1, 'Full name is required'),
+    email: z.string().min(1, 'Email is required').email('Invalid email format'),
     roleType: z
         .array(z.string())
-        .min(1, "At least one role type is required")
+        .min(1, 'At least one role type is required')
         .refine(
             (roles) => {
-                if (roles.includes("TEACHER") && roles.length > 1) {
+                if (roles.includes('TEACHER') && roles.length > 1) {
                     return false;
                 }
                 return true;
             },
             {
-                message: "If Teacher is selected, no other roles can be selected",
-            },
+                message: 'If Teacher is selected, no other roles can be selected',
+            }
         ),
-    batch_subject_mappings: z.array(z.object({
-        batchId: z.string(),
-        subjectIds: z.array(z.string())
-    })).optional(),
+    batch_subject_mappings: z
+        .array(
+            z.object({
+                batchId: z.string(),
+                subjectIds: z.array(z.string()),
+            })
+        )
+        .optional(),
 });
 export type inviteUsersFormValues = z.infer<typeof inviteUsersSchema>;
 
@@ -51,24 +49,24 @@ const InviteUsersComponent = ({ refetchData }: { refetchData: () => void }) => {
     const form = useForm<inviteUsersFormValues>({
         resolver: zodResolver(inviteUsersSchema),
         defaultValues: {
-            name: "",
-            email: "",
+            name: '',
+            email: '',
             roleType: [],
             batch_subject_mappings: [],
         },
-        mode: "onChange",
+        mode: 'onChange',
     });
     const { getValues, setValue, watch } = form; // Added setValue and watch
     const isValid =
-        !!getValues("name") &&
-        !!getValues("email") &&
-        (getValues("roleType").length > 0 ? true : false);
+        !!getValues('name') &&
+        !!getValues('email') &&
+        (getValues('roleType').length > 0 ? true : false);
 
-    const selectedRoles = watch("roleType"); // Watch roleType for changes
+    const selectedRoles = watch('roleType'); // Watch roleType for changes
 
     useEffect(() => {
-        if (selectedRoles && selectedRoles.includes("TEACHER") && selectedRoles.length > 1) {
-            setValue("roleType", ["TEACHER"], { shouldValidate: true });
+        if (selectedRoles && selectedRoles.includes('TEACHER') && selectedRoles.length > 1) {
+            setValue('roleType', ['TEACHER'], { shouldValidate: true });
         }
     }, [selectedRoles, setValue]);
 
@@ -91,16 +89,16 @@ const InviteUsersComponent = ({ refetchData }: { refetchData: () => void }) => {
     });
 
     const checkIsTeacherValid = () => {
-        const selectedRoles = watch("roleType"); // Watch roleType for changes
-        if (selectedRoles && selectedRoles.includes("TEACHER")) {
-            const batch = form.watch("batch_subject_mappings");
+        const selectedRoles = watch('roleType'); // Watch roleType for changes
+        if (selectedRoles && selectedRoles.includes('TEACHER')) {
+            const batch = form.watch('batch_subject_mappings');
             if (!batch || batch.length === 0) {
                 return false;
             }
             return true;
         }
         return true;
-    }
+    };
 
     function onSubmit(values: inviteUsersFormValues) {
         // console.log(values)
@@ -117,7 +115,7 @@ const InviteUsersComponent = ({ refetchData }: { refetchData: () => void }) => {
                     Invite Users
                 </MyButton>
             </DialogTrigger>
-            <DialogContent className="flex w-[420px] max-h-[600px] flex-col p-0 overflow-y-scroll">
+            <DialogContent className="flex max-h-[600px] w-[420px] flex-col overflow-y-scroll p-0">
                 <h1 className="rounded-t-md bg-primary-50 p-4 font-semibold text-primary-500">
                     Invite User
                 </h1>
@@ -181,10 +179,14 @@ const InviteUsersComponent = ({ refetchData }: { refetchData: () => void }) => {
                             required
                         />
                         {/* Conditional fields for Teacher */}
-                        {selectedRoles?.includes("TEACHER") && (
-                            <Suspense fallback={<div className="flex justify-center w-full py-4">
-                                <Loader2 className="size-6 text-primary-500 animate-spin" />
-                            </div>}>
+                        {selectedRoles?.includes('TEACHER') && (
+                            <Suspense
+                                fallback={
+                                    <div className="flex w-full justify-center py-4">
+                                        <Loader2 className="size-6 animate-spin text-primary-500" />
+                                    </div>
+                                }
+                            >
                                 <LazyBatchSubjectForm />
                             </Suspense>
                         )}

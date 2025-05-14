@@ -191,7 +191,7 @@ export const CreateInviteDialog = ({
     });
     return (
         <MyDialog
-            heading="Invite Students"
+            heading="Invite Learner"
             footer={submitButton}
             trigger={triggerButton}
             dialogWidth="w-[60vw]"

@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CaretDown, CaretUp, Check } from "phosphor-react";
-import { Badge } from "../ui/badge";
-import { FormControl, FormField, FormItem, FormLabel } from "../ui/form";
-import { type Control } from "react-hook-form";
-import { cn } from "@/lib/utils";
+import { useEffect, useState } from 'react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CaretDown, CaretUp, Check } from 'phosphor-react';
+import { Badge } from '../ui/badge';
+import { FormControl, FormField, FormItem, FormLabel } from '../ui/form';
+import { type Control } from 'react-hook-form';
+import { cn } from '@/lib/utils';
 
 interface Options {
     _id: string | number;
@@ -42,19 +42,25 @@ export default function MultiSelectDropdown({
 
     const toggleSelection = (value: string | number) => {
         setSelectedOptions((prev) =>
-            prev.includes(value) ? prev.filter((item) => item !== value) : [...prev, value],
+            prev.includes(value) ? prev.filter((item) => item !== value) : [...prev, value]
         );
-        setTags(selectedOptions.map((option) => options.find((opt) => opt.value === option)?.label));
+        setTags(
+            selectedOptions.map((option) => options.find((opt) => opt.value === option)?.label)
+        );
     };
 
     useEffect(() => {
         form.setValue(name, selectedOptions);
-        setTags(selectedOptions.map((option) => options.find((opt) => opt.value === option)?.label));
+        setTags(
+            selectedOptions.map((option) => options.find((opt) => opt.value === option)?.label)
+        );
     }, [selectedOptions]);
 
     useEffect(() => {
         setSelectedOptions(form.getValues(name));
-        setTags(selectedOptions.map((option) => options.find((opt) => opt.value === option)?.label));
+        setTags(
+            selectedOptions.map((option) => options.find((opt) => opt.value === option)?.label)
+        );
     }, []);
     return (
         <>
@@ -69,7 +75,7 @@ export default function MultiSelectDropdown({
 
                     return (
                         <div>
-                            <FormItem className={cn("w-44", className)}>
+                            <FormItem className={cn('w-44', className)}>
                                 <FormLabel className={labelStyle}>
                                     {label}
                                     {required && <span className="text-red-500">*</span>}

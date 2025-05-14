@@ -2,7 +2,8 @@ import { z } from "zod";
 import {
     FormValuesStep1Signup,
     organizationDetailsSignupStep1,
-} from "../onboarding/-components/Step2AddOrgDetails";
+} from "../onboarding/-components/Step3AddOrgDetails";
+import formDataToRequestData from "@/routes/manage-students/invite/-utils/formDataToRequestData";
 
 export const convertedSignupData = ({
     searchParams,
@@ -41,7 +42,7 @@ export const convertedSignupData = ({
             email: "",
             website_url: "",
             institute_logo_file_id: formData.instituteProfilePic,
-            institute_theme_code: "",
+            institute_theme_code: formData.instituteThemeCode,
             language: "",
             description: "",
             type: formData.instituteType,

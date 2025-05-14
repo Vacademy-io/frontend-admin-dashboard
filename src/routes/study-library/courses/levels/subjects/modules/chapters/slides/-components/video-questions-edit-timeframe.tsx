@@ -1,68 +1,121 @@
-import { MyButton } from "@/components/design-system/button";
-import { Dialog, DialogClose, DialogContent } from "@/components/ui/dialog";
-import { FormProvider, UseFormReturn } from "react-hook-form";
-import { FormControl, FormField, FormItem } from "@/components/ui/form";
-import { MyInput } from "@/components/design-system/input";
-import { MutableRefObject, useEffect, useRef, useState } from "react";
-import { UploadQuestionPaperFormType } from "@/routes/assessment/question-papers/-components/QuestionPaperUpload";
-import { VideoPlayerTimeFormType } from "../-form-schemas/video-player-time-schema";
-import { PencilSimpleLine } from "phosphor-react";
-import { StudyLibraryQuestion } from "@/types/study-library/study-library-video-questions";
-import { toast } from "sonner";
-import { timestampToSeconds } from "../-helper/helper";
+import { MyButton } from '@/components/design-system/button';
+import { Dialog, DialogClose, DialogContent } from '@/components/ui/dialog';
+import { FormProvider, useForm } from 'react-hook-form';
+import { FormControl, FormField, FormItem } from '@/components/ui/form';
+import { MyInput } from '@/components/design-system/input';
+import { MutableRefObject, useEffect, useRef, useState } from 'react';
+import { UploadQuestionPaperFormType } from '@/routes/assessment/question-papers/-components/QuestionPaperUpload';
+import {
+    VideoPlayerTimeFormType,
+    videoPlayerTimeSchema,
+} from '../-form-schemas/video-player-time-schema';
+import { PencilSimpleLine } from 'phosphor-react';
+import { StudyLibraryQuestion } from '@/types/study-library/study-library-video-questions';
+import { toast } from 'sonner';
+import { formatTimeStudyLibraryInSeconds, timestampToSeconds } from '../-helper/helper';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { YTPlayer } from './youtube-player';
+import { useContentStore } from '../-stores/chapter-sidebar-store';
 
 interface VideoQuestionsTimeFrameDialogProps {
-    form: UseFormReturn<VideoPlayerTimeFormType>;
+    playerRef: MutableRefObject<YTPlayer | null>;
     formRefData: MutableRefObject<UploadQuestionPaperFormType>;
-    handleSetCurrentTimeStamp: () => void;
     question?: StudyLibraryQuestion;
     videoDuration: number;
 }
 
 const VideoQuestionsTimeFrameEditDialog = ({
-    form,
+    playerRef,
     formRefData,
-    handleSetCurrentTimeStamp,
     question,
     videoDuration,
 }: VideoQuestionsTimeFrameDialogProps) => {
+    const tempEditQuestionTimeFrameForm = useForm<VideoPlayerTimeFormType>({
+        resolver: zodResolver(videoPlayerTimeSchema),
+        defaultValues: {
+            hrs: question?.timestamp?.split(':')[0],
+            min: question?.timestamp?.split(':')[1],
+            sec: question?.timestamp?.split(':')[2],
+        },
+    });
+    const { activeItem, setActiveItem } = useContentStore();
     const closeRef = useRef<HTMLButtonElement | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const { hrs, min, sec } = form.watch();
+    const { hrs, min, sec } = tempEditQuestionTimeFrameForm.watch();
     const isButtonDisabled = !hrs && !min && !sec;
 
     const handleEditTimeStampCurrentQuestion = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         const timestamp = timestampToSeconds(
-            `${form.getValues("hrs")}:${form.getValues("min")}:${form.getValues("sec")}`,
+            `${tempEditQuestionTimeFrameForm.getValues('hrs')}:${tempEditQuestionTimeFrameForm.getValues('min')}:${tempEditQuestionTimeFrameForm.getValues('sec')}`
         );
         if (timestamp === null || timestamp < 0 || timestamp > videoDuration) {
             toast.error(
-                "Invalid timestamp. Please enter a valid time in MM:SS format or seconds also current timestamp should be less than video length",
+                'Invalid timestamp. Please enter a valid time in MM:SS format or seconds also current timestamp should be less than video length',
                 {
-                    className: "error-toast",
+                    className: 'error-toast',
                     duration: 3000,
-                },
+                }
             );
             return;
         }
         const currentQuestionIndex = formRefData.current.questions.findIndex(
-            (q) => q.questionId === question?.questionId,
+            (q) => q.questionId === question?.questionId
         );
         const currentQuestion = formRefData.current.questions[currentQuestionIndex];
 
         if (!currentQuestion) return;
         currentQuestion.timestamp =
-            form.getValues("hrs") + ":" + form.getValues("min") + ":" + form.getValues("sec");
+            tempEditQuestionTimeFrameForm.getValues('hrs') +
+            ':' +
+            tempEditQuestionTimeFrameForm.getValues('min') +
+            ':' +
+            tempEditQuestionTimeFrameForm.getValues('sec');
+
+        const updatedQuestions = activeItem?.video_slide?.questions?.map((q) =>
+            q.id === question?.questionId ? { ...q, timestamp: currentQuestion.timestamp } : q
+        );
+
+        setActiveItem({
+            ...activeItem,
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            video_slide: {
+                ...activeItem?.video_slide,
+                questions: updatedQuestions || [],
+            },
+        });
+
         closeRef.current?.click();
+    };
+
+    const handleSetCurrentTimeStampEditForm = () => {
+        if (!playerRef.current) return;
+        const timestamp = formatTimeStudyLibraryInSeconds(playerRef.current.getCurrentTime());
+
+        // Handle HH:MM:SS or MM:SS format
+        const parts = timestamp.split(':');
+
+        if (parts.length === 3) {
+            // HH:MM:SS format
+            const hrs = String(parseInt(parts[0] as string, 10));
+            const min = String(parseInt(parts[1] as string, 10));
+            const sec = String(parseInt(parts[2] as string, 10));
+            tempEditQuestionTimeFrameForm.reset({ hrs, min, sec });
+        } else if (parts.length === 2) {
+            // MM:SS format
+            const min = String(parseInt(parts[0] as string, 10));
+            const sec = String(parseInt(parts[1] as string, 10));
+            tempEditQuestionTimeFrameForm.reset({ hrs: '0', min, sec });
+        }
     };
 
     useEffect(() => {
         if (question && question.timestamp) {
-            form.reset({
-                hrs: question?.timestamp.split(":")[0],
-                min: question?.timestamp.split(":")[1],
-                sec: question?.timestamp.split(":")[2],
+            tempEditQuestionTimeFrameForm.reset({
+                hrs: question?.timestamp.split(':')[0],
+                min: question?.timestamp.split(':')[1],
+                sec: question?.timestamp.split(':')[2],
             });
         }
     }, []);
@@ -87,11 +140,11 @@ const VideoQuestionsTimeFrameEditDialog = ({
                 <h1 className="rounded-t-lg bg-primary-50 p-4 font-semibold text-primary-500">
                     Time Stamp
                 </h1>
-                <FormProvider {...form}>
+                <FormProvider {...tempEditQuestionTimeFrameForm}>
                     <form className="flex flex-col items-center gap-2 p-4">
                         <div className="flex items-center gap-4 p-4">
                             <FormField
-                                control={form.control}
+                                control={tempEditQuestionTimeFrameForm.control}
                                 name={`hrs`}
                                 render={({ field: { ...field } }) => (
                                     <FormItem>
@@ -109,7 +162,7 @@ const VideoQuestionsTimeFrameEditDialog = ({
                                                 onChangeFunction={(e) => {
                                                     const inputValue = e.target.value.replace(
                                                         /[^0-9]/g,
-                                                        "",
+                                                        ''
                                                     ); // Remove non-numeric characters
                                                     field.onChange(inputValue); // Call onChange with the sanitized value
                                                 }}
@@ -124,7 +177,7 @@ const VideoQuestionsTimeFrameEditDialog = ({
                             <span>hrs</span>
                             <span>:</span>
                             <FormField
-                                control={form.control}
+                                control={tempEditQuestionTimeFrameForm.control}
                                 name={`min`}
                                 render={({ field: { ...field } }) => (
                                     <FormItem>
@@ -142,7 +195,7 @@ const VideoQuestionsTimeFrameEditDialog = ({
                                                 onChangeFunction={(e) => {
                                                     const inputValue = e.target.value.replace(
                                                         /[^0-9]/g,
-                                                        "",
+                                                        ''
                                                     ); // Remove non-numeric characters
                                                     field.onChange(inputValue); // Call onChange with the sanitized value
                                                 }}
@@ -157,7 +210,7 @@ const VideoQuestionsTimeFrameEditDialog = ({
                             <span>min</span>
                             <span>:</span>
                             <FormField
-                                control={form.control}
+                                control={tempEditQuestionTimeFrameForm.control}
                                 name={`sec`}
                                 render={({ field: { ...field } }) => (
                                     <FormItem>
@@ -175,7 +228,7 @@ const VideoQuestionsTimeFrameEditDialog = ({
                                                 onChangeFunction={(e) => {
                                                     const inputValue = e.target.value.replace(
                                                         /[^0-9]/g,
-                                                        "",
+                                                        ''
                                                     ); // Remove non-numeric characters
                                                     field.onChange(inputValue); // Call onChange with the sanitized value
                                                 }}
@@ -196,7 +249,7 @@ const VideoQuestionsTimeFrameEditDialog = ({
                                 className="ml-8"
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    handleSetCurrentTimeStamp();
+                                    handleSetCurrentTimeStampEditForm();
                                 }}
                             >
                                 Use Current Position

@@ -49,7 +49,7 @@ export const myAssessmentColumns: ColumnDef<StudentTable>[] = [
                         }}
                     >
                         <button className="flex w-full cursor-pointer items-center justify-between">
-                            <div>Student Name</div>
+                            <div>Learner Name</div>
                             <div>
                                 <CaretUp />
                                 <CaretDown />
