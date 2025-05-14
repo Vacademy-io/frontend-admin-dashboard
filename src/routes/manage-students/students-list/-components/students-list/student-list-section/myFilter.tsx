@@ -1,16 +1,55 @@
 import { FilterChips } from '@/components/design-system/chips';
-import { FilterProps } from '@/routes/manage-students/students-list/-types/students-list-types';
-import { useEffect } from 'react';
-import { useStudentFiltersContext } from '../../../-context/StudentFiltersContext';
+import {
+    FilterId,
+    FilterProps,
+} from '@/routes/manage-students/students-list/-types/students-list-types';
+import { useEffect, useState } from 'react';
 
-export const Filters = ({ filterDetails, onFilterChange, clearFilters, id }: FilterProps) => {
-    const { selectedFilterList, setSelectedFilterList } = useStudentFiltersContext();
+type SelectedFilterListType = Record<FilterId, { id: string; label: string }[]>;
 
-    const handleSelect = (option: { id: string; label: string }) => {
+export const Filters = ({
+    filterDetails,
+    onFilterChange,
+    clearFilters,
+    id,
+    columnFilters,
+}: FilterProps) => {
+    const [selectedFilterList, setSelectedFilterList] = useState<SelectedFilterListType>({
+        session: [],
+        batch: [],
+        statuses: [],
+        gender: [],
+        session_expiry_days: [],
+    });
+
+    const handleSelectDeSelect = (option: { id: string; label: string }) => {
+        let updatedValue: { id: string; label: string }[] = [];
+        const existingFilter = columnFilters?.find((filter) => filter.id === id);
+
+        if (existingFilter) {
+            const alreadyExists = existingFilter.value.some((filter) => filter.id === option.id);
+            if (alreadyExists) {
+                // Remove the option if it exists
+                updatedValue = existingFilter.value.filter((filter) => filter.id !== option.id);
+            } else {
+                // Add the option if it doesn't exist
+                updatedValue = [...existingFilter.value, option];
+            }
+        } else {
+            // If no filter exists for this ID, create a new one with just this option
+            updatedValue = [option];
+        }
+
+        // Update the local state
         setSelectedFilterList((prev) => ({
             ...prev,
-            [id]: [...prev[id], option],
+            [id]: updatedValue,
         }));
+
+        // Notify parent component of the change
+        if (onFilterChange) {
+            onFilterChange(updatedValue);
+        }
     };
 
     const handleClearFilters = () => {
@@ -18,6 +57,10 @@ export const Filters = ({ filterDetails, onFilterChange, clearFilters, id }: Fil
             ...prev,
             [id]: [],
         }));
+
+        if (onFilterChange) {
+            onFilterChange([]);
+        }
     };
 
     useEffect(() => {
@@ -32,7 +75,6 @@ export const Filters = ({ filterDetails, onFilterChange, clearFilters, id }: Fil
             } else {
                 onFilterChange(selectedFilterList[id]);
             }
-            // This block is duplicated and can be removed
         }
     }, [selectedFilterList[id], filterDetails.label]);
 
@@ -42,7 +84,7 @@ export const Filters = ({ filterDetails, onFilterChange, clearFilters, id }: Fil
             filterList={filterDetails.filters}
             selectedFilters={selectedFilterList[id]}
             clearFilters={clearFilters}
-            handleSelect={handleSelect}
+            handleSelect={handleSelectDeSelect}
             handleClearFilters={handleClearFilters}
         />
     );

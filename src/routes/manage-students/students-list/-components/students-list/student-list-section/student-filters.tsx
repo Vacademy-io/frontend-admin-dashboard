@@ -14,7 +14,6 @@ import { useAddSession } from '@/services/study-library/session-management/addSe
 import { AddSessionDataType } from '@/routes/manage-institute/sessions/-components/session-operations/add-session/add-session-form';
 import { toast } from 'sonner';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
-import { StudentFiltersProvider } from '../../../-context/StudentFiltersContext';
 
 export const StudentFilters = ({
     currentSession,
@@ -175,23 +174,22 @@ export const StudentFilters = ({
                         onSearchEnter={onSearchEnter}
                         onClearSearch={onClearSearch}
                     />
-                    <StudentFiltersProvider>
-                        {filters.map((filter) => (
-                            <Filters
-                                key={filter.id}
-                                filterDetails={{
-                                    label: filter.title,
-                                    filters: filter.filterList.map((filter) => ({
-                                        id: filter.id,
-                                        label: filter.label,
-                                    })),
-                                }}
-                                onFilterChange={(values) => onFilterChange(filter.id, values)}
-                                clearFilters={clearFilters}
-                                id={filter.id}
-                            />
-                        ))}
-                    </StudentFiltersProvider>
+                    {filters.map((filter) => (
+                        <Filters
+                            key={filter.id}
+                            filterDetails={{
+                                label: filter.title,
+                                filters: filter.filterList.map((filter) => ({
+                                    id: filter.id,
+                                    label: filter.label,
+                                })),
+                            }}
+                            onFilterChange={(values) => onFilterChange(filter.id, values)}
+                            clearFilters={clearFilters}
+                            id={filter.id}
+                            columnFilters={columnFilters}
+                        />
+                    ))}
 
                     {(columnFilters.length > 0 || isFilterActive) && (
                         <div className="flex flex-wrap items-center gap-6">

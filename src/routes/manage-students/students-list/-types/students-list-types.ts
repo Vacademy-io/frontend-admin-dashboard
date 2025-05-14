@@ -15,6 +15,8 @@ export interface FilterProps {
     onFilterChange?: (values: { id: string; label: string }[]) => void;
     clearFilters?: boolean;
     id: FilterId;
+    columnFilters?: { id: string; value: { id: string; label: string }[] }[];
+    setColumnFilters?: (values: { id: string; value: { id: string; label: string }[] }[]) => void;
 }
 
 export type FilterId = 'session' | 'batch' | 'statuses' | 'gender' | 'session_expiry_days';
