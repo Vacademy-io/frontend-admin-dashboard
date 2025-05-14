@@ -235,8 +235,9 @@ export function convertStudyLibraryQuestion(question: MyQuestion) {
             },
         }));
     } else if (question?.questionType === QuestionType.TRUE_FALSE) {
-        options = question?.trueFalseOptions?.map((opt) => ({
+        options = question?.trueFalseOptions?.map((opt, idx) => ({
             id: opt.id, // Assuming no direct mapping for option ID
+            preview_id: idx, // Using index as preview_id
             text: {
                 id: null, // Assuming no direct mapping for option text ID
                 type: 'HTML', // Assuming option content is HTML
@@ -249,8 +250,9 @@ export function convertStudyLibraryQuestion(question: MyQuestion) {
             },
         }));
     } else if (question?.questionType === QuestionType.MCQM) {
-        options = question?.multipleChoiceOptions?.map((opt) => ({
+        options = question?.multipleChoiceOptions?.map((opt, idx) => ({
             id: opt.id, // Assuming no direct mapping for option ID
+            preview_id: idx, // Using index as preview_id
             text: {
                 id: null, // Assuming no direct mapping for option text ID
                 type: 'HTML', // Assuming option content is HTML
@@ -263,8 +265,9 @@ export function convertStudyLibraryQuestion(question: MyQuestion) {
             },
         }));
     } else if (question?.questionType === QuestionType.CMCQS) {
-        options = question?.csingleChoiceOptions?.map((opt) => ({
+        options = question?.csingleChoiceOptions?.map((opt, idx) => ({
             id: opt.id, // Assuming no direct mapping for option ID
+            preview_id: idx, // Using index as preview_id
             text: {
                 id: null, // Assuming no direct mapping for option text ID
                 type: 'HTML', // Assuming option content is HTML
@@ -277,8 +280,9 @@ export function convertStudyLibraryQuestion(question: MyQuestion) {
             },
         }));
     } else if (question?.questionType === QuestionType.CMCQM) {
-        options = question?.cmultipleChoiceOptions?.map((opt) => ({
+        options = question?.cmultipleChoiceOptions?.map((opt, idx) => ({
             id: opt.id, // Assuming no direct mapping for option ID
+            preview_id: idx, // Using index as preview_id
             text: {
                 id: null, // Assuming no direct mapping for option text ID
                 type: 'HTML', // Assuming option content is HTML
@@ -339,8 +343,9 @@ export function convertStudyLibraryQuestion(question: MyQuestion) {
         question_time_in_millis: timestampToSeconds(question.timestamp) * 1000,
         question_order: 0,
         status: 'ACTIVE',
-        options: options?.map((opt) => ({
+        options: options?.map((opt, idx) => ({
             id: opt.id || null,
+            preview_id: opt.id || idx,
             text: generateTextBlock(opt.text.content),
             explanationTextData: generateTextBlock(opt.explanation_text.content),
             mediaId: '',
