@@ -1,4 +1,4 @@
-import { Icon } from "@phosphor-icons/react";
+import { Icon } from '@phosphor-icons/react';
 
 // Chips Types
 export interface ChipsWrapperProps {
@@ -20,12 +20,12 @@ export interface InputChipsProps extends ChipsProps {}
 
 export interface FilterChipsProps {
     label: string;
-    filterList: (string | number)[];
-    selectedFilters: string[];
-    setSelectedFilters?: React.Dispatch<React.SetStateAction<string[]>>;
+    filterList: { id: string; label: string }[];
+    selectedFilters: { id: string; label: string }[];
+    setSelectedFilters?: React.Dispatch<React.SetStateAction<{ id: string; label: string }[]>>;
     disabled?: boolean;
     clearFilters?: boolean;
-    handleSelect?: (option: string | number) => void;
+    handleSelect?: (option: { id: string; label: string }) => void;
     handleClearFilters?: () => void;
 }
 
@@ -36,14 +36,14 @@ export interface FilterChipsProps {
 
 // Status Types
 export type ActivityStatus =
-    | "active"
-    | "inactive"
-    | "pending"
-    | "error"
-    | "PENDING"
-    | "LIVE"
-    | "ENDED"
-    | "Attempted"
-    | "Not Attempted"
-    | "evaluated"
-    | "evaluating";
+    | 'active'
+    | 'inactive'
+    | 'pending'
+    | 'error'
+    | 'PENDING'
+    | 'LIVE'
+    | 'ENDED'
+    | 'Attempted'
+    | 'Not Attempted'
+    | 'evaluated'
+    | 'evaluating';

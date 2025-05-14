@@ -1,37 +1,50 @@
 import { FilterConfig } from '@/routes/manage-students/students-list/-types/students-list-types';
-import {
-    useGetBatchNames,
-    useGetSessionExpiry,
-} from '@/routes/manage-students/students-list/-hooks/useFilters';
-import { useGetStatuses } from '@/routes/manage-students/students-list/-hooks/useFilters';
-import { useGetGenders } from '@/routes/manage-students/students-list/-hooks/useFilters';
+import { InstituteDetailsType } from '@/schemas/student/student-list/institute-schema';
 
-export const GetFilterData = (currentSession?: string) => {
-    const batchNames = useGetBatchNames(currentSession);
-    const statuses = useGetStatuses();
-    const genders = useGetGenders();
-    const sessionExpiry = useGetSessionExpiry();
+export const GetFilterData = (instituteDetails: InstituteDetailsType, currentSession: string) => {
+    const batches = instituteDetails?.batches_for_sessions.filter(
+        (batch) => batch.session.id === currentSession
+    );
+    const batchFilterList = batches?.map((batch) => ({
+        id: batch.id,
+        label: batch.level.level_name + ' ' + batch.package_dto.package_name,
+    }));
+
+    const statuses = instituteDetails?.student_statuses.map((status) => ({
+        id: crypto.randomUUID(),
+        label: status,
+    }));
+
+    const genders = instituteDetails?.genders.map((gender) => ({
+        id: crypto.randomUUID(),
+        label: gender,
+    }));
+
+    const sessionExpiry = instituteDetails?.session_expiry_days.map((days) => ({
+        id: crypto.randomUUID(),
+        label: `Expiring in ${days} days`,
+    }));
 
     const filterData: FilterConfig[] = [
         {
             id: 'batch',
             title: 'Batch',
-            filterList: batchNames,
+            filterList: batchFilterList || [],
         },
         {
             id: 'statuses',
             title: 'Status',
-            filterList: statuses,
+            filterList: statuses || [],
         },
         {
             id: 'gender',
             title: 'Gender',
-            filterList: genders,
+            filterList: genders || [],
         },
         {
             id: 'session_expiry_days',
             title: 'Session Expiry',
-            filterList: sessionExpiry.map((days) => `Expiring in ${days} days`),
+            filterList: sessionExpiry || [],
         },
     ];
     return filterData;
