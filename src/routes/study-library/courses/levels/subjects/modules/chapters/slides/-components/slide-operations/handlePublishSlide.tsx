@@ -7,7 +7,7 @@ import {
     VideoSlidePayload,
 } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides';
 import { SlideQuestionsDataInterface } from '@/types/study-library/study-library-slides-type';
-import { converDataToVideoFormat } from '../../-helper/helper';
+import { converDataToVideoFormat, convertToQuestionBackendSlideFormat } from '../../-helper/helper';
 
 type SlideResponse = {
     id: string;
@@ -37,12 +37,16 @@ export const handlePublishSlide = async (
 ) => {
     const status = 'PUBLISHED';
     if (activeItem?.source_type === 'QUESTION') {
-        // const questionsData: UploadQuestionPaperFormType = JSON.parse('');
-        // need to add my question logic
-        // const convertedData = convertToSlideFormat(questionsData, status);
-        // console.log(convertedData);
+        const convertedData = convertToQuestionBackendSlideFormat({
+            activeItem,
+            status,
+            notify,
+            newSlide: false,
+        });
         try {
-            // await updateQuestionOrder(convertedData!);
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            await updateQuestionOrder(convertedData!);
         } catch {
             toast.error('error saving slide');
         }

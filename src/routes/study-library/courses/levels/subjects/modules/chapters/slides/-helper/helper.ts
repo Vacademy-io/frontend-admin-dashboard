@@ -538,6 +538,38 @@ export function convertToQuestionSlideFormat(question: MyQuestion) {
     };
 }
 
+export function convertToQuestionBackendSlideFormat({
+    activeItem,
+    status,
+    notify,
+    newSlide,
+}: {
+    activeItem: Slide;
+    status: string;
+    notify: boolean;
+    newSlide: boolean;
+}) {
+    return {
+        id: activeItem?.id || '',
+        title: activeItem?.title || '',
+        description: activeItem?.description || '',
+        image_file_id: activeItem?.image_file_id || '',
+        source_id: activeItem?.video_slide?.id || '',
+        source_type: activeItem?.source_type || '',
+        status: status,
+        slide_order: 0,
+        video_slide: null,
+        document_slide: null,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        question_slide: convertToQuestionSlideFormat(activeItem.question_slide),
+        assignment_slide: null,
+        is_loaded: true,
+        new_slide: newSlide,
+        notify,
+    };
+}
+
 export function timestampToSeconds(timestamp: string | undefined): number {
     if (!timestamp) return 0;
     const [hours = 0, minutes = 0, seconds = 0] = timestamp.split(':').map(Number);

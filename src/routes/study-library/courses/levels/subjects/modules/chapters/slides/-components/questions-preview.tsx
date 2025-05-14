@@ -7,7 +7,6 @@ import { QuestionType } from '@/constants/dummy-data';
 import { useEffect, useState } from 'react';
 import { Slide } from '../-hooks/use-slides';
 import { useContentStore } from '../-stores/chapter-sidebar-store';
-import { updateDocumentDataInSlides } from '../-helper/helper';
 
 export const StudyLibraryQuestionsPreview = ({ activeItem }: { activeItem: Slide }) => {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -37,18 +36,19 @@ export const StudyLibraryQuestionsPreview = ({ activeItem }: { activeItem: Slide
     useEffect(() => {
         const subscription = watch((_, { name }) => {
             if (name?.startsWith('questions')) {
-                const modifiedItems = updateDocumentDataInSlides(
-                    items,
-                    activeItem,
-                    form.getValues(),
-                    setActiveItem
-                );
-                setItems(modifiedItems);
+                setActiveItem({
+                    ...activeItem,
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-expect-error
+                    question_slide: form.getValues(`questions.${currentQuestionIndex}`),
+                });
             }
         });
 
         return () => subscription.unsubscribe(); // cleanup
     }, [watch, items, activeItem, form, setItems]);
+
+    console.log(activeItem);
 
     return (
         <div key={`question-${activeItem.id}`} className="size-full">
