@@ -1,21 +1,21 @@
-import { MyButton } from "@/components/design-system/button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { FormProvider, useForm } from "react-hook-form";
-import { FormControl, FormField, FormItem } from "@/components/ui/form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { MyInput } from "@/components/design-system/input";
-import MultiSelectDropdown from "@/components/design-system/multiple-select-field";
-import { RoleType } from "@/constants/dummy-data";
-import { getInstituteId } from "@/constants/helper";
-import { useMutation } from "@tanstack/react-query";
-import { handleInviteUsers } from "../-services/dashboard-services";
-import { useState } from "react";
+import { MyButton } from '@/components/design-system/button';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { FormProvider, useForm } from 'react-hook-form';
+import { FormControl, FormField, FormItem } from '@/components/ui/form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { MyInput } from '@/components/design-system/input';
+import MultiSelectDropdown from '@/components/design-system/multiple-select-field';
+import { RoleType } from '@/constants/dummy-data';
+import { getInstituteId } from '@/constants/helper';
+import { useMutation } from '@tanstack/react-query';
+import { handleInviteUsers } from '../-services/dashboard-services';
+import { useState } from 'react';
 
 export const inviteUsersSchema = z.object({
-    name: z.string().min(1, "Full name is required"),
-    email: z.string().min(1, "Email is required").email("Invalid email format"),
-    roleType: z.array(z.string()).min(1, "At least one role type is required"),
+    name: z.string().min(1, 'Full name is required'),
+    email: z.string().min(1, 'Email is required').email('Invalid email format'),
+    roleType: z.array(z.string()).min(1, 'At least one role type is required'),
 });
 export type inviteUsersFormValues = z.infer<typeof inviteUsersSchema>;
 
@@ -25,19 +25,19 @@ const InviteUsersComponent = ({ refetchData }: { refetchData: () => void }) => {
     const form = useForm<inviteUsersFormValues>({
         resolver: zodResolver(inviteUsersSchema),
         defaultValues: {
-            name: "",
-            email: "",
+            name: '',
+            email: '',
             roleType: [],
         },
-        mode: "onChange",
+        mode: 'onChange',
     });
     const { getValues } = form;
     const isValid =
-        !!getValues("name") &&
-        !!getValues("email") &&
-        (getValues("roleType").length > 0 ? true : false);
+        !!getValues('name') &&
+        !!getValues('email') &&
+        (getValues('roleType').length > 0 ? true : false);
 
-    form.watch("roleType");
+    form.watch('roleType');
 
     const handleInviteUsersMutation = useMutation({
         mutationFn: ({

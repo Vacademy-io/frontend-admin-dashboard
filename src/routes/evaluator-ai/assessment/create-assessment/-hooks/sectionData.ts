@@ -1,4 +1,4 @@
-import { create } from "zustand";
+import { create } from 'zustand';
 
 export type Criteria = {
     name: string;
@@ -85,7 +85,7 @@ export const useAdaptiveMarkingStore = create<AdaptiveMarkingState>((set, get) =
                     ...sectionQuestions[questionIndex],
                     // @ts-expect-error : //FIXME this error
                     criteria: sectionQuestions[questionIndex].criteria?.filter(
-                        (c) => c.name !== criteriaName,
+                        (c) => c.name !== criteriaName
                     ),
                 };
             }
@@ -130,7 +130,7 @@ export const useAdaptiveMarkingStore = create<AdaptiveMarkingState>((set, get) =
 
     getQuestionMark: (sectionIndex, questionIndex) => {
         const state = get();
-        return state.sections[sectionIndex]?.[questionIndex]?.questionMark || "";
+        return state.sections[sectionIndex]?.[questionIndex]?.questionMark || '';
     },
 
     getQuestionCriteria: (sectionIndex, questionIndex) => {

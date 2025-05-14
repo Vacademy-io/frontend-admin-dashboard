@@ -4,6 +4,7 @@ import { useInstituteDetailsStore } from "@/stores/students/students-list/useIns
 import { INIT_INSTITUTE } from "@/constants/urls";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { TokenKey } from "@/constants/auth/tokens";
+import { useTheme } from "@/providers/theme/theme-provider";
 
 const fetchInstituteDetails = async (): Promise<InstituteDetailsType> => {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
@@ -18,11 +19,13 @@ const fetchInstituteDetails = async (): Promise<InstituteDetailsType> => {
 
 export const useInstituteQuery = () => {
     const setInstituteDetails = useInstituteDetailsStore((state) => state.setInstituteDetails);
+       const { setPrimaryColor } = useTheme()
 
     return {
         queryKey: ["GET_INIT_INSTITUTE"],
         queryFn: async () => {
             const data = await fetchInstituteDetails();
+            setPrimaryColor(data?.institute_theme_code || "#a864e8");
             setInstituteDetails(data);
             return data;
         },

@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CaretDown, CaretUp, Check } from "phosphor-react";
-import { Badge } from "../ui/badge";
-import { FormControl, FormField, FormItem, FormLabel } from "../ui/form";
-import { type Control } from "react-hook-form";
-import { cn } from "@/lib/utils";
+import { useEffect, useState } from 'react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CaretDown, CaretUp, Check } from 'phosphor-react';
+import { Badge } from '../ui/badge';
+import { FormControl, FormField, FormItem, FormLabel } from '../ui/form';
+import { type Control } from 'react-hook-form';
+import { cn } from '@/lib/utils';
 
 interface Options {
     _id: string | number;
@@ -34,23 +34,23 @@ export default function MultiSelectDropdown({
     className,
 }: SelectFieldProps) {
     const [selectedOptions, setSelectedOptions] = useState<(string | number)[]>([
-        ...form.getValues("roleType"),
+        ...form.getValues('roleType'),
     ]);
 
     const [isOpen, setIsOpen] = useState(false);
 
     const toggleSelection = (value: string | number) => {
         setSelectedOptions((prev) =>
-            prev.includes(value) ? prev.filter((item) => item !== value) : [...prev, value],
+            prev.includes(value) ? prev.filter((item) => item !== value) : [...prev, value]
         );
     };
 
     useEffect(() => {
-        form.setValue("roleType", selectedOptions);
+        form.setValue('roleType', selectedOptions);
     }, [selectedOptions]);
 
     useEffect(() => {
-        setSelectedOptions(form.getValues("roleType"));
+        setSelectedOptions(form.getValues('roleType'));
     }, []);
     return (
         <>
@@ -65,7 +65,7 @@ export default function MultiSelectDropdown({
 
                     return (
                         <div>
-                            <FormItem className={cn("w-44", className)}>
+                            <FormItem className={cn('w-44', className)}>
                                 <FormLabel className={labelStyle}>
                                     {label}
                                     {required && <span className="text-red-500">*</span>}
