@@ -1,27 +1,25 @@
-import { MyButton } from "@/components/design-system/button";
-import { MyInput } from "@/components/design-system/input";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
-import { useSlides } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides";
-import { toast } from "sonner";
-import { Route } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/index";
-import { useContentStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store";
+'use client';
+
+import { MyButton } from '@/components/design-system/button';
+import { MyInput } from '@/components/design-system/input';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
+import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
+import { useSlides } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides';
+import { toast } from 'sonner';
+import { Route } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/index';
+import { useContentStore } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
 
 const formSchema = z.object({
     videoUrl: z
         .string()
-        .min(1, "URL is required")
-        .url("Please enter a valid URL")
-        .refine(
-            (url) => url.includes("youtube.com") || url.includes("youtu.be"),
-            // url.includes("drive.google.com"),
-            {
-                message: "Please enter a valid YouTube URL",
-            },
-        ),
-    videoName: z.string().min(1, "File name is required"),
+        .min(1, 'URL is required')
+        .url('Please enter a valid URL')
+        .refine((url) => url.includes('youtube.com') || url.includes('youtu.be'), {
+            message: 'Please enter a valid YouTube URL',
+        }),
+    videoName: z.string().min(1, 'File name is required'),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -46,34 +44,35 @@ export const AddVideoDialog = ({
                 slide_order: null,
                 video_slide: {
                     id: crypto.randomUUID(),
-                    description: "",
+                    description: '',
                     url: data.videoUrl,
                     title: data.videoName,
                     video_length_in_millis: 0,
                     published_url: null,
                     published_video_length_in_millis: 0,
+                    source_type: 'VIDEO',
                 },
-                status: "DRAFT",
+                status: 'DRAFT',
                 new_slide: true,
                 notify: false,
             });
 
-            toast.success("Video added successfully!");
+            toast.success('Video added successfully!');
             form.reset();
             openState?.(false);
             setTimeout(() => {
                 setActiveItem(getSlideById(response));
             }, 500);
         } catch (error) {
-            toast.error("Failed to add video");
+            toast.error('Failed to add video');
         }
     };
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            videoUrl: "",
-            videoName: "",
+            videoUrl: '',
+            videoName: '',
         },
     });
 

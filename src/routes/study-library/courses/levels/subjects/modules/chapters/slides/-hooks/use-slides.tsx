@@ -138,6 +138,7 @@ export interface VideoSlidePayload {
         video_length_in_millis: number;
         published_url: string | null;
         published_video_length_in_millis: number;
+        source_type: string;
     };
     status: string;
     new_slide?: boolean;
