@@ -526,8 +526,9 @@ export function convertToQuestionSlideFormat(question: MyQuestion) {
         default_question_time_mins: parseInt(question?.questionDuration?.min || '0'),
         re_attempt_count: question?.reattemptCount || '',
         points: 0,
-        options: options?.map((opt) => ({
+        options: options?.map((opt, idx) => ({
             id: opt.id || '',
+            preview_id: opt.id || idx,
             questionSlideId: '',
             text: generateTextBlock(opt.text.content),
             explanationTextData: generateTextBlock(opt.explanation_text.content),

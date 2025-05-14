@@ -130,7 +130,7 @@ const AddQuestionDialog = ({
         };
         try {
             const response: string = await updateQuestionOrder({
-                id: '',
+                id: crypto.randomUUID(),
                 source_id: '',
                 source_type: 'QUESTION',
                 title: title || '',
