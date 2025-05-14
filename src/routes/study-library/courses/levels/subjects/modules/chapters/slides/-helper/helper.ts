@@ -554,7 +554,7 @@ export function convertToQuestionBackendSlideFormat({
         title: activeItem?.title || '',
         description: activeItem?.description || '',
         image_file_id: activeItem?.image_file_id || '',
-        source_id: activeItem?.video_slide?.id || '',
+        source_id: activeItem?.source_id || '',
         source_type: activeItem?.source_type || '',
         status: status,
         slide_order: 0,
