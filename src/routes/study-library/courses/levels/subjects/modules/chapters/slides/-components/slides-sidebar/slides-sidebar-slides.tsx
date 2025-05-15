@@ -192,6 +192,10 @@ export const ChapterSidebarSlides = ({
                                                     slide.document_slide?.title) ||
                                                     (slide.source_type === 'VIDEO' &&
                                                         slide.video_slide?.title) ||
+                                                    (slide.source_type === 'QUESTION' &&
+                                                        slide?.title) ||
+                                                    (slide.source_type === 'ASSIGNMENT' &&
+                                                        slide?.title) ||
                                                     ''}
                                             </p>
                                         </TooltipContent>
