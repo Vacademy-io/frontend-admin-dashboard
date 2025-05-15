@@ -17,9 +17,17 @@ export const AddChapterButton = ({
 }: AddChapterButtonProps) => {
     const [openDialog, setOpenDialog] = useState(false);
     const triggerButton = isTextButton ? (
-        <div className="m-0 flex w-fit cursor-pointer flex-row items-center gap-2 text-primary-500">
+        // <div className="m-0 flex w-fit cursor-pointer flex-row items-center gap-2 text-primary-500">
+        //     <Plus /> Add Chapter
+        // </div>
+        <MyButton
+            scale="large"
+            buttonType="text"
+            className="!m-0 flex w-fit cursor-pointer flex-row items-center justify-start gap-2 px-0 pl-2 text-primary-500"
+            id="add-chapters"
+        >
             <Plus /> Add Chapter
-        </div>
+        </MyButton>
     ) : (
         <MyButton scale="large" id="add-chapters">
             <Plus /> Add Chapter
