@@ -3,6 +3,7 @@ import { MyDialog } from '@/components/design-system/dialog';
 import { useState } from 'react';
 import { AddSubjectForm } from './add-subject-form';
 import { SubjectType } from '@/stores/study-library/use-study-library-store';
+import { Plus } from 'phosphor-react';
 
 interface AddSubjectButtonProps {
     onAddSubject: (subject: SubjectType) => void;
@@ -12,7 +13,14 @@ interface AddSubjectButtonProps {
 export const AddSubjectButton = ({ onAddSubject, isTextButton = false }: AddSubjectButtonProps) => {
     const [openDialog, setOpenDialog] = useState(false);
     const triggerButton = isTextButton ? (
-        <div className="m-0 w-fit text-primary-500">Add Subject</div>
+        <MyButton
+            scale="large"
+            buttonType="text"
+            className="!m-0 flex w-fit cursor-pointer flex-row items-center justify-start gap-2 px-0 pl-2 text-primary-500"
+            id="add-chapters"
+        >
+            <Plus /> Add Subject
+        </MyButton>
     ) : (
         <MyButton buttonType="primary" layoutVariant="default" scale="large" id="add-subject">
             Add Subject

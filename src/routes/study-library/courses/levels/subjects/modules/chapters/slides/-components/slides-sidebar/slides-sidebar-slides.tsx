@@ -19,6 +19,37 @@ interface FormValues {
     slides: Slide[];
 }
 
+export const getIcon = (
+    source_type: string,
+    document_slide_type: string | undefined,
+    size?: string
+): ReactNode => {
+    const sizeClass = `size-${size ? size : '6'}`;
+    if (source_type === 'ASSIGNMENT') {
+        return <File className={sizeClass} />;
+    }
+    const type =
+        source_type === 'QUESTION'
+            ? 'QUESTION'
+            : source_type === 'VIDEO'
+              ? 'VIDEO'
+              : source_type === 'DOCUMENT' && document_slide_type;
+    switch (type) {
+        case 'PDF':
+            return <FilePdf className={sizeClass} />;
+        case 'VIDEO':
+            return <PlayCircle className={sizeClass} />;
+        case 'DOC':
+            return <FileDoc className={sizeClass} />;
+        case 'DOCX':
+            return <FileDoc className={sizeClass} />;
+        case 'QUESTION':
+            return <Question className={sizeClass} />;
+        default:
+            return <></>;
+    }
+};
+
 export const ChapterSidebarSlides = ({
     handleSlideOrderChange,
 }: {
@@ -67,32 +98,6 @@ export const ChapterSidebarSlides = ({
         control: form.control,
         name: 'slides',
     });
-
-    const getIcon = (slide: Slide): ReactNode => {
-        if (slide.source_type === 'ASSIGNMENT') {
-            return <File className="size-6" />;
-        }
-        const type =
-            slide.source_type === 'QUESTION'
-                ? 'QUESTION'
-                : slide.source_type === 'VIDEO'
-                  ? 'VIDEO'
-                  : slide.source_type === 'DOCUMENT' && slide.document_slide?.type;
-        switch (type) {
-            case 'PDF':
-                return <FilePdf className="size-6" />;
-            case 'VIDEO':
-                return <PlayCircle className="size-6" />;
-            case 'DOC':
-                return <FileDoc className="size-6" />;
-            case 'DOCX':
-                return <FileDoc className="size-6" />;
-            case 'QUESTION':
-                return <Question className="size-6" />;
-            default:
-                return <></>;
-        }
-    };
 
     const handleMove = ({ activeIndex, overIndex }: { activeIndex: number; overIndex: number }) => {
         move(activeIndex, overIndex);
@@ -160,7 +165,10 @@ export const ChapterSidebarSlides = ({
                                             <div className="flex flex-1 items-center gap-2">
                                                 <div className="flex gap-3">
                                                     <p className={` font-semibold`}>S{index + 1}</p>
-                                                    {getIcon(slide)}
+                                                    {getIcon(
+                                                        slide.source_type,
+                                                        slide.document_slide?.type
+                                                    )}
                                                     <p className={`flex-1 text-subtitle`}>
                                                         {truncateString(
                                                             (slide.source_type === 'DOCUMENT' &&

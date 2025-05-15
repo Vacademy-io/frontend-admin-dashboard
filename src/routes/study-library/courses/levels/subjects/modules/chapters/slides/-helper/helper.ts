@@ -226,7 +226,7 @@ export function convertStudyLibraryQuestion(question: MyQuestion) {
     let options;
     if (question.questionType === QuestionType.MCQS) {
         options = question?.singleChoiceOptions?.map((opt, idx) => ({
-            id: null, // Assuming no direct mapping for option ID
+            id: opt.id, // Assuming no direct mapping for option ID
             preview_id: idx, // Using index as preview_id
             question_id: null,
             text: {
