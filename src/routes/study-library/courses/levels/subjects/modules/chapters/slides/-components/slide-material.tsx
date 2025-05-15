@@ -212,12 +212,13 @@ export const SlideMaterial = ({
 
     useEffect(() => {
         if (items.length == 0) setActiveItem(null);
+        else setActiveItem(items[0] || null);
     }, [items]);
 
     useEffect(() => {
         setHeading(activeItem?.title || '');
         loadContent();
-    }, [activeItem]);
+    }, [activeItem, items]);
 
     useEffect(() => {
         let intervalId: NodeJS.Timeout | null = null;
