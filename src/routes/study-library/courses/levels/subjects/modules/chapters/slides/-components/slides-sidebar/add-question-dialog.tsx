@@ -280,9 +280,15 @@ const AddQuestionDialog = ({
                             onChangeFunction={(e) => setLocalReattempts(e.target.value)}
                             label="Reattempt Count"
                             required={true}
-                            inputType="text"
+                            inputType="number"
                             inputPlaceholder="00"
                             className="w-full"
+                            min={0}
+                            onKeyDown={(e) => {
+                                if (['e', 'E', '-', '+'].includes(e.key)) {
+                                    e.preventDefault();
+                                }
+                            }}
                         />
                         <div>
                             <MyButton
