@@ -348,7 +348,7 @@ export function convertStudyLibraryQuestion(question: MyQuestion) {
         evaluation_type: 'AUTO',
         question_time_in_millis: timestampToSeconds(question.timestamp) * 1000,
         question_order: 0,
-        status: 'ACTIVE',
+        status: question?.status || 'ACTIVE',
         options: options?.map((opt, idx) => ({
             id: opt.id || null,
             preview_id: opt.id || idx,
