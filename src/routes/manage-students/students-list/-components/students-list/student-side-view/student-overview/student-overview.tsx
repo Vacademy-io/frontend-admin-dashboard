@@ -45,7 +45,6 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
                 ? selectedStudent?.package_id || ''
                 : selectedStudent?.package_session_id || '',
         });
-        console.log('studentDetails: ', studentDetails);
         const student: StudentTable | null = {
             id: studentDetails?.id || '',
             username: studentDetails?.username || '',
@@ -80,7 +79,6 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
         };
 
         const learner = isSubmissionTab ? student : selectedStudent;
-        console.log('learner: ', learner);
         setOverviewData(
             OverViewData({
                 selectedStudent: learner,

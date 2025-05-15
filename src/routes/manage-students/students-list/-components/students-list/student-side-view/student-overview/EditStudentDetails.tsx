@@ -157,10 +157,6 @@ export const EditStudentDetails = () => {
         }
     };
 
-    useEffect(() => {
-        console.log('faceUrl from edit student details: ', faceUrl);
-    }, [faceUrl]);
-
     const submitButton = (
         <MyButton
             onClick={() => {

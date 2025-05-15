@@ -10,18 +10,18 @@ export const GetFilterData = (instituteDetails: InstituteDetailsType, currentSes
         label: batch.level.level_name + ' ' + batch.package_dto.package_name,
     }));
 
-    const statuses = instituteDetails?.student_statuses.map((status) => ({
-        id: crypto.randomUUID(),
+    const statuses = instituteDetails?.student_statuses.map((status, index) => ({
+        id: index.toString(),
         label: status,
     }));
 
-    const genders = instituteDetails?.genders.map((gender) => ({
-        id: crypto.randomUUID(),
+    const genders = instituteDetails?.genders.map((gender, index) => ({
+        id: index.toString(),
         label: gender,
     }));
 
-    const sessionExpiry = instituteDetails?.session_expiry_days.map((days) => ({
-        id: crypto.randomUUID(),
+    const sessionExpiry = instituteDetails?.session_expiry_days.map((days, index) => ({
+        id: index.toString(),
         label: `Expiring in ${days} days`,
     }));
 
