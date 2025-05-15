@@ -169,6 +169,9 @@ export const ChapterSidebarSlides = ({
                                                                     slide.video_slide?.title) ||
                                                                 (slide.source_type === 'QUESTION' &&
                                                                     slide?.title) ||
+                                                                (slide.source_type ===
+                                                                    'ASSIGNMENT' &&
+                                                                    slide?.title) ||
                                                                 '',
                                                             12
                                                         )}

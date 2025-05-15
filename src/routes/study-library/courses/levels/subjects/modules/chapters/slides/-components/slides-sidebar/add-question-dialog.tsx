@@ -152,7 +152,7 @@ const AddQuestionDialog = ({
                 setActiveItem(getSlideById(response));
             }, 500);
         } catch (error) {
-            toast.error('Failed to add video');
+            toast.error('Failed to add question');
         }
     };
 
@@ -272,7 +272,7 @@ const AddQuestionDialog = ({
                             label="Title"
                             required={true}
                             inputType="text"
-                            inputPlaceholder="00"
+                            inputPlaceholder="Add Title"
                             className="w-full"
                         />
                         <MyInput

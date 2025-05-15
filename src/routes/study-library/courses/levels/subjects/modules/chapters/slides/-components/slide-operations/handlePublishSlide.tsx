@@ -7,7 +7,11 @@ import {
     VideoSlidePayload,
 } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides';
 import { SlideQuestionsDataInterface } from '@/types/study-library/study-library-slides-type';
-import { converDataToVideoFormat, convertToQuestionBackendSlideFormat } from '../../-helper/helper';
+import {
+    converDataToAssignmentFormat,
+    converDataToVideoFormat,
+    convertToQuestionBackendSlideFormat,
+} from '../../-helper/helper';
 
 type SlideResponse = {
     id: string;
@@ -28,6 +32,12 @@ export const handlePublishSlide = async (
     >,
     addUpdateVideoSlide: UseMutateAsyncFunction<SlideResponse, Error, VideoSlidePayload, unknown>,
     updateQuestionOrder: UseMutateAsyncFunction<
+        SlideResponse,
+        Error,
+        SlideQuestionsDataInterface,
+        unknown
+    >,
+    updateAssignmentOrder: UseMutateAsyncFunction<
         SlideResponse,
         Error,
         SlideQuestionsDataInterface,
@@ -93,6 +103,24 @@ export const handlePublishSlide = async (
         });
         try {
             await addUpdateVideoSlide(convertedData);
+            toast.success(`slide published successfully!`);
+            setIsOpen(false);
+        } catch {
+            toast.error(`Error in publishing the slide`);
+        }
+    }
+
+    if (activeItem?.source_type == 'ASSIGNMENT') {
+        const convertedData = converDataToAssignmentFormat({
+            activeItem,
+            status,
+            notify,
+            newSlide: false,
+        });
+        try {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            await updateAssignmentOrder(convertedData!);
             toast.success(`slide published successfully!`);
             setIsOpen(false);
         } catch {
