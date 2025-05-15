@@ -538,6 +538,111 @@ export const transformResponseDataToMyQuestionsSchema = (data: QuestionResponse[
     });
 };
 
+export const transformResponseDataToMyQuestionsSchemaSingleQuestion = (item: QuestionResponse) => {
+    const correctOptionIds = item.auto_evaluation_json
+        ? JSON.parse(item.auto_evaluation_json)?.data?.correctOptionIds
+        : [];
+    const validAnswers = item.auto_evaluation_json
+        ? JSON.parse(item.auto_evaluation_json)?.data?.validAnswers
+        : [];
+    let decimals;
+    let numericType;
+    let subjectiveAnswerText;
+    if (item.options_json) {
+        decimals = JSON.parse(item.options_json)?.decimals || 0;
+        numericType = JSON.parse(item.options_json)?.numeric_type || '';
+    }
+    if (item.auto_evaluation_json) {
+        if (item.question_type === 'ONE_WORD') {
+            subjectiveAnswerText = JSON.parse(item.auto_evaluation_json)?.data?.answer;
+        } else if (item.question_type === 'LONG_ANSWER') {
+            subjectiveAnswerText = JSON.parse(item.auto_evaluation_json)?.data?.answer?.content;
+        }
+    }
+    const baseQuestion: MyQuestion = {
+        id: item.id || '',
+        questionId: item.id || item.preview_id || undefined,
+        questionName: item.text?.content || item.text_data?.content || '',
+        explanation: item.explanation_text?.content || item.explanation_text_data?.content || '',
+        questionType: item.question_type,
+        questionMark: '',
+        questionPenalty: '',
+        questionDuration: {
+            hrs: String(Math.floor((item.default_question_time_mins ?? 0) / 60)), // Extract hours
+            min: String((item.default_question_time_mins ?? 0) % 60), // Extract remaining minutes
+        },
+        singleChoiceOptions: Array(4).fill({
+            id: '',
+            name: '',
+            isSelected: false,
+        }),
+        multipleChoiceOptions: Array(4).fill({
+            id: '',
+            name: '',
+            isSelected: false,
+        }),
+        csingleChoiceOptions: Array(4).fill({
+            id: '',
+            name: '',
+            isSelected: false,
+        }),
+        cmultipleChoiceOptions: Array(4).fill({
+            id: '',
+            name: '',
+            isSelected: false,
+        }),
+        trueFalseOptions: Array(2).fill({
+            id: '',
+            name: '',
+            isSelected: false,
+        }),
+        timestamp: item.question_time_in_millis
+            ? formatTimeStudyLibraryInSeconds(item.question_time_in_millis / 1000)
+            : '0:0:0',
+        newQuestion: item?.new_question,
+        validAnswers: [],
+        decimals,
+        numericType,
+        parentRichTextContent: item.parent_rich_text?.content || null,
+        subjectiveAnswerText,
+    };
+
+    if (item.question_type === 'MCQS') {
+        baseQuestion.singleChoiceOptions = item.options.map((option) => ({
+            id: option.id ? option.id : '',
+            name: option.text?.content || '',
+            isSelected: correctOptionIds.includes(option.id || option.preview_id),
+        }));
+    } else if (item.question_type === 'MCQM') {
+        baseQuestion.multipleChoiceOptions = item.options.map((option) => ({
+            id: option.id ? option.id : '',
+            name: option.text?.content || '',
+            isSelected: correctOptionIds.includes(option.id || option.preview_id),
+        }));
+    } else if (item.question_type === 'CMCQS') {
+        baseQuestion.csingleChoiceOptions = item.options.map((option) => ({
+            id: option.id ? option.id : '',
+            name: option.text?.content || '',
+            isSelected: correctOptionIds.includes(option.id || option.preview_id),
+        }));
+    } else if (item.question_type === 'CMCQM') {
+        baseQuestion.cmultipleChoiceOptions = item.options.map((option) => ({
+            id: option.id ? option.id : '',
+            name: option.text?.content || '',
+            isSelected: correctOptionIds.includes(option.id || option.preview_id),
+        }));
+    } else if (item.question_type === 'TRUE_FALSE') {
+        baseQuestion.trueFalseOptions = item.options.map((option) => ({
+            id: option.id ? option.id : '',
+            name: option.text?.content || '',
+            isSelected: correctOptionIds.includes(option.id || option.preview_id),
+        }));
+    } else if (item.question_type === 'NUMERIC') {
+        baseQuestion.validAnswers = validAnswers;
+    }
+    return baseQuestion;
+};
+
 export const convertQuestionsToExportSchema = (rawQuestions: QuestionResponse[]) => {
     return rawQuestions.map((q, idx) => ({
         question_id: q.id,
