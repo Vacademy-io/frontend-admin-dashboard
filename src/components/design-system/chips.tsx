@@ -101,9 +101,6 @@ export const FilterChips = ({
     handleSelect,
     handleClearFilters,
 }: FilterChipsProps) => {
-    const isSelected = (option: { id: string; label: string }) =>
-        selectedFilters.some((filter) => filter.id === option.id);
-
     useEffect(() => {
         if (clearFilters) handleClearFilters && handleClearFilters();
     }, [clearFilters]);
@@ -172,7 +169,7 @@ export const FilterChips = ({
                                     <div
                                         className={cn(
                                             'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-gray-300',
-                                            isSelected(option)
+                                            selectedFilters.some((filter) => filter.id == option.id)
                                                 ? 'text-base-white border-none bg-primary-300'
                                                 : 'opacity-70 [&_svg]:invisible'
                                         )}

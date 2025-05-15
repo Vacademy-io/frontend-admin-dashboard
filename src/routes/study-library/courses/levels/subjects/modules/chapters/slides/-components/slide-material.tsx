@@ -211,7 +211,7 @@ export const SlideMaterial = ({
 
     useEffect(() => {
         if (items.length == 0) setActiveItem(null);
-        else setActiveItem(items[0] || null);
+        // else setActiveItem(items[0] || null);
     }, [items]);
 
     useEffect(() => {
