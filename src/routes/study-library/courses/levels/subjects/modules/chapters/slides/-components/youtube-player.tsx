@@ -16,6 +16,9 @@ import VideoQuestionDialogEditPreview from './slides-sidebar/video-question-dial
 import { StudyLibraryQuestion } from '@/types/study-library/study-library-video-questions';
 import { formatTimeStudyLibraryInSeconds, timestampToSeconds } from '../-helper/helper';
 import { useContentStore } from '../-stores/chapter-sidebar-store';
+import { TrashSimple } from 'phosphor-react';
+import { MyButton } from '@/components/design-system/button';
+import { Dialog, DialogClose, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 
 export interface YTPlayer {
     destroy(): void;
@@ -75,7 +78,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
     // Convert formRefData from a ref to useState to trigger re-renders
     const isAddTimeFrameRef = useRef<HTMLButtonElement | null>(null);
     const isAddQuestionTypeRef = useRef<HTMLButtonElement | null>(null);
-    const { activeItem } = useContentStore();
+    const { activeItem, setActiveItem } = useContentStore();
 
     const [formData, setFormData] = useState<UploadQuestionPaperFormType>({
         questionPaperId: '1',
@@ -151,6 +154,26 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
     const [hoveredQuestion, setHoveredQuestion] = useState<StudyLibraryQuestion | null>(null);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [previewQuestionDialog, setPreviewQuestionDialog] = useState(false);
+    const closeDeleteDialogRef = useRef<HTMLButtonElement | null>(null);
+
+    const handleDeleteQuestionFormData = (questionId: string) => {
+        setFormData((prevData) => ({
+            ...prevData,
+            questions: prevData.questions.filter((q) => q.questionId !== questionId),
+        }));
+
+        // Update activeItem: mark matching question's status as DELETE, keep others unchanged
+        setActiveItem({
+            ...activeItem,
+            video_slide: {
+                ...activeItem?.video_slide,
+                questions: activeItem?.video_slide?.questions.map((q) =>
+                    q.questionId === questionId ? { ...q, status: 'DELETE' } : q
+                ),
+            },
+        });
+        closeDeleteDialogRef.current?.click();
+    };
 
     const extractVideoId = (url: string): string => {
         const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -510,6 +533,50 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                                             setCurrentQuestionIndex={setCurrentQuestionIndex}
                                             updateQuestion={updateQuestion} // Pass updateQuestion function
                                         />
+                                        <Dialog>
+                                            <DialogTrigger>
+                                                <MyButton
+                                                    buttonType="secondary"
+                                                    scale="small"
+                                                    layoutVariant="default"
+                                                    className="h-8 min-w-4"
+                                                >
+                                                    <TrashSimple size={18} />
+                                                </MyButton>
+                                            </DialogTrigger>
+                                            <DialogContent className="flex flex-col p-0">
+                                                <h1 className="rounded-t-lg bg-primary-50 p-4 font-semibold text-primary-500">
+                                                    Delete Question
+                                                </h1>
+                                                <div className="flex flex-col gap-4 p-4">
+                                                    <h1>
+                                                        Are you sure you want to delete this
+                                                        question?
+                                                    </h1>
+                                                    <div>
+                                                        <DialogClose>
+                                                            <button
+                                                                ref={closeDeleteDialogRef}
+                                                                className="hidden"
+                                                            />
+                                                        </DialogClose>
+                                                        <MyButton
+                                                            buttonType="primary"
+                                                            scale="medium"
+                                                            layoutVariant="default"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleDeleteQuestionFormData(
+                                                                    question.questionId
+                                                                );
+                                                            }}
+                                                        >
+                                                            Delete
+                                                        </MyButton>
+                                                    </div>
+                                                </div>
+                                            </DialogContent>
+                                        </Dialog>
                                     </div>
                                 </div>
                                 {(question.questionType === 'LONG_ANSWER' ||

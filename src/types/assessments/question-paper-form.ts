@@ -40,6 +40,7 @@ export interface MyQuestion {
     timestamp?: string;
     newQuestion?: boolean;
     reattemptCount?: string;
+    status?: string;
 }
 
 export interface MySingleChoiceOption {
