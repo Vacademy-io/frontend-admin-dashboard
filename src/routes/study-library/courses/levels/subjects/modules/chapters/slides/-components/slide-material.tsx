@@ -53,6 +53,7 @@ export const SlideMaterial = ({
     const { addUpdateDocumentSlide } = useSlides(chapterId || '');
     const { addUpdateVideoSlide } = useSlides(chapterId || '');
     const { updateQuestionOrder } = useSlides(chapterId || '');
+    const { updateAssignmentOrder } = useSlides(chapterId || '');
 
     const handleHeadingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setHeading(e.target.value);
@@ -341,6 +342,7 @@ export const SlideMaterial = ({
                                         addUpdateDocumentSlide,
                                         addUpdateVideoSlide,
                                         updateQuestionOrder,
+                                        updateAssignmentOrder,
                                         SaveDraft
                                     )
                                 }
@@ -356,6 +358,7 @@ export const SlideMaterial = ({
                                         addUpdateDocumentSlide,
                                         addUpdateVideoSlide,
                                         updateQuestionOrder,
+                                        updateAssignmentOrder,
                                         SaveDraft
                                     )
                                 }

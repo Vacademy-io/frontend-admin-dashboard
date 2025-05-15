@@ -12,6 +12,7 @@ import { useContentStore } from '@/routes/study-library/courses/levels/subjects/
 import { useDialogStore } from '@/routes/study-library/courses/-stores/slide-add-dialogs-store';
 import AddQuestionDialog from './add-question-dialog';
 import { File } from 'phosphor-react';
+import AddAssignmentDialog from './add-assignment-dialog';
 
 export const ChapterSidebarAddButton = () => {
     // const form = useForm<AssignmentFormType>({
@@ -37,6 +38,7 @@ export const ChapterSidebarAddButton = () => {
         isDocUploadDialogOpen,
         isVideoDialogOpen,
         isQuestionDialogOpen,
+        isAssignmentDialogOpen,
         openPdfDialog,
         closePdfDialog,
         openDocUploadDialog,
@@ -45,6 +47,8 @@ export const ChapterSidebarAddButton = () => {
         closeVideoDialog,
         openQuestionDialog,
         closeQuestionDialog,
+        openAssignmentDialog,
+        closeAssignmentDialog,
     } = useDialogStore();
 
     const dropdownList = [
@@ -129,28 +133,7 @@ export const ChapterSidebarAddButton = () => {
                 openQuestionDialog(); // Use store action instead of setState
                 break;
             case 'assignment':
-                // setItems([
-                //     {
-                //         slide_title: null,
-                //         document_id: null,
-                //         document_title: `Assignment ${items.length + 1}`,
-                //         document_type: '',
-                //         slide_description: null,
-                //         document_cover_file_id: null,
-                //         video_description: null,
-                //         document_data: JSON.stringify(form.getValues()),
-                //         video_id: null,
-                //         video_title: null,
-                //         video_url: null,
-                //         slide_id: String(items.length + 1),
-                //         source_type: 'ASSIGNMENT',
-                //         status: 'DRAFT',
-                //         published_data: '',
-                //         published_url: '',
-                //         last_sync_date: null,
-                //     },
-                //     ...items,
-                // ]);
+                openAssignmentDialog();
                 break;
         }
     };
@@ -206,6 +189,17 @@ export const ChapterSidebarAddButton = () => {
                 onOpenChange={closeQuestionDialog} // Pass the action function directly
             >
                 <AddQuestionDialog openState={(open) => !open && closeQuestionDialog()} />
+            </MyDialog>
+
+            {/* Assignment Upload Dialog */}
+            <MyDialog
+                trigger={<></>}
+                heading="Upload Assignment"
+                dialogWidth="min-w-[500px]"
+                open={isAssignmentDialogOpen}
+                onOpenChange={closeAssignmentDialog} // Pass the action function directly
+            >
+                <AddAssignmentDialog openState={(open) => !open && closeAssignmentDialog()} />
             </MyDialog>
         </>
     );
