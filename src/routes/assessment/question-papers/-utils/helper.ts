@@ -499,6 +499,7 @@ export const transformResponseDataToMyQuestionsSchema = (data: QuestionResponse[
             numericType,
             parentRichTextContent: item.parent_rich_text?.content || null,
             subjectiveAnswerText,
+            status: item.status,
         };
 
         if (item.question_type === 'MCQS') {
