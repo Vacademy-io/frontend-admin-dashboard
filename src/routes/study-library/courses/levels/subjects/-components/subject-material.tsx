@@ -44,6 +44,7 @@ import {
     FileText,
     PresentationChart,
 } from 'phosphor-react';
+import Students from './student-list';
 
 // Interfaces (assuming these are unchanged)
 export interface Chapter {
@@ -368,7 +369,7 @@ export const SubjectMaterial = () => {
                                                 className="shrink-0 text-gray-500"
                                             />
                                         )}
-                                        <Folder size={18} className="text-primary shrink-0" />
+                                        <Folder size={18} className="shrink-0 text-primary-500" />
                                         <span className="w-6 shrink-0 text-center font-mono text-xs text-gray-500">
                                             S{idx + 1}
                                         </span>
@@ -378,7 +379,7 @@ export const SubjectMaterial = () => {
                                     </div>
                                     <ArrowSquareOut
                                         size={18}
-                                        className="hover:text-primary ml-1.5 shrink-0 cursor-pointer text-gray-400"
+                                        className="ml-1.5 shrink-0 cursor-pointer text-gray-400 hover:text-primary-400"
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             handleSubjectNavigation(subject.id);
@@ -436,7 +437,7 @@ export const SubjectMaterial = () => {
                                                             </div>
                                                             <ArrowSquareOut
                                                                 size={16}
-                                                                className="hover:text-primary ml-1.5 shrink-0 cursor-pointer text-gray-400"
+                                                                className="ml-1.5 shrink-0 cursor-pointer text-gray-400 hover:text-primary-400"
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
                                                                     handleModuleNavigation(
@@ -496,7 +497,7 @@ export const SubjectMaterial = () => {
                                                                                             }
                                                                                             className="shrink-0 text-green-600"
                                                                                         />
-                                                                                        <span className="text-2xs w-5 shrink-0 text-center font-mono text-gray-500">
+                                                                                        <span className="w-5 shrink-0 text-center font-mono text-xs text-gray-500">
                                                                                             C
                                                                                             {chIdx +
                                                                                                 1}
@@ -518,7 +519,7 @@ export const SubjectMaterial = () => {
                                                                                     </div>
                                                                                     <ArrowSquareOut
                                                                                         size={14}
-                                                                                        className="hover:text-primary ml-1 shrink-0 cursor-pointer text-gray-400"
+                                                                                        className="ml-1 shrink-0 cursor-pointer text-gray-400 hover:text-primary-400"
                                                                                         onClick={(
                                                                                             e
                                                                                         ) => {
@@ -550,14 +551,14 @@ export const SubjectMaterial = () => {
                                                                                                         .id
                                                                                                 );
                                                                                             }}
-                                                                                            className="text-primary-600 group mb-1 flex w-full items-center gap-1.5 rounded-md px-1 py-0.5 text-left text-xs transition-colors duration-150 hover:bg-primary-50"
+                                                                                            className="group mb-1 flex w-full items-center gap-1.5 rounded-md px-1 py-0.5 text-left text-xs text-primary-500 transition-colors duration-150 hover:bg-primary-50"
                                                                                         >
                                                                                             <Plus
                                                                                                 size={
                                                                                                     14
                                                                                                 }
                                                                                                 weight="bold"
-                                                                                                className="text-primary-600 group-hover:text-primary-700"
+                                                                                                className="text-primary-400 group-hover:text-primary-500"
                                                                                             />
                                                                                             <span className="font-medium">
                                                                                                 Add
@@ -573,7 +574,7 @@ export const SubjectMaterial = () => {
                                                                                             ] ?? []
                                                                                         ).length ===
                                                                                         0 ? (
-                                                                                            <div className="text-2xs px-1 py-0.5 text-gray-400">
+                                                                                            <div className="px-1 py-0.5 text-xs text-gray-400">
                                                                                                 No
                                                                                                 slides
                                                                                                 in
@@ -597,7 +598,7 @@ export const SubjectMaterial = () => {
                                                                                                         key={
                                                                                                             slide.id
                                                                                                         }
-                                                                                                        className="text-2xs flex items-center gap-1 px-1 py-px text-gray-500"
+                                                                                                        className="flex items-center gap-1 px-1 py-px text-xs text-gray-500"
                                                                                                     >
                                                                                                         <span className="w-5 shrink-0 text-center font-mono text-gray-400">
                                                                                                             S
@@ -647,7 +648,7 @@ export const SubjectMaterial = () => {
             <div className="space-y-3">
                 <div className="flex flex-col items-start justify-between gap-2 md:flex-row md:items-center">
                     <div className="flex-1">
-                        <h2 className="text-md font-semibold text-gray-800">
+                        <h2 className="text-base font-semibold text-gray-800">
                             Manage Batch Subjects
                         </h2>
                         <p className="mt-0.5 text-xs text-gray-500">
@@ -674,9 +675,9 @@ export const SubjectMaterial = () => {
             </div>
         ),
         [TabType.STUDENT]: (
-            <div className="rounded-md bg-white p-3 text-sm text-gray-600 shadow-sm">
-                Student content coming soon.
-            </div>
+            // <div className="rounded-md bg-white p-3 text-sm text-gray-600 shadow-sm">
+            <Students packageSessionId={currentSession?.id ?? ''} />
+            // </div>
         ),
         [TabType.TEACHERS]: (
             <div className="rounded-md bg-white p-3 text-sm text-gray-600 shadow-sm">
@@ -737,10 +738,10 @@ export const SubjectMaterial = () => {
                         <TabsTrigger
                             key={tab.value}
                             value={tab.value}
-                            className={`data-[state=active]:text-primary data-[state=active]:border-primary hover:text-primary -mb-px px-2.5 
-                                py-1.5 text-xs font-medium transition-all duration-150 
-                                hover:bg-gray-50/70 focus-visible:ring-1 focus-visible:ring-primary-300 focus-visible:ring-offset-1
-                                data-[state=active]:rounded-t-md data-[state=active]:border-b-2 data-[state=active]:bg-white data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:rounded-t-md`}
+                            className={`-mb-px px-2.5 py-1.5 text-xs font-medium 
+                                transition-all duration-150 hover:bg-gray-50/70 hover:text-primary-400 focus-visible:ring-1 
+                                focus-visible:ring-primary-300 focus-visible:ring-offset-1 data-[state=active]:rounded-t-md data-[state=active]:border-b-2
+                                data-[state=active]:border-primary-400 data-[state=active]:bg-white data-[state=active]:text-primary-500 data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:rounded-t-md`}
                         >
                             {tab.label}
                         </TabsTrigger>
@@ -749,7 +750,7 @@ export const SubjectMaterial = () => {
                 <TabsContent
                     key={selectedTab}
                     value={selectedTab}
-                    className="mt-3 rounded-r-md bg-white p-3 shadow-sm"
+                    className="mt-3 overflow-hidden rounded-r-md  p-3 shadow-sm"
                 >
                     {tabContent[selectedTab as TabType]}
                 </TabsContent>
