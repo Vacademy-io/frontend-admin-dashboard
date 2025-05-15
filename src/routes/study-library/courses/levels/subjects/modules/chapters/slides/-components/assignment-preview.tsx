@@ -170,6 +170,13 @@ const StudyLibraryAssignmentPreview = ({ activeItem }: { activeItem: Slide }) =>
                                     size="large"
                                     className="w-96"
                                     {...field}
+                                    min={0}
+                                    onKeyDown={(e) => {
+                                        if (['e', 'E', '-', '+'].includes(e.key)) {
+                                            e.preventDefault();
+                                        }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                 />
                             </FormControl>
                         </FormItem>
