@@ -27,7 +27,7 @@ export const StudyLibraryQuestionsPreview = ({ activeItem }: { activeItem: Slide
             answersType: '',
             explanationsType: '',
             fileUpload: undefined,
-            questions: [activeItem.question_slide],
+            questions: [activeItem.question_slide || {}],
         },
     });
 
@@ -47,8 +47,6 @@ export const StudyLibraryQuestionsPreview = ({ activeItem }: { activeItem: Slide
 
         return () => subscription.unsubscribe(); // cleanup
     }, [watch, items, activeItem, form, setItems]);
-
-    console.log(activeItem);
 
     return (
         <div key={`question-${activeItem.id}`} className="size-full">

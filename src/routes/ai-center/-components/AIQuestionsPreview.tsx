@@ -29,7 +29,7 @@ import { toast } from 'sonner';
 import { QuestionsFromTextData } from '../ai-tools/vsmart-prompt/-components/GenerateQuestionsFromText';
 import { Badge } from '@/components/ui/badge';
 import { AxiosError } from 'axios';
-import { MyQuestion } from '@/types/assessments/question-paper-form';
+import { MyQuestion, MyQuestionPaperFormInterface } from '@/types/assessments/question-paper-form';
 import { SectionFormType } from '@/types/assessments/assessment-steps';
 import { addQuestionPaper } from '@/routes/assessment/question-papers/-utils/question-paper-services';
 import { getQuestionPaperById } from '@/routes/community/question-paper/-service/utils';
@@ -204,7 +204,7 @@ const AIQuestionsPreview = ({
     };
 
     const handleSubmitFormData = useMutation({
-        mutationFn: ({ data }: { data: AIAssessmentResponseInterface }) =>
+        mutationFn: ({ data }: { data: MyQuestionPaperFormInterface }) =>
             addQuestionPaper(data, true),
         onSuccess: async (data) => {
             const getQuestionPaper = await getQuestionPaperById(data.saved_question_paper_id);
@@ -257,7 +257,9 @@ const AIQuestionsPreview = ({
 
     const handleSaveQuestionsInSection = () => {
         handleSubmitFormData.mutate({
-            data: assessmentData,
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            data: form.getValues(),
         });
     };
 
@@ -344,18 +346,22 @@ const AIQuestionsPreview = ({
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-4">
-                                            {handleSubmitFormData.status === 'pending' ? (
-                                                <MyButton type="button">
-                                                    <DashboardLoader size={18} color="#ffffff" />
-                                                </MyButton>
-                                            ) : (
-                                                <MyButton
-                                                    onClick={handleSaveQuestionsInSection}
-                                                    type="button"
-                                                >
-                                                    Save
-                                                </MyButton>
-                                            )}
+                                            {currentSectionIndex !== undefined &&
+                                                (handleSubmitFormData.status === 'pending' ? (
+                                                    <MyButton type="button">
+                                                        <DashboardLoader
+                                                            size={18}
+                                                            color="#ffffff"
+                                                        />
+                                                    </MyButton>
+                                                ) : (
+                                                    <MyButton
+                                                        onClick={handleSaveQuestionsInSection}
+                                                        type="button"
+                                                    >
+                                                        Save
+                                                    </MyButton>
+                                                ))}
                                             <MyButton
                                                 type="button"
                                                 scale="medium"

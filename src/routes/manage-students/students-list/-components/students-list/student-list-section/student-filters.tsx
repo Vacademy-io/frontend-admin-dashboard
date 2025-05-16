@@ -186,7 +186,7 @@ export const StudentFilters = ({
                             }}
                             onFilterChange={(values) => onFilterChange(filter.id, values)}
                             clearFilters={clearFilters}
-                            id={filter.id}
+                            filterId={filter.id}
                             columnFilters={columnFilters}
                         />
                     ))}

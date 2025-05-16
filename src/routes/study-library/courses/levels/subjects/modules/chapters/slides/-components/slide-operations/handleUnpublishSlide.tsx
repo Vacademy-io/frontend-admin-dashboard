@@ -3,7 +3,11 @@ import { toast } from 'sonner';
 import { DocumentSlidePayload, Slide, VideoSlidePayload } from '../../-hooks/use-slides';
 import { UseMutateAsyncFunction } from '@tanstack/react-query';
 import { SlideQuestionsDataInterface } from '@/types/study-library/study-library-slides-type';
-import { converDataToVideoFormat, convertToQuestionBackendSlideFormat } from '../../-helper/helper';
+import {
+    converDataToAssignmentFormat,
+    converDataToVideoFormat,
+    convertToQuestionBackendSlideFormat,
+} from '../../-helper/helper';
 
 type SlideResponse = {
     id: string;
@@ -24,6 +28,12 @@ export const handleUnpublishSlide = async (
     >,
     addUpdateVideoSlide: UseMutateAsyncFunction<SlideResponse, Error, VideoSlidePayload, unknown>,
     updateQuestionOrder: UseMutateAsyncFunction<
+        SlideResponse,
+        Error,
+        SlideQuestionsDataInterface,
+        unknown
+    >,
+    updateAssignmentOrder: UseMutateAsyncFunction<
         SlideResponse,
         Error,
         SlideQuestionsDataInterface,
@@ -92,6 +102,24 @@ export const handleUnpublishSlide = async (
             setIsOpen(false);
         } catch {
             toast.error(`Error in unpublishing the slide`);
+        }
+    }
+
+    if (activeItem?.source_type == 'ASSIGNMENT') {
+        const convertedData = converDataToAssignmentFormat({
+            activeItem,
+            status,
+            notify,
+            newSlide: false,
+        });
+        try {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            await updateAssignmentOrder(convertedData!);
+            toast.success(`slide published successfully!`);
+            setIsOpen(false);
+        } catch {
+            toast.error(`Error in publishing the slide`);
         }
     }
 };

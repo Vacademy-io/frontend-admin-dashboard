@@ -114,6 +114,8 @@ export interface QuestionResponse {
     default_question_time_mins: number | null;
     options: OptionText[];
     parent_rich_text: TextContent | null;
+    status: string;
+    can_skip: boolean;
     errors: string[];
     warnings: string[];
 }

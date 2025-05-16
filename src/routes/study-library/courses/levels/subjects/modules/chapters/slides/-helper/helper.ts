@@ -6,8 +6,11 @@ import {
 } from '@/routes/assessment/question-papers/-utils/helper';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import { Slide } from '../-hooks/use-slides';
+import { AssignmentSlide, Slide } from '../-hooks/use-slides';
 import { MyQuestion } from '@/types/assessments/question-paper-form';
+import { convertDateFormat } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-components/StepComponents/Step1BasicInfo';
+import { convertToUTC } from '@/routes/homework-creation/create-assessment/$assessmentId/$examtype/-utils/helper';
+import { AssignmentFormType } from '../-form-schemas/assignmentFormSchema';
 
 export const convertHtmlToPdf = async (
     htmlString: string
@@ -223,7 +226,7 @@ export function convertStudyLibraryQuestion(question: MyQuestion) {
     let options;
     if (question.questionType === QuestionType.MCQS) {
         options = question?.singleChoiceOptions?.map((opt, idx) => ({
-            id: null, // Assuming no direct mapping for option ID
+            id: opt.id, // Assuming no direct mapping for option ID
             preview_id: idx, // Using index as preview_id
             question_id: null,
             text: {
@@ -345,7 +348,7 @@ export function convertStudyLibraryQuestion(question: MyQuestion) {
         evaluation_type: 'AUTO',
         question_time_in_millis: timestampToSeconds(question.timestamp) * 1000,
         question_order: 0,
-        status: 'ACTIVE',
+        status: question?.status || 'ACTIVE',
         options: options?.map((opt, idx) => ({
             id: opt.id || null,
             preview_id: opt.id || idx,
@@ -354,6 +357,7 @@ export function convertStudyLibraryQuestion(question: MyQuestion) {
             mediaId: '',
         })),
         new_question: question.newQuestion === false ? false : true,
+        can_skip: question.canSkip,
     };
 }
 
@@ -403,11 +407,63 @@ export const converDataToVideoFormat = ({
     };
 };
 
+export const convertToAssignmentSlideBackendFormat = (assignmentSlide: AssignmentFormType) => {
+    return {
+        id: assignmentSlide.id,
+        parent_rich_text: {
+            id: '',
+            type: 'RICH_TEXT',
+            content: assignmentSlide.taskDescription,
+        },
+        text_data: {
+            id: '',
+            type: 'TEXT',
+            content: assignmentSlide.task,
+        },
+        live_date: convertToUTC(assignmentSlide.startDate),
+        end_date: convertToUTC(assignmentSlide.endDate),
+        re_attempt_count: assignmentSlide.reattemptCount,
+        comma_separated_media_ids: '',
+    };
+};
+
+export const converDataToAssignmentFormat = ({
+    activeItem,
+    status,
+    notify,
+    newSlide,
+}: {
+    activeItem: Slide;
+    status: string;
+    notify: boolean;
+    newSlide: boolean;
+}) => {
+    return {
+        id: activeItem?.id || '',
+        title: activeItem?.title || '',
+        description: activeItem?.description || '',
+        image_file_id: activeItem?.image_file_id || '',
+        source_id: activeItem?.source_id || '',
+        source_type: activeItem?.source_type || '',
+        status: status,
+        slide_order: 0,
+        video_slide: null,
+        document_slide: null,
+        question_slide: null,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        assignment_slide: convertToAssignmentSlideBackendFormat(activeItem.assignment_slide),
+        is_loaded: true,
+        new_slide: newSlide,
+        notify,
+    };
+};
+
 export function convertToQuestionSlideFormat(question: MyQuestion, sourceId?: string) {
     let options;
     if (question?.questionType === QuestionType.MCQS) {
         options = question?.singleChoiceOptions?.map((opt, idx) => ({
-            id: null, // Assuming no direct mapping for option ID
+            id: opt.id, // Assuming no direct mapping for option ID
             preview_id: idx, // Using index as preview_id
             question_id: null,
             text: {
@@ -579,6 +635,21 @@ export function timestampToSeconds(timestamp: string | undefined): number {
     return hours * 3600 + minutes * 60 + seconds;
 }
 
+const transformAssignmentSlide = (assignment: AssignmentSlide) => {
+    return {
+        id: assignment?.id,
+        task: assignment?.text_data.content,
+        taskDescription: assignment?.parent_rich_text.content,
+        startDate: convertDateFormat(assignment?.live_date || ''),
+        endDate: convertDateFormat(assignment?.end_date || ''),
+        reattemptCount: String(assignment?.re_attempt_count),
+        uploaded_question_paper: null,
+        adaptive_marking_for_each_question: [],
+        totalParticipants: 0,
+        submittedParticipants: 0,
+    };
+};
+
 export function cleanVideoQuestions(data: Slide[]) {
     return data.map((item) => {
         if (item.source_type === 'VIDEO' && item.video_slide) {
@@ -599,6 +670,16 @@ export function cleanVideoQuestions(data: Slide[]) {
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                     // @ts-expect-error
                     item.question_slide
+                ),
+            };
+        }
+        if (item.source_type === 'ASSIGNMENT') {
+            return {
+                ...item,
+                assignment_slide: transformAssignmentSlide(
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-expect-error
+                    item.assignment_slide
                 ),
             };
         }

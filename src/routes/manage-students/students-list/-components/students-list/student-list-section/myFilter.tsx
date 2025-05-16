@@ -11,7 +11,7 @@ export const Filters = ({
     filterDetails,
     onFilterChange,
     clearFilters,
-    id,
+    filterId,
     columnFilters,
 }: FilterProps) => {
     const [selectedFilterList, setSelectedFilterList] = useState<SelectedFilterListType>({
@@ -24,7 +24,7 @@ export const Filters = ({
 
     const handleSelectDeSelect = (option: { id: string; label: string }) => {
         let updatedValue: { id: string; label: string }[] = [];
-        const existingFilter = columnFilters?.find((filter) => filter.id === id);
+        const existingFilter = columnFilters?.find((filter) => filter.id === filterId);
 
         if (existingFilter) {
             const alreadyExists = existingFilter.value.some((filter) => filter.id === option.id);
@@ -43,7 +43,7 @@ export const Filters = ({
         // Update the local state
         setSelectedFilterList((prev) => ({
             ...prev,
-            [id]: updatedValue,
+            [filterId]: updatedValue,
         }));
 
         // Notify parent component of the change
@@ -55,7 +55,7 @@ export const Filters = ({
     const handleClearFilters = () => {
         setSelectedFilterList((prev) => ({
             ...prev,
-            [id]: [],
+            [filterId]: [],
         }));
 
         if (onFilterChange) {
@@ -67,22 +67,22 @@ export const Filters = ({
         if (onFilterChange) {
             // If this is a session expiry filter, extract only the numbers
             if (filterDetails.label === 'Session Expiry') {
-                const processedValues = selectedFilterList[id].map((filter) => {
+                const processedValues = selectedFilterList[filterId].map((filter) => {
                     const numberMatch = filter.label.match(/\d+/);
                     return numberMatch ? { id: filter.id, label: numberMatch[0] } : filter;
                 });
                 onFilterChange(processedValues);
             } else {
-                onFilterChange(selectedFilterList[id]);
+                onFilterChange(selectedFilterList[filterId]);
             }
         }
-    }, [selectedFilterList[id], filterDetails.label]);
+    }, [selectedFilterList[filterId], filterDetails.label]);
 
     return (
         <FilterChips
             label={filterDetails.label}
             filterList={filterDetails.filters}
-            selectedFilters={selectedFilterList[id]}
+            selectedFilters={selectedFilterList[filterId]}
             clearFilters={clearFilters}
             handleSelect={handleSelectDeSelect}
             handleClearFilters={handleClearFilters}

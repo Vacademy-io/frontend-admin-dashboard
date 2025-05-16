@@ -151,7 +151,8 @@ export const handlePostStep1Data = async (
         assessment_preview_time: data.assessmentPreview.checked
             ? parseInt(data.assessmentPreview.previewTimeLimit)
             : 0,
-        default_reattempt_count: data.reattemptCount,
+        default_reattempt_count:
+            type === 'MOCK' || type === 'PRACTICE' ? 100000 : data.reattemptCount,
         switch_sections: data.switchSections,
         evaluation_type: data.evaluationType,
         submission_type: data.submissionType,

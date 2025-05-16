@@ -67,7 +67,6 @@ export const StudentSidebar = ({
 
     useEffect(() => {
         fetchImageUrl();
-        console.log('selectedStudent from student side view: ', selectedStudent);
     }, [selectedStudent, selectedStudent?.face_file_id]);
 
     return (

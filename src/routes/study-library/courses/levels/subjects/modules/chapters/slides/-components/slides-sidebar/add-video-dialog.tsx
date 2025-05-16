@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { Route } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/index';
 import { useContentStore } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
 import { useEffect, useRef, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
 const formSchema = z.object({
     videoUrl: z
@@ -33,6 +34,7 @@ export const AddVideoDialog = ({
     const { setActiveItem, getSlideById } = useContentStore();
     const [isAPIReady, setIsAPIReady] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
+    const queryClient = useQueryClient();
 
     const extractVideoId = (url: string): string => {
         const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -131,6 +133,10 @@ export const AddVideoDialog = ({
             toast.success('Video added successfully!');
             form.reset();
             openState?.(false);
+
+            await queryClient.invalidateQueries({ queryKey: ['slides'] });
+            queryClient.getQueryData(['slides']);
+
             setTimeout(() => {
                 setActiveItem(getSlideById(response));
             }, 500);

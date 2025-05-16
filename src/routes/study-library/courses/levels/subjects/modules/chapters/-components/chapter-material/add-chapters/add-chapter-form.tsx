@@ -34,11 +34,12 @@ export const AddChapterForm = ({
     onSubmitSuccess,
     mode,
     module_id,
+    session_id,
 }: AddChapterFormProps) => {
     const router = useRouter();
     const courseId: string = router.state.location.search.courseId || '';
     const levelId: string = router.state.location.search.levelId || '';
-    const sessionId: string = router.state.location.search.sessionId || '';
+    const sessionId: string = router.state.location.search.sessionId || session_id || '';
     const moduleId: string = router.state.location.search.moduleId || module_id || '';
     const addChapterMutation = useAddChapter();
     const updateChapterMutation = useUpdateChapter();

@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { updateDocumentDataInSlides } from '../-helper/helper';
 import { Slide } from '../-hooks/use-slides';
 import { useContentStore } from '../-stores/chapter-sidebar-store';
 import { assignmentFormSchema, AssignmentFormType } from '../-form-schemas/assignmentFormSchema';
@@ -33,7 +32,6 @@ import { ReverseProgressBar } from '@/components/ui/progress';
 
 const StudyLibraryAssignmentPreview = ({ activeItem }: { activeItem: Slide }) => {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-    const defaultValues = JSON.parse('');
     const { setItems, setActiveItem, items } = useContentStore();
     const {
         isManualQuestionPaperDialogOpen,
@@ -44,9 +42,10 @@ const StudyLibraryAssignmentPreview = ({ activeItem }: { activeItem: Slide }) =>
         setIsSavedQuestionPaperDialogOpen,
     } = useDialogStore();
 
+    const defaultValues = activeItem.assignment_slide;
     const form = useForm<AssignmentFormType>({
         resolver: zodResolver(assignmentFormSchema),
-        defaultValues,
+        defaultValues: defaultValues || {},
     });
 
     const adaptive_marking_for_each_question = form.getValues('adaptive_marking_for_each_question');
@@ -56,13 +55,12 @@ const StudyLibraryAssignmentPreview = ({ activeItem }: { activeItem: Slide }) =>
 
     useEffect(() => {
         const subscription = watch(() => {
-            const modifiedItems = updateDocumentDataInSlides(
-                items,
-                activeItem,
-                form.getValues(),
-                setActiveItem
-            );
-            setItems(modifiedItems);
+            setActiveItem({
+                ...activeItem,
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-expect-error
+                assignment_slide: form.getValues(),
+            });
         });
 
         return () => subscription.unsubscribe(); // cleanup
@@ -172,6 +170,13 @@ const StudyLibraryAssignmentPreview = ({ activeItem }: { activeItem: Slide }) =>
                                     size="large"
                                     className="w-96"
                                     {...field}
+                                    min={0}
+                                    onKeyDown={(e) => {
+                                        if (['e', 'E', '-', '+'].includes(e.key)) {
+                                            e.preventDefault();
+                                        }
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                 />
                             </FormControl>
                         </FormItem>

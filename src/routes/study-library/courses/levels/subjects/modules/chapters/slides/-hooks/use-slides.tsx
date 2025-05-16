@@ -8,6 +8,7 @@ import {
     UPDATE_SLIDE_STATUS,
     UPDATE_SLIDE_ORDER,
     UPDATE_QUESTION_ORDER,
+    UPDATE_ASSIGNMENT_ORDER,
 } from '@/constants/urls';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
@@ -117,10 +118,10 @@ export interface Slide {
     description: string;
     status: string;
     slide_order: number;
-    video_slide?: VideoSlide;
-    document_slide?: DocumentSlide;
-    question_slide?: QuestionSlide;
-    assignment_slide?: AssignmentSlide;
+    video_slide?: VideoSlide | null;
+    document_slide?: DocumentSlide | null;
+    question_slide?: QuestionSlide | null;
+    assignment_slide?: AssignmentSlide | null;
     is_loaded: boolean;
     new_slide: boolean;
 }
@@ -286,6 +287,23 @@ export const useSlides = (chapterId: string) => {
         },
     });
 
+    const updateAssignmentSlideMutation = useMutation({
+        mutationFn: async (payload: SlideQuestionsDataInterface) => {
+            const response = await authenticatedAxiosInstance.post(
+                `${UPDATE_ASSIGNMENT_ORDER}?chapterId=${chapterId}&instituteId=${INSTITUTE_ID}`,
+                payload
+            );
+            return response.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['slides'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_MODULES_WITH_CHAPTERS'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SUBJECTS_PROGRESS'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SLIDES_PROGRESS'] });
+        },
+    });
+
     return {
         slides: getSlidesQuery.data,
         isLoading: getSlidesQuery.isLoading,
@@ -295,10 +313,12 @@ export const useSlides = (chapterId: string) => {
         updateSlideStatus: updateSlideStatus.mutateAsync,
         updateSlideOrder: updateSlideOrderMutation.mutateAsync,
         updateQuestionOrder: updateQuestionSlideMutation.mutateAsync,
+        updateAssignmentOrder: updateAssignmentSlideMutation.mutateAsync,
         isUpdating:
             addUpdateVideoSlideMutation.isPending ||
             addUpdateDocumentSlideMutation.isPending ||
             updateSlideOrderMutation.isPending ||
-            updateQuestionSlideMutation.isPending,
+            updateQuestionSlideMutation.isPending ||
+            updateAssignmentSlideMutation.isPending,
     };
 };
