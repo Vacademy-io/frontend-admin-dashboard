@@ -17,10 +17,9 @@ import {
     MyQuestionPaperFormEditInterface,
     MyQuestionPaperFormInterface,
 } from '../../../../types/assessments/question-paper-form';
-import { AIAssessmentResponseInterface } from '@/types/ai/generate-assessment/generate-complete-assessment';
 
 export const addQuestionPaper = async (
-    data: MyQuestionPaperFormInterface | AIAssessmentResponseInterface,
+    data: MyQuestionPaperFormInterface,
     isAddingAIQuestions?: boolean
 ) => {
     try {
@@ -28,7 +27,7 @@ export const addQuestionPaper = async (
             method: 'POST',
             url: `${ADD_QUESTION_PAPER}`,
             data: isAddingAIQuestions
-                ? transformQuestionPaperDataAI(data as AIAssessmentResponseInterface)
+                ? transformQuestionPaperDataAI(data as MyQuestionPaperFormInterface)
                 : transformQuestionPaperData(data as MyQuestionPaperFormInterface),
         });
         return response?.data;
