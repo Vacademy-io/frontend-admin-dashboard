@@ -103,8 +103,32 @@ const VideoQuestionDialogAddPreview = ({
 
     return (
         <Dialog open={previewQuestionDialog} onOpenChange={setPreviewQuestionDialog}>
-            <DialogContent className="no-scrollbar !m-0 flex h-full !w-full !max-w-full flex-col !gap-0 overflow-y-auto !rounded-none !p-0">
-                <h1 className="bg-primary-50 p-4 font-semibold text-primary-500">Question</h1>
+            <DialogContent className="no-scrollbar !m-0 flex h-full !w-full !max-w-full flex-col !gap-0 overflow-y-auto !rounded-none !p-0 [&>button]:hidden">
+                <div className="flex w-full items-center justify-between bg-primary-50">
+                    <h1 className="p-4 font-semibold text-primary-500">Question</h1>
+                    <div className="mr-4 flex items-center gap-2">
+                        <MyButton
+                            type="button"
+                            buttonType="secondary"
+                            scale="medium"
+                            layoutVariant="default"
+                            className="mr-3"
+                            onClick={() => setPreviewQuestionDialog(false)}
+                        >
+                            Close
+                        </MyButton>
+                        <MyButton
+                            type="button"
+                            buttonType="primary"
+                            scale="medium"
+                            layoutVariant="default"
+                            className="mr-3"
+                            onClick={handleAddQuestionInAddedForm}
+                        >
+                            Done
+                        </MyButton>
+                    </div>
+                </div>
                 <div>
                     <FormProvider {...videoQuestionForm}>
                         {videoQuestionForm.getValues('questions')?.length === 0 ? (
@@ -126,18 +150,6 @@ const VideoQuestionDialogAddPreview = ({
                                             'dialog-height overflow-auto ml-6 flex w-full flex-col gap-6 pr-6 pt-4',
                                     }}
                                 />
-                                <div className="flex justify-end">
-                                    <MyButton
-                                        type="button"
-                                        buttonType="primary"
-                                        scale="large"
-                                        layoutVariant="default"
-                                        className="mr-3"
-                                        onClick={handleAddQuestionInAddedForm}
-                                    >
-                                        Done
-                                    </MyButton>
-                                </div>
                             </div>
                         )}
                     </FormProvider>
