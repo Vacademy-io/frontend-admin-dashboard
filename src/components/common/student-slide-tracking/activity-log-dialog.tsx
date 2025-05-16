@@ -2,10 +2,16 @@
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { MyTable } from '@/components/design-system/table';
 import { MyPagination } from '@/components/design-system/pagination';
-import { ACTIVITY_LOG_COLUMN_WIDTHS } from '@/components/design-system/utils/constants/table-layout';
+import {
+    ACTIVITY_LOG_COLUMN_WIDTHS,
+    ACTIVITY_RESPONSE_COLUMN_WIDTHS,
+} from '@/components/design-system/utils/constants/table-layout';
 import { usePaginationState } from '@/hooks/pagination';
 import { useMemo, useState } from 'react';
-import { activityLogColumns } from '@/components/design-system/utils/constants/table-column-data';
+import {
+    activityLogColumns,
+    activityResponseTypeColumns,
+} from '@/components/design-system/utils/constants/table-column-data';
 import { useActivityStatsStore } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/activity-stats-store';
 import { useContentStore } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
 import { useQuery } from '@tanstack/react-query';
@@ -99,12 +105,14 @@ export const ActivityLogDialog = ({
     return (
         <>
             <Dialog open={isOpen} onOpenChange={closeDialog}>
-                <DialogContent className="w-fit p-0">
+                <DialogContent
+                    className={`${tableData.content.length == 0 ? 'w-1/2' : 'w-fit'} p-0`}
+                >
                     <h1 className="rounded-t-lg bg-primary-50 p-4 font-semibold text-primary-500">
                         Activity Log
                     </h1>
                     {tableData.content.length == 0 ? (
-                        <p className="text-primary-500">No activity found</p>
+                        <p className="p-4 text-center text-primary-500">No activity found</p>
                     ) : (
                         <>
                             <Tabs
@@ -165,11 +173,18 @@ export const ActivityLogDialog = ({
                                 <TabsContent value="responses">
                                     <div className="no-scrollbar mt-6 overflow-x-scroll">
                                         <MyTable
-                                            data={tableData}
-                                            columns={activityLogColumns}
+                                            data={{
+                                                content: [],
+                                                total_pages: 0,
+                                                page_no: 0,
+                                                page_size: pageSize,
+                                                total_elements: 0,
+                                                last: true,
+                                            }}
+                                            columns={activityResponseTypeColumns}
                                             isLoading={isLoading}
                                             error={error}
-                                            columnWidths={ACTIVITY_LOG_COLUMN_WIDTHS}
+                                            columnWidths={ACTIVITY_RESPONSE_COLUMN_WIDTHS}
                                             currentPage={page}
                                         />
                                         <div className="mt-6">
