@@ -4,7 +4,7 @@ import { MyTable } from '@/components/design-system/table';
 import { MyPagination } from '@/components/design-system/pagination';
 import { ACTIVITY_LOG_COLUMN_WIDTHS } from '@/components/design-system/utils/constants/table-layout';
 import { usePaginationState } from '@/hooks/pagination';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { activityLogColumns } from '@/components/design-system/utils/constants/table-column-data';
 import { useActivityStatsStore } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/activity-stats-store';
 import { useContentStore } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
@@ -25,6 +25,7 @@ export const ActivityLogDialog = ({
     selectedUser?: StudentTable | null;
     slideData?: SlideWithStatusType;
 }) => {
+    const [selectedTab, setSelectedTab] = useState('insights');
     const { isOpen, closeDialog, selectedUserId } = useActivityStatsStore();
     const { activeItem } = useContentStore();
 
@@ -106,10 +107,40 @@ export const ActivityLogDialog = ({
                         <p className="text-primary-500">No activity found</p>
                     ) : (
                         <>
-                            <Tabs defaultValue="insights" className="p-4">
-                                <TabsList>
-                                    <TabsTrigger value="insights">View Insights</TabsTrigger>
-                                    <TabsTrigger value="responses">Responses</TabsTrigger>
+                            <Tabs
+                                className="p-4"
+                                value={selectedTab}
+                                onValueChange={setSelectedTab}
+                            >
+                                <TabsList className="inline-flex h-auto justify-start gap-4 rounded-none border-b-[1px] !bg-transparent p-0">
+                                    <TabsTrigger
+                                        value="insights"
+                                        className={`flex gap-1.5 rounded-none pb-2 pl-12 pr-12 pt-2 !shadow-none ${
+                                            selectedTab === 'insights'
+                                                ? 'border-4px rounded-tl-sm rounded-tr-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                                : 'border-none bg-transparent'
+                                        }`}
+                                    >
+                                        <span
+                                            className={`${selectedTab === 'insights' ? 'text-primary-500' : ''}`}
+                                        >
+                                            View Insights
+                                        </span>
+                                    </TabsTrigger>
+                                    <TabsTrigger
+                                        value="responses"
+                                        className={`inline-flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
+                                            selectedTab === 'responses'
+                                                ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                                : 'border-none bg-transparent'
+                                        }`}
+                                    >
+                                        <span
+                                            className={`${selectedTab === 'responses' ? 'text-primary-500' : ''}`}
+                                        >
+                                            Responses
+                                        </span>
+                                    </TabsTrigger>
                                 </TabsList>
                                 <TabsContent value="insights">
                                     <div className="no-scrollbar mt-6 overflow-x-scroll">
