@@ -89,7 +89,7 @@ export const ActivityStatsSidebar = () => {
             </DialogTrigger>
             <DialogContent className="w-[800px] max-w-[800px] p-0 font-normal">
                 <DialogHeader className="flex flex-col gap-3">
-                    <div className="bg-primary-50 px-6 py-4 text-h3 font-semibold text-primary-500">
+                    <div className="rounded-t-lg bg-primary-50 px-6 py-4 text-h3 font-semibold text-primary-500">
                         Activity Stats
                     </div>
                     <div className="flex w-full flex-wrap gap-6 px-6">

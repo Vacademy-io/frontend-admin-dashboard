@@ -1,5 +1,5 @@
 // activity-log-dialog.tsx
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { MyTable } from '@/components/design-system/table';
 import { MyPagination } from '@/components/design-system/pagination';
 import { ACTIVITY_LOG_COLUMN_WIDTHS } from '@/components/design-system/utils/constants/table-layout';
@@ -16,6 +16,7 @@ import {
 import { ActivityContent } from '@/types/study-library/user-slide-activity-response-type';
 import { StudentTable } from '@/types/student-table-types';
 import { SlideWithStatusType } from '@/routes/manage-students/students-list/-types/student-slides-progress-type';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export const ActivityLogDialog = ({
     selectedUser,
@@ -95,39 +96,65 @@ export const ActivityLogDialog = ({
     }, [activityLogs, page, pageSize, selectedUser, slideData, activeItem]);
 
     return (
-        <Dialog open={isOpen} onOpenChange={closeDialog}>
-            <DialogContent className="w-[700px] max-w-[800px]">
-                <DialogHeader className="flex flex-col gap-6">
-                    <div className="flex items-center justify-between">
-                        <DialogTitle className="text-h3 font-semibold text-primary-500">
-                            Activity Log
-                        </DialogTitle>
-                    </div>
-                </DialogHeader>
+        <>
+            <Dialog open={isOpen} onOpenChange={closeDialog}>
+                <DialogContent className="w-fit p-0">
+                    <h1 className="rounded-t-lg bg-primary-50 p-4 font-semibold text-primary-500">
+                        Activity Log
+                    </h1>
+                    {tableData.content.length == 0 ? (
+                        <p className="text-primary-500">No activity found</p>
+                    ) : (
+                        <>
+                            <Tabs defaultValue="insights" className="p-4">
+                                <TabsList>
+                                    <TabsTrigger value="insights">View Insights</TabsTrigger>
+                                    <TabsTrigger value="responses">Responses</TabsTrigger>
+                                </TabsList>
+                                <TabsContent value="insights">
+                                    <div className="no-scrollbar mt-6 overflow-x-scroll">
+                                        <MyTable
+                                            data={tableData}
+                                            columns={activityLogColumns}
+                                            isLoading={isLoading}
+                                            error={error}
+                                            columnWidths={ACTIVITY_LOG_COLUMN_WIDTHS}
+                                            currentPage={page}
+                                        />
 
-                {tableData.content.length == 0 ? (
-                    <p className="text-primary-500">No activity found</p>
-                ) : (
-                    <div className="no-scrollbar mt-6 overflow-x-scroll">
-                        <MyTable
-                            data={tableData}
-                            columns={activityLogColumns}
-                            isLoading={isLoading}
-                            error={error}
-                            columnWidths={ACTIVITY_LOG_COLUMN_WIDTHS}
-                            currentPage={page}
-                        />
-
-                        <div className="mt-6">
-                            <MyPagination
-                                currentPage={page}
-                                totalPages={tableData.total_pages}
-                                onPageChange={handlePageChange}
-                            />
-                        </div>
-                    </div>
-                )}
-            </DialogContent>
-        </Dialog>
+                                        <div className="mt-6">
+                                            <MyPagination
+                                                currentPage={page}
+                                                totalPages={tableData.total_pages}
+                                                onPageChange={handlePageChange}
+                                            />
+                                        </div>
+                                    </div>
+                                </TabsContent>
+                                <TabsContent value="responses">
+                                    <div className="no-scrollbar mt-6 overflow-x-scroll">
+                                        <MyTable
+                                            data={tableData}
+                                            columns={activityLogColumns}
+                                            isLoading={isLoading}
+                                            error={error}
+                                            columnWidths={ACTIVITY_LOG_COLUMN_WIDTHS}
+                                            currentPage={page}
+                                        />
+                                        <div className="mt-6">
+                                            <MyPagination
+                                                currentPage={page}
+                                                totalPages={tableData.total_pages}
+                                                onPageChange={handlePageChange}
+                                            />
+                                        </div>
+                                    </div>
+                                </TabsContent>
+                            </Tabs>
+                        </>
+                    )}
+                </DialogContent>
+            </Dialog>
+        </>
     );
 };
