@@ -1,6 +1,6 @@
 import { Helmet } from 'react-helmet';
 import { Tabs } from '@/components/ui/tabs';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
 import { ScheduleTestFilters } from './ScheduleTestFilters';
@@ -45,6 +45,15 @@ export interface SelectedQuestionPaperFilters {
     evaluation_types: MyFilterOption[];
 }
 
+const SafeRouteSearch = () => {
+    try {
+        return Route.useSearch();
+    } catch (error) {
+        // Return a default object if the hook fails
+        return { selectedTab: 'liveTests' };
+    }
+};
+
 export const ScheduleTestMainComponent = ({
     isCourseOutline = false,
     batchId,
@@ -55,14 +64,19 @@ export const ScheduleTestMainComponent = ({
     showBatchFilter?: boolean;
 }) => {
     const navigate = useNavigate();
-    const routeSearchParams = Route.useSearch();
+
+    // Always call Route.useSearch() regardless of props
+    const routeSearchParams = SafeRouteSearch();
+
     const searchParams = !isCourseOutline ? routeSearchParams : { selectedTab: 'liveTests' };
+
+    // Set state based on the derived value
+    const [selectedTab, setSelectedTab] = useState(searchParams.selectedTab ?? 'liveTests');
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const [isOpen, setIsOpen] = useState(false);
     const data = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
     const { setNavHeading } = useNavHeadingStore();
-    const [selectedTab, setSelectedTab] = useState(searchParams.selectedTab ?? 'liveTests');
     const { data: initData } = useSuspenseQuery(useInstituteQuery());
     const { data: initAssessmentData } = useSuspenseQuery(getInitAssessmentDetails(initData?.id));
     const { BatchesFilterData, SubjectFilterData } = useFilterDataForAssesment(initData);
@@ -352,18 +366,22 @@ export const ScheduleTestMainComponent = ({
             });
     };
 
-    const getSubjectsByBatchId = (batchId: string) => {
-        const batch = getDetailsFromPackageSessionId({ packageSessionId: batchId });
-        const subjects = getCourseSubjects(
-            batch?.package_dto?.id ?? '',
-            batch?.session?.id ?? '',
-            batch?.level?.id ?? ''
-        );
-        return subjects.map((subject) => ({
-            name: subject.subject_name,
-            id: subject.id,
-        }));
-    };
+    // Make sure getSubjectsByBatchId is defined outside any effect or function
+    const getSubjectsByBatchId = useCallback(
+        (batchId: string) => {
+            const batch = getDetailsFromPackageSessionId({ packageSessionId: batchId });
+            const subjects = getCourseSubjects(
+                batch?.package_dto?.id ?? '',
+                batch?.session?.id ?? '',
+                batch?.level?.id ?? ''
+            );
+            return subjects.map((subject) => ({
+                name: subject.subject_name,
+                id: subject.id,
+            }));
+        },
+        [getDetailsFromPackageSessionId]
+    );
 
     useEffect(() => {
         setIsLoading(true);
@@ -457,7 +475,7 @@ export const ScheduleTestMainComponent = ({
                     selectedTab: selectedTab,
                 },
             });
-    }, [selectedTab]);
+    }, [selectedTab, isCourseOutline, navigate]);
 
     // Define the handleRefetchData function here
     useEffect(() => {
