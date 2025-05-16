@@ -4,12 +4,14 @@ import { MyTable } from '@/components/design-system/table';
 import { MyPagination } from '@/components/design-system/pagination';
 import {
     ACTIVITY_LOG_COLUMN_WIDTHS,
+    ACTIVITY_RESPONSE_ASSIGNMENT_COLUMN_WIDTHS,
     ACTIVITY_RESPONSE_COLUMN_WIDTHS,
 } from '@/components/design-system/utils/constants/table-layout';
 import { usePaginationState } from '@/hooks/pagination';
 import { useMemo, useState } from 'react';
 import {
     activityLogColumns,
+    activityResponseAssignmentColumns,
     activityResponseTypeColumns,
 } from '@/components/design-system/utils/constants/table-column-data';
 import { useActivityStatsStore } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/activity-stats-store';
@@ -102,6 +104,8 @@ export const ActivityLogDialog = ({
         };
     }, [activityLogs, page, pageSize, selectedUser, slideData, activeItem]);
 
+    console.log(activeItem);
+
     return (
         <>
             <Dialog open={isOpen} onOpenChange={closeDialog}>
@@ -115,7 +119,7 @@ export const ActivityLogDialog = ({
                         <p className="p-4 text-center text-primary-500">No activity found</p>
                     ) : (
                         <>
-                            {activeItem?.source_type === 'VIDEO' ? (
+                            {activeItem?.source_type === 'VIDEO' && (
                                 <Tabs
                                     className="p-4"
                                     value={selectedTab}
@@ -198,7 +202,63 @@ export const ActivityLogDialog = ({
                                         </div>
                                     </TabsContent>
                                 </Tabs>
-                            ) : (
+                            )}
+
+                            {activeItem?.source_type === 'QUESTION' && (
+                                <div className="no-scrollbar mt-6 overflow-x-scroll px-4">
+                                    <MyTable
+                                        data={{
+                                            content: [],
+                                            total_pages: 0,
+                                            page_no: 0,
+                                            page_size: pageSize,
+                                            total_elements: 0,
+                                            last: true,
+                                        }}
+                                        columns={activityResponseTypeColumns}
+                                        isLoading={isLoading}
+                                        error={error}
+                                        columnWidths={ACTIVITY_RESPONSE_COLUMN_WIDTHS}
+                                        currentPage={page}
+                                    />
+                                    <div className="my-6">
+                                        <MyPagination
+                                            currentPage={page}
+                                            totalPages={tableData.total_pages}
+                                            onPageChange={handlePageChange}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeItem?.source_type === 'ASSIGNMENT' && (
+                                <div className="no-scrollbar mt-6 overflow-x-scroll px-4">
+                                    <MyTable
+                                        data={{
+                                            content: [],
+                                            total_pages: 0,
+                                            page_no: 0,
+                                            page_size: pageSize,
+                                            total_elements: 0,
+                                            last: true,
+                                        }}
+                                        columns={activityResponseAssignmentColumns}
+                                        isLoading={isLoading}
+                                        error={error}
+                                        columnWidths={ACTIVITY_RESPONSE_ASSIGNMENT_COLUMN_WIDTHS}
+                                        currentPage={page}
+                                    />
+                                    <div className="my-6">
+                                        <MyPagination
+                                            currentPage={page}
+                                            totalPages={tableData.total_pages}
+                                            onPageChange={handlePageChange}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeItem?.source_type === 'DOCUMENT' && (
                                 <div className="no-scrollbar mt-6 overflow-x-scroll px-4">
                                     <MyTable
                                         data={tableData}
@@ -208,7 +268,6 @@ export const ActivityLogDialog = ({
                                         columnWidths={ACTIVITY_LOG_COLUMN_WIDTHS}
                                         currentPage={page}
                                     />
-
                                     <div className="my-6">
                                         <MyPagination
                                             currentPage={page}

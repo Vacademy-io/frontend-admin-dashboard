@@ -465,3 +465,24 @@ export const activityResponseTypeColumns: ColumnDef<ActivityResponseType>[] = [
         header: 'Response Status',
     },
 ];
+
+export interface ActivityResponseAssignmentType {
+    uploadDate: string;
+    uploadTime: number;
+    submissions: string;
+}
+
+export const activityResponseAssignmentColumns: ColumnDef<ActivityResponseAssignmentType>[] = [
+    {
+        accessorKey: 'uploadDate',
+        header: 'Upload Date',
+    },
+    {
+        accessorKey: 'uploadTime',
+        header: 'Upload Time',
+    },
+    {
+        accessorKey: 'submissions',
+        header: 'Submissions',
+    },
+];

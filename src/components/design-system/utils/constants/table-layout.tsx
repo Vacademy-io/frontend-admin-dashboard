@@ -59,6 +59,12 @@ export const ACTIVITY_RESPONSE_COLUMN_WIDTHS: ColumnWidthConfig = {
     responseStatus: 'min-w-[140px]',
 };
 
+export const ACTIVITY_RESPONSE_ASSIGNMENT_COLUMN_WIDTHS: ColumnWidthConfig = {
+    uploadDate: 'min-w-[120px]',
+    uploadTime: 'min-w-[140px]',
+    submissions: 'min-w-[100px]',
+};
+
 export const ACTIVITY_STATS_COLUMN_WIDTHS: ColumnWidthConfig = {
     details: 'min-w-[80px] sticky left-0',
     full_name: 'min-w-[160px] sticky left-[80px]',
