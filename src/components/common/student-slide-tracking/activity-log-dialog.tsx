@@ -115,88 +115,109 @@ export const ActivityLogDialog = ({
                         <p className="p-4 text-center text-primary-500">No activity found</p>
                     ) : (
                         <>
-                            <Tabs
-                                className="p-4"
-                                value={selectedTab}
-                                onValueChange={setSelectedTab}
-                            >
-                                <TabsList className="inline-flex h-auto justify-start gap-4 rounded-none border-b-[1px] !bg-transparent p-0">
-                                    <TabsTrigger
-                                        value="insights"
-                                        className={`flex gap-1.5 rounded-none pb-2 pl-12 pr-12 pt-2 !shadow-none ${
-                                            selectedTab === 'insights'
-                                                ? 'border-4px rounded-tl-sm rounded-tr-sm border !border-b-0 border-primary-200 !bg-primary-50'
-                                                : 'border-none bg-transparent'
-                                        }`}
-                                    >
-                                        <span
-                                            className={`${selectedTab === 'insights' ? 'text-primary-500' : ''}`}
+                            {activeItem?.source_type === 'VIDEO' ? (
+                                <Tabs
+                                    className="p-4"
+                                    value={selectedTab}
+                                    onValueChange={setSelectedTab}
+                                >
+                                    <TabsList className="inline-flex h-auto justify-start gap-4 rounded-none border-b-[1px] !bg-transparent p-0">
+                                        <TabsTrigger
+                                            value="insights"
+                                            className={`flex gap-1.5 rounded-none pb-2 pl-12 pr-12 pt-2 !shadow-none ${
+                                                selectedTab === 'insights'
+                                                    ? 'border-4px rounded-tl-sm rounded-tr-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                                    : 'border-none bg-transparent'
+                                            }`}
                                         >
-                                            View Insights
-                                        </span>
-                                    </TabsTrigger>
-                                    <TabsTrigger
-                                        value="responses"
-                                        className={`inline-flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
-                                            selectedTab === 'responses'
-                                                ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
-                                                : 'border-none bg-transparent'
-                                        }`}
-                                    >
-                                        <span
-                                            className={`${selectedTab === 'responses' ? 'text-primary-500' : ''}`}
+                                            <span
+                                                className={`${selectedTab === 'insights' ? 'text-primary-500' : ''}`}
+                                            >
+                                                View Insights
+                                            </span>
+                                        </TabsTrigger>
+                                        <TabsTrigger
+                                            value="responses"
+                                            className={`inline-flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
+                                                selectedTab === 'responses'
+                                                    ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                                    : 'border-none bg-transparent'
+                                            }`}
                                         >
-                                            Responses
-                                        </span>
-                                    </TabsTrigger>
-                                </TabsList>
-                                <TabsContent value="insights">
-                                    <div className="no-scrollbar mt-6 overflow-x-scroll">
-                                        <MyTable
-                                            data={tableData}
-                                            columns={activityLogColumns}
-                                            isLoading={isLoading}
-                                            error={error}
-                                            columnWidths={ACTIVITY_LOG_COLUMN_WIDTHS}
-                                            currentPage={page}
-                                        />
+                                            <span
+                                                className={`${selectedTab === 'responses' ? 'text-primary-500' : ''}`}
+                                            >
+                                                Responses
+                                            </span>
+                                        </TabsTrigger>
+                                    </TabsList>
+                                    <TabsContent value="insights">
+                                        <div className="no-scrollbar mt-6 overflow-x-scroll">
+                                            <MyTable
+                                                data={tableData}
+                                                columns={activityLogColumns}
+                                                isLoading={isLoading}
+                                                error={error}
+                                                columnWidths={ACTIVITY_LOG_COLUMN_WIDTHS}
+                                                currentPage={page}
+                                            />
 
-                                        <div className="mt-6">
-                                            <MyPagination
-                                                currentPage={page}
-                                                totalPages={tableData.total_pages}
-                                                onPageChange={handlePageChange}
-                                            />
+                                            <div className="mt-6">
+                                                <MyPagination
+                                                    currentPage={page}
+                                                    totalPages={tableData.total_pages}
+                                                    onPageChange={handlePageChange}
+                                                />
+                                            </div>
                                         </div>
-                                    </div>
-                                </TabsContent>
-                                <TabsContent value="responses">
-                                    <div className="no-scrollbar mt-6 overflow-x-scroll">
-                                        <MyTable
-                                            data={{
-                                                content: [],
-                                                total_pages: 0,
-                                                page_no: 0,
-                                                page_size: pageSize,
-                                                total_elements: 0,
-                                                last: true,
-                                            }}
-                                            columns={activityResponseTypeColumns}
-                                            isLoading={isLoading}
-                                            error={error}
-                                            columnWidths={ACTIVITY_RESPONSE_COLUMN_WIDTHS}
+                                    </TabsContent>
+                                    <TabsContent value="responses">
+                                        <div className="no-scrollbar mt-6 overflow-x-scroll">
+                                            <MyTable
+                                                data={{
+                                                    content: [],
+                                                    total_pages: 0,
+                                                    page_no: 0,
+                                                    page_size: pageSize,
+                                                    total_elements: 0,
+                                                    last: true,
+                                                }}
+                                                columns={activityResponseTypeColumns}
+                                                isLoading={isLoading}
+                                                error={error}
+                                                columnWidths={ACTIVITY_RESPONSE_COLUMN_WIDTHS}
+                                                currentPage={page}
+                                            />
+                                            <div className="mt-6">
+                                                <MyPagination
+                                                    currentPage={page}
+                                                    totalPages={tableData.total_pages}
+                                                    onPageChange={handlePageChange}
+                                                />
+                                            </div>
+                                        </div>
+                                    </TabsContent>
+                                </Tabs>
+                            ) : (
+                                <div className="no-scrollbar mt-6 overflow-x-scroll px-4">
+                                    <MyTable
+                                        data={tableData}
+                                        columns={activityLogColumns}
+                                        isLoading={isLoading}
+                                        error={error}
+                                        columnWidths={ACTIVITY_LOG_COLUMN_WIDTHS}
+                                        currentPage={page}
+                                    />
+
+                                    <div className="my-6">
+                                        <MyPagination
                                             currentPage={page}
+                                            totalPages={tableData.total_pages}
+                                            onPageChange={handlePageChange}
                                         />
-                                        <div className="mt-6">
-                                            <MyPagination
-                                                currentPage={page}
-                                                totalPages={tableData.total_pages}
-                                                onPageChange={handlePageChange}
-                                            />
-                                        </div>
                                     </div>
-                                </TabsContent>
-                            </Tabs>
+                                </div>
+                            )}
                         </>
                     )}
                 </DialogContent>
