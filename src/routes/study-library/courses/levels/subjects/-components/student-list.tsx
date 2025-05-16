@@ -1,9 +1,6 @@
 import { useStudentFilters } from '@/routes/manage-students/students-list/-hooks/useStudentFilters';
 import { useStudentTable } from '@/routes/manage-students/students-list/-hooks/useStudentTable';
-// import { useSearch } from '@tanstack/react-router';
-// import { Route } from '@/routes/manage-students/students-list';
-// import { InviteFormProvider } from '@/routes/manage-students/invite/-context/useInviteFormContext';
-// import { StudentListHeader } from '@/routes/manage-students/students-list/-components/students-list/student-list-section/student-list-header';
+import { InviteFormProvider } from '@/routes/manage-students/invite/-context/useInviteFormContext';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { EmptyStudentListImage } from '@/assets/svgs';
 import { SidebarProvider } from '@/components/ui/sidebar';
@@ -12,40 +9,53 @@ import { StudentTable } from '@/types/student-table-types';
 import { StudentSidebar } from '@/routes/manage-students/students-list/-components/students-list/student-side-view/student-side-view';
 import { MyPagination } from '@/components/design-system/pagination';
 import { IndividualShareCredentialsDialog } from '@/routes/manage-students/students-list/-components/students-list/student-list-section/bulk-actions/individual-share-credentials-dialog';
-// import { useSuspenseQuery } from '@tanstack/react-query';
-// import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
-// import { useRef, useState } from 'react';
-// import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { myColumns } from '@/components/design-system/utils/constants/table-column-data';
 import { STUDENT_LIST_COLUMN_WIDTHS } from '@/components/design-system/utils/constants/table-layout';
 import { OnChangeFn, RowSelectionState } from '@tanstack/react-table';
-import { EnrollStudentsButton } from '@/components/common/students/enroll-students-button';
-import { BulkDialogProvider } from '@/routes/manage-students/students-list/-providers/bulk-dialog-provider';
-import { useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { StudentListHeader } from '@/routes/manage-students/students-list/-components/students-list/student-list-section/student-list-header';
+import { DropdownItemType } from '@/components/common/students/enroll-manually/dropdownTypesForPackageItems';
+import { StudentFilters } from '@/routes/manage-students/students-list/-components/students-list/student-list-section/student-filters';
+import { GetFilterData } from '@/routes/manage-students/students-list/-constants/all-filters';
+import { BulkActions } from '@/routes/manage-students/students-list/-components/students-list/student-list-section/bulk-actions/bulk-actions';
 
-const Students = ({ packageSessionId }: { packageSessionId: string }) => {
+const Students = ({
+    packageSessionId,
+    currentSession,
+}: {
+    packageSessionId: string;
+    currentSession: DropdownItemType;
+}) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const { instituteDetails } = useInstituteDetailsStore();
     const [rowSelections, setRowSelections] = useState<Record<number, Record<string, boolean>>>({});
     const tableRef = useRef<HTMLDivElement>(null);
+    const [allPagesData, setAllPagesData] = useState<Record<number, StudentTable[]>>({});
     const {
-        // columnFilters,
-        appliedFilters,
-        // clearFilters,
-        // searchInput,
-        // searchFilter,
-        // currentSession,
-        // sessionList,
-        // getActiveFiltersState,
-        // handleFilterChange,
-        // handleFilterClick,
-        // handleClearFilters,
-        // handleSearchInputChange,
-        // handleSearchEnter,
-        // handleClearSearch,
+        columnFilters,
+        clearFilters,
+        searchInput,
+        appliedFilters: baseAppliedFilters,
+        searchFilter,
+        sessionList,
+        getActiveFiltersState,
+        handleFilterChange,
+        handleFilterClick,
+        handleClearFilters,
+        handleSearchInputChange,
+        handleSearchEnter,
+        handleClearSearch,
         setAppliedFilters,
-        // handleSessionChange,
-        // setColumnFilters,
+        handleSessionChange,
     } = useStudentFilters();
+    const appliedFilters = useMemo(
+        () => ({
+            ...baseAppliedFilters,
+            package_session_ids: [packageSessionId],
+        }),
+        [baseAppliedFilters, packageSessionId]
+    );
     const {
         studentTableData,
         isLoading: loadingData,
@@ -54,6 +64,18 @@ const Students = ({ packageSessionId }: { packageSessionId: string }) => {
         handleSort,
         handlePageChange,
     } = useStudentTable(appliedFilters, setAppliedFilters, [packageSessionId]);
+
+    const filters = GetFilterData(instituteDetails, currentSession?.id);
+    const currentPageSelection = rowSelections[page] || {};
+
+    useEffect(() => {
+        if (studentTableData?.content) {
+            setAllPagesData((prev) => ({
+                ...prev,
+                [page]: studentTableData.content,
+            }));
+        }
+    }, [studentTableData?.content, page]);
 
     const handleRowSelectionChange: OnChangeFn<RowSelectionState> = (updaterOrValue) => {
         const newSelection =
@@ -66,17 +88,63 @@ const Students = ({ packageSessionId }: { packageSessionId: string }) => {
             [page]: newSelection,
         }));
     };
-    const currentPageSelection = rowSelections[page] || {};
+
+    const handleResetSelections = () => {
+        setRowSelections({});
+    };
+
+    const getSelectedStudents = (): StudentTable[] => {
+        return Object.entries(rowSelections).flatMap(([pageNum, selections]) => {
+            const pageData = allPagesData[parseInt(pageNum)];
+            if (!pageData) return [];
+
+            return Object.entries(selections)
+                .filter(([, isSelected]) => isSelected)
+                .map(([index]) => pageData[parseInt(index)])
+                .filter((student): student is StudentTable => student !== undefined);
+        });
+    };
+
+    const getSelectedStudentIds = (): string[] => {
+        return getSelectedStudents().map((student) => student.id);
+    };
+
+    const totalSelectedCount = Object.values(rowSelections).reduce(
+        (count, pageSelection) => count + Object.keys(pageSelection).length,
+        0
+    );
 
     return (
         <section className="flex  flex-col">
             <div className="flex flex-col gap-4 ">
-                {/* <InviteFormProvider> */}
-                <BulkDialogProvider>
+                <InviteFormProvider>
+                    {/* <BulkDialogProvider>
                     <EnrollStudentsButton scale="medium" />
-                </BulkDialogProvider>
-                {/* </InviteFormProvider> */}
+                </BulkDialogProvider> */}
+                    <StudentListHeader currentSession={currentSession} titleSize="text-base" />
+                </InviteFormProvider>
                 {/* Filter section here */}
+                <StudentFilters
+                    currentSession={currentSession}
+                    filters={filters}
+                    searchInput={searchInput}
+                    searchFilter={searchFilter}
+                    columnFilters={columnFilters}
+                    clearFilters={clearFilters}
+                    getActiveFiltersState={getActiveFiltersState}
+                    onSessionChange={handleSessionChange}
+                    onSearchChange={handleSearchInputChange}
+                    onSearchEnter={handleSearchEnter}
+                    onClearSearch={handleClearSearch}
+                    onFilterChange={handleFilterChange}
+                    onFilterClick={handleFilterClick}
+                    onClearFilters={handleClearFilters}
+                    appliedFilters={appliedFilters}
+                    page={page}
+                    pageSize={10}
+                    totalElements={studentTableData?.total_elements || 0}
+                    sessionList={sessionList}
+                />
                 {loadingData ? (
                     <div className="flex w-full flex-col items-center gap-3 text-neutral-600">
                         <DashboardLoader />
@@ -130,12 +198,12 @@ const Students = ({ packageSessionId }: { packageSessionId: string }) => {
                             </div>
                         </div>
                         <div className="flex">
-                            {/* <BulkActions
+                            <BulkActions
                                 selectedCount={totalSelectedCount}
                                 selectedStudentIds={getSelectedStudentIds()}
                                 selectedStudents={getSelectedStudents()}
                                 onReset={handleResetSelections}
-                            /> */}
+                            />
                             <MyPagination
                                 currentPage={page}
                                 totalPages={studentTableData?.total_pages || 1}

@@ -45,6 +45,7 @@ import {
     PresentationChart,
 } from 'phosphor-react';
 import Students from './student-list';
+import Assessments from './assessment-list';
 
 // Interfaces (assuming these are unchanged)
 export interface Chapter {
@@ -675,9 +676,14 @@ export const SubjectMaterial = () => {
             </div>
         ),
         [TabType.STUDENT]: (
-            // <div className="rounded-md bg-white p-3 text-sm text-gray-600 shadow-sm">
-            <Students packageSessionId={currentSession?.id ?? ''} />
-            // </div>
+            <div className="rounded-md bg-white p-3 text-sm text-gray-600 shadow-sm">
+                {currentSession && (
+                    <Students
+                        packageSessionId={packageSessionIds ?? ''}
+                        currentSession={currentSession}
+                    />
+                )}
+            </div>
         ),
         [TabType.TEACHERS]: (
             <div className="rounded-md bg-white p-3 text-sm text-gray-600 shadow-sm">
@@ -686,7 +692,7 @@ export const SubjectMaterial = () => {
         ),
         [TabType.ASSESSMENT]: (
             <div className="rounded-md bg-white p-3 text-sm text-gray-600 shadow-sm">
-                Assessment content coming soon.
+                <Assessments packageSessionId={packageSessionIds ?? ''} />
             </div>
         ),
         [TabType.ASSIGNMENT]: (
@@ -733,24 +739,34 @@ export const SubjectMaterial = () => {
     ) : (
         <div className="flex size-full flex-col gap-3 rounded-lg bg-gray-100 p-2 text-neutral-700 md:p-3">
             <Tabs value={selectedTab} onValueChange={handleTabChange} className="w-full">
-                <TabsList className="h-auto border-b border-gray-200 bg-transparent p-0">
-                    {tabs.map((tab) => (
-                        <TabsTrigger
-                            key={tab.value}
-                            value={tab.value}
-                            className={`-mb-px px-2.5 py-1.5 text-xs font-medium 
-                                transition-all duration-150 hover:bg-gray-50/70 hover:text-primary-400 focus-visible:ring-1 
-                                focus-visible:ring-primary-300 focus-visible:ring-offset-1 data-[state=active]:rounded-t-md data-[state=active]:border-b-2
-                                data-[state=active]:border-primary-400 data-[state=active]:bg-white data-[state=active]:text-primary-500 data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:rounded-t-md`}
-                        >
-                            {tab.label}
-                        </TabsTrigger>
-                    ))}
-                </TabsList>
+                <div className="overflow-x-auto">
+                    <TabsList
+                        className="h-auto min-w-max flex-nowrap border-b border-gray-200 bg-transparent p-0"
+                        style={{ display: 'flex', justifyContent: 'left' }}
+                    >
+                        {tabs.map((tab) => (
+                            <TabsTrigger
+                                key={tab.value}
+                                value={tab.value}
+                                className={`flex rounded-none px-5 py-1.5 !shadow-none ${
+                                    selectedTab === tab.value
+                                        ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                        : 'border-none bg-transparent'
+                                }`}
+                            >
+                                <span
+                                    className={`${selectedTab === tab.value ? 'text-primary-500' : ''}`}
+                                >
+                                    {tab.label}
+                                </span>
+                            </TabsTrigger>
+                        ))}
+                    </TabsList>
+                </div>
                 <TabsContent
                     key={selectedTab}
                     value={selectedTab}
-                    className="mt-3 overflow-hidden rounded-r-md  p-3 shadow-sm"
+                    className="mt-3 overflow-hidden rounded-r-md  bg-white p-3 shadow-sm"
                 >
                     {tabContent[selectedTab as TabType]}
                 </TabsContent>
