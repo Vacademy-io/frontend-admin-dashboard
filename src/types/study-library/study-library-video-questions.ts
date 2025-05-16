@@ -36,6 +36,7 @@ export interface StudyLibraryQuestion {
     parentRichTextContent?: string | null;
     subjectiveAnswerText?: string;
     timestamp?: string;
+    canSkip?: boolean;
 }
 
 export interface MySingleChoiceOption {

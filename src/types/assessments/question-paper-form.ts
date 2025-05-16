@@ -41,6 +41,7 @@ export interface MyQuestion {
     newQuestion?: boolean;
     reattemptCount?: string;
     status?: string;
+    canSkip?: boolean;
 }
 
 export interface MySingleChoiceOption {

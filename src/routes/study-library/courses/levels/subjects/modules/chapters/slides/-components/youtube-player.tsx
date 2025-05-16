@@ -104,6 +104,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
             hrs: '',
             min: '',
             sec: '',
+            canSkip: true,
         },
     });
 
@@ -246,12 +247,22 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
             const hrs = String(parseInt(parts[0] as string, 10));
             const min = String(parseInt(parts[1] as string, 10));
             const sec = String(parseInt(parts[2] as string, 10));
-            videoPlayerTimeFrameForm.reset({ hrs, min, sec });
+            videoPlayerTimeFrameForm.reset({
+                hrs,
+                min,
+                sec,
+                canSkip: videoPlayerTimeFrameForm.getValues('canSkip'),
+            });
         } else if (parts.length === 2) {
             // MM:SS format
             const min = String(parseInt(parts[0] as string, 10));
             const sec = String(parseInt(parts[1] as string, 10));
-            videoPlayerTimeFrameForm.reset({ hrs: '0', min, sec });
+            videoPlayerTimeFrameForm.reset({
+                hrs: '0',
+                min,
+                sec,
+                canSkip: videoPlayerTimeFrameForm.getValues('canSkip'),
+            });
         }
     };
 
