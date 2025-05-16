@@ -424,3 +424,65 @@ export const ActivityStatsColumns: ColumnDef<ActivityStatsColumnsType>[] = [
         header: 'Last Active',
     },
 ];
+
+export interface ActivityResponseType {
+    activityDate: string;
+    attemptNumber: number;
+    startTime: string;
+    endTime: string;
+    duration: string;
+    response: string;
+    responseStatus: string;
+}
+
+export const activityResponseTypeColumns: ColumnDef<ActivityResponseType>[] = [
+    {
+        accessorKey: 'activityDate',
+        header: 'Activity Date',
+    },
+    {
+        accessorKey: 'attemptNumber',
+        header: 'Attempt Number',
+    },
+    {
+        accessorKey: 'startTime',
+        header: 'Start Time',
+    },
+    {
+        accessorKey: 'endTime',
+        header: 'End Time',
+    },
+    {
+        accessorKey: 'duration',
+        header: 'Duration',
+    },
+    {
+        accessorKey: 'response',
+        header: 'Response',
+    },
+    {
+        accessorKey: 'responseStatus',
+        header: 'Response Status',
+    },
+];
+
+export interface ActivityResponseAssignmentType {
+    uploadDate: string;
+    uploadTime: number;
+    submissions: string;
+}
+
+export const activityResponseAssignmentColumns: ColumnDef<ActivityResponseAssignmentType>[] = [
+    {
+        accessorKey: 'uploadDate',
+        header: 'Upload Date',
+    },
+    {
+        accessorKey: 'uploadTime',
+        header: 'Upload Time',
+    },
+    {
+        accessorKey: 'submissions',
+        header: 'Submissions',
+    },
+];
