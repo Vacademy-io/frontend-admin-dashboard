@@ -1,11 +1,11 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { MyTable } from "@/components/design-system/table";
-import { MyPagination } from "@/components/design-system/pagination";
-import { usePaginationState } from "@/hooks/pagination";
-import { useMemo } from "react";
-import { ColumnDef } from "@tanstack/react-table";
-import { useContentStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store";
-import { ColumnWidthConfig } from "@/components/design-system/utils/constants/table-layout";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { MyTable } from '@/components/design-system/table';
+import { MyPagination } from '@/components/design-system/pagination';
+import { usePaginationState } from '@/hooks/pagination';
+import { useMemo } from 'react';
+import { ColumnDef } from '@tanstack/react-table';
+import { useContentStore } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
+import { ColumnWidthConfig } from '@/components/design-system/utils/constants/table-layout';
 
 interface VideoLogType {
     id: string;
@@ -23,17 +23,17 @@ const formatMillisToTime = (millis: number): string => {
     const totalSeconds = Math.floor(millis / 1000);
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
-    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 };
 
 const VIDEO_LOG_COLUMN_WIDTHS: ColumnWidthConfig = {
-    startTime: "min-w-[100px]",
-    endTime: "min-w-[100px]",
+    startTime: 'min-w-[100px]',
+    endTime: 'min-w-[100px]',
 };
 
 const DOC_LOG_COLUMN_WIDTHS: ColumnWidthConfig = {
-    page: "min-w-[50px]",
-    timeSpent: "min-w-[50px]",
+    page: 'min-w-[50px]',
+    timeSpent: 'min-w-[50px]',
 };
 
 interface VideoLog {
@@ -62,7 +62,8 @@ interface LogDetailsDialogProps {
 
 export const LogDetailsDialog = ({ isOpen, onClose, logData }: LogDetailsDialogProps) => {
     const { activeItem } = useContentStore();
-    const isVideo = activeItem?.video_url != null || activeItem?.published_url != null;
+    const isVideo =
+        activeItem?.video_slide?.url != null || activeItem?.video_slide?.published_url != null;
 
     const { page, pageSize, handlePageChange } = usePaginationState({
         initialPage: 0,
@@ -72,12 +73,12 @@ export const LogDetailsDialog = ({ isOpen, onClose, logData }: LogDetailsDialogP
     const VideoTable = useMemo(() => {
         const columns: ColumnDef<VideoLogType>[] = [
             {
-                accessorKey: "startTime",
-                header: "Start Time",
+                accessorKey: 'startTime',
+                header: 'Start Time',
             },
             {
-                accessorKey: "endTime",
-                header: "End Time",
+                accessorKey: 'endTime',
+                header: 'End Time',
             },
         ];
 
@@ -105,12 +106,12 @@ export const LogDetailsDialog = ({ isOpen, onClose, logData }: LogDetailsDialogP
     const DocumentTable = useMemo(() => {
         const columns: ColumnDef<DocumentLogType>[] = [
             {
-                accessorKey: "page",
-                header: "Page",
+                accessorKey: 'page',
+                header: 'Page',
             },
             {
-                accessorKey: "timeSpent",
-                header: "Time Spent",
+                accessorKey: 'timeSpent',
+                header: 'Time Spent',
             },
         ];
 
@@ -120,7 +121,7 @@ export const LogDetailsDialog = ({ isOpen, onClose, logData }: LogDetailsDialogP
                   id: item.id,
                   page: item.page_number,
                   timeSpent: formatMillisToTime(
-                      item.end_time_in_millis - item.start_time_in_millis,
+                      item.end_time_in_millis - item.start_time_in_millis
                   ),
               }));
 
@@ -141,7 +142,7 @@ export const LogDetailsDialog = ({ isOpen, onClose, logData }: LogDetailsDialogP
             <DialogContent className="w-[600px] max-w-[600px]">
                 <DialogHeader>
                     <DialogTitle className="text-h3 font-semibold text-primary-500">
-                        {isVideo ? "Video Timestamps Logs" : "Document Read Logs"}
+                        {isVideo ? 'Video Timestamps Logs' : 'Document Read Logs'}
                     </DialogTitle>
                 </DialogHeader>
 

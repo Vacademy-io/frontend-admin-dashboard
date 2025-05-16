@@ -1,4 +1,4 @@
-import { SubmissionStudentData } from "@/types/assessments/assessment-overview";
+import { SubmissionStudentData } from '@/types/assessments/assessment-overview';
 import {
     assessmentStatusStudentAttemptedColumnsExternal,
     assessmentStatusStudentAttemptedColumnsInternal,
@@ -8,9 +8,9 @@ import {
     assessmentStatusStudentPendingColumnsInternal,
     studentExternalQuestionWise,
     studentInternalOrCloseQuestionWise,
-} from "./student-columns";
-import { AdaptiveMarking } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-hooks/getQuestionsDataForSection";
-import { Section } from "@/types/assessments/assessment-steps";
+} from './student-columns';
+import { AdaptiveMarking } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-hooks/getQuestionsDataForSection';
+import { Section } from '@/types/assessments/assessment-steps';
 import {
     AssessmentSection,
     AssessmentSectionQuestionInterface,
@@ -21,10 +21,10 @@ import {
     SectionInfoWithAddedQuestionsCntOrNull,
     StudentLeaderboardEntry,
     transformSectionsAndQuestionsDataQuestionsData,
-} from "./assessment-details-interface";
-import { sectionsEditQuestionFormType } from "../-components/AssessmentPreview";
-import { MyQuestion, MySingleChoiceOption } from "@/types/assessments/question-paper-form";
-import { BatchDetailsInterface, StudentLeaderboard } from "@/types/assessment-overview";
+} from './assessment-details-interface';
+import { sectionsEditQuestionFormType } from '../-components/AssessmentPreview';
+import { MyQuestion } from '@/types/assessments/question-paper-form';
+import { BatchDetailsInterface, StudentLeaderboard } from '@/types/assessment-overview';
 import {
     ASSESSMENT_STATUS_STUDENT_ATTEMPTED_COLUMNS_EXTERNAL_WIDTH,
     ASSESSMENT_STATUS_STUDENT_ATTEMPTED_COLUMNS_INTERNAL_WIDTH,
@@ -34,13 +34,13 @@ import {
     ASSESSMENT_STATUS_STUDENT_PENDING_COLUMNS_INTERNAL_WIDTH,
     QUESTION_WISE_COLUMNS_EXTERNAL_WIDTH,
     QUESTION_WISE_COLUMNS_INTERNAL_OR_CLOSE_WIDTH,
-} from "@/components/design-system/utils/constants/table-layout";
-import { convertToLocalDateTime, extractDateTime } from "@/constants/helper";
+} from '@/components/design-system/utils/constants/table-layout';
+import { convertToLocalDateTime, extractDateTime } from '@/constants/helper';
 import {
     Step3ParticipantsListIndiviudalStudentInterface,
     Step3ParticipantsListInterface,
     StudentResponseQuestionwiseInterface,
-} from "@/types/assessments/student-questionwise-status";
+} from '@/types/assessments/student-questionwise-status';
 
 export const convertMarksRankData = (leaderboard: StudentLeaderboardEntry[]) => {
     const rankMap = new Map();
@@ -65,30 +65,31 @@ export const getAssessmentSubmissionsFilteredDataStudentData = (
     type: string,
     selectedTab: string,
     batches_for_sessions: BatchDetailsInterface[],
-    totalMarks: number,
+    totalMarks: number
 ) => {
     switch (type) {
-        case "PUBLIC": {
+        case 'PUBLIC': {
             return studentsListData.map((student) => {
-                if (selectedTab === "Attempted") {
+                if (selectedTab === 'Attempted') {
                     return {
                         id: student.user_id,
                         attempt_id: student.attempt_id,
                         full_name: student.student_name,
+                        package_id: student.batch_id,
                         package_session_id: getBatchNameById(
                             batches_for_sessions,
-                            student.batch_id,
+                            student.batch_id
                         ),
                         attempt_date: extractDateTime(convertToLocalDateTime(student.attempt_date))
                             .date,
                         start_time: extractDateTime(convertToLocalDateTime(student.attempt_date))
                             .time,
-                        end_time: extractDateTime(convertToLocalDateTime(student.end_time || ""))
+                        end_time: extractDateTime(convertToLocalDateTime(student.end_time || ''))
                             .time,
-                        duration: (student.duration / 60).toFixed(2) + " min",
+                        duration: (student.duration / 60).toFixed(2) + ' min',
                         score: `${student.score ? student.score.toFixed(2) : 0} / ${totalMarks}`,
                     };
-                } else if (selectedTab === "Ongoing") {
+                } else if (selectedTab === 'Ongoing') {
                     return {
                         id: student.user_id,
                         attempt_id: student.attempt_id,
@@ -96,14 +97,14 @@ export const getAssessmentSubmissionsFilteredDataStudentData = (
                         start_time: extractDateTime(convertToLocalDateTime(student.attempt_date))
                             .time,
                     };
-                } else if (selectedTab === "Pending") {
+                } else if (selectedTab === 'Pending') {
                     return {
                         id: student.user_id,
                         attempt_id: student.attempt_id,
                         full_name: student.student_name,
                         package_session_id: getBatchNameById(
                             batches_for_sessions,
-                            student.batch_id,
+                            student.batch_id
                         ),
                     };
                 }
@@ -111,27 +112,27 @@ export const getAssessmentSubmissionsFilteredDataStudentData = (
             });
         }
 
-        case "PRIVATE": {
+        case 'PRIVATE': {
             return studentsListData.map((student) => {
-                if (selectedTab === "Attempted") {
+                if (selectedTab === 'Attempted') {
                     return {
                         id: student.user_id,
                         attempt_id: student.attempt_id,
                         full_name: student.student_name,
                         package_session_id: getBatchNameById(
                             batches_for_sessions,
-                            student.batch_id,
+                            student.batch_id
                         ),
                         attempt_date: extractDateTime(convertToLocalDateTime(student.attempt_date))
                             .date,
                         start_time: extractDateTime(convertToLocalDateTime(student.attempt_date))
                             .time,
-                        end_time: extractDateTime(convertToLocalDateTime(student.end_time || ""))
+                        end_time: extractDateTime(convertToLocalDateTime(student.end_time || ''))
                             .time,
-                        duration: (student.duration / 60).toFixed(2) + " min",
+                        duration: (student.duration / 60).toFixed(2) + ' min',
                         score: `${student.score ? student.score.toFixed(2) : 0} / ${totalMarks}`,
                     };
-                } else if (selectedTab === "Ongoing") {
+                } else if (selectedTab === 'Ongoing') {
                     return {
                         id: student.user_id,
                         attempt_id: student.attempt_id,
@@ -139,7 +140,7 @@ export const getAssessmentSubmissionsFilteredDataStudentData = (
                         start_time: extractDateTime(convertToLocalDateTime(student.attempt_date))
                             .time,
                     };
-                } else if (selectedTab === "Pending") {
+                } else if (selectedTab === 'Pending') {
                     return {
                         id: student.user_id,
                         attempt_id: student.attempt_id,
@@ -159,39 +160,39 @@ export const getQuestionWiseFilteredDataStudentData = (
     studentsListData: StudentResponseQuestionwiseInterface[],
     assesssmentType: string,
     selectedTab: string,
-    batches_for_sessions: BatchDetailsInterface[],
+    batches_for_sessions: BatchDetailsInterface[]
 ) => {
     switch (assesssmentType) {
-        case "PUBLIC": {
+        case 'PUBLIC': {
             return studentsListData.map((student) => {
-                if (selectedTab === "internal") {
+                if (selectedTab === 'internal') {
                     return {
                         id: student.user_id,
                         full_name: student.participant_name,
                         package_session_id: getBatchNameById(
                             batches_for_sessions,
-                            student.source_id,
+                            student.source_id
                         ),
                         registration_id: student.registration_id,
-                        response_time_in_seconds: student.response_time_in_seconds + " sec",
+                        response_time_in_seconds: student.response_time_in_seconds + ' sec',
                     };
                 }
                 return {
                     id: student.user_id,
                     full_name: student.participant_name,
-                    response_time_in_seconds: student.response_time_in_seconds + " sec",
+                    response_time_in_seconds: student.response_time_in_seconds + ' sec',
                 };
             });
         }
 
-        case "PRIVATE": {
+        case 'PRIVATE': {
             return studentsListData.map((student) => {
                 return {
                     id: student.user_id,
                     full_name: student.participant_name,
                     package_session_id: getBatchNameById(batches_for_sessions, student.source_id),
                     registration_id: student.registration_id,
-                    response_time_in_seconds: student.response_time_in_seconds + " sec",
+                    response_time_in_seconds: student.response_time_in_seconds + ' sec',
                 };
             });
         }
@@ -203,7 +204,7 @@ export const getQuestionWiseFilteredDataStudentData = (
 
 export const getAssessmentStep3ParticipantsListWithBatchName = (
     studentsListData: Step3ParticipantsListInterface[],
-    batches_for_sessions: BatchDetailsInterface[],
+    batches_for_sessions: BatchDetailsInterface[]
 ) => {
     return studentsListData.map((student) => {
         return {
@@ -221,7 +222,7 @@ export const getAssessmentStep3ParticipantsListWithBatchName = (
 };
 
 export const getAssessmentStep3ParticipantsListIndividualStudents = (
-    studentsListData: Step3ParticipantsListIndiviudalStudentInterface[],
+    studentsListData: Step3ParticipantsListIndiviudalStudentInterface[]
 ) => {
     return studentsListData?.map((student) => {
         return {
@@ -234,8 +235,8 @@ export const getAssessmentStep3ParticipantsListIndividualStudents = (
 };
 
 export const getAllColumnsForTable = (type: string, selectedParticipantsTab: string) => {
-    if (type === "PUBLIC") {
-        if (selectedParticipantsTab === "internal")
+    if (type === 'PUBLIC') {
+        if (selectedParticipantsTab === 'internal')
             return {
                 Attempted: assessmentStatusStudentAttemptedColumnsInternal,
                 Pending: assessmentStatusStudentPendingColumnsInternal,
@@ -247,7 +248,7 @@ export const getAllColumnsForTable = (type: string, selectedParticipantsTab: str
             Ongoing: assessmentStatusStudentOngoingColumnsExternal,
         };
     }
-    if (selectedParticipantsTab === "internal")
+    if (selectedParticipantsTab === 'internal')
         return {
             Attempted: assessmentStatusStudentAttemptedColumnsInternal,
             Pending: assessmentStatusStudentPendingColumnsInternal,
@@ -261,8 +262,8 @@ export const getAllColumnsForTable = (type: string, selectedParticipantsTab: str
 };
 
 export const getAllColumnsForTableWidth = (type: string, selectedParticipantsTab: string) => {
-    if (type === "PUBLIC") {
-        if (selectedParticipantsTab === "internal")
+    if (type === 'PUBLIC') {
+        if (selectedParticipantsTab === 'internal')
             return {
                 Attempted: ASSESSMENT_STATUS_STUDENT_ATTEMPTED_COLUMNS_INTERNAL_WIDTH,
                 Ongoing: ASSESSMENT_STATUS_STUDENT_ONGOING_COLUMNS_INTERNAL_WIDTH,
@@ -274,7 +275,7 @@ export const getAllColumnsForTableWidth = (type: string, selectedParticipantsTab
             Pending: ASSESSMENT_STATUS_STUDENT_PENDING_COLUMNS_EXTERNAL_WIDTH,
         };
     }
-    if (selectedParticipantsTab === "internal")
+    if (selectedParticipantsTab === 'internal')
         return {
             Attempted: ASSESSMENT_STATUS_STUDENT_ATTEMPTED_COLUMNS_INTERNAL_WIDTH,
             Ongoing: ASSESSMENT_STATUS_STUDENT_ONGOING_COLUMNS_INTERNAL_WIDTH,
@@ -289,10 +290,10 @@ export const getAllColumnsForTableWidth = (type: string, selectedParticipantsTab
 
 export const getAllColumnsForTableQuestionWise = (
     assesssmentType: string,
-    selectedParticipantsTab: string,
+    selectedParticipantsTab: string
 ) => {
-    if (assesssmentType === "PUBLIC") {
-        if (selectedParticipantsTab === "internal")
+    if (assesssmentType === 'PUBLIC') {
+        if (selectedParticipantsTab === 'internal')
             return {
                 studentInternalOrCloseQuestionWise,
             };
@@ -307,10 +308,10 @@ export const getAllColumnsForTableQuestionWise = (
 
 export const getAllColumnsForTableWidthQuestionWise = (
     assesssmentType: string,
-    selectedParticipantsTab: string,
+    selectedParticipantsTab: string
 ) => {
-    if (assesssmentType === "PUBLIC") {
-        if (selectedParticipantsTab === "internal")
+    if (assesssmentType === 'PUBLIC') {
+        if (selectedParticipantsTab === 'internal')
             return {
                 QUESTION_WISE_COLUMNS_INTERNAL_OR_CLOSE_WIDTH,
             };
@@ -325,7 +326,7 @@ export const getAllColumnsForTableWidthQuestionWise = (
 
 export function getBatchDetails(
     batchData: Record<string, { name: string; id: string }[]>,
-    batchList: PreBatchRegistration[] | undefined,
+    batchList: PreBatchRegistration[] | undefined
 ) {
     const result: {
         id: string;
@@ -353,7 +354,7 @@ export function calculateAverageMarks(questions: calculateAverageMarksQuestionIn
 
     const totalMarks = questions.reduce(
         (sum, question) => sum + parseFloat(question.questionMark),
-        0,
+        0
     );
     return parseFloat((totalMarks / questions.length).toFixed(2));
 }
@@ -363,19 +364,19 @@ export function calculateAveragePenalty(questions: AdaptiveMarking[]): number {
 
     const totalPenalty = questions.reduce(
         (sum, question) => sum + parseFloat(question.questionPenalty),
-        0,
+        0
     );
     return parseFloat((totalPenalty / questions.length).toFixed(2));
 }
 
 export function parseHtmlToString(html: string) {
-    const doc = new DOMParser().parseFromString(html, "text/html");
-    return doc.body.textContent || doc.body.innerText || "";
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    return doc.body.textContent || doc.body.innerText || '';
 }
 
 export function transformSectionsAndQuestionsData(
     sectionsData: Section[],
-    questionsData: transformSectionsAndQuestionsDataQuestionsData,
+    questionsData: transformSectionsAndQuestionsDataQuestionsData
 ) {
     if (!sectionsData) return [];
     return sectionsData.map((section) => ({
@@ -384,146 +385,116 @@ export function transformSectionsAndQuestionsData(
         questions: (questionsData[section.id] || []).map((question) => {
             const markingJson = question.marking_json
                 ? JSON.parse(question.marking_json)
-                : { type: "MCQS", data: {} };
+                : { type: 'MCQS', data: {} };
 
             const evaluationJson = question.evaluation_json
                 ? JSON.parse(question.evaluation_json)
-                : { type: "MCQM", data: { correctOptionIds: [] } };
+                : { type: 'MCQM', data: { correctOptionIds: [] } };
 
             const correctOptionIds = evaluationJson.data.correctOptionIds || [];
 
-            return {
+            const validAnswers = JSON.parse(question.evaluation_json)?.data?.validAnswers || [];
+            let decimals;
+            let numericType;
+            let subjectiveAnswerText;
+            if (question.options_json) {
+                decimals = JSON.parse(question.options_json)?.decimals || 0;
+                numericType = JSON.parse(question.options_json)?.numeric_type || '';
+            }
+            if (question.evaluation_json) {
+                if (question.question_type === 'ONE_WORD') {
+                    subjectiveAnswerText = JSON.parse(question.evaluation_json)?.data?.answer;
+                } else if (question.question_type === 'LONG_ANSWER') {
+                    subjectiveAnswerText = JSON.parse(question.evaluation_json)?.data?.answer
+                        ?.content;
+                }
+            }
+
+            const baseQuestion = {
                 id: question.question_id,
                 questionId: question.question_id,
                 questionName: question.question.content,
-                explanation: "",
-                questionType: markingJson.type || "MCQS",
+                explanation: '',
+                questionType: markingJson.type || 'MCQS',
                 questionMark: markingJson.data.totalMark,
                 questionPenalty: markingJson.data.negativeMark,
                 questionDuration: {
                     hrs: String(Math.floor(question.question_duration / 60)),
                     min: String(question.question_duration % 60),
                 },
-                imageDetails: [],
-                singleChoiceOptions:
-                    markingJson.type === "MCQS"
-                        ? question.options_with_explanation.map((option) => ({
-                              name: option.text.content,
-                              isSelected: correctOptionIds.includes(option.id),
-                              image: {
-                                  imageId: "",
-                                  imageName: "",
-                                  imageTitle: "",
-                                  imageFile: "",
-                                  isDeleted: false,
-                              },
-                          }))
-                        : [
-                              {
-                                  name: "",
-                                  isSelected: false,
-                                  image: {
-                                      imageId: "",
-                                      imageName: "",
-                                      imageTitle: "",
-                                      imageFile: "",
-                                      isDeleted: false,
-                                  },
-                              },
-                              {
-                                  name: "",
-                                  isSelected: false,
-                                  image: {
-                                      imageId: "",
-                                      imageName: "",
-                                      imageTitle: "",
-                                      imageFile: "",
-                                      isDeleted: false,
-                                  },
-                              },
-                              {
-                                  name: "",
-                                  isSelected: false,
-                                  image: {
-                                      imageId: "",
-                                      imageName: "",
-                                      imageTitle: "",
-                                      imageFile: "",
-                                      isDeleted: false,
-                                  },
-                              },
-                              {
-                                  name: "",
-                                  isSelected: false,
-                                  image: {
-                                      imageId: "",
-                                      imageName: "",
-                                      imageTitle: "",
-                                      imageFile: "",
-                                      isDeleted: false,
-                                  },
-                              },
-                          ],
-                multipleChoiceOptions:
-                    markingJson.type === "MCQM"
-                        ? question.options_with_explanation.map((option) => ({
-                              name: option.text.content,
-                              isSelected: correctOptionIds.includes(option.id),
-                              image: {
-                                  imageId: "",
-                                  imageName: "",
-                                  imageTitle: "",
-                                  imageFile: "",
-                                  isDeleted: false,
-                              },
-                          }))
-                        : [
-                              {
-                                  name: "",
-                                  isSelected: false,
-                                  image: {
-                                      imageId: "",
-                                      imageName: "",
-                                      imageTitle: "",
-                                      imageFile: "",
-                                      isDeleted: false,
-                                  },
-                              },
-                              {
-                                  name: "",
-                                  isSelected: false,
-                                  image: {
-                                      imageId: "",
-                                      imageName: "",
-                                      imageTitle: "",
-                                      imageFile: "",
-                                      isDeleted: false,
-                                  },
-                              },
-                              {
-                                  name: "",
-                                  isSelected: false,
-                                  image: {
-                                      imageId: "",
-                                      imageName: "",
-                                      imageTitle: "",
-                                      imageFile: "",
-                                      isDeleted: false,
-                                  },
-                              },
-                              {
-                                  name: "",
-                                  isSelected: false,
-                                  image: {
-                                      imageId: "",
-                                      imageName: "",
-                                      imageTitle: "",
-                                      imageFile: "",
-                                      isDeleted: false,
-                                  },
-                              },
-                          ],
+                singleChoiceOptions: Array(4).fill({
+                    id: '',
+                    name: '',
+                    isSelected: false,
+                }),
+                multipleChoiceOptions: Array(4).fill({
+                    id: '',
+                    name: '',
+                    isSelected: false,
+                }),
+                csingleChoiceOptions: Array(4).fill({
+                    id: '',
+                    name: '',
+                    isSelected: false,
+                }),
+                cmultipleChoiceOptions: Array(4).fill({
+                    id: '',
+                    name: '',
+                    isSelected: false,
+                }),
+                trueFalseOptions: Array(2).fill({
+                    id: '',
+                    name: '',
+                    isSelected: false,
+                }),
+                validAnswers: [],
+                decimals,
+                numericType,
+                parentRichTextContent: question.parent_rich_text?.content || null,
+                subjectiveAnswerText,
             };
+            if (markingJson.type === 'MCQS') {
+                baseQuestion.singleChoiceOptions = question.options_with_explanation.map(
+                    (option) => ({
+                        id: option.id ? option.id : '',
+                        name: option.text?.content || '',
+                        isSelected: correctOptionIds.includes(option.id || option.preview_id),
+                    })
+                );
+            } else if (markingJson.type === 'MCQM') {
+                baseQuestion.multipleChoiceOptions = question.options_with_explanation.map(
+                    (option) => ({
+                        id: option.id ? option.id : '',
+                        name: option.text?.content || '',
+                        isSelected: correctOptionIds.includes(option.id || option.preview_id),
+                    })
+                );
+            } else if (markingJson.type === 'CMCQS') {
+                baseQuestion.csingleChoiceOptions = question.options_with_explanation.map(
+                    (option) => ({
+                        id: option.id ? option.id : '',
+                        name: option.text?.content || '',
+                        isSelected: correctOptionIds.includes(option.id || option.preview_id),
+                    })
+                );
+            } else if (markingJson.type === 'CMCQM') {
+                baseQuestion.cmultipleChoiceOptions = question.options_with_explanation.map(
+                    (option) => ({
+                        id: option.id ? option.id : '',
+                        name: option.text?.content || '',
+                        isSelected: correctOptionIds.includes(option.id || option.preview_id),
+                    })
+                );
+            } else if (markingJson.type === 'TRUE_FALSE') {
+                baseQuestion.trueFalseOptions = question.options_with_explanation.map((option) => ({
+                    id: option.id ? option.id : '',
+                    name: option.text?.content || '',
+                    isSelected: correctOptionIds.includes(option.id || option.preview_id),
+                }));
+            } else if (markingJson.type === 'NUMERIC') {
+                baseQuestion.validAnswers = validAnswers;
+            }
+            return baseQuestion;
         }),
     }));
 }
@@ -532,15 +503,15 @@ export function transformSectionQuestions(questions: AssessmentSectionQuestionIn
     return {
         questions: questions?.map((question) => {
             const options =
-                question.questionType === "MCQS"
+                question.questionType === 'MCQS'
                     ? question?.singleChoiceOptions?.map((opt, idx) => ({
                           id: null, // Assuming no direct mapping for option ID
                           preview_id: idx, // Using index as preview_id
                           question_id: null,
                           text: {
                               id: null, // Assuming no direct mapping for option text ID
-                              type: "HTML", // Assuming option content is HTML
-                              content: opt?.name?.replace(/<\/?p>/g, ""), // Remove <p> tags from content
+                              type: 'HTML', // Assuming option content is HTML
+                              content: opt?.name?.replace(/<\/?p>/g, ''), // Remove <p> tags from content
                           },
                           media_id: String(opt?.image?.imageName), // Assuming no direct mapping for option media ID
                           option_order: null,
@@ -548,7 +519,7 @@ export function transformSectionQuestions(questions: AssessmentSectionQuestionIn
                           updated_on: null,
                           explanation_text: {
                               id: null, // Assuming no direct mapping for explanation text ID
-                              type: "HTML", // Assuming explanation for options is in HTML
+                              type: 'HTML', // Assuming explanation for options is in HTML
                               content: question.explanation, // Assuming no explanation provided for options
                           },
                       }))
@@ -558,8 +529,8 @@ export function transformSectionQuestions(questions: AssessmentSectionQuestionIn
                           question_id: null,
                           text: {
                               id: null, // Assuming no direct mapping for option text ID
-                              type: "HTML", // Assuming option content is HTML
-                              content: opt?.name?.replace(/<\/?p>/g, ""), // Remove <p> tags from content
+                              type: 'HTML', // Assuming option content is HTML
+                              content: opt?.name?.replace(/<\/?p>/g, ''), // Remove <p> tags from content
                           },
                           media_id: String(opt?.image?.imageName), // Assuming no direct mapping for option media ID
                           option_order: null,
@@ -567,13 +538,13 @@ export function transformSectionQuestions(questions: AssessmentSectionQuestionIn
                           updated_on: null,
                           explanation_text: {
                               id: null, // Assuming no direct mapping for explanation text ID
-                              type: "HTML", // Assuming explanation for options is in HTML
+                              type: 'HTML', // Assuming explanation for options is in HTML
                               content: question.explanation, // Assuming no explanation provided for options
                           },
                       }));
 
             const correctOptionIds = (
-                question.questionType === "MCQS"
+                question.questionType === 'MCQS'
                     ? question.singleChoiceOptions ?? [] // Default to empty array if undefined
                     : question.multipleChoiceOptions ?? []
             )
@@ -581,7 +552,7 @@ export function transformSectionQuestions(questions: AssessmentSectionQuestionIn
                 .filter((idx) => idx !== null); // Remove null values
 
             const auto_evaluation_json = JSON.stringify({
-                type: question.questionType === "MCQS" ? "MCQS" : "MCQM",
+                type: question.questionType === 'MCQS' ? 'MCQS' : 'MCQM',
                 data: {
                     correctOptionIds,
                 },
@@ -592,10 +563,10 @@ export function transformSectionQuestions(questions: AssessmentSectionQuestionIn
                 preview_id: question.questionId, // Assuming no direct mapping for preview_id
                 text: {
                     id: null, // Assuming no direct mapping for text ID
-                    type: "HTML", // Assuming the content is HTML
-                    content: question?.questionName?.replace(/<\/?p>/g, ""), // Remove <p> tags from content
+                    type: 'HTML', // Assuming the content is HTML
+                    content: question?.questionName?.replace(/<\/?p>/g, ''), // Remove <p> tags from content
                 },
-                media_id: String(question?.imageDetails?.map((img) => img.imageName).join(",")), // Assuming no direct mapping for media_id
+                media_id: String(question?.imageDetails?.map((img) => img.imageName).join(',')), // Assuming no direct mapping for media_id
                 created_at: null,
                 updated_at: null,
                 question_response_type: null, // Assuming no direct mapping for response type
@@ -605,7 +576,7 @@ export function transformSectionQuestions(questions: AssessmentSectionQuestionIn
                 evaluation_type: null, // Assuming no direct mapping for evaluation type
                 explanation_text: {
                     id: null, // Assuming no direct mapping for explanation text ID
-                    type: "HTML", // Assuming explanation is in HTML
+                    type: 'HTML', // Assuming explanation is in HTML
                     content: question.explanation,
                 },
                 default_question_time_mins:
@@ -621,7 +592,7 @@ export function transformSectionQuestions(questions: AssessmentSectionQuestionIn
 
 export function extractEmptyIdQuestions(sections: sectionsEditQuestionFormType) {
     return sections.sections.flatMap((section) =>
-        section.questions.filter((question) => question.questionId === ""),
+        section.questions.filter((question) => question.questionId === '')
     );
 }
 
@@ -630,7 +601,7 @@ export function getSectionsWithEmptyQuestionIds(sections: sectionsEditQuestionFo
         .map((section) => {
             // Filter questions where questionId is an empty string
             const filteredQuestions = section.questions.filter(
-                (question) => question.questionId === "",
+                (question) => question.questionId === ''
             );
 
             // Return the section only if it has questions with empty questionIds
@@ -643,7 +614,7 @@ export function getSectionsWithEmptyQuestionIds(sections: sectionsEditQuestionFo
 
 export function handleAddedQuestionsToSections(
     sections: SectionInfoWithAddedQuestionsCntOrNull[],
-    questionsData: MyQuestion[],
+    questionsData: MyQuestion[]
 ) {
     let questionIndex = 0;
 
@@ -651,7 +622,7 @@ export function handleAddedQuestionsToSections(
         const questionsCount = section?.questions ?? 0;
         const assignedQuestions = questionsData.slice(
             questionIndex,
-            questionIndex + questionsCount,
+            questionIndex + questionsCount
         );
         questionIndex += questionsCount;
 
@@ -663,14 +634,14 @@ export function handleAddedQuestionsToSections(
 }
 
 export function addQuestionIdToSections(
-    previousSections: sectionsEditQuestionFormType["sections"],
-    newSections: SectionInfoWithAddedQuestions[],
+    previousSections: sectionsEditQuestionFormType['sections'],
+    newSections: SectionInfoWithAddedQuestions[]
 ) {
     // Iterate over each section in newSections
     newSections.forEach((newSection) => {
         // Find the corresponding section in previousSections by matching sectionId
         const prevSection = previousSections.find(
-            (section) => section.sectionId === newSection.sectionId,
+            (section) => section.sectionId === newSection.sectionId
         );
 
         if (prevSection) {
@@ -683,7 +654,7 @@ export function addQuestionIdToSections(
             // Add all assignedQuestions from newSection to previousSection
             newSection.assignedQuestions.forEach((question) => {
                 // Add an 'id' field in each question, matching the questionId
-                question.id = question.questionId || "";
+                question.id = question.questionId || '';
             });
 
             // Append the updated questions to the previous section
@@ -697,7 +668,7 @@ export function addQuestionIdToSections(
 export function transformPreviewDataToSections(sections: Section[] | undefined) {
     return {
         updated_sections: sections?.map((section) => ({
-            section_description_html: section.description || "",
+            section_description_html: section.description || '',
             section_name: section.name,
             section_id: section.id,
             section_duration: section.duration || 0,
@@ -711,8 +682,8 @@ export function transformPreviewDataToSections(sections: Section[] | undefined) 
 }
 
 export function mergeSectionData(
-    sourceData: sectionsEditQuestionFormType["sections"],
-    targetData: AssessmentSection[] | undefined,
+    sourceData: sectionsEditQuestionFormType['sections'],
+    targetData: AssessmentSection[] | undefined
 ) {
     // Create a map of sections from source data for easier lookup
     const sectionQuestionsMap = new Map(
@@ -721,22 +692,22 @@ export function mergeSectionData(
             section.questions.map((question, index) => {
                 // Transform question format to match target structure
                 const correctOptionIdsCnt = question.multipleChoiceOptions?.filter(
-                    (option) => option.isSelected,
+                    (option) => option.isSelected
                 ).length;
                 return {
                     question_id: question.questionId,
                     marking_json: JSON.stringify({
                         type: question.questionType,
                         data: {
-                            totalMark: question.questionMark || "",
-                            negativeMark: question.questionPenalty || "",
+                            totalMark: question.questionMark || '',
+                            negativeMark: question.questionPenalty || '',
                             negativeMarkingPercentage:
                                 question.questionMark && question.questionPenalty
                                     ? (Number(question.questionPenalty) /
                                           Number(question.questionMark)) *
                                       100
-                                    : "",
-                            ...(question.questionType === "MCQM" && {
+                                    : '',
+                            ...(question.questionType === 'MCQM' && {
                                 partialMarking: correctOptionIdsCnt ? 1 / correctOptionIdsCnt : 0,
                                 partialMarkingPercentage: correctOptionIdsCnt
                                     ? (1 / correctOptionIdsCnt) * 100
@@ -753,7 +724,7 @@ export function mergeSectionData(
                     is_updated: false,
                 };
             }),
-        ]),
+        ])
     );
 
     // Update target data with questions from source
@@ -767,8 +738,8 @@ export function mergeSectionData(
 }
 
 export function compareAndUpdateSections(
-    oldSections: sectionsEditQuestionFormType["sections"] | undefined,
-    newSections: AssessmentSection[] | undefined,
+    oldSections: sectionsEditQuestionFormType['sections'] | undefined,
+    newSections: AssessmentSection[] | undefined
 ) {
     // Create maps to track questions by section
     const oldSectionQuestionMap = new Map();
@@ -825,12 +796,12 @@ export function getBatchNameById(data: BatchDetailsInterface[] | undefined, id: 
     if (item && item.level && item.package_dto) {
         return `${item.level.level_name} ${item.package_dto.package_name}`;
     }
-    return "";
+    return '';
 }
 
 export function getBatchNamesByIds(
     data: BatchDetailsInterface[] | undefined,
-    ids: string[],
+    ids: string[]
 ): string[] {
     if (!data || !ids) return [];
 
@@ -858,7 +829,7 @@ export function calculateIndividualPercentile(studentData: StudentLeaderboard[],
     const student = studentData.find((s) => s.user_id === user_id);
 
     // Return the percentile if found, otherwise return null or a default value
-    return student ? student.percentile : "";
+    return student ? student.percentile : '';
 }
 
 export const transformQuestionInsightsQuestionsData = (data: QuestionInsightDTO[]) => {
@@ -867,61 +838,114 @@ export const transformQuestionInsightsQuestionsData = (data: QuestionInsightDTO[
             JSON.parse(item.assessment_question_preview_dto.evaluation_json)?.data
                 ?.correctOptionIds || [];
         const totalMark =
-            JSON.parse(item.assessment_question_preview_dto.marking_json)?.data?.totalMark || "";
+            JSON.parse(item.assessment_question_preview_dto.marking_json)?.data?.totalMark || '';
+
+        const validAnswers =
+            JSON.parse(item.assessment_question_preview_dto.evaluation_json)?.data?.validAnswers ||
+            [];
+        let decimals;
+        let numericType;
+        let subjectiveAnswerText;
+        if (item.assessment_question_preview_dto.options_json) {
+            decimals = JSON.parse(item.assessment_question_preview_dto.options_json)?.decimals || 0;
+            numericType =
+                JSON.parse(item.assessment_question_preview_dto.options_json)?.numeric_type || '';
+        }
+        if (item.assessment_question_preview_dto.evaluation_json) {
+            if (item.assessment_question_preview_dto.question_type === 'ONE_WORD') {
+                subjectiveAnswerText = JSON.parse(
+                    item.assessment_question_preview_dto.evaluation_json
+                )?.data?.answer;
+            } else if (item.assessment_question_preview_dto.question_type === 'LONG_ANSWER') {
+                subjectiveAnswerText = JSON.parse(
+                    item.assessment_question_preview_dto.evaluation_json
+                )?.data?.answer?.content;
+            }
+        }
         const baseQuestion: MyQuestion = {
-            id: item.assessment_question_preview_dto.question_id || "",
+            id: item.assessment_question_preview_dto.question_id || '',
             questionId: item.assessment_question_preview_dto.question_id || undefined,
-            questionName: item.assessment_question_preview_dto.question?.content || "",
-            explanation: "",
-            questionType: item.assessment_question_preview_dto.question_type || "",
-            questionPenalty: "",
+            questionName: item.assessment_question_preview_dto.question?.content || '',
+            explanation: '',
+            questionType: item.assessment_question_preview_dto.question_type || '',
+            questionPenalty: '',
             questionDuration: {
                 hrs: String(
-                    Math.floor((item.assessment_question_preview_dto.question_duration ?? 0) / 60),
+                    Math.floor((item.assessment_question_preview_dto.question_duration ?? 0) / 60)
                 ),
                 min: String((item.assessment_question_preview_dto.question_duration ?? 0) % 60),
             },
             questionMark: totalMark,
-            singleChoiceOptions: [],
-            multipleChoiceOptions: [],
+            singleChoiceOptions: Array(4).fill({
+                id: '',
+                name: '',
+                isSelected: false,
+            }),
+            multipleChoiceOptions: Array(4).fill({
+                id: '',
+                name: '',
+                isSelected: false,
+            }),
+            csingleChoiceOptions: Array(4).fill({
+                id: '',
+                name: '',
+                isSelected: false,
+            }),
+            cmultipleChoiceOptions: Array(4).fill({
+                id: '',
+                name: '',
+                isSelected: false,
+            }),
+            trueFalseOptions: Array(2).fill({
+                id: '',
+                name: '',
+                isSelected: false,
+            }),
+            validAnswers: [],
+            decimals,
+            numericType,
+            parentRichTextContent:
+                item.assessment_question_preview_dto.parent_rich_text?.content || null,
+            subjectiveAnswerText,
         };
 
-        if (item.assessment_question_preview_dto.question_type === "MCQS") {
+        if (item.assessment_question_preview_dto.question_type === 'MCQS') {
             baseQuestion.singleChoiceOptions =
                 item.assessment_question_preview_dto.options_with_explanation.map((option) => ({
-                    name: option.text?.content || "",
+                    name: option.text?.content || '',
                     isSelected: correctOptionIds.includes(option.id || option.preview_id),
                     image: {},
                 }));
-            baseQuestion.multipleChoiceOptions = Array(4).fill({
-                name: "",
-                isSelected: false,
-                image: {
-                    imageId: "",
-                    imageName: "",
-                    imageTitle: "",
-                    imageFile: "",
-                    isDeleted: false,
-                },
-            });
-        } else if (item.assessment_question_preview_dto.question_type === "MCQM") {
+        } else if (item.assessment_question_preview_dto.question_type === 'MCQM') {
             baseQuestion.multipleChoiceOptions =
                 item.assessment_question_preview_dto.options_with_explanation.map((option) => ({
-                    name: option.text?.content || "",
+                    name: option.text?.content || '',
                     isSelected: correctOptionIds.includes(option.id || option.preview_id),
                     image: {},
                 }));
-            baseQuestion.singleChoiceOptions = Array(4).fill({
-                name: "",
-                isSelected: false,
-                image: {
-                    imageId: "",
-                    imageName: "",
-                    imageTitle: "",
-                    imageFile: "",
-                    isDeleted: false,
-                },
-            });
+        } else if (item.assessment_question_preview_dto.question_type === 'CMCQS') {
+            baseQuestion.csingleChoiceOptions =
+                item.assessment_question_preview_dto.options_with_explanation.map((option) => ({
+                    id: option.id ? option.id : '',
+                    name: option.text?.content || '',
+                    isSelected: correctOptionIds.includes(option.id || option.preview_id),
+                }));
+        } else if (item.assessment_question_preview_dto.question_type === 'CMCQM') {
+            baseQuestion.cmultipleChoiceOptions =
+                item.assessment_question_preview_dto.options_with_explanation.map((option) => ({
+                    id: option.id ? option.id : '',
+                    name: option.text?.content || '',
+                    isSelected: correctOptionIds.includes(option.id || option.preview_id),
+                }));
+        } else if (item.assessment_question_preview_dto.question_type === 'TRUE_FALSE') {
+            baseQuestion.trueFalseOptions =
+                item.assessment_question_preview_dto.options_with_explanation.map((option) => ({
+                    id: option.id ? option.id : '',
+                    name: option.text?.content || '',
+                    isSelected: correctOptionIds.includes(option.id || option.preview_id),
+                }));
+        } else if (item.assessment_question_preview_dto.question_type === 'NUMERIC') {
+            baseQuestion.validAnswers = validAnswers;
         }
         return {
             assessment_question_preview_dto: baseQuestion,
@@ -933,14 +957,42 @@ export const transformQuestionInsightsQuestionsData = (data: QuestionInsightDTO[
     });
 };
 
-export function getCorrectOptionsForQuestion(options: MySingleChoiceOption[]) {
-    return options
-        .map((option, index) =>
-            option.isSelected
-                ? { optionType: String.fromCharCode(97 + index), optionName: option.name }
-                : null,
-        )
-        .filter((option) => option !== null);
+export function getCorrectOptionsForQuestion(question: MyQuestion) {
+    if (question.questionType === 'MCQS') {
+        return question.singleChoiceOptions
+            .filter((option) => option.isSelected)
+            .map((option, index) => ({
+                optionType: String.fromCharCode(97 + index),
+                optionName: option.name,
+            }));
+    } else if (question.questionType === 'MCQM') {
+        return question.multipleChoiceOptions
+            .filter((option) => option.isSelected)
+            .map((option, index) => ({
+                optionType: String.fromCharCode(97 + index),
+                optionName: option.name,
+            }));
+    } else if (question.questionType === 'LONG_ANSWER' || question.questionType === 'ONE_WORD') {
+        return [
+            {
+                optionType: '',
+                optionName: question.subjectiveAnswerText,
+            },
+        ];
+    } else if (question.questionType === 'TRUE_FALSE') {
+        return question.trueFalseOptions
+            .filter((option) => option.isSelected)
+            .map((option) => ({
+                optionType: '',
+                optionName: option.name,
+            }));
+    } else if (question.questionType === 'NUMERIC') {
+        return question.validAnswers?.map((ans: number) => ({
+            optionType: '',
+            optionName: ans,
+        }));
+    }
+    return [];
 }
 
 export function transformQuestionsDataToRevaluateAPI(data: { [sectionId: string]: string[] }) {

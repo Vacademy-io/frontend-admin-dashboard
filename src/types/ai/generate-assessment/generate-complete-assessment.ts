@@ -1,6 +1,6 @@
 interface RichText {
     id: string | null;
-    type: "HTML" | string;
+    type: string;
     content: string;
 }
 
@@ -35,7 +35,7 @@ export interface AIAssessmentCompleteQuestion {
     explanation_text: RichText;
     default_question_time_mins: number | null;
     parent_rich_text_id: string | null;
-    parent_rich_text: string | null;
+    parent_rich_text: RichText | null;
     options: Option[];
     errors: string[];
     warnings: string[];
@@ -51,4 +51,82 @@ export interface AIAssessmentResponseInterface {
     subjects: string[];
     classes: string[];
     questions: AIAssessmentCompleteQuestion[];
+}
+
+export interface AITaskIndividualListInterface {
+    id: string;
+    task_name: string;
+    institute_id: string;
+    parent_id: string;
+    status: string; // Add more status values as needed
+    result_json: string;
+    input_id: string;
+    input_type: string; // Add more input types as needed
+    created_at: string; // ISO datetime string
+    updated_at: string; // ISO datetime string
+    file_detail: {
+        id: string;
+        url: string;
+        file_name: string;
+        file_type: string;
+        source: string;
+        source_id: string;
+        expiry: string; // ISO datetime string
+        width: number;
+        height: number;
+        created_on: string; // ISO datetime string
+        updated_on: string; // ISO datetime string
+    } | null; // Making file_detail potentially null if a task might not have one
+}
+
+interface TimeWiseSection {
+    sectionHeading: string;
+    timeSplit: string;
+    content: string;
+    topicCovered: string[];
+    questionToStudents: string[];
+    activity: string[];
+}
+
+interface Assignment {
+    topicCovered: string[];
+    tasks: string[];
+}
+
+export interface PlanLectureDataInterface {
+    heading: string;
+    mode: string;
+    duration: string;
+    language: string;
+    level: string;
+    timeWiseSplit: TimeWiseSection[];
+    assignment: Assignment;
+    summary: string[];
+}
+
+export interface AILectureFeedbackInterface {
+    title: string;
+    reportTitle: string;
+    lectureInfo: LectureInfo;
+    totalScore: string; // or number, depending on usage
+    criteria: EvaluationCriterion[];
+    summary: string[];
+}
+
+export interface LectureInfo {
+    lectureTitle: string;
+    duration: string;
+    evaluationDate: string;
+}
+
+export interface EvaluationCriterion {
+    name: string;
+    score: string; // or number
+    points: CriterionPoint[];
+    scopeOfImprovement: string[];
+}
+
+export interface CriterionPoint {
+    title: string;
+    description: string[];
 }

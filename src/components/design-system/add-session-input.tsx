@@ -77,6 +77,7 @@ export const AddSessionInput = ({
                     buttonType="text"
                     layoutVariant="default"
                     scale="small"
+                    id="add-session-button"
                     className="w-fit text-primary-500 hover:bg-white active:bg-white"
                 >
                     <Plus /> Add Session

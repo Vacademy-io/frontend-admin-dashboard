@@ -56,7 +56,7 @@ export interface SavedData {
     assessment_id: string;
     assessment_visibility: string;
     expected_participants: string | null;
-    duration_distribution: "ASSESSMENT" | "QUESTION" | "SECTION";
+    duration_distribution: 'ASSESSMENT' | 'QUESTION' | 'SECTION';
     omr_mode: string | null;
     boundation_end_date: string;
     assessment_url: string;
@@ -107,7 +107,7 @@ export interface SectionsResponse {
 }
 
 interface StepKey {
-    [key: string]: "REQUIRED" | "OPTIONAL" | "";
+    [key: string]: 'REQUIRED' | 'OPTIONAL' | '';
 }
 
 interface DefaultValue {

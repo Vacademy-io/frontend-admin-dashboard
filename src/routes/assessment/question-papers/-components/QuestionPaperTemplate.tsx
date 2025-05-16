@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { DotsSixVertical, Plus, X } from "phosphor-react";
 import { useState } from "react";
 import { useFieldArray } from "react-hook-form";
-import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Sortable, SortableDragHandle, SortableItem } from "@/components/ui/sortable";
@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { QuestionType } from "@/constants/dummy-data";
 import { QuestionTypeSelection } from "./QuestionTypeSelection";
+import { DialogClose } from "@radix-ui/react-dialog";
 
 export function QuestionPaperTemplate({
     form,
@@ -49,6 +50,7 @@ export function QuestionPaperTemplate({
     currentQuestionIndex,
     setCurrentQuestionIndex,
 }: QuestionPaperTemplateProps) {
+    console.log(form.getValues());
     const [isQuestionPaperTemplateDialog, setIsQuestionPaperTemplateDialog] = useState(false);
     const { instituteLogo } = useInstituteLogoStore();
     const { handleRefetchData } = useRefetchStore();
@@ -150,6 +152,8 @@ export function QuestionPaperTemplate({
                 className: "success-toast",
                 duration: 2000,
             });
+            setIsQuestionPaperTemplateDialog(false);
+            queryClient.invalidateQueries({ queryKey: ["GET_QUESTION_PAPER_FILTERED_DATA"] });
         },
         onError: (error: unknown) => {
             throw error;
@@ -208,7 +212,13 @@ export function QuestionPaperTemplate({
 
     const handleTriggerForm = () => {
         form.trigger();
-        if (Object.values(form.formState.errors).length > 0) return;
+        if (Object.values(form.formState.errors).length > 0) {
+            toast.error("some of your questions are incomplete or needs attentions!", {
+                className: "error-toast",
+                duration: 3000,
+            });
+            return;
+        }
         setIsQuestionPaperTemplateDialog(false);
     };
 
@@ -246,7 +256,7 @@ export function QuestionPaperTemplate({
                     <DashboardLoader />
                 ) : (
                     <div>
-                        <div className="flex items-center justify-between bg-primary-100 p-2">
+                        <div className="flex w-screen items-center justify-between bg-primary-100 p-2">
                             <div className="flex items-start gap-2">
                                 <img
                                     src={instituteLogo}
@@ -392,7 +402,7 @@ export function QuestionPaperTemplate({
                                                                                 key={index}
                                                                                 type={
                                                                                     getValues(
-                                                                                        `questions.${currentQuestionIndex}.questionType`,
+                                                                                        `questions.${index}.questionType`,
                                                                                     ) as QuestionType
                                                                                 }
                                                                                 props={{

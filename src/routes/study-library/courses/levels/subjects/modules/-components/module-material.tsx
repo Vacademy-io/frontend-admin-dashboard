@@ -1,47 +1,83 @@
-import { useEffect, useState } from "react";
-import { AddModulesButton } from "./add-modules.tsx/add-modules-button";
-import { Modules } from "./add-modules.tsx/modules";
-import { Module } from "@/stores/study-library/use-modules-with-chapters-store";
-import { useRouter } from "@tanstack/react-router";
-// import { SearchInput } from "@/components/common/students/students-list/student-list-section/search-input";
-import { useModulesWithChaptersStore } from "@/stores/study-library/use-modules-with-chapters-store";
-import { useAddModule } from "@/routes/study-library/courses/levels/subjects/modules/-services/add-module";
-import { useUpdateModule } from "@/routes/study-library/courses/levels/subjects/modules/-services/update-module";
-import { useDeleteModule } from "@/routes/study-library/courses/levels/subjects/modules/-services/delete-module";
-import { getLevelName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getLevelNameById";
-import { getSubjectName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getSubjectNameById";
-import { useUpdateModuleOrder } from "@/routes/study-library/courses/levels/subjects/modules/-services/update-modules-order";
-import { orderModulePayloadType } from "@/routes/study-library/courses/-types/order-payload";
-import { SessionDropdown } from "../../../../../../../components/common/study-library/study-library-session-dropdown";
-import { getSubjectSessions } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSessionsForModules";
-import { useSelectedSessionStore } from "@/stores/study-library/selected-session-store";
-import { StudyLibrarySessionType } from "@/stores/study-library/use-study-library-store";
-import useIntroJsTour from "@/hooks/use-intro";
-import { StudyLibraryIntroKey } from "@/constants/storage/introKey";
-import { studyLibrarySteps } from "@/constants/intro/steps";
+import { AddModulesButton } from './add-modules.tsx/add-modules-button';
+import { Modules } from './add-modules.tsx/modules';
+import { Module } from '@/stores/study-library/use-modules-with-chapters-store';
+import { useRouter } from '@tanstack/react-router';
+import { useModulesWithChaptersStore } from '@/stores/study-library/use-modules-with-chapters-store';
+import { useAddModule } from '@/routes/study-library/courses/levels/subjects/modules/-services/add-module';
+import { useUpdateModule } from '@/routes/study-library/courses/levels/subjects/modules/-services/update-module';
+import { useDeleteModule } from '@/routes/study-library/courses/levels/subjects/modules/-services/delete-module';
+import { getLevelName } from '@/utils/helpers/study-library-helpers.ts/get-name-by-id/getLevelNameById';
+import { getSubjectName } from '@/utils/helpers/study-library-helpers.ts/get-name-by-id/getSubjectNameById';
+import { useUpdateModuleOrder } from '@/routes/study-library/courses/levels/subjects/modules/-services/update-modules-order';
+import { orderModulePayloadType } from '@/routes/study-library/courses/-types/order-payload';
+import useIntroJsTour from '@/hooks/use-intro';
+import { StudyLibraryIntroKey } from '@/constants/storage/introKey';
+import { studyLibrarySteps } from '@/constants/intro/steps';
+import { useEffect, useState } from 'react';
+import {
+    DropdownItemType,
+    DropdownValueType,
+} from '@/components/common/students/enroll-manually/dropdownTypesForPackageItems';
+import { useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
+import { MyDropdown } from '@/components/common/students/enroll-manually/dropdownForPackageItems';
 
 export const ModuleMaterial = () => {
     const router = useRouter();
     const { modulesWithChaptersData } = useModulesWithChaptersStore();
-    const { selectedSession, setSelectedSession } = useSelectedSessionStore();
+    const { getSessionsByCourseLevelSubject } = useStudyLibraryStore();
 
     const addModuleMutation = useAddModule();
     const updateModuleMutation = useUpdateModule();
     const deleteModuleMutation = useDeleteModule();
     const updateModuleOrderMutation = useUpdateModuleOrder();
 
-    // const [searchInput, setSearchInput] = useState("");
-
     const { courseId, subjectId, levelId } = router.state.location.search;
-    const sessionList = subjectId ? getSubjectSessions(subjectId) : [];
-    const initialSession =
-        selectedSession && sessionList.includes(selectedSession) ? selectedSession : sessionList[0];
-    // const initialSession = sessionList[0];
-    const [currentSession, setCurrentSession] = useState(initialSession);
 
-    const handleSessionChange = (value: string | StudyLibrarySessionType) => {
-        if (typeof value !== "string" && value) {
-            setCurrentSession(value);
+    const [sessionList, setSessionList] = useState<DropdownItemType[]>(
+        courseId && levelId && subjectId
+            ? getSessionsByCourseLevelSubject({
+                  courseId: courseId,
+                  levelId: levelId,
+                  subjectId: subjectId,
+              })
+            : []
+    );
+    const initialSession: DropdownItemType | undefined = {
+        id: sessionList[0]?.id || '',
+        name: sessionList[0]?.name || '',
+    };
+
+    const [currentSession, setCurrentSession] = useState<DropdownItemType | undefined>(
+        () => initialSession
+    );
+
+    useEffect(() => {
+        setSessionList(
+            courseId && levelId && subjectId
+                ? getSessionsByCourseLevelSubject({
+                      courseId: courseId,
+                      levelId: levelId,
+                      subjectId: subjectId,
+                  })
+                : []
+        );
+    }, [courseId, levelId, subjectId]);
+
+    useEffect(() => {
+        setCurrentSession({ id: sessionList[0]?.id || '', name: sessionList[0]?.name || '' });
+    }, [sessionList]);
+
+    const handleSessionChange = (value: DropdownValueType) => {
+        if (value && typeof value === 'object' && 'id' in value && 'name' in value) {
+            setCurrentSession(value as DropdownItemType);
+            const search = router.state.location.search;
+            router.navigate({
+                search: {
+                    ...search,
+                    sessionId: value.id,
+                    // eslint-disable-next-line
+                } as any,
+            });
         }
     };
 
@@ -49,10 +85,6 @@ export const ModuleMaterial = () => {
         key: StudyLibraryIntroKey.addModulesStep,
         steps: studyLibrarySteps.addModulesStep,
     });
-
-    useEffect(() => {
-        setSelectedSession(currentSession);
-    }, [currentSession]);
 
     // Ensure courseId, subjectId, and levelId exist before proceeding
     if (!courseId) return <>Course Not found</>;
@@ -103,18 +135,12 @@ export const ModuleMaterial = () => {
                 <AddModulesButton onAddModule={handleAddModule} />
             </div>
             <div className="flex items-center gap-6">
-                <SessionDropdown
-                    currentSession={currentSession ?? undefined}
-                    onSessionChange={handleSessionChange}
-                    className="text-title font-semibold"
-                    sessionList={sessionList}
+                <MyDropdown
+                    currentValue={currentSession ?? undefined}
+                    dropdownList={sessionList}
+                    placeholder="Select Session"
+                    handleChange={handleSessionChange}
                 />
-                {/* TODO: add search fuctinality when api is ready
-                    <SearchInput
-                    searchInput={searchInput}
-                    onSearchChange={handleSearchInputChange}
-                    placeholder="Search module"
-                /> */}
             </div>
             <Modules
                 modules={modulesWithChaptersData}

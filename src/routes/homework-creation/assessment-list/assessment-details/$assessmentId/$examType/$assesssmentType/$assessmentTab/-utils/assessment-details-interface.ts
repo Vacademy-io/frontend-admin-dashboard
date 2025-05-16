@@ -110,7 +110,7 @@ export interface AssessmentPreviewSectionsInterface {
 
 interface transformSectionsAndQuestionsDataQuestionText {
     id: string;
-    type: "HTML" | string;
+    type: 'HTML' | string;
     content: string;
 }
 
@@ -248,7 +248,7 @@ interface QuestionInsightsQuestion {
 
 interface AssessmentQuestionPreviewDTO {
     question_id: string;
-    parent_rich_text: string | null;
+    parent_rich_text: TextContent | null;
     question: QuestionInsightsQuestion;
     section_id: string;
     question_duration: number;
@@ -257,6 +257,7 @@ interface AssessmentQuestionPreviewDTO {
     evaluation_json: string;
     question_type: string;
     options: QuestionInsightsOption[];
+    options_json: string;
     options_with_explanation: QuestionInsightsOption[];
 }
 

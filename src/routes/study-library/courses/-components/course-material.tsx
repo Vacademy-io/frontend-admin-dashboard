@@ -1,21 +1,21 @@
-import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
-import { useEffect, useState } from "react";
-import { UploadStudyMaterialButton } from "./upload-study-material/upload-study-material-button";
-import { CreateStudyDocButton } from "./upload-study-material/create-study-doc-button";
-import { useSidebar } from "@/components/ui/sidebar";
-import { getCourses } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getCourses";
-import { CourseCard } from "./course-card";
-import { AddCourseButton } from "@/components/common/study-library/add-course/add-course-button";
-import { useAddCourse } from "@/services/study-library/course-operations/add-course";
-import { AddCourseData } from "../../../../components/common/study-library/add-course/add-course-form";
-import { useDeleteCourse } from "@/services/study-library/course-operations/delete-course";
-import { useUpdateCourse } from "@/services/study-library/course-operations/update-course";
-import { useStudyLibraryStore } from "@/stores/study-library/use-study-library-store";
-import { toast } from "sonner"; // Import Toaster from sonner
-import useIntroJsTour from "@/hooks/use-intro";
-import { StudyLibraryIntroKey } from "@/constants/storage/introKey";
-import { studyLibrarySteps } from "@/constants/intro/steps";
-import { EmptyCoursePage } from "@/svgs";
+import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
+import { useEffect, useState } from 'react';
+import { UploadStudyMaterialButton } from './upload-study-material/upload-study-material-button';
+import { CreateStudyDocButton } from './upload-study-material/create-study-doc-button';
+import { useSidebar } from '@/components/ui/sidebar';
+import { getCourses } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getCourses';
+import { CourseCard } from './course-card';
+import { AddCourseButton } from '@/components/common/study-library/add-course/add-course-button';
+import { useAddCourse } from '@/services/study-library/course-operations/add-course';
+import { AddCourseData } from '../../../../components/common/study-library/add-course/add-course-form';
+import { useDeleteCourse } from '@/services/study-library/course-operations/delete-course';
+import { useUpdateCourse } from '@/services/study-library/course-operations/update-course';
+import { useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
+import { toast } from 'sonner'; // Import Toaster from sonner
+import useIntroJsTour from '@/hooks/use-intro';
+import { StudyLibraryIntroKey } from '@/constants/storage/introKey';
+import { studyLibrarySteps } from '@/constants/intro/steps';
+import { EmptyCoursePage } from '@/svgs';
 
 export const CourseMaterial = () => {
     const { setNavHeading } = useNavHeadingStore();
@@ -30,6 +30,7 @@ export const CourseMaterial = () => {
     useIntroJsTour({
         key: StudyLibraryIntroKey.createCourseStep,
         steps: studyLibrarySteps.createCourseStep,
+        partial: true,
     });
 
     const handleAddCourse = ({ requestData }: { requestData: AddCourseData }) => {
@@ -37,22 +38,22 @@ export const CourseMaterial = () => {
             { requestData: requestData },
             {
                 onSuccess: () => {
-                    toast.success("Course added successfully");
+                    toast.success('Course added successfully');
                 },
                 onError: (error) => {
-                    toast.error(error.message || "Failed to add course");
+                    toast.error(error.message || 'Failed to add course');
                 },
-            },
+            }
         );
     };
 
     const handleCourseDelete = (courseId: string) => {
         deleteCourseMutation.mutate(courseId, {
             onSuccess: () => {
-                toast.success("Course deleted successfully");
+                toast.success('Course deleted successfully');
             },
             onError: (error) => {
-                toast.error(error.message || "Failed to delete course");
+                toast.error(error.message || 'Failed to delete course');
             },
         });
     };
@@ -68,12 +69,12 @@ export const CourseMaterial = () => {
             { courseId, requestData },
             {
                 onSuccess: () => {
-                    toast.success("Course updated successfully");
+                    toast.success('Course updated successfully');
                 },
                 onError: (error) => {
-                    toast.error(error.message || "Failed to update course");
+                    toast.error(error.message || 'Failed to update course');
                 },
-            },
+            }
         );
     };
 
@@ -82,7 +83,7 @@ export const CourseMaterial = () => {
     }, [studyLibraryData]);
 
     useEffect(() => {
-        setNavHeading("Learning Center");
+        setNavHeading('Learning Center');
     }, []);
 
     return (
@@ -105,7 +106,7 @@ export const CourseMaterial = () => {
 
             <div
                 className={`grid ${
-                    open ? "grid-cols-3 gap-4" : "grid-cols-4 gap-8"
+                    open ? 'grid-cols-3 gap-4' : 'grid-cols-4 gap-8'
                 } w-full items-center justify-between gap-y-8`}
             >
                 {courses.map((course, key) => (

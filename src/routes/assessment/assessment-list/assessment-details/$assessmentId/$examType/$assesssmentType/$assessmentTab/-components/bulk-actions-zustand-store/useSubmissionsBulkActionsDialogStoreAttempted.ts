@@ -1,6 +1,6 @@
-import { create } from "zustand";
-import { AssessmentSubmissionsBulkActionInfo } from "@/routes/students/students-list/-types/bulk-actions-types";
-import { SubmissionStudentData } from "@/types/assessments/assessment-overview";
+import { create } from 'zustand';
+import { AssessmentSubmissionsBulkActionInfo } from '@/routes/manage-students/students-list/-types/bulk-actions-types';
+import { SubmissionStudentData } from '@/types/assessments/assessment-overview';
 
 interface AssessmentSubmissionsDialogStore {
     isProvideReattemptOpen: boolean;

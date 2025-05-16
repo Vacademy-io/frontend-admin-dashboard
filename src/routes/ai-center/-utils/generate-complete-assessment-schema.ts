@@ -42,6 +42,9 @@ export const generateCompleteAssessmentFormSchema = z.object({
             message: "File upload is required and must be a valid file",
         })
         .optional(),
+    classess: z.array(z.string()).optional(),
+    subjects: z.array(z.string()).optional(),
+    tags: z.array(z.string()).optional(),
     questions: z.array(
         z.object({
             questionId: z.string().optional(),
@@ -53,6 +56,7 @@ export const generateCompleteAssessmentFormSchema = z.object({
                 hrs: z.string(),
                 min: z.string(),
             }),
+            tags: z.array(z.string()).optional(),
             questionMark: z.string(),
             singleChoiceOptions: z
                 .array(
@@ -72,6 +76,39 @@ export const generateCompleteAssessmentFormSchema = z.object({
                     }),
                 )
                 .optional(),
+            csingleChoiceOptions: z
+                .array(
+                    z.object({
+                        id: z.string().optional(),
+                        name: z.string().optional(),
+                        isSelected: z.boolean().optional(),
+                    }),
+                )
+                .optional(),
+            cmultipleChoiceOptions: z
+                .array(
+                    z.object({
+                        id: z.string().optional(),
+                        name: z.string().optional(),
+                        isSelected: z.boolean().optional(),
+                    }),
+                )
+                .optional(),
+            trueFalseOptions: z
+                .array(
+                    z.object({
+                        id: z.string().optional(),
+                        name: z.string().optional(),
+                        isSelected: z.boolean().optional(),
+                    }),
+                )
+                .optional(),
+            parentRichTextContent: z.union([z.string(), z.null()]).optional(),
+            decimals: z.number().optional(),
+            numericType: z.string().optional(),
+            validAnswers: z.union([z.array(z.number()), z.null()]).optional(),
+            questionResponseType: z.union([z.string(), z.null()]).optional(),
+            subjectiveAnswerText: z.string().optional(),
         }),
     ),
 });

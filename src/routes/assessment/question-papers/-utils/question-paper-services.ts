@@ -4,25 +4,31 @@ import {
     GET_QUESTION_PAPER_FILTERED_DATA,
     MARK_QUESTION_PAPER_STATUS,
     UPDATE_QUESTION_PAPER,
-} from "@/constants/urls";
-import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
+} from '@/constants/urls';
+import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 import {
     transformFilterData,
     transformQuestionPaperData,
+    transformQuestionPaperDataAI,
     transformQuestionPaperEditData,
-} from "./helper";
-import { FilterOption } from "@/types/assessments/question-paper-filter";
+} from './helper';
+import { FilterOption } from '@/types/assessments/question-paper-filter';
 import {
     MyQuestionPaperFormEditInterface,
     MyQuestionPaperFormInterface,
-} from "../../../../types/assessments/question-paper-form";
+} from '../../../../types/assessments/question-paper-form';
 
-export const addQuestionPaper = async (data: MyQuestionPaperFormInterface) => {
+export const addQuestionPaper = async (
+    data: MyQuestionPaperFormInterface,
+    isAddingAIQuestions?: boolean
+) => {
     try {
         const response = await authenticatedAxiosInstance({
-            method: "POST",
+            method: 'POST',
             url: `${ADD_QUESTION_PAPER}`,
-            data: transformQuestionPaperData(data),
+            data: isAddingAIQuestions
+                ? transformQuestionPaperDataAI(data as MyQuestionPaperFormInterface)
+                : transformQuestionPaperData(data as MyQuestionPaperFormInterface),
         });
         return response?.data;
     } catch (error: unknown) {
@@ -32,11 +38,11 @@ export const addQuestionPaper = async (data: MyQuestionPaperFormInterface) => {
 
 export const updateQuestionPaper = async (
     data: MyQuestionPaperFormInterface,
-    previousQuestionPaperData: MyQuestionPaperFormEditInterface,
+    previousQuestionPaperData: MyQuestionPaperFormEditInterface
 ) => {
     try {
         const response = await authenticatedAxiosInstance({
-            method: "PATCH",
+            method: 'PATCH',
             url: `${UPDATE_QUESTION_PAPER}`,
             data: transformQuestionPaperEditData(data, previousQuestionPaperData),
         });
@@ -49,11 +55,11 @@ export const updateQuestionPaper = async (
 export const markQuestionPaperStatus = async (
     status: string,
     questionPaperId: string,
-    instituteId: string | undefined,
+    instituteId: string | undefined
 ) => {
     try {
         const response = await authenticatedAxiosInstance({
-            method: "POST",
+            method: 'POST',
             url: `${MARK_QUESTION_PAPER_STATUS}`,
             data: { status, question_paper_id: questionPaperId, institute_id: instituteId },
         });
@@ -66,7 +72,7 @@ export const markQuestionPaperStatus = async (
 export const getQuestionPaperById = async (questionPaperId: string | undefined) => {
     try {
         const response = await authenticatedAxiosInstance({
-            method: "GET",
+            method: 'GET',
             url: `${GET_QUESTION_PAPER_BY_ID}`,
             params: {
                 questionPaperId,
@@ -80,7 +86,7 @@ export const getQuestionPaperById = async (questionPaperId: string | undefined) 
 
 export const handleGetQuestionPaperById = (questionPaperId: string | undefined) => {
     return {
-        queryKey: ["GET_QUESTION_PAPER_BY_ID", questionPaperId],
+        queryKey: ['GET_QUESTION_PAPER_BY_ID', questionPaperId],
         queryFn: () => getQuestionPaperById(questionPaperId),
         staleTime: 60 * 60 * 1000,
     };
@@ -90,11 +96,11 @@ export const getQuestionPaperDataWithFilters = async (
     pageNo: number,
     pageSize: number,
     instituteId: string | undefined,
-    data: Record<string, FilterOption[]>,
+    data: Record<string, FilterOption[]>
 ) => {
     try {
         const response = await authenticatedAxiosInstance({
-            method: "POST",
+            method: 'POST',
             url: `${GET_QUESTION_PAPER_FILTERED_DATA}`,
             params: {
                 pageNo,
@@ -113,10 +119,10 @@ export const getQuestionPaperFilteredData = (
     pageNo: number,
     pageSize: number,
     instituteId: string,
-    data: Record<string, FilterOption[]>,
+    data: Record<string, FilterOption[]>
 ) => {
     return {
-        queryKey: ["GET_QUESTION_PAPER_FILTERED_DATA", pageNo, pageSize, instituteId, data],
+        queryKey: ['GET_QUESTION_PAPER_FILTERED_DATA', pageNo, pageSize, instituteId, data],
         queryFn: () => getQuestionPaperDataWithFilters(pageNo, pageSize, instituteId, data),
         staleTime: Infinity, // Prevent query from becoming stale
         cacheTime: Infinity, // Keep the query in the cache indefinitely

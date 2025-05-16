@@ -45,12 +45,6 @@ const dashboardSteps: Step[] = [
 
 const createAssesmentSteps: Step[] = [
     {
-        element: "#create-assessment",
-        title: "Create Assessment",
-        intro: "Set up your first assessment with ease.",
-        position: "right",
-    },
-    {
         element: "#basic-info",
         title: "Complete Basic Info",
         intro: "Provide the basic details of the assessment and move forward.",
@@ -175,6 +169,23 @@ const createAssesmentSteps: Step[] = [
         title: "Access Control",
         intro: "Control who can access the assessment by configuring the access settings.",
         position: "right",
+        subStep: [
+            {
+                element: "#access-users",
+                title: "Access Control",
+                intro: "Grant users in the institute appropriate access by assigning them to specific access control groups.",
+                position: "right",
+            },
+        ],
+    },
+];
+
+const createAssesmentButtonStep: Step[] = [
+    {
+        element: "#create-assessment",
+        title: "Create Assessment",
+        intro: "Set up your first assessment with ease.",
+        position: "right",
     },
 ];
 
@@ -267,4 +278,89 @@ const studentManagementSteps: Step[] = [
     },
 ];
 
-export { dashboardSteps, createAssesmentSteps, studyLibrarySteps, studentManagementSteps };
+const addCourseStep: Step[] = [
+    {
+        element: "#course-name",
+        title: "Enter Course Name",
+        intro: "Specify the course name offered by your institute.",
+        position: "bottom",
+    },
+    {
+        element: "#course-thumbnail",
+        title: "Upload Image",
+        intro: "Add a cover image to your course for easy identification.",
+        position: "right",
+    },
+    {
+        element: "#course-level",
+        title: "Level",
+        intro: "Specify whether your course includes multiple levels, such as 9th or 10th standard, or if it has no levels.",
+        position: "right",
+    },
+    {
+        element: "#add-course-level",
+        title: "Add Level",
+        intro: "Create levels linked to your course, structured by difficulty tiers such as the 10th standard.",
+        position: "right",
+    },
+    {
+        element: "#add-course-session",
+        title: "Add Session",
+        intro: "Create sessions linked to the course, specifying a time period such as 2024-2025.",
+        position: "right",
+    },
+    {
+        element: "#add-course-button",
+        title: "Add Course",
+        intro: `Click the "Add" button to include a course in your institute.`,
+        position: "right",
+    },
+];
+const inviteSteps: Step[] = [
+    {
+        element: "#invite-link-name",
+        title: "Invite link Name",
+        intro: "Enter a name that clearly identifies the batch you're inviting students to. For example, 'Batch A - July 2025'",
+        position: "right",
+    },
+    {
+        element: "#activate-link",
+        title: "Activate Invite link",
+        intro: "Turn the link on or off depending on when you want students to enroll.",
+        position: "right",
+    },
+    {
+        element: "#custom-fields",
+        title: "Add Custom Fields",
+        intro: "Add any additional fields you'd like students to fill out as part of the enrollment form.",
+        position: "right",
+    },
+    {
+        element: "#select-batch",
+        title: "Select Batch Enrollment Preference",
+        intro: "You can pre-select the batches you're inviting students to, or allow them to choose from the list of open batches during enrollment.",
+        position: "right",
+    },
+    {
+        element: "#student-access-duration",
+        title: "Set Student Access Duration",
+        intro: "Enter the number of days students will have access to the course after enrolling using this invite.",
+        position: "right",
+    },
+    {
+        element: "#invitee-email",
+        title: "Invitee Email",
+        intro: "Optionally, enter the email addresses of users you want to send the invite to, and an email will be sent to them.",
+        position: "right",
+    },
+];
+
+export {
+    dashboardSteps,
+    createAssesmentSteps,
+    studyLibrarySteps,
+    studentManagementSteps,
+    createAssesmentButtonStep,
+    addCourseStep,
+    inviteSteps,
+};

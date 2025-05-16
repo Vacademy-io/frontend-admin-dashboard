@@ -40,6 +40,7 @@ export const ModuleCard = ({ module, onDelete, onEdit }: ModuleCardProps) => {
                 levelId: searchParams.levelId,
                 subjectId: searchParams.subjectId,
                 moduleId: module.module.id,
+                sessionId: searchParams.sessionId,
             },
         });
     };

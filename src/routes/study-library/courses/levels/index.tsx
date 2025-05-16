@@ -1,25 +1,26 @@
 // routes/study-library/$class/index.tsx
-import { createFileRoute } from "@tanstack/react-router";
-import { LayoutContainer } from "@/components/common/layout-container/layout-container";
-import { InitStudyLibraryProvider } from "@/providers/study-library/init-study-library-provider";
-import { LevelPage } from "@/routes/study-library/courses/levels/-components/level-page";
-import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
-import { useNavigate } from "@tanstack/react-router";
-import { CaretLeft } from "phosphor-react";
-import { useEffect, useState } from "react";
+import { createFileRoute } from '@tanstack/react-router';
+import { LayoutContainer } from '@/components/common/layout-container/layout-container';
+import { InitStudyLibraryProvider } from '@/providers/study-library/init-study-library-provider';
+import { LevelPage } from '@/routes/study-library/courses/levels/-components/level-page';
+import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
+import { useNavigate } from '@tanstack/react-router';
+import { CaretLeft } from 'phosphor-react';
+import { useEffect, useState } from 'react';
 import {
     StudyLibrarySessionType,
     useStudyLibraryStore,
-} from "@/stores/study-library/use-study-library-store";
-import { getCourseSessions } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSessionsForLevels";
-import { getCourseNameById } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getCourseNameById";
-import { getCourseLevels } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getLevelWithDetails";
+} from '@/stores/study-library/use-study-library-store';
+import { getCourseSessions } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSessionsForLevels';
+import { getCourseNameById } from '@/utils/helpers/study-library-helpers.ts/get-name-by-id/getCourseNameById';
+import { getCourseLevels } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getLevelWithDetails';
+import { getCourses } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getCourses';
 
 interface CourseSearchParams {
     courseId: string;
 }
 
-export const Route = createFileRoute("/study-library/courses/levels/")({
+export const Route = createFileRoute('/study-library/courses/levels/')({
     component: RouteComponent,
     validateSearch: (search: Record<string, unknown>): CourseSearchParams => {
         return {
@@ -45,17 +46,20 @@ function RouteComponent() {
 
     const courseName = getCourseNameById(courseId);
 
+    const [courses, setCourses] = useState(getCourses());
+
     useEffect(() => {
         const newLevelList = initialSession ? getCourseLevels(courseId!, initialSession.id) : [];
         setLevelList(newLevelList);
+        setCourses(getCourses());
     }, [studyLibraryData]);
 
-    if (levelList[0]?.id == "DEFAULT") {
+    if (levelList[0]?.id == 'DEFAULT') {
         navigate({
             to: `/study-library/courses/levels/subjects`,
             search: {
                 courseId: courseId,
-                levelId: "DEFAULT",
+                levelId: 'DEFAULT',
             },
         });
     }
@@ -78,7 +82,16 @@ function RouteComponent() {
     }, []);
 
     return (
-        <LayoutContainer>
+        <LayoutContainer
+            internalSideBar
+            sideBarList={courses.map((course) => {
+                return {
+                    value: course.package_name,
+                    id: course.id,
+                };
+            })}
+            sideBarData={{ title: 'Courses', listIconText: 'C', searchParam: 'courseId' }}
+        >
             <InitStudyLibraryProvider>
                 <LevelPage />
             </InitStudyLibraryProvider>

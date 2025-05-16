@@ -1,33 +1,34 @@
-import { useEffect, useMemo, useState } from "react";
-import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
-import { useGetSessions } from "@/routes/students/students-list/-hooks/useFilters";
-import { GetFilterData } from "@/routes/students/students-list/-constants/all-filters";
-import { MyTable, TableData } from "@/components/design-system/table";
-import { MyPagination } from "@/components/design-system/pagination";
-import { useStudentFilters } from "@/routes/students/students-list/-hooks/useStudentFilters";
-import { useStudentTable } from "@/routes/students/students-list/-hooks/useStudentTable";
-import { StudentTable } from "@/types/student-table-types";
-import { myColumns } from "@/components/design-system/utils/constants/table-column-data";
+import { useEffect, useMemo, useState } from 'react';
+import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
+import { GetFilterData } from '@/routes/manage-students/students-list/-constants/all-filters';
+import { MyTable, TableData } from '@/components/design-system/table';
+import { MyPagination } from '@/components/design-system/pagination';
+import { useStudentFilters } from '@/routes/manage-students/students-list/-hooks/useStudentFilters';
+import { useStudentTable } from '@/routes/manage-students/students-list/-hooks/useStudentTable';
+import { StudentTable } from '@/types/student-table-types';
+import { myColumns } from '@/components/design-system/utils/constants/table-column-data';
 import {
     STUDENT_LIST_ASSESSMENT_COLUMN_WIDTHS,
     STUDENT_LIST_COLUMN_WIDTHS,
-} from "@/components/design-system/utils/constants/table-layout";
-import { OnChangeFn, RowSelectionState } from "@tanstack/react-table";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import RootErrorComponent from "@/components/core/deafult-error";
-import { StudentListHeader } from "@/routes/students/students-list/-components/students-list/student-list-section/student-list-header";
-import { StudentFilters } from "@/routes/students/students-list/-components/students-list/student-list-section/student-filters";
-import { BulkActions } from "@/routes/students/students-list/-components/students-list/bulk-actions";
-import { myAssessmentColumns } from "./assessment-columns";
-import { UseFormReturn } from "react-hook-form";
-import { z } from "zod";
-import testAccessSchema from "../-utils/add-participants-schema";
-import { useTestAccessStore } from "../-utils/zustand-global-states/step3-adding-participants";
-import { Route } from "..";
-import { Step3ParticipantsListIndiviudalStudentInterface } from "@/types/assessments/student-questionwise-status";
-import { getInstituteId } from "@/constants/helper";
-import { handleGetIndividualStudentList } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-services/assessment-details-services";
+} from '@/components/design-system/utils/constants/table-layout';
+import { OnChangeFn, RowSelectionState } from '@tanstack/react-table';
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import RootErrorComponent from '@/components/core/deafult-error';
+import { StudentListHeader } from '@/routes/manage-students/students-list/-components/students-list/student-list-section/student-list-header';
+import { StudentFilters } from '@/routes/manage-students/students-list/-components/students-list/student-list-section/student-filters';
+import { BulkActions } from '@/routes/manage-students/students-list/-components/students-list/bulk-actions';
+import { myAssessmentColumns } from './assessment-columns';
+import { UseFormReturn } from 'react-hook-form';
+import { z } from 'zod';
+import testAccessSchema from '../-utils/add-participants-schema';
+import { useTestAccessStore } from '../-utils/zustand-global-states/step3-adding-participants';
+import { Route } from '..';
+import { Step3ParticipantsListIndiviudalStudentInterface } from '@/types/assessments/student-questionwise-status';
+import { getInstituteId } from '@/constants/helper';
+import { handleGetIndividualStudentList } from '@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-services/assessment-details-services';
+import { FilterConfig } from '@/routes/manage-students/students-list/-types/students-list-types';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 type TestAccessFormType = z.infer<typeof testAccessSchema>;
 
@@ -42,24 +43,29 @@ export const StudentListTab = ({ form }: { form: UseFormReturn<TestAccessFormTyp
     const storeDataStep3 = useTestAccessStore((state) => state);
     const instituteId = getInstituteId();
     const { data: studentList } = useSuspenseQuery(
-        handleGetIndividualStudentList({ instituteId, assessmentId }),
+        handleGetIndividualStudentList({ instituteId, assessmentId })
     );
     const preExistingStudentIds = useMemo(() => {
-        if (assessmentId !== "defaultId")
+        if (assessmentId !== 'defaultId')
             return studentList
                 .filter(
                     (user: Step3ParticipantsListIndiviudalStudentInterface) =>
-                        user.source === "ADMIN_PRE_REGISTRATION",
+                        user.source === 'ADMIN_PRE_REGISTRATION'
                 )
                 .map((user: Step3ParticipantsListIndiviudalStudentInterface) => user.userId);
         return (storeDataStep3.select_individually?.student_details || []).map(
-            (student) => student.user_id,
+            (student) => student.user_id
         );
     }, [storeDataStep3.select_individually?.student_details]);
 
     const { isError, isLoading } = useSuspenseQuery(useInstituteQuery());
-    const sessions = useGetSessions();
-    const filters = GetFilterData(getCurrentSession());
+    const { instituteDetails } = useInstituteDetailsStore();
+    const sessions =
+        instituteDetails?.sessions.map((session) => ({
+            id: session.id,
+            name: session.session_name,
+        })) || [];
+    const filters: FilterConfig[] = GetFilterData(instituteDetails, getCurrentSession());
     const [isAssessment] = useState(true);
     const { setValue } = form;
 
@@ -96,7 +102,7 @@ export const StudentListTab = ({ form }: { form: UseFormReturn<TestAccessFormTyp
               ...studentTableData,
               content:
                   studentTableData?.content
-                      ?.filter((item) => item.status === "ACTIVE") // Filter for "ACTIVE" status
+                      ?.filter((item) => item.status === 'ACTIVE') // Filter for "ACTIVE" status
                       .map((item) => ({
                           id: item.id,
                           user_id: item.user_id,
@@ -121,7 +127,7 @@ export const StudentListTab = ({ form }: { form: UseFormReturn<TestAccessFormTyp
         const currentPageData = studentTableFilteredData?.content || [];
 
         // If we receive a function updater
-        if (typeof updaterOrValue === "function") {
+        if (typeof updaterOrValue === 'function') {
             setRowSelections((prev) => {
                 // Get current page selections
                 const currentPageSelections = prev[page] || {};
@@ -191,11 +197,11 @@ export const StudentListTab = ({ form }: { form: UseFormReturn<TestAccessFormTyp
 
             if (!pageData) return [];
             const selectedStudents = Object.entries(selections).filter(
-                ([, isSelected]) => isSelected,
+                ([, isSelected]) => isSelected
             );
 
             const filteredStudents = pageData.filter((student) =>
-                selectedStudents.some(([id]) => id === student.user_id),
+                selectedStudents.some(([id]) => id === student.user_id)
             );
 
             return filteredStudents;
@@ -205,18 +211,18 @@ export const StudentListTab = ({ form }: { form: UseFormReturn<TestAccessFormTyp
     const getSelectedStudentIds = (): string[] => {
         // Setting the selected student details
         setValue(
-            "select_individually.student_details",
+            'select_individually.student_details',
             getSelectedStudents().map((student) => ({
-                username: student.username || "",
+                username: student.username || '',
                 user_id: student.user_id,
                 email: student.email,
                 full_name: student.full_name,
                 mobile_number: student.mobile_number,
                 guardian_email: student.parents_email,
                 guardian_mobile_number: student.parents_mobile_number,
-                file_id: "",
+                file_id: '',
                 reattempt_count: 0,
-            })),
+            }))
         );
 
         // Returning the IDs of the selected students
@@ -225,7 +231,7 @@ export const StudentListTab = ({ form }: { form: UseFormReturn<TestAccessFormTyp
 
     const totalSelectedCount = Object.values(rowSelections).reduce(
         (count, pageSelection) => count + Object.keys(pageSelection).length,
-        0,
+        0
     );
 
     useEffect(() => {

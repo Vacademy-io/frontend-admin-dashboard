@@ -5,8 +5,8 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table";
-import { AssessmentOverviewMarksRankInterface } from "@/types/assessment-overview";
+} from '@/components/ui/table';
+import { AssessmentOverviewMarksRankInterface } from '@/types/assessment-overview';
 
 const AssessmentDetailsRankMarkTable = ({
     marksRanksData,

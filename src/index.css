@@ -193,6 +193,14 @@ html {
     .dialog-height {
         height: calc(100vh - 80px);
     }
+    .hide-scrollbar {
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE and Edge */
+    }
+
+    .hide-scrollbar::-webkit-scrollbar {
+        display: none; /* Chrome, Safari and Opera */
+    }
 }
 
 @layer utilities {
@@ -279,6 +287,8 @@ html {
 /* Center the tooltip and match the design */
 .custom-tooltip {
     background-color: white !important;
+    pointer-events: auto !important;
+    z-index: 99999 !important;
     border-radius: 0.5rem !important;
     box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1) !important;
     display: flex !important;
@@ -289,6 +299,12 @@ html {
     width: 300px !important;
     margin: auto !important;
 }
+
+.tooltip-postion {
+    position: absolute !important;
+    bottom: -40% !important;
+}
+
 .introjs-tooltip-title {
     color: rgb(234 88 12) !important;
     text-wrap: nowrap !important;
@@ -380,4 +396,40 @@ html {
     body {
         @apply bg-background text-foreground;
     }
+}
+
+.App-menu_top{
+    position: fixed  !important;
+    top: 10;
+    left: 0;
+}
+.toolbar{
+    display: none !important;
+}
+.sidebar-trigger__label-element{
+    display: none !important;
+  
+}
+/* .App-toolbar{
+    background-color: hsl(var(--primary-100)) !important;
+} */
+
+.HintViewer{
+    display: none !important;
+}
+/* .Island{
+    background-color: hsl(var(--primary-100)) !important;
+} */
+
+.zoom-actions{
+    display: none !important;
+}
+
+.buttonList{
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 4px !important;
+}
+.App-menu__left{
+    max-width: 80vw !important;
 }

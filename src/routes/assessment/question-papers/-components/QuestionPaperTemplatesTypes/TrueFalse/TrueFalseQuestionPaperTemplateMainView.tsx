@@ -11,6 +11,7 @@ import { QuestionPaperTemplateFormProps } from "../../../-utils/question-paper-t
 import { formatStructure } from "../../../-utils/helper";
 import { QUESTION_TYPES } from "@/constants/dummy-data";
 import { useEffect } from "react";
+import { Badge } from "@/components/ui/badge";
 
 export const TrueFalseQuestionPaperTemplateMainView = ({
     form,
@@ -24,30 +25,32 @@ export const TrueFalseQuestionPaperTemplateMainView = ({
     const questionsType = getValues("questionsType") || "";
     const allQuestions = getValues("questions") || [];
 
-    const option1 = getValues(`questions.${currentQuestionIndex}.singleChoiceOptions.${0}`);
-    const option2 = getValues(`questions.${currentQuestionIndex}.singleChoiceOptions.${1}`);
+    const option1 = getValues(`questions.${currentQuestionIndex}.trueFalseOptions.${0}`);
+    const option2 = getValues(`questions.${currentQuestionIndex}.trueFalseOptions.${1}`);
+    const tags = getValues(`questions.${currentQuestionIndex}.tags`) || [];
+    const level = getValues(`questions.${currentQuestionIndex}.level`) || "";
 
     const handleOptionChange = (optionIndex: number) => {
         const options = [0, 1];
 
         // Check current state of the selected option
         const isCurrentlySelected = getValues(
-            `questions.${currentQuestionIndex}.singleChoiceOptions.${optionIndex}.isSelected`,
+            `questions.${currentQuestionIndex}.trueFalseOptions.${optionIndex}.isSelected`,
         );
 
         options.forEach((option) => {
             setValue(
-                `questions.${currentQuestionIndex}.singleChoiceOptions.${option}.isSelected`,
+                `questions.${currentQuestionIndex}.trueFalseOptions.${option}.isSelected`,
                 option === optionIndex ? !isCurrentlySelected : false,
                 { shouldDirty: true, shouldValidate: true },
             );
         });
-        form.trigger(`questions.${currentQuestionIndex}.singleChoiceOptions`);
+        form.trigger(`questions.${currentQuestionIndex}.trueFalseOptions`);
     };
 
     useEffect(() => {
-        setValue(`questions.${currentQuestionIndex}.singleChoiceOptions.${0}.name`, "True");
-        setValue(`questions.${currentQuestionIndex}.singleChoiceOptions.${1}.name`, "False");
+        setValue(`questions.${currentQuestionIndex}.trueFalseOptions.${0}.name`, "True");
+        setValue(`questions.${currentQuestionIndex}.trueFalseOptions.${1}.name`, "False");
     }, [currentQuestionIndex, setValue]);
 
     if (allQuestions.length === 0) {
@@ -92,12 +95,15 @@ export const TrueFalseQuestionPaperTemplateMainView = ({
                 </Popover>
             </div>
             <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
-                <span>
-                    Question&nbsp;
-                    {questionsType
-                        ? formatStructure(questionsType, currentQuestionIndex + 1)
-                        : currentQuestionIndex + 1}
-                </span>
+                <div className="flex items-center gap-2">
+                    <span>
+                        Question&nbsp;
+                        {questionsType
+                            ? formatStructure(questionsType, currentQuestionIndex + 1)
+                            : currentQuestionIndex + 1}
+                    </span>
+                    <Badge variant="outline">{level}</Badge>
+                </div>
                 <FormField
                     control={control}
                     name={`questions.${currentQuestionIndex}.questionName`}
@@ -113,6 +119,15 @@ export const TrueFalseQuestionPaperTemplateMainView = ({
                         </FormItem>
                     )}
                 />
+                <div className="mt-2 flex items-center gap-2">
+                    {tags?.map((tag, idx) => {
+                        return (
+                            <Badge variant="outline" key={idx}>
+                                {tag}
+                            </Badge>
+                        );
+                    })}
+                </div>
             </div>
             {/* options */}
             <div className="flex w-full grow flex-col gap-4">
@@ -120,7 +135,7 @@ export const TrueFalseQuestionPaperTemplateMainView = ({
                 <div className="flex gap-4">
                     <div
                         className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
-                            option1.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                            option1?.isSelected ? "border border-primary-300 bg-primary-50" : ""
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">
@@ -129,10 +144,10 @@ export const TrueFalseQuestionPaperTemplateMainView = ({
                                     {optionsType ? formatStructure(optionsType, "a") : "(a.)"}
                                 </span>
                             </div>
-                            <div>{option1.name}</div>
+                            <div>True</div>
                             {/* <FormField
                                 control={control}
-                                name={`questions.${currentQuestionIndex}.singleChoiceOptions.${0}.name`}
+                                name={`questions.${currentQuestionIndex}.trueFalseOptions.${0}.name`}
                                 render={({ field }) => (
                                     <FormItem className="w-full">
                                         <FormControl>
@@ -146,7 +161,7 @@ export const TrueFalseQuestionPaperTemplateMainView = ({
                         <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
-                                name={`questions.${currentQuestionIndex}.singleChoiceOptions.${0}.isSelected`}
+                                name={`questions.${currentQuestionIndex}.trueFalseOptions.${0}.isSelected`}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl>
@@ -168,7 +183,7 @@ export const TrueFalseQuestionPaperTemplateMainView = ({
                     </div>
                     <div
                         className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
-                            option2.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                            option2?.isSelected ? "border border-primary-300 bg-primary-50" : ""
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">
@@ -177,10 +192,10 @@ export const TrueFalseQuestionPaperTemplateMainView = ({
                                     {optionsType ? formatStructure(optionsType, "b") : "(b.)"}
                                 </span>
                             </div>
-                            <div>{option2.name}</div>
+                            <div>False</div>
                             {/* <FormField
                                 control={control}
-                                name={`questions.${currentQuestionIndex}.singleChoiceOptions.${1}.name`}
+                                name={`questions.${currentQuestionIndex}.trueFalseOptions.${1}.name`}
                                 render={({ field }) => (
                                     <FormItem className="w-full">
                                         <FormControl>
@@ -193,7 +208,7 @@ export const TrueFalseQuestionPaperTemplateMainView = ({
                         <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
-                                name={`questions.${currentQuestionIndex}.singleChoiceOptions.${1}.isSelected`}
+                                name={`questions.${currentQuestionIndex}.trueFalseOptions.${1}.isSelected`}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl>

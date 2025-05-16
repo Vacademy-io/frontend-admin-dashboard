@@ -1,10 +1,10 @@
-import { create } from "zustand";
+import { create } from 'zustand';
 import {
     InstituteDetailsType,
     LevelType,
     SessionType,
     BatchForSessionType,
-} from "@/schemas/student/student-list/institute-schema";
+} from '@/schemas/student/student-list/institute-schema';
 
 interface InstituteDetailsStore {
     instituteDetails: InstituteDetailsType | null;
@@ -51,6 +51,7 @@ interface InstituteDetailsStore {
     getDetailsFromPackageSessionId: (params: {
         packageSessionId: string;
     }) => BatchForSessionType | null;
+    getSessionNameById: (sessionId: string) => string | null;
 }
 
 export const useInstituteDetailsStore = create<InstituteDetailsStore>((set, get) => ({
@@ -221,7 +222,7 @@ export const useInstituteDetailsStore = create<InstituteDetailsStore>((set, get)
             (batch) =>
                 batch.package_dto.id === params.courseId &&
                 batch.level.id === params.levelId &&
-                batch.session.id === params.sessionId,
+                batch.session.id === params.sessionId
         );
 
         return matchingBatch?.id || null;
@@ -272,7 +273,7 @@ export const useInstituteDetailsStore = create<InstituteDetailsStore>((set, get)
                     package_dto: {
                         id: batch.package_dto.id,
                         package_name: batch.package_dto.package_name,
-                        thumbnail_file_id: batch.package_dto.thumbnail_id || "",
+                        thumbnail_file_id: batch.package_dto.thumbnail_id || '',
                     },
                     level: [],
                 };
@@ -296,7 +297,7 @@ export const useInstituteDetailsStore = create<InstituteDetailsStore>((set, get)
 
             // Only add the level if it's not already in the array
             const levelExists = packageGroup.level.some(
-                (item) => item.level_dto.id === batch.level.id,
+                (item) => item.level_dto.id === batch.level.id
             );
 
             if (!levelExists) {
@@ -311,9 +312,17 @@ export const useInstituteDetailsStore = create<InstituteDetailsStore>((set, get)
         const { instituteDetails } = get();
 
         const matchingBatch = instituteDetails?.batches_for_sessions.find(
-            (batch) => batch.id === params.packageSessionId,
+            (batch) => batch.id === params.packageSessionId
         );
 
         return matchingBatch || null;
+    },
+
+    getSessionNameById: (sessionId: string) => {
+        const { instituteDetails } = get();
+        if (!instituteDetails) return null;
+
+        const session = instituteDetails.sessions.find((session) => session.id === sessionId);
+        return session?.session_name || null;
     },
 }));

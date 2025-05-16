@@ -1,30 +1,28 @@
-import { LayoutContainer } from "@/components/common/layout-container/layout-container";
-import { SlideMaterial } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-components/slide-material";
-import { ChapterSidebarAddButton } from "./-components/slides-sidebar/slides-sidebar-add-button";
-import { ChapterSidebarSlides } from "./-components/slides-sidebar/slides-sidebar-slides";
-import { SidebarFooter, useSidebar } from "@/components/ui/sidebar";
-import { studyLibrarySteps } from "@/constants/intro/steps";
-import { StudyLibraryIntroKey } from "@/constants/storage/introKey";
+import { LayoutContainer } from '@/components/common/layout-container/layout-container';
+import { SlideMaterial } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-components/slide-material';
+import { ChapterSidebarAddButton } from './-components/slides-sidebar/slides-sidebar-add-button';
+import { ChapterSidebarSlides } from './-components/slides-sidebar/slides-sidebar-slides';
+import { studyLibrarySteps } from '@/constants/intro/steps';
+import { StudyLibraryIntroKey } from '@/constants/storage/introKey';
 import {
     Slide,
     slideOrderPayloadType,
     useSlides,
-} from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides";
-import useIntroJsTour from "@/hooks/use-intro";
-import { truncateString } from "@/lib/reusable/truncateString";
-import { InitStudyLibraryProvider } from "@/providers/study-library/init-study-library-provider";
-import { ModulesWithChaptersProvider } from "@/providers/study-library/modules-with-chapters-provider";
-import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
-import { useContentStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store";
-import { useChapterName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getChapterNameById";
-import { getModuleName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getModuleNameById";
-import { getSubjectName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getSubjectNameById";
-import { ChevronRightIcon } from "@radix-ui/react-icons";
-import { useNavigate } from "@tanstack/react-router";
-import { createFileRoute } from "@tanstack/react-router";
-import { CaretLeft } from "phosphor-react";
-import { useEffect, useRef, useState } from "react";
-import { SaveDraftProvider } from "./-context/saveDraftContext";
+} from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides';
+import useIntroJsTour from '@/hooks/use-intro';
+import { InitStudyLibraryProvider } from '@/providers/study-library/init-study-library-provider';
+import { ModulesWithChaptersProvider } from '@/providers/study-library/modules-with-chapters-provider';
+import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
+import { useContentStore } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
+import { useChapterName } from '@/utils/helpers/study-library-helpers.ts/get-name-by-id/getChapterNameById';
+import { getModuleName } from '@/utils/helpers/study-library-helpers.ts/get-name-by-id/getModuleNameById';
+import { getSubjectName } from '@/utils/helpers/study-library-helpers.ts/get-name-by-id/getSubjectNameById';
+import { ChevronRightIcon } from '@radix-ui/react-icons';
+import { useNavigate } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
+import { CaretLeft } from 'phosphor-react';
+import { useEffect, useRef, useState } from 'react';
+import { SaveDraftProvider } from './-context/saveDraftContext';
 
 interface ChapterSearchParams {
     courseId: string;
@@ -33,10 +31,11 @@ interface ChapterSearchParams {
     moduleId: string;
     chapterId: string;
     slideId: string;
+    sessionId: string;
 }
 
 export const Route = createFileRoute(
-    "/study-library/courses/levels/subjects/modules/chapters/slides/",
+    '/study-library/courses/levels/subjects/modules/chapters/slides/'
 )({
     component: RouteComponent,
     validateSearch: (search: Record<string, unknown>): ChapterSearchParams => {
@@ -47,17 +46,17 @@ export const Route = createFileRoute(
             moduleId: search.moduleId as string,
             chapterId: search.chapterId as string,
             slideId: search.slideId as string,
+            sessionId: search.sessionId as string,
         };
     },
 });
 
 function RouteComponent() {
-    const { courseId, subjectId, levelId, moduleId, chapterId } = Route.useSearch();
-    const { open } = useSidebar();
+    const { courseId, subjectId, levelId, moduleId, chapterId, sessionId } = Route.useSearch();
     const navigate = useNavigate();
     const { activeItem } = useContentStore();
-    const [subjectName, setSubjectName] = useState("");
-    const [moduleName, setModuleName] = useState("");
+    const [subjectName, setSubjectName] = useState('');
+    const [moduleName, setModuleName] = useState('');
     const chapterName = useChapterName(chapterId);
     const { updateSlideOrder } = useSlides(chapterId);
 
@@ -68,28 +67,30 @@ function RouteComponent() {
 
     const handleSubjectRoute = () => {
         navigate({
-            to: "/study-library/courses/levels/subjects/modules",
+            to: '/study-library/courses/levels/subjects/modules',
             params: {},
             search: {
                 courseId: courseId,
                 levelId: levelId,
                 subjectId: subjectId,
+                sessionId: sessionId,
             },
-            hash: "",
+            hash: '',
         });
     };
 
     const handleModuleRoute = () => {
         navigate({
-            to: "/study-library/courses/levels/subjects/modules/chapters",
+            to: '/study-library/courses/levels/subjects/modules/chapters',
             params: {},
             search: {
                 courseId: courseId,
                 levelId: levelId,
                 subjectId: subjectId,
                 moduleId: moduleId,
+                sessionId: sessionId,
             },
-            hash: "",
+            hash: '',
         });
     };
 
@@ -100,62 +101,32 @@ function RouteComponent() {
                 slideOrderPayload: slideOrderPayload,
             });
         } catch (error) {
-            console.log("error updating slide order: ", error);
+            console.log('error updating slide order: ', error);
         }
     };
 
-    const trucatedChapterName = truncateString(chapterName || "", 9);
-
     useEffect(() => {
-        setSubjectName(getSubjectName(subjectId || ""));
-        setModuleName(getModuleName(moduleId || ""));
+        setSubjectName(getSubjectName(subjectId || ''));
+        setModuleName(getModuleName(moduleId || ''));
     }, []);
 
     const SidebarComponent = (
         <div className="flex w-full flex-col items-center">
-            <div className={`flex w-full flex-col gap-6 ${open ? "px-6" : "px-6"} -mt-10`}>
+            <div className={`flex w-full flex-col gap-6 px-3 pb-3 `}>
                 <div className="flex flex-wrap items-center gap-1 text-neutral-500">
-                    <p
-                        className={`cursor-pointer ${open ? "visible" : "hidden"}`}
-                        onClick={handleSubjectRoute}
-                    >
-                        {subjectName}
-                    </p>
-                    <ChevronRightIcon className={`size-4 ${open ? "visible" : "hidden"}`} />
-                    <p
-                        className={`cursor-pointer ${open ? "visible" : "hidden"}`}
-                        onClick={handleModuleRoute}
-                    >
-                        {moduleName}
-                    </p>
-                    <ChevronRightIcon className={`size-4 ${open ? "visible" : "hidden"}`} />
-                    <p className="cursor-pointer text-primary-500">
-                        {open ? chapterName : trucatedChapterName}
-                    </p>
+                    <p onClick={handleSubjectRoute}>{subjectName}</p>
+                    <ChevronRightIcon className={`size-4 `} />
+                    <p onClick={handleModuleRoute}>{moduleName}</p>
+                    <ChevronRightIcon className={`size-4 `} />
+                    <p className="cursor-pointer text-primary-500">{chapterName}</p>
                 </div>
-                <div className="flex w-full flex-col items-center gap-6">
-                    {/* <>
-                   {open ? (
-                        <SearchInput
-                            searchInput={inputSearch}
-                            placeholder="Search chapters"
-                            onSearchChange={handleSearchChange}
-                        />
-                    ) : (
-                        <MagnifyingGlass
-                            className="size-5 cursor-pointer text-neutral-500"
-                            onClick={() => {
-                                if (state === "collapsed") toggleSidebar();
-                            }}
-                        />
-                    )}
-                    </> */}
+                <div className="flex w-full flex-col items-center gap-6 pb-10">
                     <ChapterSidebarSlides handleSlideOrderChange={handleSlideOrderChange} />
                 </div>
             </div>
-            <SidebarFooter className="absolute bottom-0 flex w-full items-center justify-center py-10">
+            <div className="fixed bottom-0 flex w-[280px] items-center justify-center bg-primary-50 pb-3">
                 <ChapterSidebarAddButton />
-            </SidebarFooter>
+            </div>
         </div>
     );
 
@@ -163,14 +134,15 @@ function RouteComponent() {
 
     useEffect(() => {
         navigate({
-            to: "/study-library/courses/levels/subjects/modules/chapters/slides",
+            to: '/study-library/courses/levels/subjects/modules/chapters/slides',
             search: {
                 courseId,
                 levelId,
                 subjectId,
                 moduleId,
                 chapterId,
-                slideId: activeItem?.slide_id || "",
+                slideId: activeItem?.id || '',
+                sessionId: sessionId,
             },
             replace: true,
         });
@@ -184,6 +156,7 @@ function RouteComponent() {
                 levelId,
                 subjectId,
                 moduleId,
+                sessionId: sessionId,
             },
         });
     };
@@ -191,7 +164,7 @@ function RouteComponent() {
     const heading = (
         <div className="flex items-center gap-4">
             <CaretLeft onClick={handleBackClick} className="cursor-pointer" />
-            <div>{`${chapterName || ""} Slides`}</div>
+            <div>{`${chapterName || ''} Slides`}</div>
         </div>
     );
 
@@ -199,9 +172,9 @@ function RouteComponent() {
         setNavHeading(heading);
     }, []);
 
-    const getCurrentEditorHTMLContentRef = useRef<() => string>(() => "");
+    const getCurrentEditorHTMLContentRef = useRef<() => string>(() => '');
     const saveDraftRef = useRef(async (slide: Slide) => {
-        console.log("slide for saving draft: ", slide);
+        console.log('slide for saving draft: ', slide);
     });
 
     return (
@@ -209,9 +182,12 @@ function RouteComponent() {
             getCurrentEditorHTMLContent={() => getCurrentEditorHTMLContentRef.current()}
             saveDraft={(slide) => saveDraftRef.current(slide)}
         >
-            <LayoutContainer sidebarComponent={SidebarComponent}>
+            <LayoutContainer
+                internalSidebarComponent={SidebarComponent}
+                hasInternalSidebarComponent={true}
+            >
                 <InitStudyLibraryProvider>
-                    <ModulesWithChaptersProvider subjectId={subjectId}>
+                    <ModulesWithChaptersProvider>
                         <SlideMaterial
                             setGetCurrentEditorHTMLContent={(fn) =>
                                 (getCurrentEditorHTMLContentRef.current = fn)

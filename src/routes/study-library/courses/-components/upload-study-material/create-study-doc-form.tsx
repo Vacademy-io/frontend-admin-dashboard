@@ -1,21 +1,21 @@
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { MyDropdown } from "../../../../../components/common/students/enroll-manually/dropdownForPackageItems";
-import { MyButton } from "@/components/design-system/button";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-import { getCourseSubjects } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSubjects";
-import { ModulesWithChaptersProvider } from "@/providers/study-library/modules-with-chapters-provider";
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
+import { MyDropdown } from '../../../../../components/common/students/enroll-manually/dropdownForPackageItems';
+import { MyButton } from '@/components/design-system/button';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { getCourseSubjects } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSubjects';
+import { ModulesWithChaptersProvider } from '@/providers/study-library/modules-with-chapters-provider';
 import {
     ChapterWithSlides,
     ModulesWithChapters,
     useModulesWithChaptersStore,
-} from "@/stores/study-library/use-modules-with-chapters-store";
-import { useEffect, useState } from "react";
-import { getChaptersByModuleId } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getChaptersByModuleId";
-import { useDialogStore } from "@/routes/study-library/courses/-stores/slide-add-dialogs-store";
-import { useNavigate } from "@tanstack/react-router";
+} from '@/stores/study-library/use-modules-with-chapters-store';
+import { useEffect, useState } from 'react';
+import { getChaptersByModuleId } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getChaptersByModuleId';
+import { useDialogStore } from '@/routes/study-library/courses/-stores/slide-add-dialogs-store';
+import { useNavigate, useRouter } from '@tanstack/react-router';
 
 // Form validation schema
 const formSchema = z.object({
@@ -66,6 +66,8 @@ export const CreateStudyDocForm = () => {
     } = useInstituteDetailsStore();
 
     const { openDocUploadDialog } = useDialogStore();
+    const router = useRouter();
+    const { sessionId } = router.state.location.search;
 
     const navigate = useNavigate();
 
@@ -82,15 +84,15 @@ export const CreateStudyDocForm = () => {
     });
 
     const courseList = getCourseFromPackage();
-    const sessionList = getSessionFromPackage({ courseId: form.getValues("course")?.id });
+    const sessionList = getSessionFromPackage({ courseId: form.getValues('course')?.id });
     const levelList = getLevelsFromPackage({
-        courseId: form.getValues("course")?.id,
-        sessionId: form.getValues("session")?.id,
+        courseId: form.getValues('course')?.id,
+        sessionId: form.getValues('session')?.id,
     });
     const subjectList = getCourseSubjects(
-        form.getValues("course")?.id || "",
-        form.getValues("session")?.id || "",
-        form.getValues("level")?.id || "",
+        form.getValues('course')?.id || '',
+        form.getValues('session')?.id || '',
+        form.getValues('level')?.id || ''
     );
     const formattedSubjectList = subjectList.map((subject) => ({
         id: subject.id,
@@ -99,9 +101,9 @@ export const CreateStudyDocForm = () => {
 
     const fetchPackageSessionId = () => {
         return getPackageSessionId({
-            courseId: form.getValues("course")?.id || "",
-            sessionId: form.getValues("session")?.id || "",
-            levelId: form.getValues("level")?.id || "",
+            courseId: form.getValues('course')?.id || '',
+            sessionId: form.getValues('session')?.id || '',
+            levelId: form.getValues('level')?.id || '',
         });
     };
 
@@ -116,9 +118,9 @@ export const CreateStudyDocForm = () => {
     };
 
     const [formattedModuleList, setFormattedModuleList] = useState(
-        formatModule(modulesWithChaptersData),
+        formatModule(modulesWithChaptersData)
     );
-    const chaptersList = getChaptersByModuleId(form.getValues("module")?.id || "");
+    const chaptersList = getChaptersByModuleId(form.getValues('module')?.id || '');
 
     const formatChapter = (chaptersList: ChapterWithSlides[] | null) => {
         if (!chaptersList) return;
@@ -134,60 +136,60 @@ export const CreateStudyDocForm = () => {
         setPackageSessionId(fetchPackageSessionId());
         setFormattedModuleList(formatModule(modulesWithChaptersData));
         setFormattedChapterList(
-            formatChapter(getChaptersByModuleId(form.getValues("module")?.id || "")),
+            formatChapter(getChaptersByModuleId(form.getValues('module')?.id || ''))
         );
     }, [
-        form.watch("course"),
-        form.watch("session"),
-        form.watch("level"),
-        form.watch("subject"),
-        form.watch("module"),
+        form.watch('course'),
+        form.watch('session'),
+        form.watch('level'),
+        form.watch('subject'),
+        form.watch('module'),
         packageSessionId,
     ]);
 
     const { watch } = form;
-    const course = watch("course");
-    const session = watch("session");
-    const yearClass = watch("level");
-    const subject = watch("subject");
-    const module = watch("module");
-    const chapter = watch("chapter");
+    const course = watch('course');
+    const session = watch('session');
+    const yearClass = watch('level');
+    const subject = watch('subject');
+    const module = watch('module');
+    const chapter = watch('chapter');
 
     const formData = [
         {
-            fieldName: "course" as const,
-            label: "Course",
-            placeholder: "Select Course",
+            fieldName: 'course' as const,
+            label: 'Course',
+            placeholder: 'Select Course',
             list: courseList,
         },
         {
-            fieldName: "session" as const,
-            label: "Session",
-            placeholder: "Select Session",
+            fieldName: 'session' as const,
+            label: 'Session',
+            placeholder: 'Select Session',
             list: sessionList,
         },
         {
-            fieldName: "level" as const,
-            label: "Year/Class",
-            placeholder: "Select Year/Class",
+            fieldName: 'level' as const,
+            label: 'Year/Class',
+            placeholder: 'Select Year/Class',
             list: levelList,
         },
         {
-            fieldName: "subject" as const,
-            label: "Subject",
-            placeholder: "Select Subject",
+            fieldName: 'subject' as const,
+            label: 'Subject',
+            placeholder: 'Select Subject',
             list: formattedSubjectList,
         },
         {
-            fieldName: "module" as const,
-            label: "Module",
-            placeholder: "Select Module",
+            fieldName: 'module' as const,
+            label: 'Module',
+            placeholder: 'Select Module',
             list: formattedModuleList || [],
         },
         {
-            fieldName: "chapter" as const,
-            label: "Chapter",
-            placeholder: "Select Chapter",
+            fieldName: 'chapter' as const,
+            label: 'Chapter',
+            placeholder: 'Select Chapter',
             list: formattedChapterList || [],
         },
     ];
@@ -215,14 +217,15 @@ export const CreateStudyDocForm = () => {
 
     const onSubmit = (data: z.infer<typeof formSchema>) => {
         navigate({
-            to: "/study-library/courses/levels/subjects/modules/chapters/slides",
+            to: '/study-library/courses/levels/subjects/modules/chapters/slides',
             search: {
-                courseId: data.course?.id || "",
-                levelId: data.level?.id || "",
-                subjectId: data.subject?.id || "",
-                moduleId: data.module?.id || "",
-                chapterId: data.chapter?.id || "",
-                slideId: "",
+                courseId: data.course?.id || '',
+                levelId: data.level?.id || '',
+                subjectId: data.subject?.id || '',
+                moduleId: data.module?.id || '',
+                chapterId: data.chapter?.id || '',
+                slideId: '',
+                sessionId: sessionId || '',
             },
         });
         openDocUploadDialog();
@@ -233,8 +236,8 @@ export const CreateStudyDocForm = () => {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 {formData.map((obj, index) => (
                     <ModulesWithChaptersProvider
-                        subjectId={form.getValues("subject")?.id || ""}
-                        packageSessionId={packageSessionId || ""}
+                        // subjectId={form.getValues("subject")?.id || ""}
+                        // packageSessionId={packageSessionId || ""}
                         key={index}
                     >
                         <FormField

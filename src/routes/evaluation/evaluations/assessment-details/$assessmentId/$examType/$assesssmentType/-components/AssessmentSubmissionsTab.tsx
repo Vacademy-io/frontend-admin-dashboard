@@ -1,35 +1,35 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
-import { useEffect, useState } from "react";
-import { OnChangeFn, RowSelectionState } from "@tanstack/react-table";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
-import { Route } from "..";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
-import { getInstituteId } from "@/constants/helper";
-import { MyPagination } from "@/components/design-system/pagination";
-import { AssessmentDetailsSearchComponent } from "./SearchComponent";
-import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
-import { useFilterDataForAssesment } from "@/routes/assessment/assessment-list/-utils.ts/useFiltersData";
-import { ScheduleTestFilters } from "@/routes/assessment/assessment-list/-components/ScheduleTestFilters";
-import { MyFilterOption } from "@/types/assessments/my-filter";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import AssessmentSubmissionsFilterButtons from "./AssessmentSubmissionsFilterButtons";
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { StudentSidebarContext } from "@/routes/students/students-list/-context/selected-student-sidebar-context";
-import { ParticipantSidebar } from "@/routes/evaluation/evaluations/-components/ParticipantSidebar";
-import { StudentTable } from "@/types/student-table-types";
+import { useEffect, useState } from 'react';
+import { OnChangeFn, RowSelectionState } from '@tanstack/react-table';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Separator } from '@/components/ui/separator';
+import { Route } from '..';
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
+import { getInstituteId } from '@/constants/helper';
+import { MyPagination } from '@/components/design-system/pagination';
+import { AssessmentDetailsSearchComponent } from './SearchComponent';
+import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
+import { useFilterDataForAssesment } from '@/routes/assessment/assessment-list/-utils.ts/useFiltersData';
+import { ScheduleTestFilters } from '@/routes/assessment/assessment-list/-components/ScheduleTestFilters';
+import { MyFilterOption } from '@/types/assessments/my-filter';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import AssessmentSubmissionsFilterButtons from './AssessmentSubmissionsFilterButtons';
+import { SidebarProvider } from '@/components/ui/sidebar';
+import { StudentSidebarContext } from '@/routes/manage-students/students-list/-context/selected-student-sidebar-context';
+import { ParticipantSidebar } from '@/routes/evaluation/evaluations/-components/ParticipantSidebar';
+import { StudentTable } from '@/types/student-table-types';
 import {
     getAllColumnsForTable,
     getAllColumnsForTableWidth,
     getAssessmentSubmissionsFilteredDataStudentData,
-} from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-utils/helper";
+} from '@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-utils/helper';
 import {
     getAdminParticipants,
     handleGetAssessmentTotalMarksData,
-} from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-services/assessment-details-services";
-import { BulkActions } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-components/bulk-actions/bulk-actions";
-import { AssessmentSubmissionsStudentTable } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-components/AssessmentSubmissionsStudentTable";
+} from '@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-services/assessment-details-services';
+import { BulkActions } from '@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-components/bulk-actions/bulk-actions';
+import { AssessmentSubmissionsStudentTable } from '@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-components/AssessmentSubmissionsStudentTable';
 
 export interface SelectedSubmissionsFilterInterface {
     name: string;
@@ -47,22 +47,22 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
     const instituteId = getInstituteId();
     const { assessmentId, examType, assesssmentType } = Route.useParams();
     const { data: totalMarks } = useSuspenseQuery(
-        handleGetAssessmentTotalMarksData({ assessmentId }),
+        handleGetAssessmentTotalMarksData({ assessmentId })
     );
-    const [selectedParticipantsTab, setSelectedParticipantsTab] = useState("internal");
-    const [batchSelectionTab, setBatchSelectionTab] = useState("batch");
+    const [selectedParticipantsTab, setSelectedParticipantsTab] = useState('internal');
+    const [batchSelectionTab, setBatchSelectionTab] = useState('batch');
     const [page, setPage] = useState(0);
     const [selectedStudent, setSelectedStudent] = useState<StudentTable | null>(null);
     const [selectedFilter, setSelectedFilter] = useState<SelectedSubmissionsFilterInterface>({
-        name: "",
+        name: '',
         assessment_type: assesssmentType,
-        attempt_type: ["ENDED"],
-        registration_source: "BATCH_PREVIEW_REGISTRATION",
+        attempt_type: ['ENDED'],
+        registration_source: 'BATCH_PREVIEW_REGISTRATION',
         batches: [],
-        status: ["ACTIVE"],
+        status: ['ACTIVE'],
         sort_columns: {},
     });
-    const [searchText, setSearchText] = useState("");
+    const [searchText, setSearchText] = useState('');
     const [participantsData, setParticipantsData] = useState({
         content: [],
         total_pages: 0,
@@ -77,7 +77,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
     const currentPageSelection = rowSelections[page] || {};
     const totalSelectedCount = Object.values(rowSelections).reduce(
         (count, pageSelection) => count + Object.keys(pageSelection).length,
-        0,
+        0
     );
 
     const getParticipantsListData = useMutation({
@@ -106,7 +106,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
 
     const handleRowSelectionChange: OnChangeFn<RowSelectionState> = (updaterOrValue) => {
         const newSelection =
-            typeof updaterOrValue === "function"
+            typeof updaterOrValue === 'function'
                 ? updaterOrValue(rowSelections[page] || {})
                 : updaterOrValue;
 
@@ -150,7 +150,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
 
     const handleParticipantsTab = (value: string) => {
         setSelectedParticipantsTab(value);
-        if (value === "internal" && batchSelectionTab === "batch") {
+        if (value === 'internal' && batchSelectionTab === 'batch') {
             getParticipantsListData.mutate({
                 assessmentId,
                 instituteId,
@@ -158,13 +158,13 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                 pageSize: 10,
                 selectedFilter: {
                     ...selectedFilter,
-                    registration_source: "BATCH_PREVIEW_REGISTRATION",
+                    registration_source: 'BATCH_PREVIEW_REGISTRATION',
                     attempt_type: [],
                 },
             });
         }
 
-        if (value === "internal" && batchSelectionTab === "individual") {
+        if (value === 'internal' && batchSelectionTab === 'individual') {
             getParticipantsListData.mutate({
                 assessmentId,
                 instituteId,
@@ -172,13 +172,13 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                 pageSize: 10,
                 selectedFilter: {
                     ...selectedFilter,
-                    registration_source: "ADMIN_PRE_REGISTRATION",
+                    registration_source: 'ADMIN_PRE_REGISTRATION',
                     attempt_type: [],
                 },
             });
         }
 
-        if (value === "external") {
+        if (value === 'external') {
             getParticipantsListData.mutate({
                 assessmentId,
                 instituteId,
@@ -186,7 +186,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                 pageSize: 10,
                 selectedFilter: {
                     ...selectedFilter,
-                    registration_source: "OPEN_REGISTRATION",
+                    registration_source: 'OPEN_REGISTRATION',
                     attempt_type: [],
                 },
             });
@@ -195,7 +195,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
 
     const handleBatchSeletectionTab = (value: string) => {
         setBatchSelectionTab(value);
-        if (selectedParticipantsTab === "internal" && value === "batch") {
+        if (selectedParticipantsTab === 'internal' && value === 'batch') {
             getParticipantsListData.mutate({
                 assessmentId,
                 instituteId,
@@ -203,13 +203,13 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                 pageSize: 10,
                 selectedFilter: {
                     ...selectedFilter,
-                    registration_source: "BATCH_PREVIEW_REGISTRATION",
+                    registration_source: 'BATCH_PREVIEW_REGISTRATION',
                     attempt_type: [],
                 },
             });
         }
 
-        if (selectedParticipantsTab === "internal" && value === "individual") {
+        if (selectedParticipantsTab === 'internal' && value === 'individual') {
             getParticipantsListData.mutate({
                 assessmentId,
                 instituteId,
@@ -217,13 +217,13 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                 pageSize: 10,
                 selectedFilter: {
                     ...selectedFilter,
-                    registration_source: "ADMIN_PRE_REGISTRATION",
+                    registration_source: 'ADMIN_PRE_REGISTRATION',
                     attempt_type: [],
                 },
             });
         }
 
-        if (selectedParticipantsTab === "external") {
+        if (selectedParticipantsTab === 'external') {
             getParticipantsListData.mutate({
                 assessmentId,
                 instituteId,
@@ -231,7 +231,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                 pageSize: 10,
                 selectedFilter: {
                     ...selectedFilter,
-                    registration_source: "OPEN_REGISTRATION",
+                    registration_source: 'OPEN_REGISTRATION',
                     attempt_type: [],
                 },
             });
@@ -240,7 +240,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
 
     const handlePageChange = (newPage: number) => {
         setPage(newPage);
-        if (selectedParticipantsTab === "internal" && batchSelectionTab === "batch") {
+        if (selectedParticipantsTab === 'internal' && batchSelectionTab === 'batch') {
             getParticipantsListData.mutate({
                 assessmentId,
                 instituteId,
@@ -248,13 +248,13 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                 pageSize: 10,
                 selectedFilter: {
                     ...selectedFilter,
-                    registration_source: "BATCH_PREVIEW_REGISTRATION",
+                    registration_source: 'BATCH_PREVIEW_REGISTRATION',
                     attempt_type: [],
                 },
             });
         }
 
-        if (selectedParticipantsTab === "internal" && batchSelectionTab === "individual") {
+        if (selectedParticipantsTab === 'internal' && batchSelectionTab === 'individual') {
             getParticipantsListData.mutate({
                 assessmentId,
                 instituteId,
@@ -262,13 +262,13 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                 pageSize: 10,
                 selectedFilter: {
                     ...selectedFilter,
-                    registration_source: "ADMIN_PRE_REGISTRATION",
+                    registration_source: 'ADMIN_PRE_REGISTRATION',
                     attempt_type: [],
                 },
             });
         }
 
-        if (selectedParticipantsTab === "external") {
+        if (selectedParticipantsTab === 'external') {
             getParticipantsListData.mutate({
                 assessmentId,
                 instituteId,
@@ -276,7 +276,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                 pageSize: 10,
                 selectedFilter: {
                     ...selectedFilter,
-                    registration_source: "OPEN_REGISTRATION",
+                    registration_source: 'OPEN_REGISTRATION',
                     attempt_type: [],
                 },
             });
@@ -284,7 +284,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
     };
 
     const handleRefreshLeaderboard = () => {
-        if (selectedParticipantsTab === "internal" && batchSelectionTab === "batch") {
+        if (selectedParticipantsTab === 'internal' && batchSelectionTab === 'batch') {
             getParticipantsListData.mutate({
                 assessmentId,
                 instituteId,
@@ -292,13 +292,13 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                 pageSize: 10,
                 selectedFilter: {
                     ...selectedFilter,
-                    registration_source: "BATCH_PREVIEW_REGISTRATION",
+                    registration_source: 'BATCH_PREVIEW_REGISTRATION',
                     attempt_type: [],
                 },
             });
         }
 
-        if (selectedParticipantsTab === "internal" && batchSelectionTab === "individual") {
+        if (selectedParticipantsTab === 'internal' && batchSelectionTab === 'individual') {
             getParticipantsListData.mutate({
                 assessmentId,
                 instituteId,
@@ -306,13 +306,13 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                 pageSize: 10,
                 selectedFilter: {
                     ...selectedFilter,
-                    registration_source: "ADMIN_PRE_REGISTRATION",
+                    registration_source: 'ADMIN_PRE_REGISTRATION',
                     attempt_type: [],
                 },
             });
         }
 
-        if (selectedParticipantsTab === "external") {
+        if (selectedParticipantsTab === 'external') {
             getParticipantsListData.mutate({
                 assessmentId,
                 instituteId,
@@ -320,7 +320,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                 pageSize: 10,
                 selectedFilter: {
                     ...selectedFilter,
-                    registration_source: "OPEN_REGISTRATION",
+                    registration_source: 'OPEN_REGISTRATION',
                     attempt_type: [],
                 },
             });
@@ -328,9 +328,9 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
     };
 
     const clearSearch = () => {
-        setSearchText("");
-        selectedFilter["name"] = "";
-        if (selectedParticipantsTab === "internal" && batchSelectionTab === "batch") {
+        setSearchText('');
+        selectedFilter['name'] = '';
+        if (selectedParticipantsTab === 'internal' && batchSelectionTab === 'batch') {
             getParticipantsListData.mutate({
                 assessmentId,
                 instituteId,
@@ -338,13 +338,13 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                 pageSize: 10,
                 selectedFilter: {
                     ...selectedFilter,
-                    registration_source: "BATCH_PREVIEW_REGISTRATION",
+                    registration_source: 'BATCH_PREVIEW_REGISTRATION',
                     attempt_type: [],
                 },
             });
         }
 
-        if (selectedParticipantsTab === "internal" && batchSelectionTab === "individual") {
+        if (selectedParticipantsTab === 'internal' && batchSelectionTab === 'individual') {
             getParticipantsListData.mutate({
                 assessmentId,
                 instituteId,
@@ -352,13 +352,13 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                 pageSize: 10,
                 selectedFilter: {
                     ...selectedFilter,
-                    registration_source: "ADMIN_PRE_REGISTRATION",
+                    registration_source: 'ADMIN_PRE_REGISTRATION',
                     attempt_type: [],
                 },
             });
         }
 
-        if (selectedParticipantsTab === "external") {
+        if (selectedParticipantsTab === 'external') {
             getParticipantsListData.mutate({
                 assessmentId,
                 instituteId,
@@ -366,7 +366,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                 pageSize: 10,
                 selectedFilter: {
                     ...selectedFilter,
-                    registration_source: "OPEN_REGISTRATION",
+                    registration_source: 'OPEN_REGISTRATION',
                     attempt_type: [],
                 },
             });
@@ -375,7 +375,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
 
     const handleSearch = (searchValue: string) => {
         setSearchText(searchValue);
-        if (selectedParticipantsTab === "internal" && batchSelectionTab === "batch") {
+        if (selectedParticipantsTab === 'internal' && batchSelectionTab === 'batch') {
             getParticipantsListData.mutate({
                 assessmentId,
                 instituteId,
@@ -384,13 +384,13 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                 selectedFilter: {
                     ...selectedFilter,
                     name: searchValue,
-                    registration_source: "BATCH_PREVIEW_REGISTRATION",
-                    attempt_type: ["ENDED"],
+                    registration_source: 'BATCH_PREVIEW_REGISTRATION',
+                    attempt_type: ['ENDED'],
                 },
             });
         }
 
-        if (selectedParticipantsTab === "internal" && batchSelectionTab === "individual") {
+        if (selectedParticipantsTab === 'internal' && batchSelectionTab === 'individual') {
             getParticipantsListData.mutate({
                 assessmentId,
                 instituteId,
@@ -399,13 +399,13 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                 selectedFilter: {
                     ...selectedFilter,
                     name: searchValue,
-                    registration_source: "ADMIN_PRE_REGISTRATION",
+                    registration_source: 'ADMIN_PRE_REGISTRATION',
                     attempt_type: [],
                 },
             });
         }
 
-        if (selectedParticipantsTab === "external") {
+        if (selectedParticipantsTab === 'external') {
             getParticipantsListData.mutate({
                 assessmentId,
                 instituteId,
@@ -414,7 +414,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                 selectedFilter: {
                     ...selectedFilter,
                     name: searchValue,
-                    registration_source: "OPEN_REGISTRATION",
+                    registration_source: 'OPEN_REGISTRATION',
                     attempt_type: [],
                 },
             });
@@ -431,11 +431,11 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
     const handleResetFilters = () => {
         setSelectedFilter((prevFilter) => ({
             ...prevFilter,
-            name: "",
+            name: '',
             batches: [],
         }));
-        setSearchText("");
-        if (selectedParticipantsTab === "internal" && batchSelectionTab === "batch") {
+        setSearchText('');
+        if (selectedParticipantsTab === 'internal' && batchSelectionTab === 'batch') {
             getParticipantsListData.mutate({
                 assessmentId,
                 instituteId,
@@ -443,15 +443,15 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                 pageSize: 10,
                 selectedFilter: {
                     ...selectedFilter,
-                    name: "",
+                    name: '',
                     batches: [],
-                    registration_source: "BATCH_PREVIEW_REGISTRATION",
+                    registration_source: 'BATCH_PREVIEW_REGISTRATION',
                     attempt_type: [],
                 },
             });
         }
 
-        if (selectedParticipantsTab === "internal" && batchSelectionTab === "individual") {
+        if (selectedParticipantsTab === 'internal' && batchSelectionTab === 'individual') {
             getParticipantsListData.mutate({
                 assessmentId,
                 instituteId,
@@ -459,15 +459,15 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                 pageSize: 10,
                 selectedFilter: {
                     ...selectedFilter,
-                    name: "",
+                    name: '',
                     batches: [],
-                    registration_source: "ADMIN_PRE_REGISTRATION",
+                    registration_source: 'ADMIN_PRE_REGISTRATION',
                     attempt_type: [],
                 },
             });
         }
 
-        if (selectedParticipantsTab === "external") {
+        if (selectedParticipantsTab === 'external') {
             getParticipantsListData.mutate({
                 assessmentId,
                 instituteId,
@@ -475,9 +475,9 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                 pageSize: 10,
                 selectedFilter: {
                     ...selectedFilter,
-                    name: "",
+                    name: '',
                     batches: [],
-                    registration_source: "OPEN_REGISTRATION",
+                    registration_source: 'OPEN_REGISTRATION',
                     attempt_type: [],
                 },
             });
@@ -494,11 +494,11 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                         getAdminParticipants(assessmentId, instituteId, page, 10, selectedFilter),
                         getAdminParticipants(assessmentId, instituteId, page, 10, {
                             ...selectedFilter,
-                            attempt_type: ["LIVE"],
+                            attempt_type: ['LIVE'],
                         }),
                         getAdminParticipants(assessmentId, instituteId, page, 10, {
                             ...selectedFilter,
-                            attempt_type: ["Pending"],
+                            attempt_type: ['Pending'],
                         }),
                     ]);
 
@@ -539,16 +539,16 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                             <TabsTrigger
                                 value="internal"
                                 className={`flex gap-1.5 rounded-l-lg rounded-r-none p-2 px-4 ${
-                                    selectedParticipantsTab === "internal"
-                                        ? "!bg-primary-100"
-                                        : "bg-transparent"
+                                    selectedParticipantsTab === 'internal'
+                                        ? '!bg-primary-100'
+                                        : 'bg-transparent'
                                 }`}
                             >
                                 <span
                                     className={`${
-                                        selectedParticipantsTab === "internal"
-                                            ? "text-teal-800 dark:text-teal-400"
-                                            : ""
+                                        selectedParticipantsTab === 'internal'
+                                            ? 'text-teal-800 dark:text-teal-400'
+                                            : ''
                                     }`}
                                 >
                                     Internal Participants
@@ -558,16 +558,16 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                             <TabsTrigger
                                 value="external"
                                 className={`flex gap-1.5 rounded-l-none rounded-r-lg p-2 px-4 ${
-                                    selectedParticipantsTab === "external"
-                                        ? "!bg-primary-100"
-                                        : "bg-transparent"
+                                    selectedParticipantsTab === 'external'
+                                        ? '!bg-primary-100'
+                                        : 'bg-transparent'
                                 }`}
                             >
                                 <span
                                     className={`${
-                                        selectedParticipantsTab === "external"
-                                            ? "text-teal-800 dark:text-teal-400"
-                                            : ""
+                                        selectedParticipantsTab === 'external'
+                                            ? 'text-teal-800 dark:text-teal-400'
+                                            : ''
                                     }`}
                                 >
                                     External Participants
@@ -585,8 +585,8 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                         <ScheduleTestFilters
                             label="Batches"
                             data={BatchesFilterData}
-                            selectedItems={selectedFilter["batches"] || []}
-                            onSelectionChange={(items) => handleFilterChange("batches", items)}
+                            selectedItems={selectedFilter['batches'] || []}
+                            onSelectionChange={(items) => handleFilterChange('batches', items)}
                         />
                         <AssessmentSubmissionsFilterButtons
                             selectedQuestionPaperFilters={selectedFilter}
@@ -595,7 +595,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                         />
                     </div>
                 </div>
-                {selectedParticipantsTab === "internal" && (
+                {selectedParticipantsTab === 'internal' && (
                     <div className="flex items-center justify-between">
                         <Tabs
                             value={batchSelectionTab}
@@ -606,14 +606,14 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                                 <TabsTrigger
                                     value="batch"
                                     className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
-                                        batchSelectionTab === "batch"
-                                            ? "rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50"
-                                            : "border-none bg-transparent"
+                                        batchSelectionTab === 'batch'
+                                            ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                            : 'border-none bg-transparent'
                                     }`}
                                 >
                                     <span
                                         className={`${
-                                            batchSelectionTab === "batch" ? "text-primary-500" : ""
+                                            batchSelectionTab === 'batch' ? 'text-primary-500' : ''
                                         }`}
                                     >
                                         Batch Selection
@@ -622,16 +622,16 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                                 <TabsTrigger
                                     value="individual"
                                     className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
-                                        batchSelectionTab === "individual"
-                                            ? "rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50"
-                                            : "border-none bg-transparent"
+                                        batchSelectionTab === 'individual'
+                                            ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                            : 'border-none bg-transparent'
                                     }`}
                                 >
                                     <span
                                         className={`${
-                                            batchSelectionTab === "individual"
-                                                ? "text-primary-500"
-                                                : ""
+                                            batchSelectionTab === 'individual'
+                                                ? 'text-primary-500'
+                                                : ''
                                         }`}
                                     >
                                         Individual Selection
@@ -642,17 +642,17 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                     </div>
                 )}
                 <div className="flex max-h-[72vh] flex-col gap-6 overflow-y-auto p-4">
-                    <SidebarProvider style={{ ["--sidebar-width" as string]: "565px" }}>
+                    <SidebarProvider style={{ ['--sidebar-width' as string]: '565px' }}>
                         <AssessmentSubmissionsStudentTable
                             data={{
                                 // @ts-expect-error : //TODO: Fix this type error
                                 content: getAssessmentSubmissionsFilteredDataStudentData(
                                     participantsData.content,
                                     type,
-                                    "Attempted",
+                                    'Attempted',
                                     // @ts-expect-error : //TODO: Fix this type error
                                     initData?.batches_for_sessions,
-                                    totalMarks.total_achievable_marks,
+                                    totalMarks.total_achievable_marks
                                 ),
                                 total_pages: participantsData.total_pages,
                                 page_no: page,
@@ -663,19 +663,21 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                             // @ts-expect-error : //TODO: Fix this type error
                             columns={
                                 getAssessmentColumn[
-                                    "Attempted" as keyof typeof getAssessmentColumn
+                                    'Attempted' as keyof typeof getAssessmentColumn
                                 ] || []
                             }
                             columnWidths={
                                 getAssessmentColumnWidth[
-                                    "Attempted" as keyof typeof getAssessmentColumnWidth
+                                    'Attempted' as keyof typeof getAssessmentColumnWidth
                                 ] || []
                             }
                             rowSelection={currentPageSelection}
                             onRowSelectionChange={handleRowSelectionChange}
                             currentPage={page}
                         />
-                        <ParticipantSidebar assessmentId={assessmentId} examType={examType} />
+                        {selectedStudent && (
+                            <ParticipantSidebar assessmentId={assessmentId} examType={examType} />
+                        )}
                     </SidebarProvider>
 
                     <div className="flex justify-between">
@@ -685,7 +687,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                             // @ts-expect-error : //TODO: Fix this type error
                             selectedStudents={getSelectedStudents()}
                             onReset={handleResetSelections}
-                            selectedTab={"Attempted"}
+                            selectedTab={'Attempted'}
                         />
                         <MyPagination
                             currentPage={page}

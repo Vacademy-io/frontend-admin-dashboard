@@ -1,12 +1,12 @@
 // components/change-batch-dialog.tsx
-import { MyDialog } from "../../dialog";
-import { ReactNode } from "react";
-import { useDialogStore } from "../../../../routes/students/students-list/-hooks/useDialogStore";
-import { useUpdateBatchMutation } from "@/routes/students/students-list/-services/useStudentOperations";
-import { useBulkUpdateBatchMutation } from "@/routes/students/students-list/-services/useBulkOperations";
-import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-import { StudyMaterialDetailsForm } from "@/routes/study-library/courses/-components/upload-study-material/study-material-details-form";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
+import { MyDialog } from '../../dialog';
+import { ReactNode } from 'react';
+import { useDialogStore } from '../../../../routes/manage-students/students-list/-hooks/useDialogStore';
+import { useUpdateBatchMutation } from '@/routes/manage-students/students-list/-services/useStudentOperations';
+import { useBulkUpdateBatchMutation } from '@/routes/manage-students/students-list/-services/useBulkOperations';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { StudyMaterialDetailsForm } from '@/routes/study-library/courses/-components/upload-study-material/study-material-details-form';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
 
 interface ChangeBatchDialogProps {
     trigger: ReactNode;
@@ -32,9 +32,9 @@ const ChangeBatchDialogContent = () => {
             | undefined;
     }) => {
         const packageSessionId = getPackageSessionId({
-            courseId: data["course"]?.id || "",
-            sessionId: data["session"]?.id || "",
-            levelId: data["level"]?.id || "",
+            courseId: data['course']?.id || '',
+            sessionId: data['session']?.id || '',
+            levelId: data['level']?.id || '',
         });
 
         if (isBulkAction && bulkActionInfo?.selectedStudents) {
@@ -42,13 +42,13 @@ const ChangeBatchDialogContent = () => {
                 {
                     students: bulkActionInfo.selectedStudents.map((student) => ({
                         userId: student.user_id,
-                        currentPackageSessionId: student.package_session_id || "",
+                        currentPackageSessionId: student.package_session_id || '',
                     })),
-                    newPackageSessionId: packageSessionId || "",
+                    newPackageSessionId: packageSessionId || '',
                 },
                 {
                     onSuccess: closeAllDialogs,
-                },
+                }
             );
         } else if (selectedStudent) {
             updateSingleBatch(
@@ -56,14 +56,14 @@ const ChangeBatchDialogContent = () => {
                     students: [
                         {
                             userId: selectedStudent.user_id,
-                            currentPackageSessionId: selectedStudent.package_session_id || "",
+                            currentPackageSessionId: selectedStudent.package_session_id || '',
                         },
                     ],
-                    newPackageSessionId: packageSessionId || "",
+                    newPackageSessionId: packageSessionId || '',
                 },
                 {
                     onSuccess: closeAllDialogs,
-                },
+                }
             );
         }
     };
@@ -77,7 +77,7 @@ const ChangeBatchDialogContent = () => {
                 the following
             </p>
             <StudyMaterialDetailsForm
-                fields={["course", "session", "level"]}
+                fields={['course', 'session', 'level']}
                 onFormSubmit={submitChangeBatch}
                 submitButtonName="Change Batch"
             />

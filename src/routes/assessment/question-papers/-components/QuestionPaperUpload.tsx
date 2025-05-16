@@ -1,41 +1,42 @@
-import { Dispatch, SetStateAction, useRef, useState } from "react";
-import { uploadQuestionPaperFormSchema } from "../-utils/upload-question-paper-form-schema";
-import { z } from "zod";
-import { FormProvider, useForm, UseFormReturn } from "react-hook-form";
-import SelectField from "@/components/design-system/select-field";
-import { UploadFileBg } from "@/svgs";
-import { FileUploadComponent } from "@/components/design-system/file-upload";
-import { File, X } from "phosphor-react";
-import { Progress } from "@/components/ui/progress";
-import { Button } from "@/components/ui/button";
-import { QuestionPaperTemplate } from "./QuestionPaperTemplate";
-import CustomInput from "@/components/design-system/custom-input";
-import { useMutation } from "@tanstack/react-query";
-import { uploadDocsFile } from "../-services/question-paper-services";
-import { toast } from "sonner";
-import { addQuestionPaper, getQuestionPaperById } from "../-utils/question-paper-services";
+import { Dispatch, SetStateAction, useRef, useState } from 'react';
+import { uploadQuestionPaperFormSchema } from '../-utils/upload-question-paper-form-schema';
+import { z } from 'zod';
+import { FormProvider, useForm, UseFormReturn } from 'react-hook-form';
+import SelectField from '@/components/design-system/select-field';
+import { UploadFileBg } from '@/svgs';
+import { FileUploadComponent } from '@/components/design-system/file-upload';
+import { File, X } from 'phosphor-react';
+import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
+import { QuestionPaperTemplate } from './QuestionPaperTemplate';
+import CustomInput from '@/components/design-system/custom-input';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { uploadDocsFile } from '../-services/question-paper-services';
+import { toast } from 'sonner';
+import { addQuestionPaper, getQuestionPaperById } from '../-utils/question-paper-services';
 import {
     MyQuestion,
     MyQuestionPaperFormInterface,
-} from "../../../../types/assessments/question-paper-form";
+} from '../../../../types/assessments/question-paper-form';
 import {
     getIdByLevelName,
     getIdBySubjectName,
     transformResponseDataToMyQuestionsSchema,
-} from "../-utils/helper";
-import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
+} from '../-utils/helper';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import {
     ANSWER_LABELS,
     EXPLANATION_LABELS,
     OPTIONS_LABELS,
     QUESTION_LABELS,
-} from "@/constants/dummy-data";
-import { useFilterDataForAssesment } from "../../assessment-list/-utils.ts/useFiltersData";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import useDialogStore from "../-global-states/question-paper-dialogue-close";
-import sectionDetailsSchema from "../../create-assessment/$assessmentId/$examtype/-utils/section-details-schema";
-import { zodResolver } from "@hookform/resolvers/zod";
-import ConvertToHTML from "../-images/convertToHTML.png";
+} from '@/constants/dummy-data';
+import { useFilterDataForAssesment } from '../../assessment-list/-utils.ts/useFiltersData';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import useDialogStore from '../-global-states/question-paper-dialogue-close';
+import sectionDetailsSchema from '../../create-assessment/$assessmentId/$examtype/-utils/section-details-schema';
+import { zodResolver } from '@hookform/resolvers/zod';
+import ConvertToHTML from '../-images/convertToHTML.png';
+import { AssignmentFormType } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-form-schemas/assignmentFormSchema';
 
 export type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 export type UploadQuestionPaperFormType = z.infer<typeof uploadQuestionPaperFormSchema>;
@@ -43,6 +44,8 @@ interface QuestionPaperUploadProps {
     isManualCreated: boolean;
     index?: number;
     sectionsForm?: UseFormReturn<SectionFormType>;
+    studyLibraryAssignmentForm?: UseFormReturn<AssignmentFormType>;
+    isStudyLibraryAssignment?: boolean;
     currentQuestionIndex: number;
     setCurrentQuestionIndex: Dispatch<SetStateAction<number>>;
 }
@@ -51,9 +54,12 @@ export const QuestionPaperUpload = ({
     isManualCreated,
     index,
     sectionsForm,
+    studyLibraryAssignmentForm,
+    isStudyLibraryAssignment,
     currentQuestionIndex,
     setCurrentQuestionIndex,
 }: QuestionPaperUploadProps) => {
+    const queryClient = useQueryClient();
     const { instituteDetails } = useInstituteDetailsStore();
 
     const { YearClassFilterData, SubjectFilterData } = useFilterDataForAssesment(instituteDetails);
@@ -61,35 +67,35 @@ export const QuestionPaperUpload = ({
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const form = useForm<UploadQuestionPaperFormType>({
         resolver: zodResolver(uploadQuestionPaperFormSchema),
-        mode: "onChange",
+        mode: 'onChange',
         defaultValues: {
-            questionPaperId: "1",
+            questionPaperId: '1',
             isFavourite: false,
-            title: "",
+            title: '',
             createdOn: new Date(),
-            yearClass: "",
-            subject: "",
-            questionsType: "",
-            optionsType: "",
-            answersType: "",
-            explanationsType: "",
+            yearClass: '',
+            subject: '',
+            questionsType: '',
+            optionsType: '',
+            answersType: '',
+            explanationsType: '',
             fileUpload: undefined,
             questions: [],
         },
     });
     const { getValues, setValue, watch } = form;
 
-    const questionPaperId = getValues("questionPaperId");
-    const title = getValues("title");
-    const yearClass = getValues("yearClass");
-    const subject = getValues("subject");
-    const questionIdentifier = getValues("questionsType");
-    const optionIdentifier = getValues("optionsType");
-    const answerIdentifier = getValues("answersType");
-    const explanationIdentifier = getValues("explanationsType");
-    const fileUpload = getValues("fileUpload");
-    const questions = getValues("questions");
-    watch("fileUpload");
+    const questionPaperId = getValues('questionPaperId');
+    const title = getValues('title');
+    const yearClass = getValues('yearClass');
+    const subject = getValues('subject');
+    const questionIdentifier = getValues('questionsType');
+    const optionIdentifier = getValues('optionsType');
+    const answerIdentifier = getValues('answersType');
+    const explanationIdentifier = getValues('explanationsType');
+    const fileUpload = getValues('fileUpload');
+    const questions = getValues('questions');
+    watch('fileUpload');
 
     const isFormValidWhenManuallyCreated = !!title && !!yearClass && !!subject;
     const isFormValidWhenUploaded = !!title && !!yearClass && !!subject && !!fileUpload;
@@ -114,13 +120,27 @@ export const QuestionPaperUpload = ({
         onSuccess: async (data) => {
             const getQuestionPaper = await getQuestionPaperById(data.saved_question_paper_id);
             const transformQuestionsData: MyQuestion[] = transformResponseDataToMyQuestionsSchema(
-                getQuestionPaper.question_dtolist,
+                getQuestionPaper.question_dtolist
             );
             setCurrentQuestionIndex(0);
-            toast.success("Question Paper added successfully", {
-                className: "success-toast",
+            toast.success('Question Paper added successfully', {
+                className: 'success-toast',
                 duration: 2000,
             });
+            if (isStudyLibraryAssignment) {
+                studyLibraryAssignmentForm?.setValue(
+                    'uploaded_question_paper',
+                    data.saved_question_paper_id
+                );
+                studyLibraryAssignmentForm?.setValue(
+                    `adaptive_marking_for_each_question`,
+                    transformQuestionsData.map((question) => ({
+                        questionId: question.questionId,
+                        questionName: question.questionName,
+                        questionType: question.questionType,
+                    }))
+                );
+            }
             if (index !== undefined) {
                 // Check if index is defined
 
@@ -132,9 +152,9 @@ export const QuestionPaperUpload = ({
                         questionType: question.questionType,
                         questionMark: question.questionMark,
                         questionPenalty: question.questionPenalty,
-                        ...(question.questionType === "MCQM" && {
+                        ...(question.questionType === 'MCQM' && {
                             correctOptionIdsCnt: question?.multipleChoiceOptions?.filter(
-                                (item) => item.isSelected,
+                                (item) => item.isSelected
                             ).length,
                         }),
                         questionDuration: {
@@ -142,13 +162,14 @@ export const QuestionPaperUpload = ({
                             min: question.questionDuration.min,
                         },
                         parentRichText: question.parentRichTextContent,
-                    })),
+                    }))
                 );
                 sectionsForm?.trigger(`section.${index}.adaptive_marking_for_each_question`);
             }
             setIsMainQuestionPaperAddDialogOpen(false);
             setIsManualQuestionPaperDialogOpen(false);
             setIsUploadFromDeviceDialogOpen(false);
+            queryClient.invalidateQueries({ queryKey: ['GET_QUESTION_PAPER_FILTERED_DATA'] });
         },
         onError: (error: unknown) => {
             toast.error(error as string);
@@ -156,8 +177,6 @@ export const QuestionPaperUpload = ({
     });
 
     function onSubmit(values: z.infer<typeof uploadQuestionPaperFormSchema>) {
-        console.log("get questions ", getValues("questions"));
-        console.log("values ", values);
         const getIdYearClass = getIdByLevelName(instituteDetails?.levels || [], values.yearClass);
         const getIdSubject = getIdBySubjectName(instituteDetails?.subjects || [], values.subject);
 
@@ -165,8 +184,8 @@ export const QuestionPaperUpload = ({
             sectionsForm?.setValue(`section.${index}`, {
                 ...sectionsForm?.getValues(`section.${index}`), // Keep other section data intact
                 questionPaperTitle: values.title,
-                subject: values.subject || "",
-                yearClass: values.yearClass || "",
+                subject: values.subject || '',
+                yearClass: values.yearClass || '',
                 sectionName: values.subject,
             });
         }
@@ -182,8 +201,8 @@ export const QuestionPaperUpload = ({
 
     const onInvalid = (err: unknown) => {
         console.error(err);
-        toast.error("some of your questions are incomplete or needs attentions!", {
-            className: "error-toast",
+        toast.error('some of your questions are incomplete or needs attentions!', {
+            className: 'error-toast',
             duration: 3000,
         });
     };
@@ -210,7 +229,7 @@ export const QuestionPaperUpload = ({
                 answerIdentifier,
                 explanationIdentifier,
                 file,
-                setUploadProgress,
+                setUploadProgress
             ),
         onMutate: () => {
             setIsProgress(true);
@@ -220,8 +239,8 @@ export const QuestionPaperUpload = ({
         },
         onSuccess: async (data) => {
             const transformQuestionsData = transformResponseDataToMyQuestionsSchema(data);
-            setValue("questions", transformQuestionsData);
-            console.log("question ", getValues("questions"));
+            setValue('questions', transformQuestionsData);
+            console.log('question ', getValues('questions'));
             if (index !== undefined) {
                 sectionsForm?.setValue(`section.${index}`, {
                     ...sectionsForm?.getValues(`section.${index}`), // Keep other section data intact
@@ -243,7 +262,7 @@ export const QuestionPaperUpload = ({
                     })),
                 });
             }
-            form.trigger("questions");
+            form.trigger('questions');
         },
         onError: (error: unknown) => {
             toast.error(error as string);
@@ -251,7 +270,7 @@ export const QuestionPaperUpload = ({
     });
 
     const handleFileSubmit = (file: File) => {
-        setValue("fileUpload", file);
+        setValue('fileUpload', file);
         addDocsFileMutation.mutate({
             questionIdentifier,
             optionIdentifier,
@@ -269,12 +288,13 @@ export const QuestionPaperUpload = ({
     };
 
     const handleRemoveQuestionPaper = () => {
-        setValue("fileUpload", null as unknown as File);
-        setValue("questions", []);
+        setValue('fileUpload', null as unknown as File);
+        setValue('questions', []);
         if (fileInputRef.current) {
-            fileInputRef.current.value = ""; // Reset the file input to clear the selection
+            fileInputRef.current.value = ''; // Reset the file input to clear the selection
         }
     };
+
     return (
         <>
             <FormProvider {...form}>
@@ -348,7 +368,7 @@ export const QuestionPaperUpload = ({
                                         </div>
                                         <h1 className="-mt-4 text-xs text-red-500">
                                             If you are having a problem while uploading docx file
-                                            then please convert your file in html{" "}
+                                            then please convert your file in html{' '}
                                             <a
                                                 href="https://wordtohtml.net/convert/docx-to-html"
                                                 target="_blank"
@@ -356,7 +376,7 @@ export const QuestionPaperUpload = ({
                                                 rel="noreferrer"
                                             >
                                                 here
-                                            </a>{" "}
+                                            </a>{' '}
                                             and try to re-upload.
                                         </h1>
                                     </div>
@@ -372,7 +392,7 @@ export const QuestionPaperUpload = ({
                                         </h1>
                                         <img src={ConvertToHTML} alt="logo" />
                                     </div>
-                                    {getValues("fileUpload") && (
+                                    {getValues('fileUpload') && (
                                         <div className="flex w-full items-center gap-2 rounded-md bg-neutral-100 p-2">
                                             <div className="rounded-md bg-primary-100 p-2">
                                                 <File
@@ -385,7 +405,7 @@ export const QuestionPaperUpload = ({
                                             <div className="flex w-full flex-col">
                                                 <div className="flex items-start justify-between gap-2">
                                                     <p className="break-all text-sm font-bold">
-                                                        {getValues("fileUpload")?.name}
+                                                        {getValues('fileUpload')?.name}
                                                     </p>
                                                     <X
                                                         size={16}
@@ -396,14 +416,14 @@ export const QuestionPaperUpload = ({
 
                                                 <p className="my-1 whitespace-normal text-xs">
                                                     {(
-                                                        (((getValues("fileUpload")?.size || 0) /
+                                                        (((getValues('fileUpload')?.size || 0) /
                                                             (1024 * 1024)) *
                                                             uploadProgress) /
                                                         100
-                                                    ).toFixed(2)}{" "}
-                                                    MB /{" "}
+                                                    ).toFixed(2)}{' '}
+                                                    MB /{' '}
                                                     {(
-                                                        (getValues("fileUpload")?.size || 0) /
+                                                        (getValues('fileUpload')?.size || 0) /
                                                         (1024 * 1024)
                                                     ).toFixed(2)}
                                                     &nbsp;MB
@@ -524,7 +544,7 @@ export const QuestionPaperUpload = ({
                                         }
                                         type="submit"
                                         className={`w-56 bg-primary-500 text-white ${
-                                            questions.length > 0 ? "block" : "hidden"
+                                            questions.length > 0 ? 'block' : 'hidden'
                                         }`}
                                     >
                                         Done

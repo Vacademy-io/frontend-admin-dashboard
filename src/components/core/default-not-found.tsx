@@ -15,28 +15,21 @@ function RootNotFoundComponent() {
                 />
             </Helmet>
 
-            <div className="flex h-screen w-screen items-center justify-center">
-                <div className="text-center">
-                    <h1 className="text-9xl font-black">404</h1>
-                    <p className="text-2xl font-bold tracking-tight sm:text-4xl">
-                        Oops! Page Not Found
-                    </p>
-                    <p className="mt-4 text-gray-500">
-                        We couldn&apos;t find the page you were trying to access.
+            <div className="flex w-full select-none items-center justify-center px-4 text-gray-700 dark:text-gray-800">
+                <div className="relative flex w-full flex-col items-center justify-center text-center">
+                    <h1 className="absolute top-10 font-mono text-9xl font-light">404</h1>
+                    <img src="/caveman.gif" alt="" />
+                    <p className="absolute bottom-10 mt-8 font-mono text-[40px]">
+                        Look like you&apos;re lost
                         <br />
-                        This might be due to a typing error, a temporary issue, or the page may have
-                        been removed.
+                        <span className="text-xl">the page you are looking for not available!</span>
                     </p>
-                    <div className="text-base-white mt-8 flex justify-center gap-5">
-                        <Button asChild variant={"default"} className="h-10 min-w-32">
+                    <div className="mt-8 flex justify-center gap-5">
+                        <Button asChild variant={"outline"} className="h-10 min-w-32">
                             <Link to="/dashboard">Return Home</Link>
                         </Button>
-                        <Button
-                            variant={"default"}
-                            className="h-10 min-w-32"
-                            onClick={() => router.history.back()}
-                        >
-                            Go Back
+                        <Button asChild variant={"outline"} className="h-10 min-w-32">
+                            <button onClick={() => router.history.back()}>Go Back</button>
                         </Button>
                     </div>
                 </div>

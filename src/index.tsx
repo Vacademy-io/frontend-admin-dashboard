@@ -6,11 +6,12 @@ import RootErrorComponent from "./components/core/deafult-error";
 import RootNotFoundComponent from "./components/core/default-not-found";
 import RootPendingComponent from "./components/core/default-pending";
 import "./index.css";
-import { ThemeProvider } from "./providers/theme-provider";
+// import { ThemeProvider } from "./providers/theme-provider";
 import { SidebarProvider } from "./components/ui/sidebar";
 import { routeTree } from "./routeTree.gen";
 import "./i18n";
 import { Toaster } from "./components/ui/sonner";
+import { ThemeProvider } from "./providers/theme/theme-provider";
 
 const queryClient = new QueryClient();
 
@@ -38,7 +39,9 @@ if (!rootElement.innerHTML) {
     const root = ReactDOM.createRoot(rootElement);
     root.render(
         <StrictMode>
-            <ThemeProvider defaultTheme="light" storageKey="ui-theme">
+            {/* <ThemeProvider defaultTheme="light" storageKey="ui-theme"> */}
+            <ThemeProvider>
+
                 <QueryClientProvider client={queryClient}>
                     <SidebarProvider>
                         <RouterProvider router={router} />
@@ -46,6 +49,7 @@ if (!rootElement.innerHTML) {
                     </SidebarProvider>
                 </QueryClientProvider>
             </ThemeProvider>
+            {/* </ThemeProvider> */}
         </StrictMode>,
     );
 }

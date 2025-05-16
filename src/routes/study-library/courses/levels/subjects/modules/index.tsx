@@ -6,13 +6,17 @@ import { ModuleMaterial } from "@/routes/study-library/courses/levels/subjects/m
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { CaretLeft } from "phosphor-react";
 import { getSubjectName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getSubjectNameById";
-import { useEffect } from "react";
-import { useQueryClient } from "@tanstack/react-query"; // Import useQueryClient
+import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { SubjectType } from "@/stores/study-library/use-study-library-store";
+import { getSubjectsByLevelAndSession } from "@/utils/courseUtils";
+import { useStudyLibraryStore } from "@/stores/study-library/use-study-library-store";
 
 interface SubjectSearchParams {
     courseId: string;
     levelId: string;
     subjectId: string;
+    sessionId: string;
 }
 
 export const Route = createFileRoute("/study-library/courses/levels/subjects/modules/")({
@@ -22,6 +26,7 @@ export const Route = createFileRoute("/study-library/courses/levels/subjects/mod
             courseId: search.courseId as string,
             levelId: search.levelId as string,
             subjectId: search.subjectId as string,
+            sessionId: search.sessionId as string,
         };
     },
 });
@@ -32,7 +37,7 @@ function RouteComponent() {
 
     const { setNavHeading } = useNavHeadingStore();
     const navigate = useNavigate();
-    const { courseId, levelId, subjectId } = Route.useSearch();
+    const { courseId, levelId, subjectId, sessionId } = Route.useSearch();
     const subjectName = getSubjectName(subjectId);
 
     // Function to invalidate the modules with chapters query
@@ -59,15 +64,30 @@ function RouteComponent() {
     // Ensure dependencies are complete
     useEffect(() => {
         setNavHeading(heading);
-
-        // You can call this function here if you want to invalidate on component mount
         invalidateModulesQuery();
     }, []);
 
+    const [subjects, setSubjects] = useState<SubjectType[]>([]);
+
+    const { studyLibraryData } = useStudyLibraryStore();
+    useEffect(() => {
+        const subjects = getSubjectsByLevelAndSession(studyLibraryData, levelId, sessionId);
+        setSubjects(subjects);
+    }, [levelId, sessionId]);
+
     return (
-        <LayoutContainer>
+        <LayoutContainer
+            internalSideBar
+            sideBarList={subjects.map((subject)=>{
+                return{
+                    value: subject.subject_name,
+                    id: subject.id
+                }
+            })}
+            sideBarData={{title: "Subjects", listIconText: "S", searchParam: "subjectId"}}
+        >
             <InitStudyLibraryProvider>
-                <ModulesWithChaptersProvider subjectId={searchParams.subjectId}>
+                <ModulesWithChaptersProvider>
                     <ModuleMaterial />
                 </ModulesWithChaptersProvider>
             </InitStudyLibraryProvider>

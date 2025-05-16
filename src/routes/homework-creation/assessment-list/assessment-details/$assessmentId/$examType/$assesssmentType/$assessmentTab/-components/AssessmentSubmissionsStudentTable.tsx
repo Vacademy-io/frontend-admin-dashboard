@@ -5,7 +5,7 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table';
 import {
     flexRender,
     getCoreRowModel,
@@ -13,23 +13,23 @@ import {
     RowSelectionState,
     OnChangeFn,
     ColumnDef,
-} from "@tanstack/react-table";
-import { ProvideReattemptDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-components/assessment-menu-options-attempted-bulk/provide-reattempt-dialog";
-import { ProvideRevaluateAssessmentDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-components/assessment-menu-options-attempted-bulk/provide-revaluate-assessment-dialog";
-import { ProvideReleaseResultDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-components/assessment-menu-options-attempted-bulk/provide-release-result";
-import { ProvideRevaluateQuestionWiseDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-components/assessment-menu-options-attempted-bulk/provide-revaluate-questionwise-dialog";
-import { ColumnWidthConfig } from "@/components/design-system/utils/constants/table-layout";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { useSubmissionsBulkActionsDialogStoreAttempted } from "./bulk-actions-zustand-store/useSubmissionsBulkActionsDialogStoreAttempted";
-import { useSubmissionsBulkActionsDialogStoreOngoing } from "./bulk-actions-zustand-store/useSubmissionsBulkActionsDialogStoreOngoing";
-import { IncreaseAssessmentTimeDialog } from "./assessment-menu-options-ongoing-bulk/increase-assessment-time-component";
-import { CloseSubmissionDialog } from "./assessment-menu-options-ongoing-bulk/close-submission-component";
-import { useSubmissionsBulkActionsDialogStorePending } from "./bulk-actions-zustand-store/useSubmissionsBulkActionsDialogStorePending";
-import { SendReminderDialog } from "./assessment-menu-options-pending-bulk/send-reminder-component";
-import { RemoveParticipantsDialog } from "./assessment-menu-options-pending-bulk/remove-participants-component";
+} from '@tanstack/react-table';
+import { ProvideReattemptDialog } from '@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-components/assessment-menu-options-attempted-bulk/provide-reattempt-dialog';
+import { ProvideRevaluateAssessmentDialog } from '@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-components/assessment-menu-options-attempted-bulk/provide-revaluate-assessment-dialog';
+import { ProvideReleaseResultDialog } from '@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-components/assessment-menu-options-attempted-bulk/provide-release-result';
+import { ProvideRevaluateQuestionWiseDialog } from '@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-components/assessment-menu-options-attempted-bulk/provide-revaluate-questionwise-dialog';
+import { ColumnWidthConfig } from '@/components/design-system/utils/constants/table-layout';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { useSubmissionsBulkActionsDialogStoreAttempted } from './bulk-actions-zustand-store/useSubmissionsBulkActionsDialogStoreAttempted';
+import { useSubmissionsBulkActionsDialogStoreOngoing } from './bulk-actions-zustand-store/useSubmissionsBulkActionsDialogStoreOngoing';
+import { IncreaseAssessmentTimeDialog } from './assessment-menu-options-ongoing-bulk/increase-assessment-time-component';
+import { CloseSubmissionDialog } from './assessment-menu-options-ongoing-bulk/close-submission-component';
+import { useSubmissionsBulkActionsDialogStorePending } from './bulk-actions-zustand-store/useSubmissionsBulkActionsDialogStorePending';
+import { SendReminderDialog } from './assessment-menu-options-pending-bulk/send-reminder-component';
+import { RemoveParticipantsDialog } from './assessment-menu-options-pending-bulk/remove-participants-component';
 
-const headerTextCss = "p-3 border-r border-neutral-300";
-const cellCommonCss = "p-3";
+const headerTextCss = 'p-3 border-r border-neutral-300';
+const cellCommonCss = 'p-3';
 
 export interface TableData<T> {
     content: T[];
@@ -72,7 +72,7 @@ export function AssessmentSubmissionsStudentTable<T>({
         },
         enableRowSelection: true,
         onRowSelectionChange: (updaterOrValue) => {
-            if (typeof updaterOrValue === "function") {
+            if (typeof updaterOrValue === 'function') {
                 if (rowSelection) {
                     const newSelection = updaterOrValue(rowSelection);
                     if (onRowSelectionChange) {
@@ -126,12 +126,12 @@ export function AssessmentSubmissionsStudentTable<T>({
                                         <TableHead
                                             key={header.id}
                                             className={`${headerTextCss} overflow-visible bg-primary-100 text-subtitle font-semibold text-neutral-600 ${
-                                                columnWidths?.[header.column.id] || ""
+                                                columnWidths?.[header.column.id] || ''
                                             }`}
                                         >
                                             {flexRender(
                                                 header.column.columnDef.header,
-                                                header.getContext(),
+                                                header.getContext()
                                             )}
                                         </TableHead>
                                     ))}
@@ -145,7 +145,7 @@ export function AssessmentSubmissionsStudentTable<T>({
                                     <TableCell
                                         key={cell.id}
                                         className={`${cellCommonCss} z-10 bg-white text-body font-regular text-neutral-600 ${
-                                            columnWidths?.[cell.column.id] || ""
+                                            columnWidths?.[cell.column.id] || ''
                                         }`}
                                     >
                                         {flexRender(cell.column.columnDef.cell, cell.getContext())}

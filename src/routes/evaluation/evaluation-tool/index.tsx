@@ -23,7 +23,7 @@ function RouteComponent() {
                     content="This page let you evaluate your students' responses."
                 />
             </Helmet>
-            <PDFEvaluator />
+            <PDFEvaluator isFreeTool />
         </LayoutContainer>
     );
 }

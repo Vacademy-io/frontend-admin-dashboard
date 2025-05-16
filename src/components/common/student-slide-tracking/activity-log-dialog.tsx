@@ -1,21 +1,30 @@
 // activity-log-dialog.tsx
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { MyTable } from "@/components/design-system/table";
-import { MyPagination } from "@/components/design-system/pagination";
-import { ACTIVITY_LOG_COLUMN_WIDTHS } from "@/components/design-system/utils/constants/table-layout";
-import { usePaginationState } from "@/hooks/pagination";
-import { useMemo } from "react";
-import { activityLogColumns } from "@/components/design-system/utils/constants/table-column-data";
-import { useActivityStatsStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/activity-stats-store";
-import { useContentStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store";
-import { useQuery } from "@tanstack/react-query";
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { MyTable } from '@/components/design-system/table';
+import { MyPagination } from '@/components/design-system/pagination';
+import {
+    ACTIVITY_LOG_COLUMN_WIDTHS,
+    ACTIVITY_RESPONSE_ASSIGNMENT_COLUMN_WIDTHS,
+    ACTIVITY_RESPONSE_COLUMN_WIDTHS,
+} from '@/components/design-system/utils/constants/table-layout';
+import { usePaginationState } from '@/hooks/pagination';
+import { useMemo, useState } from 'react';
+import {
+    activityLogColumns,
+    activityResponseAssignmentColumns,
+    activityResponseTypeColumns,
+} from '@/components/design-system/utils/constants/table-column-data';
+import { useActivityStatsStore } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/activity-stats-store';
+import { useContentStore } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
+import { useQuery } from '@tanstack/react-query';
 import {
     getUserVideoSlideActivityLogs,
     getUserDocActivityLogs,
-} from "@/services/study-library/slide-operations/user-slide-activity-logs";
-import { ActivityContent } from "@/types/study-library/user-slide-activity-response-type";
-import { StudentTable } from "@/types/student-table-types";
-import { SlideWithStatusType } from "@/routes/students/students-list/-types/student-slides-progress-type";
+} from '@/services/study-library/slide-operations/user-slide-activity-logs';
+import { ActivityContent } from '@/types/study-library/user-slide-activity-response-type';
+import { StudentTable } from '@/types/student-table-types';
+import { SlideWithStatusType } from '@/routes/manage-students/students-list/-types/student-slides-progress-type';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export const ActivityLogDialog = ({
     selectedUser,
@@ -24,6 +33,7 @@ export const ActivityLogDialog = ({
     selectedUser?: StudentTable | null;
     slideData?: SlideWithStatusType;
 }) => {
+    const [selectedTab, setSelectedTab] = useState('insights');
     const { isOpen, closeDialog, selectedUserId } = useActivityStatsStore();
     const { activeItem } = useContentStore();
 
@@ -33,10 +43,10 @@ export const ActivityLogDialog = ({
     });
 
     const queryConfig = useMemo(() => {
-        const userId = selectedUser && slideData ? selectedUser.user_id : selectedUserId || "";
-        const slideId = selectedUser && slideData ? slideData.slide_id : activeItem?.slide_id || "";
+        const userId = selectedUser && slideData ? selectedUser.user_id : selectedUserId || '';
+        const slideId = selectedUser && slideData ? slideData.slide_id : activeItem?.id || '';
 
-        return activeItem?.video_url != null
+        return activeItem?.video_slide?.url != null
             ? getUserVideoSlideActivityLogs({
                   userId,
                   slideId,
@@ -70,9 +80,9 @@ export const ActivityLogDialog = ({
         }
 
         const transformedContent = activityLogs.content.map((item: ActivityContent) => ({
-            activityDate: formatDateTime(item.start_time_in_millis).split(",")[0],
-            startTime: formatDateTime(item.start_time_in_millis).split(",")[1],
-            endTime: formatDateTime(item.end_time_in_millis).split(",")[1],
+            activityDate: formatDateTime(item.start_time_in_millis).split(',')[0],
+            startTime: formatDateTime(item.start_time_in_millis).split(',')[1],
+            endTime: formatDateTime(item.end_time_in_millis).split(',')[1],
             duration: `${(
                 (item.end_time_in_millis - item.start_time_in_millis) /
                 1000 /
@@ -94,40 +104,183 @@ export const ActivityLogDialog = ({
         };
     }, [activityLogs, page, pageSize, selectedUser, slideData, activeItem]);
 
+    console.log(activeItem);
+
     return (
-        <Dialog open={isOpen} onOpenChange={closeDialog}>
-            <DialogContent className="w-[700px] max-w-[800px]">
-                <DialogHeader className="flex flex-col gap-6">
-                    <div className="flex items-center justify-between">
-                        <DialogTitle className="text-h3 font-semibold text-primary-500">
-                            Activity Log
-                        </DialogTitle>
-                    </div>
-                </DialogHeader>
+        <>
+            <Dialog open={isOpen} onOpenChange={closeDialog}>
+                <DialogContent
+                    className={`${tableData.content.length == 0 ? 'w-1/2' : 'w-fit'} p-0`}
+                >
+                    <h1 className="rounded-t-lg bg-primary-50 p-4 font-semibold text-primary-500">
+                        Activity Log
+                    </h1>
+                    {tableData.content.length == 0 ? (
+                        <p className="p-4 text-center text-primary-500">No activity found</p>
+                    ) : (
+                        <>
+                            {activeItem?.source_type === 'VIDEO' && (
+                                <Tabs
+                                    className="p-4"
+                                    value={selectedTab}
+                                    onValueChange={setSelectedTab}
+                                >
+                                    <TabsList className="inline-flex h-auto justify-start gap-4 rounded-none border-b-[1px] !bg-transparent p-0">
+                                        <TabsTrigger
+                                            value="insights"
+                                            className={`flex gap-1.5 rounded-none pb-2 pl-12 pr-12 pt-2 !shadow-none ${
+                                                selectedTab === 'insights'
+                                                    ? 'border-4px rounded-tl-sm rounded-tr-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                                    : 'border-none bg-transparent'
+                                            }`}
+                                        >
+                                            <span
+                                                className={`${selectedTab === 'insights' ? 'text-primary-500' : ''}`}
+                                            >
+                                                View Insights
+                                            </span>
+                                        </TabsTrigger>
+                                        <TabsTrigger
+                                            value="responses"
+                                            className={`inline-flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
+                                                selectedTab === 'responses'
+                                                    ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                                    : 'border-none bg-transparent'
+                                            }`}
+                                        >
+                                            <span
+                                                className={`${selectedTab === 'responses' ? 'text-primary-500' : ''}`}
+                                            >
+                                                Responses
+                                            </span>
+                                        </TabsTrigger>
+                                    </TabsList>
+                                    <TabsContent value="insights">
+                                        <div className="no-scrollbar mt-6 overflow-x-scroll">
+                                            <MyTable
+                                                data={tableData}
+                                                columns={activityLogColumns}
+                                                isLoading={isLoading}
+                                                error={error}
+                                                columnWidths={ACTIVITY_LOG_COLUMN_WIDTHS}
+                                                currentPage={page}
+                                            />
 
-                {tableData.content.length == 0 ? (
-                    <p className="text-primary-500">No activity found</p>
-                ) : (
-                    <div className="no-scrollbar mt-6 overflow-x-scroll">
-                        <MyTable
-                            data={tableData}
-                            columns={activityLogColumns}
-                            isLoading={isLoading}
-                            error={error}
-                            columnWidths={ACTIVITY_LOG_COLUMN_WIDTHS}
-                            currentPage={page}
-                        />
+                                            <div className="mt-6">
+                                                <MyPagination
+                                                    currentPage={page}
+                                                    totalPages={tableData.total_pages}
+                                                    onPageChange={handlePageChange}
+                                                />
+                                            </div>
+                                        </div>
+                                    </TabsContent>
+                                    <TabsContent value="responses">
+                                        <div className="no-scrollbar mt-6 overflow-x-scroll">
+                                            <MyTable
+                                                data={{
+                                                    content: [],
+                                                    total_pages: 0,
+                                                    page_no: 0,
+                                                    page_size: pageSize,
+                                                    total_elements: 0,
+                                                    last: true,
+                                                }}
+                                                columns={activityResponseTypeColumns}
+                                                isLoading={isLoading}
+                                                error={error}
+                                                columnWidths={ACTIVITY_RESPONSE_COLUMN_WIDTHS}
+                                                currentPage={page}
+                                            />
+                                            <div className="mt-6">
+                                                <MyPagination
+                                                    currentPage={page}
+                                                    totalPages={tableData.total_pages}
+                                                    onPageChange={handlePageChange}
+                                                />
+                                            </div>
+                                        </div>
+                                    </TabsContent>
+                                </Tabs>
+                            )}
 
-                        <div className="mt-6">
-                            <MyPagination
-                                currentPage={page}
-                                totalPages={tableData.total_pages}
-                                onPageChange={handlePageChange}
-                            />
-                        </div>
-                    </div>
-                )}
-            </DialogContent>
-        </Dialog>
+                            {activeItem?.source_type === 'QUESTION' && (
+                                <div className="no-scrollbar mt-6 overflow-x-scroll px-4">
+                                    <MyTable
+                                        data={{
+                                            content: [],
+                                            total_pages: 0,
+                                            page_no: 0,
+                                            page_size: pageSize,
+                                            total_elements: 0,
+                                            last: true,
+                                        }}
+                                        columns={activityResponseTypeColumns}
+                                        isLoading={isLoading}
+                                        error={error}
+                                        columnWidths={ACTIVITY_RESPONSE_COLUMN_WIDTHS}
+                                        currentPage={page}
+                                    />
+                                    <div className="my-6">
+                                        <MyPagination
+                                            currentPage={page}
+                                            totalPages={tableData.total_pages}
+                                            onPageChange={handlePageChange}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeItem?.source_type === 'ASSIGNMENT' && (
+                                <div className="no-scrollbar mt-6 overflow-x-scroll px-4">
+                                    <MyTable
+                                        data={{
+                                            content: [],
+                                            total_pages: 0,
+                                            page_no: 0,
+                                            page_size: pageSize,
+                                            total_elements: 0,
+                                            last: true,
+                                        }}
+                                        columns={activityResponseAssignmentColumns}
+                                        isLoading={isLoading}
+                                        error={error}
+                                        columnWidths={ACTIVITY_RESPONSE_ASSIGNMENT_COLUMN_WIDTHS}
+                                        currentPage={page}
+                                    />
+                                    <div className="my-6">
+                                        <MyPagination
+                                            currentPage={page}
+                                            totalPages={tableData.total_pages}
+                                            onPageChange={handlePageChange}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeItem?.source_type === 'DOCUMENT' && (
+                                <div className="no-scrollbar mt-6 overflow-x-scroll px-4">
+                                    <MyTable
+                                        data={tableData}
+                                        columns={activityLogColumns}
+                                        isLoading={isLoading}
+                                        error={error}
+                                        columnWidths={ACTIVITY_LOG_COLUMN_WIDTHS}
+                                        currentPage={page}
+                                    />
+                                    <div className="my-6">
+                                        <MyPagination
+                                            currentPage={page}
+                                            totalPages={tableData.total_pages}
+                                            onPageChange={handlePageChange}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                        </>
+                    )}
+                </DialogContent>
+            </Dialog>
+        </>
     );
 };

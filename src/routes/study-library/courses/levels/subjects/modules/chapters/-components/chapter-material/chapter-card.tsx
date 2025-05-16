@@ -1,10 +1,10 @@
-import { MyDialog } from "@/components/design-system/dialog";
-import { DotsSixVertical, FileDoc, FilePdf, Video } from "@phosphor-icons/react";
-import { useNavigate, useRouter } from "@tanstack/react-router";
-import { useState } from "react";
-import { ChapterMenuOptions } from "./chapter-menu-options/chapter-menu-options";
-import { SortableDragHandle } from "@/components/ui/sortable";
-import { ChapterWithSlides } from "@/stores/study-library/use-modules-with-chapters-store";
+import { MyDialog } from '@/components/design-system/dialog';
+import { DotsSixVertical, FileDoc, FilePdf, Video } from '@phosphor-icons/react';
+import { useNavigate, useRouter } from '@tanstack/react-router';
+import { useState } from 'react';
+import { ChapterMenuOptions } from './chapter-menu-options/chapter-menu-options';
+import { SortableDragHandle } from '@/components/ui/sortable';
+import { ChapterWithSlides } from '@/stores/study-library/use-modules-with-chapters-store';
 
 interface ChapterCardProps {
     chapter: ChapterWithSlides;
@@ -15,7 +15,7 @@ export const ChapterCard = ({ chapter, onDelete }: ChapterCardProps) => {
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
     const router = useRouter();
-    const { courseId, levelId, subjectId, moduleId } = router.state.location.search;
+    const { courseId, levelId, subjectId, moduleId, sessionId } = router.state.location.search;
     const navigate = useNavigate();
 
     const navigateToSlidePage = () => {
@@ -29,15 +29,16 @@ export const ChapterCard = ({ chapter, onDelete }: ChapterCardProps) => {
                 subjectId: subjectId,
                 moduleId: moduleId,
                 chapterId: chapter.chapter.id,
+                sessionId: sessionId,
             },
         });
     };
 
     const handleCardClick = (e: React.MouseEvent) => {
         if (
-            (e.target as HTMLElement).closest(".menu-options-container") ||
+            (e.target as HTMLElement).closest('.menu-options-container') ||
             (e.target as HTMLElement).closest('[role="menu"]') ||
-            (e.target as HTMLElement).closest(".drag-handle-container") ||
+            (e.target as HTMLElement).closest('.drag-handle-container') ||
             (e.target as HTMLElement).closest('[role="dialog"]')
         ) {
             return;

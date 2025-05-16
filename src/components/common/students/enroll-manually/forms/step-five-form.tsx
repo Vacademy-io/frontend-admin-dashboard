@@ -1,21 +1,21 @@
 // step-five-form.tsx
-import { FormStepHeading } from "../form-components/form-step-heading";
-import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
-import { FormItemWrapper } from "../form-components/form-item-wrapper";
-import { useForm } from "react-hook-form";
-import { MyInput } from "@/components/design-system/input";
-import { MyButton } from "@/components/design-system/button";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
+import { FormStepHeading } from '../form-components/form-step-heading';
+import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
+import { FormItemWrapper } from '../form-components/form-item-wrapper';
+import { useForm } from 'react-hook-form';
+import { MyInput } from '@/components/design-system/input';
+import { MyButton } from '@/components/design-system/button';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useFormStore } from '@/stores/students/enroll-students-manually/enroll-manually-form-store';
 import {
     stepFiveSchema,
     StepFiveData,
-} from "@/schemas/student/student-list/schema-enroll-students-manually";
-import { useEnrollStudent } from "@/hooks/student-list-section/enroll-student-manually/useEnrollStudent";
-import { useEffect, useRef, useState } from "react";
-import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-import { toast } from "sonner";
-import { StudentTable } from "@/types/student-table-types";
+} from '@/schemas/student/student-list/schema-enroll-students-manually';
+import { useEnrollStudent } from '@/hooks/student-list-section/enroll-student-manually/useEnrollStudent';
+import { useEffect, useRef, useState } from 'react';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { toast } from 'sonner';
+import { StudentTable } from '@/types/student-table-types';
 
 export const StepFiveForm = ({
     initialValues,
@@ -46,36 +46,36 @@ export const StepFiveForm = ({
     const { getPackageSessionId } = useInstituteDetailsStore();
     const [packageSessionId, setPackageSessionId] = useState(
         getPackageSessionId({
-            courseId: stepTwoData?.course.id || "",
-            levelId: stepTwoData?.level.id || "",
-            sessionId: stepTwoData?.session.id || "",
-        }),
+            courseId: stepTwoData?.course.id || '',
+            levelId: stepTwoData?.level.id || '',
+            sessionId: stepTwoData?.session.id || '',
+        })
     );
 
     useEffect(() => {
         setPackageSessionId(
             getPackageSessionId({
-                courseId: stepTwoData?.course.id || "",
-                levelId: stepTwoData?.level.id || "",
-                sessionId: stepTwoData?.session.id || "",
-            }),
+                courseId: stepTwoData?.course.id || '',
+                levelId: stepTwoData?.level.id || '',
+                sessionId: stepTwoData?.session.id || '',
+            })
         );
     }, [stepTwoData?.course, stepTwoData?.level, stepTwoData?.session]);
 
     const form = useForm<StepFiveData>({
         resolver: zodResolver(stepFiveSchema),
         defaultValues: stepFiveData || {
-            username: initialValues?.username || "",
-            password: "",
+            username: initialValues?.username || '',
+            password: '',
         },
-        mode: "onChange",
+        mode: 'onChange',
     });
 
     const generateUsername = () => {
         let namePart =
-            stepTwoData?.fullName.replace(/\s+/g, "").substring(0, 4).toLowerCase() || "";
+            stepTwoData?.fullName.replace(/\s+/g, '').substring(0, 4).toLowerCase() || '';
         while (namePart.length < 4) {
-            namePart += "X";
+            namePart += 'X';
         }
         const randomDigits = Math.floor(1000 + Math.random() * 9000).toString();
 
@@ -83,8 +83,8 @@ export const StepFiveForm = ({
     };
 
     const generatePassword = () => {
-        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        let password = "";
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        let password = '';
         for (let i = 0; i < 8; i++) {
             password += chars.charAt(Math.floor(Math.random() * chars.length));
         }
@@ -95,8 +95,8 @@ export const StepFiveForm = ({
         const username = generateUsername();
         const password = generatePassword();
 
-        form.setValue("username", username);
-        form.setValue("password", password);
+        form.setValue('username', username);
+        form.setValue('password', password);
         setShowCredentials(true);
     };
 
@@ -105,7 +105,7 @@ export const StepFiveForm = ({
     const onSubmit = async (values: StepFiveData) => {
         setStepFiveData(values);
         try {
-            const result = await enrollStudentMutation.mutateAsync({
+            await enrollStudentMutation.mutateAsync({
                 formData: {
                     stepOneData,
                     stepTwoData,
@@ -113,17 +113,16 @@ export const StepFiveForm = ({
                     stepFourData,
                     stepFiveData: values,
                 },
-                packageSessionId: packageSessionId || "",
+                packageSessionId: packageSessionId || '',
             });
-            toast.success("Student enrolled successfully");
-            console.log(result);
+            toast.success('Learner enrolled successfully');
             resetForm();
             handleOpenDialog(false);
             // Handle success
         } catch (error) {
             // Handle error
-            console.error("Failed to enroll student:", error);
-            toast.error("Failed to enroll the student");
+            console.error('Failed to enroll Learner:', error);
+            toast.error('Failed to enroll the Learner');
         }
     };
 
@@ -158,7 +157,7 @@ export const StepFiveForm = ({
                             <FormStepHeading stepNumber={5} heading="Generate Login Credentials" />
                         </FormItemWrapper>
 
-                        {!initialValues && (
+                        {(!initialValues || initialValues.username == '') && (
                             <FormItemWrapper<StepFiveData> control={form.control} name="username">
                                 <div className="flex flex-col items-center justify-center gap-5">
                                     <div className="text-subtitle">

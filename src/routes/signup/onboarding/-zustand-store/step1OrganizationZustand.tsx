@@ -5,6 +5,8 @@ interface FormValues {
     instituteProfilePic?: string;
     instituteName: string;
     instituteType: string;
+    instituteThemeCode?:string;
+
 }
 
 interface OrganizationStore {
@@ -19,6 +21,7 @@ const useOrganizationStore = create<OrganizationStore>((set) => ({
         instituteProfilePic: undefined,
         instituteName: "",
         instituteType: "",
+        instituteThemeCode: "",
     },
     setFormData: (data) => set({ formData: data }),
     resetForm: () =>
@@ -28,6 +31,7 @@ const useOrganizationStore = create<OrganizationStore>((set) => ({
                 instituteProfilePic: undefined,
                 instituteName: "",
                 instituteType: "",
+                instituteThemeCode:"",
             },
         }),
 }));

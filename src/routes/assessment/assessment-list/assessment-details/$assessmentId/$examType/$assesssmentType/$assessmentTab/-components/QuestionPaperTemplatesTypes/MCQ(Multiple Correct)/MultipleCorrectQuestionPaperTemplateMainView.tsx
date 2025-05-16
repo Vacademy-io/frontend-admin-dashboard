@@ -1,16 +1,15 @@
-import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
-import { Sliders, X } from "phosphor-react";
-import { Checkbox } from "@/components/ui/checkbox";
-import "react-quill/dist/quill.snow.css";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { PopoverClose } from "@radix-ui/react-popover";
-import SelectField from "@/components/design-system/select-field";
-import CustomInput from "@/components/design-system/custom-input";
-import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
-import { QUESTION_TYPES } from "@/constants/dummy-data";
-import { SectionQuestionPaperFormProps } from "../../../-utils/assessment-question-paper";
-import { useEffect } from "react";
+import { FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
+import { Sliders, X } from 'phosphor-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import 'react-quill/dist/quill.snow.css';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { PopoverClose } from '@radix-ui/react-popover';
+import SelectField from '@/components/design-system/select-field';
+import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
+import { QUESTION_TYPES } from '@/constants/dummy-data';
+import { SectionQuestionPaperFormProps } from '../../../-utils/assessment-question-paper';
+import { useEffect } from 'react';
 
 interface ImageDetail {
     imageId: string;
@@ -40,16 +39,16 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
     const allQuestions = getValues(`sections.${selectedSectionIndex}.questions`) || [];
 
     const option1 = getValues(
-        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${0}`,
+        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${0}`
     ) as ChoiceOption;
     const option2 = getValues(
-        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${1}`,
+        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${1}`
     ) as ChoiceOption;
     const option3 = getValues(
-        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${2}`,
+        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${2}`
     ) as ChoiceOption;
     const option4 = getValues(
-        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${3}`,
+        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${3}`
     ) as ChoiceOption;
 
     useEffect(() => {
@@ -60,7 +59,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
         if (questions?.[currentQuestionIndex]) {
             form.setValue(
                 `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}`,
-                questions[currentQuestionIndex]!,
+                questions[currentQuestionIndex]!
             );
         }
     }, [currentQuestionIndex, questions]);
@@ -102,42 +101,32 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                 className="!w-full"
                                 required
                             />
-                            <CustomInput
-                                control={form.control}
-                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionMark`}
-                                label="Marks"
-                                required
-                            />
-                            <CustomInput
-                                control={form.control}
-                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionPenalty`}
-                                label="Negative Marking"
-                                required
-                            />
-                            <div className="flex flex-col gap-2">
-                                <h1 className="text-sm font-semibold">Time Limit</h1>
-                                <div className="flex items-center gap-4 text-sm">
-                                    <CustomInput
-                                        control={form.control}
-                                        name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionDuration.hrs`}
-                                        label=""
-                                        className="w-10"
-                                    />
-                                    <span>hrs</span>
-                                    <span>:</span>
-                                    <CustomInput
-                                        control={form.control}
-                                        name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionDuration.min`}
-                                        label=""
-                                        className="w-10"
-                                    />
-                                    <span>min</span>
-                                </div>
-                            </div>
                         </div>
                     </PopoverContent>
                 </Popover>
             </div>
+            {getValues(
+                `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.parentRichTextContent`
+            ) && (
+                <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
+                    <span>Comprehension Text</span>
+                    <FormField
+                        control={control}
+                        name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.parentRichTextContent`}
+                        render={({ field }) => (
+                            <FormItem className="w-full">
+                                <FormControl>
+                                    <MainViewQuillEditor
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+            )}
             <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
                 <span>
                     Question&nbsp;
@@ -164,7 +153,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                 <div className="flex gap-4">
                     <div
                         className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
-                            option1.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                            option1?.isSelected ? 'border border-primary-300 bg-primary-50' : ''
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">
@@ -197,11 +186,16 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                         <FormControl>
                                             <Checkbox
                                                 checked={field.value}
-                                                onCheckedChange={field.onChange}
+                                                onCheckedChange={() => {
+                                                    field.onChange(!field.value);
+                                                    form.trigger(
+                                                        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions`
+                                                    );
+                                                }}
                                                 className={`mt-1 size-5 border-2 shadow-none ${
                                                     field.value
-                                                        ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
-                                                        : "" // Default styles when unchecked
+                                                        ? 'border-none bg-green-500 text-white' // Blue background and red tick when checked
+                                                        : '' // Default styles when unchecked
                                                 }`}
                                             />
                                         </FormControl>
@@ -213,7 +207,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                     </div>
                     <div
                         className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
-                            option2.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                            option2?.isSelected ? 'border border-primary-300 bg-primary-50' : ''
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">
@@ -246,11 +240,16 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                         <FormControl>
                                             <Checkbox
                                                 checked={field.value}
-                                                onCheckedChange={field.onChange}
+                                                onCheckedChange={() => {
+                                                    field.onChange(!field.value);
+                                                    form.trigger(
+                                                        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions`
+                                                    );
+                                                }}
                                                 className={`mt-1 size-5 border-2 shadow-none ${
                                                     field.value
-                                                        ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
-                                                        : "" // Default styles when unchecked
+                                                        ? 'border-none bg-green-500 text-white' // Blue background and red tick when checked
+                                                        : '' // Default styles when unchecked
                                                 }`}
                                             />
                                         </FormControl>
@@ -264,7 +263,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                 <div className="flex gap-4">
                     <div
                         className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
-                            option3.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                            option3?.isSelected ? 'border border-primary-300 bg-primary-50' : ''
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">
@@ -297,11 +296,16 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                         <FormControl>
                                             <Checkbox
                                                 checked={field.value}
-                                                onCheckedChange={field.onChange}
+                                                onCheckedChange={() => {
+                                                    field.onChange(!field.value);
+                                                    form.trigger(
+                                                        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions`
+                                                    );
+                                                }}
                                                 className={`mt-1 size-5 border-2 shadow-none ${
                                                     field.value
-                                                        ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
-                                                        : "" // Default styles when unchecked
+                                                        ? 'border-none bg-green-500 text-white' // Blue background and red tick when checked
+                                                        : '' // Default styles when unchecked
                                                 }`}
                                             />
                                         </FormControl>
@@ -313,7 +317,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                     </div>
                     <div
                         className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
-                            option4.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                            option4?.isSelected ? 'border border-primary-300 bg-primary-50' : ''
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">
@@ -346,11 +350,16 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                         <FormControl>
                                             <Checkbox
                                                 checked={field.value}
-                                                onCheckedChange={field.onChange}
+                                                onCheckedChange={() => {
+                                                    field.onChange(!field.value);
+                                                    form.trigger(
+                                                        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions`
+                                                    );
+                                                }}
                                                 className={`mt-1 size-5 border-2 shadow-none ${
                                                     field.value
-                                                        ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
-                                                        : "" // Default styles when unchecked
+                                                        ? 'border-none bg-green-500 text-white' // Blue background and red tick when checked
+                                                        : '' // Default styles when unchecked
                                                 }`}
                                             />
                                         </FormControl>

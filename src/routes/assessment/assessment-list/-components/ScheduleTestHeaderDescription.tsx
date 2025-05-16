@@ -1,14 +1,14 @@
-import { useIsMobile } from "@/hooks/use-mobile";
-import { MyButton } from "@/components/design-system/button";
-import { CalendarBlank } from "phosphor-react";
-import { useNavigate } from "@tanstack/react-router";
-import useIntroJsTour from "@/hooks/use-intro";
-import { IntroKey } from "@/constants/storage/introKey";
-import { createAssesmentSteps } from "@/constants/intro/steps";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { Examination, Mock, Practice, Survey } from "@/svgs";
-import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-import { cn } from "@/lib/utils";
+import { useIsMobile } from '@/hooks/use-mobile';
+import { MyButton } from '@/components/design-system/button';
+import { CalendarBlank } from 'phosphor-react';
+import { useNavigate } from '@tanstack/react-router';
+import useIntroJsTour from '@/hooks/use-intro';
+import { IntroKey } from '@/constants/storage/introKey';
+import { createAssesmentButtonStep } from '@/constants/intro/steps';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Examination, Mock, Practice, Survey } from '@/svgs';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { cn } from '@/lib/utils';
 
 export const ScheduleTestHeaderDescription = () => {
     const isMobile = useIsMobile();
@@ -17,9 +17,9 @@ export const ScheduleTestHeaderDescription = () => {
 
     const handleRedirectRoute = (type: string) => {
         navigate({
-            to: "/assessment/create-assessment/$assessmentId/$examtype",
+            to: '/assessment/create-assessment/$assessmentId/$examtype',
             params: {
-                assessmentId: "defaultId",
+                assessmentId: 'defaultId',
                 examtype: type,
             },
             search: {
@@ -30,17 +30,13 @@ export const ScheduleTestHeaderDescription = () => {
 
     useIntroJsTour({
         key: IntroKey.assessmentFirstTimeVisit,
-        steps: createAssesmentSteps.filter((step) => step.element === "#create-assessment"),
-        partial: true,
-        onTourExit: () => {
-            console.log("Tour Completed");
-        },
+        steps: createAssesmentButtonStep,
     });
 
     return (
         <div
             className={`mb-8 flex items-center justify-between ${
-                isMobile ? "flex-wrap gap-4" : "gap-10"
+                isMobile ? 'flex-wrap gap-4' : 'gap-10'
             }`}
         >
             <div className="flex flex-col">
@@ -58,7 +54,7 @@ export const ScheduleTestHeaderDescription = () => {
                 <DialogTrigger
                     disabled={getCourseFromPackage().length === 0}
                     className={cn(
-                        getCourseFromPackage().length === 0 && "pointer-events-none opacity-55",
+                        getCourseFromPackage().length === 0 && 'pointer-events-none opacity-55'
                     )}
                 >
                     <MyButton
@@ -78,7 +74,7 @@ export const ScheduleTestHeaderDescription = () => {
                     <div className="mb-4 flex size-auto flex-col items-center justify-center gap-11">
                         <div className="flex items-center gap-12">
                             <div
-                                onClick={() => handleRedirectRoute("EXAM")}
+                                onClick={() => handleRedirectRoute('EXAM')}
                                 className="flex size-[300px] cursor-pointer flex-col items-center rounded-xl border bg-neutral-50 p-8"
                             >
                                 <Examination />
@@ -89,7 +85,7 @@ export const ScheduleTestHeaderDescription = () => {
                                 </p>
                             </div>
                             <div
-                                onClick={() => handleRedirectRoute("MOCK")}
+                                onClick={() => handleRedirectRoute('MOCK')}
                                 className="flex size-[300px] cursor-pointer flex-col items-center rounded-xl border bg-neutral-50 p-8"
                             >
                                 <Mock />
@@ -102,7 +98,7 @@ export const ScheduleTestHeaderDescription = () => {
                         </div>
                         <div className="flex items-center gap-12">
                             <div
-                                onClick={() => handleRedirectRoute("PRACTICE")}
+                                onClick={() => handleRedirectRoute('PRACTICE')}
                                 className="flex size-[300px] cursor-pointer flex-col items-center rounded-xl border bg-neutral-50 p-8"
                             >
                                 <Practice />
@@ -113,7 +109,7 @@ export const ScheduleTestHeaderDescription = () => {
                                 </p>
                             </div>
                             <div
-                                onClick={() => handleRedirectRoute("SURVEY")}
+                                onClick={() => handleRedirectRoute('SURVEY')}
                                 className="flex size-[300px] cursor-pointer flex-col items-center rounded-xl border bg-neutral-50 p-8"
                             >
                                 <Survey />
