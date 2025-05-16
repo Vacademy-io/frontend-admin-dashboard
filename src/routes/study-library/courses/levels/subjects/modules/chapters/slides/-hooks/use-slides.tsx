@@ -118,10 +118,10 @@ export interface Slide {
     description: string;
     status: string;
     slide_order: number;
-    video_slide?: VideoSlide;
-    document_slide?: DocumentSlide;
-    question_slide?: QuestionSlide;
-    assignment_slide?: AssignmentSlide;
+    video_slide?: VideoSlide | null;
+    document_slide?: DocumentSlide | null;
+    question_slide?: QuestionSlide | null;
+    assignment_slide?: AssignmentSlide | null;
     is_loaded: boolean;
     new_slide: boolean;
 }

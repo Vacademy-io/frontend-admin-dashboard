@@ -47,7 +47,7 @@ export const SlideMaterial = ({
     const router = useRouter();
     const [content, setContent] = useState<JSX.Element | null>(null);
 
-    const { chapterId } = router.state.location.search;
+    const { chapterId, slideId } = router.state.location.search;
     const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
     const [isUnpublishDialogOpen, setIsUnpublishDialogOpen] = useState(false);
     const { addUpdateDocumentSlide } = useSlides(chapterId || '');
@@ -136,6 +136,13 @@ export const SlideMaterial = ({
         } else if (activeItem.source_type == 'ASSIGNMENT') {
             setContent(<StudyLibraryAssignmentPreview activeItem={activeItem} />);
             return;
+        } else {
+            setContent(
+                <div className="flex h-[500px] flex-col items-center justify-center rounded-lg py-10">
+                    <EmptySlideMaterial />
+                    <p className="mt-4 text-neutral-500">No study material has been added yet</p>
+                </div>
+            );
         }
         return;
     };
@@ -210,8 +217,11 @@ export const SlideMaterial = ({
     }, [activeItem]);
 
     useEffect(() => {
-        if (items.length == 0) setActiveItem(null);
-        // else setActiveItem(items[0] || null);
+        if (items.length == 0 && slideId == undefined) {
+            setActiveItem(null);
+        } else if (items.some((slide) => slide.id == slideId)) {
+            setActiveItem(items.find((slide) => slide.id == slideId) || items[0] || null);
+        }
     }, [items]);
 
     useEffect(() => {

@@ -27,7 +27,7 @@ export const StudyLibraryQuestionsPreview = ({ activeItem }: { activeItem: Slide
             answersType: '',
             explanationsType: '',
             fileUpload: undefined,
-            questions: [activeItem.question_slide],
+            questions: [activeItem.question_slide || {}],
         },
     });
 

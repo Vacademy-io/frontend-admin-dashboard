@@ -45,7 +45,7 @@ const StudyLibraryAssignmentPreview = ({ activeItem }: { activeItem: Slide }) =>
     const defaultValues = activeItem.assignment_slide;
     const form = useForm<AssignmentFormType>({
         resolver: zodResolver(assignmentFormSchema),
-        defaultValues,
+        defaultValues: defaultValues || {},
     });
 
     const adaptive_marking_for_each_question = form.getValues('adaptive_marking_for_each_question');
