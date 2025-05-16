@@ -741,21 +741,6 @@ export const SubjectMaterial = () => {
                 Assessment content coming soon.
             </div>
         ),
-        [TabType.ASSIGNMENT]: (
-            <div className="rounded-md bg-white p-3 text-sm text-gray-600 shadow-sm">
-                Assignment content coming soon.
-            </div>
-        ),
-        [TabType.GRADING]: (
-            <div className="rounded-md bg-white p-3 text-sm text-gray-600 shadow-sm">
-                Grading content coming soon.
-            </div>
-        ),
-        [TabType.ANNOUNCEMENT]: (
-            <div className="rounded-md bg-white p-3 text-sm text-gray-600 shadow-sm">
-                Announcement content coming soon.
-            </div>
-        ),
     };
 
     if (courseId === '' || levelId === '') {
