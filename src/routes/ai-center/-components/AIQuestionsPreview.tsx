@@ -346,18 +346,22 @@ const AIQuestionsPreview = ({
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-4">
-                                            {handleSubmitFormData.status === 'pending' ? (
-                                                <MyButton type="button">
-                                                    <DashboardLoader size={18} color="#ffffff" />
-                                                </MyButton>
-                                            ) : (
-                                                <MyButton
-                                                    onClick={handleSaveQuestionsInSection}
-                                                    type="button"
-                                                >
-                                                    Save
-                                                </MyButton>
-                                            )}
+                                            {currentSectionIndex !== undefined &&
+                                                (handleSubmitFormData.status === 'pending' ? (
+                                                    <MyButton type="button">
+                                                        <DashboardLoader
+                                                            size={18}
+                                                            color="#ffffff"
+                                                        />
+                                                    </MyButton>
+                                                ) : (
+                                                    <MyButton
+                                                        onClick={handleSaveQuestionsInSection}
+                                                        type="button"
+                                                    >
+                                                        Save
+                                                    </MyButton>
+                                                ))}
                                             <MyButton
                                                 type="button"
                                                 scale="medium"
