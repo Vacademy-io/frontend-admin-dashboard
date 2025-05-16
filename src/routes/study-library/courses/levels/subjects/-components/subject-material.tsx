@@ -46,6 +46,7 @@ import {
 } from 'phosphor-react';
 import { getIcon } from '../modules/chapters/slides/-components/slides-sidebar/slides-sidebar-slides';
 import { MyButton } from '@/components/design-system/button';
+import { useContentStore } from '../modules/chapters/slides/-stores/chapter-sidebar-store';
 
 // Interfaces (assuming these are unchanged)
 export interface Chapter {
@@ -84,6 +85,7 @@ export const SubjectMaterial = () => {
     const searchParams = router.state.location.search;
     const { getSessionFromPackage } = useInstituteDetailsStore();
     const { studyLibraryData } = useStudyLibraryStore();
+    const { setActiveItem } = useContentStore();
 
     const courseId: string = searchParams.courseId || '';
     const levelId: string = searchParams.levelId || '';
@@ -308,7 +310,24 @@ export const SubjectMaterial = () => {
         chapterId: string,
         slideId: string
     ) => {
-        console.log(slideId);
+        console.log('slideId: ', slideId);
+        setActiveItem({
+            id: slideId,
+            source_id: '',
+            source_type: '',
+            title: '',
+            image_file_id: '',
+            description: '',
+            status: '',
+            slide_order: 0,
+            video_slide: null,
+            document_slide: null,
+            question_slide: null,
+            assignment_slide: null,
+            is_loaded: false,
+            new_slide: false,
+        });
+
         navigateTo(`${router.state.location.pathname}/modules/chapters/slides`, {
             courseId,
             levelId,
@@ -756,8 +775,8 @@ export const SubjectMaterial = () => {
                         <TabsTrigger
                             key={tab.value}
                             value={tab.value}
-                            className={`data-[state=active]:text-primary data-[state=active]:border-primary hover:text-primary -mb-px px-2.5 
-                                py-1.5 text-xs font-medium transition-all duration-150 
+                            className={`data-[state=active]:text-primary data-[state=active]:border-primary hover:text-primary -mb-px px-2.5
+                                py-1.5 text-xs font-medium transition-all duration-150
                                 hover:bg-gray-50/70 focus-visible:ring-1 focus-visible:ring-primary-300 focus-visible:ring-offset-1
                                 data-[state=active]:rounded-t-md data-[state=active]:border-b-2 data-[state=active]:bg-white data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:rounded-t-md`}
                         >

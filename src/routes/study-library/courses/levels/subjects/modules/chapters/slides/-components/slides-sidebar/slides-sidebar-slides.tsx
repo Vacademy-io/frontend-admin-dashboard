@@ -138,9 +138,28 @@ export const ChapterSidebarSlides = ({
             // @ts-expect-error
             setActiveItem(slides[0] ?? null);
         } else {
-            setActiveItem(null);
+            if (slideId == undefined) {
+                setActiveItem(null);
+            } else {
+                setActiveItem({
+                    id: slideId,
+                    source_id: '',
+                    source_type: '',
+                    title: '',
+                    image_file_id: '',
+                    description: '',
+                    status: '',
+                    slide_order: 0,
+                    video_slide: null,
+                    document_slide: null,
+                    question_slide: null,
+                    assignment_slide: null,
+                    is_loaded: false,
+                    new_slide: false,
+                });
+            }
         }
-    }, [slides, slideId]);
+    }, [slides]);
 
     if (isLoading) {
         return <DashboardLoader />;
