@@ -60,6 +60,7 @@ const VideoQuestionDialogAddPreview = ({
             hrs: '',
             min: '',
             sec: '',
+            canSkip: true,
         });
         setPreviewQuestionDialog(false);
         isAddTimeFrameRef.current?.click();

@@ -357,6 +357,7 @@ export function convertStudyLibraryQuestion(question: MyQuestion) {
             mediaId: '',
         })),
         new_question: question.newQuestion === false ? false : true,
+        can_skip: question.canSkip,
     };
 }
 

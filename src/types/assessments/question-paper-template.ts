@@ -115,6 +115,7 @@ export interface QuestionResponse {
     options: OptionText[];
     parent_rich_text: TextContent | null;
     status: string;
+    can_skip: boolean;
     errors: string[];
     warnings: string[];
 }

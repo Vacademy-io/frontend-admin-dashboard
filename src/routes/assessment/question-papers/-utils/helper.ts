@@ -500,6 +500,7 @@ export const transformResponseDataToMyQuestionsSchema = (data: QuestionResponse[
             parentRichTextContent: item.parent_rich_text?.content || null,
             subjectiveAnswerText,
             status: item.status,
+            canSkip: item.can_skip,
         };
 
         if (item.question_type === 'MCQS') {

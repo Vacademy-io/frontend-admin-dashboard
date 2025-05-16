@@ -77,6 +77,7 @@ const AddVideoQuestionDialog = ({
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const { hrs, min, sec } = videoPlayerTimeFrameForm.watch();
+    videoPlayerTimeFrameForm.watch('canSkip');
     const isButtonDisabled = !hrs && !min && !sec;
 
     // Function to handle adding a new question
@@ -131,6 +132,7 @@ const AddVideoQuestionDialog = ({
             )}:${videoPlayerTimeFrameForm.getValues('min')}:${videoPlayerTimeFrameForm.getValues(
                 'sec'
             )}`,
+            canSkip: videoPlayerTimeFrameForm.getValues('canSkip') || false,
         });
         videoQuestionForm.trigger();
         setPreviewQuestionDialog(true);
