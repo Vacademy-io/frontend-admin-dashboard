@@ -1,25 +1,24 @@
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { MyDropdown } from "../../../../../components/common/students/enroll-manually/dropdownForPackageItems";
-import { MyButton } from "@/components/design-system/button";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-import { getCourseSubjects } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSubjects";
-import { ModulesWithChapters } from "@/stores/study-library/use-modules-with-chapters-store";
-import { useEffect, useMemo, useState } from "react";
-import { getChaptersByModuleId } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getChaptersByModuleId";
-import { useQuery } from "@tanstack/react-query";
-import { useModulesWithChaptersQuery } from "@/routes/study-library/courses/-services/getModulesWithChapters";
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
+import { MyDropdown } from '../../../../../components/common/students/enroll-manually/dropdownForPackageItems';
+import { MyButton } from '@/components/design-system/button';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { getCourseSubjects } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSubjects';
+import { ModulesWithChapters } from '@/stores/study-library/use-modules-with-chapters-store';
+import { useEffect, useMemo, useState } from 'react';
+import { getChaptersByModuleId } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getChaptersByModuleId';
+import { useModulesWithChaptersQuery } from '@/routes/study-library/courses/-services/getModulesWithChapters';
 
 export type AvailableFields =
-    | "course"
-    | "session"
-    | "level"
-    | "subject"
-    | "module"
-    | "chapter"
-    | "file_type";
+    | 'course'
+    | 'session'
+    | 'level'
+    | 'subject'
+    | 'module'
+    | 'chapter'
+    | 'file_type';
 
 export type FieldValue = {
     id: string;
@@ -59,11 +58,11 @@ const createFormSchema = (fields: AvailableFields[]) => {
 
 // Custom hook to fetch modules with chapters
 const useModulesWithChapters = (subjectId: string, packageSessionId?: string) => {
-    return useQuery({
-        ...useModulesWithChaptersQuery(subjectId, packageSessionId || ""),
+    return {
+        ...useModulesWithChaptersQuery(subjectId, packageSessionId || ''),
         staleTime: 3600000,
         enabled: !!subjectId && !!packageSessionId, // Only run the query if both values are present
-    });
+    };
 };
 
 export const StudyMaterialDetailsForm = ({
@@ -86,11 +85,11 @@ export const StudyMaterialDetailsForm = ({
         defaultValues: fields.reduce<Partial<FormValues>>(
             (acc, field) => ({
                 ...acc,
-                [field]: field === "file_type" ? { id: "", name: "" } : undefined,
+                [field]: field === 'file_type' ? { id: '', name: '' } : undefined,
             }),
-            {},
+            {}
         ),
-        mode: "onTouched",
+        mode: 'onTouched',
     });
 
     const { watch, getValues } = form;
@@ -100,20 +99,20 @@ export const StudyMaterialDetailsForm = ({
 
     // Get session list based on selected course
     const sessionList = getSessionFromPackage({
-        courseId: getValues("course")?.id,
+        courseId: getValues('course')?.id,
     });
 
     // Get level list based on selected course and session
     const levelList = getLevelsFromPackage({
-        courseId: getValues("course")?.id,
-        sessionId: getValues("session")?.id,
+        courseId: getValues('course')?.id,
+        sessionId: getValues('session')?.id,
     });
 
     // Get subject list
     const subjectList = getCourseSubjects(
-        getValues("course")?.id || "",
-        getValues("session")?.id || "",
-        getValues("level")?.id || "",
+        getValues('course')?.id || '',
+        getValues('session')?.id || '',
+        getValues('level')?.id || ''
     );
     const formattedSubjectList = useMemo(
         () =>
@@ -121,15 +120,15 @@ export const StudyMaterialDetailsForm = ({
                 id: subject.id,
                 name: subject.subject_name,
             })),
-        [subjectList],
+        [subjectList]
     );
 
     // Get package session ID for modules
     const fetchPackageSessionId = () => {
         return getPackageSessionId({
-            courseId: getValues("course")?.id || "",
-            sessionId: getValues("session")?.id || "",
-            levelId: getValues("level")?.id || "",
+            courseId: getValues('course')?.id || '',
+            sessionId: getValues('session')?.id || '',
+            levelId: getValues('level')?.id || '',
         });
     };
 
@@ -138,15 +137,15 @@ export const StudyMaterialDetailsForm = ({
     useEffect(() => {
         const newPackageSessionId = fetchPackageSessionId();
         setPackageSessionId(newPackageSessionId);
-    }, [watch("course"), watch("session"), watch("level")]);
+    }, [watch('course'), watch('session'), watch('level')]);
 
     const { data: modulesWithChaptersData, error: modulesError } = useModulesWithChapters(
-        form.watch("subject")?.id || "",
-        packageSessionId || undefined,
+        form.watch('subject')?.id || '',
+        packageSessionId || undefined
     );
 
     if (modulesError) {
-        console.error("Error fetching modules with chapters:", modulesError);
+        console.error('Error fetching modules with chapters:', modulesError);
     }
 
     // Format module list
@@ -160,7 +159,7 @@ export const StudyMaterialDetailsForm = ({
     }, [modulesWithChaptersData]);
 
     // Get chapters list based on selected module
-    const chaptersList = getChaptersByModuleId(getValues("module")?.id || "");
+    const chaptersList = getChaptersByModuleId(getValues('module')?.id || '');
 
     const formattedChapterList = useMemo(() => {
         if (!chaptersList) return [];
@@ -172,27 +171,27 @@ export const StudyMaterialDetailsForm = ({
 
     // File type list formatted to match the FieldValue type
     const fileTypeList = [
-        { id: "PDF", name: "PDF" },
-        { id: "DOC", name: "DOC" },
-        { id: "VIDEO", name: "VIDEO" },
+        { id: 'PDF', name: 'PDF' },
+        { id: 'DOC', name: 'DOC' },
+        { id: 'VIDEO', name: 'VIDEO' },
     ];
 
     // Function to determine if a dropdown should be disabled
     const isDropdownDisabled = (fieldName: AvailableFields): boolean => {
         switch (fieldName) {
-            case "course":
+            case 'course':
                 return false;
-            case "session":
-                return !watch("course");
-            case "level":
-                return !watch("session");
-            case "subject":
-                return !watch("level");
-            case "module":
-                return !watch("subject");
-            case "chapter":
-                return !watch("module");
-            case "file_type":
+            case 'session':
+                return !watch('course');
+            case 'level':
+                return !watch('session');
+            case 'subject':
+                return !watch('level');
+            case 'module':
+                return !watch('subject');
+            case 'chapter':
+                return !watch('module');
+            case 'file_type':
                 return false;
             default:
                 return false;
@@ -202,19 +201,19 @@ export const StudyMaterialDetailsForm = ({
     // Get the appropriate list for each field
     const getListForField = (fieldName: AvailableFields): FieldValue[] => {
         switch (fieldName) {
-            case "course":
+            case 'course':
                 return courseList;
-            case "session":
+            case 'session':
                 return sessionList;
-            case "level":
+            case 'level':
                 return levelList;
-            case "subject":
+            case 'subject':
                 return formattedSubjectList;
-            case "module":
+            case 'module':
                 return formattedModuleList;
-            case "chapter":
+            case 'chapter':
                 return formattedChapterList;
-            case "file_type":
+            case 'file_type':
                 return fileTypeList;
             default:
                 return [];
@@ -224,13 +223,13 @@ export const StudyMaterialDetailsForm = ({
     // Get label and placeholder for each field
     const getFieldConfig = (fieldName: AvailableFields) => {
         const config = {
-            course: { label: "Course", placeholder: "Select Course" },
-            session: { label: "Session", placeholder: "Select Session" },
-            level: { label: "Year/Class", placeholder: "Select Year/Class" },
-            subject: { label: "Subject", placeholder: "Select Subject" },
-            module: { label: "Module", placeholder: "Select Module" },
-            chapter: { label: "Chapter", placeholder: "Select Chapter" },
-            file_type: { label: "File Type", placeholder: "Select File Type" },
+            course: { label: 'Course', placeholder: 'Select Course' },
+            session: { label: 'Session', placeholder: 'Select Session' },
+            level: { label: 'Year/Class', placeholder: 'Select Year/Class' },
+            subject: { label: 'Subject', placeholder: 'Select Subject' },
+            module: { label: 'Module', placeholder: 'Select Module' },
+            chapter: { label: 'Chapter', placeholder: 'Select Chapter' },
+            file_type: { label: 'File Type', placeholder: 'Select File Type' },
         };
 
         return config[fieldName];
@@ -240,7 +239,7 @@ export const StudyMaterialDetailsForm = ({
         try {
             await onFormSubmit(data);
         } catch (error) {
-            console.error("Form submission error:", error);
+            console.error('Form submission error:', error);
         }
     };
 
