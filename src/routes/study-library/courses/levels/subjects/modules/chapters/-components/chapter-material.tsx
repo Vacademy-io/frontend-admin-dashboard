@@ -76,7 +76,6 @@ export const ChapterMaterial = ({ currentModuleId }: { currentModuleId: string }
             form.reset({ chapters: existingChapters });
             setIsChapterLoading(false);
         }
-        console.log('remount');
     }, [existingChapters, form]);
 
     useEffect(() => {

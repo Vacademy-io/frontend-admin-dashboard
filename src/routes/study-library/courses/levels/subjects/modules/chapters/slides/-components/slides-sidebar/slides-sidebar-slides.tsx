@@ -58,8 +58,12 @@ export const ChapterSidebarSlides = ({
     const { setItems, activeItem, setActiveItem, items } = useContentStore();
     const router = useRouter();
     const { chapterId, slideId } = router.state.location.search;
-    const { slides, isLoading } = useSlides(chapterId || '');
+    const { slides, isLoading, refetch } = useSlides(chapterId || '');
     const { getCurrentEditorHTMLContent, saveDraft } = useSaveDraft();
+
+    useEffect(() => {
+        refetch();
+    }, []);
 
     const handleSlideClick = async (slide: Slide) => {
         // Check if we need to save the current slide before switching

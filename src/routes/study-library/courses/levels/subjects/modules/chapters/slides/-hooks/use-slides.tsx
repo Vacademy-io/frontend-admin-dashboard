@@ -308,6 +308,7 @@ export const useSlides = (chapterId: string) => {
         slides: getSlidesQuery.data,
         isLoading: getSlidesQuery.isLoading,
         error: getSlidesQuery.error,
+        refetch: getSlidesQuery.refetch,
         addUpdateVideoSlide: addUpdateVideoSlideMutation.mutateAsync,
         addUpdateDocumentSlide: addUpdateDocumentSlideMutation.mutateAsync,
         updateSlideStatus: updateSlideStatus.mutateAsync,

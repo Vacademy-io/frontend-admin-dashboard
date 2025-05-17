@@ -262,7 +262,7 @@ export const SlideMaterial = ({
     useEffect(() => {
         if (items.length == 0 && slideId == undefined) {
             setActiveItem(null);
-        } else if (items.some((slide) => slide.id == slideId)) {
+        } else {
             setActiveItem(items.find((slide) => slide.id == slideId) || items[0] || null);
         }
     }, [items]);
