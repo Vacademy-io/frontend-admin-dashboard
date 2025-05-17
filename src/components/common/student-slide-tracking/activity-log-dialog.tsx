@@ -20,11 +20,14 @@ import { useQuery } from '@tanstack/react-query';
 import {
     getUserVideoSlideActivityLogs,
     getUserDocActivityLogs,
+    getQuestionSlideActivityLogs,
+    getAssignmentSlideActivityLogs,
 } from '@/services/study-library/slide-operations/user-slide-activity-logs';
 import { ActivityContent } from '@/types/study-library/user-slide-activity-response-type';
 import { StudentTable } from '@/types/student-table-types';
 import { SlideWithStatusType } from '@/routes/manage-students/students-list/-types/student-slides-progress-type';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { convertToLocalDateTime, extractDateTime } from '@/constants/helper';
 
 export const ActivityLogDialog = ({
     selectedUser,
@@ -46,19 +49,37 @@ export const ActivityLogDialog = ({
         const userId = selectedUser && slideData ? selectedUser.user_id : selectedUserId || '';
         const slideId = selectedUser && slideData ? slideData.slide_id : activeItem?.id || '';
 
-        return activeItem?.video_slide?.url != null
-            ? getUserVideoSlideActivityLogs({
-                  userId,
-                  slideId,
-                  pageNo: page,
-                  pageSize: pageSize,
-              })
-            : getUserDocActivityLogs({
-                  userId,
-                  slideId,
-                  pageNo: page,
-                  pageSize: pageSize,
-              });
+        if (activeItem?.source_type === 'QUESTION') {
+            return getQuestionSlideActivityLogs({
+                userId,
+                slideId,
+                pageNo: page,
+                pageSize: pageSize,
+            });
+        }
+        if (activeItem?.source_type === 'ASSIGNMENT') {
+            return getAssignmentSlideActivityLogs({
+                userId,
+                slideId,
+                pageNo: page,
+                pageSize: pageSize,
+            });
+        }
+        if (activeItem?.video_slide?.url != null) {
+            return getUserVideoSlideActivityLogs({
+                userId,
+                slideId,
+                pageNo: page,
+                pageSize: pageSize,
+            });
+        } else {
+            return getUserDocActivityLogs({
+                userId,
+                slideId,
+                pageNo: page,
+                pageSize: pageSize,
+            });
+        }
     }, [selectedUser, slideData, selectedUserId, activeItem, page, pageSize]);
 
     const { data: activityLogs, isLoading, error } = useQuery(queryConfig);
@@ -79,20 +100,51 @@ export const ActivityLogDialog = ({
             };
         }
 
-        const transformedContent = activityLogs.content.map((item: ActivityContent) => ({
-            activityDate: formatDateTime(item.start_time_in_millis).split(',')[0],
-            startTime: formatDateTime(item.start_time_in_millis).split(',')[1],
-            endTime: formatDateTime(item.end_time_in_millis).split(',')[1],
-            duration: `${(
-                (item.end_time_in_millis - item.start_time_in_millis) /
-                1000 /
-                60
-            ).toFixed(2)} mins`,
-            lastPageRead: item.percentage_watched,
-            videos: item.videos,
-            documents: item.documents,
-            concentrationScore: item.concentration_score?.concentration_score || 0,
-        }));
+        let transformedContent = activityLogs.content;
+
+        if (activeItem?.source_type === 'VIDEO' || activeItem?.source_type === 'DOCUMENT') {
+            transformedContent = activityLogs.content.map((item: ActivityContent) => ({
+                activityDate: formatDateTime(item.start_time_in_millis).split(',')[0],
+                startTime: formatDateTime(item.start_time_in_millis).split(',')[1],
+                endTime: formatDateTime(item.end_time_in_millis).split(',')[1],
+                duration: `${(
+                    (item.end_time_in_millis - item.start_time_in_millis) /
+                    1000 /
+                    60
+                ).toFixed(2)} mins`,
+                lastPageRead: item.percentage_watched,
+                videos: item.videos,
+                documents: item.documents,
+                concentrationScore: item.concentration_score?.concentration_score || 0,
+            }));
+        }
+        if (activeItem?.source_type === 'QUESTION') {
+            transformedContent = activityLogs.content.map((item: ActivityContent) => ({
+                activityDate: formatDateTime(item.start_time_in_millis).split(',')[0],
+                attemptNumber: item.question_slides[0]?.attempt_number,
+                startTime: formatDateTime(item.start_time_in_millis).split(',')[1],
+                endTime: formatDateTime(item.end_time_in_millis).split(',')[1],
+                duration: `${(
+                    (item.end_time_in_millis - item.start_time_in_millis) /
+                    1000 /
+                    60
+                ).toFixed(2)} mins`,
+                response: item.question_slides[0]?.response_json,
+                responseStatus: item.question_slides[0]?.response_status,
+            }));
+        }
+
+        if (activeItem?.source_type === 'ASSIGNMENT') {
+            transformedContent = activityLogs.content.map((item: ActivityContent) => ({
+                uploadDate: extractDateTime(
+                    convertToLocalDateTime(item.assignment_slides[0]?.date_submitted || '')
+                ).date,
+                uploadTime: extractDateTime(
+                    convertToLocalDateTime(item.assignment_slides[0]?.date_submitted || '')
+                ).time,
+                submissions: item.assignment_slides[0]?.comma_separated_file_ids,
+            }));
+        }
 
         return {
             content: transformedContent,
