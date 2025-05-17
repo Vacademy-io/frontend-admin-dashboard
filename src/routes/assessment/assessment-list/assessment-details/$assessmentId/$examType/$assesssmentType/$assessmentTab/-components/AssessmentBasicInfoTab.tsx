@@ -43,6 +43,7 @@ export const AssessmentBasicInfoTab = () => {
                                 __html:
                                     assessmentDetails[0]?.saved_data?.instructions.content || '',
                             }}
+                            className="custom-html-content"
                         />
                     </div>
                 </div>
