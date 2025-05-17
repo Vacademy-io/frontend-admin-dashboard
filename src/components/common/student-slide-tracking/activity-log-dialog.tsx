@@ -156,8 +156,6 @@ export const ActivityLogDialog = ({
         };
     }, [activityLogs, page, pageSize, selectedUser, slideData, activeItem]);
 
-    console.log(activeItem);
-
     return (
         <>
             <Dialog open={isOpen} onOpenChange={closeDialog}>
