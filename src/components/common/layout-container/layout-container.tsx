@@ -57,11 +57,19 @@ export const LayoutContainer = ({
                             intrnalMargin ? `m-7 flex flex-1 flex-col` : `m-0`,
                             open
                                 ? intrnalMargin
-                                    ? `max-w-[calc(100vw-322px-56px)]`
-                                    : `max-w-[calc(100vw-320px)]`
+                                    ? internalSideBar || hasInternalSidebarComponent
+                                        ? `max-w-[calc(100vw-322px-56px-290px)]`
+                                        : `max-w-[calc(100vw-322px-56px)]`
+                                    : internalSideBar || hasInternalSidebarComponent
+                                      ? `max-w-[calc(100vw-320px)]`
+                                      : `max-w-[calc(100vw-320px)]`
                                 : intrnalMargin
-                                  ? `max-w-[calc(100vw-132px-56px)]`
-                                  : `max-w-[calc(100vw-132px)]`,
+                                  ? internalSideBar || hasInternalSidebarComponent
+                                      ? `max-w-[calc(100vw-132px-56px-290px)]`
+                                      : `max-w-[calc(100vw-132px-56px)]`
+                                  : internalSideBar || hasInternalSidebarComponent
+                                    ? `max-w-[calc(100vw-132px-290px)]`
+                                    : `max-w-[calc(100vw-132px)]`,
                             className
                         )}
                     >
@@ -72,3 +80,19 @@ export const LayoutContainer = ({
         </div>
     );
 };
+
+{
+    /* <div
+className={cn(
+    intrnalMargin ? `m-7 flex flex-1 flex-col` : `m-0`,
+    open
+        ? intrnalMargin
+            ? `max-w-[calc(100vw-322px-56px-290px)]`
+            : `max-w-[calc(100vw-320px)]`
+        : intrnalMargin
+          ? `max-w-[calc(100vw-132px-56px-290px)]`
+          : `max-w-[calc(100vw-132px)]`,
+    className
+)}
+> */
+}

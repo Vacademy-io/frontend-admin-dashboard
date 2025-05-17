@@ -1,4 +1,4 @@
-import { ButtonProps } from "@/components/ui/button";
+import { ButtonProps } from '@/components/ui/button';
 
 export interface myButtonProps {
     className: string;
@@ -7,12 +7,12 @@ export interface myButtonProps {
 }
 
 // Types
-type ButtonVariantType = "primary" | "secondary" | "text";
-type ButtonScale = "large" | "medium" | "small";
-type ButtonLayoutVariant = "default" | "icon" | "floating" | "extendedFloating";
+type ButtonVariantType = 'primary' | 'secondary' | 'text';
+export type ButtonScale = 'large' | 'medium' | 'small';
+type ButtonLayoutVariant = 'default' | 'icon' | 'floating' | 'extendedFloating';
 
 // Extend from Shadcn ButtonProps instead of HTML button attributes
-export interface MyButtonProps extends Omit<ButtonProps, "variant"> {
+export interface MyButtonProps extends Omit<ButtonProps, 'variant'> {
     className?: string;
     buttonType?: ButtonVariantType; // renamed from 'type' to avoid confusion
     scale?: ButtonScale;

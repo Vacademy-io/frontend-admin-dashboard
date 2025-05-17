@@ -1,14 +1,14 @@
 // subjects.tsx
-import { EmptySubjectMaterial } from "@/assets/svgs";
-import { SubjectCard } from "./subject-card";
-import { Sortable, SortableItem } from "@/components/ui/sortable";
-import { closestCorners } from "@dnd-kit/core";
-import { useEffect, useState } from "react";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { SubjectType } from "@/stores/study-library/use-study-library-store";
-import { orderSubjectPayloadType } from "@/routes/study-library/courses/-types/order-payload";
-import { useSidebar } from "@/components/ui/sidebar";
-import { DropdownItemType } from "@/components/common/students/enroll-manually/dropdownTypesForPackageItems";
+import { EmptySubjectMaterial } from '@/assets/svgs';
+import { SubjectCard } from './subject-card';
+import { Sortable, SortableItem } from '@/components/ui/sortable';
+import { closestCorners } from '@dnd-kit/core';
+import { useEffect, useState } from 'react';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { SubjectType } from '@/stores/study-library/use-study-library-store';
+import { orderSubjectPayloadType } from '@/routes/study-library/courses/-types/order-payload';
+import { useSidebar } from '@/components/ui/sidebar';
+import { DropdownItemType } from '@/components/common/students/enroll-manually/dropdownTypesForPackageItems';
 
 interface SubjectsProps {
     subjects: SubjectType[];
@@ -55,7 +55,7 @@ export const Subjects = ({
     }
 
     return (
-        <div className="h-full w-full">
+        <div className="size-full">
             {!subjects.length ? (
                 <div className="flex w-full flex-col items-center justify-center gap-8 rounded-lg py-10">
                     <EmptySubjectMaterial />
@@ -67,12 +67,12 @@ export const Subjects = ({
                     collisionDetection={closestCorners}
                     value={subjects}
                     onValueChange={handleValueChange}
-                    overlay={<div className="bg-primary/10 size-full rounded-md" />}
+                    overlay={<div className="size-full rounded-md bg-primary-500/10" />}
                     fast={false}
                 >
                     <div
-                        className={`grid grid-cols-1 gap-10 sm:grid-cols-2 md:grid-cols-4 ${
-                            open ? "md:grid-cols-3" : "md:grid-cols-4"
+                        className={`grid grid-cols-2 gap-1 sm:grid-cols-2 md:grid-cols-3 ${
+                            !open ? 'sm:grid-cols-3' : ''
                         }`}
                     >
                         {subjects.map((subject) => (

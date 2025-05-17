@@ -12,6 +12,7 @@ import { InviteLink } from '@/routes/manage-students/-components/InviteLink';
 import { CreateInvite } from '@/routes/manage-students/invite/-components/create-invite/CreateInvite';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { NoCourseDialog } from '@/components/common/students/no-course-dialog';
+import { cn } from '@/lib/utils';
 
 const InviteLinksDialog = ({
     currentSession,
@@ -75,7 +76,13 @@ const InviteLinksDialog = ({
     );
 };
 
-export const StudentListHeader = ({ currentSession }: { currentSession?: DropdownItemType }) => {
+export const StudentListHeader = ({
+    currentSession,
+    titleSize,
+}: {
+    currentSession?: DropdownItemType;
+    titleSize?: string;
+}) => {
     const [openInviteLinksDialog, setOpenInviteLinksDialog] = useState(false);
     const { instituteDetails } = useInstituteDetailsStore();
     const [isOpen, setIsOpen] = useState(false);
@@ -84,7 +91,9 @@ export const StudentListHeader = ({ currentSession }: { currentSession?: Dropdow
     };
     return (
         <div className="flex items-center justify-between">
-            <div className="text-h3 font-semibold">Learner List</div>
+            <div className={cn('font-semibold', titleSize ? titleSize : 'text-h3')}>
+                Learner List
+            </div>
             <div className="flex items-center gap-4">
                 <MyButton
                     onClick={() => {

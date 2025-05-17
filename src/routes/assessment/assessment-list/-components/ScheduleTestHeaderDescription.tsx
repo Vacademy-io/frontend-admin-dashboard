@@ -10,7 +10,11 @@ import { Examination, Mock, Practice, Survey } from '@/svgs';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { cn } from '@/lib/utils';
 
-export const ScheduleTestHeaderDescription = () => {
+export const ScheduleTestHeaderDescription = ({
+    isCourseOutline = false,
+}: {
+    isCourseOutline?: boolean;
+}) => {
     const isMobile = useIsMobile();
     const navigate = useNavigate();
     const { getCourseFromPackage } = useInstituteDetailsStore();
@@ -40,10 +44,15 @@ export const ScheduleTestHeaderDescription = () => {
             }`}
         >
             <div className="flex flex-col">
-                <h1 className="text-[1.25rem] font-semibold text-neutral-600">
+                <h1
+                    className={cn(
+                        'font-semibold text-neutral-600',
+                        isCourseOutline ? 'text-base' : 'text-[1.25rem]'
+                    )}
+                >
                     Comprehensive Test Management
                 </h1>
-                <p className="text-neutral-600">
+                <p className={cn('text-neutral-600', isCourseOutline && 'hidden')}>
                     Effortlessly monitor and manage all assessments with a comprehensive view of
                     ongoing, upcoming, and past exams. Gain easy access to each test&rsquo;s
                     details, schedule, and status, ensuring organized oversight of the entire
