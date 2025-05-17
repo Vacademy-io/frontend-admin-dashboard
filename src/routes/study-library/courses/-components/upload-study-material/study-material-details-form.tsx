@@ -58,11 +58,7 @@ const createFormSchema = (fields: AvailableFields[]) => {
 
 // Custom hook to fetch modules with chapters
 const useModulesWithChapters = (subjectId: string, packageSessionId?: string) => {
-    return {
-        ...useModulesWithChaptersQuery(subjectId, packageSessionId || ''),
-        staleTime: 3600000,
-        enabled: !!subjectId && !!packageSessionId, // Only run the query if both values are present
-    };
+    return useModulesWithChaptersQuery(subjectId, packageSessionId || '');
 };
 
 export const StudyMaterialDetailsForm = ({
