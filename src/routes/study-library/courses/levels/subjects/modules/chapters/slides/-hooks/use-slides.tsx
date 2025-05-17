@@ -106,6 +106,16 @@ export interface AssignmentSlide {
     end_date: string; // ISO 8601 date format
     re_attempt_count: number;
     comma_separated_media_ids: string;
+    questions: AssignmentQuestion[];
+}
+
+export interface AssignmentQuestion {
+    id: string;
+    text_data: TextData;
+    question_order: number;
+    status: string;
+    new_question: boolean;
+    question_type: string;
 }
 
 // Main slide interface
