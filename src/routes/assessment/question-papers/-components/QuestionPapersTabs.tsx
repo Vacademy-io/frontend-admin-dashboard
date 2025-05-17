@@ -1,25 +1,25 @@
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { TabListComponent } from "./TabListComponent";
-import { QuestionPapersFilter } from "./QuestionPapersFilter";
-import { QuestionPapersSearchComponent } from "./QuestionPapersSearchComponent";
-import { QuestionPapersDateRangeComponent } from "./QuestionPapersDateRangeComponent";
-import { EmptyQuestionPapers } from "@/svgs";
-import { QuestionPapersList } from "./QuestionPapersList";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
-import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
-import { FilterOption } from "@/types/assessments/question-paper-filter";
-import { MyButton } from "@/components/design-system/button";
-import { getQuestionPaperDataWithFilters } from "../-utils/question-paper-services";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { useRefetchStore } from "../-global-states/refetch-store";
-import { useFilterDataForAssesment } from "../../assessment-list/-utils.ts/useFiltersData";
-import { z } from "zod";
-import sectionDetailsSchema from "../../create-assessment/$assessmentId/$examtype/-utils/section-details-schema";
-import { UseFormReturn } from "react-hook-form";
-import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
-import { TokenKey } from "@/constants/auth/tokens";
-import { AssignmentFormType } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-form-schemas/assignmentFormSchema";
+import { Dispatch, SetStateAction, useEffect, useState } from 'react';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
+import { TabListComponent } from './TabListComponent';
+import { QuestionPapersFilter } from './QuestionPapersFilter';
+import { QuestionPapersSearchComponent } from './QuestionPapersSearchComponent';
+import { QuestionPapersDateRangeComponent } from './QuestionPapersDateRangeComponent';
+import { EmptyQuestionPapers } from '@/svgs';
+import { QuestionPapersList } from './QuestionPapersList';
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
+import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
+import { FilterOption } from '@/types/assessments/question-paper-filter';
+import { MyButton } from '@/components/design-system/button';
+import { getQuestionPaperDataWithFilters } from '../-utils/question-paper-services';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { useRefetchStore } from '../-global-states/refetch-store';
+import { useFilterDataForAssesment } from '../../assessment-list/-utils.ts/useFiltersData';
+import { z } from 'zod';
+import sectionDetailsSchema from '../../create-assessment/$assessmentId/$examtype/-utils/section-details-schema';
+import { UseFormReturn } from 'react-hook-form';
+import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
+import { AssignmentFormType } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-form-schemas/assignmentFormSchema';
 
 export type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 
@@ -46,11 +46,11 @@ export const QuestionPapersTabs = ({
     const data = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
-    const [selectedTab, setSelectedTab] = useState("ACTIVE");
+    const [selectedTab, setSelectedTab] = useState('ACTIVE');
     const [selectedQuestionPaperFilters, setSelectedQuestionPaperFilters] = useState<
         Record<string, FilterOption[]>
     >({});
-    const [searchText, setSearchText] = useState("");
+    const [searchText, setSearchText] = useState('');
     const [pageNo, setPageNo] = useState(0);
     const [questionPaperList, setQuestionPaperList] = useState(null);
     const [questionPaperFavouriteList, setQuestionPaperFavouriteList] = useState(null);
@@ -72,7 +72,7 @@ export const QuestionPapersTabs = ({
             data: Record<string, FilterOption[]>;
         }) => getQuestionPaperDataWithFilters(pageNo, pageSize, instituteId, data),
         onSuccess: (data) => {
-            if (selectedTab === "FAVOURITE") {
+            if (selectedTab === 'FAVOURITE') {
                 setQuestionPaperFavouriteList(data);
             } else {
                 setQuestionPaperList(data);
@@ -147,7 +147,7 @@ export const QuestionPapersTabs = ({
 
     const handleResetFilters = () => {
         setSelectedQuestionPaperFilters({});
-        setSearchText("");
+        setSearchText('');
         getFilteredData.mutate({
             pageNo: pageNo,
             pageSize: 10,
@@ -159,8 +159,8 @@ export const QuestionPapersTabs = ({
     };
 
     const clearSearch = () => {
-        setSearchText("");
-        delete selectedQuestionPaperFilters["name"];
+        setSearchText('');
+        delete selectedQuestionPaperFilters['name'];
     };
 
     const handleSubmitFilters = () => {
@@ -195,7 +195,7 @@ export const QuestionPapersTabs = ({
             instituteId: INSTITUTE_ID,
             data: {
                 ...selectedQuestionPaperFilters,
-                statuses: [{ id: "FAVOURITE", name: "FAVOURITE" }],
+                statuses: [{ id: 'FAVOURITE', name: 'FAVOURITE' }],
             },
         });
         getFilteredActiveData.mutate({
@@ -204,7 +204,7 @@ export const QuestionPapersTabs = ({
             instituteId: INSTITUTE_ID,
             data: {
                 ...selectedQuestionPaperFilters,
-                statuses: [{ id: "ACTIVE", name: "ACTIVE" }],
+                statuses: [{ id: 'ACTIVE', name: 'ACTIVE' }],
             },
         });
     };
@@ -219,7 +219,7 @@ export const QuestionPapersTabs = ({
         const timeoutId = setTimeout(() => {
             getQuestionPaperDataWithFilters(pageNo, 10, INSTITUTE_ID, {
                 ...selectedQuestionPaperFilters,
-                statuses: [{ id: "ACTIVE", name: "ACTIVE" }],
+                statuses: [{ id: 'ACTIVE', name: 'ACTIVE' }],
             })
                 .then((data) => {
                     setQuestionPaperList(data);
@@ -241,7 +241,7 @@ export const QuestionPapersTabs = ({
         const timeoutId = setTimeout(() => {
             getQuestionPaperDataWithFilters(pageNo, 10, INSTITUTE_ID, {
                 ...selectedQuestionPaperFilters,
-                statuses: [{ id: "FAVOURITE", name: "FAVOURITE" }],
+                statuses: [{ id: 'FAVOURITE', name: 'FAVOURITE' }],
             })
                 .then((data) => {
                     setQuestionPaperFavouriteList(data);
@@ -274,14 +274,14 @@ export const QuestionPapersTabs = ({
                     <QuestionPapersFilter
                         label="Year/Class"
                         data={YearClassFilterData}
-                        selectedItems={selectedQuestionPaperFilters["level_ids"] || []}
-                        onSelectionChange={(items) => handleFilterChange("level_ids", items)}
+                        selectedItems={selectedQuestionPaperFilters['level_ids'] || []}
+                        onSelectionChange={(items) => handleFilterChange('level_ids', items)}
                     />
                     <QuestionPapersFilter
                         label="Subject"
                         data={SubjectFilterData}
-                        selectedItems={selectedQuestionPaperFilters["subject_ids"] || []}
-                        onSelectionChange={(items) => handleFilterChange("subject_ids", items)}
+                        selectedItems={selectedQuestionPaperFilters['subject_ids'] || []}
+                        onSelectionChange={(items) => handleFilterChange('subject_ids', items)}
                     />
                     {Object.keys(selectedQuestionPaperFilters).length > 0 && (
                         <div className="flex gap-6">
@@ -307,7 +307,7 @@ export const QuestionPapersTabs = ({
                     )}
                     <div
                         className={`flex gap-4 ${
-                            Object.keys(selectedQuestionPaperFilters).length > 0 ? "mt-[-3px]" : ""
+                            Object.keys(selectedQuestionPaperFilters).length > 0 ? 'mt-[-3px]' : ''
                         }`}
                     >
                         <QuestionPapersSearchComponent

@@ -11,6 +11,7 @@ import { MyQuestion } from '@/types/assessments/question-paper-form';
 import { convertDateFormat } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-components/StepComponents/Step1BasicInfo';
 import { convertToUTC } from '@/routes/homework-creation/create-assessment/$assessmentId/$examtype/-utils/helper';
 import { AssignmentFormType } from '../-form-schemas/assignmentFormSchema';
+import { parseHtmlToString } from '@/lib/utils';
 
 export const convertHtmlToPdf = async (
     htmlString: string
@@ -424,6 +425,20 @@ export const convertToAssignmentSlideBackendFormat = (assignmentSlide: Assignmen
         end_date: convertToUTC(assignmentSlide.endDate),
         re_attempt_count: assignmentSlide.reattemptCount,
         comma_separated_media_ids: '',
+        questions: assignmentSlide.adaptive_marking_for_each_question.map((question, idx) => {
+            return {
+                id: question.questionId,
+                text_data: {
+                    id: '',
+                    type: 'text',
+                    content: question.questionName,
+                },
+                question_order: idx,
+                status: 'ACTIVE',
+                question_type: question.questionType,
+                new_question: question.newQuestion,
+            };
+        }),
     };
 };
 
@@ -638,13 +653,20 @@ export function timestampToSeconds(timestamp: string | undefined): number {
 const transformAssignmentSlide = (assignment: AssignmentSlide) => {
     return {
         id: assignment?.id,
-        task: assignment?.text_data.content,
+        task: parseHtmlToString(assignment?.text_data.content),
         taskDescription: assignment?.parent_rich_text.content,
         startDate: convertDateFormat(assignment?.live_date || ''),
         endDate: convertDateFormat(assignment?.end_date || ''),
         reattemptCount: String(assignment?.re_attempt_count),
         uploaded_question_paper: null,
-        adaptive_marking_for_each_question: [],
+        adaptive_marking_for_each_question: assignment.questions?.map((question) => {
+            return {
+                questionId: question.id,
+                questionName: question.text_data.content,
+                questionType: question.question_type,
+                newQuestion: question.new_question,
+            };
+        }),
         totalParticipants: 0,
         submittedParticipants: 0,
     };

@@ -13,6 +13,7 @@ export const assignmentFormSchema = z.object({
             questionId: z.string().optional(),
             questionName: z.string(),
             questionType: z.string(),
+            newQuestion: z.boolean().optional(),
         })
     ),
     totalParticipants: z.number().optional(),

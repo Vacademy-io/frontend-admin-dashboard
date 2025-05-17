@@ -138,6 +138,7 @@ export const QuestionPaperUpload = ({
                         questionId: question.questionId,
                         questionName: question.questionName,
                         questionType: question.questionType,
+                        newQuestion: true,
                     }))
                 );
             }
