@@ -11,6 +11,7 @@ import { MyQuestion } from '@/types/assessments/question-paper-form';
 import { convertDateFormat } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-components/StepComponents/Step1BasicInfo';
 import { convertToUTC } from '@/routes/homework-creation/create-assessment/$assessmentId/$examtype/-utils/helper';
 import { AssignmentFormType } from '../-form-schemas/assignmentFormSchema';
+import { parseHtmlToString } from '@/lib/utils';
 
 export const convertHtmlToPdf = async (
     htmlString: string
@@ -652,7 +653,7 @@ export function timestampToSeconds(timestamp: string | undefined): number {
 const transformAssignmentSlide = (assignment: AssignmentSlide) => {
     return {
         id: assignment?.id,
-        task: assignment?.text_data.content,
+        task: parseHtmlToString(assignment?.text_data.content),
         taskDescription: assignment?.parent_rich_text.content,
         startDate: convertDateFormat(assignment?.live_date || ''),
         endDate: convertDateFormat(assignment?.end_date || ''),
