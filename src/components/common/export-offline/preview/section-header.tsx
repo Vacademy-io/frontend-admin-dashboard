@@ -1,5 +1,5 @@
-import { useExportSettings } from "../contexts/export-settings-context";
-import { cn } from "@/lib/utils";
+import { useExportSettings } from '../contexts/export-settings-context';
+import { cn } from '@/lib/utils';
 
 interface SectionHeaderProps {
     title: string;
@@ -42,7 +42,7 @@ export function SectionHeader({
     return (
         <div className="mb-4">
             <div className="flex items-center justify-between" style={headerStyle}>
-                {headerSettings.logo.visible && headerSettings.logo.position === "left" && (
+                {headerSettings.logo.visible && headerSettings.logo.position === 'left' && (
                     <img
                         src={headerSettings.logo.url}
                         alt="Logo"
@@ -52,7 +52,7 @@ export function SectionHeader({
 
                 {headerSettings.leftSection.visible && (
                     <div
-                        className={cn("flex-1")}
+                        className={cn('flex-1')}
                         style={{
                             fontSize: `${headerSettings.leftSection.fontSize}px`,
                             fontWeight: headerSettings.leftSection.fontWeight,
@@ -60,7 +60,7 @@ export function SectionHeader({
                             textAlign: headerSettings.leftSection.textAlign,
                         }}
                     >
-                        {headerSettings.leftSection.content.split("\n").map((line, i) => (
+                        {headerSettings.leftSection.content.split('\n').map((line, i) => (
                             <div key={i}>{line}</div>
                         ))}
                     </div>
@@ -68,7 +68,7 @@ export function SectionHeader({
 
                 {headerSettings.centerSection.visible && (
                     <div
-                        className={cn("flex-1")}
+                        className={cn('flex-1')}
                         style={{
                             fontSize: `${headerSettings.centerSection.fontSize}px`,
                             fontWeight: headerSettings.centerSection.fontWeight,
@@ -79,14 +79,14 @@ export function SectionHeader({
                         {headerSettings.centerSection.useSectionName
                             ? title
                             : headerSettings.centerSection.content
-                                  .split("\n")
+                                  .split('\n')
                                   .map((line, i) => <div key={i}>{line}</div>)}
                     </div>
                 )}
 
                 {headerSettings.rightSection.visible && (
                     <div
-                        className={cn("flex-1")}
+                        className={cn('flex-1')}
                         style={{
                             fontSize: `${headerSettings.rightSection.fontSize}px`,
                             fontWeight: headerSettings.rightSection.fontWeight,
@@ -94,13 +94,13 @@ export function SectionHeader({
                             textAlign: headerSettings.rightSection.textAlign,
                         }}
                     >
-                        {headerSettings.rightSection.content.split("\n").map((line, i) => (
+                        {headerSettings.rightSection.content.split('\n').map((line, i) => (
                             <div key={i}>{line}</div>
                         ))}
                     </div>
                 )}
 
-                {headerSettings.logo.visible && headerSettings.logo.position === "right" && (
+                {headerSettings.logo.visible && headerSettings.logo.position === 'right' && (
                     <img
                         src={headerSettings.logo.url}
                         alt="Logo"
@@ -127,7 +127,7 @@ function DefaultHeader({
                 {showMarks && <div>Marks: {totalMarks}</div>}
                 {showDuration && (
                     <div>
-                        Duration:{" "}
+                        Duration:{' '}
                         {duration % 60 === 0 ? `${duration / 60} Hrs` : `${duration} Mins`}
                     </div>
                 )}

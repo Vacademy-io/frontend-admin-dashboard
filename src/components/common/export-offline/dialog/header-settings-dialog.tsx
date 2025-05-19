@@ -1,21 +1,21 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ColorPicker } from "@/components/ui/color-picker";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ColorPicker } from '@/components/ui/color-picker';
 
-import { Switch } from "@/components/ui/switch";
-import { Input } from "@/components/ui/input";
+import { Switch } from '@/components/ui/switch';
+import { Input } from '@/components/ui/input';
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select";
-import { useExportSettings } from "../contexts/export-settings-context";
-import { TextSectionSettings } from "./text-section-settings";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
-import { useEffect } from "react";
-import useInstituteLogoStore from "../../layout-container/sidebar/institutelogo-global-zustand";
+} from '@/components/ui/select';
+import { useExportSettings } from '../contexts/export-settings-context';
+import { TextSectionSettings } from './text-section-settings';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent } from '@/components/ui/card';
+import { useEffect } from 'react';
+import useInstituteLogoStore from '../../layout-container/sidebar/institutelogo-global-zustand';
 
 export function HeaderSettingsDialog() {
     const { settings, updateSettings } = useExportSettings();

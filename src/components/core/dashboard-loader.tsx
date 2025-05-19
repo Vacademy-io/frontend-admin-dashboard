@@ -1,18 +1,19 @@
-import { cn } from "@/lib/utils";
-import { useTheme } from "@/providers/theme/theme-provider";
-import ClipLoader from "react-spinners/ClipLoader";
+import { cn } from '@/lib/utils';
+import { useTheme } from '@/providers/theme/theme-provider';
+import ClipLoader from 'react-spinners/ClipLoader';
 export function DashboardLoader({
-    height = "100vh",
+    height = '100vh',
     size = 40,
-    color = "#ED7424",
-    className = "",
+    color = '#ED7424',
+    className = '',
 }: {
     height?: string;
     size?: number;
     color?: string;
     className?: string;
 }) {
-    const {primaryColor} = useTheme()
+    const { primaryColor } = useTheme();
+    console.log(color);
     return (
         <div
             className={cn(`flex flex-col items-center justify-center`, className)}

@@ -245,16 +245,16 @@ html {
         font-size: 16px;
     }
 
-    .yoopta-editor-custom [data-slate-placeholder="true"] {
+    .yoopta-editor-custom [data-slate-placeholder='true'] {
         font-size: 16px !important;
     }
 
-    .yoopta-editor-custom [contenteditable="true"] {
+    .yoopta-editor-custom [contenteditable='true'] {
         font-size: 16px !important;
     }
 
     /* Target the command input specifically */
-    .yoopta-editor-custom [role="textbox"],
+    .yoopta-editor-custom [role='textbox'],
     .yoopta-editor-custom input {
         font-size: 16px !important;
     }
@@ -398,38 +398,37 @@ html {
     }
 }
 
-.App-menu_top{
-    position: fixed  !important;
+.App-menu_top {
+    position: fixed !important;
     top: 10;
     left: 0;
 }
-.toolbar{
+.toolbar {
     display: none !important;
 }
-.sidebar-trigger__label-element{
+.sidebar-trigger__label-element {
     display: none !important;
-  
 }
 /* .App-toolbar{
     background-color: hsl(var(--primary-100)) !important;
 } */
 
-.HintViewer{
+.HintViewer {
     display: none !important;
 }
 /* .Island{
     background-color: hsl(var(--primary-100)) !important;
 } */
 
-.zoom-actions{
+.zoom-actions {
     display: none !important;
 }
 
-.buttonList{
+.buttonList {
     display: flex !important;
     flex-wrap: nowrap !important;
     gap: 4px !important;
 }
-.App-menu__left{
+.App-menu__left {
     max-width: 80vw !important;
 }

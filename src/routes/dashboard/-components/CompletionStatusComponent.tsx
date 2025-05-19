@@ -1,11 +1,11 @@
-import { PolarGrid, PolarRadiusAxis, RadialBar, RadialBarChart } from "recharts";
-import { ChartConfig, ChartContainer } from "@/components/ui/chart";
-import { useTheme } from "@/providers/theme/theme-provider";
+import { PolarGrid, PolarRadiusAxis, RadialBar, RadialBarChart } from 'recharts';
+import { ChartConfig, ChartContainer } from '@/components/ui/chart';
+import { useTheme } from '@/providers/theme/theme-provider';
 
 const chartConfig = {
     visitors: {
-        label: "Visitors",
-        color: "#F6B97B",
+        label: 'Visitors',
+        color: '#F6B97B',
     },
 } satisfies ChartConfig;
 
@@ -14,12 +14,12 @@ export function CompletionStatusComponent({
 }: {
     profileCompletionPercentage: number;
 }) {
-    const {primaryColor} = useTheme();
+    const { primaryColor } = useTheme();
     const chartData = [
         {
-            browser: "visitors",
+            browser: 'visitors',
             visitors: profileCompletionPercentage,
-            fill: primaryColor ? primaryColor :"var(--color-visitors)",
+            fill: primaryColor ? primaryColor : 'var(--color-visitors)',
         },
     ];
     return (
