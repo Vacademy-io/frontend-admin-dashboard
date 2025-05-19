@@ -22,6 +22,7 @@ import {
     getUserDocActivityLogs,
     getQuestionSlideActivityLogs,
     getAssignmentSlideActivityLogs,
+    getUserVideoResponseSlideActivityLogs,
 } from '@/services/study-library/slide-operations/user-slide-activity-logs';
 import { ActivityContent } from '@/types/study-library/user-slide-activity-response-type';
 import { StudentTable } from '@/types/student-table-types';
@@ -82,7 +83,24 @@ export const ActivityLogDialog = ({
         }
     }, [selectedUser, slideData, selectedUserId, activeItem, page, pageSize]);
 
+    const queryConfigVideoResponse = useMemo(() => {
+        const userId = selectedUser && slideData ? selectedUser.user_id : selectedUserId || '';
+        const slideId = selectedUser && slideData ? slideData.slide_id : activeItem?.id || '';
+
+        return getUserVideoResponseSlideActivityLogs({
+            userId,
+            slideId,
+            pageNo: page,
+            pageSize: pageSize,
+        });
+    }, [selectedUser, slideData, selectedUserId, activeItem, page, pageSize]);
+
     const { data: activityLogs, isLoading, error } = useQuery(queryConfig);
+    const {
+        data: activityLogsVideoResponse,
+        isLoading: isVideoResponseLoading,
+        error: isVideoResponseError,
+    } = useQuery(queryConfigVideoResponse);
 
     const formatDateTime = (timestamp: number) => {
         return new Date(timestamp).toLocaleString();
@@ -156,6 +174,43 @@ export const ActivityLogDialog = ({
         };
     }, [activityLogs, page, pageSize, selectedUser, slideData, activeItem]);
 
+    const tableDataVideoResponse = useMemo(() => {
+        if (!activityLogsVideoResponse) {
+            return {
+                content: [],
+                total_pages: 0,
+                page_no: 0,
+                page_size: pageSize,
+                total_elements: 0,
+                last: true,
+            };
+        }
+
+        const transformedContent = activityLogsVideoResponse.content.map(
+            (item: ActivityContent) => ({
+                activityDate: formatDateTime(item.start_time_in_millis).split(',')[0],
+                startTime: formatDateTime(item.start_time_in_millis).split(',')[1],
+                endTime: formatDateTime(item.end_time_in_millis).split(',')[1],
+                duration: `${(
+                    (item.end_time_in_millis - item.start_time_in_millis) /
+                    1000 /
+                    60
+                ).toFixed(2)} mins`,
+                response: item.video_slides_questions[0]?.response_json,
+                responseStatus: item.video_slides_questions[0]?.response_status,
+            })
+        );
+
+        return {
+            content: transformedContent,
+            total_pages: activityLogsVideoResponse.totalPages,
+            page_no: page,
+            page_size: pageSize,
+            total_elements: activityLogsVideoResponse.totalElements,
+            last: activityLogsVideoResponse.last,
+        };
+    }, [activityLogsVideoResponse, page, pageSize, selectedUser, slideData, activeItem]);
+
     return (
         <>
             <Dialog open={isOpen} onOpenChange={closeDialog}>
@@ -228,17 +283,10 @@ export const ActivityLogDialog = ({
                                     <TabsContent value="responses">
                                         <div className="no-scrollbar mt-6 overflow-x-scroll">
                                             <MyTable
-                                                data={{
-                                                    content: [],
-                                                    total_pages: 0,
-                                                    page_no: 0,
-                                                    page_size: pageSize,
-                                                    total_elements: 0,
-                                                    last: true,
-                                                }}
+                                                data={tableDataVideoResponse}
                                                 columns={activityResponseTypeColumns}
-                                                isLoading={isLoading}
-                                                error={error}
+                                                isLoading={isVideoResponseLoading}
+                                                error={isVideoResponseError}
                                                 columnWidths={ACTIVITY_RESPONSE_COLUMN_WIDTHS}
                                                 currentPage={page}
                                             />

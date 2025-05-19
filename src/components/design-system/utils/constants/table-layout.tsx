@@ -51,7 +51,6 @@ export const ACTIVITY_LOG_COLUMN_WIDTHS: ColumnWidthConfig = {
 
 export const ACTIVITY_RESPONSE_COLUMN_WIDTHS: ColumnWidthConfig = {
     activityDate: 'min-w-[120px]',
-    attemptNumber: 'min-w-[140px]',
     startTime: 'min-w-[100px]',
     endTime: 'min-w-[100px]',
     duration: 'min-w-[100px]',

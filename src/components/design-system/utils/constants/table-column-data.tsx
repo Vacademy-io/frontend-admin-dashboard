@@ -441,10 +441,6 @@ export const activityResponseTypeColumns: ColumnDef<ActivityResponseType>[] = [
         header: 'Activity Date',
     },
     {
-        accessorKey: 'attemptNumber',
-        header: 'Attempt Number',
-    },
-    {
         accessorKey: 'startTime',
         header: 'Start Time',
     },
