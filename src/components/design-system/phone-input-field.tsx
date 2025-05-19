@@ -1,7 +1,8 @@
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
-import { type Control } from "react-hook-form";
-import PhoneInput from "react-phone-input-2";
-import "react-phone-input-2/lib/bootstrap.css";
+import { cn } from '@/lib/utils';
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
+import { type Control } from 'react-hook-form';
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/bootstrap.css';
 
 interface PhoneInputFieldProps {
     label: string;
@@ -12,6 +13,7 @@ interface PhoneInputFieldProps {
     disabled?: boolean;
     country?: string;
     required?: boolean;
+    labelStyle?: string;
     value?: string;
 }
 
@@ -21,7 +23,8 @@ const PhoneInputField: React.FC<PhoneInputFieldProps> = ({
     placeholder,
     control,
     disabled = false,
-    country = "us",
+    country = 'us',
+    labelStyle,
     required = false,
     value,
 }) => {
@@ -32,7 +35,7 @@ const PhoneInputField: React.FC<PhoneInputFieldProps> = ({
             render={({ field }) => (
                 <FormItem>
                     <FormLabel>
-                        {label}
+                        <span className={cn(labelStyle)}>{label}</span>
                         {required && <span className="text-danger-600">*</span>}
                     </FormLabel>
                     <FormControl>
