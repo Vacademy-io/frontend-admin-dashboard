@@ -627,6 +627,7 @@ export function convertToCustomFieldsData(data: RegistrationFormField[] | undefi
                 disabled: false,
             })),
         }),
+        order: field.field_order,
     }));
 }
 
@@ -639,6 +640,7 @@ export function getCustomFieldsWhileEditStep3(assessmentDetails: Steps) {
             oldKey: true,
             isRequired: true,
             key: 'full_name',
+            order: 0,
         },
         {
             id: '1',
@@ -647,6 +649,7 @@ export function getCustomFieldsWhileEditStep3(assessmentDetails: Steps) {
             oldKey: true,
             isRequired: true,
             key: 'email',
+            order: 1,
         },
         {
             id: '2',
@@ -655,6 +658,7 @@ export function getCustomFieldsWhileEditStep3(assessmentDetails: Steps) {
             oldKey: true,
             isRequired: true,
             key: 'phone_number',
+            order: 2,
         },
     ];
 
