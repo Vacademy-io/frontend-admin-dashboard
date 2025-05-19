@@ -67,6 +67,7 @@ const VideoSlidePreview = ({ activeItem }: { activeItem: Slide }) => {
             } finally {
                 setIsLoading(false);
             }
+            return undefined; // Ensure all code paths return a value
         };
 
         if (videoSourceType === 'FILE_ID') {

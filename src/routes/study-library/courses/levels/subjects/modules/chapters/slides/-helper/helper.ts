@@ -6,7 +6,9 @@ import jsPDF from 'jspdf';
 import { Slide } from '../-hooks/use-slides';
 import { MyQuestion } from '@/types/assessments/question-paper-form';
 
-export const convertHtmlToPdf = async (htmlString: string): Promise<Blob> => {
+export const convertHtmlToPdf = async (
+    htmlString: string
+): Promise<{ pdfBlob: Blob; totalPages: number }> => {
     // Create temporary div to hold the HTML content
     const tempDiv: HTMLElement = document.createElement('div');
     tempDiv.innerHTML = htmlString;
@@ -134,7 +136,10 @@ export const convertHtmlToPdf = async (htmlString: string): Promise<Blob> => {
         // Generate the PDF blob
         const pdfOutput = pdf.output('datauristring');
         const pdfBlob = await fetch(pdfOutput).then((res) => res.blob());
-        return new Blob([pdfBlob], { type: 'application/pdf' });
+        return {
+            pdfBlob: new Blob([pdfBlob], { type: 'application/pdf' }),
+            totalPages,
+        };
     } finally {
         // Clean up
         if (document.body.contains(tempDiv)) {
@@ -230,8 +235,9 @@ export function convertStudyLibraryQuestion(question: MyQuestion) {
             },
         }));
     } else if (question?.questionType === QuestionType.TRUE_FALSE) {
-        options = question?.trueFalseOptions?.map((opt) => ({
+        options = question?.trueFalseOptions?.map((opt, idx) => ({
             id: opt.id, // Assuming no direct mapping for option ID
+            preview_id: idx, // Using index as preview_id
             text: {
                 id: null, // Assuming no direct mapping for option text ID
                 type: 'HTML', // Assuming option content is HTML
@@ -244,8 +250,9 @@ export function convertStudyLibraryQuestion(question: MyQuestion) {
             },
         }));
     } else if (question?.questionType === QuestionType.MCQM) {
-        options = question?.multipleChoiceOptions?.map((opt) => ({
+        options = question?.multipleChoiceOptions?.map((opt, idx) => ({
             id: opt.id, // Assuming no direct mapping for option ID
+            preview_id: idx, // Using index as preview_id
             text: {
                 id: null, // Assuming no direct mapping for option text ID
                 type: 'HTML', // Assuming option content is HTML
@@ -258,8 +265,9 @@ export function convertStudyLibraryQuestion(question: MyQuestion) {
             },
         }));
     } else if (question?.questionType === QuestionType.CMCQS) {
-        options = question?.csingleChoiceOptions?.map((opt) => ({
+        options = question?.csingleChoiceOptions?.map((opt, idx) => ({
             id: opt.id, // Assuming no direct mapping for option ID
+            preview_id: idx, // Using index as preview_id
             text: {
                 id: null, // Assuming no direct mapping for option text ID
                 type: 'HTML', // Assuming option content is HTML
@@ -272,8 +280,9 @@ export function convertStudyLibraryQuestion(question: MyQuestion) {
             },
         }));
     } else if (question?.questionType === QuestionType.CMCQM) {
-        options = question?.cmultipleChoiceOptions?.map((opt) => ({
+        options = question?.cmultipleChoiceOptions?.map((opt, idx) => ({
             id: opt.id, // Assuming no direct mapping for option ID
+            preview_id: idx, // Using index as preview_id
             text: {
                 id: null, // Assuming no direct mapping for option text ID
                 type: 'HTML', // Assuming option content is HTML
@@ -328,14 +337,15 @@ export function convertStudyLibraryQuestion(question: MyQuestion) {
         media_id: '',
         question_response_type: 'OPTION',
         question_type: question?.questionType,
-        access_level: '',
+        access_level: 'PUBLIC',
         auto_evaluation_json: auto_evaluation_json,
         evaluation_type: 'AUTO',
         question_time_in_millis: timestampToSeconds(question.timestamp) * 1000,
         question_order: 0,
         status: 'ACTIVE',
-        options: options?.map((opt) => ({
+        options: options?.map((opt, idx) => ({
             id: opt.id || null,
+            preview_id: opt.id || idx,
             text: generateTextBlock(opt.text.content),
             explanationTextData: generateTextBlock(opt.explanation_text.content),
             mediaId: '',

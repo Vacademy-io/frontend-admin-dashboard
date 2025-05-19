@@ -3,7 +3,6 @@ import { LayoutContainer } from '@/components/common/layout-container/layout-con
 // import { EmptyDashboard } from "@/components/common/students/empty-dashboard/empty-dashboard";
 import { StudentsListSection } from '@/routes/manage-students/students-list/-components/students-list/student-list-section/students-list-section';
 import { Helmet } from 'react-helmet';
-import { StudentFiltersProvider } from './-context/StudentFiltersContext';
 
 interface StudentListSearchParams {
     batch?: string;
@@ -28,9 +27,7 @@ export function StudentsList() {
                     content="This page shows all the students of the institute."
                 />
             </Helmet>
-            <StudentFiltersProvider>
-                <StudentsListSection />
-            </StudentFiltersProvider>
+            <StudentsListSection />
         </LayoutContainer>
     );
 }

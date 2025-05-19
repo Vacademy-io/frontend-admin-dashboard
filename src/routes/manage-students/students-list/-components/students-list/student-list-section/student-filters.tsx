@@ -174,17 +174,20 @@ export const StudentFilters = ({
                         onSearchEnter={onSearchEnter}
                         onClearSearch={onClearSearch}
                     />
-
                     {filters.map((filter) => (
                         <Filters
                             key={filter.id}
                             filterDetails={{
                                 label: filter.title,
-                                filters: filter.filterList,
+                                filters: filter.filterList.map((filter) => ({
+                                    id: filter.id,
+                                    label: filter.label,
+                                })),
                             }}
                             onFilterChange={(values) => onFilterChange(filter.id, values)}
                             clearFilters={clearFilters}
                             id={filter.id}
+                            columnFilters={columnFilters}
                         />
                     ))}
 

@@ -1,6 +1,6 @@
-import { ColumnDef } from "@tanstack/react-table";
-import { ViewDetails } from "../-components/batch/viewDetailsDialogBox";
-import { ViewDetails as ViewDetailsStudent } from "../-components/student/viewDetailsDialogBox";
+import { ColumnDef } from '@tanstack/react-table';
+import { ViewDetails } from '../-components/batch/viewDetailsDialogBox';
+import { ViewDetails as ViewDetailsStudent } from '../-components/student/viewDetailsDialogBox';
 
 export type ColumnWidthConfig = Record<string, string>;
 
@@ -33,12 +33,12 @@ export interface LearnerReport {
 
 export const activityLogColumns: ColumnDef<{ date: string; timeSpent: string }>[] = [
     {
-        accessorKey: "date",
-        header: "Date",
+        accessorKey: 'date',
+        header: 'Date',
     },
     {
-        accessorKey: "timeSpent",
-        header: "Time Spent",
+        accessorKey: 'timeSpent',
+        header: 'Time Spent',
     },
 ];
 
@@ -49,16 +49,16 @@ export interface TransformedReport {
 }
 export const learnersReportColumns: ColumnDef<TransformedReport>[] = [
     {
-        accessorKey: "date",
-        header: "Date",
+        accessorKey: 'date',
+        header: 'Date',
     },
     {
-        accessorKey: "timeSpent",
-        header: "Time Spent",
+        accessorKey: 'timeSpent',
+        header: 'Time Spent',
     },
     {
-        accessorKey: "timeSpentBatch",
-        header: "Time Spent By Batch (Avg)",
+        accessorKey: 'timeSpentBatch',
+        header: 'Time Spent By Batch (Avg)',
     },
 ];
 
@@ -72,43 +72,43 @@ export interface LeaderBoardColumnType {
 
 export const leaderBoardColumns: ColumnDef<LeaderBoardColumnType>[] = [
     {
-        accessorKey: "rank",
-        header: "Rank",
+        accessorKey: 'rank',
+        header: 'Rank',
     },
     {
-        accessorKey: "name",
-        header: "Student Name",
+        accessorKey: 'name',
+        header: 'Learner Name',
     },
     {
-        accessorKey: "score",
-        header: "Concentration Score",
+        accessorKey: 'score',
+        header: 'Concentration Score',
     },
     {
-        accessorKey: "average",
-        header: "Daily Time Spent (Avg)",
+        accessorKey: 'average',
+        header: 'Daily Time Spent (Avg)',
     },
     {
-        accessorKey: "totalTime",
-        header: "Total Time",
+        accessorKey: 'totalTime',
+        header: 'Total Time',
     },
 ];
 
 export const CONCENTRATION_SCORE: ColumnWidthConfig = {
-    date: "w-[60px]",
-    timeSpent: "w-[50px]",
+    date: 'w-[60px]',
+    timeSpent: 'w-[50px]',
 };
 export const LEARNERS_REPORTS_COLUMNS: ColumnWidthConfig = {
-    date: "w-[70px]",
-    timeSpent: "w-[50px]",
-    timeSpentBatch: "w-[70px]",
+    date: 'w-[70px]',
+    timeSpent: 'w-[50px]',
+    timeSpentBatch: 'w-[70px]',
 };
 
 export const LEADERBOARD_WIDTH: Record<keyof LeaderBoardColumnType, string> = {
-    rank: "w-[60px]",
-    name: "w-[150px]",
-    score: "w-[100px]", // Concentration Score column width
-    average: "w-[120px]",
-    totalTime: "w-[100px]",
+    rank: 'w-[60px]',
+    name: 'w-[150px]',
+    score: 'w-[100px]', // Concentration Score column width
+    average: 'w-[120px]',
+    totalTime: 'w-[100px]',
 };
 
 interface Module {
@@ -139,54 +139,54 @@ export interface SubjectOverviewColumnType {
 }
 export const SubjectOverviewColumns: ColumnDef<SubjectOverviewColumnType>[] = [
     {
-        accessorKey: "subject",
-        header: "Subject",
+        accessorKey: 'subject',
+        header: 'Subject',
     },
     {
-        accessorKey: "module",
-        header: "Module",
+        accessorKey: 'module',
+        header: 'Module',
     },
     {
-        accessorKey: "module_id",
-        header: "",
+        accessorKey: 'module_id',
+        header: '',
     },
     {
-        accessorKey: "module_completed",
-        header: "Module Completed",
+        accessorKey: 'module_completed',
+        header: 'Module Completed',
     },
     {
-        accessorKey: "module_completed_by_batch",
-        header: "Module completed by batch",
+        accessorKey: 'module_completed_by_batch',
+        header: 'Module completed by batch',
     },
     {
-        accessorKey: "average_time_spent_by_batch",
-        header: "Daily Time spent by batch (Avg)",
+        accessorKey: 'average_time_spent_by_batch',
+        header: 'Daily Time spent by batch (Avg)',
     },
     {
-        accessorKey: "average_time_spent",
-        header: "Daily Time spent (Avg)",
+        accessorKey: 'average_time_spent',
+        header: 'Daily Time spent (Avg)',
     },
     {
-        accessorKey: "details",
-        header: "",
+        accessorKey: 'details',
+        header: '',
         cell: ({ row }) => <ViewDetailsStudent row={row} />,
     },
     {
-        accessorKey: "user_id",
-        header: "",
+        accessorKey: 'user_id',
+        header: '',
     },
 ];
 
 export const SUBJECT_OVERVIEW_WIDTH: Record<keyof SubjectOverviewColumnType, string> = {
-    subject: "w-[200px]",
-    module: "w-[200px]",
-    module_completed: "w-[200px]",
-    module_completed_by_batch: "w-[200px]",
-    average_time_spent: "w-[200px]",
-    average_time_spent_by_batch: "w-[200px]",
-    details: "w-[100px]",
-    module_id: "w-[0px]",
-    user_id: "w-[0px]",
+    subject: 'w-[200px]',
+    module: 'w-[200px]',
+    module_completed: 'w-[200px]',
+    module_completed_by_batch: 'w-[200px]',
+    average_time_spent: 'w-[200px]',
+    average_time_spent_by_batch: 'w-[200px]',
+    details: 'w-[100px]',
+    module_id: 'w-[0px]',
+    user_id: 'w-[0px]',
 };
 
 export interface SubjectOverviewBatchColumnType {
@@ -200,44 +200,44 @@ export interface SubjectOverviewBatchColumnType {
 }
 export const SubjectOverviewBatchColumns: ColumnDef<SubjectOverviewBatchColumnType>[] = [
     {
-        accessorKey: "subject",
-        header: "Subject",
+        accessorKey: 'subject',
+        header: 'Subject',
     },
     {
-        accessorKey: "module",
-        header: "Module",
+        accessorKey: 'module',
+        header: 'Module',
     },
     {
-        accessorKey: "module_id",
-        header: "",
+        accessorKey: 'module_id',
+        header: '',
     },
     {
-        accessorKey: "module_completed_by_batch",
-        header: "Module completed by batch",
+        accessorKey: 'module_completed_by_batch',
+        header: 'Module completed by batch',
     },
     {
-        accessorKey: "average_time_spent_by_batch",
-        header: "Daily Time spent by batch (Avg)",
+        accessorKey: 'average_time_spent_by_batch',
+        header: 'Daily Time spent by batch (Avg)',
     },
     {
-        accessorKey: "details",
-        header: "",
+        accessorKey: 'details',
+        header: '',
         cell: ({ row }) => <ViewDetails row={row} />,
     },
     {
-        accessorKey: "user_id",
-        header: "",
+        accessorKey: 'user_id',
+        header: '',
     },
 ];
 
 export const SUBJECT_OVERVIEW_BATCH_WIDTH: Record<keyof SubjectOverviewBatchColumnType, string> = {
-    subject: "w-[200px]",
-    module: "w-[200px]",
-    module_completed_by_batch: "w-[200px]",
-    average_time_spent_by_batch: "w-[200px]",
-    details: "w-[200px]",
-    module_id: "w-[0px]",
-    user_id: "w-[0px]",
+    subject: 'w-[200px]',
+    module: 'w-[200px]',
+    module_completed_by_batch: 'w-[200px]',
+    average_time_spent_by_batch: 'w-[200px]',
+    details: 'w-[200px]',
+    module_id: 'w-[0px]',
+    user_id: 'w-[0px]',
 };
 
 export const df = () => {
@@ -267,22 +267,22 @@ export interface ChapterOverviewColumnType {
 
 export const ChapterOverviewColumns: ColumnDef<ChapterOverviewColumnType>[] = [
     {
-        accessorKey: "study_slide",
-        header: "Study Slide",
+        accessorKey: 'study_slide',
+        header: 'Study Slide',
     },
     {
-        accessorKey: "batch_concentration_score",
-        header: "Batch Concentration Score (Avg)",
+        accessorKey: 'batch_concentration_score',
+        header: 'Batch Concentration Score (Avg)',
     },
     {
-        accessorKey: "average_time_spent",
-        header: "Time Spent (Avg)",
+        accessorKey: 'average_time_spent',
+        header: 'Time Spent (Avg)',
     },
 ];
 export const CHAPTER_OVERVIEW_WIDTH: Record<keyof ChapterOverviewColumnType, string> = {
-    study_slide: "w-[300px]",
-    batch_concentration_score: "w-[300px]",
-    average_time_spent: "w-[300px]",
+    study_slide: 'w-[300px]',
+    batch_concentration_score: 'w-[300px]',
+    average_time_spent: 'w-[300px]',
 };
 
 export interface ChapterOverviewStudentColumnType {
@@ -295,35 +295,35 @@ export interface ChapterOverviewStudentColumnType {
 
 export const ChapterOverviewStudentColumns: ColumnDef<ChapterOverviewStudentColumnType>[] = [
     {
-        accessorKey: "study_slide",
-        header: "Study Slide",
+        accessorKey: 'study_slide',
+        header: 'Study Slide',
     },
     {
-        accessorKey: "concentration_score",
-        header: "Concentration Score",
+        accessorKey: 'concentration_score',
+        header: 'Concentration Score',
     },
     {
-        accessorKey: "batch_concentration_score",
-        header: "Batch Concentration Score (Avg)",
+        accessorKey: 'batch_concentration_score',
+        header: 'Batch Concentration Score (Avg)',
     },
     {
-        accessorKey: "average_time_spent",
-        header: "Time Spent",
+        accessorKey: 'average_time_spent',
+        header: 'Time Spent',
     },
     {
-        accessorKey: "last_active",
-        header: "Last Active",
+        accessorKey: 'last_active',
+        header: 'Last Active',
     },
 ];
 export const CHAPTER_OVERVIEW_STUDENT_WIDTH: Record<
     keyof ChapterOverviewStudentColumnType,
     string
 > = {
-    study_slide: "w-[300px]",
-    batch_concentration_score: "w-[300px]",
-    concentration_score: "w-[300px]",
-    average_time_spent: "w-[300px]",
-    last_active: "w-[300px]",
+    study_slide: 'w-[300px]',
+    batch_concentration_score: 'w-[300px]',
+    concentration_score: 'w-[300px]',
+    average_time_spent: 'w-[300px]',
+    last_active: 'w-[300px]',
 };
 
 interface SlideDetail {
@@ -354,37 +354,37 @@ export interface SlidesColumnType {
 
 export const SlidesColumns: ColumnDef<SlidesColumnType>[] = [
     {
-        accessorKey: "study_slide",
-        header: "Study Slide",
+        accessorKey: 'study_slide',
+        header: 'Study Slide',
     },
     {
-        accessorKey: "subject",
-        header: "Suject",
+        accessorKey: 'subject',
+        header: 'Suject',
     },
     {
-        accessorKey: "module",
-        header: "Module",
+        accessorKey: 'module',
+        header: 'Module',
     },
     {
-        accessorKey: "chapter",
-        header: "Chapter",
+        accessorKey: 'chapter',
+        header: 'Chapter',
     },
     {
-        accessorKey: "concentration_score",
-        header: "Concentration Score",
+        accessorKey: 'concentration_score',
+        header: 'Concentration Score',
     },
     {
-        accessorKey: "time_spent",
-        header: "Time Spent",
+        accessorKey: 'time_spent',
+        header: 'Time Spent',
     },
 ];
 export const SLIDES_WIDTH: Record<keyof SlidesColumnType, string> = {
-    study_slide: "min-w-[300px]",
-    subject: "w-[200px]",
-    module: "w-[200px]",
-    chapter: "w-[200px]",
-    concentration_score: "w-[150px]",
-    time_spent: "w-[150px]",
+    study_slide: 'min-w-[300px]',
+    subject: 'w-[200px]',
+    module: 'w-[200px]',
+    chapter: 'w-[200px]',
+    concentration_score: 'w-[150px]',
+    time_spent: 'w-[150px]',
 };
 
 interface ProgressReportSetting {
@@ -407,29 +407,29 @@ export interface InstituteSettingResponse {
 }
 
 export enum RoleSettingEnum {
-    LEARNER = "learner_setting",
-    PARENT = "parent_setting",
+    LEARNER = 'learner_setting',
+    PARENT = 'parent_setting',
 }
 
 export enum CommunicationTypeEnum {
-    EMAIL = "EMAIL",
-    WHATSAPP = "WHATSAPP",
+    EMAIL = 'EMAIL',
+    WHATSAPP = 'WHATSAPP',
 }
 
 export enum ReportDurationEnum {
-    DAILY = "daily",
-    WEEKLY = "weekly",
-    MONTHLY = "monthly",
+    DAILY = 'daily',
+    WEEKLY = 'weekly',
+    MONTHLY = 'monthly',
 }
 
 export enum ReportTypeEnum {
-    LEARNER_PROGRESS = "learner_progress_report",
-    BATCH_PROGRESS = "batch_progress_report",
+    LEARNER_PROGRESS = 'learner_progress_report',
+    BATCH_PROGRESS = 'batch_progress_report',
 }
 
 export enum commaSeperatedType {
-    EMAIL = "comma_separated_email_ids",
-    MOBILE = "comma_separated_mobile_number",
+    EMAIL = 'comma_separated_email_ids',
+    MOBILE = 'comma_separated_mobile_number',
 }
 
 export interface MultipleInputProps {
@@ -437,9 +437,9 @@ export interface MultipleInputProps {
     onListChange: (
         role: RoleSettingEnum.LEARNER | RoleSettingEnum.PARENT,
         commaSeperatedType: commaSeperatedType,
-        updatedList: string[],
+        updatedList: string[]
     ) => void;
-    inputType: "email" | "mobile";
+    inputType: 'email' | 'mobile';
     role: RoleSettingEnum.LEARNER | RoleSettingEnum.PARENT;
     commaSeperatedType: commaSeperatedType;
 }

@@ -38,11 +38,11 @@ export const SidebarItemsData: SidebarItemsType[] = [
     },
     {
         icon: Users,
-        title: 'Manage Students',
+        title: 'Manage Learner',
         id: 'student-mangement',
         subItems: [
             {
-                subItem: 'Students list',
+                subItem: 'Learner list',
                 subItemLink: '/manage-students/students-list',
             },
             {

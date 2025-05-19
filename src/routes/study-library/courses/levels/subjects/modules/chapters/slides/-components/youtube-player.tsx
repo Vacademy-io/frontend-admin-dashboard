@@ -15,7 +15,6 @@ import VideoQuestionsTimeFrameEditDialog from './video-questions-edit-timeframe'
 import VideoQuestionDialogEditPreview from './slides-sidebar/video-question-dialog-edit-preview';
 import { StudyLibraryQuestion } from '@/types/study-library/study-library-video-questions';
 import { formatTimeStudyLibraryInSeconds, timestampToSeconds } from '../-helper/helper';
-import { transformResponseDataToMyQuestionsSchema } from '@/routes/assessment/question-papers/-utils/helper';
 import { useContentStore } from '../-stores/chapter-sidebar-store';
 
 export interface YTPlayer {
@@ -76,7 +75,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
     // Convert formRefData from a ref to useState to trigger re-renders
     const isAddTimeFrameRef = useRef<HTMLButtonElement | null>(null);
     const isAddQuestionTypeRef = useRef<HTMLButtonElement | null>(null);
-    const { activeItem, setActiveItem } = useContentStore();
+    const { activeItem } = useContentStore();
 
     const [formData, setFormData] = useState<UploadQuestionPaperFormType>({
         questionPaperId: '1',
@@ -371,27 +370,9 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
     useEffect(() => {
         setFormData((prev) => ({
             ...prev,
-            questions: [
-                ...transformResponseDataToMyQuestionsSchema(
-                    activeItem?.video_slide?.questions || []
-                ),
-            ],
+            questions: activeItem?.video_slide?.questions || [],
         }));
-
-        setActiveItem({
-            ...activeItem,
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
-            video_slide: {
-                ...activeItem?.video_slide,
-                questions: [
-                    ...transformResponseDataToMyQuestionsSchema(
-                        activeItem?.video_slide?.questions || []
-                    ),
-                ],
-            },
-        });
-    }, []);
+    }, [videoUrl]);
 
     return (
         <div className="flex w-full flex-col">

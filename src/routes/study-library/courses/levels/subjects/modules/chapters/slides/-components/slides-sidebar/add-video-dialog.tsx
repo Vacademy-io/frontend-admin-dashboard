@@ -11,6 +11,8 @@ import { toast } from 'sonner';
 import { Route } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/index';
 import { useContentStore } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
 
+import { useEffect, useRef, useState } from 'react';
+
 const formSchema = z.object({
     videoUrl: z
         .string()
@@ -32,8 +34,81 @@ export const AddVideoDialog = ({
     const { chapterId } = Route.useSearch();
     const { addUpdateVideoSlide } = useSlides(chapterId);
     const { setActiveItem, getSlideById } = useContentStore();
+    const [isAPIReady, setIsAPIReady] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    const extractVideoId = (url: string): string => {
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+        const match = url.match(regExp);
+        return match && match[2]?.length === 11 ? match[2] : '';
+    };
+
+    // Function to load YouTube IFrame API
+    const loadYouTubeAPI = () => {
+        if (window.YT) {
+            setIsAPIReady(true);
+            return;
+        }
+
+        const tag = document.createElement('script');
+        tag.src = 'https://www.youtube.com/iframe_api';
+
+        window.onYouTubeIframeAPIReady = () => {
+            setIsAPIReady(true);
+        };
+
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag?.parentNode?.insertBefore(tag, firstScriptTag);
+    };
+
+    useEffect(() => {
+        loadYouTubeAPI();
+    }, []);
 
     const handleSubmit = async (data: FormValues) => {
+        try {
+            const videoId = extractVideoId(data.videoUrl);
+            if (!videoId) {
+                toast.error('Invalid YouTube URL');
+                return;
+            }
+
+            // Create a temporary player to get duration
+            if (containerRef.current && isAPIReady) {
+                const playerContainer = document.createElement('div');
+                containerRef.current.innerHTML = '';
+                containerRef.current.appendChild(playerContainer);
+
+                new window.YT.Player(playerContainer, {
+                    height: '0',
+                    width: '0',
+                    videoId: videoId,
+                    playerVars: {
+                        autoplay: 0,
+                        controls: 0,
+                    },
+                    events: {
+                        onReady: (event) => {
+                            const duration = event.target.getDuration();
+
+                            // Submit the form with the duration
+                            submitFormWithDuration(data, duration * 1000);
+
+                            // Clean up
+                            event.target.destroy();
+                        },
+                    },
+                });
+            } else {
+                // If player creation fails, submit without duration
+                submitFormWithDuration(data, 0);
+            }
+        } catch (error) {
+            toast.error('Failed to add video');
+        }
+    };
+
+    const submitFormWithDuration = async (data: FormValues, duration: number) => {
         try {
             const slideId = crypto.randomUUID();
             const response: string = await addUpdateVideoSlide({
@@ -47,7 +122,7 @@ export const AddVideoDialog = ({
                     description: '',
                     url: data.videoUrl,
                     title: data.videoName,
-                    video_length_in_millis: 0,
+                    video_length_in_millis: duration,
                     published_url: null,
                     published_video_length_in_millis: 0,
                     source_type: 'VIDEO',
@@ -121,6 +196,7 @@ export const AddVideoDialog = ({
                         </FormItem>
                     )}
                 />
+                <div ref={containerRef} className="hidden" />
                 <MyButton type="submit" buttonType="primary" scale="large" layoutVariant="default">
                     Add Video
                 </MyButton>

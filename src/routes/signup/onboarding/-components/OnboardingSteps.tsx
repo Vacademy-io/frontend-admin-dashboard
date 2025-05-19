@@ -1,14 +1,16 @@
-import { FC } from "react";
-import Step1OrganizationSetup from "./Step1OrganizationSetup";
-import Step2AddOrgDetails from "./Step2AddOrgDetails";
-import { OrganizationOnboardingProps } from "..";
+import { FC } from 'react';
+import Step1OrganizationSetup from './Step1OrganizationSetup';
+import Step3AddOrgDetails from './Step3AddOrgDetails';
+import { OrganizationOnboardingProps } from '..';
+import Step2OrganizationTheme from './Step2OrganizationTheme';
 
 // Define a mapping of step index to component
 const stepComponents: {
     [key: number]: FC<OrganizationOnboardingProps>;
 } = {
     0: Step1OrganizationSetup,
-    1: Step2AddOrgDetails,
+    1: Step2OrganizationTheme,
+    2: Step3AddOrgDetails,
 };
 
 export const OnboardingSteps: React.FC<OrganizationOnboardingProps> = ({

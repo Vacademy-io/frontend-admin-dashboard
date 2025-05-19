@@ -106,10 +106,10 @@ export const ReRegisterDialog = ({ trigger, open, onOpenChange }: ReRegisterDial
         };
         try {
             await reRegisterMutation.mutateAsync({ request: request });
-            toast.success('Student re-registered successfully');
+            toast.success('Learner re-registered successfully');
             closeAllDialogs();
         } catch {
-            toast.error('Failed to re-register student');
+            toast.error('Failed to re-register learner');
         }
     };
 

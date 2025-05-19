@@ -255,6 +255,7 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
                     { id: '2', name: 'COURSE CREATOR' },
                     { id: '3', name: 'ASSESSMENT CREATOR' },
                     { id: '4', name: 'EVALUATOR' },
+                    { id: '5', name: 'TEACHER' },
                 ],
                 status: [
                     { id: '1', name: 'ACTIVE' },
@@ -519,6 +520,7 @@ const AccessControlCards = ({
                     { id: '2', name: 'COURSE CREATOR' },
                     { id: '3', name: 'ASSESSMENT CREATOR' },
                     { id: '4', name: 'EVALUATOR' },
+                    { id: '5', name: 'TEACHER' },
                 ],
                 status: [
                     { id: '1', name: 'ACTIVE' },
@@ -538,6 +540,7 @@ const AccessControlCards = ({
                     { id: '2', name: 'COURSE CREATOR' },
                     { id: '3', name: 'ASSESSMENT CREATOR' },
                     { id: '4', name: 'EVALUATOR' },
+                    { id: '5', name: 'TEACHER' },
                 ],
                 status: [
                     { id: '1', name: 'ACTIVE' },

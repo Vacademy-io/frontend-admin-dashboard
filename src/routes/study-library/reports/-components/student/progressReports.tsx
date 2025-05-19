@@ -1,46 +1,46 @@
-import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-import { useState, useEffect } from "react";
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { useState, useEffect } from 'react';
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select";
-import { Command, CommandInput, CommandList } from "@/components/ui/command";
-import { LevelType } from "@/schemas/student/student-list/institute-schema";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { MyButton } from "@/components/design-system/button";
-import ReportRecipientsDialogBox from "./reportRecipientsDialogBox";
-import { useLearnerDetails, UserResponse } from "../../-store/useLearnersDetails";
-import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
-import { TokenKey } from "@/constants/auth/tokens";
-import { MyTable } from "@/components/design-system/table";
+} from '@/components/ui/select';
+import { Command, CommandInput, CommandList } from '@/components/ui/command';
+import { LevelType } from '@/schemas/student/student-list/institute-schema';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { MyButton } from '@/components/design-system/button';
+import ReportRecipientsDialogBox from './reportRecipientsDialogBox';
+import { useLearnerDetails, UserResponse } from '../../-store/useLearnersDetails';
+import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
+import { MyTable } from '@/components/design-system/table';
 import {
     SubjectProgressResponse,
     SubjectOverviewColumns,
     SUBJECT_OVERVIEW_WIDTH,
     SubjectOverviewColumnType,
-} from "../../-types/types";
+} from '../../-types/types';
 import {
     fetchLearnersSubjectWiseProgress,
     exportLearnersSubjectReport,
-} from "../../-services/utils";
-import { useMutation } from "@tanstack/react-query";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { usePacageDetails } from "../../-store/usePacageDetails";
-import { convertMinutesToTimeFormat } from "../../-services/helper";
-import { useSearch } from "@tanstack/react-router";
-import { Route } from "@/routes/study-library/reports";
-import { toast } from "sonner";
+} from '../../-services/utils';
+import { useMutation } from '@tanstack/react-query';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { usePacageDetails } from '../../-store/usePacageDetails';
+import { convertMinutesToTimeFormat } from '../../-services/helper';
+import { useSearch } from '@tanstack/react-router';
+import { Route } from '@/routes/study-library/reports';
+import { toast } from 'sonner';
 
 const formSchema = z.object({
-    course: z.string().min(1, "Course is required"),
-    session: z.string().min(1, "Session is required"),
-    level: z.string().min(1, "Level is required"),
-    student: z.string().min(1, "Level is required"),
+    course: z.string().min(1, 'Course is required'),
+    session: z.string().min(1, 'Session is required'),
+    level: z.string().min(1, 'Level is required'),
+    student: z.string().min(1, 'Level is required'),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -61,11 +61,11 @@ export default function ProgressReports() {
     const [sessionList, setSessionList] = useState<{ id: string; name: string }[]>([]);
     const [levelList, setLevelList] = useState<LevelType[]>([]);
     const [studentList, setStudentList] = useState<UserResponse>([]);
-    const [searchTerm, setSearchTerm] = useState("");
+    const [searchTerm, setSearchTerm] = useState('');
     const [subjectReportData, setSubjectReportData] = useState<SubjectProgressResponse>();
     const tableState = { columnVisibility: { module_id: false, user_id: false } };
     const filteredStudents = studentList.filter((student) =>
-        student.full_name.toLowerCase().includes(searchTerm.toLowerCase()),
+        student.full_name.toLowerCase().includes(searchTerm.toLowerCase())
     );
     const search = useSearch({ from: Route.id });
     const {
@@ -77,24 +77,24 @@ export default function ProgressReports() {
     } = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            course: "",
-            session: "",
-            level: "",
+            course: '',
+            session: '',
+            level: '',
         },
     });
 
-    const selectedCourse = watch("course");
-    const selectedSession = watch("session");
-    const selectedLevel = watch("level");
-    const selectedStudent = watch("student");
+    const selectedCourse = watch('course');
+    const selectedSession = watch('session');
+    const selectedLevel = watch('level');
+    const selectedStudent = watch('student');
 
     const { data } = useLearnerDetails(
         getPackageSessionId({
             courseId: selectedCourse,
             sessionId: selectedSession,
             levelId: selectedLevel,
-        }) || "",
-        INSTITUTE_ID || "",
+        }) || '',
+        INSTITUTE_ID || ''
     );
     useEffect(() => {
         if (data) {
@@ -105,7 +105,7 @@ export default function ProgressReports() {
     useEffect(() => {
         if (selectedCourse) {
             setSessionList(getSessionFromPackage({ courseId: selectedCourse }));
-            setValue("session", "");
+            setValue('session', '');
         } else {
             setSessionList([]);
             setStudentList([]);
@@ -113,13 +113,13 @@ export default function ProgressReports() {
     }, [selectedCourse]);
 
     useEffect(() => {
-        if (selectedSession === "") {
-            setValue("level", "");
+        if (selectedSession === '') {
+            setValue('level', '');
             setLevelList([]);
             setStudentList([]);
         } else if (selectedCourse && selectedSession) {
             setLevelList(
-                getLevelsFromPackage2({ courseId: selectedCourse, sessionId: selectedSession }),
+                getLevelsFromPackage2({ courseId: selectedCourse, sessionId: selectedSession })
             );
         }
     }, [selectedSession]);
@@ -137,7 +137,7 @@ export default function ProgressReports() {
                         courseId: data.course,
                         sessionId: data.session,
                         levelId: data.level,
-                    }) || "",
+                    }) || '',
                 userId: data.student,
             },
             {
@@ -145,45 +145,45 @@ export default function ProgressReports() {
                     setSubjectReportData(data);
                 },
                 onError: (error) => {
-                    console.error("Error:", error);
+                    console.error('Error:', error);
                 },
-            },
+            }
         );
-        setCourse(courseList.find((course) => (course.id = data.course))?.name || "");
-        setSession(sessionList.find((course) => (course.id = data.session))?.name || "");
-        setLevel(levelList.find((course) => (course.id = data.level))?.level_name || "");
+        setCourse(courseList.find((course) => (course.id = data.course))?.name || '');
+        setSession(sessionList.find((course) => (course.id = data.session))?.name || '');
+        setLevel(levelList.find((course) => (course.id = data.level))?.level_name || '');
         setPacageSessionId(
             getPackageSessionId({
                 courseId: data.course,
                 sessionId: data.session,
                 levelId: data.level,
-            }) || "",
+            }) || ''
         );
     };
 
     const getBatchReportDataPDF = useMutation({
         mutationFn: () =>
             exportLearnersSubjectReport({
-                startDate: "",
-                endDate: "",
+                startDate: '',
+                endDate: '',
                 packageSessionId:
                     getPackageSessionId({
                         courseId: selectedCourse,
                         sessionId: selectedSession,
                         levelId: selectedLevel,
-                    }) || "",
+                    }) || '',
                 userId: selectedStudent,
             }),
         onSuccess: async (response) => {
             const url = window.URL.createObjectURL(new Blob([response]));
-            const link = document.createElement("a");
+            const link = document.createElement('a');
             link.href = url;
-            link.setAttribute("download", `learners_report.pdf`);
+            link.setAttribute('download', `learners_report.pdf`);
             document.body.appendChild(link);
             link.click();
             link.remove();
             window.URL.revokeObjectURL(url);
-            toast.success("Learners Report PDF exported successfully");
+            toast.success('Learners Report PDF exported successfully');
         },
         onError: (error: unknown) => {
             throw error;
@@ -196,7 +196,7 @@ export default function ProgressReports() {
 
     const transformToSubjectOverview = (
         data: SubjectProgressResponse,
-        user_id: string,
+        user_id: string
     ): SubjectOverviewColumnType[] => {
         return data.flatMap((subject) =>
             subject.modules.map((module) => ({
@@ -207,16 +207,16 @@ export default function ProgressReports() {
                 module_completed_by_batch: `${module.module_completion_percentage}%`,
                 average_time_spent: `${convertMinutesToTimeFormat(module.avg_time_spent_minutes)}`,
                 average_time_spent_by_batch: `${convertMinutesToTimeFormat(
-                    module.avg_time_spent_minutes,
+                    module.avg_time_spent_minutes
                 )}`,
                 user_id,
-            })),
+            }))
         );
     };
 
     const subjectWiseData = {
         content: subjectReportData
-            ? transformToSubjectOverview(subjectReportData, watch("student"))
+            ? transformToSubjectOverview(subjectReportData, watch('student'))
             : [],
         total_pages: 0,
         page_no: 0,
@@ -233,10 +233,10 @@ export default function ProgressReports() {
                         <div>Course</div>
                         <Select
                             onValueChange={(value) => {
-                                setValue("course", value);
+                                setValue('course', value);
                             }}
-                            {...register("course")}
-                            defaultValue={search.studentReport ? search.studentReport.courseId : ""}
+                            {...register('course')}
+                            defaultValue={search.studentReport ? search.studentReport.courseId : ''}
                         >
                             <SelectTrigger className="h-[40px] w-[320px]">
                                 <SelectValue placeholder="Select a Course" />
@@ -255,11 +255,11 @@ export default function ProgressReports() {
                         <div>Session</div>
                         <Select
                             onValueChange={(value) => {
-                                console.log("here");
-                                setValue("session", value);
+                                console.log('here');
+                                setValue('session', value);
                             }}
                             defaultValue={
-                                search.studentReport ? search.studentReport.sessionId : ""
+                                search.studentReport ? search.studentReport.sessionId : ''
                             }
                             value={selectedSession}
                             disabled={!sessionList.length}
@@ -281,12 +281,12 @@ export default function ProgressReports() {
                         <div>Level</div>
                         <Select
                             onValueChange={(value) => {
-                                setValue("level", value);
+                                setValue('level', value);
                             }}
-                            defaultValue={search.studentReport ? search.studentReport.levelId : ""}
+                            defaultValue={search.studentReport ? search.studentReport.levelId : ''}
                             value={selectedLevel}
                             disabled={!levelList.length}
-                            {...register("level")}
+                            {...register('level')}
                         >
                             <SelectTrigger className="h-[40px] w-[320px]">
                                 <SelectValue placeholder="Select a Level" />
@@ -303,12 +303,12 @@ export default function ProgressReports() {
                 </div>
 
                 <div>
-                    <div>Student Name</div>
+                    <div>Learner Name</div>
                     <Select
                         onValueChange={(value) => {
-                            setValue("student", value);
+                            setValue('student', value);
                         }}
-                        {...register("student")}
+                        {...register('student')}
                         defaultValue=""
                         disabled={!studentList.length}
                     >
@@ -330,7 +330,7 @@ export default function ProgressReports() {
                                                 key={index}
                                                 value={student.user_id}
                                                 onSelect={() =>
-                                                    setValue("student", student.user_id)
+                                                    setValue('student', student.user_id)
                                                 }
                                             >
                                                 {student.full_name}
@@ -385,24 +385,24 @@ export default function ProgressReports() {
                                         handleExportPDF();
                                     }}
                                 >
-                                    {isExporting ? <DashboardLoader size={20} /> : "Export"}
+                                    {isExporting ? <DashboardLoader size={20} /> : 'Export'}
                                 </MyButton>
                             </div>
                         </div>
                         <div className="flex flex-row items-center justify-between">
                             <div>
-                                Course:{" "}
+                                Course:{' '}
                                 {courseList.find((course) => course.id === selectedCourse)?.name}
                             </div>
                             <div>
-                                Session:{" "}
+                                Session:{' '}
                                 {
                                     sessionList.find((session) => session.id === selectedSession)
                                         ?.name
                                 }
                             </div>
                             <div>
-                                Level:{" "}
+                                Level:{' '}
                                 {levelList.find((level) => level.id === selectedLevel)?.level_name}
                             </div>
                         </div>

@@ -61,7 +61,7 @@ export const handleUnpublishSlide = async (
                     data: draftData || null,
                     title: activeItem?.document_slide?.title || '',
                     cover_file_id: activeItem?.document_slide?.cover_file_id || '',
-                    total_pages: 0,
+                    total_pages: activeItem?.document_slide?.total_pages || 0,
                     published_data: null,
                     published_document_total_pages: 0,
                 },
@@ -74,7 +74,9 @@ export const handleUnpublishSlide = async (
         } catch {
             toast.error(`Error in unpublishing the slide`);
         }
-    } else {
+    }
+
+    if (activeItem?.source_type == 'VIDEO') {
         const convertedData = converDataToVideoFormat({
             activeItem,
             status,

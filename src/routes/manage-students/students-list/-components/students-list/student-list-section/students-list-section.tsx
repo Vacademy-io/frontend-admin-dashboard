@@ -29,7 +29,6 @@ import { useSearch } from '@tanstack/react-router';
 import { Route } from '@/routes/manage-students/students-list';
 import { useUsersCredentials } from '../../../-services/usersCredentials';
 import { DropdownItemType } from '@/components/common/students/enroll-manually/dropdownTypesForPackageItems';
-import { useStudentFiltersContext } from '../../../-context/StudentFiltersContext';
 import { ShareCredentialsDialog } from './bulk-actions/share-credentials-dialog';
 import { IndividualShareCredentialsDialog } from './bulk-actions/individual-share-credentials-dialog';
 import { InviteFormProvider } from '@/routes/manage-students/invite/-context/useInviteFormContext';
@@ -39,7 +38,6 @@ export const StudentsListSection = () => {
     const { isError, isLoading } = useSuspenseQuery(useInstituteQuery());
     const [isOpen, setIsOpen] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const [selectedStudent] = useState<StudentTable | null>(null);
     const { getCourseFromPackage, instituteDetails, getDetailsFromPackageSessionId } =
         useInstituteDetailsStore();
     const tableRef = useRef<HTMLDivElement>(null);
@@ -96,7 +94,8 @@ export const StudentsListSection = () => {
         handleSessionChange,
         setColumnFilters,
     } = useStudentFilters();
-    const filters = GetFilterData(currentSession.name);
+
+    const filters = GetFilterData(instituteDetails, currentSession.id);
 
     const search = useSearch({ from: Route.id });
 
@@ -112,7 +111,6 @@ export const StudentsListSection = () => {
         setAppliedFilters,
         search.package_session_id ? [search.package_session_id] : null
     );
-    const { selectedFilterList, setSelectedFilterList } = useStudentFiltersContext();
 
     const getUserCredentialsMutation = useUsersCredentials();
 
@@ -191,12 +189,16 @@ export const StudentsListSection = () => {
             });
             const batchName =
                 (details?.level.level_name || '') + (details?.package_dto.package_name || '');
-            console.log('batchName: ', batchName);
             setColumnFilters((prev) => [
                 ...prev,
                 {
                     id: 'batch',
-                    value: [batchName],
+                    value: [
+                        {
+                            id: search.package_session_id || '',
+                            label: batchName,
+                        },
+                    ],
                 },
             ]);
             setAppliedFilters((prev) => ({
@@ -210,16 +212,6 @@ export const StudentsListSection = () => {
                 name: details?.session.session_name || '',
             };
             handleSessionChange(session);
-            setSelectedFilterList((prev) => {
-                const newState = {
-                    ...prev,
-                    session: [session.name],
-                    batch: [batchName],
-                };
-                console.log('New state:', newState);
-                return newState;
-            });
-            console.log('selectedFilterList from students-list-section: ', selectedFilterList);
         }
     }, [search, instituteDetails]);
 
@@ -298,7 +290,6 @@ export const StudentsListSection = () => {
                                             selectedTab={'ENDED,PENDING,LIVE'}
                                             examType={'EXAM'}
                                             isStudentList={true}
-                                            selectedStudent={selectedStudent}
                                         />
                                     </div>
                                 </SidebarProvider>

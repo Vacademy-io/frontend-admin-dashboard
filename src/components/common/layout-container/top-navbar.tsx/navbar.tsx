@@ -1,30 +1,30 @@
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { useState } from "react";
-import { CaretDown, CaretUp } from "@phosphor-icons/react";
-import { DummyProfile } from "@/assets/svgs";
-import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
-import { useSidebarStore } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/global-states";
+import { SidebarTrigger } from '@/components/ui/sidebar';
+import { useState } from 'react';
+import { CaretDown, CaretUp } from '@phosphor-icons/react';
+import { DummyProfile } from '@/assets/svgs';
+import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
+import { useSidebarStore } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/global-states';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { removeCookiesAndLogout } from "@/lib/auth/sessionUtility";
-import { useNavigate } from "@tanstack/react-router";
-import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-import useInstituteLogoStore from "../sidebar/institutelogo-global-zustand";
-import { useStudyLibraryStore } from "@/stores/study-library/use-study-library-store";
-import { useModulesWithChaptersStore } from "@/stores/study-library/use-modules-with-chapters-store";
-import { usePDFStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/temp-pdf-store";
-import { useSelectedSessionStore } from "@/stores/study-library/selected-session-store";
-import { useContentStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store";
-import { SidebarSimple } from "@phosphor-icons/react";
-import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
-import { Separator } from "@/components/ui/separator";
-import EditDashboardProfileComponent from "@/routes/dashboard/-components/EditDashboardProfileComponent";
+} from '@/components/ui/dropdown-menu';
+import { removeCookiesAndLogout } from '@/lib/auth/sessionUtility';
+import { useNavigate } from '@tanstack/react-router';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import useInstituteLogoStore from '../sidebar/institutelogo-global-zustand';
+import { useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
+import { useModulesWithChaptersStore } from '@/stores/study-library/use-modules-with-chapters-store';
+import { usePDFStore } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/temp-pdf-store';
+import { useSelectedSessionStore } from '@/stores/study-library/selected-session-store';
+import { useContentStore } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
+import { SidebarSimple } from '@phosphor-icons/react';
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
+import { Separator } from '@/components/ui/separator';
+import EditDashboardProfileComponent from '@/routes/dashboard/-components/EditDashboardProfileComponent';
 
 export function Navbar() {
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
@@ -53,12 +53,12 @@ export function Navbar() {
 
         removeCookiesAndLogout(); // Ensure logout completes
         navigate({
-            to: "/login",
+            to: '/login',
         });
     };
 
     return (
-        <div className="sticky top-0 z-[10] flex h-[72px] items-center justify-between border-b bg-neutral-50 px-8 py-4">
+        <div className="sticky top-0 z-10 flex h-[72px] items-center justify-between border-b bg-neutral-50 px-8 py-4">
             <div className="flex items-center gap-4">
                 <SidebarTrigger onClick={() => setSidebarOpen(!sidebarOpen)}>
                     <SidebarSimple className="text-neutral-600" />
@@ -83,7 +83,7 @@ export function Navbar() {
                 <div className="flex items-center gap-1">
                     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
                         <DropdownMenuTrigger className="flex items-center gap-2">
-                            <DummyProfile />
+                            <DummyProfile className="" />
                             {isOpen ? <CaretDown /> : <CaretUp />}
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
@@ -91,7 +91,7 @@ export function Navbar() {
                                 View Profile Details
                             </DropdownMenuItem> */}
                             <Sheet>
-                                <SheetTrigger className="px-2 py-2 text-sm hover:rounded-sm hover:bg-gray-100">
+                                <SheetTrigger className="p-2 text-sm hover:rounded-sm hover:bg-accent hover:text-accent-foreground">
                                     View Institute Details
                                 </SheetTrigger>
                                 <SheetContent className="max-h-screen !min-w-[565px] overflow-y-auto !border-l border-gray-200 bg-primary-50 p-8 shadow-none [&>button>svg]:size-6 [&>button>svg]:font-thin [&>button>svg]:text-neutral-600 [&>button]:mt-[19px]">
@@ -100,7 +100,7 @@ export function Navbar() {
                                     </SheetTitle>
                                     <div className="flex flex-col gap-8">
                                         <div className="flex flex-col items-center justify-center gap-4">
-                                            {instituteLogo !== "" && (
+                                            {instituteLogo !== '' && (
                                                 <img
                                                     src={instituteLogo}
                                                     alt="logo"
@@ -159,7 +159,7 @@ export function Navbar() {
                                     </div>
                                 </SheetContent>
                             </Sheet>
-                            <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                            <DropdownMenuItem onClick={handleLogout} className="cursor-pointer ">
                                 Logout
                             </DropdownMenuItem>
                         </DropdownMenuContent>
