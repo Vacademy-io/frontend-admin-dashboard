@@ -23,6 +23,7 @@ import { useState } from 'react';
 import ExportDialogPDFCSV from '@/components/common/export-dialog-pdf-csv';
 import { toast } from 'sonner';
 import Papa from 'papaparse';
+import { useTheme } from '@/providers/theme/theme-provider';
 
 const chartConfig = {
     mark: {
@@ -36,6 +37,7 @@ export function AssessmentDetailsMarkRankGraph({
 }: {
     marksRanksData: AssessmentOverviewMarksRankInterface[];
 }) {
+    const { getPrimaryColorCode } = useTheme();
     const chartData = marksRanksData?.map(({ rank, marks }) => ({
         rank,
         mark: marks,
@@ -63,7 +65,7 @@ export function AssessmentDetailsMarkRankGraph({
                         position: 'left',
                         dx: 35,
                         dy: 30,
-                        style: { fontSize: '14px', fill: '#ED7424' },
+                        style: { fontSize: '14px', fill: getPrimaryColorCode() },
                     }}
                 />
                 <YAxis
@@ -77,7 +79,7 @@ export function AssessmentDetailsMarkRankGraph({
                         position: 'left',
                         dx: 10,
                         dy: 10,
-                        style: { fontSize: '14px', fill: '#ED7424' },
+                        style: { fontSize: '14px', fill: getPrimaryColorCode() },
                     }}
                 />
                 <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />

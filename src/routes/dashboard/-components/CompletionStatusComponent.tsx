@@ -1,7 +1,7 @@
 import { PolarGrid, PolarRadiusAxis, RadialBar, RadialBarChart } from 'recharts';
 import { ChartConfig, ChartContainer } from '@/components/ui/chart';
 import { useTheme } from '@/providers/theme/theme-provider';
-
+import themeData from '@/constants/themes/theme.json';
 const chartConfig = {
     visitors: {
         label: 'Visitors',
@@ -15,11 +15,14 @@ export function CompletionStatusComponent({
     profileCompletionPercentage: number;
 }) {
     const { primaryColor } = useTheme();
+    const color =
+        themeData.themes.find((color) => color.code === primaryColor)?.colors['primary-500'] ||
+        'var(--color-visitors)';
     const chartData = [
         {
             browser: 'visitors',
             visitors: profileCompletionPercentage,
-            fill: primaryColor ? primaryColor : 'var(--color-visitors)',
+            fill: color,
         },
     ];
     return (

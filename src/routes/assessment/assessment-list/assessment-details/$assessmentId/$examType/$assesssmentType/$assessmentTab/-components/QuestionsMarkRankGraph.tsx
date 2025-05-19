@@ -1,33 +1,34 @@
-import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
+import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts';
 import {
     ChartConfig,
     ChartContainer,
     ChartTooltip,
     ChartTooltipContent,
-} from "@/components/ui/chart";
-import { MyButton } from "@/components/design-system/button";
-import { ArrowCounterClockwise } from "phosphor-react";
-import AssessmentDetailsRankMarkTable from "./QuestionsRankMarkTable";
-import { getInstituteId } from "@/constants/helper";
-import { Route } from "..";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
+} from '@/components/ui/chart';
+import { MyButton } from '@/components/design-system/button';
+import { ArrowCounterClockwise } from 'phosphor-react';
+import AssessmentDetailsRankMarkTable from './QuestionsRankMarkTable';
+import { getInstituteId } from '@/constants/helper';
+import { Route } from '..';
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import {
     getOverviewDetials,
     handleGetOverviewData,
     handleGetStudentRankMarkExportCSV,
     handleGetStudentRankMarkExportPDF,
-} from "../-services/assessment-details-services";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { AssessmentOverviewMarksRankInterface } from "@/types/assessment-overview";
-import { useState } from "react";
-import ExportDialogPDFCSV from "@/components/common/export-dialog-pdf-csv";
-import { toast } from "sonner";
-import Papa from "papaparse";
+} from '../-services/assessment-details-services';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { AssessmentOverviewMarksRankInterface } from '@/types/assessment-overview';
+import { useState } from 'react';
+import ExportDialogPDFCSV from '@/components/common/export-dialog-pdf-csv';
+import { toast } from 'sonner';
+import Papa from 'papaparse';
+import { useTheme } from '@/providers/theme/theme-provider';
 
 const chartConfig = {
     mark: {
-        label: "mark",
-        color: "hsl(var(--chart-1))",
+        label: 'mark',
+        color: 'hsl(var(--chart-1))',
     },
 } satisfies ChartConfig;
 
@@ -36,6 +37,7 @@ export function AssessmentDetailsMarkRankGraph({
 }: {
     marksRanksData: AssessmentOverviewMarksRankInterface[];
 }) {
+    const { getPrimaryColorCode } = useTheme();
     const chartData = marksRanksData?.map(({ rank, marks }) => ({
         rank,
         mark: marks,
@@ -59,11 +61,11 @@ export function AssessmentDetailsMarkRankGraph({
                     axisLine={true}
                     tickMargin={8}
                     label={{
-                        value: "Rank",
-                        position: "left",
+                        value: 'Rank',
+                        position: 'left',
                         dx: 35,
                         dy: 30,
-                        style: { fontSize: "14px", fill: "#ED7424" },
+                        style: { fontSize: '14px', fill: getPrimaryColorCode() },
                     }}
                 />
                 <YAxis
@@ -72,19 +74,19 @@ export function AssessmentDetailsMarkRankGraph({
                     axisLine={true}
                     tickMargin={8}
                     label={{
-                        value: "Marks Obtained",
+                        value: 'Marks Obtained',
                         angle: -90,
-                        position: "left",
+                        position: 'left',
                         dx: 10,
                         dy: 10,
-                        style: { fontSize: "14px", fill: "#ED7424" },
+                        style: { fontSize: '14px', fill: getPrimaryColorCode() },
                     }}
                 />
                 <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
                 <Line
                     dataKey="mark"
                     type="natural"
-                    stroke="var(--color-mark)"
+                    stroke={getPrimaryColorCode()}
                     strokeWidth={2}
                     activeDot={{
                         r: 6,
@@ -99,7 +101,7 @@ export function QuestionsMarkRankGraph() {
     const instituteId = getInstituteId();
     const { assessmentId } = Route.useParams();
     const { data, isLoading } = useSuspenseQuery(
-        handleGetOverviewData({ assessmentId, instituteId }),
+        handleGetOverviewData({ assessmentId, instituteId })
     );
     const [studentRankMarkData, setStudentRankMarkData] = useState(data);
 
@@ -137,17 +139,17 @@ export function QuestionsMarkRankGraph() {
         onSuccess: async (response) => {
             const date = new Date();
             const url = window.URL.createObjectURL(new Blob([response]));
-            const link = document.createElement("a");
+            const link = document.createElement('a');
             link.href = url;
             link.setAttribute(
-                "download",
-                `pdf_student_rank_mark_report_${date.toLocaleString()}.pdf`,
+                'download',
+                `pdf_student_rank_mark_report_${date.toLocaleString()}.pdf`
             );
             document.body.appendChild(link);
             link.click();
             link.remove();
             window.URL.revokeObjectURL(url);
-            toast.success("Student rank mark data for PDF exported successfully");
+            toast.success('Student rank mark data for PDF exported successfully');
         },
         onError: (error: unknown) => {
             throw error;
@@ -172,14 +174,14 @@ export function QuestionsMarkRankGraph() {
 
             const csv = Papa.unparse(parsedData);
 
-            const blob = new Blob([csv], { type: "text/csv" });
+            const blob = new Blob([csv], { type: 'text/csv' });
             const url = URL.createObjectURL(blob);
 
-            const link = document.createElement("a");
+            const link = document.createElement('a');
             link.href = url;
             link.setAttribute(
-                "download",
-                `csv_student_rank_mark_report_${date.toLocaleString()}.csv`,
+                'download',
+                `csv_student_rank_mark_report_${date.toLocaleString()}.csv`
             );
             document.body.appendChild(link);
             link.click();
@@ -187,7 +189,7 @@ export function QuestionsMarkRankGraph() {
 
             // Clean up the created URL object
             URL.revokeObjectURL(url);
-            toast.success("Student rank mark data for CSV exported successfully");
+            toast.success('Student rank mark data for CSV exported successfully');
         },
         onError: (error: unknown) => {
             throw error;
@@ -216,8 +218,8 @@ export function QuestionsMarkRankGraph() {
                     <ExportDialogPDFCSV
                         handleExportPDF={handleExportPDF}
                         handleExportCSV={handleExportCSV}
-                        isPDFLoading={getExportRankMarkDataPDF.status === "pending" ? true : false}
-                        isCSVLoading={getExportRankMarkDataCSV.status === "pending" ? true : false}
+                        isPDFLoading={getExportRankMarkDataPDF.status === 'pending' ? true : false}
+                        isCSVLoading={getExportRankMarkDataCSV.status === 'pending' ? true : false}
                     />
                     <MyButton
                         type="button"
@@ -230,7 +232,7 @@ export function QuestionsMarkRankGraph() {
                     </MyButton>
                 </div>
             </div>
-            {getQuestionMarkRankData.status === "pending" ? (
+            {getQuestionMarkRankData.status === 'pending' ? (
                 <DashboardLoader />
             ) : (
                 <div className="mt-6 flex items-start gap-16">

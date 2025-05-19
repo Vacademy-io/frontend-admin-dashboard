@@ -306,7 +306,7 @@ html {
 }
 
 .introjs-tooltip-title {
-    color: rgb(234 88 12) !important;
+    color: hsl(var(--primary-500)) !important;
     text-wrap: nowrap !important;
     font-size: 1.1rem !important;
     text-align: left !important;
@@ -317,7 +317,7 @@ html {
 }
 .introjs-tooltip-header {
     text-align: left !important;
-    background-color: #fcf3ec !important;
+    background-color: hsl(var(--primary-50)) !important;
     display: flex !important;
     padding: 6px !important;
     padding-left: 16px !important;
@@ -349,7 +349,7 @@ html {
 }
 
 .custom-tooltip .introjs-progress .introjs-progressbar {
-    background-color: orange !important;
+    background-color: hsl(var(--primary-500)) !important;
 }
 
 .custom-tooltip .introjs-tooltipbuttons {
@@ -386,7 +386,7 @@ html {
 
 .custom-highlight {
     background-color: rgba(33, 150, 243, 0.2) !important;
-    outline: 2px solid orange !important;
+    outline: 2px solid hsl(var(--primary-300)) !important;
 }
 
 @layer base {
