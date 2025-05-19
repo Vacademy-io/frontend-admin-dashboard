@@ -139,7 +139,7 @@
     margin-right: 4px;
 }
 
-.import-export input[type="file"] {
+.import-export input[type='file'] {
     display: none;
 }
 
@@ -202,8 +202,22 @@
 .modal-window p {
     margin-bottom: 0;
 }
-.App-menu_top{
-    position: fixed  !important;
+.App-menu_top {
+    position: fixed !important;
     top: 0;
     left: 0;
+}
+
+.custom-html-content ol {
+    list-style-type: decimal;
+    padding-left: 1rem;
+}
+
+.custom-html-content li {
+    margin-bottom: 0.5rem;
+}
+
+.custom-html-content ul {
+    list-style-type: disc;
+    padding-left: 1rem;
 }

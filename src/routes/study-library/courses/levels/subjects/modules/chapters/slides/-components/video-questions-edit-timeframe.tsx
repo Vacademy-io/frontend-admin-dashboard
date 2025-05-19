@@ -1,7 +1,7 @@
 import { MyButton } from '@/components/design-system/button';
 import { Dialog, DialogClose, DialogContent } from '@/components/ui/dialog';
 import { FormProvider, useForm } from 'react-hook-form';
-import { FormControl, FormField, FormItem } from '@/components/ui/form';
+import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { MyInput } from '@/components/design-system/input';
 import { MutableRefObject, useEffect, useRef, useState } from 'react';
 import { UploadQuestionPaperFormType } from '@/routes/assessment/question-papers/-components/QuestionPaperUpload';
@@ -16,6 +16,7 @@ import { formatTimeStudyLibraryInSeconds, timestampToSeconds } from '../-helper/
 import { zodResolver } from '@hookform/resolvers/zod';
 import { YTPlayer } from './youtube-player';
 import { useContentStore } from '../-stores/chapter-sidebar-store';
+import { Switch } from '@/components/ui/switch';
 
 interface VideoQuestionsTimeFrameDialogProps {
     playerRef: MutableRefObject<YTPlayer | null>;
@@ -36,12 +37,15 @@ const VideoQuestionsTimeFrameEditDialog = ({
             hrs: question?.timestamp?.split(':')[0],
             min: question?.timestamp?.split(':')[1],
             sec: question?.timestamp?.split(':')[2],
+            canSkip: question?.canSkip,
         },
     });
+
     const { activeItem, setActiveItem } = useContentStore();
     const closeRef = useRef<HTMLButtonElement | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const { hrs, min, sec } = tempEditQuestionTimeFrameForm.watch();
+    tempEditQuestionTimeFrameForm.watch('canSkip');
     const isButtonDisabled = !hrs && !min && !sec;
 
     const handleEditTimeStampCurrentQuestion = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -49,6 +53,7 @@ const VideoQuestionsTimeFrameEditDialog = ({
         const timestamp = timestampToSeconds(
             `${tempEditQuestionTimeFrameForm.getValues('hrs')}:${tempEditQuestionTimeFrameForm.getValues('min')}:${tempEditQuestionTimeFrameForm.getValues('sec')}`
         );
+
         if (timestamp === null || timestamp < 0 || timestamp > videoDuration) {
             toast.error(
                 'Invalid timestamp. Please enter a valid time in MM:SS format or seconds also current timestamp should be less than video length',
@@ -72,8 +77,12 @@ const VideoQuestionsTimeFrameEditDialog = ({
             ':' +
             tempEditQuestionTimeFrameForm.getValues('sec');
 
+        currentQuestion.canSkip = tempEditQuestionTimeFrameForm.getValues('canSkip');
+
         const updatedQuestions = activeItem?.video_slide?.questions?.map((q) =>
-            q.id === question?.questionId ? { ...q, timestamp: currentQuestion.timestamp } : q
+            q.id === question?.questionId
+                ? { ...q, timestamp: currentQuestion.timestamp, canSkip: currentQuestion.canSkip }
+                : q
         );
 
         setActiveItem({
@@ -116,6 +125,7 @@ const VideoQuestionsTimeFrameEditDialog = ({
                 hrs: question?.timestamp.split(':')[0],
                 min: question?.timestamp.split(':')[1],
                 sec: question?.timestamp.split(':')[2],
+                canSkip: question?.canSkip,
             });
         }
     }, []);
@@ -241,6 +251,7 @@ const VideoQuestionsTimeFrameEditDialog = ({
                                 )}
                             />
                             <span>sec</span>
+
                             <MyButton
                                 type="button"
                                 buttonType="secondary"
@@ -254,6 +265,26 @@ const VideoQuestionsTimeFrameEditDialog = ({
                             >
                                 Use Current Position
                             </MyButton>
+                        </div>
+                        <div className="mb-2 ml-6 w-full">
+                            <FormField
+                                control={tempEditQuestionTimeFrameForm.control}
+                                name="canSkip"
+                                render={({ field }) => (
+                                    <FormItem className="flex w-1/2 items-center justify-between">
+                                        <FormLabel>
+                                            Allow students to skip this question
+                                            <span className="text-subtitle text-danger-600">*</span>
+                                        </FormLabel>
+                                        <FormControl>
+                                            <Switch
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
                         </div>
                     </form>
                 </FormProvider>

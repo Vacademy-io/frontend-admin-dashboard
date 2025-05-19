@@ -44,6 +44,9 @@ import {
     FileText,
     PresentationChart,
 } from 'phosphor-react';
+import { getIcon } from '../modules/chapters/slides/-components/slides-sidebar/slides-sidebar-slides';
+import { MyButton } from '@/components/design-system/button';
+import { useContentStore } from '../modules/chapters/slides/-stores/chapter-sidebar-store';
 
 // Interfaces (assuming these are unchanged)
 export interface Chapter {
@@ -82,6 +85,7 @@ export const SubjectMaterial = () => {
     const searchParams = router.state.location.search;
     const { getSessionFromPackage } = useInstituteDetailsStore();
     const { studyLibraryData } = useStudyLibraryStore();
+    const { setActiveItem } = useContentStore();
 
     const courseId: string = searchParams.courseId || '';
     const levelId: string = searchParams.levelId || '';
@@ -300,14 +304,39 @@ export const SubjectMaterial = () => {
             chapterId,
             sessionId: currentSession?.id,
         });
+    const handleSlideNavigation = (
+        subjectId: string,
+        moduleId: string,
+        chapterId: string,
+        slideId: string
+    ) => {
+        console.log('slideId: ', slideId);
+        setActiveItem({
+            id: slideId,
+            source_id: '',
+            source_type: '',
+            title: '',
+            image_file_id: '',
+            description: '',
+            status: '',
+            slide_order: 0,
+            video_slide: null,
+            document_slide: null,
+            question_slide: null,
+            assignment_slide: null,
+            is_loaded: false,
+            new_slide: false,
+        });
 
-    // Handler for adding a slide (you'll need to implement the actual logic)
-    const handleAddSlide = (chapterId: string) => {
-        // Example: Navigate to a slide creation page or open a modal
-        console.log(
-            `TODO: Implement add slide for chapter ${chapterId} and session ${currentSession?.id}`
-        );
-        // router.navigate({ to: `${router.state.location.pathname}/modules/chapters/slides/new`, search: { courseId, levelId, moduleId: ..., chapterId, sessionId: currentSession?.id }});
+        navigateTo(`${router.state.location.pathname}/modules/chapters/slides`, {
+            courseId,
+            levelId,
+            subjectId,
+            moduleId,
+            chapterId,
+            sessionId: currentSession?.id,
+            slideId,
+        });
     };
 
     const [openSubjects, setOpenSubjects] = useState<Set<string>>(new Set());
@@ -539,18 +568,23 @@ export const SubjectMaterial = () => {
                                                                                     className={`py-0.5 ${chapterContentIndent}`}
                                                                                 >
                                                                                     <div className="space-y-px border-l border-gray-200 py-1 pl-1.5">
-                                                                                        <button
+                                                                                        <MyButton
+                                                                                            buttonType="text"
                                                                                             onClick={(
                                                                                                 e
                                                                                             ) => {
                                                                                                 e.stopPropagation();
-                                                                                                handleAddSlide(
+                                                                                                handleChapterNavigation(
+                                                                                                    subject.id,
+                                                                                                    mod
+                                                                                                        .module
+                                                                                                        .id,
                                                                                                     ch
                                                                                                         .chapter
                                                                                                         .id
                                                                                                 );
                                                                                             }}
-                                                                                            className="text-primary-600 group mb-1 flex w-full items-center gap-1.5 rounded-md px-1 py-0.5 text-left text-xs transition-colors duration-150 hover:bg-primary-50"
+                                                                                            className="!m-0 flex w-fit cursor-pointer flex-row items-center justify-start gap-2 px-0 pl-2 text-primary-500"
                                                                                         >
                                                                                             <Plus
                                                                                                 size={
@@ -563,7 +597,7 @@ export const SubjectMaterial = () => {
                                                                                                 Add
                                                                                                 Slide
                                                                                             </span>
-                                                                                        </button>
+                                                                                        </MyButton>
 
                                                                                         {(
                                                                                             chapterSlidesMap[
@@ -597,13 +631,32 @@ export const SubjectMaterial = () => {
                                                                                                         key={
                                                                                                             slide.id
                                                                                                         }
-                                                                                                        className="text-2xs flex items-center gap-1 px-1 py-px text-gray-500"
+                                                                                                        className="flex cursor-pointer items-center gap-1 px-1 py-px text-xs text-gray-500"
+                                                                                                        onClick={() => {
+                                                                                                            handleSlideNavigation(
+                                                                                                                subject.id,
+                                                                                                                mod
+                                                                                                                    .module
+                                                                                                                    .id,
+                                                                                                                ch
+                                                                                                                    .chapter
+                                                                                                                    .id,
+                                                                                                                slide.id
+                                                                                                            );
+                                                                                                        }}
                                                                                                     >
                                                                                                         <span className="w-5 shrink-0 text-center font-mono text-gray-400">
                                                                                                             S
                                                                                                             {sIdx +
                                                                                                                 1}
                                                                                                         </span>
+                                                                                                        {getIcon(
+                                                                                                            slide.source_type,
+                                                                                                            slide
+                                                                                                                .document_slide
+                                                                                                                ?.type,
+                                                                                                            '3'
+                                                                                                        )}
                                                                                                         <span
                                                                                                             className="truncate"
                                                                                                             title={
@@ -688,21 +741,6 @@ export const SubjectMaterial = () => {
                 Assessment content coming soon.
             </div>
         ),
-        [TabType.ASSIGNMENT]: (
-            <div className="rounded-md bg-white p-3 text-sm text-gray-600 shadow-sm">
-                Assignment content coming soon.
-            </div>
-        ),
-        [TabType.GRADING]: (
-            <div className="rounded-md bg-white p-3 text-sm text-gray-600 shadow-sm">
-                Grading content coming soon.
-            </div>
-        ),
-        [TabType.ANNOUNCEMENT]: (
-            <div className="rounded-md bg-white p-3 text-sm text-gray-600 shadow-sm">
-                Announcement content coming soon.
-            </div>
-        ),
     };
 
     if (courseId === '' || levelId === '') {
@@ -737,8 +775,8 @@ export const SubjectMaterial = () => {
                         <TabsTrigger
                             key={tab.value}
                             value={tab.value}
-                            className={`data-[state=active]:text-primary data-[state=active]:border-primary hover:text-primary -mb-px px-2.5 
-                                py-1.5 text-xs font-medium transition-all duration-150 
+                            className={`data-[state=active]:text-primary data-[state=active]:border-primary hover:text-primary -mb-px px-2.5
+                                py-1.5 text-xs font-medium transition-all duration-150
                                 hover:bg-gray-50/70 focus-visible:ring-1 focus-visible:ring-primary-300 focus-visible:ring-offset-1
                                 data-[state=active]:rounded-t-md data-[state=active]:border-b-2 data-[state=active]:bg-white data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:rounded-t-md`}
                         >

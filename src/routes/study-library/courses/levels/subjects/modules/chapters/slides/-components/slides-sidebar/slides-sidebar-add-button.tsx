@@ -29,6 +29,7 @@ import {
 } from '../../-form-schemas/assignmentFormSchema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { formatHTMLString } from '../slide-operations/formatHtmlString';
+import AddAssignmentDialog from './add-assignment-dialog';
 
 export const ChapterSidebarAddButton = () => {
     const form = useForm<AssignmentFormType>({
@@ -58,6 +59,7 @@ export const ChapterSidebarAddButton = () => {
         isVideoDialogOpen,
         isVideoFileDialogOpen,
         isQuestionDialogOpen,
+        isAssignmentDialogOpen,
         openPdfDialog,
         closePdfDialog,
         openDocUploadDialog,
@@ -68,6 +70,8 @@ export const ChapterSidebarAddButton = () => {
         closeVideoFileDialog,
         openQuestionDialog,
         closeQuestionDialog,
+        openAssignmentDialog,
+        closeAssignmentDialog,
     } = useDialogStore();
 
     const dropdownList = [
@@ -164,28 +168,7 @@ export const ChapterSidebarAddButton = () => {
                 openQuestionDialog();
                 break;
             case 'assignment':
-                // setItems([
-                //     {
-                //         slide_title: null,
-                //         document_id: null,
-                //         document_title: `Assignment ${items.length + 1}`,
-                //         document_type: '',
-                //         slide_description: null,
-                //         document_cover_file_id: null,
-                //         video_description: null,
-                //         document_data: JSON.stringify(form.getValues()),
-                //         video_id: null,
-                //         video_title: null,
-                //         video_url: null,
-                //         slide_id: String(items.length + 1),
-                //         source_type: 'ASSIGNMENT',
-                //         status: 'DRAFT',
-                //         published_data: '',
-                //         published_url: '',
-                //         last_sync_date: null,
-                //     },
-                //     ...items,
-                // ]);
+                openAssignmentDialog();
                 break;
             case 'presentation':
                 // Redirect to the Excalidraw presentation slide
@@ -262,6 +245,17 @@ export const ChapterSidebarAddButton = () => {
                 onOpenChange={closeQuestionDialog}
             >
                 <AddQuestionDialog openState={(open) => !open && closeQuestionDialog()} />
+            </MyDialog>
+
+            {/* Assignment Upload Dialog */}
+            <MyDialog
+                trigger={<></>}
+                heading="Upload Assignment"
+                dialogWidth="min-w-[500px]"
+                open={isAssignmentDialogOpen}
+                onOpenChange={closeAssignmentDialog} // Pass the action function directly
+            >
+                <AddAssignmentDialog openState={(open) => !open && closeAssignmentDialog()} />
             </MyDialog>
         </>
     );

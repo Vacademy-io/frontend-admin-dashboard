@@ -8,12 +8,13 @@ import {
     UPDATE_SLIDE_STATUS,
     UPDATE_SLIDE_ORDER,
     UPDATE_QUESTION_ORDER,
+    UPDATE_ASSIGNMENT_ORDER,
 } from '@/constants/urls';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
 import { useContentStore } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
 import { SlideQuestionsDataInterface } from '@/types/study-library/study-library-slides-type';
-import { transformResponseDataToMyQuestionsSchema } from '@/routes/assessment/question-papers/-utils/helper';
+import { cleanVideoQuestions } from '../-helper/helper';
 
 // Common interfaces
 export interface TextData {
@@ -117,10 +118,10 @@ export interface Slide {
     description: string;
     status: string;
     slide_order: number;
-    video_slide?: VideoSlide;
-    document_slide?: DocumentSlide;
-    question_slide?: QuestionSlide;
-    assignment_slide?: AssignmentSlide;
+    video_slide?: VideoSlide | null;
+    document_slide?: DocumentSlide | null;
+    question_slide?: QuestionSlide | null;
+    assignment_slide?: AssignmentSlide | null;
     is_loaded: boolean;
     new_slide: boolean;
 }
@@ -182,23 +183,6 @@ export type slideOrderPayloadType = {
 interface UpdateSlideOrderParams {
     chapterId: string;
     slideOrderPayload: slideOrderPayloadType;
-}
-
-function cleanVideoQuestions(data: Slide[]) {
-    return data.map((item) => {
-        if (item.source_type === 'VIDEO' && item.video_slide) {
-            return {
-                ...item,
-                video_slide: {
-                    ...item.video_slide,
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-expect-error
-                    questions: transformResponseDataToMyQuestionsSchema(item.video_slide.questions),
-                },
-            };
-        }
-        return item;
-    });
 }
 
 export const useSlides = (chapterId: string) => {
@@ -304,19 +288,39 @@ export const useSlides = (chapterId: string) => {
         },
     });
 
+    const updateAssignmentSlideMutation = useMutation({
+        mutationFn: async (payload: SlideQuestionsDataInterface) => {
+            const response = await authenticatedAxiosInstance.post(
+                `${UPDATE_ASSIGNMENT_ORDER}?chapterId=${chapterId}&instituteId=${INSTITUTE_ID}`,
+                payload
+            );
+            return response.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['slides'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_MODULES_WITH_CHAPTERS'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SUBJECTS_PROGRESS'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SLIDES_PROGRESS'] });
+        },
+    });
+
     return {
         slides: getSlidesQuery.data,
         isLoading: getSlidesQuery.isLoading,
         error: getSlidesQuery.error,
+        refetch: getSlidesQuery.refetch,
         addUpdateVideoSlide: addUpdateVideoSlideMutation.mutateAsync,
         addUpdateDocumentSlide: addUpdateDocumentSlideMutation.mutateAsync,
         updateSlideStatus: updateSlideStatus.mutateAsync,
         updateSlideOrder: updateSlideOrderMutation.mutateAsync,
         updateQuestionOrder: updateQuestionSlideMutation.mutateAsync,
+        updateAssignmentOrder: updateAssignmentSlideMutation.mutateAsync,
         isUpdating:
             addUpdateVideoSlideMutation.isPending ||
             addUpdateDocumentSlideMutation.isPending ||
             updateSlideOrderMutation.isPending ||
-            updateQuestionSlideMutation.isPending,
+            updateQuestionSlideMutation.isPending ||
+            updateAssignmentSlideMutation.isPending,
     };
 };

@@ -23,6 +23,8 @@ import { createFileRoute } from '@tanstack/react-router';
 import { CaretLeft } from 'phosphor-react';
 import { useEffect, useRef, useState } from 'react';
 import { SaveDraftProvider } from './-context/saveDraftContext';
+import { useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
+import { useModulesWithChaptersStore } from '@/stores/study-library/use-modules-with-chapters-store';
 
 interface ChapterSearchParams {
     courseId: string;
@@ -53,6 +55,8 @@ export const Route = createFileRoute(
 
 function RouteComponent() {
     const { courseId, subjectId, levelId, moduleId, chapterId, sessionId } = Route.useSearch();
+    const { studyLibraryData } = useStudyLibraryStore();
+    const { modulesWithChaptersData } = useModulesWithChaptersStore();
     const navigate = useNavigate();
     const { activeItem } = useContentStore();
     const [subjectName, setSubjectName] = useState('');
@@ -108,7 +112,7 @@ function RouteComponent() {
     useEffect(() => {
         setSubjectName(getSubjectName(subjectId || ''));
         setModuleName(getModuleName(moduleId || ''));
-    }, []);
+    }, [studyLibraryData, modulesWithChaptersData]);
 
     const SidebarComponent = (
         <div className="flex w-full flex-col items-center">

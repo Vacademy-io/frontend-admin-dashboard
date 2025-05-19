@@ -20,7 +20,12 @@ import {
 } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides';
 import { toast } from 'sonner';
 import { Check, DownloadSimple, PencilSimpleLine } from 'phosphor-react';
-import { convertHtmlToPdf, convertToSlideFormat } from '../-helper/helper';
+import {
+    converDataToAssignmentFormat,
+    converDataToVideoFormat,
+    convertHtmlToPdf,
+    convertToQuestionBackendSlideFormat,
+} from '../-helper/helper';
 import { StudyLibraryQuestionsPreview } from './questions-preview';
 import StudyLibraryAssignmentPreview from './assignment-preview';
 import VideoSlidePreview from './video-slide-preview';
@@ -29,7 +34,6 @@ import { handleUnpublishSlide } from './slide-operations/handleUnpublishSlide';
 import { updateHeading } from './slide-operations/updateSlideHeading';
 import { formatHTMLString } from './slide-operations/formatHtmlString';
 import { handleConvertAndUpload } from './slide-operations/handleConvertUpload';
-import { UploadQuestionPaperFormType } from '@/routes/assessment/question-papers/-components/QuestionPaperUpload';
 
 export const SlideMaterial = ({
     setGetCurrentEditorHTMLContent,
@@ -48,12 +52,13 @@ export const SlideMaterial = ({
     const router = useRouter();
     const [content, setContent] = useState<JSX.Element | null>(null);
 
-    const { chapterId } = router.state.location.search;
+    const { chapterId, slideId } = router.state.location.search;
     const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
     const [isUnpublishDialogOpen, setIsUnpublishDialogOpen] = useState(false);
     const { addUpdateDocumentSlide } = useSlides(chapterId || '');
     const { addUpdateVideoSlide } = useSlides(chapterId || '');
     const { updateQuestionOrder } = useSlides(chapterId || '');
+    const { updateAssignmentOrder } = useSlides(chapterId || '');
 
     const handleHeadingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setHeading(e.target.value);
@@ -136,6 +141,13 @@ export const SlideMaterial = ({
         } else if (activeItem.source_type == 'ASSIGNMENT') {
             setContent(<StudyLibraryAssignmentPreview activeItem={activeItem} />);
             return;
+        } else {
+            setContent(
+                <div className="flex h-[500px] flex-col items-center justify-center rounded-lg py-10">
+                    <EmptySlideMaterial />
+                    <p className="mt-4 text-neutral-500">No study material has been added yet</p>
+                </div>
+            );
         }
         return;
     };
@@ -149,14 +161,51 @@ export const SlideMaterial = ({
                   ? 'UNSYNC'
                   : 'DRAFT'
             : 'DRAFT';
+
+        if (activeItem?.source_type == 'ASSIGNMENT') {
+            const convertedData = converDataToAssignmentFormat({
+                activeItem,
+                status,
+                notify: false,
+                newSlide: false,
+            });
+            try {
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-expect-error
+                await updateAssignmentOrder(convertedData!);
+                toast.success(`slide saved in draft successfully!`);
+            } catch {
+                toast.error(`Error in publishing the slide`);
+            }
+        }
+
+        if (activeItem?.source_type == 'VIDEO') {
+            const convertedData = converDataToVideoFormat({
+                activeItem,
+                status,
+                notify: false,
+                newSlide: false,
+            });
+            try {
+                await addUpdateVideoSlide(convertedData);
+                toast.success(`slide saved in draft successfully!`);
+            } catch {
+                toast.error(`Error in unpublishing the slide`);
+            }
+        }
+
         if (activeItem?.source_type === 'QUESTION') {
-            const questionsData: UploadQuestionPaperFormType = JSON.parse('');
-            // need to add my question logic
-            const convertedData = convertToSlideFormat(questionsData, status);
+            const convertedData = convertToQuestionBackendSlideFormat({
+                activeItem,
+                status,
+                notify: false,
+                newSlide: false,
+            });
             try {
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-expect-error
                 await updateQuestionOrder(convertedData!);
+                toast.success(`slide saved in draft successfully!`);
             } catch {
                 toast.error('error saving slide');
             }
@@ -211,13 +260,17 @@ export const SlideMaterial = ({
     }, [activeItem]);
 
     useEffect(() => {
-        if (items.length == 0) setActiveItem(null);
+        if (items.length == 0 && slideId == undefined) {
+            setActiveItem(null);
+        } else {
+            setActiveItem(items.find((slide) => slide.id == slideId) || items[0] || null);
+        }
     }, [items]);
 
     useEffect(() => {
         setHeading(activeItem?.title || '');
         loadContent();
-    }, [activeItem]);
+    }, [activeItem, items]);
 
     useEffect(() => {
         let intervalId: NodeJS.Timeout | null = null;
@@ -342,6 +395,7 @@ export const SlideMaterial = ({
                                         addUpdateDocumentSlide,
                                         addUpdateVideoSlide,
                                         updateQuestionOrder,
+                                        updateAssignmentOrder,
                                         SaveDraft
                                     )
                                 }
@@ -357,6 +411,7 @@ export const SlideMaterial = ({
                                         addUpdateDocumentSlide,
                                         addUpdateVideoSlide,
                                         updateQuestionOrder,
+                                        updateAssignmentOrder,
                                         SaveDraft
                                     )
                                 }

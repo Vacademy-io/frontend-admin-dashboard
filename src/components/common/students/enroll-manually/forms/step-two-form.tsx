@@ -50,8 +50,8 @@ export const StepTwoForm = ({
     const addSessionMutation = useAddSession();
 
     const genderList: DropdownValueType[] =
-        instituteDetails?.genders.map((gender) => ({
-            id: crypto.randomUUID(),
+        instituteDetails?.genders.map((gender, index) => ({
+            id: index.toString(),
             name: gender as string,
         })) || [];
 
@@ -107,7 +107,10 @@ export const StepTwoForm = ({
                     },
                     accessDays: initialValues?.session_expiry_days?.toString() || '',
                     enrollmentNumber: initialValues?.institute_enrollment_id || '',
-                    gender: initialValues?.gender || '',
+                    gender: {
+                        id: initialValues?.gender || '',
+                        name: initialValues?.gender || '',
+                    },
                     collegeName: initialValues?.linked_institute_name || '',
                 });
             }
@@ -137,7 +140,10 @@ export const StepTwoForm = ({
             },
             accessDays: initialValues?.session_expiry_days?.toString() || '',
             enrollmentNumber: initialValues?.institute_enrollment_id || '',
-            gender: initialValues?.gender || '',
+            gender: {
+                id: initialValues?.gender || '',
+                name: initialValues?.gender || '',
+            },
             collegeName: initialValues?.linked_institute_name || '',
         },
         mode: 'onChange',
@@ -175,7 +181,6 @@ export const StepTwoForm = ({
 
     // When course changes, update session and level lists
     useEffect(() => {
-        console.log('course value', courseValue);
         if (lastChangedField.current === 'course' && courseValue?.id) {
             // Update the sessions based on selected course
             setSessionList(
@@ -391,6 +396,10 @@ export const StepTwoForm = ({
             }
         );
     };
+
+    useEffect(() => {
+        console.log('gender', form.getValues('gender'));
+    }, [form.watch('gender')]);
 
     useEffect(() => {
         if (submitFn) {

@@ -1,6 +1,7 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 export const assignmentFormSchema = z.object({
+    id: z.string(),
     task: z.string(),
     taskDescription: z.string().optional(),
     startDate: z.string(),
@@ -12,7 +13,7 @@ export const assignmentFormSchema = z.object({
             questionId: z.string().optional(),
             questionName: z.string(),
             questionType: z.string(),
-        }),
+        })
     ),
     totalParticipants: z.number().optional(),
     submittedParticipants: z.number().optional(),

@@ -1,6 +1,5 @@
 import { Slide } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides';
 import { Dispatch, SetStateAction } from 'react';
-import { UploadQuestionPaperFormType } from '@/routes/assessment/question-papers/-components/QuestionPaperUpload';
 import { toast } from 'sonner';
 import { UseMutateAsyncFunction } from '@tanstack/react-query';
 import {
@@ -8,7 +7,11 @@ import {
     VideoSlidePayload,
 } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides';
 import { SlideQuestionsDataInterface } from '@/types/study-library/study-library-slides-type';
-import { converDataToVideoFormat, convertToSlideFormat } from '../../-helper/helper';
+import {
+    converDataToAssignmentFormat,
+    converDataToVideoFormat,
+    convertToQuestionBackendSlideFormat,
+} from '../../-helper/helper';
 
 type SlideResponse = {
     id: string;
@@ -34,16 +37,26 @@ export const handlePublishSlide = async (
         SlideQuestionsDataInterface,
         unknown
     >,
+    updateAssignmentOrder: UseMutateAsyncFunction<
+        SlideResponse,
+        Error,
+        SlideQuestionsDataInterface,
+        unknown
+    >,
     SaveDraft: (activeItem: Slide) => Promise<void>
 ) => {
     const status = 'PUBLISHED';
     if (activeItem?.source_type === 'QUESTION') {
-        const questionsData: UploadQuestionPaperFormType = JSON.parse('');
-        // need to add my question logic
-        const convertedData = convertToSlideFormat(questionsData, status);
-        console.log(convertedData);
+        const convertedData = convertToQuestionBackendSlideFormat({
+            activeItem,
+            status,
+            notify,
+            newSlide: false,
+        });
         try {
-            // await updateQuestionOrder(convertedData!);
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            await updateQuestionOrder(convertedData!);
         } catch {
             toast.error('error saving slide');
         }
@@ -90,6 +103,24 @@ export const handlePublishSlide = async (
         });
         try {
             await addUpdateVideoSlide(convertedData);
+            toast.success(`slide published successfully!`);
+            setIsOpen(false);
+        } catch {
+            toast.error(`Error in publishing the slide`);
+        }
+    }
+
+    if (activeItem?.source_type == 'ASSIGNMENT') {
+        const convertedData = converDataToAssignmentFormat({
+            activeItem,
+            status,
+            notify,
+            newSlide: false,
+        });
+        try {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            await updateAssignmentOrder(convertedData!);
             toast.success(`slide published successfully!`);
             setIsOpen(false);
         } catch {
