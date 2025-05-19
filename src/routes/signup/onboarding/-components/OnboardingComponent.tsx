@@ -1,13 +1,13 @@
-import { Separator } from "@/components/ui/separator";
-import { VacademyAssessLogo, VacademyLMSLogo } from "@/svgs";
-import { useState } from "react";
-import { CreateOnboardingSidebar } from "./CreateOnboardingSidebar";
-import { OnboardingSteps } from "./OnboardingSteps";
-import { Route } from "..";
+import { Separator } from '@/components/ui/separator';
+import { VacademyAssessLogo, VacademyLMSLogo } from '@/svgs';
+import { useState } from 'react';
+import { CreateOnboardingSidebar } from './CreateOnboardingSidebar';
+import { OnboardingSteps } from './OnboardingSteps';
+import { Route } from '..';
 
 export function OnboardingComponent() {
     const searchParams = Route.useSearch();
-    const steps = ["Organization Setup", "Organization Theme","Add Your Details"];
+    const steps = ['Organization Setup', 'Organization Theme', 'Add Your Details'];
     const [currentStep, setCurrentStep] = useState(0);
     const [completedSteps, setCompletedSteps] = useState([false, false]);
 

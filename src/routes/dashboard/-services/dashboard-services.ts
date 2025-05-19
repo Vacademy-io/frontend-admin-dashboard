@@ -217,7 +217,7 @@ export const handleUpdateInstituteDashboard = async (
         email: data.instituteEmail,
         website_url: data.instituteWebsite,
         institute_logo_file_id: data.instituteProfilePictureId,
-        institute_theme_code: '',
+        institute_theme_code: data.instituteThemeCode,
         language: '',
         description: '',
         type: data.instituteType,

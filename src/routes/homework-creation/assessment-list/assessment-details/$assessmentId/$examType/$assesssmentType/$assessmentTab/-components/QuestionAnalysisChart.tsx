@@ -28,6 +28,7 @@ import {
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { getAssessmentDetails } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-services/assessment-services';
 import { QuestionInsightResponse } from '../-utils/assessment-details-interface';
+import { useTheme } from '@/providers/theme/theme-provider';
 
 const chartConfig = {
     correct: { label: 'Correct', color: '#97D4B4' },
@@ -47,6 +48,8 @@ export function AssessmentDetailsQuestionAnalysisChart({
         'wrongResponses',
         'skip',
     ]);
+
+    const { getPrimaryColorCode } = useTheme();
 
     const toggleKey = (key: string) => {
         setVisibleKeys((prev) => {
@@ -142,7 +145,7 @@ export function AssessmentDetailsQuestionAnalysisChart({
                             position: 'left',
                             dx: 60,
                             dy: 30,
-                            style: { fontSize: '14px', fill: '#ED7424' },
+                            style: { fontSize: '14px', fill: getPrimaryColorCode() },
                         }}
                     />
                     <YAxis
@@ -156,7 +159,7 @@ export function AssessmentDetailsQuestionAnalysisChart({
                             position: 'left',
                             dx: 10,
                             dy: 10,
-                            style: { fontSize: '14px', fill: '#ED7424' },
+                            style: { fontSize: '14px', fill: getPrimaryColorCode() },
                         }}
                     />
                     {visibleKeys.includes('correct') && (
