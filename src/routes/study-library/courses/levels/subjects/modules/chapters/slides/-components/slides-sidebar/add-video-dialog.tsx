@@ -1,3 +1,5 @@
+'use client';
+
 import { MyButton } from '@/components/design-system/button';
 import { MyInput } from '@/components/design-system/input';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -8,6 +10,7 @@ import { useSlides } from '@/routes/study-library/courses/levels/subjects/module
 import { toast } from 'sonner';
 import { Route } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/index';
 import { useContentStore } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
+
 import { useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -124,6 +127,7 @@ export const AddVideoDialog = ({
                     video_length_in_millis: duration,
                     published_url: null,
                     published_video_length_in_millis: 0,
+                    source_type: 'VIDEO',
                 },
                 status: 'DRAFT',
                 new_slide: true,

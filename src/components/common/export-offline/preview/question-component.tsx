@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useRef } from "react";
-import { useExportSettings } from "../contexts/export-settings-context";
-import { processHtmlString, getBase64FromUrl } from "../utils/utils";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Question } from "../types/question";
-import { Resizable } from "re-resizable";
-import { RefreshCw } from "lucide-react";
+import { useState, useEffect, useRef } from 'react';
+import { useExportSettings } from '../contexts/export-settings-context';
+import { processHtmlString, getBase64FromUrl } from '../utils/utils';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Question } from '../types/question';
+import { Resizable } from 're-resizable';
+import { RefreshCw } from 'lucide-react';
 
 // Add answerSpacing parameter to your props
 interface QuestionComponentProps {
@@ -33,12 +33,12 @@ export function QuestionComponent({
     // Determine font size class
     const getFontSizeClass = () => {
         switch (settings.fontSize) {
-            case "small":
-                return "text-xs";
-            case "large":
-                return "text-base";
+            case 'small':
+                return 'text-xs';
+            case 'large':
+                return 'text-base';
             default:
-                return "text-sm";
+                return 'text-sm';
         }
     };
 
@@ -82,7 +82,7 @@ export function QuestionComponent({
     // Save image dimensions to settings
     const saveImageDimensions = (
         imageUrl: string,
-        dimensions: { width: number; height: number },
+        dimensions: { width: number; height: number }
     ) => {
         const newCustomSizes = {
             ...(settings.customImageSizes || {}),
@@ -118,13 +118,13 @@ export function QuestionComponent({
     useEffect(() => {
         const convertImagesToBase64 = async () => {
             const images = processHtmlString(question.question.content)
-                .filter((item) => item.type === "image")
+                .filter((item) => item.type === 'image')
                 .map((item) => item.content);
 
             const optionImages = question.options_with_explanation.flatMap((option) =>
                 processHtmlString(option.text.content)
-                    .filter((item) => item.type === "image")
-                    .map((item) => item.content),
+                    .filter((item) => item.type === 'image')
+                    .map((item) => item.content)
             );
 
             const allImages = [...images, ...optionImages];
@@ -184,43 +184,43 @@ export function QuestionComponent({
                     }
                     maxWidth={450}
                     maxHeight={450}
-                    className={`${isSelected ? "ring-2 ring-primary-500" : ""}`}
+                    className={`${isSelected ? 'ring-2 ring-primary-500' : ''}`}
                     handleStyles={{
                         right: {
-                            width: "6px",
-                            height: "40px",
-                            right: "-3px",
-                            top: "calc(50% - 20px)",
-                            background: "#3b82f6",
-                            borderRadius: "3px",
-                            cursor: "ew-resize",
-                            visibility: isSelected ? "visible" : "hidden",
+                            width: '6px',
+                            height: '40px',
+                            right: '-3px',
+                            top: 'calc(50% - 20px)',
+                            background: '#3b82f6',
+                            borderRadius: '3px',
+                            cursor: 'ew-resize',
+                            visibility: isSelected ? 'visible' : 'hidden',
                         },
                         bottom: {
-                            width: "40px",
-                            height: "6px",
-                            bottom: "-3px",
-                            left: "calc(50% - 20px)",
-                            background: "#3b82f6",
-                            borderRadius: "3px",
-                            cursor: "ns-resize",
-                            visibility: isSelected ? "visible" : "hidden",
+                            width: '40px',
+                            height: '6px',
+                            bottom: '-3px',
+                            left: 'calc(50% - 20px)',
+                            background: '#3b82f6',
+                            borderRadius: '3px',
+                            cursor: 'ns-resize',
+                            visibility: isSelected ? 'visible' : 'hidden',
                         },
                         bottomRight: {
-                            width: "12px",
-                            height: "12px",
-                            bottom: "-6px",
-                            right: "-6px",
-                            background: "#3b82f6",
-                            borderRadius: "50%",
-                            cursor: "nwse-resize",
-                            visibility: isSelected ? "visible" : "hidden",
+                            width: '12px',
+                            height: '12px',
+                            bottom: '-6px',
+                            right: '-6px',
+                            background: '#3b82f6',
+                            borderRadius: '50%',
+                            cursor: 'nwse-resize',
+                            visibility: isSelected ? 'visible' : 'hidden',
                         },
                     }}
                     handleClasses={{
-                        right: "data-html2canvas-ignore",
-                        bottom: "data-html2canvas-ignore",
-                        bottomRight: "data-html2canvas-ignore",
+                        right: 'data-html2canvas-ignore',
+                        bottom: 'data-html2canvas-ignore',
+                        bottomRight: 'data-html2canvas-ignore',
                     }}
                     enable={{
                         top: false,
@@ -251,7 +251,7 @@ export function QuestionComponent({
                             </button>
 
                             <div className="absolute -top-7 left-0 z-10 rounded bg-primary-200 px-2 py-0.5 text-xs shadow-md">
-                                {Math.round(initialSize?.width ?? 0)} ×{" "}
+                                {Math.round(initialSize?.width ?? 0)} ×{' '}
                                 {Math.round(initialSize?.height ?? 0)}
                             </div>
                         </>
@@ -268,15 +268,15 @@ export function QuestionComponent({
                     <p className="flex gap-x-1 font-bold">
                         <p className="min-w-fit">
                             Q: {question.question_order}
-                            {")"}{" "}
+                            {')'}{' '}
                         </p>
                         <div className="">
                             {processHtmlString(question.question.content).map((item, index) => {
-                                if (item.type === "text") {
+                                if (item.type === 'text') {
                                     return <span key={index}>{item.content}</span>;
-                                } else if (item.type === "image") {
+                                } else if (item.type === 'image') {
                                     return renderImage(item.content, index);
-                                } else if (item.type === "formula") {
+                                } else if (item.type === 'formula') {
                                     // Use dangerouslySetInnerHTML for formula elements
                                     return (
                                         <span
@@ -307,11 +307,11 @@ export function QuestionComponent({
 
                         <p>
                             {String.fromCharCode(97 + index)}
-                            {")"}{" "}
+                            {')'}{' '}
                         </p>
                         <div className="mr-2">
                             {processHtmlString(option.text.content).map((item, index) => {
-                                if (item.type === "text") {
+                                if (item.type === 'text') {
                                     return (
                                         <span
                                             key={item.content.slice(0, 10) + index}
@@ -320,7 +320,7 @@ export function QuestionComponent({
                                             {item.content}
                                         </span>
                                     );
-                                } else if (item.type === "image") {
+                                } else if (item.type === 'image') {
                                     return (
                                         <img
                                             key={index}
@@ -329,7 +329,7 @@ export function QuestionComponent({
                                             className=""
                                         />
                                     );
-                                } else if (item.type === "formula") {
+                                } else if (item.type === 'formula') {
                                     return (
                                         <span
                                             key={`formula-${index}`}
@@ -346,9 +346,9 @@ export function QuestionComponent({
             </div>
 
             {/* Add this for answer spacing */}
-            {(question.question_type === "LONG_ANSWER" ||
-                question.question_type === "ONE_WORD" ||
-                question.question_type === "NUMERIC") &&
+            {(question.question_type === 'LONG_ANSWER' ||
+                question.question_type === 'ONE_WORD' ||
+                question.question_type === 'NUMERIC') &&
                 answerSpacing &&
                 answerSpacing > 0 && (
                     <div

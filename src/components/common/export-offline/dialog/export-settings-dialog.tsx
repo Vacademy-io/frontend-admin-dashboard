@@ -1,33 +1,33 @@
-"use client";
+'use client';
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import { useExportSettings, type ExportSettings } from "../contexts/export-settings-context";
-import { useCallback, useState } from "react";
-import { Plus } from "lucide-react";
-import type { CustomField, CustomFieldType } from "../types/question";
-import { Minus } from "phosphor-react";
-import { AnswerSpacingDialog } from "./answer-spacing-dialog";
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { useExportSettings, type ExportSettings } from '../contexts/export-settings-context';
+import { useCallback, useState } from 'react';
+import { Plus } from 'lucide-react';
+import type { CustomField, CustomFieldType } from '../types/question';
+import { Minus } from 'phosphor-react';
+import { AnswerSpacingDialog } from './answer-spacing-dialog';
 import {
     Accordion,
     AccordionItem,
     AccordionTrigger,
     AccordionContent,
-} from "@/components/ui/accordion";
-import { Section } from "../types/question"; // Make sure to import your Section type
-import { HeaderSettingsDialog } from "./header-settings-dialog";
-import { Switch } from "@/components/ui/switch";
+} from '@/components/ui/accordion';
+import { Section } from '../types/question'; // Make sure to import your Section type
+import { HeaderSettingsDialog } from './header-settings-dialog';
+import { Switch } from '@/components/ui/switch';
 
 interface ExportSettingsDialogProps {
     open: boolean;
@@ -43,10 +43,10 @@ export function ExportSettingsDialog({ open, onOpenChange, sections }: ExportSet
         (key: keyof ExportSettings, value) => {
             updateSettings({ [key]: value });
         },
-        [updateSettings],
+        [updateSettings]
     );
 
-    const [newFieldLabel, setNewFieldLabel] = useState("");
+    const [newFieldLabel, setNewFieldLabel] = useState('');
     const [isAnswerSpacingDialogOpen, setIsAnswerSpacingDialogOpen] = useState(false);
 
     const handleCustomFieldChange = (index: number, field: Partial<CustomField>) => {
@@ -60,12 +60,12 @@ export function ExportSettingsDialog({ open, onOpenChange, sections }: ExportSet
         const newField = {
             label: newFieldLabel,
             enabled: true,
-            type: "blank" as CustomFieldType,
+            type: 'blank' as CustomFieldType,
         };
         updateSettings({
             customFields: [...(settings.customFields || []), newField],
         });
-        setNewFieldLabel("");
+        setNewFieldLabel('');
     };
 
     return (
@@ -115,13 +115,13 @@ export function ExportSettingsDialog({ open, onOpenChange, sections }: ExportSet
                                     <Checkbox
                                         checked={
                                             settings[
-                                                "showPageNumbers" as keyof ExportSettings
+                                                'showPageNumbers' as keyof ExportSettings
                                             ] as boolean
                                         }
                                         onCheckedChange={(checked) =>
                                             handleSettingChange(
-                                                "showPageNumbers" as keyof ExportSettings,
-                                                checked,
+                                                'showPageNumbers' as keyof ExportSettings,
+                                                checked
                                             )
                                         }
                                     />
@@ -134,8 +134,8 @@ export function ExportSettingsDialog({ open, onOpenChange, sections }: ExportSet
                                             value={settings.pageNumbersPosition}
                                             onValueChange={(value) =>
                                                 handleSettingChange(
-                                                    "pageNumbersPosition",
-                                                    value as "left" | "center" | "right",
+                                                    'pageNumbersPosition',
+                                                    value as 'left' | 'center' | 'right'
                                                 )
                                             }
                                             className="flex gap-4"
@@ -180,11 +180,8 @@ export function ExportSettingsDialog({ open, onOpenChange, sections }: ExportSet
                                                     size="icon"
                                                     onClick={() =>
                                                         handleSettingChange(
-                                                            "columnsPerPage",
-                                                            Math.max(
-                                                                1,
-                                                                settings.columnsPerPage - 1,
-                                                            ),
+                                                            'columnsPerPage',
+                                                            Math.max(1, settings.columnsPerPage - 1)
                                                         )
                                                     }
                                                     disabled={settings.columnsPerPage <= 1}
@@ -199,11 +196,11 @@ export function ExportSettingsDialog({ open, onOpenChange, sections }: ExportSet
                                                     value={settings.columnsPerPage}
                                                     onChange={(e) => {
                                                         const value = Number.parseInt(
-                                                            e.target.value,
+                                                            e.target.value
                                                         );
                                                         handleSettingChange(
-                                                            "columnsPerPage",
-                                                            Math.min(Math.max(1, value), 3),
+                                                            'columnsPerPage',
+                                                            Math.min(Math.max(1, value), 3)
                                                         );
                                                     }}
                                                 />
@@ -213,11 +210,8 @@ export function ExportSettingsDialog({ open, onOpenChange, sections }: ExportSet
                                                     size="icon"
                                                     onClick={() =>
                                                         handleSettingChange(
-                                                            "columnsPerPage",
-                                                            Math.min(
-                                                                3,
-                                                                settings.columnsPerPage + 1,
-                                                            ),
+                                                            'columnsPerPage',
+                                                            Math.min(3, settings.columnsPerPage + 1)
                                                         )
                                                     }
                                                     disabled={settings.columnsPerPage >= 3}
@@ -234,8 +228,8 @@ export function ExportSettingsDialog({ open, onOpenChange, sections }: ExportSet
                                             value={settings.spaceForRoughWork}
                                             onValueChange={(value) =>
                                                 handleSettingChange(
-                                                    "spaceForRoughWork",
-                                                    value as "none" | "bottom" | "right",
+                                                    'spaceForRoughWork',
+                                                    value as 'none' | 'bottom' | 'right'
                                                 )
                                             }
                                             className="flex gap-4"
@@ -257,8 +251,8 @@ export function ExportSettingsDialog({ open, onOpenChange, sections }: ExportSet
                                             value={settings.roughWorkSize}
                                             onValueChange={(value) =>
                                                 handleSettingChange(
-                                                    "roughWorkSize",
-                                                    value as "small" | "medium" | "large",
+                                                    'roughWorkSize',
+                                                    value as 'small' | 'medium' | 'large'
                                                 )
                                             }
                                             className="flex gap-4"
@@ -299,8 +293,8 @@ export function ExportSettingsDialog({ open, onOpenChange, sections }: ExportSet
                                             value={settings.pagePadding}
                                             onValueChange={(value) =>
                                                 handleSettingChange(
-                                                    "pagePadding",
-                                                    value as "low" | "medium" | "high",
+                                                    'pagePadding',
+                                                    value as 'low' | 'medium' | 'high'
                                                 )
                                             }
                                             className="flex gap-4"
@@ -331,8 +325,8 @@ export function ExportSettingsDialog({ open, onOpenChange, sections }: ExportSet
                                             value={settings.fontSize}
                                             onValueChange={(value) =>
                                                 handleSettingChange(
-                                                    "fontSize",
-                                                    value as "small" | "medium" | "large",
+                                                    'fontSize',
+                                                    value as 'small' | 'medium' | 'large'
                                                 )
                                             }
                                             className="flex gap-4"
@@ -355,7 +349,7 @@ export function ExportSettingsDialog({ open, onOpenChange, sections }: ExportSet
                                         <Label>Image Size</Label>
                                         <div className="flex items-center space-x-2">
                                             <Checkbox
-                                                id={"maintainImageAspectRatio"}
+                                                id={'maintainImageAspectRatio'}
                                                 checked={settings.maintainImageAspectRatio}
                                                 onCheckedChange={(checked) =>
                                                     updateSettings({
@@ -379,28 +373,28 @@ export function ExportSettingsDialog({ open, onOpenChange, sections }: ExportSet
                             <AccordionContent>
                                 <div className="flex flex-col gap-y-2">
                                     {[
-                                        ["showInstitutionLetterhead", "Show Institute Letterhead"],
+                                        ['showInstitutionLetterhead', 'Show Institute Letterhead'],
                                         [
-                                            "showFirstPageInstructions",
-                                            "Show Instructions on First Page",
+                                            'showFirstPageInstructions',
+                                            'Show Instructions on First Page',
                                         ],
                                         [
-                                            "showAdaptiveMarkingRules",
-                                            "Show Adaptive Marking Rules - Entire Assessment",
+                                            'showAdaptiveMarkingRules',
+                                            'Show Adaptive Marking Rules - Entire Assessment',
                                         ],
                                         [
-                                            "showSectionInstructions",
-                                            "Show Section-wise Instructions",
+                                            'showSectionInstructions',
+                                            'Show Section-wise Instructions',
                                         ],
-                                        ["showSectionDuration", "Show Section-wise Duration"],
-                                        ["showMarksPerQuestion", "Show Marks per Question"],
+                                        ['showSectionDuration', 'Show Section-wise Duration'],
+                                        ['showMarksPerQuestion', 'Show Marks per Question'],
                                         [
-                                            "showAdaptiveMarkingRulesSection",
-                                            "Show Adaptive Marking Rules - Section-wise",
+                                            'showAdaptiveMarkingRulesSection',
+                                            'Show Adaptive Marking Rules - Section-wise',
                                         ],
                                         [
-                                            "showCheckboxesBeforeOptions",
-                                            "Show Checkboxes before Options",
+                                            'showCheckboxesBeforeOptions',
+                                            'Show Checkboxes before Options',
                                         ],
                                     ].map(([key, label]) => (
                                         <div key={key} className="flex items-center gap-4">
@@ -412,7 +406,7 @@ export function ExportSettingsDialog({ open, onOpenChange, sections }: ExportSet
                                                 onCheckedChange={(checked) =>
                                                     handleSettingChange(
                                                         key as keyof ExportSettings,
-                                                        checked,
+                                                        checked
                                                     )
                                                 }
                                             />
@@ -435,8 +429,8 @@ export function ExportSettingsDialog({ open, onOpenChange, sections }: ExportSet
                                                 size="icon"
                                                 onClick={() =>
                                                     handleSettingChange(
-                                                        "questionPaperSets",
-                                                        Math.max(1, settings.questionPaperSets - 1),
+                                                        'questionPaperSets',
+                                                        Math.max(1, settings.questionPaperSets - 1)
                                                     )
                                                 }
                                                 disabled={settings.questionPaperSets <= 1}
@@ -452,8 +446,8 @@ export function ExportSettingsDialog({ open, onOpenChange, sections }: ExportSet
                                                 onChange={(e) => {
                                                     const value = Number.parseInt(e.target.value);
                                                     handleSettingChange(
-                                                        "questionPaperSets",
-                                                        Math.min(Math.max(1, value), 3),
+                                                        'questionPaperSets',
+                                                        Math.min(Math.max(1, value), 3)
                                                     );
                                                 }}
                                             />
@@ -463,8 +457,8 @@ export function ExportSettingsDialog({ open, onOpenChange, sections }: ExportSet
                                                 size="icon"
                                                 onClick={() =>
                                                     handleSettingChange(
-                                                        "questionPaperSets",
-                                                        Math.min(3, settings.questionPaperSets + 1),
+                                                        'questionPaperSets',
+                                                        Math.min(3, settings.questionPaperSets + 1)
                                                     )
                                                 }
                                                 disabled={settings.questionPaperSets >= 3}
@@ -480,8 +474,8 @@ export function ExportSettingsDialog({ open, onOpenChange, sections }: ExportSet
                                             checked={settings.includeQuestionSetCode}
                                             onCheckedChange={(checked) =>
                                                 handleSettingChange(
-                                                    "includeQuestionSetCode",
-                                                    checked,
+                                                    'includeQuestionSetCode',
+                                                    checked
                                                 )
                                             }
                                         />
@@ -495,7 +489,7 @@ export function ExportSettingsDialog({ open, onOpenChange, sections }: ExportSet
                                             id="randomizeQuestions"
                                             checked={settings.randomizeQuestions}
                                             onCheckedChange={(checked) =>
-                                                handleSettingChange("randomizeQuestions", checked)
+                                                handleSettingChange('randomizeQuestions', checked)
                                             }
                                         />
                                         <label htmlFor="randomizeQuestions">
@@ -508,7 +502,7 @@ export function ExportSettingsDialog({ open, onOpenChange, sections }: ExportSet
                                             id="randomizeOptions"
                                             checked={settings.randomizeOptions}
                                             onCheckedChange={(checked) =>
-                                                handleSettingChange("randomizeOptions", checked)
+                                                handleSettingChange('randomizeOptions', checked)
                                             }
                                         />
                                         <label htmlFor="randomizeOptions">Randomize Options</label>
@@ -589,7 +583,7 @@ export function ExportSettingsDialog({ open, onOpenChange, sections }: ExportSet
                                                                 </SelectItem>
                                                             </SelectContent>
                                                         </Select>
-                                                        {field.type === "blocks" && (
+                                                        {field.type === 'blocks' && (
                                                             <div className="col-span-5 flex items-center space-x-2">
                                                                 <Input
                                                                     type="number"
@@ -605,9 +599,9 @@ export function ExportSettingsDialog({ open, onOpenChange, sections }: ExportSet
                                                                                 numberOfBlocks:
                                                                                     Number(
                                                                                         e.target
-                                                                                            .value,
+                                                                                            .value
                                                                                     ),
-                                                                            },
+                                                                            }
                                                                         )
                                                                     }
                                                                     className="w-fit"

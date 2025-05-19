@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 // Define TestInputField schema
 const testInputFieldSchema = z.object({
@@ -8,12 +8,13 @@ const testInputFieldSchema = z.object({
     oldKey: z.boolean(),
     isRequired: z.boolean(),
     key: z.string(),
+    order: z.number(),
     options: z
         .array(
             z.object({
                 id: z.string(),
                 value: z.string(),
-            }),
+            })
         )
         .optional(),
 });
@@ -57,8 +58,8 @@ const testAccessSchema = z.object({
                 if (endDate <= startDate) {
                     ctx.addIssue({
                         code: z.ZodIssueCode.custom,
-                        message: "End date must be greater than start date.",
-                        path: ["end_date"], // Associate the error with `end_date`
+                        message: 'End date must be greater than start date.',
+                        path: ['end_date'], // Associate the error with `end_date`
                     });
                 }
             }

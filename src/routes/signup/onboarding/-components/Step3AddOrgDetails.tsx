@@ -1,20 +1,20 @@
-import React from "react";
-import { OrganizationOnboardingProps, Route } from "..";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { FormProvider, useForm } from "react-hook-form";
-import { FormControl, FormField, FormItem } from "@/components/ui/form";
-import { MyInput } from "@/components/design-system/input";
-import { MyButton } from "@/components/design-system/button";
-import { useNavigate } from "@tanstack/react-router";
-import { useAddOrgStore } from "../-zustand-store/step2AddOrgZustand";
-import { AxiosError } from "axios";
-import { toast } from "sonner";
-import { handleSignupInstitute } from "../../-services/signup-services";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import useOrganizationStore from "../-zustand-store/step1OrganizationZustand";
-import { setAuthorizationCookie } from "@/lib/auth/sessionUtility";
-import { TokenKey } from "@/constants/auth/tokens";
+import React from 'react';
+import { OrganizationOnboardingProps, Route } from '..';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { FormProvider, useForm } from 'react-hook-form';
+import { FormControl, FormField, FormItem } from '@/components/ui/form';
+import { MyInput } from '@/components/design-system/input';
+import { MyButton } from '@/components/design-system/button';
+import { useNavigate } from '@tanstack/react-router';
+import { useAddOrgStore } from '../-zustand-store/step2AddOrgZustand';
+import { AxiosError } from 'axios';
+import { toast } from 'sonner';
+import { handleSignupInstitute } from '../../-services/signup-services';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import useOrganizationStore from '../-zustand-store/step1OrganizationZustand';
+import { setAuthorizationCookie } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
 
 export interface FormValuesStep1Signup {
     profilePictureUrl: string;
@@ -26,21 +26,21 @@ export interface FormValuesStep1Signup {
 
 export const organizationDetailsSignupStep1 = z
     .object({
-        name: z.string().min(1, "Name is required"),
+        name: z.string().min(1, 'Name is required'),
         username: z
             .string()
-            .min(1, "Username is required")
+            .min(1, 'Username is required')
             .refine((value) => value === value.toLowerCase(), {
-                message: "Username should not contain uppercase letters",
+                message: 'Username should not contain uppercase letters',
             }),
-        email: z.string().min(1, "Email is required").email("Invalid email format"),
-        password: z.string().min(6, "Password must be at least 6 characters"),
-        confirmPassword: z.string().min(1, "Confirm password is required"),
-        roleType: z.array(z.string()).min(1, "At least one role type is required"),
+        email: z.string().min(1, 'Email is required').email('Invalid email format'),
+        password: z.string().min(6, 'Password must be at least 6 characters'),
+        confirmPassword: z.string().min(1, 'Confirm password is required'),
+        roleType: z.array(z.string()).min(1, 'At least one role type is required'),
     })
     .refine((data) => data.password === data.confirmPassword, {
-        message: "Passwords do not match",
-        path: ["confirmPassword"],
+        message: 'Passwords do not match',
+        path: ['confirmPassword'],
     });
 type FormValues = z.infer<typeof organizationDetailsSignupStep1>;
 
@@ -58,22 +58,22 @@ const Step3AddOrgDetails: React.FC<OrganizationOnboardingProps> = ({
     const form = useForm<FormValues>({
         resolver: zodResolver(organizationDetailsSignupStep1),
         defaultValues: {
-            name: formDataAddOrg.name || "",
-            username: formDataAddOrg.username || "",
-            email: formDataAddOrg.email || "",
-            password: formDataAddOrg.password || "",
-            confirmPassword: formDataAddOrg.confirmPassword || "",
-            roleType: ["ADMIN"],
+            name: formDataAddOrg.name || '',
+            username: formDataAddOrg.username || '',
+            email: formDataAddOrg.email || '',
+            password: formDataAddOrg.password || '',
+            confirmPassword: formDataAddOrg.confirmPassword || '',
+            roleType: ['ADMIN'],
         },
-        mode: "onChange",
+        mode: 'onChange',
     });
     const { getValues } = form;
     const isValid =
-        !!getValues("name") &&
-        !!getValues("username") &&
-        !!getValues("email") &&
-        !!getValues("password") &&
-        !!getValues("confirmPassword");
+        !!getValues('name') &&
+        !!getValues('username') &&
+        !!getValues('email') &&
+        !!getValues('password') &&
+        !!getValues('confirmPassword');
 
     const handleSignupInstituteMutation = useMutation({
         mutationFn: async ({
@@ -88,24 +88,24 @@ const Step3AddOrgDetails: React.FC<OrganizationOnboardingProps> = ({
             return handleSignupInstitute({ searchParams, formData, formDataOrg });
         },
         onSuccess: (data) => {
-            queryClient.invalidateQueries({ queryKey: ["GET_INIT_INSTITUTE"] });
+            queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
             handleCompleteCurrentStep();
             setAuthorizationCookie(TokenKey.accessToken, data.accessToken);
             setAuthorizationCookie(TokenKey.refreshToken, data.refreshToken);
             resetForm();
             resetAddOrgForm();
             navigate({
-                to: "/dashboard",
+                to: '/dashboard',
             });
         },
         onError: (error: unknown) => {
             if (error instanceof AxiosError) {
                 toast.error(error?.response?.data?.ex, {
-                    className: "error-toast",
+                    className: 'error-toast',
                     duration: 2000,
                 });
             } else {
-                console.error("Unexpected error:", error);
+                console.error('Unexpected error:', error);
             }
         },
     });

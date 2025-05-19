@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
     Table,
     TableBody,
@@ -9,9 +9,9 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import type { Section } from "../types/question";
+} from '@/components/ui/table';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import type { Section } from '../types/question';
 
 interface AnswerSpacingDialogProps {
     open: boolean;
@@ -45,14 +45,14 @@ export function AnswerSpacingDialog({
         section.questions
             .filter(
                 (q) =>
-                    q.question_type === "LONG_ANSWER" ||
-                    q.question_type === "ONE_WORD" ||
-                    q.question_type === "NUMERIC",
+                    q.question_type === 'LONG_ANSWER' ||
+                    q.question_type === 'ONE_WORD' ||
+                    q.question_type === 'NUMERIC'
             )
             .map((q) => ({
                 ...q,
                 sectionTitle: section.title, // Add section info for better context
-            })),
+            }))
     );
 
     const handleSpacingChange = (questionId: string, value: string) => {
@@ -95,7 +95,7 @@ export function AnswerSpacingDialog({
                     <div className="mb-4 rounded-md border border-blue-100 bg-blue-50 p-3">
                         <p className="text-sm text-blue-700">
                             Specify the space (in mm) to be provided after each question for
-                            answers. Valid range is between <strong>{MIN_SPACING}mm</strong> and{" "}
+                            answers. Valid range is between <strong>{MIN_SPACING}mm</strong> and{' '}
                             <strong>{MAX_SPACING}mm</strong>.
                         </p>
                     </div>
@@ -117,7 +117,7 @@ export function AnswerSpacingDialog({
                                             acc[question.question_id] = value;
                                             return acc;
                                         },
-                                        {} as { [questionId: string]: number },
+                                        {} as { [questionId: string]: number }
                                     );
                                     setLocalSpacings(updatedSpacings);
                                 }
@@ -159,7 +159,7 @@ export function AnswerSpacingDialog({
                                                                 dangerouslySetInnerHTML={{
                                                                     __html:
                                                                         question.question.content ||
-                                                                        "",
+                                                                        '',
                                                                 }}
                                                             />
                                                         </div>
@@ -172,7 +172,7 @@ export function AnswerSpacingDialog({
                                                             className="text-sm"
                                                             dangerouslySetInnerHTML={{
                                                                 __html:
-                                                                    question.question.content || "",
+                                                                    question.question.content || '',
                                                             }}
                                                         />
                                                     </TooltipContent>
@@ -180,9 +180,9 @@ export function AnswerSpacingDialog({
                                             </TooltipProvider>
                                         </TableCell>
                                         <TableCell>
-                                            {question.question_type === "LONG_ANSWER"
-                                                ? "Long Answer"
-                                                : "One Word"}
+                                            {question.question_type === 'LONG_ANSWER'
+                                                ? 'Long Answer'
+                                                : 'One Word'}
                                         </TableCell>
                                         <TableCell>
                                             <div className="flex items-center">
@@ -194,13 +194,13 @@ export function AnswerSpacingDialog({
                                                     onChange={(e) =>
                                                         handleSpacingChange(
                                                             question.question_id,
-                                                            e.target.value,
+                                                            e.target.value
                                                         )
                                                     }
                                                     onBlur={(e) =>
                                                         handleBlur(
                                                             question.question_id,
-                                                            Number(e.target.value),
+                                                            Number(e.target.value)
                                                         )
                                                     }
                                                 />

@@ -1,21 +1,21 @@
-"use client";
+'use client';
 
-import { createContext, useContext, useState } from "react";
-import { CustomField } from "../types/question";
-import { HeaderSettings, defaultHeaderSettings } from "../types/header-settings";
+import { createContext, useContext, useState } from 'react';
+import { CustomField } from '../types/question';
+import { HeaderSettings, defaultHeaderSettings } from '../types/header-settings';
 
 const DEFAULT_FIELDS: CustomField[] = [
-    { label: "Name", enabled: true, type: "blank" },
-    { label: "Roll Number", enabled: true, type: "blank" },
-    { label: "Exam Centre Number", enabled: true, type: "blank" },
-    { label: "Exam Centre Name", enabled: true, type: "blank" },
-    { label: "Candidate Signature", enabled: true, type: "blank" },
-    { label: "Invigilator's Signature", enabled: true, type: "blank" },
+    { label: 'Name', enabled: true, type: 'blank' },
+    { label: 'Roll Number', enabled: true, type: 'blank' },
+    { label: 'Exam Centre Number', enabled: true, type: 'blank' },
+    { label: 'Exam Centre Name', enabled: true, type: 'blank' },
+    { label: 'Candidate Signature', enabled: true, type: 'blank' },
+    { label: "Invigilator's Signature", enabled: true, type: 'blank' },
 ];
 export interface ExportSettings {
     exportQuestionPaper: boolean;
     exportSolutionKey: boolean;
-    exportFormat: "pdf" | "docx";
+    exportFormat: 'pdf' | 'docx';
     columnsPerPage: number;
     questionsPerPage: number;
     showInstitutionLetterhead: boolean;
@@ -25,18 +25,18 @@ export interface ExportSettings {
     showMarksPerQuestion: boolean;
     showAdaptiveMarkingRulesSection: boolean;
     showCheckboxesBeforeOptions: boolean;
-    spaceForRoughWork: "none" | "bottom" | "right";
+    spaceForRoughWork: 'none' | 'bottom' | 'right';
     questionPaperSets: number;
     includeQuestionSetCode: boolean;
     randomizeQuestions: boolean;
     randomizeOptions: boolean;
     showPageNumbers: boolean;
-    pageNumbersPosition: "left" | "center" | "right";
+    pageNumbersPosition: 'left' | 'center' | 'right';
     includeCustomInputFields: boolean;
     customFields: CustomField[];
-    pagePadding: "low" | "medium" | "high";
-    fontSize: "small" | "medium" | "large";
-    roughWorkSize: "small" | "medium" | "large";
+    pagePadding: 'low' | 'medium' | 'high';
+    fontSize: 'small' | 'medium' | 'large';
+    roughWorkSize: 'small' | 'medium' | 'large';
     customLetterheadImage?: string;
     showFirstPageInstructions: boolean;
     customImageSizes: { [imageUrl: string]: { width: number; height: number } };
@@ -48,7 +48,7 @@ export interface ExportSettings {
 const defaultSettings: ExportSettings = {
     exportQuestionPaper: true,
     exportSolutionKey: true,
-    exportFormat: "pdf",
+    exportFormat: 'pdf',
     columnsPerPage: 1,
     questionsPerPage: 3,
     showInstitutionLetterhead: true,
@@ -58,18 +58,18 @@ const defaultSettings: ExportSettings = {
     showMarksPerQuestion: true,
     showAdaptiveMarkingRulesSection: true,
     showCheckboxesBeforeOptions: true,
-    spaceForRoughWork: "none",
+    spaceForRoughWork: 'none',
     questionPaperSets: 1,
     includeQuestionSetCode: true,
     randomizeQuestions: false,
     randomizeOptions: false,
     showPageNumbers: true,
-    pageNumbersPosition: "right",
+    pageNumbersPosition: 'right',
     includeCustomInputFields: true,
-    pagePadding: "medium",
+    pagePadding: 'medium',
     customFields: DEFAULT_FIELDS,
-    fontSize: "medium",
-    roughWorkSize: "medium",
+    fontSize: 'medium',
+    roughWorkSize: 'medium',
     customLetterheadImage: undefined,
     showFirstPageInstructions: true,
     customImageSizes: {},
@@ -90,7 +90,7 @@ export function ExportSettingsProvider({ children }: { children: React.ReactNode
     const [settings, setSettings] = useState<ExportSettings>(defaultSettings);
 
     const updateSettings = (newSettings: Partial<ExportSettings>) => {
-        console.log("settings updated ");
+        console.log('settings updated ');
         setSettings((prev) => ({ ...prev, ...newSettings }));
     };
 

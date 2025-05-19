@@ -1,8 +1,8 @@
-export type FontWeight = "normal" | "bold" | "lighter";
-export type FontStyle = "normal" | "italic";
-export type TextAlignment = "left" | "center" | "right";
-export type BorderStyle = "none" | "solid" | "dashed" | "dotted" | "double";
-export type LogoPosition = "left" | "right";
+export type FontWeight = 'normal' | 'bold' | 'lighter';
+export type FontStyle = 'normal' | 'italic';
+export type TextAlignment = 'left' | 'center' | 'right';
+export type BorderStyle = 'none' | 'solid' | 'dashed' | 'dotted' | 'double';
+export type LogoPosition = 'left' | 'right';
 
 interface TextSectionSettings {
     visible: boolean;
@@ -46,42 +46,42 @@ export const defaultHeaderSettings: HeaderSettings = {
     onEachPage: false,
     leftSection: {
         visible: false,
-        content: "",
+        content: '',
         fontSize: 14,
-        fontWeight: "normal",
-        fontStyle: "normal",
-        textAlign: "left",
+        fontWeight: 'normal',
+        fontStyle: 'normal',
+        textAlign: 'left',
     },
     centerSection: {
         visible: true,
-        content: "",
+        content: '',
         useSectionName: false,
         fontSize: 24,
-        fontWeight: "bold",
-        fontStyle: "normal",
-        textAlign: "center",
+        fontWeight: 'bold',
+        fontStyle: 'normal',
+        textAlign: 'center',
     },
     rightSection: {
         visible: false,
-        content: "",
+        content: '',
         fontSize: 14,
-        fontWeight: "normal",
-        fontStyle: "normal",
-        textAlign: "right",
+        fontWeight: 'normal',
+        fontStyle: 'normal',
+        textAlign: 'right',
     },
     logo: {
         visible: false,
-        url: "",
-        position: "left",
+        url: '',
+        position: 'left',
         size: 60,
         showInstitutionLogo: false,
     },
     style: {
-        backgroundColor: "#ffffff",
-        textColor: "#000000",
-        borderStyle: "solid",
+        backgroundColor: '#ffffff',
+        textColor: '#000000',
+        borderStyle: 'solid',
         borderWidth: 1,
-        borderColor: "#e5e7eb",
+        borderColor: '#e5e7eb',
         padding: 16,
         spacing: 16,
     },

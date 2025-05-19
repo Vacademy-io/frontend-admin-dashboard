@@ -1,35 +1,55 @@
+'use client';
+
 import { MyButton } from '@/components/design-system/button';
 import { MyDropdown } from '@/components/design-system/dropdown';
-import { Plus, FilePdf, FileDoc, YoutubeLogo, Question } from '@phosphor-icons/react';
+import { useSidebar } from '@/components/ui/sidebar';
+import {
+    Plus,
+    FilePdf,
+    FileDoc,
+    YoutubeLogo,
+    Question,
+    PresentationChart,
+} from '@phosphor-icons/react';
 import { MyDialog } from '@/components/design-system/dialog';
 import { AddVideoDialog } from './add-video-dialog';
+import { AddVideoFileDialog } from './add-video-file-dialog';
 import { AddDocDialog } from './add-doc-dialog';
 import { AddPdfDialog } from './add-pdf-dialog';
 import { useRouter } from '@tanstack/react-router';
 import { useSlides } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides';
-import { formatHTMLString } from '../slide-operations/formatHtmlString';
 import { useContentStore } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
 import { useDialogStore } from '@/routes/study-library/courses/-stores/slide-add-dialogs-store';
 import AddQuestionDialog from './add-question-dialog';
 import { File } from 'phosphor-react';
+import { useForm } from 'react-hook-form';
+import {
+    assignmentFormSchema,
+    type AssignmentFormType,
+} from '../../-form-schemas/assignmentFormSchema';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { formatHTMLString } from '../slide-operations/formatHtmlString';
 import AddAssignmentDialog from './add-assignment-dialog';
 
 export const ChapterSidebarAddButton = () => {
-    // const form = useForm<AssignmentFormType>({
-    //     resolver: zodResolver(assignmentFormSchema),
-    //     defaultValues: {
-    //         task: '',
-    //         taskDescription: '',
-    //         startDate: '',
-    //         endDate: '',
-    //         reattemptCount: '0',
-    //         uploaded_question_paper: null,
-    //         adaptive_marking_for_each_question: [],
-    //     },
-    // });
+    const form = useForm<AssignmentFormType>({
+        resolver: zodResolver(assignmentFormSchema),
+        defaultValues: {
+            task: '',
+            taskDescription: '',
+            startDate: '',
+            endDate: '',
+            reattemptCount: '0',
+            uploaded_question_paper: null,
+            adaptive_marking_for_each_question: [],
+        },
+    });
+    console.log('Form values:', form);
+    const { open } = useSidebar();
     const route = useRouter();
     const { chapterId } = route.state.location.search;
     const { addUpdateDocumentSlide } = useSlides(chapterId || '');
+    // const { setActiveItem, getSlideById, setItems, items } = useContentStore();
     const { setActiveItem, getSlideById } = useContentStore();
 
     // Use the Zustand store instead of useState
@@ -37,6 +57,7 @@ export const ChapterSidebarAddButton = () => {
         isPdfDialogOpen,
         isDocUploadDialogOpen,
         isVideoDialogOpen,
+        isVideoFileDialogOpen,
         isQuestionDialogOpen,
         isAssignmentDialogOpen,
         openPdfDialog,
@@ -45,6 +66,8 @@ export const ChapterSidebarAddButton = () => {
         closeDocUploadDialog,
         openVideoDialog,
         closeVideoDialog,
+        openVideoFileDialog,
+        closeVideoFileDialog,
         openQuestionDialog,
         closeQuestionDialog,
         openAssignmentDialog,
@@ -70,6 +93,10 @@ export const ChapterSidebarAddButton = () => {
             label: 'Video',
             value: 'video',
             icon: <YoutubeLogo className="size-4" />,
+            subItems: [
+                { label: 'Upload from device', value: 'upload-video' },
+                { label: 'YouTube link', value: 'youtube-video' },
+            ],
         },
         {
             label: 'Question',
@@ -81,15 +108,20 @@ export const ChapterSidebarAddButton = () => {
             value: 'assignment',
             icon: <File className="size-4" />,
         },
+        {
+            label: 'Presentation',
+            value: 'presentation',
+            icon: <PresentationChart className="size-4" />,
+        },
     ];
 
     const handleSelect = async (value: string) => {
         switch (value) {
             case 'pdf':
-                openPdfDialog(); // Use store action instead of setState
+                openPdfDialog();
                 break;
             case 'upload-doc':
-                openDocUploadDialog(); // Use store action instead of setState
+                openDocUploadDialog();
                 break;
             case 'create-doc': {
                 try {
@@ -126,14 +158,21 @@ export const ChapterSidebarAddButton = () => {
                 }
                 break;
             }
-            case 'video':
-                openVideoDialog(); // Use store action instead of setState
+            case 'youtube-video':
+                openVideoDialog();
+                break;
+            case 'upload-video':
+                openVideoFileDialog(); // Open the new video file upload dialog
                 break;
             case 'question':
-                openQuestionDialog(); // Use store action instead of setState
+                openQuestionDialog();
                 break;
             case 'assignment':
                 openAssignmentDialog();
+                break;
+            case 'presentation':
+                // Redirect to the Excalidraw presentation slide
+                window.location.href = `/presentation/excalidraw?chapterId=${chapterId}`;
                 break;
         }
     };
@@ -141,9 +180,15 @@ export const ChapterSidebarAddButton = () => {
     return (
         <>
             <MyDropdown dropdownList={dropdownList} onSelect={handleSelect}>
-                <MyButton buttonType="primary" scale="large" id="add-slides">
+                <MyButton
+                    buttonType="primary"
+                    scale="large"
+                    layoutVariant={open ? 'default' : 'icon'}
+                    className={`${open ? '' : ''}`}
+                    id="add-slides"
+                >
                     <Plus />
-                    <p>Add</p>
+                    <p className={`${open ? 'visible' : 'hidden'}`}>Add</p>
                 </MyButton>
             </MyDropdown>
 
@@ -153,7 +198,7 @@ export const ChapterSidebarAddButton = () => {
                 heading="Upload PDF"
                 dialogWidth="min-w-[400px] w-auto"
                 open={isPdfDialogOpen}
-                onOpenChange={closePdfDialog} // Pass the action function directly
+                onOpenChange={closePdfDialog}
             >
                 <AddPdfDialog openState={(open) => !open && closePdfDialog()} />
             </MyDialog>
@@ -164,20 +209,31 @@ export const ChapterSidebarAddButton = () => {
                 heading="Upload Document"
                 dialogWidth="min-w-[400px] w-auto"
                 open={isDocUploadDialogOpen}
-                onOpenChange={closeDocUploadDialog} // Pass the action function directly
+                onOpenChange={closeDocUploadDialog}
             >
                 <AddDocDialog openState={(open) => !open && closeDocUploadDialog()} />
             </MyDialog>
 
-            {/* Video Upload Dialog */}
+            {/* YouTube Video Upload Dialog */}
+            <MyDialog
+                trigger={<></>}
+                heading="Add YouTube Video"
+                dialogWidth="min-w-[400px]"
+                open={isVideoDialogOpen}
+                onOpenChange={closeVideoDialog}
+            >
+                <AddVideoDialog openState={(open) => !open && closeVideoDialog()} />
+            </MyDialog>
+
+            {/* Video File Upload Dialog */}
             <MyDialog
                 trigger={<></>}
                 heading="Upload Video"
                 dialogWidth="min-w-[400px]"
-                open={isVideoDialogOpen}
-                onOpenChange={closeVideoDialog} // Pass the action function directly
+                open={isVideoFileDialogOpen}
+                onOpenChange={closeVideoFileDialog}
             >
-                <AddVideoDialog openState={(open) => !open && closeVideoDialog()} />
+                <AddVideoFileDialog openState={(open) => !open && closeVideoFileDialog()} />
             </MyDialog>
 
             {/* Question Upload Dialog */}
@@ -186,7 +242,7 @@ export const ChapterSidebarAddButton = () => {
                 heading="Upload Question"
                 dialogWidth="min-w-[500px]"
                 open={isQuestionDialogOpen}
-                onOpenChange={closeQuestionDialog} // Pass the action function directly
+                onOpenChange={closeQuestionDialog}
             >
                 <AddQuestionDialog openState={(open) => !open && closeQuestionDialog()} />
             </MyDialog>
