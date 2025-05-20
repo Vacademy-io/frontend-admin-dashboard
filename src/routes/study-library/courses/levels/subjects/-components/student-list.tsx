@@ -65,7 +65,9 @@ const Students = ({
         handlePageChange,
     } = useStudentTable(appliedFilters, setAppliedFilters, [packageSessionId]);
 
-    const filters = GetFilterData(instituteDetails, currentSession?.id);
+    const filters = GetFilterData(instituteDetails, currentSession?.id).filter(
+        (filter) => filter.id !== 'batch'
+    );
     const currentPageSelection = rowSelections[page] || {};
 
     useEffect(() => {

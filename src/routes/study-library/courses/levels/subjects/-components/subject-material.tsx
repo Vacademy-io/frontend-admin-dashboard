@@ -49,6 +49,8 @@ import Assessments from './assessment-list';
 import { getIcon } from '../modules/chapters/slides/-components/slides-sidebar/slides-sidebar-slides';
 import { MyButton } from '@/components/design-system/button';
 import { useContentStore } from '../modules/chapters/slides/-stores/chapter-sidebar-store';
+import { TeachersList } from './teacher-list';
+import AddTeachers from '@/routes/dashboard/-components/AddTeachers';
 
 // Interfaces (assuming these are unchanged)
 export interface Chapter {
@@ -740,8 +742,17 @@ export const SubjectMaterial = () => {
             </div>
         ),
         [TabType.TEACHERS]: (
-            <div className="rounded-md bg-white p-3 text-sm text-gray-600 shadow-sm">
-                Teachers content coming soon.
+            <div className="space-y-3">
+                <div className="flex flex-col items-start justify-between gap-2 md:flex-row md:items-center">
+                    <div className="flex-1">
+                        <h2 className="text-base font-semibold text-gray-800">Manage Teachers</h2>
+                        <p className="mt-0.5 text-xs text-gray-500">
+                            View and manage teachers assigned to this batch.
+                        </p>
+                    </div>
+                    <AddTeachers packageSessionId={packageSessionIds} />
+                </div>
+                <TeachersList packageSessionId={packageSessionIds ?? ''} />
             </div>
         ),
         [TabType.ASSESSMENT]: (
