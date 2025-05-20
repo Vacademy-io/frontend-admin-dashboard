@@ -43,6 +43,7 @@ import ExportDialogPDFCSV from '@/components/common/export-dialog-pdf-csv';
 import Papa from 'papaparse';
 import { useRef } from 'react';
 import { useUsersCredentials } from '@/routes/manage-students/students-list/-services/usersCredentials';
+import { OpenStudentSidebar } from '@/routes/manage-students/students-list/-components/students-list/student-side-view/open-student-side-view';
 
 export interface SelectedSubmissionsFilterInterface {
     name: string;
@@ -1131,12 +1132,16 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                                 onRowSelectionChange={handleRowSelectionChange}
                                 currentPage={page}
                             />
-                            <StudentSidebar
-                                selectedTab={selectedTab}
-                                examType={examType}
-                                selectedStudent={selectedStudent}
-                                isSubmissionTab={true}
-                            />
+                            {type === 'PRIVATE' ? (
+                                <StudentSidebar
+                                    selectedTab={selectedTab}
+                                    examType={examType}
+                                    selectedStudent={selectedStudent}
+                                    isSubmissionTab={true}
+                                />
+                            ) : (
+                                <OpenStudentSidebar />
+                            )}
                         </SidebarProvider>
                     </TabsContent>
                     <div className="flex justify-between">
