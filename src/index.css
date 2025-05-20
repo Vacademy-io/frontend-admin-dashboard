@@ -432,3 +432,35 @@ html {
 .App-menu__left {
     max-width: 80vw !important;
 }
+
+/* In your global CSS file (e.g., global.css, or a PresentationView.module.css) */
+
+/* Ensure the .reveal container establishes a clear stacking context if needed,
+   though position:fixed already does. */
+.reveal {
+    /* position: relative; /* Or fixed, absolute if it's not already */
+    /* z-index: 1000; /* Already handled by inline style on your container div */
+}
+
+/* Target the Reveal.js controls specifically */
+.reveal .controls {
+    z-index: 40 !important; /* Default is often around 30. Increase if necessary.
+                             Use !important to override theme styles if there's a conflict.
+                             Pick a value that is logically above your slide content's z-index.
+                             If your main container is 1000, and slides might have content reaching
+                             up to say, 10 within the reveal context, 40 is fine.
+                             If slide content itself has very high z-indexes, you might need higher.
+                             Let's try a moderately high value that should be above most slide content.
+                          */
+}
+
+/* Optional: If slides or their backgrounds are an issue */
+.reveal .slides > section {
+    /* By default, slides don't have a high z-index unless transformed or stacked.
+     Ensure their content doesn't create an unexpectedly high z-index. */
+    /* z-index: 1; /* Example: keep slides on a base level within .slides */
+}
+
+.reveal .slide-background {
+    /* z-index: 0; /* Example: keep backgrounds behind slide content */
+}

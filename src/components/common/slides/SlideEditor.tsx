@@ -1,9 +1,9 @@
 /* eslint-disable */
 // @ts-nocheck
-import { useState } from "react";
-import { Slide } from "./types";
-import "./styles.css";
-import ExcalidrawWrapper from "./wrapper";
+import { useState } from 'react';
+import { Slide } from './types';
+import './styles.css';
+import ExcalidrawWrapper from './wrapper';
 
 export interface Props {
     slide: Slide;
@@ -36,38 +36,45 @@ export const SlideEditor = ({ slide, editMode, onSlideChange }: Props) => {
 
     const onChange = (elements: any[], appState: any, files: any) => {
         if (!sameElements(elements, initialSlide)) {
-            onSlideChange(elements ,  appState, files); // Notify parent component of changes
+            onSlideChange(elements, appState, files); // Notify parent component of changes
             setInitialSlide(JSON.parse(JSON.stringify(elements))); // Update local state
         }
     };
 
-
- 
     return (
         <div
-            className="App"
+            className="ExcalidrawSlideEditor_Container"
             style={{
-                display: "flex",
-                position: "relative",
-                width: "100%",
-                height: "100%",
+                display: 'flex',
+                position: 'relative',
+                width: '100%',
+                height: '100%',
+                // The `pt-14` fix (from previous conversation) should be on the PARENT of this component,
+                // ensuring this container itself is correctly positioned below the main app header.
             }}
         >
             {!editMode && (
                 <style>{`
-                    .excalidraw .App-menu,
-                    footer.layer-ui__wrapper__footer {
-                        display: none
+                    /* These might be redundant if 'viewModeEnabled={!editMode}' works as expected */
+                    /* Excalidraw's viewMode should ideally handle hiding these. */
+                    .ExcalidrawSlideEditor_Container .excalidraw .App-menu, /* Toolbars, menus */
+                    .ExcalidrawSlideEditor_Container .excalidraw .HintViewer, /* Hints at bottom */
+                    .ExcalidrawSlideEditor_Container .excalidraw footer.layer-ui__wrapper__footer { /* Zoom, lock, etc. */
+                        display: none !important;
                     }
                 `}</style>
             )}
+
             <style>
                 {`
-                    .excalidraw .App-menu_top > *:first-child > *:first-child {
-                        display: none
+                    /* Target the hamburger menu button. Selector might need adjustment for your Excalidraw version. */
+                    .ExcalidrawSlideEditor_Container .excalidraw button[data-testid="app-menu-trigger"],
+                    .ExcalidrawSlideEditor_Container .excalidraw .App-menu_top > *:first-child > *:first-child { /* Fallback selector */
+                        display: none !important;
                     }
                 `}
             </style>
+
             <ExcalidrawWrapper
                 initialSlide={initialSlide}
                 onChange={onChange}
