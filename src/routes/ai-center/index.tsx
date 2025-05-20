@@ -76,7 +76,7 @@ function RouteComponent() {
                         <span
                             className={`${selectedTab === 'aiTaskList' ? 'text-primary-500' : ''}`}
                         >
-                            AI Tasks
+                            AI Tools
                         </span>
                     </TabsTrigger>
                 </TabsList>
