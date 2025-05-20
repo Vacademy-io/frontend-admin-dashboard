@@ -12,7 +12,6 @@ import { Badge } from '@/components/ui/badge'; // Adjust path
 import { Button } from '@/components/ui/button'; // Adjust path
 import { Download } from 'lucide-react'; // Added MoreVertical and Eye icons
 import { AIFormatDate, getAIIconByMimeType } from '../../-utils/helper';
-import React from 'react';
 
 // --- Type Definitions ---
 interface FileDetail {
@@ -77,6 +76,7 @@ export function ResourcesCard({ apiResponse }: ResourceFilesPageProps) {
         });
         return uniqueFilesArray;
     }, [apiResponse]);
+
     if (!apiResponse || apiResponse.length === 0 || processedFiles.length === 0) {
         return (
             <Card className="mx-auto my-8 w-full max-w-4xl shadow-lg">
