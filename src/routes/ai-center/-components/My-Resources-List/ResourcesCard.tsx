@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge'; // Adjust path
 import { Button } from '@/components/ui/button'; // Adjust path
 import { Download } from 'lucide-react'; // Added MoreVertical and Eye icons
 import { AIFormatDate, getAIIconByMimeType } from '../../-utils/helper';
+import GenerateQuestionsComponent from './GenerateQuestionsComponent';
 
 // --- Type Definitions ---
 interface FileDetail {
@@ -138,13 +139,25 @@ export function ResourcesCard({ apiResponse }: ResourceFilesPageProps) {
                         {processedFiles?.map((file) => (
                             <TableRow key={file.file_detail?.id}>
                                 <TableCell className="font-medium">
-                                    <div className="flex items-center justify-between space-x-2">
+                                    <div className="flex flex-col items-start">
                                         <span
                                             className="truncate"
                                             title={file.file_detail?.file_name}
                                         >
                                             {file.file_detail?.file_name}
                                         </span>
+                                        <div className="my-2 flex items-center gap-4">
+                                            {/* <Badge className="cursor-pointer">
+                                                Extract Questions
+                                            </Badge> */}
+                                            <GenerateQuestionsComponent
+                                                fileId={file.input_id || ''}
+                                            />
+                                            {/* <Badge>Topic Wise Sort Questions</Badge> */}
+
+                                            {/* <Badge>Generate Questions From Audio</Badge>
+                                            <Badge>Evaluate Lecture</Badge> */}
+                                        </div>
                                     </div>
                                 </TableCell>
                                 <TableCell>
