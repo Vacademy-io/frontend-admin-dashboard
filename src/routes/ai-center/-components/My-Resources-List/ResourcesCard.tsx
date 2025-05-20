@@ -49,7 +49,7 @@ interface ResourceFilesPageProps {
 // --- React Component ---
 export function ResourcesCard({ apiResponse }: ResourceFilesPageProps) {
     const processedFiles = useMemo(() => {
-        const uniqueFilesMap = new Map<string, FileDetail>();
+        const uniqueFilesMap = new Map<string, TaskStatus>();
         apiResponse.forEach((task) => {
             // Ensure task and file_detail exist and have a valid id and other critical fields
             if (
@@ -59,16 +59,20 @@ export function ResourcesCard({ apiResponse }: ResourceFilesPageProps) {
                 task.file_detail.url &&
                 task.file_detail.created_on
             ) {
-                if (!uniqueFilesMap.has(task.file_detail.id)) {
-                    uniqueFilesMap.set(task.file_detail.id, task.file_detail);
+                if (!uniqueFilesMap.has(task.id)) {
+                    uniqueFilesMap.set(task.id, task);
                 }
             }
         });
         const uniqueFilesArray = Array.from(uniqueFilesMap.values());
         // Sort by file_detail.created_on in descending order
         uniqueFilesArray.sort((fileA, fileB) => {
-            const dateA = fileA.created_on ? new Date(fileA.created_on).getTime() : 0;
-            const dateB = fileB.created_on ? new Date(fileB.created_on).getTime() : 0;
+            const dateA = fileA.file_detail?.created_on
+                ? new Date(fileA.file_detail.created_on).getTime()
+                : 0;
+            const dateB = fileB.file_detail?.created_on
+                ? new Date(fileB.file_detail.created_on).getTime()
+                : 0;
             if (isNaN(dateA) && isNaN(dateB)) return 0;
             if (isNaN(dateA)) return 1; // Put invalid dates last or first
             if (isNaN(dateB)) return -1;
@@ -77,7 +81,7 @@ export function ResourcesCard({ apiResponse }: ResourceFilesPageProps) {
         return uniqueFilesArray;
     }, [apiResponse]);
 
-    if (!apiResponse || apiResponse.length === 0 || processedFiles.length === 0) {
+    if (!apiResponse || apiResponse.length === 0) {
         return (
             <Card className="mx-auto my-8 w-full max-w-4xl shadow-lg">
                 <CardHeader>
@@ -111,6 +115,7 @@ export function ResourcesCard({ apiResponse }: ResourceFilesPageProps) {
             </Card>
         );
     }
+
     return (
         <Card className="mx-auto my-8 w-full shadow-lg">
             <CardHeader>
@@ -131,11 +136,14 @@ export function ResourcesCard({ apiResponse }: ResourceFilesPageProps) {
                     </TableHeader>
                     <TableBody>
                         {processedFiles?.map((file) => (
-                            <TableRow key={file.id}>
+                            <TableRow key={file.file_detail?.id}>
                                 <TableCell className="font-medium">
                                     <div className="flex items-center justify-between space-x-2">
-                                        <span className="truncate" title={file.file_name}>
-                                            {file.file_name}
+                                        <span
+                                            className="truncate"
+                                            title={file.file_detail?.file_name}
+                                        >
+                                            {file.file_detail?.file_name}
                                         </span>
                                     </div>
                                 </TableCell>
@@ -143,30 +151,30 @@ export function ResourcesCard({ apiResponse }: ResourceFilesPageProps) {
                                     <Badge className="whitespace-nowrap border-none shadow-none">
                                         {(() => {
                                             const IconComponent = getAIIconByMimeType(
-                                                file.file_type
+                                                file.file_detail?.file_type || ''
                                             );
                                             return <IconComponent size={20} />;
                                         })()}
                                     </Badge>
                                 </TableCell>
                                 <TableCell className="text-right text-sm text-gray-600">
-                                    {AIFormatDate(file.created_on)}
+                                    {AIFormatDate(file.file_detail?.created_on || '')}
                                 </TableCell>
                                 <TableCell className="text-center">
                                     <div className="flex items-center justify-center space-x-1">
-                                        {file.url ? (
+                                        {file.file_detail?.url ? (
                                             <>
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
                                                     asChild
-                                                    title={`Download ${file.file_name}`}
+                                                    title={`Download ${file.file_detail.file_name}`}
                                                 >
                                                     <a
-                                                        href={file.url}
-                                                        download={file.file_name} // Suggests browser to download with this name
+                                                        href={file.file_detail.url}
+                                                        download={file.file_detail.file_name} // Suggests browser to download with this name
                                                         rel="noopener noreferrer"
-                                                        aria-label={`Download ${file.file_name}`}
+                                                        aria-label={`Download ${file.file_detail.file_name}`}
                                                     >
                                                         <Download className="size-4 text-gray-700 hover:text-gray-900" />
                                                     </a>
