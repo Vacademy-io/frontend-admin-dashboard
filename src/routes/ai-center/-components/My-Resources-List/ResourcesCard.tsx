@@ -10,13 +10,7 @@ import {
 } from '@/components/ui/table'; // Adjust path
 import { Badge } from '@/components/ui/badge'; // Adjust path
 import { Button } from '@/components/ui/button'; // Adjust path
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'; // Added for dropdown menu
-import { Download, MoreVertical, Eye } from 'lucide-react'; // Added MoreVertical and Eye icons
+import { Download } from 'lucide-react'; // Added MoreVertical and Eye icons
 // --- Type Definitions ---
 interface FileDetail {
     id: string;
@@ -156,46 +150,6 @@ export function ResourcesCard({ apiResponse }: ResourceFilesPageProps) {
                                         <span className="truncate" title={file.file_name}>
                                             {file.file_name}
                                         </span>
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="size-8 shrink-0"
-                                                >
-                                                    <MoreVertical className="size-4" />
-                                                    <span className="sr-only">
-                                                        Open menu for {file.file_name}
-                                                    </span>
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuItem
-                                                    onSelect={() =>
-                                                        alert(
-                                                            `Action: View details for ${file.file_name}`
-                                                        )
-                                                    }
-                                                >
-                                                    View Details
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem
-                                                    onSelect={() =>
-                                                        alert(`Action: Rename ${file.file_name}`)
-                                                    }
-                                                >
-                                                    Rename
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem
-                                                    className="text-red-600 hover:!text-red-600 focus:text-red-600"
-                                                    onSelect={() =>
-                                                        alert(`Action: Delete ${file.file_name}`)
-                                                    }
-                                                >
-                                                    Delete
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
                                     </div>
                                 </TableCell>
                                 <TableCell>
@@ -210,21 +164,6 @@ export function ResourcesCard({ apiResponse }: ResourceFilesPageProps) {
                                     <div className="flex items-center justify-center space-x-1">
                                         {file.url ? (
                                             <>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    asChild
-                                                    title={`Open ${file.file_name}`}
-                                                >
-                                                    <a
-                                                        href={file.url}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        aria-label={`Open ${file.file_name} in new tab`}
-                                                    >
-                                                        <Eye className="size-4 text-gray-700 hover:text-gray-900" />
-                                                    </a>
-                                                </Button>
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
