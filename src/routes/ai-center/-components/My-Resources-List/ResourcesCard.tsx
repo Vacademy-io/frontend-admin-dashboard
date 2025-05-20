@@ -11,6 +11,9 @@ import {
 import { Badge } from '@/components/ui/badge'; // Adjust path
 import { Button } from '@/components/ui/button'; // Adjust path
 import { Download } from 'lucide-react'; // Added MoreVertical and Eye icons
+import { AIFormatDate, getAIIconByMimeType } from '../../-utils/helper';
+import React from 'react';
+
 // --- Type Definitions ---
 interface FileDetail {
     id: string;
@@ -43,23 +46,7 @@ interface TaskStatus {
 interface ResourceFilesPageProps {
     apiResponse: TaskStatus[]; // The array of task status objects from your API
 }
-// --- Helper Function ---
-const formatDate = (dateString: string): string => {
-    try {
-        return new Date(dateString).toLocaleDateString(undefined, {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: true, // Common preference, can be set to false
-        });
-    } catch (error) {
-        console.error('Error formatting date:', dateString, error);
-        return 'Invalid Date';
-    }
-};
+
 // --- React Component ---
 export function ResourcesCard({ apiResponse }: ResourceFilesPageProps) {
     const processedFiles = useMemo(() => {
@@ -153,12 +140,17 @@ export function ResourcesCard({ apiResponse }: ResourceFilesPageProps) {
                                     </div>
                                 </TableCell>
                                 <TableCell>
-                                    <Badge variant="secondary" className="whitespace-nowrap">
-                                        {file.file_type}
+                                    <Badge className="whitespace-nowrap border-none shadow-none">
+                                        {(() => {
+                                            const IconComponent = getAIIconByMimeType(
+                                                file.file_type
+                                            );
+                                            return <IconComponent size={20} />;
+                                        })()}
                                     </Badge>
                                 </TableCell>
                                 <TableCell className="text-right text-sm text-gray-600">
-                                    {formatDate(file.created_on)}
+                                    {AIFormatDate(file.created_on)}
                                 </TableCell>
                                 <TableCell className="text-center">
                                     <div className="flex items-center justify-center space-x-1">
