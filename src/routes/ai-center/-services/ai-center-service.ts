@@ -35,14 +35,14 @@ export const handleStartProcessUploadedFile = async (fileId: string) => {
     return response?.data;
 };
 
-export const handleGetListIndividualTopics = async (taskType: string) => {
+export const handleGetListIndividualTopics = async (taskType?: string) => {
     const instituteId = getInstituteId();
     const response = await axios({
         method: 'GET',
         url: LIST_INDIVIDUAL_AI_TASKS_URL,
         params: {
             instituteId,
-            taskType,
+            ...(taskType ? { taskType } : {}),
         },
     });
     return response?.data;

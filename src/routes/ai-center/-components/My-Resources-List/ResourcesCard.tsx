@@ -131,7 +131,7 @@ export function ResourcesCard({ apiResponse }: ResourceFilesPageProps) {
         );
     }
     return (
-        <Card className="mx-auto my-8 w-full max-w-5xl shadow-lg">
+        <Card className="mx-auto my-8 w-full shadow-lg">
             <CardHeader>
                 <CardTitle>Resources</CardTitle>
                 <CardDescription>
@@ -144,12 +144,12 @@ export function ResourcesCard({ apiResponse }: ResourceFilesPageProps) {
                         <TableRow>
                             <TableHead className="w-[35%]">File Name</TableHead>
                             <TableHead className="w-1/5">Type</TableHead>
-                            <TableHead className="w-[25%] text-right">Created On</TableHead>
+                            <TableHead className="w-1/4 text-right">Created On</TableHead>
                             <TableHead className="w-1/5 text-center">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {processedFiles.map((file) => (
+                        {processedFiles?.map((file) => (
                             <TableRow key={file.id}>
                                 <TableCell className="font-medium">
                                     <div className="flex items-center justify-between space-x-2">

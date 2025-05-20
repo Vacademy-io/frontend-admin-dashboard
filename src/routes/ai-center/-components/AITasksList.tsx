@@ -123,7 +123,7 @@ const AITasksList = ({
                     type="button"
                     scale="small"
                     buttonType="secondary"
-                    className="text-normal border-none !text-blue-600 shadow-none hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 active:bg-transparent"
+                    className="border-none font-normal !text-blue-600 shadow-none hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 active:bg-transparent"
                 >
                     View All Tasks
                 </MyButton>
