@@ -12,7 +12,8 @@ import { Badge } from '@/components/ui/badge'; // Adjust path
 import { Button } from '@/components/ui/button'; // Adjust path
 import { Download } from 'lucide-react'; // Added MoreVertical and Eye icons
 import { AIFormatDate, getAIIconByMimeType } from '../../-utils/helper';
-import GenerateQuestionsComponent from './GenerateQuestionsComponent';
+import ExtractQuestionsComponent from './ExtractQuestionsComponent';
+import TopicWiseQuestionsComponent from './TopicWiseQuestionsComponent';
 
 // --- Type Definitions ---
 interface FileDetail {
@@ -147,16 +148,18 @@ export function ResourcesCard({ apiResponse }: ResourceFilesPageProps) {
                                             {file.file_detail?.file_name}
                                         </span>
                                         <div className="my-2 flex items-center gap-4">
-                                            {/* <Badge className="cursor-pointer">
-                                                Extract Questions
-                                            </Badge> */}
-                                            <GenerateQuestionsComponent
+                                            {/* <Badge>Generate Questions</Badge> */}
+
+                                            <ExtractQuestionsComponent
                                                 fileId={file.input_id || ''}
                                             />
-                                            {/* <Badge>Topic Wise Sort Questions</Badge> */}
 
-                                            {/* <Badge>Generate Questions From Audio</Badge>
-                                            <Badge>Evaluate Lecture</Badge> */}
+                                            <TopicWiseQuestionsComponent
+                                                fileId={file.input_id || ''}
+                                            />
+
+                                            {/* <Badge>Generate Questions From Audio</Badge> */}
+                                            {/* <Badge>Evaluate Lecture</Badge> */}
                                         </div>
                                     </div>
                                 </TableCell>
