@@ -44,6 +44,7 @@ export const updateHeading = async (
                     published_url: null,
                     published_video_length_in_millis:
                         activeItem?.video_slide?.published_video_length_in_millis || 0,
+                    source_type: activeItem?.video_slide?.source_type || '',
                 },
                 status: status,
                 new_slide: false,

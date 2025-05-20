@@ -106,6 +106,16 @@ export interface AssignmentSlide {
     end_date: string; // ISO 8601 date format
     re_attempt_count: number;
     comma_separated_media_ids: string;
+    questions: AssignmentQuestion[];
+}
+
+export interface AssignmentQuestion {
+    id: string;
+    text_data: TextData;
+    question_order: number;
+    status: string;
+    new_question: boolean;
+    question_type: string;
 }
 
 // Main slide interface
@@ -140,6 +150,7 @@ export interface VideoSlidePayload {
         video_length_in_millis: number;
         published_url: string | null;
         published_video_length_in_millis: number;
+        source_type: string;
     };
     status: string;
     new_slide?: boolean;
@@ -308,6 +319,7 @@ export const useSlides = (chapterId: string) => {
         slides: getSlidesQuery.data,
         isLoading: getSlidesQuery.isLoading,
         error: getSlidesQuery.error,
+        refetch: getSlidesQuery.refetch,
         addUpdateVideoSlide: addUpdateVideoSlideMutation.mutateAsync,
         addUpdateDocumentSlide: addUpdateDocumentSlideMutation.mutateAsync,
         updateSlideStatus: updateSlideStatus.mutateAsync,

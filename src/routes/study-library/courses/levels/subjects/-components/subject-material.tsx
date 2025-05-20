@@ -358,7 +358,8 @@ export const SubjectMaterial = () => {
     const toggleSubject = (id: string) => toggleOpenState(id, setOpenSubjects);
     const toggleModule = (id: string) => toggleOpenState(id, setOpenModules);
     const toggleChapter = (id: string) => toggleOpenState(id, setOpenChapters);
-
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
     const tabContent: Record<TabType, React.ReactNode> = {
         [TabType.OUTLINE]: (
             <div className="space-y-3">

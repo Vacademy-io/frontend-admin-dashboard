@@ -47,15 +47,15 @@ interface Question {
     access_level: 'PRIVATE' | 'PUBLIC' | string;
     auto_evaluation_json: string;
     options_json: string | null;
-    parsed_evaluation_object: Record<string, any>;
+    parsed_evaluation_object: Record<string, string>;
     evaluation_type: 'auto' | 'manual' | string;
     explanation_text: RichText;
     parent_rich_text_id: string | null;
     parent_rich_text: RichText | null;
     default_question_time_mins: number | null;
     options: Option[];
-    errors: any[];
-    warnings: any[];
+    errors: string[];
+    warnings: string[];
 }
 
 // Text or explanation content

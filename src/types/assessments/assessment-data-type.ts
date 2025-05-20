@@ -19,6 +19,7 @@ export interface RegistrationFormField {
     field_type: string;
     created_at: string;
     updated_at: string;
+    field_order: number;
 }
 
 interface PreBatchRegistration {
@@ -171,6 +172,7 @@ export type CustomFields = {
     description?: string;
     key?: string;
     is_mandatory?: boolean;
+    order: number;
 }[];
 
 export interface Step3StudentDetailInterface {

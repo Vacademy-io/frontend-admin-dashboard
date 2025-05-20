@@ -59,6 +59,7 @@ const AddAssignmentDialog = ({
             toast.error('Failed to add assignment');
         }
     };
+
     return (
         <div className="flex flex-col gap-4 p-4">
             <MyInput

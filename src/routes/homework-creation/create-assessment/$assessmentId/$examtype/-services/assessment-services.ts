@@ -6,27 +6,27 @@ import {
     STEP2_QUESTIONS_URL,
     STEP3_ASSESSMENT_URL,
     STEP4_ASSESSMENT_URL,
-} from "@/constants/urls";
-import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
+} from '@/constants/urls';
+import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 import {
     ConvertedCustomField,
     CustomFields,
     Steps,
-} from "@/types/assessments/assessment-data-type";
-import { z } from "zod";
-import { BasicInfoFormSchema } from "../-utils/basic-info-form-schema";
-import sectionDetailsSchema from "../-utils/section-details-schema";
+} from '@/types/assessments/assessment-data-type';
+import { z } from 'zod';
+import { BasicInfoFormSchema } from '../-utils/basic-info-form-schema';
+import sectionDetailsSchema from '../-utils/section-details-schema';
 import {
     calculateTotalTime,
     classifySections,
     convertDataToStep3,
     convertStep2Data,
     convertToUTC,
-} from "../-utils/helper";
-import testAccessSchema from "../-utils/add-participants-schema";
-import { AccessControlFormSchema } from "../-utils/access-control-form-schema";
-import { TestAccessFormType } from "@/types/assessments/assessment-steps";
-import { AssessmentPreviewSectionsInterface } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-utils/assessment-details-interface";
+} from '../-utils/helper';
+import testAccessSchema from '../-utils/add-participants-schema';
+import { AccessControlFormSchema } from '../-utils/access-control-form-schema';
+import { TestAccessFormType } from '@/types/assessments/assessment-steps';
+import { AssessmentPreviewSectionsInterface } from '@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-utils/assessment-details-interface';
 
 export const getAssessmentDetailsData = async ({
     assessmentId,
@@ -38,7 +38,7 @@ export const getAssessmentDetailsData = async ({
     type: string | undefined;
 }): Promise<Steps> => {
     const response = await authenticatedAxiosInstance({
-        method: "GET",
+        method: 'GET',
         url: GET_ASSESSMENT_DETAILS,
         params: {
             assessmentId,
@@ -58,7 +58,7 @@ export const getAssessmentDetails = ({
     type: string | undefined;
 }) => {
     return {
-        queryKey: ["GET_ASSESSMENT_DETAILS", assessmentId, instituteId, type],
+        queryKey: ['GET_ASSESSMENT_DETAILS', assessmentId, instituteId, type],
         queryFn: () => getAssessmentDetailsData({ assessmentId, instituteId, type }),
         staleTime: 60 * 60 * 1000,
         enabled: !!assessmentId,
@@ -73,7 +73,7 @@ export const getQuestionsDataForStep2 = async ({
     sectionIds: string | undefined;
 }) => {
     const response = await authenticatedAxiosInstance({
-        method: "GET",
+        method: 'GET',
         url: STEP2_QUESTIONS_URL,
         params: {
             assessmentId,
@@ -91,7 +91,7 @@ export const getQuestionDataForSection = ({
     sectionIds: string | undefined;
 }) => {
     return {
-        queryKey: ["GET_QUESTIONS_DATA_FOR_SECTIONS", assessmentId, sectionIds],
+        queryKey: ['GET_QUESTIONS_DATA_FOR_SECTIONS', assessmentId, sectionIds],
         queryFn: async () => {
             const data = await getQuestionsDataForStep2({ assessmentId, sectionIds });
             return data;
@@ -102,33 +102,33 @@ export const getQuestionDataForSection = ({
 
 function getTestBoundation(
     testType: string | undefined,
-    liveDateRange: { startDate?: string; endDate?: string },
+    liveDateRange: { startDate?: string; endDate?: string }
 ) {
     switch (testType) {
-        case "LIVE":
+        case 'LIVE':
             return {
-                start_date: convertToUTC(liveDateRange.startDate || ""),
-                end_date: convertToUTC(liveDateRange.endDate || ""),
+                start_date: convertToUTC(liveDateRange.startDate || ''),
+                end_date: convertToUTC(liveDateRange.endDate || ''),
             };
-        case "SURVEY":
+        case 'SURVEY':
             return {
-                start_date: convertToUTC(liveDateRange.startDate || ""),
-                end_date: convertToUTC(liveDateRange.endDate || ""),
+                start_date: convertToUTC(liveDateRange.startDate || ''),
+                end_date: convertToUTC(liveDateRange.endDate || ''),
             };
-        case "PRACTICE":
+        case 'PRACTICE':
             return {
                 start_date: new Date().toISOString(),
-                end_date: new Date("9999-12-31T23:59:59.999Z").toISOString(),
+                end_date: new Date('9999-12-31T23:59:59.999Z').toISOString(),
             };
-        case "MOCK":
+        case 'MOCK':
             return {
                 start_date: new Date().toISOString(),
-                end_date: new Date("9999-12-31T23:59:59.999Z").toISOString(),
+                end_date: new Date('9999-12-31T23:59:59.999Z').toISOString(),
             };
         default:
             return {
-                start_date: convertToUTC(liveDateRange.startDate || ""),
-                end_date: convertToUTC(liveDateRange.endDate || ""),
+                start_date: convertToUTC(liveDateRange.startDate || ''),
+                end_date: convertToUTC(liveDateRange.endDate || ''),
             };
     }
 }
@@ -137,11 +137,11 @@ export const handlePostStep1Data = async (
     data: z.infer<typeof BasicInfoFormSchema>,
     assessmentId: string | null | undefined,
     instituteId: string | undefined,
-    type: string | undefined,
+    type: string | undefined
 ) => {
     const transformedData = {
         status: data.status,
-        assessment_type: "HOMEWORK",
+        assessment_type: 'HOMEWORK',
         test_creation: {
             assessment_name: data.testCreation.assessmentName,
             subject_id: data.testCreation.subject,
@@ -160,7 +160,7 @@ export const handlePostStep1Data = async (
         is_homework: true,
     };
     const response = await authenticatedAxiosInstance({
-        method: "POST",
+        method: 'POST',
         url: STEP1_ASSESSMENT_URL,
         data: transformedData,
         params: {
@@ -177,7 +177,7 @@ export const handlePostStep2Data = async (
     data: z.infer<typeof sectionDetailsSchema>,
     assessmentId: string | null,
     instituteId: string | undefined,
-    type: string | undefined,
+    type: string | undefined
 ) => {
     const convertedOldData = convertStep2Data(oldData);
     const convertedNewData = convertStep2Data(data);
@@ -185,14 +185,14 @@ export const handlePostStep2Data = async (
     const convertedData = {
         test_duration: {
             entire_test_duration: data.testDuration.entireTestDuration.checked
-                ? parseInt(data?.testDuration?.entireTestDuration?.testDuration?.hrs || "0") * 60 +
-                  parseInt(data?.testDuration?.entireTestDuration?.testDuration?.min || "0")
+                ? parseInt(data?.testDuration?.entireTestDuration?.testDuration?.hrs || '0') * 60 +
+                  parseInt(data?.testDuration?.entireTestDuration?.testDuration?.min || '0')
                 : calculateTotalTime(data),
             distribution_duration: data.testDuration.sectionWiseDuration
-                ? "SECTION"
+                ? 'SECTION'
                 : data.testDuration.entireTestDuration.checked
-                  ? "ASSESSMENT"
-                  : "QUESTION",
+                  ? 'ASSESSMENT'
+                  : 'QUESTION',
         },
         added_sections: classifiedSections.added_sections,
         updated_sections: classifiedSections.updated_sections,
@@ -200,7 +200,7 @@ export const handlePostStep2Data = async (
         is_homework: true,
     };
     const response = await authenticatedAxiosInstance({
-        method: "POST",
+        method: 'POST',
         url: STEP2_ASSESSMENT_URL,
         data: convertedData,
         params: {
@@ -216,7 +216,7 @@ export const handlePostAssessmentPreview = async (
     data: AssessmentPreviewSectionsInterface,
     assessmentId: string | null,
     instituteId: string | undefined,
-    type: string | undefined,
+    type: string | undefined
 ) => {
     const convertedData = {
         test_duration: data.test_duration,
@@ -225,7 +225,7 @@ export const handlePostAssessmentPreview = async (
         deleted_sections: data.deleted_sections,
     };
     const response = await authenticatedAxiosInstance({
-        method: "POST",
+        method: 'POST',
         url: STEP2_ASSESSMENT_URL,
         data: convertedData,
         params: {
@@ -246,13 +246,14 @@ export const convertCustomFields = (customFields: CustomFields): ConvertedCustom
             id: field.id,
             name: field.name,
             type: field.type,
-            default_value: "", // Provide a default value, if necessary
-            description: "", // Provide a description, if necessary
+            default_value: '', // Provide a default value, if necessary
+            description: '', // Provide a description, if necessary
             is_mandatory: field.isRequired,
-            key: field.key ?? "", // Use the ID as the key
+            key: field.key ?? '', // Use the ID as the key
             comma_separated_options: field.options
-                ? field.options.map((opt) => opt.value).join(",")
-                : "", // Join options for dropdowns
+                ? field.options.map((opt) => opt.value).join(',')
+                : '', // Join options for dropdowns
+            order_field: field.order,
         };
     });
     return convertedFields;
@@ -264,18 +265,18 @@ export const handlePostStep3Data = async (
     assessmentId: string | null,
     instituteId: string | undefined,
     type: string | undefined,
-    actionType: string,
+    actionType: string
 ) => {
     const convertedData1 = {
         closed_test: newData.closed_test,
         open_test_details: newData.open_test.checked
             ? {
-                  registration_start_date: convertToUTC(newData.open_test.start_date) || "",
-                  registration_end_date: convertToUTC(newData.open_test.end_date) || "",
-                  instructions_html: newData.open_test.instructions || "",
+                  registration_start_date: convertToUTC(newData.open_test.start_date) || '',
+                  registration_end_date: convertToUTC(newData.open_test.end_date) || '',
+                  instructions_html: newData.open_test.instructions || '',
                   registration_form_details: {
                       added_custom_added_fields: convertCustomFields(
-                          newData.open_test.custom_fields,
+                          newData.open_test.custom_fields
                       ),
                       removed_custom_added_fields: [], // Default to an empty array as per example
                   },
@@ -289,7 +290,7 @@ export const handlePostStep3Data = async (
             ? newData.select_individually.student_details
             : [],
         deleted_pre_register_students_details: [],
-        updated_join_link: newData.join_link || "",
+        updated_join_link: newData.join_link || '',
         notify_student: {
             when_assessment_created: newData.notify_student.when_assessment_created || false,
             show_leaderboard: newData.show_leaderboard || false,
@@ -316,9 +317,9 @@ export const handlePostStep3Data = async (
     };
     const convertedData2 = convertDataToStep3(oldFormData, newData);
     const response = await authenticatedAxiosInstance({
-        method: "POST",
+        method: 'POST',
         url: STEP3_ASSESSMENT_URL,
-        data: actionType === "create" ? convertedData1 : convertedData2,
+        data: actionType === 'create' ? convertedData1 : convertedData2,
         params: {
             assessmentId,
             instituteId,
@@ -332,7 +333,7 @@ export const handlePostStep4Data = async (
     data: z.infer<typeof AccessControlFormSchema>,
     assessmentId: string | null,
     instituteId: string | undefined,
-    type: string | undefined,
+    type: string | undefined
 ) => {
     const addedData = {
         assessment_creation_access: {
@@ -358,7 +359,7 @@ export const handlePostStep4Data = async (
         is_homework: true,
     };
     const response = await authenticatedAxiosInstance({
-        method: "POST",
+        method: 'POST',
         url: STEP4_ASSESSMENT_URL,
         data: { current_accesses: addedData },
         params: {
@@ -380,7 +381,7 @@ export const publishAssessment = async ({
     type: string | undefined;
 }) => {
     const response = await authenticatedAxiosInstance({
-        method: "POST",
+        method: 'POST',
         url: PUBLISH_ASSESSMENT_URL,
         params: {
             assessmentId,

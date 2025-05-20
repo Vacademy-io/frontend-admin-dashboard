@@ -1,36 +1,36 @@
-import { Button } from "@/components/ui/button";
-import { DotsThree, Star } from "phosphor-react";
+import { Button } from '@/components/ui/button';
+import { DotsThree, Star } from 'phosphor-react';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { MyPagination } from "@/components/design-system/pagination";
-import ViewQuestionPaper from "./ViewQuestionPaper";
-import { useMutation } from "@tanstack/react-query";
-import { getQuestionPaperById, markQuestionPaperStatus } from "../-utils/question-paper-services";
+} from '@/components/ui/dropdown-menu';
+import { MyPagination } from '@/components/design-system/pagination';
+import ViewQuestionPaper from './ViewQuestionPaper';
+import { useMutation } from '@tanstack/react-query';
+import { getQuestionPaperById, markQuestionPaperStatus } from '../-utils/question-paper-services';
 import {
     PaginatedResponse,
     QuestionPaperInterface,
-} from "@/types/assessments/question-paper-template";
+} from '@/types/assessments/question-paper-template';
 import {
     getLevelNameById,
     getSubjectNameById,
     transformResponseDataToMyQuestionsSchema,
-} from "../-utils/helper";
-import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-import useDialogStore from "../-global-states/question-paper-dialogue-close";
-import { MyQuestion } from "@/types/assessments/question-paper-form";
-import { z } from "zod";
-import sectionDetailsSchema from "../../create-assessment/$assessmentId/$examtype/-utils/section-details-schema";
-import { UseFormReturn } from "react-hook-form";
-import { Dispatch, SetStateAction } from "react";
-import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
-import { TokenKey } from "@/constants/auth/tokens";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import ExportQuestionPaper from "./export-question-paper/ExportQuestionPaper";
-import { AssignmentFormType } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-form-schemas/assignmentFormSchema";
+} from '../-utils/helper';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import useDialogStore from '../-global-states/question-paper-dialogue-close';
+import { MyQuestion } from '@/types/assessments/question-paper-form';
+import { z } from 'zod';
+import sectionDetailsSchema from '../../create-assessment/$assessmentId/$examtype/-utils/section-details-schema';
+import { UseFormReturn } from 'react-hook-form';
+import { Dispatch, SetStateAction } from 'react';
+import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import ExportQuestionPaper from './export-question-paper/ExportQuestionPaper';
+import { AssignmentFormType } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-form-schemas/assignmentFormSchema';
 export type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 export const QuestionPapersList = ({
     questionPaperList,
@@ -84,7 +84,7 @@ export const QuestionPapersList = ({
 
     const handleMarkFavourite = (questionPaperId: string, status: string) => {
         handleMarkQuestionPaperStatus.mutate({
-            status: status === "FAVOURITE" ? "ACTIVE" : "FAVOURITE",
+            status: status === 'FAVOURITE' ? 'ACTIVE' : 'FAVOURITE',
             questionPaperId,
             instituteId: INSTITUTE_ID,
         });
@@ -92,7 +92,7 @@ export const QuestionPapersList = ({
 
     const handleDeleteQuestionPaper = (questionPaperId: string) => {
         handleMarkQuestionPaperStatus.mutate({
-            status: "DELETE",
+            status: 'DELETE',
             questionPaperId,
             instituteId: INSTITUTE_ID,
         });
@@ -103,17 +103,18 @@ export const QuestionPapersList = ({
         onSuccess: async (data, { id }) => {
             setIsSavedQuestionPaperDialogOpen(false);
             const transformQuestionsData: MyQuestion[] = transformResponseDataToMyQuestionsSchema(
-                data.question_dtolist,
+                data.question_dtolist
             );
             if (isStudyLibraryAssignment) {
-                studyLibraryAssignmentForm?.setValue("uploaded_question_paper", id);
+                studyLibraryAssignmentForm?.setValue('uploaded_question_paper', id);
                 studyLibraryAssignmentForm?.setValue(
                     `adaptive_marking_for_each_question`,
                     transformQuestionsData.map((question) => ({
                         questionId: question.questionId,
                         questionName: question.questionName,
                         questionType: question.questionType,
-                    })),
+                        newQuestion: true,
+                    }))
                 );
             }
             if (sectionsForm && index !== undefined) {
@@ -125,16 +126,16 @@ export const QuestionPapersList = ({
                         questionType: question.questionType,
                         questionMark: question.questionMark,
                         questionPenalty: question.questionPenalty,
-                        ...(question.questionType === "MCQM" && {
+                        ...(question.questionType === 'MCQM' && {
                             correctOptionIdsCnt: question?.multipleChoiceOptions?.filter(
-                                (item) => item.isSelected,
+                                (item) => item.isSelected
                             ).length,
                         }),
                         questionDuration: {
                             hrs: question.questionDuration.hrs,
                             min: question.questionDuration.min,
                         },
-                    })),
+                    }))
                 );
                 sectionsForm.trigger(`section.${index}.adaptive_marking_for_each_question`);
             }
@@ -153,12 +154,12 @@ export const QuestionPapersList = ({
                 questionPaperTitle: questionsData.title,
                 subject: getSubjectNameById(
                     instituteDetails?.subjects || [],
-                    questionsData.subject_id,
+                    questionsData.subject_id
                 ),
                 yearClass: getLevelNameById(instituteDetails?.levels || [], questionsData.level_id),
                 sectionName: getSubjectNameById(
                     instituteDetails?.subjects || [],
-                    questionsData.subject_id,
+                    questionsData.subject_id
                 ),
                 uploaded_question_paper: id,
             });
@@ -169,7 +170,7 @@ export const QuestionPapersList = ({
 
     if (
         (index !== undefined || isStudyLibraryAssignment) &&
-        handleGetQuestionPaperData.status === "pending"
+        handleGetQuestionPaperData.status === 'pending'
     )
         return <DashboardLoader />;
 
@@ -179,7 +180,7 @@ export const QuestionPapersList = ({
                 <div
                     key={idx}
                     className={`flex flex-col gap-2 rounded-xl border-[1.5px] bg-neutral-50 p-4 ${
-                        index !== undefined || isStudyLibraryAssignment ? "cursor-pointer" : ""
+                        index !== undefined || isStudyLibraryAssignment ? 'cursor-pointer' : ''
                     }`}
                     onClick={
                         index !== undefined || isStudyLibraryAssignment
@@ -193,14 +194,14 @@ export const QuestionPapersList = ({
                             <div className="flex items-center gap-4">
                                 <Star
                                     size={20}
-                                    weight={questionsData.status === "FAVOURITE" ? "fill" : "light"}
+                                    weight={questionsData.status === 'FAVOURITE' ? 'fill' : 'light'}
                                     onClick={() =>
                                         handleMarkFavourite(questionsData.id, questionsData.status)
                                     }
                                     className={`cursor-pointer ${
-                                        questionsData.status === "FAVOURITE"
-                                            ? "text-yellow-500"
-                                            : "text-gray-300"
+                                        questionsData.status === 'FAVOURITE'
+                                            ? 'text-yellow-500'
+                                            : 'text-gray-300'
                                     }`}
                                 />
                                 <DropdownMenu>
@@ -238,20 +239,20 @@ export const QuestionPapersList = ({
                     </div>
                     <div className="flex w-full items-center justify-start gap-8 text-xs">
                         <p>
-                            Created On:{" "}
-                            {new Date(questionsData.created_on).toLocaleDateString() || "N/A"}
+                            Created On:{' '}
+                            {new Date(questionsData.created_on).toLocaleDateString() || 'N/A'}
                         </p>
                         <p>
-                            Year/Class:{" "}
+                            Year/Class:{' '}
                             {instituteDetails &&
                                 getLevelNameById(instituteDetails.levels, questionsData.level_id)}
                         </p>
                         <p>
-                            Subject:{" "}
+                            Subject:{' '}
                             {instituteDetails &&
                                 getSubjectNameById(
                                     instituteDetails.subjects,
-                                    questionsData.subject_id,
+                                    questionsData.subject_id
                                 )}
                         </p>
                     </div>
