@@ -63,7 +63,9 @@ const ExtractQuestionsComponent = ({ fileId }: { fileId: string }) => {
         <>
             <Dialog open={extractQuestionsDialog} onOpenChange={handleCloseExtractQuestionDialog}>
                 <DialogTrigger>
-                    <Badge className="cursor-pointer bg-[#F4FFF9]">Extract Questions</Badge>
+                    <Badge className="cursor-pointer whitespace-nowrap bg-[#F4FFF9]">
+                        Extract Questions
+                    </Badge>
                 </DialogTrigger>
                 <DialogContent className="p-0">
                     <h1 className="rounded-t-lg bg-primary-50 p-4 font-semibold text-primary-500">
@@ -105,7 +107,13 @@ const ExtractQuestionsComponent = ({ fileId }: { fileId: string }) => {
                     </div>
                 </DialogContent>
             </Dialog>
-            {enableDialog && <AITasksList heading="Vsmart Extract" enableDialog={enableDialog} />}
+            {enableDialog && (
+                <AITasksList
+                    heading="Vsmart Extract"
+                    enableDialog={enableDialog}
+                    setEnableDialog={setEnableDialog}
+                />
+            )}
         </>
     );
 };
