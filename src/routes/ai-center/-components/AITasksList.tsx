@@ -21,6 +21,7 @@ import { useAIQuestionDialogStore } from '@/routes/assessment/create-assessment/
 const AITasksList = ({
     heading,
     enableDialog = false,
+    setEnableDialog,
     pollGenerateAssessment,
     handleGenerateQuestionsForAssessment,
     pollGenerateQuestionsFromText,
@@ -30,6 +31,7 @@ const AITasksList = ({
 }: {
     heading: string;
     enableDialog?: boolean;
+    setEnableDialog?: React.Dispatch<React.SetStateAction<boolean>>;
     pollGenerateAssessment?: (prompt?: string, taskId?: string) => void;
     handleGenerateQuestionsForAssessment?: (
         pdfId?: string,
@@ -80,7 +82,7 @@ const AITasksList = ({
                     taskType: getTaskTypeFromFeature(heading),
                 });
                 count++;
-            }, 10000);
+            }, 20000);
 
             return () => clearInterval(interval); // cleanup on unmount
         }
@@ -109,10 +111,15 @@ const AITasksList = ({
         setIsAIQuestionDialog9(enableDialog);
     }, [enableDialog]);
 
+    const handleCloseListDialog = () => {
+        setIsAIQuestionDialog9(!isAIQuestionDialog9);
+        setEnableDialog!(false);
+    };
+
     if (isLoading) return <DashboardLoader />;
 
     return (
-        <Dialog open={isAIQuestionDialog9} onOpenChange={setIsAIQuestionDialog9}>
+        <Dialog open={isAIQuestionDialog9} onOpenChange={handleCloseListDialog}>
             <DialogTrigger
                 asChild
                 onClick={(e) => {

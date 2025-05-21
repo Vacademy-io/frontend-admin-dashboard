@@ -15,6 +15,7 @@ import { AIFormatDate, getAIIconByMimeType } from '../../-utils/helper';
 import ExtractQuestionsComponent from './ExtractQuestionsComponent';
 import TopicWiseQuestionsComponent from './TopicWiseQuestionsComponent';
 import GenerateQuestionsFromAudio from './GenerateQuestionsFromAudio';
+import EvaluateLectureComponent from './EvaluateLectureComponent';
 
 // --- Type Definitions ---
 interface FileDetail {
@@ -163,8 +164,9 @@ export function ResourcesCard({ apiResponse }: ResourceFilesPageProps) {
                                                 fileId={file.input_id || ''}
                                             />
 
-                                            {/* <Badge>Generate Questions From Audio</Badge> */}
-                                            {/* <Badge>Evaluate Lecture</Badge> */}
+                                            <EvaluateLectureComponent
+                                                fileId={file.input_id || ''}
+                                            />
                                         </div>
                                     </div>
                                 </TableCell>
