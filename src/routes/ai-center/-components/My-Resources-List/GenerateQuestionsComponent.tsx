@@ -231,7 +231,13 @@ const GenerateQuestionsComponent = ({ fileId }: { fileId: string }) => {
                 setOpenPageWiseAssessmentDialog={setOpenPageWiseAssessmentDialog}
                 htmlData={htmlData}
             />
-            {enableDialog && <AITasksList heading="Vsmart Upload" enableDialog={enableDialog} />}
+            {enableDialog && (
+                <AITasksList
+                    heading="Vsmart Upload"
+                    enableDialog={enableDialog}
+                    setEnableDialog={setEnableDialog}
+                />
+            )}
         </>
     );
 };

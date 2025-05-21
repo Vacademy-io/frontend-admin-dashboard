@@ -105,7 +105,13 @@ const ExtractQuestionsComponent = ({ fileId }: { fileId: string }) => {
                     </div>
                 </DialogContent>
             </Dialog>
-            {enableDialog && <AITasksList heading="Vsmart Extract" enableDialog={enableDialog} />}
+            {enableDialog && (
+                <AITasksList
+                    heading="Vsmart Extract"
+                    enableDialog={enableDialog}
+                    setEnableDialog={setEnableDialog}
+                />
+            )}
         </>
     );
 };

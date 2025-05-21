@@ -116,8 +116,6 @@ const AITasksList = ({
         setEnableDialog!(false);
     };
 
-    if (isLoading) return <DashboardLoader />;
-
     return (
         <Dialog open={isAIQuestionDialog9} onOpenChange={handleCloseListDialog}>
             <DialogTrigger
@@ -149,7 +147,7 @@ const AITasksList = ({
                         <ArrowCounterClockwise size={18} className="font-thin text-neutral-600" />
                     </div>
                 </div>
-                {getAITasksIndividualListMutation.status === 'pending' ? (
+                {getAITasksIndividualListMutation.status === 'pending' || isLoading ? (
                     <DashboardLoader size={24} />
                 ) : (
                     <div className="flex flex-col gap-4 overflow-y-auto p-4">

@@ -37,16 +37,17 @@ const EvaluateLectureComponent = ({ fileId }: { fileId: string }) => {
     };
     return (
         <>
-            {generateAssessmentMutation.status === 'pending' ? (
-                <DashboardLoader size={18} color="#ffffff" />
-            ) : (
-                <Badge
-                    className="cursor-pointer bg-[#F4F9FF] text-black"
-                    onClick={handleExtractQuestions}
-                >
-                    Evaluate Lecture
-                </Badge>
-            )}
+            <Badge
+                className={`cursor-pointer bg-[#F4F9FF] text-black
+                     ${generateAssessmentMutation.status === 'pending' ? 'h-6' : ''}`}
+                onClick={handleExtractQuestions}
+            >
+                {generateAssessmentMutation.status === 'pending' ? (
+                    <DashboardLoader size={18} color="#ED7424" />
+                ) : (
+                    'Evaluate Lecture'
+                )}
+            </Badge>
 
             {enableDialog && (
                 <AITasksList

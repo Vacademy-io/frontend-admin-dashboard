@@ -62,7 +62,6 @@ const TopicWiseQuestionsComponent = ({ fileId }: { fileId: string }) => {
 
     const handleCloseExtractQuestionDialog = () => {
         setExtractQuestionsDialog(!extractQuestionsDialog);
-        setEnableDialog(false);
     };
 
     return (
@@ -135,7 +134,13 @@ const TopicWiseQuestionsComponent = ({ fileId }: { fileId: string }) => {
                     </div>
                 </DialogContent>
             </Dialog>
-            {enableDialog && <AITasksList heading="Vsmart Organizer" enableDialog={enableDialog} />}
+            {enableDialog && (
+                <AITasksList
+                    heading="Vsmart Organizer"
+                    enableDialog={enableDialog}
+                    setEnableDialog={setEnableDialog}
+                />
+            )}
         </>
     );
 };

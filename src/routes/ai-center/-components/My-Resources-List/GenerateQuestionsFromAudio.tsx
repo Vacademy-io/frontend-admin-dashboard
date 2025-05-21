@@ -238,7 +238,13 @@ const GenerateQuestionsFromAudio = ({ fileId }: { fileId: string }) => {
                     </div>
                 </DialogContent>
             </Dialog>
-            {enableDialog && <AITasksList heading="Vsmart Audio" enableDialog={enableDialog} />}
+            {enableDialog && (
+                <AITasksList
+                    heading="Vsmart Audio"
+                    enableDialog={enableDialog}
+                    setEnableDialog={setEnableDialog}
+                />
+            )}
         </>
     );
 };
