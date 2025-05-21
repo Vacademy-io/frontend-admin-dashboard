@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 const SubModuleSchema = z.object({
     module: z.string(),
@@ -30,7 +30,7 @@ export const BatchForSessionSchema = z.object({
     id: z.string(),
     level: LevelSchema,
     session: SessionSchema,
-    start_time: z.string(),
+    start_time: z.string().nullable(),
     status: z.string(),
     package_dto: PackageSchema,
 });
@@ -44,7 +44,7 @@ const SubjectSchema = z.object({
     updated_at: z.string(),
 });
 
-const InstituteTypeSchema = z.enum(["Coaching Institute", "School", "University", "Corporate"]);
+const InstituteTypeSchema = z.enum(['Coaching Institute', 'School', 'University', 'Corporate']);
 
 const InstituteSchema = z.object({
     institute_name: z.string(),
@@ -68,8 +68,8 @@ const InstituteSchema = z.object({
     sessions: z.array(SessionSchema),
     batches_for_sessions: z.array(BatchForSessionSchema),
     levels: z.array(LevelSchema),
-    genders: z.array(z.enum(["MALE", "FEMALE", "OTHER"])),
-    student_statuses: z.array(z.enum(["ACTIVE", "INACTIVE"])),
+    genders: z.array(z.enum(['MALE', 'FEMALE', 'OTHER'])),
+    student_statuses: z.array(z.enum(['ACTIVE', 'INACTIVE'])),
     subjects: z.array(SubjectSchema),
     session_expiry_days: z.array(z.number()),
 });
