@@ -16,6 +16,7 @@ import ExtractQuestionsComponent from './ExtractQuestionsComponent';
 import TopicWiseQuestionsComponent from './TopicWiseQuestionsComponent';
 import GenerateQuestionsFromAudio from './GenerateQuestionsFromAudio';
 import EvaluateLectureComponent from './EvaluateLectureComponent';
+import GenerateQuestionsComponent from './GenerateQuestionsComponent';
 
 // --- Type Definitions ---
 interface FileDetail {
@@ -150,7 +151,9 @@ export function ResourcesCard({ apiResponse }: ResourceFilesPageProps) {
                                             {file.file_detail?.file_name}
                                         </span>
                                         <div className="my-2 flex items-center gap-4">
-                                            {/* <Badge>Generate Questions</Badge> */}
+                                            <GenerateQuestionsComponent
+                                                fileId={file.input_id || ''}
+                                            />
 
                                             <ExtractQuestionsComponent
                                                 fileId={file.input_id || ''}

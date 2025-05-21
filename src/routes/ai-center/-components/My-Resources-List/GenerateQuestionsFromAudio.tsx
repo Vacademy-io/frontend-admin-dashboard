@@ -17,12 +17,7 @@ import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/for
 import { MyInput } from '@/components/design-system/input';
 import { Textarea } from '@/components/ui/textarea';
 import SelectField from '@/components/design-system/select-field';
-
-const getRandomTaskName = () => {
-    const now = new Date();
-    const formattedDate = now.toLocaleString().replace(', ', '_');
-    return `Task_${formattedDate}`;
-};
+import { getRandomTaskName } from '../../-utils/helper';
 
 const GenerateQuestionsFromAudio = ({ fileId }: { fileId: string }) => {
     const form = useForm<AudioAIQuestionFormSchema>({

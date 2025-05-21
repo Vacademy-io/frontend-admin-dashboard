@@ -202,3 +202,9 @@ export function getAIIconByMimeType(mimeType: string) {
     // Default to document icon for other types
     return FileDoc;
 }
+
+export const getRandomTaskName = () => {
+    const now = new Date();
+    const formattedDate = now.toLocaleString().replace(', ', '_');
+    return `Task_${formattedDate}`;
+};
