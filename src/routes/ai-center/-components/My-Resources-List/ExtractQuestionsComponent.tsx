@@ -63,7 +63,7 @@ const ExtractQuestionsComponent = ({ fileId }: { fileId: string }) => {
         <>
             <Dialog open={extractQuestionsDialog} onOpenChange={handleCloseExtractQuestionDialog}>
                 <DialogTrigger>
-                    <Badge className="cursor-pointer">Extract Questions</Badge>
+                    <Badge className="cursor-pointer bg-[#F4FFF9]">Extract Questions</Badge>
                 </DialogTrigger>
                 <DialogContent className="p-0">
                     <h1 className="rounded-t-lg bg-primary-50 p-4 font-semibold text-primary-500">

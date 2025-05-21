@@ -175,7 +175,7 @@ const GenerateQuestionsComponent = ({ fileId }: { fileId: string }) => {
         <>
             <Dialog open={extractQuestionsDialog} onOpenChange={handleCloseExtractQuestionDialog}>
                 <DialogTrigger>
-                    <Badge className="cursor-pointer">Generate Questions From PDF/DOCX/PPT</Badge>
+                    <Badge className="cursor-pointer bg-[#FFF4F5]">Generate Questions</Badge>
                 </DialogTrigger>
                 <DialogContent className="p-0">
                     <h1 className="rounded-t-lg bg-primary-50 p-4 font-semibold text-primary-500">

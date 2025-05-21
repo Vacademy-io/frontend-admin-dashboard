@@ -40,7 +40,10 @@ const EvaluateLectureComponent = ({ fileId }: { fileId: string }) => {
             {generateAssessmentMutation.status === 'pending' ? (
                 <DashboardLoader size={18} color="#ffffff" />
             ) : (
-                <Badge className="cursor-pointer text-black" onClick={handleExtractQuestions}>
+                <Badge
+                    className="cursor-pointer bg-[#F4F9FF] text-black"
+                    onClick={handleExtractQuestions}
+                >
                     Evaluate Lecture
                 </Badge>
             )}

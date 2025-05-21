@@ -151,25 +151,36 @@ export function ResourcesCard({ apiResponse }: ResourceFilesPageProps) {
                                             {file.file_detail?.file_name}
                                         </span>
                                         <div className="my-2 flex items-center gap-4">
-                                            <GenerateQuestionsComponent
-                                                fileId={file.input_id || ''}
-                                            />
+                                            {file.file_detail?.file_type
+                                                .toLowerCase()
+                                                .includes('pdf') ||
+                                            file.file_detail?.file_type
+                                                .toLowerCase()
+                                                .includes('document') ? (
+                                                <>
+                                                    <GenerateQuestionsComponent
+                                                        fileId={file.input_id || ''}
+                                                    />
 
-                                            <ExtractQuestionsComponent
-                                                fileId={file.input_id || ''}
-                                            />
+                                                    <ExtractQuestionsComponent
+                                                        fileId={file.input_id || ''}
+                                                    />
 
-                                            <TopicWiseQuestionsComponent
-                                                fileId={file.input_id || ''}
-                                            />
+                                                    <TopicWiseQuestionsComponent
+                                                        fileId={file.input_id || ''}
+                                                    />
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <GenerateQuestionsFromAudio
+                                                        fileId={file.input_id || ''}
+                                                    />
 
-                                            <GenerateQuestionsFromAudio
-                                                fileId={file.input_id || ''}
-                                            />
-
-                                            <EvaluateLectureComponent
-                                                fileId={file.input_id || ''}
-                                            />
+                                                    <EvaluateLectureComponent
+                                                        fileId={file.input_id || ''}
+                                                    />
+                                                </>
+                                            )}
                                         </div>
                                     </div>
                                 </TableCell>
