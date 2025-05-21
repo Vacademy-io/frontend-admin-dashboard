@@ -38,7 +38,7 @@ const EvaluateLectureComponent = ({ fileId }: { fileId: string }) => {
     return (
         <>
             <Badge
-                className={`cursor-pointer bg-[#F4F9FF] text-black
+                className={`cursor-pointer whitespace-nowrap bg-[#F4F9FF] text-black
                      ${generateAssessmentMutation.status === 'pending' ? 'h-6' : ''}`}
                 onClick={handleExtractQuestions}
             >

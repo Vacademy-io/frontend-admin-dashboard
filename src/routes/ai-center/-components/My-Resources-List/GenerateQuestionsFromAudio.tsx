@@ -100,7 +100,9 @@ const GenerateQuestionsFromAudio = ({ fileId }: { fileId: string }) => {
         <>
             <Dialog open={extractQuestionsDialog} onOpenChange={handleCloseExtractQuestionDialog}>
                 <DialogTrigger>
-                    <Badge className="cursor-pointer bg-[#FFF4F5]">Generate Questions</Badge>
+                    <Badge className="cursor-pointer whitespace-nowrap bg-[#FFF4F5]">
+                        Generate Questions
+                    </Badge>
                 </DialogTrigger>
                 <DialogContent className="w-1/3 p-0">
                     <h1 className="rounded-t-lg bg-primary-50 p-4 font-semibold text-primary-500">

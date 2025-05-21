@@ -68,7 +68,9 @@ const TopicWiseQuestionsComponent = ({ fileId }: { fileId: string }) => {
         <>
             <Dialog open={extractQuestionsDialog} onOpenChange={handleCloseExtractQuestionDialog}>
                 <DialogTrigger>
-                    <Badge className="cursor-pointer bg-[#F5F0FF]">Topic Wise Sort Questions</Badge>
+                    <Badge className="cursor-pointer whitespace-nowrap bg-[#F5F0FF]">
+                        Topic Wise Sort Questions
+                    </Badge>
                 </DialogTrigger>
                 <DialogContent className="p-0">
                     <h1 className="rounded-t-lg bg-primary-50 p-4 font-semibold text-primary-500">
