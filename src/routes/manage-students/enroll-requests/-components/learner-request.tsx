@@ -4,9 +4,14 @@ import { useInstituteDetailsStore } from '@/stores/students/students-list/useIns
 import { BatchForSessionType } from '@/schemas/student/student-list/institute-schema';
 import { RequestCard } from './requestCard';
 
+interface SelectedLevelType {
+    id: string;
+    package_session_id: string;
+}
+
 interface SelectedSessionsType {
     session_id: string;
-    selected_levels: string[];
+    selected_levels: SelectedLevelType[];
 }
 
 interface BatchOptionItemType {
@@ -30,7 +35,6 @@ export const LearnerRequest = ({ obj }: { obj: ContentType }) => {
             const batchJsonArray: BatchOptionsType = JSON.parse(
                 obj.learner_invitation_response_dto.batch_selection_response_json
             );
-            console.log('batchJsonArray: ', batchJsonArray);
 
             if (!Array.isArray(batchJsonArray)) {
                 console.error('Expected array but got:', typeof batchJsonArray);
@@ -39,33 +43,24 @@ export const LearnerRequest = ({ obj }: { obj: ContentType }) => {
 
             // Process each item in the array
             batchJsonArray.forEach((batchItem) => {
-                console.log('Processing batch item with package_id:', batchItem.package_id);
-
                 if (batchItem.selected_sessions && Array.isArray(batchItem.selected_sessions)) {
-                    console.log('Selected sessions count:', batchItem.selected_sessions.length);
-
                     // Process each session in the current batch item
                     batchItem.selected_sessions.forEach((session) => {
                         const sessionId = session.session_id;
-                        console.log('Processing session:', sessionId);
 
                         if (session.selected_levels && Array.isArray(session.selected_levels)) {
                             // Process each level in the current session
                             session.selected_levels.forEach((level) => {
-                                console.log('Processing level:', level);
-
                                 const pkgId = getPackageSessionId({
                                     courseId: batchItem.package_id,
                                     sessionId: sessionId,
-                                    levelId: level,
+                                    levelId: level.id,
                                 });
 
                                 if (pkgId) {
                                     const selectedBatch = getDetailsFromPackageSessionId({
                                         packageSessionId: pkgId,
                                     });
-
-                                    console.log('Selected batch:', selectedBatch);
 
                                     if (selectedBatch) {
                                         setSelectedBatches((prevBatches) => [
