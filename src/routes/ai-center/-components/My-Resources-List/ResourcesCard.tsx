@@ -14,6 +14,7 @@ import { Download } from 'lucide-react'; // Added MoreVertical and Eye icons
 import { AIFormatDate, getAIIconByMimeType } from '../../-utils/helper';
 import ExtractQuestionsComponent from './ExtractQuestionsComponent';
 import TopicWiseQuestionsComponent from './TopicWiseQuestionsComponent';
+import GenerateQuestionsFromAudio from './GenerateQuestionsFromAudio';
 
 // --- Type Definitions ---
 interface FileDetail {
@@ -155,6 +156,10 @@ export function ResourcesCard({ apiResponse }: ResourceFilesPageProps) {
                                             />
 
                                             <TopicWiseQuestionsComponent
+                                                fileId={file.input_id || ''}
+                                            />
+
+                                            <GenerateQuestionsFromAudio
                                                 fileId={file.input_id || ''}
                                             />
 

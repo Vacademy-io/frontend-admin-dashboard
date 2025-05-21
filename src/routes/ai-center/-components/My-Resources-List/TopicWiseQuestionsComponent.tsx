@@ -1,7 +1,7 @@
 import { MyButton } from '@/components/design-system/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { handleSortSplitPDF } from '../../-services/ai-center-service';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
@@ -18,6 +18,7 @@ const TopicWiseQuestionsComponent = ({ fileId }: { fileId: string }) => {
     const [enableDialog, setEnableDialog] = useState(false);
     const [extractQuestionsDialog, setExtractQuestionsDialog] = useState(false);
     const [selectedValue, setSelectedValue] = useState<PromptType>('topic');
+    const queryClient = useQueryClient();
 
     /* Generate Assessment Complete */
     const generateAssessmentMutation = useMutation({
@@ -37,6 +38,9 @@ const TopicWiseQuestionsComponent = ({ fileId }: { fileId: string }) => {
         onSuccess: () => {
             setPrompt('');
             setEnableDialog(true);
+            setTimeout(() => {
+                queryClient.invalidateQueries({ queryKey: ['GET_INDIVIDUAL_AI_LIST_DATA'] });
+            }, 100);
         },
         onError: (error: unknown) => {
             console.log(error);
