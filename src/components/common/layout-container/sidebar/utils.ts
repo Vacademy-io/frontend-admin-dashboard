@@ -123,5 +123,15 @@ export const SidebarItemsData: SidebarItemsType[] = [
         title: 'VSmart AI Tools',
         id: 'AI Center',
         to: '/ai-center',
+        subItems: [
+            {
+                subItem: 'AI Tools',
+                subItemLink: '/ai-center/ai-tools',
+            },
+            {
+                subItem: 'My Resources',
+                subItemLink: '/ai-center/my-resources',
+            },
+        ],
     },
 ];

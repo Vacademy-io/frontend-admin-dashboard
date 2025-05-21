@@ -43,6 +43,7 @@ import { Route as EvaluationEvaluationToolIndexImport } from './routes/evaluatio
 import { Route as CommunityQuestionPaperIndexImport } from './routes/community/question-paper/index';
 import { Route as AssessmentQuestionPapersIndexImport } from './routes/assessment/question-papers/index';
 import { Route as AssessmentAssessmentListIndexImport } from './routes/assessment/assessment-list/index';
+import { Route as AiCenterMyResourcesIndexImport } from './routes/ai-center/my-resources/index';
 import { Route as AiCenterAiToolsIndexImport } from './routes/ai-center/ai-tools/index';
 import { Route as StudyLibraryPresentAddIndexImport } from './routes/study-library/present/add/index';
 import { Route as StudyLibraryCoursesLevelsIndexImport } from './routes/study-library/courses/levels/index';
@@ -261,6 +262,12 @@ const AssessmentQuestionPapersIndexRoute = AssessmentQuestionPapersIndexImport.u
 const AssessmentAssessmentListIndexRoute = AssessmentAssessmentListIndexImport.update({
     id: '/assessment/assessment-list/',
     path: '/assessment/assessment-list/',
+    getParentRoute: () => rootRoute,
+} as any);
+
+const AiCenterMyResourcesIndexRoute = AiCenterMyResourcesIndexImport.update({
+    id: '/ai-center/my-resources/',
+    path: '/ai-center/my-resources/',
     getParentRoute: () => rootRoute,
 } as any);
 
@@ -522,6 +529,13 @@ declare module '@tanstack/react-router' {
             path: '/ai-center/ai-tools';
             fullPath: '/ai-center/ai-tools';
             preLoaderRoute: typeof AiCenterAiToolsIndexImport;
+            parentRoute: typeof rootRoute;
+        };
+        '/ai-center/my-resources/': {
+            id: '/ai-center/my-resources/';
+            path: '/ai-center/my-resources';
+            fullPath: '/ai-center/my-resources';
+            preLoaderRoute: typeof AiCenterMyResourcesIndexImport;
             parentRoute: typeof rootRoute;
         };
         '/assessment/assessment-list/': {
@@ -864,6 +878,7 @@ export interface FileRoutesByFullPath {
     '/signup': typeof SignupIndexRoute;
     '/study-library': typeof StudyLibraryIndexRoute;
     '/ai-center/ai-tools': typeof AiCenterAiToolsIndexRoute;
+    '/ai-center/my-resources': typeof AiCenterMyResourcesIndexRoute;
     '/assessment/assessment-list': typeof AssessmentAssessmentListIndexRoute;
     '/assessment/question-papers': typeof AssessmentQuestionPapersIndexRoute;
     '/community/question-paper': typeof CommunityQuestionPaperIndexRoute;
@@ -925,6 +940,7 @@ export interface FileRoutesByTo {
     '/signup': typeof SignupIndexRoute;
     '/study-library': typeof StudyLibraryIndexRoute;
     '/ai-center/ai-tools': typeof AiCenterAiToolsIndexRoute;
+    '/ai-center/my-resources': typeof AiCenterMyResourcesIndexRoute;
     '/assessment/assessment-list': typeof AssessmentAssessmentListIndexRoute;
     '/assessment/question-papers': typeof AssessmentQuestionPapersIndexRoute;
     '/community/question-paper': typeof CommunityQuestionPaperIndexRoute;
@@ -987,6 +1003,7 @@ export interface FileRoutesById {
     '/signup/': typeof SignupIndexRoute;
     '/study-library/': typeof StudyLibraryIndexRoute;
     '/ai-center/ai-tools/': typeof AiCenterAiToolsIndexRoute;
+    '/ai-center/my-resources/': typeof AiCenterMyResourcesIndexRoute;
     '/assessment/assessment-list/': typeof AssessmentAssessmentListIndexRoute;
     '/assessment/question-papers/': typeof AssessmentQuestionPapersIndexRoute;
     '/community/question-paper/': typeof CommunityQuestionPaperIndexRoute;
@@ -1050,6 +1067,7 @@ export interface FileRouteTypes {
         | '/signup'
         | '/study-library'
         | '/ai-center/ai-tools'
+        | '/ai-center/my-resources'
         | '/assessment/assessment-list'
         | '/assessment/question-papers'
         | '/community/question-paper'
@@ -1110,6 +1128,7 @@ export interface FileRouteTypes {
         | '/signup'
         | '/study-library'
         | '/ai-center/ai-tools'
+        | '/ai-center/my-resources'
         | '/assessment/assessment-list'
         | '/assessment/question-papers'
         | '/community/question-paper'
@@ -1170,6 +1189,7 @@ export interface FileRouteTypes {
         | '/signup/'
         | '/study-library/'
         | '/ai-center/ai-tools/'
+        | '/ai-center/my-resources/'
         | '/assessment/assessment-list/'
         | '/assessment/question-papers/'
         | '/community/question-paper/'
@@ -1232,6 +1252,7 @@ export interface RootRouteChildren {
     SignupIndexRoute: typeof SignupIndexRoute;
     StudyLibraryIndexRoute: typeof StudyLibraryIndexRoute;
     AiCenterAiToolsIndexRoute: typeof AiCenterAiToolsIndexRoute;
+    AiCenterMyResourcesIndexRoute: typeof AiCenterMyResourcesIndexRoute;
     AssessmentAssessmentListIndexRoute: typeof AssessmentAssessmentListIndexRoute;
     AssessmentQuestionPapersIndexRoute: typeof AssessmentQuestionPapersIndexRoute;
     CommunityQuestionPaperIndexRoute: typeof CommunityQuestionPaperIndexRoute;
@@ -1293,6 +1314,7 @@ const rootRouteChildren: RootRouteChildren = {
     SignupIndexRoute: SignupIndexRoute,
     StudyLibraryIndexRoute: StudyLibraryIndexRoute,
     AiCenterAiToolsIndexRoute: AiCenterAiToolsIndexRoute,
+    AiCenterMyResourcesIndexRoute: AiCenterMyResourcesIndexRoute,
     AssessmentAssessmentListIndexRoute: AssessmentAssessmentListIndexRoute,
     AssessmentQuestionPapersIndexRoute: AssessmentQuestionPapersIndexRoute,
     CommunityQuestionPaperIndexRoute: CommunityQuestionPaperIndexRoute,
@@ -1373,6 +1395,7 @@ export const routeTree = rootRoute
         "/signup/",
         "/study-library/",
         "/ai-center/ai-tools/",
+        "/ai-center/my-resources/",
         "/assessment/assessment-list/",
         "/assessment/question-papers/",
         "/community/question-paper/",
@@ -1456,6 +1479,9 @@ export const routeTree = rootRoute
     },
     "/ai-center/ai-tools/": {
       "filePath": "ai-center/ai-tools/index.tsx"
+    },
+    "/ai-center/my-resources/": {
+      "filePath": "ai-center/my-resources/index.tsx"
     },
     "/assessment/assessment-list/": {
       "filePath": "assessment/assessment-list/index.tsx"
