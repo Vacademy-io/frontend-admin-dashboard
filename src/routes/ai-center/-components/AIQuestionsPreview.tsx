@@ -323,7 +323,7 @@ const AIQuestionsPreview = ({
                         <DialogContent className="no-scrollbar !m-0 flex h-full !w-full !max-w-full flex-col !gap-0 overflow-y-auto !rounded-none !p-0 [&>button]:hidden">
                             <FormProvider {...form}>
                                 <form className="flex h-screen flex-col items-start">
-                                    <div className="flex w-full items-center justify-between bg-primary-100 p-2">
+                                    <div className="flex w-full items-start justify-between bg-primary-100 p-2">
                                         <div>
                                             <div className="flex items-center gap-2">
                                                 <img
@@ -335,7 +335,7 @@ const AIQuestionsPreview = ({
                                                     {form.getValues('title')}
                                                 </span>
                                             </div>
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex flex-wrap items-center gap-2">
                                                 {form.getValues('tags')?.map((tag, idx) => {
                                                     return (
                                                         <Badge variant="outline" key={idx}>
@@ -345,7 +345,7 @@ const AIQuestionsPreview = ({
                                                 })}
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-4">
+                                        <div className="mt-2 flex items-center gap-4">
                                             {currentSectionIndex !== undefined &&
                                                 (handleSubmitFormData.status === 'pending' ? (
                                                     <MyButton type="button">
