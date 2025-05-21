@@ -183,12 +183,11 @@ export const ChapterSidebarAddButton = () => {
                 <MyButton
                     buttonType="primary"
                     scale="large"
-                    layoutVariant={open ? 'default' : 'icon'}
                     className={`${open ? '' : ''}`}
                     id="add-slides"
                 >
                     <Plus />
-                    <p className={`${open ? 'visible' : 'hidden'}`}>Add</p>
+                    <p>Add</p>
                 </MyButton>
             </MyDropdown>
 
