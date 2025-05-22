@@ -128,9 +128,6 @@ const AdminProfile = ({ adminDetails }: { adminDetails: UserProfile }) => {
         return () => subscription.unsubscribe(); // cleanup
     }, [form.watch('roleType')]);
 
-    console.log('oldRoles', oldRoles.current);
-    console.log('newRoles', newRoles);
-
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger>

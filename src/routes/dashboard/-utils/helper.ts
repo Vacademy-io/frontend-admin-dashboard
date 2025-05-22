@@ -31,8 +31,8 @@ export function countAdminRoles(users: UserRolesDataEntry[]) {
 }
 
 export function getModifiedAdminRoles(roles: UserRole[], oldRoles: string[], newRoles: string[]) {
-    const add_user_role_request = [];
-    const delete_user_role_request = [];
+    const add_user_role_request: string[] = [];
+    const delete_user_role_request: string[] = [];
 
     // Convert old and new roles to Sets for efficient lookup
     const oldSet = new Set(oldRoles);
@@ -58,5 +58,7 @@ export function getModifiedAdminRoles(roles: UserRole[], oldRoles: string[], new
         }
     }
 
-    return { add_user_role_request, delete_user_role_request };
+    const updated_roles = roles.filter((role) => !delete_user_role_request.includes(role.role_id));
+
+    return { updated_roles, add_user_role_request, delete_user_role_request };
 }
