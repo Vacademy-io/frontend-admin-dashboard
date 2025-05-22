@@ -1,5 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import { fetchFacultyList, FacultyFilterParams } from '../-services/dashboard-services';
+import { PaginatedFacultyResponse } from '../-types/faculty-list-type';
 
 export const useTeacherList = (
     instituteId: string,
@@ -7,7 +8,7 @@ export const useTeacherList = (
     pageSize: number = 10,
     filters: FacultyFilterParams = {},
     enabled: boolean = true
-) => {
+): UseQueryResult<PaginatedFacultyResponse> => {
     return useQuery({
         queryKey: ['facultyList', instituteId, pageNo, pageSize, filters],
         queryFn: () => fetchFacultyList(instituteId, pageNo, pageSize, filters),

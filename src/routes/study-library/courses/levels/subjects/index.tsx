@@ -3,13 +3,13 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { LayoutContainer } from '@/components/common/layout-container/layout-container';
 import { InitStudyLibraryProvider } from '@/providers/study-library/init-study-library-provider';
 import { SubjectMaterial } from '@/routes/study-library/courses/levels/subjects/-components/subject-material';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { CaretLeft } from 'phosphor-react';
 import { getLevelName } from '@/utils/helpers/study-library-helpers.ts/get-name-by-id/getLevelNameById';
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
 import { getCourseNameById } from '@/utils/helpers/study-library-helpers.ts/get-name-by-id/getCourseNameById';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
-
+import { useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
 interface LevelSearchParams {
     courseId: string;
     levelId: string;
@@ -31,6 +31,7 @@ function RouteComponent() {
     const { courseId, levelId } = Route.useSearch();
     const levelName = getLevelName(levelId);
     const { getLevelsFromPackage } = useInstituteDetailsStore();
+    const { studyLibraryData } = useStudyLibraryStore();
 
     const levelList = getLevelsFromPackage({ courseId: courseId });
 
@@ -47,7 +48,7 @@ function RouteComponent() {
         }
     };
 
-    const courseName = getCourseNameById(courseId);
+    const [courseName, setCourseName] = useState(getCourseNameById(courseId));
 
     const heading = (
         <div className="flex items-center gap-4">
@@ -57,6 +58,10 @@ function RouteComponent() {
             </div>
         </div>
     );
+
+    useEffect(() => {
+        setCourseName(getCourseNameById(courseId));
+    }, [studyLibraryData]);
 
     // Ensure dependencies are complete
     useEffect(() => {

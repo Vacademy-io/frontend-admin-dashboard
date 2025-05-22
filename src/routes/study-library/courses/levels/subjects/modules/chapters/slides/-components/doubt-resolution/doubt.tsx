@@ -8,7 +8,13 @@ import { StatusChip } from '@/components/design-system/status-chips';
 import { Switch } from '@/components/ui/switch';
 import { useContentStore } from '../../-stores/chapter-sidebar-store';
 import { useSidebar } from '@/components/ui/sidebar';
-
+import { getTokenFromCookie, getTokenDecodedData } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
+import { getInstituteId } from '@/constants/helper';
+import { useTeacherList } from '@/routes/dashboard/-hooks/useTeacherList';
+import { useRouter } from '@tanstack/react-router';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { FacultyFilterParams } from '@/routes/dashboard/-services/dashboard-services';
 export const Doubt = ({
     doubt,
     setDoubtProgressMarkerPdf,
@@ -18,11 +24,34 @@ export const Doubt = ({
     setDoubtProgressMarkerPdf: Dispatch<SetStateAction<number | null>>;
     setDoubtProgressMarkerVideo: Dispatch<SetStateAction<number | null>>;
 }) => {
+    const router = useRouter();
+    const { getPackageSessionId } = useInstituteDetailsStore();
     const [imageUrl, setImageUrl] = useState<string | null>(null);
-    const [userId, setUserId] = useState<string | null>(null);
     const [showReplies, setShowReplies] = useState<boolean>(false);
     const { activeItem } = useContentStore();
     const { setOpen } = useSidebar();
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const tokenData = getTokenDecodedData(accessToken);
+    const InstituteId = getInstituteId();
+    const isAdmin = tokenData?.authorities[InstituteId || '']?.roles.includes('ADMIN');
+    const isTeacher = tokenData?.authorities[InstituteId || '']?.roles.includes('TEACHER');
+    const userId = tokenData?.user;
+    // get teacher list
+    const { courseId, sessionId, levelId, subjectId } = router.state.location.search;
+    const pksId = getPackageSessionId({
+        courseId: courseId || '',
+        sessionId: sessionId || '',
+        levelId: levelId || '',
+    });
+    const filters: FacultyFilterParams = {
+        name: '',
+        batches: [pksId || ''],
+        subjects: [subjectId || ''],
+        status: [],
+        sort_columns: { name: 'DESC' },
+    };
+    const { data } = useTeacherList(InstituteId || '', 0, 100, filters, true);
+    console.log('data: ', data, isTeacher, userId);
 
     const handleTimeStampClick = (timestamp: number) => {
         if (activeItem?.source_type == 'VIDEO') {
@@ -32,15 +61,6 @@ export const Doubt = ({
         }
         setOpen(false);
     };
-
-    useEffect(() => {
-        const fetchUserId = async () => {
-            // const id = await getUserId();
-            const id = '';
-            setUserId(id);
-        };
-        fetchUserId();
-    }, []);
 
     useEffect(() => {
         const fetchImageUrl = async () => {
@@ -59,7 +79,7 @@ export const Doubt = ({
 
     return (
         <div className="flex flex-col gap-3 rounded-lg p-3 max-sm:text-caption md:px-1 lg:px-3">
-            <div className="flex flex-col gap-2">
+            <div className="flex w-full flex-col gap-2">
                 <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
                     <div className="flex items-center gap-2">
                         <div className="size-8 rounded-full bg-neutral-300 sm:size-10">
@@ -87,9 +107,9 @@ export const Doubt = ({
                         </p>
                     </div>
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex w-full items-center justify-between">
                     <div className="flex gap-2">
-                        <p>
+                        <p className="flex">
                             <span className="font-semibold">Timestamp: </span>
                             {doubt.slide_progress_marker}
                         </p>
@@ -98,15 +118,12 @@ export const Doubt = ({
                             onClick={() => handleTimeStampClick(doubt.slide_progress_marker)}
                         />
                     </div>
-                    {userId && doubt.user_id === userId && (
-                        <div className="flex w-full items-center gap-2 font-semibold ">
-                            Mark as resolved{' '}
-                            <Switch
-                                checked={doubt.status === 'RESOLVED'}
-                                onCheckedChange={() => {}}
-                            />
-                        </div>
-                    )}
+                    {/* {userId && doubt.user_id === userId && ( */}
+                    <div className="flex items-center gap-2 font-semibold ">
+                        Mark as resolved{' '}
+                        <Switch checked={doubt.status === 'RESOLVED'} onCheckedChange={() => {}} />
+                    </div>
+                    {/* )} */}
                 </div>
                 <div
                     dangerouslySetInnerHTML={{
@@ -114,10 +131,12 @@ export const Doubt = ({
                     }}
                     className="custom-html-content"
                 />
-                {doubt.user_id == userId && doubt.replies.length == 0 && (
-                    <div className="flex cursor-pointer items-center gap-1">
-                        <TrashSimple className="text-danger-500" />
-                        <p className="text-body">Delete</p>
+                {isAdmin && (
+                    <div className="flex flex-col gap-2">
+                        <div className="flex cursor-pointer items-center gap-1">
+                            <TrashSimple className="text-danger-500" />
+                            <p className="text-body">Delete</p>
+                        </div>
                     </div>
                 )}
             </div>
