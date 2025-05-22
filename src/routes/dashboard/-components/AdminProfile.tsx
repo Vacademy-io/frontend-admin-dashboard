@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { adminProfileSchema } from '../-utils/admin-profile-schema';
 import { OnboardingFrame } from '@/svgs';
 import { FileUploadComponent } from '@/components/design-system/file-upload';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { getInstituteId } from '@/constants/helper';
 import { UploadFileInS3Public } from '@/routes/signup/-services/signup-services';
 import { PencilSimpleLine } from 'phosphor-react';
@@ -15,31 +15,68 @@ import { MyInput } from '@/components/design-system/input';
 import PhoneInputField from '@/components/design-system/phone-input-field';
 import { Separator } from '@/components/ui/separator';
 import MultiSelectDropdown from '@/components/design-system/multiple-select-field';
+import { UserProfile } from '@/services/student-list-section/getAdminDetails';
+import useAdminLogoStore from '@/components/common/layout-container/sidebar/admin-logo-zustand';
 import { RoleType } from '@/constants/dummy-data';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { AxiosError } from 'axios';
+import { handleUpdateAdminDetails } from '../-services/dashboard-services';
 
 type FormValues = z.infer<typeof adminProfileSchema>;
 
-const AdminProfile = () => {
+const AdminProfile = ({ adminDetails }: { adminDetails: UserProfile }) => {
     const instituteId = getInstituteId();
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [open, setOpen] = useState(false);
+    const queryClient = useQueryClient();
+    const [newRoles, setNewRoles] = useState<string[]>([]);
+    const oldRoles = useRef<string[]>([]);
     const form = useForm<FormValues>({
         resolver: zodResolver(adminProfileSchema),
         defaultValues: {
             profilePictureUrl: '',
             profilePictureId: undefined,
             name: '',
-            roles: [],
+            roleType: [],
             email: '',
             phone: '',
         },
         mode: 'onChange',
     });
+    form.watch('roleType');
 
     const { handleSubmit } = form;
     const [isUploading, setIsUploading] = useState(false);
 
+    const handleSubmitEditDataMutation = useMutation({
+        mutationFn: ({ data }: { data: z.infer<typeof adminProfileSchema> }) =>
+            handleUpdateAdminDetails(data, adminDetails.roles, oldRoles.current, newRoles),
+        onSuccess: () => {
+            toast.success('Your details has been updated successfully!', {
+                className: 'success-toast',
+                duration: 2000,
+            });
+            setOpen(false);
+            queryClient.invalidateQueries({ queryKey: ['GET_ADMIN_DETAILS'] });
+        },
+        onError: (error: unknown) => {
+            if (error instanceof AxiosError) {
+                toast.error(error.message, {
+                    className: 'error-toast',
+                    duration: 2000,
+                });
+            } else {
+                // Handle non-Axios errors if necessary
+                console.error('Unexpected error:', error);
+            }
+        },
+    });
+
     function onSubmit(values: FormValues) {
-        console.log(values);
+        handleSubmitEditDataMutation.mutate({
+            data: values,
+        });
     }
 
     const onInvalid = (err: unknown) => {
@@ -66,8 +103,36 @@ const AdminProfile = () => {
         }
     };
 
+    const { adminLogo } = useAdminLogoStore();
+
+    useEffect(() => {
+        const resetFormWithUrl = async () => {
+            form.reset({
+                profilePictureUrl: adminLogo || '',
+                profilePictureId: adminDetails?.profile_pic_file_id ?? undefined,
+                name: adminDetails?.full_name || '',
+                roleType: adminDetails.roles.map((role) => role.role_name) || [],
+                email: adminDetails?.email,
+                phone: adminDetails?.mobile_number || '',
+            });
+            oldRoles.current = adminDetails.roles.map((role) => role.role_name);
+        };
+        resetFormWithUrl();
+    }, [adminDetails]);
+
+    useEffect(() => {
+        const subscription = form.watch(() => {
+            setNewRoles([...form.getValues('roleType')]);
+        });
+
+        return () => subscription.unsubscribe(); // cleanup
+    }, [form.watch('roleType')]);
+
+    console.log('oldRoles', oldRoles.current);
+    console.log('newRoles', newRoles);
+
     return (
-        <Dialog>
+        <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger>
                 <MyButton
                     type="submit"
@@ -154,8 +219,8 @@ const AdminProfile = () => {
                                         />
                                         <MultiSelectDropdown
                                             form={form}
-                                            label="Roles"
-                                            name="roles"
+                                            label="Role Type"
+                                            name="roleType"
                                             options={RoleType.map((option, index) => ({
                                                 value: option.name,
                                                 label: option.name,

@@ -1,5 +1,5 @@
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CaretDown, CaretUp } from '@phosphor-icons/react';
 import { DummyProfile } from '@/assets/svgs';
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
@@ -10,11 +10,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-    getTokenDecodedData,
-    getTokenFromCookie,
-    removeCookiesAndLogout,
-} from '@/lib/auth/sessionUtility';
+import { removeCookiesAndLogout } from '@/lib/auth/sessionUtility';
 import { useNavigate } from '@tanstack/react-router';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import useInstituteLogoStore from '../sidebar/institutelogo-global-zustand';
@@ -31,8 +27,9 @@ import { Separator } from '@/components/ui/separator';
 import EditDashboardProfileComponent from '@/routes/dashboard/-components/EditDashboardProfileComponent';
 import AdminProfile from '@/routes/dashboard/-components/AdminProfile';
 import { Badge } from '@/components/ui/badge';
-import { getInstituteId } from '@/constants/helper';
-import { TokenKey } from '@/constants/auth/tokens';
+import { handleGetAdminDetails } from '@/services/student-list-section/getAdminDetails';
+import useAdminLogoStore from '../sidebar/admin-logo-zustand';
+import { useFileUpload } from '@/hooks/use-file-upload';
 
 export function Navbar() {
     const roleColors: Record<string, string> = {
@@ -43,10 +40,7 @@ export function Navbar() {
         EVALUATOR: '#F5F0FF',
     };
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
-    const instituteId = getInstituteId();
-    const accessToken = getTokenFromCookie(TokenKey.accessToken);
-    const tokenData = getTokenDecodedData(accessToken);
-    const roles = tokenData?.authorities[instituteId!]?.roles;
+    const { data: adminDetails } = useSuspenseQuery(handleGetAdminDetails());
     const { resetStore } = useInstituteDetailsStore();
     const { resetStudyLibraryStore } = useStudyLibraryStore();
     const { resetInstituteLogo } = useInstituteLogoStore();
@@ -59,6 +53,7 @@ export function Navbar() {
     const { navHeading } = useNavHeadingStore();
     const { sidebarOpen, setSidebarOpen } = useSidebarStore();
     const { instituteLogo } = useInstituteLogoStore();
+    const { getPublicUrl } = useFileUpload();
 
     const handleLogout = async (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         event.preventDefault(); // Prevents dropdown from closing immediately
@@ -75,6 +70,23 @@ export function Navbar() {
             to: '/login',
         });
     };
+
+    const { adminLogo, setAdminLogo } = useAdminLogoStore();
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            const fetchPublicUrl = async () => {
+                if (adminDetails?.profile_pic_file_id) {
+                    const publicUrl = await getPublicUrl(adminDetails?.profile_pic_file_id);
+                    setAdminLogo(publicUrl);
+                }
+            };
+
+            fetchPublicUrl();
+        }, 300); // Adjust the debounce time as needed
+
+        return () => clearTimeout(timer); // Cleanup the timeout on component unmount
+    }, [adminDetails?.profile_pic_file_id]);
 
     return (
         <div className="sticky top-0 z-10 flex h-[72px] items-center justify-between border-b bg-neutral-50 px-8 py-4">
@@ -104,42 +116,49 @@ export function Navbar() {
                                     </SheetTitle>
                                     <div className="flex flex-col gap-8">
                                         <div className="flex flex-col items-center justify-center gap-4">
-                                            {instituteLogo !== '' && (
+                                            {adminLogo !== '' ? (
                                                 <img
-                                                    src={instituteLogo}
+                                                    src={adminLogo}
+                                                    alt="logo"
+                                                    className="size-48 rounded-full"
+                                                />
+                                            ) : (
+                                                <img
+                                                    src={adminLogo}
                                                     alt="logo"
                                                     className="size-48 rounded-full"
                                                 />
                                             )}
-                                            <h1>{tokenData?.fullname}</h1>
+                                            <h1>{adminDetails?.full_name}</h1>
                                             <div className="flex flex-wrap items-center gap-2">
                                                 <h1 className="whitespace-nowrap">Role Type</h1>
-                                                {roles?.map((role, idx) => {
+                                                {adminDetails.roles?.map((role, idx) => {
                                                     const bgColor =
-                                                        roleColors[role.toUpperCase()] || '#EDEDED'; // Default color if not mapped
+                                                        roleColors[role.role_name.toUpperCase()] ||
+                                                        '#EDEDED'; // Default color if not mapped
                                                     return (
                                                         <Badge
                                                             key={idx}
                                                             className={`whitespace-nowrap rounded-lg border border-neutral-300 py-1.5 font-thin shadow-none`}
                                                             style={{ backgroundColor: bgColor }}
                                                         >
-                                                            {role}
+                                                            {role.role_name}
                                                         </Badge>
                                                     );
                                                 })}
                                             </div>
-                                            <AdminProfile />
+                                            <AdminProfile adminDetails={adminDetails} />
                                         </div>
                                         <Separator />
                                         <div className="flex flex-col gap-2">
                                             <h1>Contact Information</h1>
                                             <p className="text-sm text-neutral-600">
                                                 <span>Email:&nbsp;</span>
-                                                <span>{tokenData?.email}</span>
+                                                <span>{adminDetails?.email}</span>
                                             </p>
                                             <p className="text-sm text-neutral-600">
                                                 <span>Mobile:&nbsp;</span>
-                                                <span>+{instituteDetails?.phone}</span>
+                                                <span>+{adminDetails?.mobile_number}</span>
                                             </p>
                                         </div>
                                     </div>

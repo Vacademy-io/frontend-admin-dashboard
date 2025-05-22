@@ -1,10 +1,15 @@
 import { z } from 'zod';
 
+export const userRoleSchema = z.object({
+    id: z.string(),
+    name: z.string(),
+});
+
 export const adminProfileSchema = z.object({
     profilePictureUrl: z.string(),
     profilePictureId: z.union([z.string(), z.undefined()]),
     name: z.string().min(1, 'Name is required'),
-    roles: z.array(z.string()),
+    roleType: z.array(z.string()),
     email: z
         .string()
         .optional()
