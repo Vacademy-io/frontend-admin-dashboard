@@ -21,13 +21,19 @@ import { getCourseSubjects } from '@/utils/helpers/study-library-helpers.ts/get-
 import { MultiSelect } from '@/components/design-system/multi-select';
 import type { inviteUsersSchema } from './InviteUsersComponent';
 
-export default function BatchSubjectForm() {
+interface BatchSubjectFormProps {
+    initialBatchId?: string;
+}
+
+export default function BatchSubjectForm({ initialBatchId }: BatchSubjectFormProps) {
     const { instituteDetails, getDetailsFromPackageSessionId } = useInstituteDetailsStore();
     const { isLoading } = useSuspenseQuery(useStudyLibraryQuery());
     const form = useFormContext<z.infer<typeof inviteUsersSchema>>();
 
     // State to track which batches are selected via checkbox
-    const [selectedBatches, setSelectedBatches] = useState<string[]>([]);
+    const [selectedBatches, setSelectedBatches] = useState<string[]>(
+        initialBatchId ? [initialBatchId] : []
+    );
     // State to track subject selections for each batch
     const [subjectSelections, setSubjectSelections] = useState<Record<string, string[]>>({});
 

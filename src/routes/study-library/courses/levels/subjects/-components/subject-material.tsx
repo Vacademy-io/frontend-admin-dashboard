@@ -44,9 +44,13 @@ import {
     FileText,
     PresentationChart,
 } from 'phosphor-react';
+import Students from './student-list';
+import Assessments from './assessment-list';
 import { getIcon } from '../modules/chapters/slides/-components/slides-sidebar/slides-sidebar-slides';
 import { MyButton } from '@/components/design-system/button';
 import { useContentStore } from '../modules/chapters/slides/-stores/chapter-sidebar-store';
+import { TeachersList } from './teacher-list';
+import AddTeachers from '@/routes/dashboard/-components/AddTeachers';
 
 // Interfaces (assuming these are unchanged)
 export interface Chapter {
@@ -398,7 +402,7 @@ export const SubjectMaterial = () => {
                                                 className="shrink-0 text-gray-500"
                                             />
                                         )}
-                                        <Folder size={18} className="text-primary shrink-0" />
+                                        <Folder size={18} className="shrink-0 text-primary-500" />
                                         <span className="w-6 shrink-0 text-center font-mono text-xs text-gray-500">
                                             S{idx + 1}
                                         </span>
@@ -408,7 +412,7 @@ export const SubjectMaterial = () => {
                                     </div>
                                     <ArrowSquareOut
                                         size={18}
-                                        className="hover:text-primary ml-1.5 shrink-0 cursor-pointer text-gray-400"
+                                        className="ml-1.5 shrink-0 cursor-pointer text-gray-400 hover:text-primary-400"
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             handleSubjectNavigation(subject.id);
@@ -466,7 +470,7 @@ export const SubjectMaterial = () => {
                                                             </div>
                                                             <ArrowSquareOut
                                                                 size={16}
-                                                                className="hover:text-primary ml-1.5 shrink-0 cursor-pointer text-gray-400"
+                                                                className="ml-1.5 shrink-0 cursor-pointer text-gray-400 hover:text-primary-400"
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
                                                                     handleModuleNavigation(
@@ -526,7 +530,7 @@ export const SubjectMaterial = () => {
                                                                                             }
                                                                                             className="shrink-0 text-green-600"
                                                                                         />
-                                                                                        <span className="text-2xs w-5 shrink-0 text-center font-mono text-gray-500">
+                                                                                        <span className="w-5 shrink-0 text-center font-mono text-xs text-gray-500">
                                                                                             C
                                                                                             {chIdx +
                                                                                                 1}
@@ -548,7 +552,7 @@ export const SubjectMaterial = () => {
                                                                                     </div>
                                                                                     <ArrowSquareOut
                                                                                         size={14}
-                                                                                        className="hover:text-primary ml-1 shrink-0 cursor-pointer text-gray-400"
+                                                                                        className="ml-1 shrink-0 cursor-pointer text-gray-400 hover:text-primary-400"
                                                                                         onClick={(
                                                                                             e
                                                                                         ) => {
@@ -592,7 +596,7 @@ export const SubjectMaterial = () => {
                                                                                                     14
                                                                                                 }
                                                                                                 weight="bold"
-                                                                                                className="text-primary-600 group-hover:text-primary-700"
+                                                                                                className="text-primary-400 group-hover:text-primary-500"
                                                                                             />
                                                                                             <span className="font-medium">
                                                                                                 Add
@@ -608,7 +612,7 @@ export const SubjectMaterial = () => {
                                                                                             ] ?? []
                                                                                         ).length ===
                                                                                         0 ? (
-                                                                                            <div className="text-2xs px-1 py-0.5 text-gray-400">
+                                                                                            <div className="px-1 py-0.5 text-xs text-gray-400">
                                                                                                 No
                                                                                                 slides
                                                                                                 in
@@ -701,7 +705,7 @@ export const SubjectMaterial = () => {
             <div className="space-y-3">
                 <div className="flex flex-col items-start justify-between gap-2 md:flex-row md:items-center">
                     <div className="flex-1">
-                        <h2 className="text-md font-semibold text-gray-800">
+                        <h2 className="text-base font-semibold text-gray-800">
                             Manage Batch Subjects
                         </h2>
                         <p className="mt-0.5 text-xs text-gray-500">
@@ -729,17 +733,31 @@ export const SubjectMaterial = () => {
         ),
         [TabType.STUDENT]: (
             <div className="rounded-md bg-white p-3 text-sm text-gray-600 shadow-sm">
-                Student content coming soon.
+                {currentSession && (
+                    <Students
+                        packageSessionId={packageSessionIds ?? ''}
+                        currentSession={currentSession}
+                    />
+                )}
             </div>
         ),
         [TabType.TEACHERS]: (
-            <div className="rounded-md bg-white p-3 text-sm text-gray-600 shadow-sm">
-                Teachers content coming soon.
+            <div className="space-y-3">
+                <div className="flex flex-col items-start justify-between gap-2 md:flex-row md:items-center">
+                    <div className="flex-1">
+                        <h2 className="text-base font-semibold text-gray-800">Manage Teachers</h2>
+                        <p className="mt-0.5 text-xs text-gray-500">
+                            View and manage teachers assigned to this batch.
+                        </p>
+                    </div>
+                    <AddTeachers packageSessionId={packageSessionIds} />
+                </div>
+                <TeachersList packageSessionId={packageSessionIds ?? ''} />
             </div>
         ),
         [TabType.ASSESSMENT]: (
             <div className="rounded-md bg-white p-3 text-sm text-gray-600 shadow-sm">
-                Assessment content coming soon.
+                <Assessments packageSessionId={packageSessionIds ?? ''} />
             </div>
         ),
     };
@@ -771,24 +789,34 @@ export const SubjectMaterial = () => {
     ) : (
         <div className="flex size-full flex-col gap-3 rounded-lg bg-gray-100 p-2 text-neutral-700 md:p-3">
             <Tabs value={selectedTab} onValueChange={handleTabChange} className="w-full">
-                <TabsList className="h-auto border-b border-gray-200 bg-transparent p-0">
-                    {tabs.map((tab) => (
-                        <TabsTrigger
-                            key={tab.value}
-                            value={tab.value}
-                            className={`data-[state=active]:text-primary data-[state=active]:border-primary hover:text-primary -mb-px px-2.5
-                                py-1.5 text-xs font-medium transition-all duration-150
-                                hover:bg-gray-50/70 focus-visible:ring-1 focus-visible:ring-primary-300 focus-visible:ring-offset-1
-                                data-[state=active]:rounded-t-md data-[state=active]:border-b-2 data-[state=active]:bg-white data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:rounded-t-md`}
-                        >
-                            {tab.label}
-                        </TabsTrigger>
-                    ))}
-                </TabsList>
+                <div className="overflow-x-auto">
+                    <TabsList
+                        className="h-auto min-w-max flex-nowrap border-b border-gray-200 bg-transparent p-0"
+                        style={{ display: 'flex', justifyContent: 'left' }}
+                    >
+                        {tabs.map((tab) => (
+                            <TabsTrigger
+                                key={tab.value}
+                                value={tab.value}
+                                className={`flex rounded-none px-5 py-1.5 !shadow-none ${
+                                    selectedTab === tab.value
+                                        ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                        : 'border-none bg-transparent'
+                                }`}
+                            >
+                                <span
+                                    className={`${selectedTab === tab.value ? 'text-primary-500' : ''}`}
+                                >
+                                    {tab.label}
+                                </span>
+                            </TabsTrigger>
+                        ))}
+                    </TabsList>
+                </div>
                 <TabsContent
                     key={selectedTab}
                     value={selectedTab}
-                    className="mt-3 rounded-r-md bg-white p-3 shadow-sm"
+                    className="mt-3 overflow-hidden rounded-r-md  bg-white p-3 shadow-sm"
                 >
                     {tabContent[selectedTab as TabType]}
                 </TabsContent>

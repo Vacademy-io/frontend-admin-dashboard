@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 export interface DropdownItem {
     label: string;
@@ -18,4 +18,5 @@ export interface myDropDownProps {
     validation?: z.ZodSchema;
     onValidation?: (isValid: boolean) => void;
     disable?: boolean;
+    className?: string;
 }

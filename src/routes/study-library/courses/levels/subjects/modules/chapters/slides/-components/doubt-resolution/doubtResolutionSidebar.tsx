@@ -78,7 +78,7 @@ export const DoubtResolutionSidebar = ({
                         <MainViewQuillEditor
                             value={doubt}
                             onChange={setDoubt}
-                            className="mb-16 h-[80px] w-full max-sm:h-[50px] sm:mb-10"
+                            CustomclasssName="mb-16 h-[80px] w-full max-sm:h-[50px] sm:mb-10"
                         />
                         <div className="flex flex-col items-center gap-3">
                             <MyButton layoutVariant="icon">
