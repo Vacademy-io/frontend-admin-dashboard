@@ -1,4 +1,4 @@
-import { create } from "zustand";
+import { create } from 'zustand';
 
 interface InstituteStore {
     instituteLogo: string;
@@ -7,9 +7,9 @@ interface InstituteStore {
 }
 
 const useInstituteLogoStore = create<InstituteStore>((set) => ({
-    instituteLogo: "",
+    instituteLogo: '',
     setInstituteLogo: (logo) => set({ instituteLogo: logo }),
-    resetInstituteLogo: () => set({ instituteLogo: "" }), // Reset function
+    resetInstituteLogo: () => set({ instituteLogo: '' }), // Reset function
 }));
 
 export default useInstituteLogoStore;

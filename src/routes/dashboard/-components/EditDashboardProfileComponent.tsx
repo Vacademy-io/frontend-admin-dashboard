@@ -156,7 +156,6 @@ const EditDashboardProfileComponent = ({ isEdit }: { isEdit: boolean }) => {
     }, [instituteDetails]);
 
     const getThemeShades = (code: string) => {
-        console.log('code', code);
         const theme = themeData.themes.find((theme) => theme.code === code);
         if (theme && theme.colors) {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -7,6 +7,7 @@ import {
     INVITE_TEACHERS_URL,
     INVITE_USERS_URL,
     RESEND_INVITATION_URL,
+    UPDATE_ADMIN_DETAILS_URL,
     UPDATE_DASHBOARD_URL,
     UPDATE_USER_INVITATION_URL,
     GET_ALL_FACULTY,
@@ -17,6 +18,12 @@ import { z } from 'zod';
 import { inviteUsersSchema } from '../-components/InviteUsersComponent';
 import { UserRolesDataEntry } from '@/types/dashboard/user-roles';
 import { editDashboardProfileSchema } from '../-utils/edit-dashboard-profile-schema';
+import { adminProfileSchema } from '../-utils/admin-profile-schema';
+import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
+import { getInstituteId } from '@/constants/helper';
+import { getModifiedAdminRoles } from '../-utils/helper';
+import { UserRole } from '@/services/student-list-section/getAdminDetails';
 import { inviteTeacherSchema } from '../-components/AddTeachers';
 
 export interface FacultyFilterParams {
@@ -311,6 +318,48 @@ export const handleUpdateInstituteDashboard = async (
         data: convertedData,
         params: {
             instituteId,
+        },
+    });
+    return response?.data;
+};
+
+export const handleUpdateAdminDetails = async (
+    adminDetailsData: z.infer<typeof adminProfileSchema>,
+    roles: UserRole[],
+    oldRoles: string[],
+    newRoles: string[]
+) => {
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const tokenData = getTokenDecodedData(accessToken);
+    const instituteId = getInstituteId();
+
+    const convertedData = {
+        id: tokenData?.user,
+        email: adminDetailsData.email,
+        full_name: adminDetailsData.name,
+        address_line: '',
+        city: '',
+        region: '',
+        pin_code: '',
+        mobile_number: adminDetailsData.phone,
+        date_of_birth: '',
+        gender: '',
+        profile_pic_file_id: adminDetailsData.profilePictureId,
+        roles: getModifiedAdminRoles(roles, oldRoles, newRoles).updated_roles,
+        delete_user_role_request: getModifiedAdminRoles(roles, oldRoles, newRoles)
+            .delete_user_role_request,
+        add_user_role_request: getModifiedAdminRoles(roles, oldRoles, newRoles)
+            .add_user_role_request,
+        root_user: true,
+    };
+
+    const response = await authenticatedAxiosInstance({
+        method: 'POST',
+        url: UPDATE_ADMIN_DETAILS_URL,
+        data: convertedData,
+        params: {
+            instituteId,
+            userId: tokenData?.user,
         },
     });
     return response?.data;
