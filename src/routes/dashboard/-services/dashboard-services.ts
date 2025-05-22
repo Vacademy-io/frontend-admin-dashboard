@@ -7,8 +7,10 @@ import {
     INVITE_TEACHERS_URL,
     INVITE_USERS_URL,
     RESEND_INVITATION_URL,
+    UPDATE_ADMIN_DETAILS_URL,
     UPDATE_DASHBOARD_URL,
     UPDATE_USER_INVITATION_URL,
+    GET_ALL_FACULTY,
 } from '@/constants/urls';
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 import { RoleTypeSelectedFilter } from '../-components/RoleTypeComponent';
@@ -16,6 +18,45 @@ import { z } from 'zod';
 import { inviteUsersSchema } from '../-components/InviteUsersComponent';
 import { UserRolesDataEntry } from '@/types/dashboard/user-roles';
 import { editDashboardProfileSchema } from '../-utils/edit-dashboard-profile-schema';
+import { adminProfileSchema } from '../-utils/admin-profile-schema';
+import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
+import { getInstituteId } from '@/constants/helper';
+import { getModifiedAdminRoles } from '../-utils/helper';
+import { UserRole } from '@/services/student-list-section/getAdminDetails';
+import { inviteTeacherSchema } from '../-components/AddTeachers';
+
+export interface FacultyFilterParams {
+    name?: string;
+    batches?: string[];
+    subjects?: string[];
+    status?: string[];
+    sort_columns?: Record<string, 'ASC' | 'DESC'>;
+}
+
+export const fetchFacultyList = async (
+    instituteId: string,
+    pageNo: number = 0,
+    pageSize: number = 10,
+    filters: FacultyFilterParams = {}
+) => {
+    try {
+        const response = await authenticatedAxiosInstance({
+            method: 'POST',
+            url: GET_ALL_FACULTY,
+            params: {
+                instituteId,
+                pageNo,
+                pageSize,
+            },
+            data: filters,
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching faculty list:', error);
+        throw error;
+    }
+};
 
 export const fetchInstituteDashboardDetails = async (instituteId: string | undefined) => {
     const response = await authenticatedAxiosInstance({
@@ -135,6 +176,43 @@ export const handleInviteUsers = async (
     return response.data;
 };
 
+export const handleInviteTeachers = async (
+    instituteId: string | undefined,
+    data: z.infer<typeof inviteTeacherSchema>
+) => {
+    const userData = {
+        email: data.email,
+        full_name: data.name,
+        roles: ['TEACHER'],
+        root_user: false,
+    };
+    type UserPayload =
+        | typeof userData
+        | {
+              user: typeof userData;
+              batch_subject_mappings: typeof data.batch_subject_mappings;
+              new_user: boolean;
+          };
+    let payload: UserPayload = userData;
+    payload = {
+        user: userData,
+        // @ts-expect-error : batch_subject_mappings is not defined in the type
+        batch_subject_mappings: data.batch_subject_mappings.map((batch) => ({
+            batch_id: batch.batchId,
+            subject_ids: batch.subjectIds,
+        })),
+        new_user: true,
+    };
+    const response = await authenticatedAxiosInstance({
+        method: 'POST',
+        url: INVITE_TEACHERS_URL,
+        params: {
+            instituteId,
+        },
+        data: payload,
+    });
+    return response.data;
+};
 export const handleDeleteDisableDashboardUsers = async (
     instituteId: string | undefined,
     status: string,
@@ -240,6 +318,48 @@ export const handleUpdateInstituteDashboard = async (
         data: convertedData,
         params: {
             instituteId,
+        },
+    });
+    return response?.data;
+};
+
+export const handleUpdateAdminDetails = async (
+    adminDetailsData: z.infer<typeof adminProfileSchema>,
+    roles: UserRole[],
+    oldRoles: string[],
+    newRoles: string[]
+) => {
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const tokenData = getTokenDecodedData(accessToken);
+    const instituteId = getInstituteId();
+
+    const convertedData = {
+        id: tokenData?.user,
+        email: adminDetailsData.email,
+        full_name: adminDetailsData.name,
+        address_line: '',
+        city: '',
+        region: '',
+        pin_code: '',
+        mobile_number: adminDetailsData.phone,
+        date_of_birth: '',
+        gender: '',
+        profile_pic_file_id: adminDetailsData.profilePictureId,
+        roles: getModifiedAdminRoles(roles, oldRoles, newRoles).updated_roles,
+        delete_user_role_request: getModifiedAdminRoles(roles, oldRoles, newRoles)
+            .delete_user_role_request,
+        add_user_role_request: getModifiedAdminRoles(roles, oldRoles, newRoles)
+            .add_user_role_request,
+        root_user: true,
+    };
+
+    const response = await authenticatedAxiosInstance({
+        method: 'POST',
+        url: UPDATE_ADMIN_DETAILS_URL,
+        data: convertedData,
+        params: {
+            instituteId,
+            userId: tokenData?.user,
         },
     });
     return response?.data;

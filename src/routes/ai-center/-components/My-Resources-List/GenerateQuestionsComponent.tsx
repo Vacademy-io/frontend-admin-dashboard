@@ -175,7 +175,9 @@ const GenerateQuestionsComponent = ({ fileId }: { fileId: string }) => {
         <>
             <Dialog open={extractQuestionsDialog} onOpenChange={handleCloseExtractQuestionDialog}>
                 <DialogTrigger>
-                    <Badge className="cursor-pointer bg-[#FFF4F5]">Generate Questions</Badge>
+                    <Badge className="cursor-pointer whitespace-nowrap bg-[#FFF4F5]">
+                        Generate Questions
+                    </Badge>
                 </DialogTrigger>
                 <DialogContent className="p-0">
                     <h1 className="rounded-t-lg bg-primary-50 p-4 font-semibold text-primary-500">
@@ -231,7 +233,13 @@ const GenerateQuestionsComponent = ({ fileId }: { fileId: string }) => {
                 setOpenPageWiseAssessmentDialog={setOpenPageWiseAssessmentDialog}
                 htmlData={htmlData}
             />
-            {enableDialog && <AITasksList heading="Vsmart Upload" enableDialog={enableDialog} />}
+            {enableDialog && (
+                <AITasksList
+                    heading="Vsmart Upload"
+                    enableDialog={enableDialog}
+                    setEnableDialog={setEnableDialog}
+                />
+            )}
         </>
     );
 };

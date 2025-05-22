@@ -1,5 +1,4 @@
 import { InviteForm } from '../-schema/InviteFormSchema';
-import { useEffect } from 'react';
 import { EmptyInvitePage } from '@/assets/svgs';
 import { InviteCardMenuOptions } from './InviteCardMenuOptions';
 import { TokenKey } from '@/constants/auth/tokens';
@@ -8,7 +7,6 @@ import { MyPagination } from '@/components/design-system/pagination';
 import { usePaginationState } from '@/hooks/pagination';
 import { useGetInviteList } from '../-services/get-invite-list';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
-import { useInviteFormContext } from '../-context/useInviteFormContext';
 import { InviteLink } from '../../-components/InviteLink';
 import { CreateInvite } from './create-invite/CreateInvite';
 
@@ -16,8 +14,6 @@ export const Invite = () => {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
-    const { form } = useInviteFormContext();
-    const { watch } = form;
 
     const { page, pageSize, handlePageChange } = usePaginationState({
         initialPage: 0,
@@ -39,14 +35,6 @@ export const Invite = () => {
         pageSize: pageSize,
         requestFilterBody: filterRequest,
     });
-
-    useEffect(() => {
-        console.log(
-            'values: ',
-            watch('batches.preSelectedCourses'),
-            watch('batches.learnerChoiceCourses')
-        );
-    }, [watch('batches.preSelectedCourses'), watch('batches.learnerChoiceCourses')]);
 
     const onEditInvite = (updatedInvite: InviteForm) => {
         console.log(updatedInvite);

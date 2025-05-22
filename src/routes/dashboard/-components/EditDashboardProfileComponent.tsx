@@ -156,7 +156,6 @@ const EditDashboardProfileComponent = ({ isEdit }: { isEdit: boolean }) => {
     }, [instituteDetails]);
 
     const getThemeShades = (code: string) => {
-        console.log('code', code);
         const theme = themeData.themes.find((theme) => theme.code === code);
         if (theme && theme.colors) {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -286,13 +285,16 @@ const EditDashboardProfileComponent = ({ isEdit }: { isEdit: boolean }) => {
                                                     label: option,
                                                     _id: index,
                                                 }))}
+                                                labelStyle="text-base font-normal"
                                                 control={form.control}
-                                                className="w-full"
+                                                className="w-full text-base"
                                                 required
                                             />
 
                                             <Separator />
-                                            <h1>Contact Information</h1>
+                                            <h1 className="text-lg font-semibold">
+                                                Contact Information
+                                            </h1>
 
                                             <FormField
                                                 control={form.control}
@@ -331,6 +333,7 @@ const EditDashboardProfileComponent = ({ isEdit }: { isEdit: boolean }) => {
                                                                 placeholder="123 456 7890"
                                                                 name="institutePhoneNumber"
                                                                 control={form.control}
+                                                                labelStyle="text-base font-normal"
                                                                 country="in"
                                                                 required={false}
                                                                 value={value}
@@ -367,7 +370,9 @@ const EditDashboardProfileComponent = ({ isEdit }: { isEdit: boolean }) => {
                                             />
 
                                             <Separator />
-                                            <h1>Location Details</h1>
+                                            <h1 className="text-lg font-semibold">
+                                                Location Details
+                                            </h1>
 
                                             <FormField
                                                 control={form.control}
@@ -516,58 +521,64 @@ const EditDashboardProfileComponent = ({ isEdit }: { isEdit: boolean }) => {
                                         {/* Institute Theme */}
                                         <div className="flex w-full flex-col gap-4">
                                             <Separator />
-                                            <h1>Institute Theme</h1>
+                                            <h1 className="text-lg font-semibold">
+                                                Institute Theme
+                                            </h1>
                                             <div className="flex w-full flex-col gap-2">
                                                 <h1 className="whitespace-nowrap">Current</h1>
-                                                <div className="mb-2 w-36">
-                                                    {(() => {
-                                                        const currentThemeCode =
-                                                            form.watch('instituteThemeCode');
-                                                        const theme = themeData.themes.find(
-                                                            (t) => t.code === currentThemeCode
-                                                        );
-                                                        const shades = theme?.colors
-                                                            ? Object.entries(theme.colors).map(
-                                                                  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                                                                  ([_, color]) => color
-                                                              )
-                                                            : [];
+                                                <div className="flex items-center gap-4">
+                                                    <div className="mb-2 w-36">
+                                                        {(() => {
+                                                            const currentThemeCode =
+                                                                form.watch('instituteThemeCode');
+                                                            const theme = themeData.themes.find(
+                                                                (t) => t.code === currentThemeCode
+                                                            );
+                                                            const shades = theme?.colors
+                                                                ? Object.entries(theme.colors).map(
+                                                                      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                                                                      ([_, color]) => color
+                                                                  )
+                                                                : [];
 
-                                                        return (
-                                                            <div className="overflow-hidden rounded-lg shadow-sm">
-                                                                <div className="flex flex-col">
-                                                                    {shades.map((shade, index) => (
-                                                                        <div
-                                                                            key={index}
-                                                                            className="h-5"
-                                                                            style={{
-                                                                                backgroundColor:
-                                                                                    shade,
-                                                                            }}
-                                                                        />
-                                                                    ))}
+                                                            return (
+                                                                <div className="overflow-hidden rounded-lg shadow-sm">
+                                                                    <div className="flex flex-col">
+                                                                        {shades.map(
+                                                                            (shade, index) => (
+                                                                                <div
+                                                                                    key={index}
+                                                                                    className="h-5"
+                                                                                    style={{
+                                                                                        backgroundColor:
+                                                                                            shade,
+                                                                                    }}
+                                                                                />
+                                                                            )
+                                                                        )}
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                        );
-                                                    })()}
+                                                            );
+                                                        })()}
+                                                    </div>
+                                                    <MyButton
+                                                        type="button"
+                                                        scale="medium"
+                                                        buttonType="secondary"
+                                                        layoutVariant="default"
+                                                        className="w-1/3 text-sm"
+                                                        onClick={() => setThemeDialog(true)}
+                                                    >
+                                                        Change Theme
+                                                    </MyButton>
                                                 </div>
-                                                <MyButton
-                                                    type="button"
-                                                    scale="medium"
-                                                    buttonType="secondary"
-                                                    layoutVariant="default"
-                                                    className="w-1/3 text-sm"
-                                                    onClick={() => setThemeDialog(true)}
-                                                >
-                                                    Change Theme
-                                                </MyButton>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Fixed Save Changes button */}
-                                <div className="flex justify-end bg-white p-4 pb-0">
+                                <div className="flex justify-center bg-white p-4 pb-0">
                                     <MyButton
                                         type="submit"
                                         scale="large"
@@ -625,7 +636,7 @@ const EditDashboardProfileComponent = ({ isEdit }: { isEdit: boolean }) => {
                         </div>
 
                         {/* Fixed Save Changes button */}
-                        <div className="flex justify-end bg-white p-4 pb-0">
+                        <div className="flex justify-center bg-white p-4 pb-0">
                             <MyButton
                                 type="submit"
                                 scale="large"

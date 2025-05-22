@@ -25,6 +25,7 @@ import { useEffect, useRef, useState } from 'react';
 import { SaveDraftProvider } from './-context/saveDraftContext';
 import { useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
 import { useModulesWithChaptersStore } from '@/stores/study-library/use-modules-with-chapters-store';
+import { SidebarProvider } from '@/components/ui/sidebar';
 
 interface ChapterSearchParams {
     courseId: string;
@@ -192,12 +193,14 @@ function RouteComponent() {
             >
                 <InitStudyLibraryProvider>
                     <ModulesWithChaptersProvider>
-                        <SlideMaterial
-                            setGetCurrentEditorHTMLContent={(fn) =>
-                                (getCurrentEditorHTMLContentRef.current = fn)
-                            }
-                            setSaveDraft={(fn) => (saveDraftRef.current = fn)}
-                        />
+                        <SidebarProvider defaultOpen={false}>
+                            <SlideMaterial
+                                setGetCurrentEditorHTMLContent={(fn) =>
+                                    (getCurrentEditorHTMLContentRef.current = fn)
+                                }
+                                setSaveDraft={(fn) => (saveDraftRef.current = fn)}
+                            />
+                        </SidebarProvider>
                     </ModulesWithChaptersProvider>
                 </InitStudyLibraryProvider>
             </LayoutContainer>

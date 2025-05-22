@@ -61,7 +61,7 @@ const imageHandler = function () {
     };
 };
 
-export const MainViewQuillEditor = ({ value, onChange }) => {
+export const MainViewQuillEditor = ({ value, onChange, CustomclasssName = '' }) => {
     const reactQuillRef = useRef(null);
     const mathQuillInitialized = useRef(false);
 
@@ -115,6 +115,7 @@ export const MainViewQuillEditor = ({ value, onChange }) => {
             value={value}
             onChange={onChange}
             preserveWhitespace={true}
+            className={CustomclasssName}
         />
     );
 };
