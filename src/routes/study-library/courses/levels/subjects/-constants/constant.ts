@@ -11,7 +11,7 @@ export enum TabType {
 export const tabs = [
     { label: 'Outline', value: 'OUTLINE' },
     { label: 'Subjects', value: 'SUBJECTS' },
-    { label: 'Student List', value: 'STUDENT' },
+    { label: 'Learners', value: 'STUDENT' },
     { label: 'Teachers', value: 'TEACHERS' },
     { label: 'Assessment', value: 'ASSESSMENT' },
     { label: 'Assignment ', value: 'ASSIGNMENT' },

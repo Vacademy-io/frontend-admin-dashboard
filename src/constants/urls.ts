@@ -213,3 +213,5 @@ export const UPDATE_LEARNERS_SETTING = `${BASE_URL}/admin-core-service/lms-repor
 export const DELETE_BATCHES = `${BASE_URL}/admin-core-service/batch/v1/delete-batches`;
 export const GET_USER_DETAILS = `${BASE_URL}/auth-service/v1/user-details/by-user-id`;
 export const DUPLICATE_STUDY_MATERIAL_FROM_SESSION = `${BASE_URL}/admin-core-service/sessions/v1/copy-study-material`;
+
+export const GET_ALL_FACULTY = `${BASE_URL}/admin-core-service/institute/v1/faculty/faculty/get-all`;

@@ -4,9 +4,9 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTrigger,
-} from "@/components/ui/dialog";
-import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog";
-import React, { ReactNode } from "react";
+} from '@/components/ui/dialog';
+import { DialogDescription, DialogTitle } from '@radix-ui/react-dialog';
+import React, { ReactNode } from 'react';
 
 interface DialogProps {
     trigger?: ReactNode;
@@ -50,7 +50,7 @@ export const MyDialog = ({
                         {heading}
                     </DialogHeader>
                 </DialogTitle>
-                <DialogDescription asChild className="m-0 overflow-x-hidden overflow-y-scroll p-0">
+                <DialogDescription asChild className="m-0 overflow-y-auto overflow-x-hidden p-0">
                     <div className="p-3">{children || content}</div>
                 </DialogDescription>
                 {footer && (
