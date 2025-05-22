@@ -34,7 +34,7 @@ import { handleUnpublishSlide } from './slide-operations/handleUnpublishSlide';
 import { updateHeading } from './slide-operations/updateSlideHeading';
 import { formatHTMLString } from './slide-operations/formatHtmlString';
 import { handleConvertAndUpload } from './slide-operations/handleConvertUpload';
-import { SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import { DoubtResolutionSidebar } from './doubt-resolution/doubtResolutionSidebar';
 
 export function fixCodeBlocksInHtml(html: string) {
@@ -92,6 +92,7 @@ export const SlideMaterial = ({
     const editingContainerRef = useRef<HTMLDivElement>(null);
     const [doubtProgressMarkerPdf, setDoubtProgressMarkerPdf] = useState<number | null>(null);
     const [doubtProgressMarkerVideo, setDoubtProgressMarkerVideo] = useState<number | null>(null);
+    const { toggleSidebar, open } = useSidebar();
 
     console.log(doubtProgressMarkerPdf, doubtProgressMarkerVideo);
 
@@ -290,6 +291,7 @@ export const SlideMaterial = ({
     };
 
     useEffect(() => {
+        if (open) toggleSidebar();
         setSlideTitle(
             (activeItem?.source_type === 'DOCUMENT' && activeItem?.document_slide?.title) ||
                 (activeItem?.source_type === 'VIDEO' && activeItem?.video_slide?.title) ||

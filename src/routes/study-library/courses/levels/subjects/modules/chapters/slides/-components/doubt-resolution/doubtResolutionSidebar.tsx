@@ -39,7 +39,7 @@ export const DoubtResolutionSidebar = ({
                 </div>
             </SidebarHeader>
             <SidebarContent className="no-scrollbar flex flex-col gap-4 overflow-y-scroll bg-white pt-6">
-                <Tabs defaultValue="All ">
+                <Tabs defaultValue="All">
                     <TabsList className="flex w-full rounded-none border-b border-neutral-300 bg-white p-0">
                         <TabsTrigger
                             value="All"
