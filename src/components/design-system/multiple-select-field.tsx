@@ -83,7 +83,7 @@ export default function MultiSelectDropdown({
                                 <FormControl>
                                     <Popover open={isOpen} onOpenChange={setIsOpen}>
                                         <PopoverTrigger>
-                                            <div className="flex w-96 items-center justify-between rounded-lg border px-3 py-2">
+                                            <div className="flex w-full items-center justify-between rounded-lg border px-3 py-2">
                                                 <h1 className="text-sm">Select options</h1>
                                                 {isOpen ? <CaretUp /> : <CaretDown />}
                                             </div>
