@@ -66,6 +66,10 @@ export const SidebarItemsData: SidebarItemsType[] = [
                 subItemLink: '/study-library/courses',
             },
             {
+                subItem: 'Live Session',
+                subItemLink: '/study-library/live-session',
+            },
+            {
                 subItem: 'Reports',
                 subItemLink: '/study-library/reports',
             },
