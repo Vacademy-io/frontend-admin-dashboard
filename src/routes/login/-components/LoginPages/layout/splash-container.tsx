@@ -1,44 +1,73 @@
-import { motion } from "framer-motion";
-import { LanguageDropdown } from "../../../../../components/common/localization/language-dropdown";
-import { SplashScreenProps } from "@/routes/login/-types/loginTypes";
-import { LoginImage } from "@/assets/svgs";
-import { Vacademy } from "@/svgs";
+import { motion } from 'framer-motion';
+import { LanguageDropdown } from '../../../../../components/common/localization/language-dropdown';
+import { SplashScreenProps } from '@/routes/login/-types/loginTypes';
+import { LoginImage } from '@/assets/svgs';
+import { Vacademy } from '@/svgs';
+import React, { useEffect, useRef, useState } from 'react';
 
 export const SplashScreen = ({ children, isAnimationEnabled }: SplashScreenProps) => {
+    const [animationDone, setAnimationDone] = useState(!isAnimationEnabled);
+    const animationTimeout = useRef<NodeJS.Timeout | null>(null);
+
+    useEffect(() => {
+        if (isAnimationEnabled) {
+            // Start animation timer
+            animationTimeout.current = setTimeout(() => {
+                setAnimationDone(true);
+            }, 2000); // total animation duration (delay + duration)
+        }
+
+        // Listen for tab visibility changes
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible' && isAnimationEnabled) {
+                // If user returns and animation should be done, force complete
+                setAnimationDone(true);
+                if (animationTimeout.current) clearTimeout(animationTimeout.current);
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        return () => {
+            if (animationTimeout.current) clearTimeout(animationTimeout.current);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+    }, [isAnimationEnabled]);
+
     return (
         <div className="flex min-h-screen w-screen bg-white">
             <div className="relative flex w-full items-center justify-center bg-primary-100">
                 <motion.div
                     initial={
-                        isAnimationEnabled ? { backgroundColor: "#FDEDD7", zIndex: "100" } : {}
+                        isAnimationEnabled ? { backgroundColor: '#FDEDD7', zIndex: '100' } : {}
                     }
                     animate={
-                        isAnimationEnabled
-                            ? { backgroundColor: "rgba(255, 255, 255, 0)", zIndex: "auto" }
-                            : {}
+                        animationDone
+                            ? { backgroundColor: 'rgba(255, 255, 255, 0)', zIndex: 'auto' }
+                            : { backgroundColor: '#FDEDD7', zIndex: '100' }
                     }
                     transition={{
                         duration: 1,
                         delay: 1.25,
-                        ease: "easeInOut",
+                        ease: 'easeInOut',
                     }}
                     className="fixed left-0 top-0 h-screen w-screen"
                 >
                     <motion.div
                         initial={
                             isAnimationEnabled
-                                ? { x: "35vw", y: "25vh", scale: 1 }
+                                ? { x: '35vw', y: '25vh', scale: 1 }
                                 : { x: 32, y: 32, scale: 0.25 }
                         }
                         animate={
-                            isAnimationEnabled
+                            animationDone
                                 ? { x: 32, y: 32, scale: 0.25 }
-                                : { x: 32, y: 32, scale: 0.25 }
+                                : { x: '35vw', y: '25vh', scale: 1 }
                         }
                         transition={{
                             duration: 0.75,
                             delay: 1,
-                            ease: "easeInOut",
+                            ease: 'easeInOut',
                         }}
                         className="left-8 top-8 size-full max-h-80 max-w-80 origin-top-left object-cover"
                     >
