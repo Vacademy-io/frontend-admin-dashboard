@@ -14,6 +14,7 @@ import 'mathquill4quill/mathquill4quill.css';
 import './index.css';
 import { useEffect, useRef } from 'react';
 import { ALL_OPERATORS } from './Operators';
+import { cn } from '@/lib/utils';
 
 // Function to resize an image to 300x300 px
 const resizeImage = (file, callback) => {
@@ -61,7 +62,7 @@ const imageHandler = function () {
     };
 };
 
-export const MainViewQuillEditor = ({ value, onChange }) => {
+export const MainViewQuillEditor = ({ value, onChange, className = '' }) => {
     const reactQuillRef = useRef(null);
     const mathQuillInitialized = useRef(false);
 
@@ -115,6 +116,7 @@ export const MainViewQuillEditor = ({ value, onChange }) => {
             value={value}
             onChange={onChange}
             preserveWhitespace={true}
+            className={cn(className)}
         />
     );
 };

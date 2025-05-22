@@ -19,7 +19,7 @@ import {
     useSlides,
 } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides';
 import { toast } from 'sonner';
-import { Check, DownloadSimple, PencilSimpleLine } from 'phosphor-react';
+import { ChatText, Check, DownloadSimple, PencilSimpleLine } from 'phosphor-react';
 import {
     converDataToAssignmentFormat,
     converDataToVideoFormat,
@@ -34,6 +34,8 @@ import { handleUnpublishSlide } from './slide-operations/handleUnpublishSlide';
 import { updateHeading } from './slide-operations/updateSlideHeading';
 import { formatHTMLString } from './slide-operations/formatHtmlString';
 import { handleConvertAndUpload } from './slide-operations/handleConvertUpload';
+import { SidebarTrigger } from '@/components/ui/sidebar';
+import { DoubtResolutionSidebar } from './doubt-resolution/doubtResolutionSidebar';
 
 export function fixCodeBlocksInHtml(html: string) {
     // Use DOMParser (browser) or JSDOM (Node.js) for robust parsing
@@ -88,6 +90,10 @@ export const SlideMaterial = ({
     const { updateQuestionOrder } = useSlides(chapterId || '');
     const { updateAssignmentOrder } = useSlides(chapterId || '');
     const editingContainerRef = useRef<HTMLDivElement>(null);
+    const [doubtProgressMarkerPdf, setDoubtProgressMarkerPdf] = useState<number | null>(null);
+    const [doubtProgressMarkerVideo, setDoubtProgressMarkerVideo] = useState<number | null>(null);
+
+    console.log(doubtProgressMarkerPdf, doubtProgressMarkerVideo);
 
     const handleHeadingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setHeading(e.target.value);
@@ -473,6 +479,13 @@ export const SlideMaterial = ({
                                 }
                             />
                         </div>
+
+                        <MyButton layoutVariant="icon" buttonType="secondary">
+                            <SidebarTrigger className="[&_svg]:size-5">
+                                <ChatText className="text-neutral-500" />
+                            </SidebarTrigger>
+                        </MyButton>
+
                         <SlidesMenuOption />
                     </div>
                 </div>
@@ -484,6 +497,10 @@ export const SlideMaterial = ({
             >
                 {content}
             </div>
+            <DoubtResolutionSidebar
+                setDoubtProgressMarkerPdf={setDoubtProgressMarkerPdf}
+                setDoubtProgressMarkerVideo={setDoubtProgressMarkerVideo}
+            />
         </div>
     );
 };
