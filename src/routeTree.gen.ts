@@ -61,6 +61,7 @@ import { Route as AiCenterAiToolsVsmartFeedbackIndexImport } from './routes/ai-c
 import { Route as AiCenterAiToolsVsmartExtractIndexImport } from './routes/ai-center/ai-tools/vsmart-extract/index';
 import { Route as AiCenterAiToolsVsmartChatIndexImport } from './routes/ai-center/ai-tools/vsmart-chat/index';
 import { Route as AiCenterAiToolsVsmartAudioIndexImport } from './routes/ai-center/ai-tools/vsmart-audio/index';
+import { Route as StudyLibraryLiveSessionScheduleStep2IndexImport } from './routes/study-library/live-session/schedule/step2/index';
 import { Route as StudyLibraryLiveSessionScheduleStep1IndexImport } from './routes/study-library/live-session/schedule/step1/index';
 import { Route as StudyLibraryCoursesLevelsSubjectsIndexImport } from './routes/study-library/courses/levels/subjects/index';
 import { Route as HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexImport } from './routes/homework-creation/create-assessment/$assessmentId/$examtype/index';
@@ -378,6 +379,13 @@ const AiCenterAiToolsVsmartAudioIndexRoute = AiCenterAiToolsVsmartAudioIndexImpo
     path: '/ai-center/ai-tools/vsmart-audio/',
     getParentRoute: () => rootRoute,
 } as any);
+
+const StudyLibraryLiveSessionScheduleStep2IndexRoute =
+    StudyLibraryLiveSessionScheduleStep2IndexImport.update({
+        id: '/study-library/live-session/schedule/step2/',
+        path: '/study-library/live-session/schedule/step2/',
+        getParentRoute: () => rootRoute,
+    } as any);
 
 const StudyLibraryLiveSessionScheduleStep1IndexRoute =
     StudyLibraryLiveSessionScheduleStep1IndexImport.update({
@@ -842,6 +850,13 @@ declare module '@tanstack/react-router' {
             preLoaderRoute: typeof StudyLibraryLiveSessionScheduleStep1IndexImport;
             parentRoute: typeof rootRoute;
         };
+        '/study-library/live-session/schedule/step2/': {
+            id: '/study-library/live-session/schedule/step2/';
+            path: '/study-library/live-session/schedule/step2';
+            fullPath: '/study-library/live-session/schedule/step2';
+            preLoaderRoute: typeof StudyLibraryLiveSessionScheduleStep2IndexImport;
+            parentRoute: typeof rootRoute;
+        };
         '/evaluation/evaluate/$assessmentId/$attemptId/$examType/': {
             id: '/evaluation/evaluate/$assessmentId/$attemptId/$examType/';
             path: '/evaluation/evaluate/$assessmentId/$attemptId/$examType';
@@ -951,6 +966,7 @@ export interface FileRoutesByFullPath {
     '/homework-creation/create-assessment/$assessmentId/$examtype': typeof HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute;
     '/study-library/courses/levels/subjects': typeof StudyLibraryCoursesLevelsSubjectsIndexRoute;
     '/study-library/live-session/schedule/step1': typeof StudyLibraryLiveSessionScheduleStep1IndexRoute;
+    '/study-library/live-session/schedule/step2': typeof StudyLibraryLiveSessionScheduleStep2IndexRoute;
     '/evaluation/evaluate/$assessmentId/$attemptId/$examType': typeof EvaluationEvaluateAssessmentIdAttemptIdExamTypeIndexRoute;
     '/study-library/courses/levels/subjects/modules': typeof StudyLibraryCoursesLevelsSubjectsModulesIndexRoute;
     '/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType': typeof EvaluationEvaluationsAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeIndexRoute;
@@ -1015,6 +1031,7 @@ export interface FileRoutesByTo {
     '/homework-creation/create-assessment/$assessmentId/$examtype': typeof HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute;
     '/study-library/courses/levels/subjects': typeof StudyLibraryCoursesLevelsSubjectsIndexRoute;
     '/study-library/live-session/schedule/step1': typeof StudyLibraryLiveSessionScheduleStep1IndexRoute;
+    '/study-library/live-session/schedule/step2': typeof StudyLibraryLiveSessionScheduleStep2IndexRoute;
     '/evaluation/evaluate/$assessmentId/$attemptId/$examType': typeof EvaluationEvaluateAssessmentIdAttemptIdExamTypeIndexRoute;
     '/study-library/courses/levels/subjects/modules': typeof StudyLibraryCoursesLevelsSubjectsModulesIndexRoute;
     '/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType': typeof EvaluationEvaluationsAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeIndexRoute;
@@ -1080,6 +1097,7 @@ export interface FileRoutesById {
     '/homework-creation/create-assessment/$assessmentId/$examtype/': typeof HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute;
     '/study-library/courses/levels/subjects/': typeof StudyLibraryCoursesLevelsSubjectsIndexRoute;
     '/study-library/live-session/schedule/step1/': typeof StudyLibraryLiveSessionScheduleStep1IndexRoute;
+    '/study-library/live-session/schedule/step2/': typeof StudyLibraryLiveSessionScheduleStep2IndexRoute;
     '/evaluation/evaluate/$assessmentId/$attemptId/$examType/': typeof EvaluationEvaluateAssessmentIdAttemptIdExamTypeIndexRoute;
     '/study-library/courses/levels/subjects/modules/': typeof StudyLibraryCoursesLevelsSubjectsModulesIndexRoute;
     '/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType/': typeof EvaluationEvaluationsAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeIndexRoute;
@@ -1146,6 +1164,7 @@ export interface FileRouteTypes {
         | '/homework-creation/create-assessment/$assessmentId/$examtype'
         | '/study-library/courses/levels/subjects'
         | '/study-library/live-session/schedule/step1'
+        | '/study-library/live-session/schedule/step2'
         | '/evaluation/evaluate/$assessmentId/$attemptId/$examType'
         | '/study-library/courses/levels/subjects/modules'
         | '/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType'
@@ -1209,6 +1228,7 @@ export interface FileRouteTypes {
         | '/homework-creation/create-assessment/$assessmentId/$examtype'
         | '/study-library/courses/levels/subjects'
         | '/study-library/live-session/schedule/step1'
+        | '/study-library/live-session/schedule/step2'
         | '/evaluation/evaluate/$assessmentId/$attemptId/$examType'
         | '/study-library/courses/levels/subjects/modules'
         | '/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType'
@@ -1272,6 +1292,7 @@ export interface FileRouteTypes {
         | '/homework-creation/create-assessment/$assessmentId/$examtype/'
         | '/study-library/courses/levels/subjects/'
         | '/study-library/live-session/schedule/step1/'
+        | '/study-library/live-session/schedule/step2/'
         | '/evaluation/evaluate/$assessmentId/$attemptId/$examType/'
         | '/study-library/courses/levels/subjects/modules/'
         | '/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType/'
@@ -1337,6 +1358,7 @@ export interface RootRouteChildren {
     HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute: typeof HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute;
     StudyLibraryCoursesLevelsSubjectsIndexRoute: typeof StudyLibraryCoursesLevelsSubjectsIndexRoute;
     StudyLibraryLiveSessionScheduleStep1IndexRoute: typeof StudyLibraryLiveSessionScheduleStep1IndexRoute;
+    StudyLibraryLiveSessionScheduleStep2IndexRoute: typeof StudyLibraryLiveSessionScheduleStep2IndexRoute;
     EvaluationEvaluateAssessmentIdAttemptIdExamTypeIndexRoute: typeof EvaluationEvaluateAssessmentIdAttemptIdExamTypeIndexRoute;
     StudyLibraryCoursesLevelsSubjectsModulesIndexRoute: typeof StudyLibraryCoursesLevelsSubjectsModulesIndexRoute;
     EvaluationEvaluationsAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeIndexRoute: typeof EvaluationEvaluationsAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeIndexRoute;
@@ -1404,6 +1426,7 @@ const rootRouteChildren: RootRouteChildren = {
         HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute,
     StudyLibraryCoursesLevelsSubjectsIndexRoute: StudyLibraryCoursesLevelsSubjectsIndexRoute,
     StudyLibraryLiveSessionScheduleStep1IndexRoute: StudyLibraryLiveSessionScheduleStep1IndexRoute,
+    StudyLibraryLiveSessionScheduleStep2IndexRoute: StudyLibraryLiveSessionScheduleStep2IndexRoute,
     EvaluationEvaluateAssessmentIdAttemptIdExamTypeIndexRoute:
         EvaluationEvaluateAssessmentIdAttemptIdExamTypeIndexRoute,
     StudyLibraryCoursesLevelsSubjectsModulesIndexRoute:
@@ -1484,6 +1507,7 @@ export const routeTree = rootRoute
         "/homework-creation/create-assessment/$assessmentId/$examtype/",
         "/study-library/courses/levels/subjects/",
         "/study-library/live-session/schedule/step1/",
+        "/study-library/live-session/schedule/step2/",
         "/evaluation/evaluate/$assessmentId/$attemptId/$examType/",
         "/study-library/courses/levels/subjects/modules/",
         "/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType/",
@@ -1654,6 +1678,9 @@ export const routeTree = rootRoute
     },
     "/study-library/live-session/schedule/step1/": {
       "filePath": "study-library/live-session/schedule/step1/index.tsx"
+    },
+    "/study-library/live-session/schedule/step2/": {
+      "filePath": "study-library/live-session/schedule/step2/index.tsx"
     },
     "/evaluation/evaluate/$assessmentId/$attemptId/$examType/": {
       "filePath": "evaluation/evaluate/$assessmentId/$attemptId/$examType/index.tsx"
