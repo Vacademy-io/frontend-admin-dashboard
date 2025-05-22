@@ -7,7 +7,8 @@ import { useInstituteDetailsStore } from '@/stores/students/students-list/useIns
 import { cn } from '@/lib/utils';
 import { useBulkDialog } from '@/routes/manage-students/students-list/-context/bulk-dialog-context';
 import { useRouter } from '@tanstack/react-router';
-export const EnrollStudentsButton = () => {
+import { ButtonScale } from '@/components/design-system/utils/types/button-types';
+export const EnrollStudentsButton = ({ scale = 'large' }: { scale?: ButtonScale }) => {
     const { getCourseFromPackage } = useInstituteDetailsStore();
     const { enrollStudentDialogOpen, setEnrollStudentDialogOpen } = useBulkDialog();
     const router = useRouter();
@@ -22,7 +23,7 @@ export const EnrollStudentsButton = () => {
             >
                 <MyButton
                     buttonType="primary"
-                    scale="large"
+                    scale={scale}
                     layoutVariant="default"
                     id="enroll-students"
                 >
