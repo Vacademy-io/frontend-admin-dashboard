@@ -41,10 +41,7 @@ export function getModifiedAdminRoles(roles: UserRole[], oldRoles: string[], new
     // Add: roles in newRoles but not in oldRoles
     for (const roleName of newRoles) {
         if (!oldSet.has(roleName)) {
-            const matchedRoles = roles.filter((role) => role.role_name === roleName);
-            for (const role of matchedRoles) {
-                add_user_role_request.push(role.role_id); // push the 'id' for adding
-            }
+            add_user_role_request.push(roleName); // push the 'id' for adding
         }
     }
 
