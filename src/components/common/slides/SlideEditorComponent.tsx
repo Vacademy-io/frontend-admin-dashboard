@@ -36,9 +36,9 @@ import type {
 import { SlideTypeEnum } from '././utils/types';
 
 const CREATE_SESSION_API_URL =
-    'https://backend-stage.vacademy.io//community-service/engage/admin/create';
+    'https://backend-stage.vacademy.io/community-service/engage/admin/create';
 const START_SESSION_API_URL =
-    'https://backend-stage.vacademy.io//community-service/engage/admin/start';
+    'https://backend-stage.vacademy.io/community-service/engage/admin/start';
 
 interface SlideRendererProps {
     currentSlideId: string;

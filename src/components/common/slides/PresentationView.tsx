@@ -29,9 +29,9 @@ import type { QuestionFormData } from '@/components/common/slides/utils/types'; 
 import { SlideTypeEnum } from '@/components/common/slides/utils/types';
 
 const MOVE_SESSION_API_URL =
-    'https://backend-stage.vacademy.io//community-service/engage/admin/move';
+    'https://backend-stage.vacademy.io/community-service/engage/admin/move';
 const PARTICIPANTS_SSE_URL_BASE =
-    'https://backend-stage.vacademy.io//community-service/engage/admin/'; // e.g., admin/${sessionId}/participants
+    'https://backend-stage.vacademy.io/community-service/engage/admin/'; // e.g., admin/${sessionId}/participants
 
 interface PresentationViewProps {
     slides: AppSlide[];
