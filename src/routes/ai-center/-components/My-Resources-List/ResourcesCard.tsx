@@ -135,7 +135,7 @@ export function ResourcesCard({ apiResponse }: ResourceFilesPageProps) {
                         <TableRow>
                             <TableHead className="w-[35%]">File Name</TableHead>
                             <TableHead className="w-1/5">Type</TableHead>
-                            <TableHead className="w-1/4 text-right">Created On</TableHead>
+                            <TableHead className="w-1/4 text-center">Created On</TableHead>
                             <TableHead className="w-1/5 text-center">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
