@@ -311,6 +311,44 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         setDropdownOptions((prevFields) => prevFields.filter((field) => field.id !== id));
     };
 
+    const handleAddGender = (type: string, name: string, oldKey: boolean) => {
+        // Create the new field
+        const newField = {
+            id: String(customFields.length), // Use the current array length as the new ID
+            type,
+            name,
+            oldKey,
+            ...(type === 'dropdown' && {
+                options: [
+                    {
+                        id: '0',
+                        value: 'MALE',
+                        disabled: true,
+                    },
+                    {
+                        id: '1',
+                        value: 'FEMALE',
+                        disabled: true,
+                    },
+                    {
+                        id: '2',
+                        value: 'OTHER',
+                        disabled: true,
+                    },
+                ],
+            }), // Include options if type is dropdown
+            isRequired: true,
+            key: '',
+            order: customFields.length,
+        };
+
+        // Add the new field to the array
+        const updatedFields = [...customFields, newField];
+
+        // Update the form state
+        setValue('open_test.custom_fields', updatedFields);
+    };
+
     // Function to close the dialog
     const handleCloseDialog = (type: string, name: string, oldKey: boolean) => {
         // Create the new field
@@ -789,11 +827,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                 scale="medium"
                                                 buttonType="secondary"
                                                 onClick={() =>
-                                                    handleAddOpenFieldValues(
-                                                        'textfield',
-                                                        'Gender',
-                                                        false
-                                                    )
+                                                    handleAddGender('dropdown', 'Gender', false)
                                                 }
                                             >
                                                 <Plus size={32} /> Add Gender
