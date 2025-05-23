@@ -305,6 +305,7 @@ const AddQuestionDialog = ({
                                         );
                                     }
                                 }}
+                                disable={!title || !localReattempts}
                             >
                                 Add
                             </MyButton>

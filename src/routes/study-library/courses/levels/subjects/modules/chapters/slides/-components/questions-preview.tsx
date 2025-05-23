@@ -34,6 +34,13 @@ export const StudyLibraryQuestionsPreview = ({ activeItem }: { activeItem: Slide
     const { watch } = form;
 
     useEffect(() => {
+        form.reset({
+            ...form.getValues(),
+            questions: [activeItem.question_slide || {}],
+        });
+    }, [activeItem.question_slide]);
+
+    useEffect(() => {
         const subscription = watch((_, { name }) => {
             if (name?.startsWith('questions')) {
                 setActiveItem({
