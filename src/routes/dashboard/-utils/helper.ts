@@ -43,7 +43,7 @@ export function getModifiedAdminRoles(roles: UserRole[], oldRoles: string[], new
         if (!oldSet.has(roleName)) {
             const matchedRoles = roles.filter((role) => role.role_name === roleName);
             for (const role of matchedRoles) {
-                add_user_role_request.push(role.id); // push the 'id' for adding
+                add_user_role_request.push(role.role_id); // push the 'id' for adding
             }
         }
     }
@@ -53,12 +53,10 @@ export function getModifiedAdminRoles(roles: UserRole[], oldRoles: string[], new
         if (!newSet.has(roleName)) {
             const matchedRoles = roles.filter((role) => role.role_name === roleName);
             for (const role of matchedRoles) {
-                delete_user_role_request.push(role.role_id); // push the 'role_id' for deleting
+                delete_user_role_request.push(role.id); // push the 'role_id' for deleting
             }
         }
     }
 
-    const updated_roles = roles.filter((role) => !delete_user_role_request.includes(role.role_id));
-
-    return { updated_roles, add_user_role_request, delete_user_role_request };
+    return { add_user_role_request, delete_user_role_request };
 }

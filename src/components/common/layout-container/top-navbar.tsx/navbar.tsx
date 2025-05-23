@@ -116,13 +116,7 @@ export function Navbar() {
                                     </SheetTitle>
                                     <div className="flex flex-col gap-8">
                                         <div className="flex flex-col items-center justify-center gap-4">
-                                            {adminLogo !== '' ? (
-                                                <img
-                                                    src={adminLogo}
-                                                    alt="logo"
-                                                    className="size-48 rounded-full"
-                                                />
-                                            ) : (
+                                            {adminLogo !== '' && (
                                                 <img
                                                     src={adminLogo}
                                                     alt="logo"
