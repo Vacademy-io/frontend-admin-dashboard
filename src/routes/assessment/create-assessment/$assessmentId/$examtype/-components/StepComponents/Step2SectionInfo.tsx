@@ -809,8 +809,8 @@ export const Step2SectionInfo = ({
                                     <TableHead>Q.No.</TableHead>
                                     <TableHead>Question</TableHead>
                                     <TableHead>Question Type</TableHead>
-                                    <TableHead>Marks</TableHead>
-                                    <TableHead>Penalty</TableHead>
+                                    {examtype !== 'SURVEY' && <TableHead>Marks</TableHead>}
+                                    {examtype !== 'SURVEY' && <TableHead>Penalty</TableHead>}
                                     {watch(`testDuration.questionWiseDuration`) && (
                                         <TableHead>Time</TableHead>
                                     )}
@@ -829,55 +829,63 @@ export const Step2SectionInfo = ({
                                                         }}
                                                     />
                                                     <TableCell>{question.questionType}</TableCell>
-                                                    <TableCell>
-                                                        <FormField
-                                                            control={control}
-                                                            name={`section.${index}.adaptive_marking_for_each_question.${idx}.questionMark`}
-                                                            render={({ field: { ...field } }) => (
-                                                                <FormItem>
-                                                                    <FormControl>
-                                                                        <Input
-                                                                            type="text"
-                                                                            placeholder="00"
-                                                                            className="w-11"
-                                                                            value={field.value}
-                                                                            onChange={
-                                                                                field.onChange
-                                                                            }
-                                                                        />
-                                                                    </FormControl>
-                                                                </FormItem>
-                                                            )}
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <FormField
-                                                            control={control}
-                                                            name={`section.${index}.adaptive_marking_for_each_question.${idx}.questionPenalty`}
-                                                            render={({ field: { ...field } }) => (
-                                                                <FormItem>
-                                                                    <FormControl>
-                                                                        <Input
-                                                                            disabled={
-                                                                                form.getValues(
-                                                                                    `section.${index}.negative_marking.checked`
-                                                                                )
-                                                                                    ? false
-                                                                                    : true
-                                                                            }
-                                                                            type="text"
-                                                                            placeholder="00"
-                                                                            className="w-11"
-                                                                            value={field.value}
-                                                                            onChange={
-                                                                                field.onChange
-                                                                            }
-                                                                        />
-                                                                    </FormControl>
-                                                                </FormItem>
-                                                            )}
-                                                        />
-                                                    </TableCell>
+                                                    {examtype !== 'SURVEY' && (
+                                                        <TableCell>
+                                                            <FormField
+                                                                control={control}
+                                                                name={`section.${index}.adaptive_marking_for_each_question.${idx}.questionMark`}
+                                                                render={({
+                                                                    field: { ...field },
+                                                                }) => (
+                                                                    <FormItem>
+                                                                        <FormControl>
+                                                                            <Input
+                                                                                type="text"
+                                                                                placeholder="00"
+                                                                                className="w-11"
+                                                                                value={field.value}
+                                                                                onChange={
+                                                                                    field.onChange
+                                                                                }
+                                                                            />
+                                                                        </FormControl>
+                                                                    </FormItem>
+                                                                )}
+                                                            />
+                                                        </TableCell>
+                                                    )}
+                                                    {examtype !== 'SURVEY' && (
+                                                        <TableCell>
+                                                            <FormField
+                                                                control={control}
+                                                                name={`section.${index}.adaptive_marking_for_each_question.${idx}.questionPenalty`}
+                                                                render={({
+                                                                    field: { ...field },
+                                                                }) => (
+                                                                    <FormItem>
+                                                                        <FormControl>
+                                                                            <Input
+                                                                                disabled={
+                                                                                    form.getValues(
+                                                                                        `section.${index}.negative_marking.checked`
+                                                                                    )
+                                                                                        ? false
+                                                                                        : true
+                                                                                }
+                                                                                type="text"
+                                                                                placeholder="00"
+                                                                                className="w-11"
+                                                                                value={field.value}
+                                                                                onChange={
+                                                                                    field.onChange
+                                                                                }
+                                                                            />
+                                                                        </FormControl>
+                                                                    </FormItem>
+                                                                )}
+                                                            />
+                                                        </TableCell>
+                                                    )}
                                                     {watch(`testDuration.questionWiseDuration`) && (
                                                         <TableCell>
                                                             <div className="flex items-center gap-2">
