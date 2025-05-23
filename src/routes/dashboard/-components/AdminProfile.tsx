@@ -118,7 +118,7 @@ const AdminProfile = ({ adminDetails }: { adminDetails: UserProfile }) => {
             oldRoles.current = adminDetails.roles.map((role) => role.role_name);
         };
         resetFormWithUrl();
-    }, [adminDetails]);
+    }, [adminDetails, adminLogo]);
 
     useEffect(() => {
         const subscription = form.watch(() => {
