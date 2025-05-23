@@ -4,6 +4,7 @@ import { LayoutContainer } from '@/components/common/layout-container/layout-con
 import { AICenterProvider } from '../-contexts/useAICenterContext';
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
 import { useEffect } from 'react';
+import UploadFileMyResourcesComponent from '../-components/UploadFileMyResourcesComponent';
 
 export const Route = createFileRoute('/ai-center/my-resources/')({
     component: () => (
@@ -24,7 +25,10 @@ function RouteComponent() {
 
     return (
         <div className="container mx-auto p-4">
-            <h1 className="mb-4 text-2xl font-bold">My Resources</h1>
+            <div className="flex items-center justify-between">
+                <h1 className="text-2xl font-bold">My Resources</h1>
+                <UploadFileMyResourcesComponent />
+            </div>
             <MyResources />
         </div>
     );
