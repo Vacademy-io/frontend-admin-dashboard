@@ -1,7 +1,6 @@
 {
     "compilerOptions": {
         "baseUrl": ".",
-        "sourceMap": true,
         "paths": {
             "@excalidraw/*": ["./src/components/common/excalidraw/packages/*"],
             "@/*": ["./src/*"]
@@ -30,5 +29,6 @@
     "include": ["src"],
     "exclude": ["node_modules"]
 }
+
 
 //"./src/components/common/excalidraw/**/*"

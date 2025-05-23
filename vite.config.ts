@@ -12,7 +12,6 @@ export default defineConfig({
     // plugins: [react(), tsconfigPaths(), svgr({ include: "**/*.svg" })],
 
     build: {
-        sourcemap: true,
         rollupOptions: {
             output: {
                 manualChunks: {
