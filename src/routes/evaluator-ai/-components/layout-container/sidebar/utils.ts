@@ -7,17 +7,20 @@ export const SidebarItemsData: SidebarItemsType[] = [
         title: 'Learner List',
         id: 'student-mangement',
         to: '/evaluator-ai/students',
+        tabId: 'studentList',
     },
     {
         icon: Scroll,
         title: 'Assessment Centre',
         id: 'assessment-centre',
         to: '/evaluator-ai/assessment',
+        tabId: 'assessmentCentre',
     },
     {
         icon: FileMagnifyingGlass,
         title: 'Evaluation Centre',
         id: 'evaluation-centre',
         to: '/evaluator-ai/evaluation',
+        tabId: 'evaluationCentre',
     },
 ];
