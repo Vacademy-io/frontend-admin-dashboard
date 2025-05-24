@@ -1,21 +1,21 @@
-import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { Route } from "..";
-import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
+import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
+import { Route } from '..';
+import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
 import {
     getAssessmentDetails,
     getQuestionDataForSection,
     handlePostAssessmentPreview,
-} from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-services/assessment-services";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { MyButton } from "@/components/design-system/button";
+} from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-services/assessment-services';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { MyButton } from '@/components/design-system/button';
 import {
     copyToClipboard,
     handleDownloadQRCode,
-} from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/helper";
-import { Copy, DotsSixVertical, DownloadSimple, SpeakerLow } from "phosphor-react";
-import QRCode from "react-qr-code";
-import { useEffect, useRef, useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+} from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/helper';
+import { Copy, DotsSixVertical, DownloadSimple, SpeakerLow } from 'phosphor-react';
+import QRCode from 'react-qr-code';
+import { useEffect, useRef, useState } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
     addQuestionIdToSections,
     compareAndUpdateSections,
@@ -27,28 +27,28 @@ import {
     transformPreviewDataToSections,
     transformSectionQuestions,
     transformSectionsAndQuestionsData,
-} from "../-utils/helper";
-import { FormProvider, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { sectionsEditQuestionFormSchema } from "../-utils/sections-edit-question-form-schema";
-import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import { Sortable, SortableDragHandle, SortableItem } from "@/components/ui/sortable";
-import { Separator } from "@/components/ui/separator";
-import { MainViewComponentFactory } from "./QuestionPaperTemplatesTypes/MainViewComponentFactory";
-import { PPTComponentFactory } from "./QuestionPaperTemplatesTypes/PPTComponentFactory";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { DotOutline } from "@phosphor-icons/react";
-import AnnouncementComponent from "./AnnouncementComponent";
-import { AxiosError } from "axios";
-import { toast } from "sonner";
-import { savePrivateQuestions } from "../-services/assessment-details-services";
-import { AssessmentDetailQuestions } from "../-utils/assessment-details-interface";
-import { transformResponseDataToMyQuestionsSchema } from "@/routes/assessment/question-papers/-utils/helper";
-import { MyQuestion } from "@/types/assessments/question-paper-form";
-import { BASE_URL_LEARNER_DASHBOARD } from "@/constants/urls";
-import { QuestionType } from "@/constants/dummy-data";
+} from '../-utils/helper';
+import { FormProvider, useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { sectionsEditQuestionFormSchema } from '../-utils/sections-edit-question-form-schema';
+import { z } from 'zod';
+import { Button } from '@/components/ui/button';
+import { Sortable, SortableDragHandle, SortableItem } from '@/components/ui/sortable';
+import { Separator } from '@/components/ui/separator';
+import { MainViewComponentFactory } from './QuestionPaperTemplatesTypes/MainViewComponentFactory';
+import { PPTComponentFactory } from './QuestionPaperTemplatesTypes/PPTComponentFactory';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { DotOutline } from '@phosphor-icons/react';
+import AnnouncementComponent from './AnnouncementComponent';
+import { AxiosError } from 'axios';
+import { toast } from 'sonner';
+import { savePrivateQuestions } from '../-services/assessment-details-services';
+import { AssessmentDetailQuestions } from '../-utils/assessment-details-interface';
+import { transformResponseDataToMyQuestionsSchema } from '@/routes/assessment/question-papers/-utils/helper';
+import { MyQuestion } from '@/types/assessments/question-paper-form';
+import { BASE_URL_LEARNER_DASHBOARD } from '@/constants/urls';
+import { QuestionType } from '@/constants/dummy-data';
 
 interface Announcement {
     id: string;
@@ -66,32 +66,32 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
             assessmentId: assessmentId,
             instituteId: instituteDetails?.id,
             type: examType,
-        }),
+        })
     );
     const [announcementList, setAnnouncementList] = useState<Announcement[]>([]);
     const [currentQuestionIndexes, setCurrentQuestionIndexes] = useState<{
         [sectionId: string]: number;
     }>({});
     const [selectedSection, setSelectedSection] = useState(
-        assessmentDetails[1]?.saved_data.sections?.[0]?.id || "",
+        assessmentDetails[1]?.saved_data.sections?.[0]?.id || ''
     );
     const { data: questionsDataSectionWise, isLoading: isQuestionsLoading } = useSuspenseQuery(
         getQuestionDataForSection({
             assessmentId,
             sectionIds: assessmentDetails[1]?.saved_data.sections
                 ?.map((section) => section.id)
-                .join(","),
-        }),
+                .join(','),
+        })
     );
 
     const form = useForm<sectionsEditQuestionFormType>({
         resolver: zodResolver(sectionsEditQuestionFormSchema),
-        mode: "onChange",
+        mode: 'onChange',
         defaultValues: {
             sections: [
                 {
-                    sectionId: "",
-                    sectionName: "",
+                    sectionId: '',
+                    sectionName: '',
                     questions: [],
                 },
             ],
@@ -103,7 +103,7 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
     // Find the selected section index
     const selectedSectionIndex =
         assessmentDetails[1]?.saved_data.sections?.findIndex(
-            (section) => section.id === selectedSection,
+            (section) => section.id === selectedSection
         ) || 0;
 
     // Get the total number of questions in the current section
@@ -128,22 +128,22 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
         // Prepare a new question object to append
         const newQuestion = {
             id: String(currentQuestions.length),
-            questionId: "",
-            questionName: "",
-            explanation: "",
-            questionType: "MCQS",
-            questionPenalty: "",
+            questionId: '',
+            questionName: '',
+            explanation: '',
+            questionType: 'MCQS',
+            questionPenalty: '',
             questionDuration: {
-                hrs: "",
-                min: "",
+                hrs: '',
+                min: '',
             },
-            questionMark: "",
+            questionMark: '',
             singleChoiceOptions: Array(4).fill({
-                name: "",
+                name: '',
                 isSelected: false,
             }),
             multipleChoiceOptions: Array(4).fill({
-                name: "",
+                name: '',
                 isSelected: false,
             }),
         };
@@ -166,35 +166,35 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
         mutationFn: ({ data }: { data: AssessmentDetailQuestions }) => savePrivateQuestions(data),
         onSuccess: async (data) => {
             const transformedQuestionsData: MyQuestion[] = transformResponseDataToMyQuestionsSchema(
-                data.questions,
+                data.questions
             );
 
             const getSectionsWithAddedQuestionsCnt = getSectionsWithEmptyQuestionIds(
-                form.getValues(),
+                form.getValues()
             );
 
             const sectionsWithAddedQuestions = handleAddedQuestionsToSections(
                 getSectionsWithAddedQuestionsCnt,
-                transformedQuestionsData,
+                transformedQuestionsData
             );
 
             const sectionsDataWithAddedQuestionIds = addQuestionIdToSections(
-                form.getValues("sections"),
-                sectionsWithAddedQuestions,
+                form.getValues('sections'),
+                sectionsWithAddedQuestions
             );
 
             const transformToStep2Data = transformPreviewDataToSections(
-                assessmentDetails[1]?.saved_data.sections,
+                assessmentDetails[1]?.saved_data.sections
             );
 
             const mergedData = mergeSectionData(
                 sectionsDataWithAddedQuestionIds,
-                transformToStep2Data.updated_sections,
+                transformToStep2Data.updated_sections
             );
 
             const updatedSectionsData = compareAndUpdateSections(
                 previousSections.current,
-                mergedData,
+                mergedData
             );
 
             const finalData = {
@@ -210,33 +210,33 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                 finalData,
                 assessmentId,
                 instituteDetails?.id,
-                examType,
+                examType
             );
-            queryClient.invalidateQueries({ queryKey: ["GET_ASSESSMENT_DETAILS"] });
-            queryClient.invalidateQueries({ queryKey: ["GET_QUESTIONS_DATA_FOR_SECTIONS"] });
+            queryClient.invalidateQueries({ queryKey: ['GET_ASSESSMENT_DETAILS'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_QUESTIONS_DATA_FOR_SECTIONS'] });
             handleCloseDialog();
-            toast.success("Question paper for this assessment has been updated successfully!", {
-                className: "success-toast",
+            toast.success('Question paper for this assessment has been updated successfully!', {
+                className: 'success-toast',
                 duration: 2000,
             });
         },
         onError: (error: unknown) => {
             if (error instanceof AxiosError) {
                 toast.error(error.message, {
-                    className: "error-toast",
+                    className: 'error-toast',
                     duration: 2000,
                 });
             } else {
                 // Handle non-Axios errors if necessary
-                console.error("Unexpected error:", error);
+                console.error('Unexpected error:', error);
             }
         },
     });
 
     const onInvalid = (err: unknown) => {
         console.error(err);
-        toast.error("some of your questions are incomplete or needs attentions!", {
-            className: "error-toast",
+        toast.error('some of your questions are incomplete or needs attentions!', {
+            className: 'error-toast',
             duration: 2000,
         });
     };
@@ -258,14 +258,14 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
         }));
     };
 
-    const previousSections = useRef<sectionsEditQuestionFormType["sections"]>();
+    const previousSections = useRef<sectionsEditQuestionFormType['sections']>();
 
     useEffect(() => {
         if (!assessmentDetails[1]?.saved_data.sections) return;
 
         const transformedData = transformSectionsAndQuestionsData(
             assessmentDetails[1]?.saved_data.sections || [],
-            questionsDataSectionWise,
+            questionsDataSectionWise
         );
 
         previousSections.current = transformedData;
@@ -293,13 +293,13 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
     useEffect(() => {
         if (selectedSection && currentQuestionIndexes[selectedSection] !== undefined) {
             const sectionIndex = form
-                .getValues("sections")
+                .getValues('sections')
                 .findIndex((section) => section.sectionId === selectedSection);
 
             if (sectionIndex !== -1) {
                 const questionIndex = currentQuestionIndexes[selectedSection];
                 const currentQuestion = form.getValues(
-                    `sections.${sectionIndex}.questions.${questionIndex}` as `sections.${number}.questions.${number}`,
+                    `sections.${sectionIndex}.questions.${questionIndex}` as `sections.${number}.questions.${number}`
                 );
 
                 if (currentQuestion) {
@@ -312,12 +312,23 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                         {
                             shouldDirty: true,
                             shouldTouch: true,
-                        },
+                        }
                     );
                 }
             }
         }
     }, [selectedSection, currentQuestionIndexes]);
+
+    useEffect(() => {
+        setCurrentQuestionIndexes((prev) => ({
+            ...prev,
+            [selectedSection]: currentSectionQuestions.length - 1,
+        }));
+    }, [
+        form.watch(
+            `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionType`
+        ),
+    ]);
 
     if (isLoading || isQuestionsLoading) return <DashboardLoader />;
     return (
@@ -337,7 +348,7 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                                 className="h-9 min-w-10"
                                 onClick={() =>
                                     copyToClipboard(
-                                        `${BASE_URL_LEARNER_DASHBOARD}/register?code=${assessmentDetails[0]?.saved_data.assessment_url}`,
+                                        `${BASE_URL_LEARNER_DASHBOARD}/register?code=${assessmentDetails[0]?.saved_data.assessment_url}`
                                     )
                                 }
                             >
@@ -357,7 +368,7 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                         scale="small"
                         buttonType="secondary"
                         className="h-9 min-w-10"
-                        onClick={() => handleDownloadQRCode("qr-code-svg-participants")}
+                        onClick={() => handleDownloadQRCode('qr-code-svg-participants')}
                     >
                         <DownloadSimple size={32} />
                     </MyButton>
@@ -392,7 +403,7 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                                                 </CardTitle>
                                                 <CardDescription
                                                     dangerouslySetInnerHTML={{
-                                                        __html: announcement.instructions || "",
+                                                        __html: announcement.instructions || '',
                                                     }}
                                                 />
                                             </CardHeader>
@@ -441,8 +452,8 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                                 value={section.id}
                                 className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
                                     selectedSection === section.id
-                                        ? "rounded-t-sm border border-primary-200 !border-b-neutral-200 !bg-primary-50"
-                                        : "border-none bg-transparent"
+                                        ? 'rounded-t-sm border border-primary-200 !border-b-neutral-200 !bg-primary-50'
+                                        : 'border-none bg-transparent'
                                 }`}
                             >
                                 {section.name}
@@ -466,20 +477,20 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                                         <Sortable
                                             value={
                                                 form.getValues(
-                                                    `sections.${selectedSectionIndex}.questions`,
+                                                    `sections.${selectedSectionIndex}.questions`
                                                 ) || []
                                             }
                                             onMove={({ activeIndex, overIndex }) => {
                                                 const currentQuestions =
                                                     form.getValues(
-                                                        `sections.${selectedSectionIndex}.questions`,
+                                                        `sections.${selectedSectionIndex}.questions`
                                                     ) || [];
                                                 const updatedQuestions = [...currentQuestions];
 
                                                 // Perform the move operation in the array
                                                 const [removed] = updatedQuestions.splice(
                                                     activeIndex,
-                                                    1,
+                                                    1
                                                 );
 
                                                 // Ensure that removed is not undefined
@@ -489,7 +500,7 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                                                     // Update the form with the new order of questions
                                                     form.setValue(
                                                         `sections.${selectedSectionIndex}.questions`,
-                                                        updatedQuestions,
+                                                        updatedQuestions
                                                     );
                                                 }
                                             }}
@@ -497,7 +508,7 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                                             <div className="flex origin-top-left scale-[0.26] flex-col gap-8 overflow-x-hidden">
                                                 {form
                                                     .getValues(
-                                                        `sections.${selectedSectionIndex}.questions`,
+                                                        `sections.${selectedSectionIndex}.questions`
                                                     )
                                                     .map((field, index) => {
                                                         return (
@@ -508,18 +519,18 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                                                             >
                                                                 <div
                                                                     key={index}
-                                                                    // onClick={() =>
-                                                                    //     handlePageClick(index)
-                                                                    // }
+                                                                    onClick={() =>
+                                                                        handlePageClick(index)
+                                                                    }
                                                                     className={`rounded-xl border-4 bg-primary-50 p-6 ${
                                                                         currentQuestionIndex ===
                                                                         index
-                                                                            ? "border-primary-500 bg-none"
-                                                                            : "bg-none"
+                                                                            ? 'border-primary-500 bg-none'
+                                                                            : 'bg-none'
                                                                     }`}
-                                                                    onMouseEnter={() =>
-                                                                        handlePageClick(index)
-                                                                    }
+                                                                    // onMouseEnter={() =>
+                                                                    //     handlePageClick(index)
+                                                                    // }
                                                                 >
                                                                     <div className="flex flex-col">
                                                                         <div className="flex items-center justify-start gap-4">
@@ -527,14 +538,14 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                                                                                 {index + 1}
                                                                                 &nbsp;
                                                                                 {getValues(
-                                                                                    `sections.${selectedSectionIndex}.questions.${index}.questionType`,
-                                                                                ) === "MCQS"
-                                                                                    ? "MCQ (Single Correct)"
+                                                                                    `sections.${selectedSectionIndex}.questions.${index}.questionType`
+                                                                                ) === 'MCQS'
+                                                                                    ? 'MCQ (Single Correct)'
                                                                                     : getValues(
-                                                                                            `sections.${selectedSectionIndex}.questions.${index}.questionType`,
-                                                                                        ) === "MCQM"
-                                                                                      ? "MCQ (Multiple Correct)"
-                                                                                      : "MCQ (Multiple Correct)"}
+                                                                                            `sections.${selectedSectionIndex}.questions.${index}.questionType`
+                                                                                        ) === 'MCQM'
+                                                                                      ? 'MCQ (Multiple Correct)'
+                                                                                      : 'MCQ (Multiple Correct)'}
                                                                             </h1>
                                                                             <SortableDragHandle
                                                                                 variant="outline"
@@ -547,7 +558,7 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                                                                         <PPTComponentFactory
                                                                             type={
                                                                                 getValues(
-                                                                                    `sections.${selectedSectionIndex}.questions.${index}.questionType`,
+                                                                                    `sections.${selectedSectionIndex}.questions.${index}.questionType`
                                                                                 ) as QuestionType
                                                                             }
                                                                             props={{
@@ -561,7 +572,7 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                                                                                 currentQuestionIndex:
                                                                                     index,
                                                                                 className:
-                                                                                    "relative mt-4 rounded-xl border-4 border-primary-300 bg-white p-4",
+                                                                                    'relative mt-4 rounded-xl border-4 border-primary-300 bg-white p-4',
                                                                                 selectedSectionIndex:
                                                                                     selectedSectionIndex,
                                                                             }}
@@ -584,7 +595,7 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                                     <MainViewComponentFactory
                                         type={
                                             getValues(
-                                                `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionType`,
+                                                `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionType`
                                             ) as QuestionType
                                         }
                                         props={{
@@ -593,7 +604,7 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                                             currentQuestionIndexes: currentQuestionIndexes,
                                             setCurrentQuestionIndexes: setCurrentQuestionIndexes,
                                             currentQuestionIndex: currentQuestionIndex,
-                                            className: "ml-6 flex w-full flex-col gap-6 pr-6 pt-4",
+                                            className: 'ml-6 flex w-full flex-col gap-6 pr-6 pt-4',
                                             selectedSectionIndex: selectedSectionIndex,
                                         }}
                                     />
