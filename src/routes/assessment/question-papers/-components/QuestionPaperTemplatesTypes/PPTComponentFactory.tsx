@@ -1,15 +1,15 @@
-import React from "react";
-import { SingleCorrectQuestionPaperTemplatePPTView } from "./MCQ(Single Correct)/SingleCorrectQuestionPaperTemplatePPTView";
-import { NumericQuestionPaperTemplatePPTView } from "./NumericType/NumericQuestionPaperTemplatePPTView";
-import { QuestionPaperTemplateFormProps } from "../../-utils/question-paper-template-form";
-import { MultipleCorrectQuestionPaperTemplatePPTView } from "./MCQ(Multiple Correct)/MultipleCorrectQuestionPaperTemplatePPTView";
-import { QuestionType } from "@/constants/dummy-data";
-import { ComprehensiveMultipleCorrectQuestionPaperTemplatePPTView } from "./Comprehensive MCQ(Multiple Correct)/ComprehensiveMultipleCorrectQuestionPaperTemplatePPTView";
-import { ComprehensiveNumericQuestionPaperTemplatePPTView } from "./ComprehensiveNumericType/ComprehensiveNumericQuestionPaperTemplatePPTView";
-import { OneWordQuestionPaperTemplatePPTView } from "./OneWordType/OneWordQuestionPaperTemplatePPTView";
-import { LongAnswerQuestionPaperTemplatePPTView } from "./LongAnswerType/LongAnswerQuestionPaperTemplatePPTView";
-import { TrueFalseQuestionPaperTemplatePPTView } from "./TrueFalse/TrueFalseQuestionPaperTemplatePPTView";
-import { ComprehensiveSingleCorrectQuestionPaperTemplatePPTView } from "./Comprehensive MCQ(Single Correct)/ComprehensiveSingleCorrectQuestionPaperTemplatePPTView";
+import React from 'react';
+import { SingleCorrectQuestionPaperTemplatePPTView } from './MCQ(Single Correct)/SingleCorrectQuestionPaperTemplatePPTView';
+import { NumericQuestionPaperTemplatePPTView } from './NumericType/NumericQuestionPaperTemplatePPTView';
+import { QuestionPaperTemplateFormProps } from '../../-utils/question-paper-template-form';
+import { MultipleCorrectQuestionPaperTemplatePPTView } from './MCQ(Multiple Correct)/MultipleCorrectQuestionPaperTemplatePPTView';
+import { QuestionType } from '@/constants/dummy-data';
+import { ComprehensiveMultipleCorrectQuestionPaperTemplatePPTView } from './Comprehensive MCQ(Multiple Correct)/ComprehensiveMultipleCorrectQuestionPaperTemplatePPTView';
+import { ComprehensiveNumericQuestionPaperTemplatePPTView } from './ComprehensiveNumericType/ComprehensiveNumericQuestionPaperTemplatePPTView';
+import { OneWordQuestionPaperTemplatePPTView } from './OneWordType/OneWordQuestionPaperTemplatePPTView';
+import { LongAnswerQuestionPaperTemplatePPTView } from './LongAnswerType/LongAnswerQuestionPaperTemplatePPTView';
+import { TrueFalseQuestionPaperTemplatePPTView } from './TrueFalse/TrueFalseQuestionPaperTemplatePPTView';
+import { ComprehensiveSingleCorrectQuestionPaperTemplatePPTView } from './Comprehensive MCQ(Single Correct)/ComprehensiveSingleCorrectQuestionPaperTemplatePPTView';
 
 type PPTComponentType = QuestionType;
 
