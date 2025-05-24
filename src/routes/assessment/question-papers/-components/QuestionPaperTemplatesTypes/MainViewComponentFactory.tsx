@@ -31,6 +31,9 @@ export const MainViewComponentFactory = (params: {
     type: MainViewComponentType;
     props: QuestionPaperTemplateFormProps;
 }) => {
-    const Component = MainViewComponentsMap[params.type];
-    return <Component {...params.props} />;
+    if (params.type) {
+        const Component = MainViewComponentsMap[params.type];
+        return <Component {...params.props} />;
+    }
+    return;
 };

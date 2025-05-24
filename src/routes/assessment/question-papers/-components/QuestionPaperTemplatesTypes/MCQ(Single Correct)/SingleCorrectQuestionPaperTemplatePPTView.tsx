@@ -2,7 +2,6 @@ import { FormControl, FormField, FormItem, FormMessage } from '@/components/ui/f
 import { Button } from '@/components/ui/button';
 import { DotsThree } from 'phosphor-react';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useState } from 'react';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -21,10 +20,6 @@ export const SingleCorrectQuestionPaperTemplatePPTView = ({
     className,
 }: QuestionPaperTemplateFormProps) => {
     const { control, getValues, setValue } = form;
-
-    const [isDropdownVisible, setIsDropdownVisible] = useState(false); // State to track dropdown visibility
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false); // State for dropdown open state
-
     const optionsType = getValues('optionsType') || '';
     const allQuestions = getValues('questions') || [];
     const option1 = getValues(`questions.${currentQuestionIndex}.singleChoiceOptions.${0}`);
@@ -33,15 +28,13 @@ export const SingleCorrectQuestionPaperTemplatePPTView = ({
     const option4 = getValues(`questions.${currentQuestionIndex}.singleChoiceOptions.${3}`);
 
     const handleDeleteSlide = () => {
-        // If this is the last question, decrease the current question index
-        if (currentQuestionIndex === allQuestions.length - 1 && currentQuestionIndex > 0) {
-            setCurrentQuestionIndex(currentQuestionIndex - 1);
-        }
-
         // Remove the current question from the questions array
         allQuestions.splice(currentQuestionIndex, 1);
         setValue('questions', allQuestions);
+        form.trigger();
+        setCurrentQuestionIndex(allQuestions.length - 1);
     };
+    console.log(currentQuestionIndex);
 
     const handleDuplicateSlide = () => {
         const questionToDuplicate = allQuestions[currentQuestionIndex];
@@ -75,11 +68,7 @@ export const SingleCorrectQuestionPaperTemplatePPTView = ({
     };
 
     return (
-        <div
-            className={className}
-            onMouseEnter={() => setIsDropdownVisible(true)}
-            onMouseLeave={() => !isDropdownOpen && setIsDropdownVisible(false)}
-        >
+        <div className={className}>
             <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
                 <FormField
                     control={control}
@@ -240,32 +229,25 @@ export const SingleCorrectQuestionPaperTemplatePPTView = ({
                 </div>
             </div>
             <div className="absolute bottom-10 right-12">
-                {(isDropdownVisible || isDropdownOpen) && (
-                    <DropdownMenu
-                        onOpenChange={(open) => {
-                            setIsDropdownOpen(open);
-                            if (!open) setIsDropdownVisible(false); // Reset visibility when closed
-                        }}
-                    >
-                        <DropdownMenuTrigger>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                className="scale-[2] border-2 border-primary-300 px-3 font-bold"
-                            >
-                                <DotsThree size="32" className="font-bold" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="mt-1">
-                            <DropdownMenuItem onClick={handleDuplicateSlide}>
-                                Duplicate Slide
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={handleDeleteSlide}>
-                                Delete Slide
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                )}
+                <DropdownMenu>
+                    <DropdownMenuTrigger>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            className="scale-[2] border-2 border-primary-300 px-3 font-bold"
+                        >
+                            <DotsThree size="32" className="font-bold" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="mt-1">
+                        <DropdownMenuItem onClick={handleDuplicateSlide}>
+                            Duplicate Slide
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleDeleteSlide}>
+                            Delete Slide
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
         </div>
     );

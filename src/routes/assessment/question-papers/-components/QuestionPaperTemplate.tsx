@@ -50,7 +50,6 @@ export function QuestionPaperTemplate({
     currentQuestionIndex,
     setCurrentQuestionIndex,
 }: QuestionPaperTemplateProps) {
-    console.log(form.getValues());
     const [isQuestionPaperTemplateDialog, setIsQuestionPaperTemplateDialog] = useState(false);
     const { instituteLogo } = useInstituteLogoStore();
     const { handleRefetchData } = useRefetchStore();
@@ -131,11 +130,9 @@ export function QuestionPaperTemplate({
         form.trigger();
     };
 
-    // Function to handle page navigation by question number
-    const handlePageClick = (pageIndex: number) => {
-        setCurrentQuestionIndex(pageIndex);
-        form.trigger();
-    };
+    // useEffect(() => {
+    //     setCurrentQuestionIndex(questions.length - 1);
+    // }, [form.watch('questions')]);
 
     const handleUpdateQuestionPaper = useMutation({
         mutationFn: ({
@@ -364,15 +361,18 @@ export function QuestionPaperTemplate({
                                                     >
                                                         <div
                                                             key={index}
-                                                            // onClick={() => handlePageClick(index)}
+                                                            onClick={() => {
+                                                                setCurrentQuestionIndex(index);
+                                                                return;
+                                                            }}
                                                             className={`rounded-xl border-4 bg-primary-50 p-6 ${
                                                                 currentQuestionIndex === index
                                                                     ? 'border-primary-500 bg-none'
                                                                     : 'bg-none'
                                                             }`}
-                                                            onMouseEnter={() =>
-                                                                handlePageClick(index)
-                                                            }
+                                                            // onMouseEnter={() =>
+                                                            //     handlePageClick(index)
+                                                            // }
                                                         >
                                                             <TooltipProvider>
                                                                 <Tooltip
