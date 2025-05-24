@@ -27,6 +27,8 @@ import { getModuleFlags } from '@/components/common/layout-container/sidebar/hel
 import RoleTypeComponent from './-components/RoleTypeComponent';
 import useLocalStorage from '@/hooks/use-local-storage';
 import EditDashboardProfileComponent from './-components/EditDashboardProfileComponent';
+import { FeatureId, hasFeatureAccess } from '@/constants/auth/access/role-tab-feature-access';
+import { extractUserRoles } from '@/lib/utils';
 
 export const Route = createFileRoute('/dashboard/')({
     component: () => (
@@ -102,6 +104,26 @@ export function DashboardComponent() {
         setNavHeading(<h1 className="text-md font-medium">Dashboard</h1>);
     }, [setNavHeading]);
 
+    const checkFeatureAccess = (element: HTMLElement): boolean => {
+        const roles = extractUserRoles();
+        const featureId = element.dataset.featureId;
+        if (roles.includes('TEACHER') && featureId)
+            return hasFeatureAccess('TEACHER', 'dashboard', featureId as FeatureId);
+        else return true;
+    };
+
+    useEffect(() => {
+        // Get all dashboard cards
+        const dashboardCards = document.querySelectorAll('[data-feature-id]');
+
+        // Check each card and hide if user doesn't have access
+        dashboardCards.forEach((card) => {
+            if (!checkFeatureAccess(card as HTMLElement)) {
+                (card as HTMLElement).style.display = 'none';
+            }
+        });
+    }, []);
+
     useEffect(() => {
         if (location.pathname !== '/dashboard') {
             setValue(false);
@@ -121,7 +143,7 @@ export function DashboardComponent() {
                 />
             </Helmet>
             {/* Welcome Message - More Compact */}
-            <h1 className="text-md">
+            <h1 className="text-base">
                 Hello <span className="font-semibold text-primary-500">{tokenData?.fullname}!</span>
             </h1>
             {getValue() && (
@@ -145,7 +167,10 @@ export function DashboardComponent() {
             <div className="mt-5 flex w-full flex-col gap-4">
                 {' '}
                 {/* Reduced mt-8 to mt-5, gap-6 to gap-4 */}
-                <Card className="grow bg-neutral-50 shadow-none">
+                <Card
+                    className="grow bg-neutral-50 shadow-none"
+                    data-feature-id={'instituteProfile'}
+                >
                     <CardHeader className="p-4">
                         {' '}
                         {/* Reduced padding */}
@@ -170,6 +195,7 @@ export function DashboardComponent() {
                 <Card
                     className="grow cursor-pointer bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg transition-all hover:scale-[1.01] hover:shadow-md" // slightly reduced hover shadow
                     onClick={handleAICenterNavigation}
+                    data-feature-id={'aiFeatures'}
                 >
                     <CardHeader className="p-4 sm:p-5">
                         {' '}
@@ -231,7 +257,10 @@ export function DashboardComponent() {
                             subModules.assess ? 'md:flex-row' : 'md:flex-col'
                         } gap-4`} // Reduced gap
                     >
-                        <Card className="flex-1 bg-neutral-50 shadow-none">
+                        <Card
+                            className="flex-1 bg-neutral-50 shadow-none"
+                            data-feature-id={'manageUsers'}
+                        >
                             <CardHeader className="p-4">
                                 {' '}
                                 {/* Reduced padding */}
@@ -317,7 +346,10 @@ export function DashboardComponent() {
                                 </div>
                             </CardHeader>
                         </Card>
-                        <Card className="flex-1 grow bg-neutral-50 shadow-none">
+                        <Card
+                            className="flex-1 grow bg-neutral-50 shadow-none"
+                            data-feature-id={'enrollStudents'}
+                        >
                             <CardHeader className="p-4">
                                 {' '}
                                 {/* Reduced padding */}
@@ -380,7 +412,10 @@ export function DashboardComponent() {
                     <div className="flex flex-1 flex-col gap-4 md:flex-row">
                         {' '}
                         {/* Reduced gap */}
-                        <Card className="flex-1 bg-neutral-50 shadow-none">
+                        <Card
+                            className="flex-1 bg-neutral-50 shadow-none"
+                            data-feature-id={'learning'}
+                        >
                             <CardHeader className="p-4">
                                 {' '}
                                 {/* Reduced padding */}
@@ -453,7 +488,10 @@ export function DashboardComponent() {
                             </CardHeader>
                         </Card>
                         {subModules.assess && (
-                            <Card className="flex-1 grow bg-neutral-50 shadow-none">
+                            <Card
+                                className="flex-1 grow bg-neutral-50 shadow-none"
+                                data-feature-id={'assessment'}
+                            >
                                 <CardHeader className="p-4">
                                     {' '}
                                     {/* Reduced padding */}

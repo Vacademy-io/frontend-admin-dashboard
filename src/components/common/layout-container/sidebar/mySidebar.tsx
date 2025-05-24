@@ -18,12 +18,17 @@ import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { filterMenuItems, filterMenuList, getModuleFlags } from './helper';
 import { useFileUpload } from '@/hooks/use-file-upload';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { cn, goToMailSupport, goToWhatsappSupport } from '@/lib/utils';
+import { cn, extractUserRoles, goToMailSupport, goToWhatsappSupport } from '@/lib/utils';
 import { Question } from 'phosphor-react';
 import { Command, CommandGroup, CommandItem, CommandList } from '@/components/ui/command';
 import { WhatsappLogo, EnvelopeSimple } from '@phosphor-icons/react';
 import { useNavigate, useRouter } from '@tanstack/react-router';
 import useInstituteLogoStore from './institutelogo-global-zustand';
+import {
+    hasChildTabAccess,
+    hasTabAccess,
+    TeacherTabs,
+} from '@/constants/auth/access/role-tab-access';
 
 export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.ReactNode }) => {
     const navigate = useNavigate();
@@ -51,6 +56,24 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
 
         return () => clearTimeout(timer); // Cleanup the timeout on component unmount
     }, [data?.institute_logo_file_id]);
+
+    const checkTabAccess = (tabId: TeacherTabs) => {
+        const roles = extractUserRoles();
+        if (roles.includes('TEACHER')) {
+            const isAccess = hasTabAccess('TEACHER', tabId);
+            console.log(isAccess, tabId);
+            return isAccess;
+        } else return true;
+    };
+
+    const checkChildAccess = (parentTabId: TeacherTabs, childTabId?: string) => {
+        if (!childTabId) return true;
+        const roles = extractUserRoles();
+        if (roles.includes('TEACHER')) {
+            return hasChildTabAccess('TEACHER', parentTabId, childTabId);
+        }
+        return true;
+    };
 
     if (isLoading) return <DashboardLoader />;
     return (
@@ -85,10 +108,18 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                     {sidebarComponent
                         ? sidebarComponent
                         : sideBarItems.map((obj, key) => (
-                              <SidebarMenuItem key={key} id={obj.id}>
+                              <SidebarMenuItem
+                                  key={key}
+                                  id={obj.id}
+                                  className={cn(
+                                      !checkTabAccess(obj.tabId as TeacherTabs) && 'hidden'
+                                  )}
+                              >
                                   <SidebarItem
                                       icon={obj.icon}
-                                      subItems={obj.subItems}
+                                      subItems={obj.subItems?.filter((subItem) =>
+                                          checkChildAccess(obj.tabId as TeacherTabs, subItem.tabId)
+                                      )}
                                       title={obj.title}
                                       to={obj.to}
                                   />
