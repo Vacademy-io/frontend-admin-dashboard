@@ -62,5 +62,5 @@ export function extractUserRoles(): string[] {
     Object.values(tokenData?.authorities ?? {}).forEach((authority) => {
         allRoles.push(...authority.roles);
     });
-    return [...new Set(allRoles)]; // Remove duplicates
+    return [...new Set(allRoles)];
 }
