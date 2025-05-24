@@ -130,10 +130,6 @@ export function QuestionPaperTemplate({
         form.trigger();
     };
 
-    useEffect(() => {
-        setCurrentQuestionIndex(questions.length - 1);
-    }, [form.watch(`questions.${currentQuestionIndex}.questionType`)]);
-
     const handleUpdateQuestionPaper = useMutation({
         mutationFn: ({
             data,
@@ -218,6 +214,10 @@ export function QuestionPaperTemplate({
         }
         setIsQuestionPaperTemplateDialog(false);
     };
+
+    useEffect(() => {
+        setCurrentQuestionIndex(questions.length - 1);
+    }, [form.watch(`questions.${currentQuestionIndex}.questionType`)]);
 
     return (
         <Dialog
