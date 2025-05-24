@@ -359,7 +359,7 @@ export const SlidesColumns: ColumnDef<SlidesColumnType>[] = [
     },
     {
         accessorKey: 'subject',
-        header: 'Suject',
+        header: 'Subject',
     },
     {
         accessorKey: 'module',
