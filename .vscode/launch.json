@@ -1,0 +1,22 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            // This is your existing configuration to START the dev server
+            "type": "node-terminal",
+            "name": "Start Dev Server", // Renamed for clarity
+            "request": "launch",
+            "command": "npm run dev",
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "chrome", // Or "msedge"
+            "request": "launch",
+            "name": "Launch Chrome for React",
+            "url": "http://localhost:5173", // ✅ MATCHES YOUR DEV SERVER
+            "webRoot": "${workspaceFolder}", // Or possibly "${workspaceFolder}/src"
+            "sourceMaps": true, // Ensure this is true
+            "trace": true // Add this for verbose logging in the "Debug Console"
+        }
+    ]
+}

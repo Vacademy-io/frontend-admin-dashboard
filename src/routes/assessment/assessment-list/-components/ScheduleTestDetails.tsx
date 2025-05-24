@@ -125,9 +125,8 @@ const ScheduleTestDetails = ({
                                 <h1 className="rounded-t-lg bg-primary-50 p-4 font-semibold text-primary-500">
                                     Assessment Batches
                                 </h1>
-                                <ul className="flex list-disc flex-col gap-4 pb-4 pl-8 pr-4">
+                                <ul className="flex list-disc flex-col gap-4 py-4 pl-8 pr-4">
                                     {batchIdsList.map((batchId, idx) => {
-                                        if (idx === 0) return null;
                                         return <li key={idx}>{batchId}</li>;
                                     })}
                                 </ul>
@@ -165,7 +164,12 @@ const ScheduleTestDetails = ({
                         <p>
                             <span className="font-normal text-neutral-500">Duration: </span>
                             {scheduleTestContent.duration >= 60 ? (
-                                <span>{(scheduleTestContent.duration / 60).toFixed(2)} hrs</span>
+                                <span>
+                                    {Math.floor(scheduleTestContent.duration / 60)} hrs{' '}
+                                    {scheduleTestContent.duration % 60 > 0 && (
+                                        <> {scheduleTestContent.duration % 60} min</>
+                                    )}
+                                </span>
                             ) : (
                                 <span>{scheduleTestContent.duration} min</span>
                             )}

@@ -1,315 +1,395 @@
-// PresentationView.tsx
 /* eslint-disable */
 // @ts-nocheck
-'use client';
+'useclient';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import Reveal from 'reveal.js';
 import 'reveal.js/dist/reveal.css';
-import 'reveal.js/dist/theme/white.css';
-import type { Slide } from './types'; // Ensure this path and type definition are correct
-import { SlideType } from './constant/slideType';
-import { QuizeSlide } from './slidesTypes/QuizSlides';
-import { ExcalidrawViewer } from './ExcalidrawViewer';
+import 'reveal.js/dist/theme/white.css'; // Or your preferred theme
+
+import { SlideEditor } from './SlideEditor'; // For rendering Excalidraw slides in view mode
+import { QuizSlide } from './slidesTypes/QuizSlides'; // Ensure path is correct
+import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react'; // For loading state
+
+import { LiveSessionActionBar } from './components/LiveSessionActionBar';
+import { ParticipantsSidePanel } from './components/ParticipantsSidePanel';
+import { SessionExcalidrawOverlay } from './components/SessionExcalidrawOverlay'; // Ensure path and naming
+
+import type {
+    Slide as AppSlide,
+    ExcalidrawSlideData,
+    QuizSlideData,
+    FeedbackSlideData,
+} from '././utils/types';
+
+import type { QuestionFormData } from '@/components/common/slides/utils/types'; // Import QuestionFormData as type
+import { SlideTypeEnum } from '@/components/common/slides/utils/types';
+
+const MOVE_SESSION_API_URL =
+    'https://backend-stage.vacademy.io/community-service/engage/admin/move';
+const PARTICIPANTS_SSE_URL_BASE =
+    'https://backend-stage.vacademy.io/community-service/engage/admin/'; // e.g., admin/${sessionId}/participants
 
 interface PresentationViewProps {
-    slides: Slide[];
+    slides: AppSlide[];
     onExit: () => void;
+    liveSessionData?: { session_id: string; invite_code: string; [key: string]: any };
+    initialSlideId?: string; // To start Reveal.js on a specific slide
 }
 
-export const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit }) => {
-    console.log('[PresentationView] Component rendered. Props:', {
-        slidesLength: slides?.length,
-        slidesData: slides,
-        onExit,
-    });
-
+export const PresentationView: React.FC<PresentationViewProps> = ({
+    slides,
+    onExit,
+    liveSessionData,
+    initialSlideId,
+}) => {
     const revealContainerRef = useRef<HTMLDivElement>(null);
     const deckInstanceRef = useRef<Reveal.Api | null>(null);
-    console.log('hello');
-    console.log(slides);
+    const isLiveSession = !!liveSessionData?.session_id;
+
+    const [currentRevealVisualIndex, setCurrentRevealVisualIndex] = useState(0); // 0-based visual index
+    const [participantsCount, setParticipantsCount] = useState(0);
+    const [isParticipantsPanelOpen, setIsParticipantsPanelOpen] = useState(false);
+    const [isSessionWhiteboardOpen, setIsSessionWhiteboardOpen] = useState(false);
+    const [isRevealInitialized, setIsRevealInitialized] = useState(false);
+
+    // Debounced API call for moving slide in live session
+    const debouncedMoveApiCall = useCallback(
+        // Basic debounce implementation
+        (() => {
+            let timeoutId: NodeJS.Timeout;
+            return async (sessionId: string, slideOrder: number, visualIndex: number) => {
+                clearTimeout(timeoutId);
+                timeoutId = setTimeout(async () => {
+                    try {
+                        await authenticatedAxiosInstance.post(MOVE_SESSION_API_URL, {
+                            session_id: sessionId,
+                            move_to: slideOrder, // This should be the logical slide_order
+                        });
+                        // Minimal toast or none to avoid clutter during presentation
+                        // toast.info(`Synced to slide ${visualIndex + 1}`, { duration: 700, id: "slide-sync" });
+                    } catch (error: any) {
+                        console.error('Error moving slide in live session:', error);
+                        toast.error(
+                            error.response?.data?.message || 'Failed to sync slide movement.'
+                        );
+                    }
+                }, 300); // 300ms debounce
+            };
+        })(),
+        []
+    );
+
+    // SSE for participants count
     useEffect(() => {
-        if (revealContainerRef.current && !deckInstanceRef.current && slides && slides.length > 0) {
-            console.log('[PresentationView] Initializing Reveal.js...');
+        if (!isLiveSession || !liveSessionData?.session_id) return;
+
+        const sseUrl = `${PARTICIPANTS_SSE_URL_BASE}${liveSessionData.session_id}`; // Example: ensure correct endpoint
+        const eventSource = new EventSource(sseUrl, { withCredentials: true });
+
+        const participantListener = (event: MessageEvent) => {
+            try {
+                const data = JSON.parse(event.data);
+                if (Array.isArray(data)) {
+                    setParticipantsCount(data.length);
+                } else if (typeof data.count === 'number') {
+                    // If backend sends { count: X }
+                    setParticipantsCount(data.count);
+                }
+            } catch (e) {
+                /* console.warn("Error parsing participants count from SSE:", e); */
+            }
+        };
+
+        eventSource.addEventListener('participants', participantListener); // Ensure backend sends 'participants' event
+
+        eventSource.onopen = () => {
+            /* console.log("PresentationView SSE for count: Connection open."); */
+        };
+        eventSource.onerror = () => {
+            eventSource.close(); /* console.error("PresentationView SSE for count: Error. Closing."); */
+        };
+
+        return () => {
+            eventSource.removeEventListener('participants', participantListener);
+            eventSource.close();
+        };
+    }, [isLiveSession, liveSessionData?.session_id]);
+
+    // Reveal.js initialization and slide change handling
+    useEffect(() => {
+        if (revealContainerRef.current && slides && slides.length > 0 && !deckInstanceRef.current) {
             const deck = new Reveal(revealContainerRef.current, {
                 controls: true,
                 progress: true,
-                slideNumber: true,
-
-                history: false,
+                history: false, // Manage history via app state if needed
                 center: true,
-
                 width: '100%',
                 height: '100%',
                 margin: 0,
                 minScale: 0.2,
-                display: true,
-                maxScale: 1.5,
-                embedded: true,
-                keyboard: true, // Explicitly enable keyboard navigation
-                // Optionally, you can set a default background transition
-                backgroundTransition: 'fade', // 'fade', 'slide', 'convex', 'concave', 'zoom'
+                maxScale: 1.5, // Adjusted for typical presentation
+                embedded: true, // Important for containing within the div
+                keyboard: true,
+                touch: true,
+                navigationMode: 'linear',
+                slideNumber: isLiveSession ? 'c/t' : false, // Show slide numbers in live session
+                // fragments: true, // Enable if you use fragments within slides
+                // Consider plugins: e.g. RevealMarkdown, RevealNotes, RevealHighlight
             });
 
-            deck.initialize()
-                .then(() => {
-                    console.log('[PresentationView] Reveal.js initialized successfully.');
-                    deckInstanceRef.current = deck;
-                    // Ensure current slide is visible after initialization
-                    deck.layout(); // Recalculate layout
-                    deck.sync(); // Sync internal state
-                    // deck.slide(deck.getIndices().h || 0, deck.getIndices().v || 0); // Optionally force re-evaluation of current slide
-                    console.log(
-                        '[PresentationView] Reveal.js layout and sync call after initialize. Current indices:',
-                        deck.getIndices()
-                    );
+            let initialH = 0;
+            if (initialSlideId) {
+                const startIndex = slides.findIndex((s) => s.id === initialSlideId);
+                if (startIndex !== -1) initialH = startIndex;
+            }
 
-                    // Try to force z-index of controls
-                    const controlsElement = revealContainerRef.current?.querySelector(
-                        '.controls'
-                    ) as HTMLElement;
-                    if (controlsElement) {
-                        console.log('[PresentationView] Forcing z-index on controls element.');
-                        controlsElement.style.zIndex = '450'; // Or a higher value if needed
+            deck.initialize({ H: initialH }).then(() => {
+                deckInstanceRef.current = deck;
+                setIsRevealInitialized(true);
+                const indices = deck.getIndices();
+                setCurrentRevealVisualIndex(indices.h || 0);
+
+                // Initial sync if live session (optional, depends on backend logic)
+                if (isLiveSession && liveSessionData) {
+                    const initialSlideData = slides[indices.h || 0];
+                    if (initialSlideData && typeof initialSlideData.slide_order === 'number') {
+                        // debouncedMoveApiCall(liveSessionData.session_id, initialSlideData.slide_order, indices.h || 0);
                     }
-                })
-                .catch((error) => {
-                    console.error('[PresentationView] Reveal.js initialization failed:', error);
-                });
+                }
 
-            const handleKeyDown = (event: KeyboardEvent) => {
+                deck.on('slidechanged', (event: any) => {
+                    // { indexh, indexv, previousSlide, currentSlide, ... }
+                    const visualIndex = event.indexh;
+                    setCurrentRevealVisualIndex(visualIndex);
+
+                    if (isLiveSession && liveSessionData) {
+                        const currentSlideData = slides[visualIndex];
+                        if (currentSlideData && typeof currentSlideData.slide_order === 'number') {
+                            debouncedMoveApiCall(
+                                liveSessionData.session_id,
+                                currentSlideData.slide_order,
+                                visualIndex
+                            );
+                        } else {
+                            toast.error('Slide data missing for live sync.');
+                        }
+                    }
+                });
+            });
+
+            const handleGlobalKeyDown = (event: KeyboardEvent) => {
                 if (event.key === 'Escape') {
-                    onExit();
+                    if (isSessionWhiteboardOpen) setIsSessionWhiteboardOpen(false);
+                    else if (isParticipantsPanelOpen) setIsParticipantsPanelOpen(false);
+                    else onExit(); // Exit presentation on Escape if no overlays are open
                 }
             };
-            window.addEventListener('keydown', handleKeyDown);
+            window.addEventListener('keydown', handleGlobalKeyDown);
 
             return () => {
-                console.log('[PresentationView] Cleaning up Reveal.js instance.');
-                window.removeEventListener('keydown', handleKeyDown);
-                const currentDeck = deckInstanceRef.current;
-                if (currentDeck && typeof (currentDeck as any).destroy === 'function') {
+                window.removeEventListener('keydown', handleGlobalKeyDown);
+                if (
+                    deckInstanceRef.current &&
+                    typeof (deckInstanceRef.current as any).destroy === 'function'
+                ) {
                     try {
-                        (currentDeck as any).destroy();
-                        console.log('[PresentationView] Reveal.js instance destroyed.');
+                        (deckInstanceRef.current as any).destroy();
                     } catch (e) {
-                        console.error('[PresentationView] Error destroying Reveal.js instance:', e);
+                        /* console.error("Error destroying Reveal.js on cleanup:", e); */
                     }
                 }
                 deckInstanceRef.current = null;
+                setIsRevealInitialized(false);
             };
-        } else if (deckInstanceRef.current && (!slides || slides.length === 0)) {
-            console.log(
-                '[PresentationView] No slides or slides removed, destroying existing Reveal.js instance.'
-            );
-            if (typeof (deckInstanceRef.current as any).destroy === 'function') {
-                (deckInstanceRef.current as any).destroy();
-            }
-            deckInstanceRef.current = null;
         }
-    }, [slides, onExit]); // Re-initialize if 'slides' array reference changes or onExit changes.
+    }, [
+        slides,
+        onExit,
+        isLiveSession,
+        liveSessionData?.session_id,
+        debouncedMoveApiCall,
+        initialSlideId,
+    ]);
 
-    // Effect for syncing/layouting when slides array content might change
-    useEffect(() => {
-        if (
-            deckInstanceRef.current &&
-            deckInstanceRef.current.isReady &&
-            deckInstanceRef.current.isReady()
-        ) {
-            // Check isReady before sync/layout
-            console.log('[PresentationView] Slides data changed, syncing/layouting Reveal.js.');
-            deckInstanceRef.current.sync();
-            deckInstanceRef.current.layout();
-        }
-    }, [slides]); // This effect depends on the 'slides' prop.
+    const handleEndSession = async () => {
+        if (!isLiveSession || !liveSessionData) return;
+        // API call to end/archive session on backend (optional)
+        // e.g., await authenticatedAxiosInstance.post(`${END_SESSION_API_URL}`, { session_id: liveSessionData.session_id });
+        toast.info('Session ended by administrator.', { duration: 2000 });
+        onExit(); // Return to editor or previous screen
+    };
+
+    const actionBarHeight = isLiveSession ? '3.5rem' : '0px'; // 56px for h-14
 
     if (!slides || slides.length === 0) {
         return (
-            <div
-                style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    zIndex: 1000,
-                    backgroundColor: '#111',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'white',
-                }}
-            >
-                <p>No slides to present.</p>
-                <button
+            <div className="fixed inset-0 z-[1000] flex flex-col items-center justify-center bg-slate-100 p-6 text-slate-700">
+                <img
+                    src="/placeholder-empty-slides.svg"
+                    alt="No Slides"
+                    className="mb-6 h-44 w-44 opacity-60"
+                />
+                <p className="mb-8 text-xl font-medium">
+                    No slides available for this presentation.
+                </p>
+                <Button
                     onClick={onExit}
-                    style={{
-                        marginTop: '20px',
-                        padding: '10px 20px',
-                        color: '#333',
-                        backgroundColor: 'white',
-                        border: 'none',
-                        borderRadius: '5px',
-                        cursor: 'pointer',
-                    }}
+                    variant="outline"
+                    className="border-slate-300 px-6 py-2 text-base hover:bg-slate-200"
                 >
-                    Exit Presentation Mode
-                </button>
+                    Return to Editor
+                </Button>
             </div>
         );
     }
 
     return (
-        <div
-            ref={revealContainerRef}
-            className="reveal"
-            style={{
-                position: 'fixed',
-                width: '100vw', // Correct: defines the full viewport width
-                height: '100vh',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                zIndex: 50,
-                backgroundColor: '#111',
-            }}
-        >
-            <div className="slides">
-                {slides.map((slide, index) => {
-                    const slideIdForLog = slide.id;
-                    const slideType = slide.type;
-                    const elementsForSlide = slide.elements;
-                    const appStateForSlide = slide.appState;
-                    const filesForSlide = slide.files; // This is your raw files data for the slide
+        <>
+            {isLiveSession && liveSessionData && (
+                <LiveSessionActionBar
+                    inviteCode={liveSessionData.invite_code}
+                    currentSlideIndex={currentRevealVisualIndex}
+                    totalSlides={slides.length}
+                    participantsCount={participantsCount}
+                    onToggleParticipantsView={() => setIsParticipantsPanelOpen((prev) => !prev)}
+                    isParticipantsPanelOpen={isParticipantsPanelOpen}
+                    onToggleWhiteboard={() => setIsSessionWhiteboardOpen((prev) => !prev)}
+                    isWhiteboardOpen={isSessionWhiteboardOpen}
+                    onEndSession={handleEndSession}
+                />
+            )}
 
-                    return (
+            <div
+                ref={revealContainerRef}
+                className="reveal" // Reveal.js root
+                style={{
+                    width: '100vw',
+                    height: '100vh',
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    zIndex: 50, // Ensure it's below action bar and overlays
+                    // backgroundColor: '#F0F2F5', // Default background for the reveal area
+                }}
+            >
+                <div className="slides">
+                    {' '}
+                    {/* Reveal.js slides container */}
+                    {slides.map((slide) => (
                         <section
-                            key={slideIdForLog}
+                            key={slide.id}
+                            // Reveal handles background color per slide if set, or use global theme
                             data-background-color={
-                                slideType === SlideType.Quiz || slideType === SlideType.Feedback
-                                    ? '#FFFFFF' // Explicitly set white background for Quiz/Feedback sections
-                                    : appStateForSlide?.viewBackgroundColor || '#FFFFFF' // Existing logic for other types
+                                slide.type === SlideTypeEnum.Quiz ||
+                                slide.type === SlideTypeEnum.Feedback
+                                    ? '#FFFFFF' // White for quiz/feedback slides
+                                    : (slide as ExcalidrawSlideData).appState
+                                          ?.viewBackgroundColor || '#F8F9FA' // Light neutral for Excalidraw
                             }
+                            // Padding for content area to not be obscured by fixed action bar
+                            style={{
+                                paddingTop: actionBarHeight,
+                                boxSizing: 'border-box',
+                                height: '100vh',
+                            }}
                         >
+                            {/* Wrapper to control content sizing and centering within the padded section */}
                             <div
                                 style={{
-                                    // This div centers the content within the section
-                                    width: '100%',
-                                    height: '100%',
+                                    width: '100%', // Full width of the padded section
+                                    height: `calc(100% - ${isLiveSession ? '0px' : '0px'})`, // Full height, padding handled by section
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
+                                    boxSizing: 'border-box',
+                                    // padding: '1rem 2rem', // Optional general padding around content
                                 }}
                             >
-                                {slideType === SlideType.Quiz ||
-                                slideType === SlideType.Feedback ? (
+                                {slide.type === SlideTypeEnum.Quiz ||
+                                slide.type === SlideTypeEnum.Feedback ? (
                                     <div
                                         style={{
-                                            width: '80%', // The "card" for the quiz
-                                            height: '80%',
-                                            backgroundColor: 'white', // Card background
-                                            padding: '20px',
-                                            borderRadius: '8px',
+                                            width: 'clamp(320px, 70%, 800px)',
+                                            maxHeight: '80vh', // Ensure it fits viewport
+                                            backgroundColor: 'white',
+                                            padding: '2rem 2.5rem',
+                                            borderRadius: '12px',
+                                            boxShadow: '0 10px 30px rgba(0,0,0,0.08)',
+                                            display: 'flex',
+                                            flexDirection: 'column',
                                             overflowY: 'auto',
-                                            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                                            display: 'flex', // Important: Use flex to allow QuizeSlide to grow
-                                            flexDirection: 'column', // Stack content vertically
+                                            scrollbarWidth: 'thin',
                                         }}
                                     >
-                                        <QuizeSlide
-                                            formdata={elementsForSlide}
-                                            // Pass a className that helps QuizeSlide fill this container
-                                            className={'flex flex-grow flex-col'} // `flex-grow` is key if QuizeSlide root should expand
-                                            questionType={slideType}
-                                            currentSlideId={slideIdForLog}
-                                            isPresentationMode={true}
+                                        <QuizSlide
+                                            formdata={
+                                                (slide as QuizSlideData | FeedbackSlideData)
+                                                    .elements as QuestionFormData
+                                            }
+                                            className={'flex flex-grow flex-col'} // quiz slide takes available space
+                                            questionType={
+                                                slide.type as
+                                                    | SlideTypeEnum.Quiz
+                                                    | SlideTypeEnum.Feedback
+                                            }
+                                            currentSlideId={slide.id}
+                                            isPresentationMode={true} // Always true in PresentationView
                                         />
                                     </div>
                                 ) : (
-                                    // Excalidraw rendering part - ensure its container is also 100% width/height
+                                    // Excalidraw or other rich content types
                                     <div
                                         style={{
                                             width: '100%',
                                             height: '100%',
                                             display: 'flex',
-                                            flexDirection: 'column',
-                                            alignItems: 'stretch', // Stretch children (ExcalidrawViewer)
+                                            alignItems: 'stretch',
                                             justifyContent: 'stretch',
                                         }}
                                     >
-                                        {(() => {
-                                            // console.log(`[PresentationView] Preparing Excalidraw slide ID: ${slideIdForLog}`, "Type:", slideType);
-
-                                            const finalElements = Array.isArray(elementsForSlide)
-                                                ? elementsForSlide
-                                                : [];
-                                            // ... (warning for non-array elements)
-
-                                            console.log('hello 7878');
-                                            console.log(finalElements);
-
-                                            const finalFiles = filesForSlide || {}; // Default to empty object if null/undefined
-                                            // ... (warning for null/undefined files)
-
-                                            // ... (appState logic remains the same)
-                                            const baseAppState = appStateForSlide || {};
-                                            let finalAppState = {
-                                                /* ... */
-                                            };
-                                            // ... (problematicSlideId logic) ...
-                                            // ... (collaborators correction) ...
-                                            finalAppState.viewModeEnabled = true;
-                                            finalAppState.zenModeEnabled = true;
-
-                                            // Log what's being passed to ExcalidrawViewer
-                                            if (
-                                                slideType !== SlideType.Quiz &&
-                                                slideType !== SlideType.Feedback
-                                            ) {
-                                                const imageElsInFinal = finalElements.filter(
-                                                    (el) => el.type === 'image'
-                                                );
-                                                if (imageElsInFinal.length > 0) {
-                                                    console.log(
-                                                        `  Passing to ExcalidrawViewer - Image elements fileIds:`,
-                                                        JSON.stringify(
-                                                            imageElsInFinal.map(
-                                                                (el) => (el as any).fileId
-                                                            ),
-                                                            null,
-                                                            2
-                                                        )
-                                                    );
-                                                }
-                                                console.log(
-                                                    `  Passing to ExcalidrawViewer - finalFiles keys:`,
-                                                    Object.keys(finalFiles)
-                                                );
-                                                if (Object.keys(finalFiles).length > 0) {
-                                                    const firstFileId = Object.keys(finalFiles)[0];
-                                                    const firstFile = finalFiles[firstFileId];
-                                                    console.log(
-                                                        `  Passing to ExcalidrawViewer - Data for first file ('${firstFileId}'): mimeType=${firstFile?.mimeType}, dataURL exists?=${!!firstFile?.dataURL}, dataURL length=${firstFile?.dataURL?.length}`
-                                                    );
-                                                }
-                                            }
-                                            return (
-                                                <ExcalidrawViewer
-                                                    elements={finalElements} // finalElements already defaults to []
-                                                    appState={finalAppState}
-                                                    files={finalFiles} // finalFiles already defaults to {}
-                                                />
-                                            );
-                                        })()}
+                                        <SlideEditor
+                                            editMode={false} // View mode for presentation
+                                            slide={slide as ExcalidrawSlideData} // Pass Excalidraw specific data
+                                            onSlideChange={() => {
+                                                /* No changes in view mode */
+                                            }}
+                                            key={`${slide.id}-viewer`}
+                                        />
                                     </div>
                                 )}
                             </div>
                         </section>
-                    );
-                })}
+                    ))}
+                </div>
             </div>
-        </div>
+
+            {/* Loading overlay for Reveal.js initialization */}
+            {!isRevealInitialized && slides && slides.length > 0 && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-white/70 backdrop-blur-sm">
+                    <Loader2 className="size-10 animate-spin text-orange-500" />
+                </div>
+            )}
+
+            {isLiveSession && liveSessionData && (
+                <>
+                    <ParticipantsSidePanel
+                        sessionId={liveSessionData.session_id}
+                        isOpen={isParticipantsPanelOpen}
+                        onClose={() => setIsParticipantsPanelOpen(false)}
+                        topOffset={actionBarHeight}
+                    />
+                    <SessionExcalidrawOverlay
+                        sessionId={liveSessionData.session_id} // Assuming it needs session ID
+                        isOpen={isSessionWhiteboardOpen}
+                        onClose={() => setIsSessionWhiteboardOpen(false)}
+                        // Pass other necessary props for SessionExcalidrawOverlay
+                    />
+                </>
+            )}
+        </>
     );
 };

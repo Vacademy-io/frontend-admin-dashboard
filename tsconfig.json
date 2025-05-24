@@ -2,8 +2,8 @@
     "compilerOptions": {
         "baseUrl": ".",
         "paths": {
-  "@excalidraw/*": ["./src/components/common/excalidraw/packages/*"],
-  "@/*": ["./src/*"]
+            "@excalidraw/*": ["./src/components/common/excalidraw/packages/*"],
+            "@/*": ["./src/*"]
         },
         "target": "esnext",
         "lib": ["dom", "dom.iterable", "esnext"],
@@ -27,8 +27,8 @@
         "strictNullChecks": true
     },
     "include": ["src"],
-    "exclude": ["node_modules"  ]
-
-
+    "exclude": ["node_modules"]
 }
+
+
 //"./src/components/common/excalidraw/**/*"
