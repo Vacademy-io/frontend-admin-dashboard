@@ -5,24 +5,24 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table";
-import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { CheckCircle } from "phosphor-react";
-import { Section } from "@/types/assessments/assessment-data-type";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { Route } from "..";
+} from '@/components/ui/table';
+import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { CheckCircle } from 'phosphor-react';
+import { Section } from '@/types/assessments/assessment-data-type';
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { Route } from '..';
 import {
     getAssessmentDetails,
     getQuestionDataForSection,
-} from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-services/assessment-services";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
+} from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-services/assessment-services';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
 import {
     calculateTotalMarks,
     getQuestionTypeCounts,
-} from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/helper";
-import { calculateAverageMarks, calculateAveragePenalty } from "../-utils/helper";
-import { QuestionData } from "@/types/assessments/assessment-steps";
+} from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/helper';
+import { calculateAverageMarks, calculateAveragePenalty } from '../-utils/helper';
+import { QuestionData } from '@/types/assessments/assessment-steps';
 
 interface QuestionDuration {
     hrs: string;
@@ -46,10 +46,10 @@ const AssessmentQuestionsSection = ({ section, index }: { section: Section; inde
             assessmentId: assessmentId,
             instituteId: instituteDetails?.id,
             type: examType,
-        }),
+        })
     );
     const { data: questionsData, isLoading } = useSuspenseQuery(
-        getQuestionDataForSection({ assessmentId, sectionIds: section.id }),
+        getQuestionDataForSection({ assessmentId, sectionIds: section.id })
     );
 
     const questionsForSection = questionsData[section.id] || [];
@@ -58,20 +58,20 @@ const AssessmentQuestionsSection = ({ section, index }: { section: Section; inde
     const adaptiveMarking = questionsForSection.map((questionData: QuestionData) => {
         const markingJson = questionData.marking_json ? JSON.parse(questionData.marking_json) : {};
         return {
-            questionId: questionData.question_id || "",
-            questionName: questionData.question?.content || "",
-            questionType: questionData.question_type || "",
-            questionMark: markingJson.data?.totalMark || "0",
-            questionPenalty: markingJson.data?.negativeMark || "0",
+            questionId: questionData.question_id || '',
+            questionName: questionData.question?.content || '',
+            questionType: questionData.question_type || '',
+            questionMark: markingJson.data?.totalMark || '0',
+            questionPenalty: markingJson.data?.negativeMark || '0',
             questionDuration: {
                 hrs:
-                    typeof questionData.question_duration === "number"
+                    typeof questionData.question_duration === 'number'
                         ? String(Math.floor(questionData.question_duration / 60))
-                        : "0",
+                        : '0',
                 min:
-                    typeof questionData.question_duration === "number"
+                    typeof questionData.question_duration === 'number'
                         ? String(questionData.question_duration % 60)
-                        : "0",
+                        : '0',
             },
         };
     });
@@ -103,12 +103,12 @@ const AssessmentQuestionsSection = ({ section, index }: { section: Section; inde
                         <p
                             className="font-thin"
                             dangerouslySetInnerHTML={{
-                                __html: section.description.content || "",
+                                __html: section.description.content || '',
                             }}
                         />
                     </div>
                 )}
-                {assessmentDetails[1]?.saved_data?.duration_distribution === "SECTION" &&
+                {assessmentDetails[1]?.saved_data?.duration_distribution === 'SECTION' &&
                     section.duration && (
                         <div className="flex w-96 items-center justify-start gap-8 text-sm font-thin">
                             <h1 className="font-normal">Section Duration:</h1>
@@ -163,10 +163,10 @@ const AssessmentQuestionsSection = ({ section, index }: { section: Section; inde
                                     <TableHead>Q.No.</TableHead>
                                     <TableHead>Question</TableHead>
                                     <TableHead>Question Type</TableHead>
-                                    <TableHead>Marks</TableHead>
-                                    <TableHead>Penalty</TableHead>
+                                    {examType !== 'SURVEY' && <TableHead>Marks</TableHead>}
+                                    {examType !== 'SURVEY' && <TableHead>Penalty</TableHead>}
                                     {assessmentDetails[1]?.saved_data?.duration_distribution ===
-                                        "QUESTION" && <TableHead>Time</TableHead>}
+                                        'QUESTION' && <TableHead>Time</TableHead>}
                                 </TableRow>
                             </TableHeader>
                             <TableBody className="bg-neutral-50">
@@ -176,14 +176,18 @@ const AssessmentQuestionsSection = ({ section, index }: { section: Section; inde
                                             <TableCell>{index + 1}</TableCell>
                                             <TableCell
                                                 dangerouslySetInnerHTML={{
-                                                    __html: question.questionName || "",
+                                                    __html: question.questionName || '',
                                                 }}
                                             />
                                             <TableCell>{question.questionType}</TableCell>
-                                            <TableCell>{question.questionMark}</TableCell>
-                                            <TableCell>{question.questionPenalty}</TableCell>
+                                            {examType !== 'SURVEY' && (
+                                                <TableCell>{question.questionMark}</TableCell>
+                                            )}
+                                            {examType !== 'SURVEY' && (
+                                                <TableCell>{question.questionPenalty}</TableCell>
+                                            )}
                                             {assessmentDetails[1]?.saved_data
-                                                ?.duration_distribution === "QUESTION" && (
+                                                ?.duration_distribution === 'QUESTION' && (
                                                 <TableCell>
                                                     <div className="flex items-center gap-2">
                                                         {question.questionDuration.hrs}

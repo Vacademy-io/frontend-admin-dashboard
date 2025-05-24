@@ -28,8 +28,10 @@ import type {
 import type { QuestionFormData } from '@/components/common/slides/utils/types'; // Import QuestionFormData as type
 import { SlideTypeEnum } from '@/components/common/slides/utils/types';
 
-const MOVE_SESSION_API_URL = 'http://localhost:8073/community-service/engage/admin/move';
-const PARTICIPANTS_SSE_URL_BASE = 'http://localhost:8073/community-service/engage/admin/'; // e.g., admin/${sessionId}/participants
+const MOVE_SESSION_API_URL =
+    'https://backend-stage.vacademy.io/community-service/engage/admin/move';
+const PARTICIPANTS_SSE_URL_BASE =
+    'https://backend-stage.vacademy.io/community-service/engage/admin/'; // e.g., admin/${sessionId}/participants
 
 interface PresentationViewProps {
     slides: AppSlide[];

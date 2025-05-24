@@ -345,12 +345,11 @@ export const handleUpdateAdminDetails = async (
         date_of_birth: '',
         gender: '',
         profile_pic_file_id: adminDetailsData.profilePictureId,
-        roles: getModifiedAdminRoles(roles, oldRoles, newRoles).updated_roles,
+        roles: [],
         delete_user_role_request: getModifiedAdminRoles(roles, oldRoles, newRoles)
             .delete_user_role_request,
         add_user_role_request: getModifiedAdminRoles(roles, oldRoles, newRoles)
             .add_user_role_request,
-        root_user: true,
     };
 
     const response = await authenticatedAxiosInstance({

@@ -39,7 +39,7 @@ export const ParticipantsSidePanel: React.FC<ParticipantsSidePanelProps> = ({
 
         setIsLoading(true);
         // console.log(`[ParticipantsPanel] Effect run. isOpen: ${isOpen}, sessionId: ${sessionId}`);
-        const sseUrl = `http://localhost:8073/community-service/engage/admin/${sessionId}`;
+        const sseUrl = `https://backend-stage.vacademy.io/community-service/engage/admin/${sessionId}`;
         // console.log(`[ParticipantsPanel] SSE connecting to: ${sseUrl}`);
         const eventSource = new EventSource(sseUrl, { withCredentials: true });
 

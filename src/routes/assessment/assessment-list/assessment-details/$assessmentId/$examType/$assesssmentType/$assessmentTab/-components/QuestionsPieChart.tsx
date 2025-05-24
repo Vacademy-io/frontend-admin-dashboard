@@ -1,33 +1,33 @@
-import { Pie, PieChart } from "recharts";
+import { Pie, PieChart } from 'recharts';
 import {
     ChartConfig,
     ChartContainer,
     ChartTooltip,
     ChartTooltipContent,
-} from "@/components/ui/chart";
-import { DotOutline } from "@phosphor-icons/react";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { handleGetOverviewData } from "../-services/assessment-details-services";
-import { Route } from "..";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { convertToLocalDateTime, getInstituteId } from "@/constants/helper";
-import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
-import { getSubjectNameById } from "@/routes/assessment/question-papers/-utils/helper";
-import { AssessmentOverviewDataInterface } from "@/types/assessment-overview";
-import AssessmentStudentLeaderboard from "./AssessmentStudentLeaderboard";
+} from '@/components/ui/chart';
+import { DotOutline } from '@phosphor-icons/react';
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { handleGetOverviewData } from '../-services/assessment-details-services';
+import { Route } from '..';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { convertToLocalDateTime, getInstituteId } from '@/constants/helper';
+import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
+import { getSubjectNameById } from '@/routes/assessment/question-papers/-utils/helper';
+import { AssessmentOverviewDataInterface } from '@/types/assessment-overview';
+import AssessmentStudentLeaderboard from './AssessmentStudentLeaderboard';
 
 const chartConfig = {
     ongoing: {
-        label: "Ongoing",
-        color: "hsl(var(--chart-2))",
+        label: 'Ongoing',
+        color: 'hsl(var(--chart-2))',
     },
     pending: {
-        label: "Pending",
-        color: "hsl(var(--chart-3))",
+        label: 'Pending',
+        color: 'hsl(var(--chart-3))',
     },
     attempted: {
-        label: "Attempted",
-        color: "hsl(var(--chart-4))",
+        label: 'Attempted',
+        color: 'hsl(var(--chart-4))',
     },
 } satisfies ChartConfig;
 
@@ -38,21 +38,21 @@ export function AssessmentDetailsPieChart({
 }) {
     const chartData = [
         {
-            browser: "ongoing",
+            browser: 'ongoing',
             visitors: assessmentOverviewData.total_ongoing,
-            fill: "#97D4B4",
+            fill: '#97D4B4',
         },
         {
-            browser: "pending",
+            browser: 'pending',
             visitors:
                 assessmentOverviewData.total_participants -
                 (assessmentOverviewData.total_ongoing + assessmentOverviewData.total_attempted),
-            fill: "#FAD6AE",
+            fill: '#FAD6AE',
         },
         {
-            browser: "attempted",
+            browser: 'attempted',
             visitors: assessmentOverviewData.total_attempted,
-            fill: "#E5F5EC",
+            fill: '#E5F5EC',
         },
     ];
     return (
@@ -70,7 +70,7 @@ export function QuestionsPieChart() {
     const { assessmentId, examType } = Route.useParams();
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
     const { data, isLoading } = useSuspenseQuery(
-        handleGetOverviewData({ assessmentId, instituteId }),
+        handleGetOverviewData({ assessmentId, instituteId })
     );
 
     if (isLoading) return <DashboardLoader />;
@@ -86,25 +86,25 @@ export function QuestionsPieChart() {
                                 {convertToLocalDateTime(data.assessment_overview_dto.created_on)}
                             </span>
                         </p>
-                        {(examType === "EXAM" || examType === "SURVEY") && (
+                        {(examType === 'EXAM' || examType === 'SURVEY') && (
                             <>
                                 <p>
                                     <span className="font-normal text-black">
-                                        Start Date and Time:{" "}
+                                        Start Date and Time:{' '}
                                     </span>
                                     <span>
                                         {convertToLocalDateTime(
-                                            data.assessment_overview_dto.start_date_and_time,
+                                            data.assessment_overview_dto.start_date_and_time
                                         )}
                                     </span>
                                 </p>
                                 <p>
                                     <span className="font-normal text-black">
-                                        End Date and Time:{" "}
+                                        End Date and Time:{' '}
                                     </span>
                                     <span>
                                         {convertToLocalDateTime(
-                                            data.assessment_overview_dto.end_date_and_time,
+                                            data.assessment_overview_dto.end_date_and_time
                                         )}
                                     </span>
                                 </p>
@@ -117,19 +117,27 @@ export function QuestionsPieChart() {
                             <span>
                                 {getSubjectNameById(
                                     instituteDetails?.subjects || [],
-                                    data.assessment_overview_dto.subject_id || "",
+                                    data.assessment_overview_dto.subject_id || ''
                                 )}
                             </span>
                         </p>
-                        {(examType === "EXAM" || examType === "MOCK") && (
+                        {(examType === 'EXAM' || examType === 'MOCK') && (
                             <p>
                                 <span className="font-normal text-black">Duration: </span>
                                 {data.assessment_overview_dto.duration_in_min >= 60 ? (
                                     <span>
-                                        {(
+                                        {Math.floor(
                                             data.assessment_overview_dto.duration_in_min / 60
-                                        ).toFixed(2)}{" "}
+                                        )}{' '}
                                         hrs
+                                        {data.assessment_overview_dto.duration_in_min % 60 > 0 && (
+                                            <>
+                                                {' '}
+                                                {data.assessment_overview_dto.duration_in_min %
+                                                    60}{' '}
+                                                min
+                                            </>
+                                        )}
                                     </span>
                                 ) : (
                                     <span>{data.assessment_overview_dto.duration_in_min} min</span>
@@ -148,7 +156,7 @@ export function QuestionsPieChart() {
                         <p className="text-center text-3xl font-semibold text-primary-500">
                             {(
                                 Math.floor(data.assessment_overview_dto.average_duration) / 60
-                            ).toFixed(2)}{" "}
+                            ).toFixed(2)}{' '}
                             min
                         </p>
                     </div>

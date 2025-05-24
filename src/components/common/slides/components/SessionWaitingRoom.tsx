@@ -87,7 +87,7 @@ export const WaitingRoom: React.FC<WaitingRoomProps> = ({
 
         setIsSseLoading(true);
         // console.log(`[WaitingRoom] SSE init. Session ID: ${sessionId}`);
-        const sseUrl = `http://localhost:8073/community-service/engage/admin/${sessionId}`;
+        const sseUrl = `https://backend-stage.vacademy.io/community-service/engage/admin/${sessionId}`;
         const eventSource = new EventSource(sseUrl, { withCredentials: true });
 
         eventSource.onopen = () => {

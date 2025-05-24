@@ -1,9 +1,12 @@
 /* eslint-disable */
 // @ts-nocheck
 'use client';
-
+import debounce from 'lodash.debounce'; // Import debounce
 import React, { useEffect, useState, useMemo } from 'react';
 import { SlideEditor } from './SlideEditor';
+import { getPublicUrl, UploadFileInS3V2 } from '@/services/upload_file';
+import { filterSlidesByIdType } from './utils/util';
+import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { Button } from '@/components/ui/button';
 import { ListStart, Save, Loader2, PlaySquare, Tv2, PlusCircle } from 'lucide-react';
 import SlideList from './SlideList';
@@ -14,10 +17,11 @@ import { useRouter } from '@tanstack/react-router'; // Or your router import
 import { useGetSinglePresentation } from './hooks/useGetSinglePresntation'; // Assumed path
 import { toast } from 'sonner';
 import { IoArrowBackSharp } from 'react-icons/io5';
-
+import { TokenKey } from '@/constants/auth/tokens';
 import { PresentationView } from './PresentationView';
 import { SessionOptionsModal, type SessionOptions } from './components/SessionOptionModel'; // Assumed path
 import { WaitingRoom } from './components/SessionWaitingRoom'; // Assumed path
+import { ADD_PRESENTATION, EDIT_PRESENTATION } from '@/constants/urls';
 
 import type {
     Slide as AppSlide,
@@ -31,8 +35,10 @@ import type {
 } from './types';
 import { SlideTypeEnum } from '././utils/types';
 
-const CREATE_SESSION_API_URL = 'http://localhost:8073/community-service/engage/admin/create';
-const START_SESSION_API_URL = 'http://localhost:8073/community-service/engage/admin/start';
+const CREATE_SESSION_API_URL =
+    'https://backend-stage.vacademy.io/community-service/engage/admin/create';
+const START_SESSION_API_URL =
+    'https://backend-stage.vacademy.io/community-service/engage/admin/start';
 
 interface SlideRendererProps {
     currentSlideId: string;
@@ -41,8 +47,28 @@ interface SlideRendererProps {
 
 const SlideRenderer: React.FC<SlideRendererProps> = ({ currentSlideId, editMode }) => {
     const getSlide = useSlideStore((state) => state.getSlide);
-    const updateSlide = useSlideStore((state) => state.updateSlide); // Assuming updateSlide exists and handles types
+    const rawUpdateSlide = useSlideStore((state) => state.updateSlide); // Get the raw updateSlide function
 
+    // Create a debounced version of updateSlide
+    // Adjust the wait time (e.g., 250-500ms) as needed.
+    const debouncedUpdateSlide = useMemo(
+        () =>
+            debounce(
+                (
+                    id: string,
+                    elements: readonly ExcalidrawElement[],
+                    appState: ExcalidrawAppState,
+                    files: ExcalidrawBinaryFiles
+                ) => {
+                    if (id) {
+                        // Ensure currentSlideId is valid before calling
+                        rawUpdateSlide(id, elements, appState, files);
+                    }
+                },
+                2000
+            ), // Debounce wait time in milliseconds
+        [rawUpdateSlide] // Dependency: re-create if rawUpdateSlide changes (should be stable)
+    );
     const slide = getSlide(currentSlideId);
 
     if (!slide) {
@@ -87,11 +113,13 @@ const SlideRenderer: React.FC<SlideRendererProps> = ({ currentSlideId, editMode 
                         appState: ExcalidrawAppState,
                         files: ExcalidrawBinaryFiles
                     ) => {
-                        // Ensure updateSlide in your store can handle these parameters
-                        // It's often better to pass an object of changes:
-                        // updateSlide(currentSlideId, { elements, appState, files });
-                        // For now, matching your existing pattern:
-                        updateSlide(currentSlideId, elements, appState, files);
+                        {
+                            // Call the debounced version INSTEAD of rawUpdateSlide directly
+                            if (currentSlideId) {
+                                // Ensure currentSlideId is available
+                                debouncedUpdateSlide(currentSlideId, elements, appState, files);
+                            }
+                        }
                     }}
                     key={slideEditorKey} // Key for re-render on specific data change
                 />
@@ -127,7 +155,7 @@ export default function SlidesEditorComponent({
         deleteSlide, // (id: string) => void
         getSlide,
         setSlides, // (slides: AppSlide[]) => void
-        // updateSlide is used by SlideRenderer directly from store
+        updateSlide,
     } = useSlideStore();
 
     const router = useRouter();
@@ -333,7 +361,9 @@ export default function SlidesEditorComponent({
                     return;
                 }
 
-                const isQuestionSlide = [SlideType.Quiz, SlideType.Feedback].includes(slide.type);
+                const isQuestionSlide = [SlideTypeEnum.Quiz, SlideTypeEnum.Feedback].includes(
+                    slide.type
+                );
 
                 const baseSlide = {
                     id: slide.id ?? '',

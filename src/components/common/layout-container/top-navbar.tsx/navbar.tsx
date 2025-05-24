@@ -1,7 +1,6 @@
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useEffect, useState } from 'react';
 import { CaretDown, CaretUp } from '@phosphor-icons/react';
-import { DummyProfile } from '@/assets/svgs';
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
 import { useSidebarStore } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/global-states';
 import {
@@ -102,7 +101,9 @@ export function Navbar() {
                 <div className="flex items-center gap-1">
                     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
                         <DropdownMenuTrigger className="flex items-center gap-2">
-                            <DummyProfile className="" />
+                            {adminLogo !== '' && (
+                                <img src={adminLogo} alt="logo" className="size-10 rounded-full" />
+                            )}
                             {isOpen ? <CaretDown /> : <CaretUp />}
                         </DropdownMenuTrigger>
                         <DropdownMenuContent className="flex flex-col items-start">
@@ -116,13 +117,7 @@ export function Navbar() {
                                     </SheetTitle>
                                     <div className="flex flex-col gap-8">
                                         <div className="flex flex-col items-center justify-center gap-4">
-                                            {adminLogo !== '' ? (
-                                                <img
-                                                    src={adminLogo}
-                                                    alt="logo"
-                                                    className="size-48 rounded-full"
-                                                />
-                                            ) : (
+                                            {adminLogo !== '' && (
                                                 <img
                                                     src={adminLogo}
                                                     alt="logo"

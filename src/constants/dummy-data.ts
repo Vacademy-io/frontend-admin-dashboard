@@ -79,6 +79,7 @@ export const RoleType = [
     { id: '3', name: 'ASSESSMENT CREATOR' },
     { id: '4', name: 'EVALUATOR' },
     { id: '5', name: 'TEACHER' },
+    { id: '6', name: 'STUDENT' },
 ];
 export const RoleTypeUserStatus = [
     { id: '1', name: 'ACTIVE' },
