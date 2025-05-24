@@ -34,7 +34,6 @@ export const SingleCorrectQuestionPaperTemplatePPTView = ({
         form.trigger();
         setCurrentQuestionIndex(allQuestions.length - 1);
     };
-    console.log(currentQuestionIndex);
 
     const handleDuplicateSlide = () => {
         const questionToDuplicate = allQuestions[currentQuestionIndex];

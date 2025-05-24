@@ -1,7 +1,7 @@
 import { FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { DotsSixVertical, Plus, X } from 'phosphor-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useFieldArray } from 'react-hook-form';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -130,9 +130,9 @@ export function QuestionPaperTemplate({
         form.trigger();
     };
 
-    // useEffect(() => {
-    //     setCurrentQuestionIndex(questions.length - 1);
-    // }, [form.watch('questions')]);
+    useEffect(() => {
+        setCurrentQuestionIndex(questions.length - 1);
+    }, [form.watch(`questions.${currentQuestionIndex}.questionType`)]);
 
     const handleUpdateQuestionPaper = useMutation({
         mutationFn: ({
