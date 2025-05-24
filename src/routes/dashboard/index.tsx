@@ -21,12 +21,11 @@ import {
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { SSDC_INSTITUTE_ID } from '@/constants/urls';
 import { Helmet } from 'react-helmet';
-import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
-import { TokenKey } from '@/constants/auth/tokens';
 import { getModuleFlags } from '@/components/common/layout-container/sidebar/helper';
 import RoleTypeComponent from './-components/RoleTypeComponent';
 import useLocalStorage from '@/hooks/use-local-storage';
 import EditDashboardProfileComponent from './-components/EditDashboardProfileComponent';
+import { handleGetAdminDetails } from '@/services/student-list-section/getAdminDetails';
 
 export const Route = createFileRoute('/dashboard/')({
     component: () => (
@@ -37,12 +36,11 @@ export const Route = createFileRoute('/dashboard/')({
 });
 
 export function DashboardComponent() {
-    const accessToken = getTokenFromCookie(TokenKey.accessToken);
-    const tokenData = getTokenDecodedData(accessToken);
     const location = useLocation();
     const { getValue, setValue } = useLocalStorage<boolean>(IntroKey.dashboardWelcomeVideo, true);
     const { data: instituteDetails, isLoading: isInstituteLoading } =
         useSuspenseQuery(useInstituteQuery());
+    const { data: adminDetails } = useSuspenseQuery(handleGetAdminDetails());
     const subModules = getModuleFlags(instituteDetails?.sub_modules);
 
     const { data, isLoading: isDashboardLoading } = useSuspenseQuery(
@@ -119,7 +117,7 @@ export function DashboardComponent() {
                 />
             </Helmet>
             <h1 className="text-base">
-                Hello <span className="text-primary-500">{tokenData?.fullname}!</span>
+                Hello <span className="text-primary-500">{adminDetails?.full_name}!</span>
             </h1>
             {getValue() && (
                 <>
