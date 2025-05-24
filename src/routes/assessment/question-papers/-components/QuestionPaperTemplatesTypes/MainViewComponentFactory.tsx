@@ -31,9 +31,11 @@ export const MainViewComponentFactory = (params: {
     type: MainViewComponentType;
     props: QuestionPaperTemplateFormProps;
 }) => {
-    if (params.type) {
+    if (params.type && MainViewComponentsMap[params.type]) {
+        // Added check for existence in map
         const Component = MainViewComponentsMap[params.type];
         return <Component {...params.props} />;
     }
-    return;
+    // Return null when you don't want to render anything
+    return null;
 };
