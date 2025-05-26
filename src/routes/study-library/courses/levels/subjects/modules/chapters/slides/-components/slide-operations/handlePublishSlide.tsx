@@ -67,7 +67,6 @@ export const handlePublishSlide = async (
         if (activeItem?.document_slide?.type == 'DOC') await SaveDraft(activeItem);
         const publishedData = activeItem.document_slide?.data;
         try {
-            console.log('api 1');
             await addUpdateDocumentSlide({
                 id: activeItem?.id || '',
                 title: activeItem.title || '',

@@ -147,6 +147,42 @@ export const DoubtResolutionSidebar = ({
                         ))}
                         {isFetchingNextPage && <DashboardLoader />}
                     </TabsContent>
+                    <TabsContent value="RESOLVED" className="flex flex-col gap-4">
+                        {allDoubts.map((doubt, index) => (
+                            <div
+                                key={doubt.id || index}
+                                ref={
+                                    index === allDoubts.length - 1 ? lastDoubtElementRef : undefined
+                                }
+                            >
+                                <Doubt
+                                    doubt={doubt}
+                                    setDoubtProgressMarkerPdf={setDoubtProgressMarkerPdf}
+                                    setDoubtProgressMarkerVideo={setDoubtProgressMarkerVideo}
+                                    refetch={refetch}
+                                />
+                            </div>
+                        ))}
+                        {isFetchingNextPage && <DashboardLoader />}
+                    </TabsContent>
+                    <TabsContent value="UNRESOLVED" className="flex flex-col gap-4">
+                        {allDoubts.map((doubt, index) => (
+                            <div
+                                key={doubt.id || index}
+                                ref={
+                                    index === allDoubts.length - 1 ? lastDoubtElementRef : undefined
+                                }
+                            >
+                                <Doubt
+                                    doubt={doubt}
+                                    setDoubtProgressMarkerPdf={setDoubtProgressMarkerPdf}
+                                    setDoubtProgressMarkerVideo={setDoubtProgressMarkerVideo}
+                                    refetch={refetch}
+                                />
+                            </div>
+                        ))}
+                        {isFetchingNextPage && <DashboardLoader />}
+                    </TabsContent>
                 </Tabs>
             </SidebarContent>
         </Sidebar>

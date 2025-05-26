@@ -22,7 +22,7 @@ export const MarkAsResolved = ({ doubt, refetch }: { doubt: Doubt; refetch: () =
             content_position: doubt.content_position,
             content_type: doubt.content_type,
             html_text: doubt.html_text,
-            status: resolved ? 'RESOLVED' : 'ACTIVE',
+            status: resolved ? 'ACTIVE' : 'RESOLVED',
             parent_id: doubt.parent_id,
             parent_level: doubt.parent_level,
             doubt_assignee_request_user_ids: doubt.doubt_assignee_request_user_ids,
@@ -30,7 +30,7 @@ export const MarkAsResolved = ({ doubt, refetch }: { doubt: Doubt; refetch: () =
         await handleAddReply({ replyData, addReply, refetch, id: doubt.id });
     };
     return (
-        <div className="flex w-full items-center gap-2 font-semibold">
+        <div className="flex items-center gap-2 font-semibold">
             Mark as resolved <Switch checked={resolved} onCheckedChange={handleDoubtResolve} />
         </div>
     );

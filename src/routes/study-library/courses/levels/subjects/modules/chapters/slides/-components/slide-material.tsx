@@ -254,7 +254,6 @@ export const SlideMaterial = ({
             const { totalPages } = await convertHtmlToPdf(currentHtml);
 
             try {
-                console.log('api 2');
                 await addUpdateDocumentSlide({
                     id: slide?.id || '',
                     title: slide?.title || '',

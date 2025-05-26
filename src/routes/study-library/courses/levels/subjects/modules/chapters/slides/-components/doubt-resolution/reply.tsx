@@ -3,6 +3,7 @@ import { getTokenDecodedData } from '@/lib/auth/sessionUtility';
 import { getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
 import { DeleteDoubt } from './DeleteDoubt';
+import { formatISODateTimeReadable } from '@/helpers/formatISOTime';
 
 export const Reply = ({ reply, refetch }: { reply: Doubt; refetch: () => void }) => {
     // const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -31,7 +32,7 @@ export const Reply = ({ reply, refetch }: { reply: Doubt; refetch: () => void })
                     {/* <StatusChip text={reply.role_type} textSize="text-caption" status="INFO" showIcon={false}/> */}
                 </div>
                 <div className="flex items-center gap-3 text-body text-neutral-500">
-                    <p>{reply.raised_time}</p>
+                    <p>{formatISODateTimeReadable(reply.raised_time)}</p>
                 </div>
             </div>
             {/* <p>{reply.reply_text}</p> */}

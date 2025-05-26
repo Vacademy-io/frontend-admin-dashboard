@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useEffect } from 'react';
+import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import { ArrowSquareOut } from '@phosphor-icons/react';
 import { StatusChip } from '@/components/design-system/status-chips';
 import { useContentStore } from '../../-stores/chapter-sidebar-store';
@@ -16,6 +16,8 @@ import { DeleteDoubt } from './DeleteDoubt';
 import { MarkAsResolved } from './MarkAsResolved';
 import { formatISODateTimeReadable } from '@/helpers/formatISOTime';
 import { useGetUserBasicDetails } from '@/services/get_user_basic_details';
+import { EnrollFormUploadImage } from '@/assets/svgs';
+import { getPublicUrl } from '@/services/upload_file';
 export const Doubt = ({
     doubt,
     setDoubtProgressMarkerPdf,
@@ -27,8 +29,7 @@ export const Doubt = ({
     setDoubtProgressMarkerVideo: Dispatch<SetStateAction<number | null>>;
     refetch: () => void;
 }) => {
-    // const [imageUrl, setImageUrl] = useState<string | null>(null);
-    const imageUrl: string | null = null;
+    const [imageUrl, setImageUrl] = useState<string | null>(null);
     const { activeItem } = useContentStore();
     const { setOpen } = useSidebar();
     const router = useRouter();
@@ -58,9 +59,6 @@ export const Doubt = ({
     console.log('data: ', data, isTeacher, userId);
 
     const { data: userBasicDetails } = useGetUserBasicDetails([doubt.user_id]);
-    useEffect(() => {
-        console.log('userBasicDetails: ', userBasicDetails);
-    }, [userBasicDetails]);
 
     const handleTimeStampClick = (timestamp: number) => {
         if (activeItem?.source_type == 'VIDEO') {
@@ -71,24 +69,24 @@ export const Doubt = ({
         setOpen(false);
     };
 
-    // useEffect(() => {
-    //     const fetchImageUrl = async () => {
-    //       if (doubt.face_file_id) {
-    //         try {
-    //           const url = await getPublicUrl(doubt.face_file_id);
-    //           setImageUrl(url);
-    //         } catch (error) {
-    //           console.error("Failed to fetch image URL:", error);
-    //         }
-    //       }
-    //     };
+    useEffect(() => {
+        const fetchImageUrl = async () => {
+            if (userBasicDetails?.[0]?.face_file_id) {
+                try {
+                    const url = await getPublicUrl(userBasicDetails?.[0]?.face_file_id);
+                    setImageUrl(url);
+                } catch (error) {
+                    console.error('Failed to fetch image URL:', error);
+                }
+            }
+        };
 
-    //     fetchImageUrl();
-    //   }, [doubt.face_file_id]);
+        fetchImageUrl();
+    }, [userBasicDetails?.[0]?.face_file_id]);
 
     return (
         <div className="flex flex-col gap-3 rounded-lg p-3 max-sm:text-caption md:px-1 lg:px-3">
-            <div className="flex flex-col gap-2">
+            <div className="flex w-full flex-col gap-2">
                 <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
                     <div className="flex items-center gap-2">
                         <div className="size-8 rounded-full bg-neutral-300 sm:size-10">
@@ -100,11 +98,11 @@ export const Doubt = ({
                                     className="size-full rounded-lg object-cover "
                                 />
                             ) : (
-                                <></>
+                                <EnrollFormUploadImage className="size-10" />
                             )}
                         </div>
                         <div className="text-subtitle font-semibold text-neutral-700">
-                            {doubt.name}
+                            {userBasicDetails?.[0]?.name}
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
@@ -118,7 +116,7 @@ export const Doubt = ({
                         </p>
                     </div>
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex w-full items-center justify-between ">
                     <div className="flex gap-2">
                         <p>
                             <span className="font-semibold">Timestamp: </span>
@@ -129,10 +127,10 @@ export const Doubt = ({
                             onClick={() => handleTimeStampClick(parseInt(doubt.content_position))}
                         />
                     </div>
-                    {isAdmin ||
-                        (userId && doubt.doubt_assignee_request_user_ids.includes(userId) && (
-                            <MarkAsResolved doubt={doubt} refetch={refetch} />
-                        ))}
+                    {(isAdmin ||
+                        (userId && doubt.doubt_assignee_request_user_ids.includes(userId))) && (
+                        <MarkAsResolved doubt={doubt} refetch={refetch} />
+                    )}
                 </div>
                 <div
                     dangerouslySetInnerHTML={{
