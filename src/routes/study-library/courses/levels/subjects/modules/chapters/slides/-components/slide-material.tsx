@@ -35,7 +35,7 @@ import { updateHeading } from './slide-operations/updateSlideHeading';
 import { formatHTMLString } from './slide-operations/formatHtmlString';
 import { handleConvertAndUpload } from './slide-operations/handleConvertUpload';
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
-import { DoubtResolutionSidebar } from './doubt-resolution/DoubtResolutionSidebar';
+import { DoubtResolutionSidebar } from './doubt-resolution/doubtResolutionSidebar';
 
 export function fixCodeBlocksInHtml(html: string) {
     // Use DOMParser (browser) or JSDOM (Node.js) for robust parsing
@@ -254,6 +254,7 @@ export const SlideMaterial = ({
             const { totalPages } = await convertHtmlToPdf(currentHtml);
 
             try {
+                console.log('api 2');
                 await addUpdateDocumentSlide({
                     id: slide?.id || '',
                     title: slide?.title || '',
