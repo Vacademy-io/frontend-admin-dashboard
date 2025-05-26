@@ -215,3 +215,6 @@ export const GET_USER_DETAILS = `${BASE_URL}/auth-service/v1/user-details/by-use
 export const DUPLICATE_STUDY_MATERIAL_FROM_SESSION = `${BASE_URL}/admin-core-service/sessions/v1/copy-study-material`;
 
 export const GET_ALL_FACULTY = `${BASE_URL}/admin-core-service/institute/v1/faculty/faculty/get-all`;
+
+export const ADD_DOUBT = `${BASE_URL}/admin-core-service/institute/v1/doubts/create`;
+export const GET_DOUBTS = `${BASE_URL}/admin-core-service/institute/v1/doubts/get-all`;

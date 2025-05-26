@@ -35,7 +35,7 @@ import { updateHeading } from './slide-operations/updateSlideHeading';
 import { formatHTMLString } from './slide-operations/formatHtmlString';
 import { handleConvertAndUpload } from './slide-operations/handleConvertUpload';
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
-import { DoubtResolutionSidebar } from './doubt-resolution/doubtResolutionSidebar';
+import { DoubtResolutionSidebar } from './doubt-resolution/DoubtResolutionSidebar';
 
 export function fixCodeBlocksInHtml(html: string) {
     // Use DOMParser (browser) or JSDOM (Node.js) for robust parsing
