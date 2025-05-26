@@ -34,6 +34,7 @@ import { SectionFormType } from '@/types/assessments/assessment-steps';
 import { addQuestionPaper } from '@/routes/assessment/question-papers/-utils/question-paper-services';
 import { getQuestionPaperById } from '@/routes/community/question-paper/-service/utils';
 import { useAIQuestionDialogStore } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/zustand-global-states/ai-add-questions-dialog-zustand';
+import { useEffect } from 'react';
 
 interface AIQuestionsPreviewProps {
     task: AITaskIndividualListInterface;
@@ -113,11 +114,6 @@ const AIQuestionsPreview = ({
     });
 
     const questions = form.getValues('questions');
-
-    const handlePageClick = (pageIndex: number) => {
-        setCurrentQuestionIndex(pageIndex);
-        form.trigger();
-    };
 
     const [noResponse, setNoResponse] = useState(false);
     const getQuestionsListMutation = useMutation({
@@ -263,6 +259,10 @@ const AIQuestionsPreview = ({
         });
     };
 
+    useEffect(() => {
+        setCurrentQuestionIndex(Math.max(0, questions.length - 1));
+    }, [form.watch(`questions.${currentQuestionIndex}.questionType`)]);
+
     return (
         <>
             <Dialog open={noResponse} onOpenChange={setNoResponse}>
@@ -398,16 +398,18 @@ const AIQuestionsPreview = ({
                                                                 >
                                                                     <div
                                                                         key={index}
-                                                                        // onClick={() => handlePageClick(index)}
+                                                                        onClick={() => {
+                                                                            setCurrentQuestionIndex(
+                                                                                index
+                                                                            );
+                                                                            return;
+                                                                        }}
                                                                         className={`rounded-xl border-4 bg-primary-50 p-6 ${
                                                                             currentQuestionIndex ===
                                                                             index
                                                                                 ? 'border-primary-500 bg-none'
                                                                                 : 'bg-none'
                                                                         }`}
-                                                                        onMouseEnter={() =>
-                                                                            handlePageClick(index)
-                                                                        }
                                                                     >
                                                                         <div className="flex flex-col">
                                                                             <div className="flex items-center justify-start gap-4">
