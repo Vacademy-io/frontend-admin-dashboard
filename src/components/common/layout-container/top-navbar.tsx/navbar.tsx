@@ -53,6 +53,7 @@ export function Navbar() {
     const { sidebarOpen, setSidebarOpen } = useSidebarStore();
     const { instituteLogo } = useInstituteLogoStore();
     const { getPublicUrl } = useFileUpload();
+    const { adminLogo, setAdminLogo, resetAdminLogo } = useAdminLogoStore();
 
     const handleLogout = async (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         event.preventDefault(); // Prevents dropdown from closing immediately
@@ -60,6 +61,7 @@ export function Navbar() {
         resetStudyLibraryStore();
         resetModulesWithChaptersStore();
         resetInstituteLogo();
+        resetAdminLogo();
         resetPdfStore();
         resetSelectedSessionStore();
         resetChapterSidebarStore();
@@ -69,8 +71,6 @@ export function Navbar() {
             to: '/login',
         });
     };
-
-    const { adminLogo, setAdminLogo } = useAdminLogoStore();
 
     useEffect(() => {
         const timer = setTimeout(() => {

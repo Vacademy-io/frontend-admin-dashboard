@@ -1,18 +1,18 @@
-import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
-import { DotsThree } from "phosphor-react";
-import { Checkbox } from "@/components/ui/checkbox";
-import { useState } from "react";
+import { FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
+import { DotsThree } from 'phosphor-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { useState } from 'react';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import "react-quill/dist/quill.snow.css";
-import { PPTViewQuillEditor } from "@/components/quill/PPTViewQuillEditor";
-import { QuestionPaperTemplateFormProps } from "../../../-utils/question-paper-template-form";
-import { formatStructure } from "../../../-utils/helper";
+} from '@/components/ui/dropdown-menu';
+import 'react-quill/dist/quill.snow.css';
+import { PPTViewQuillEditor } from '@/components/quill/PPTViewQuillEditor';
+import { QuestionPaperTemplateFormProps } from '../../../-utils/question-paper-template-form';
+import { formatStructure } from '../../../-utils/helper';
 
 export const SingleCorrectQuestionPaperTemplatePPTView = ({
     form,
@@ -25,8 +25,8 @@ export const SingleCorrectQuestionPaperTemplatePPTView = ({
     const [isDropdownVisible, setIsDropdownVisible] = useState(false); // State to track dropdown visibility
     const [isDropdownOpen, setIsDropdownOpen] = useState(false); // State for dropdown open state
 
-    const optionsType = getValues("optionsType") || "";
-    const allQuestions = getValues("questions") || [];
+    const optionsType = getValues('optionsType') || '';
+    const allQuestions = getValues('questions') || [];
     const option1 = getValues(`questions.${currentQuestionIndex}.singleChoiceOptions.${0}`);
     const option2 = getValues(`questions.${currentQuestionIndex}.singleChoiceOptions.${1}`);
     const option3 = getValues(`questions.${currentQuestionIndex}.singleChoiceOptions.${2}`);
@@ -40,7 +40,7 @@ export const SingleCorrectQuestionPaperTemplatePPTView = ({
 
         // Remove the current question from the questions array
         allQuestions.splice(currentQuestionIndex, 1);
-        setValue("questions", allQuestions);
+        setValue('questions', allQuestions);
     };
 
     const handleDuplicateSlide = () => {
@@ -48,13 +48,13 @@ export const SingleCorrectQuestionPaperTemplatePPTView = ({
         if (questionToDuplicate) {
             const duplicatedQuestion = {
                 ...questionToDuplicate,
-                questionId: questionToDuplicate.questionId || "",
-                questionName: questionToDuplicate.questionName || "",
-                explanation: questionToDuplicate.explanation || "",
+                questionId: questionToDuplicate.questionId || '',
+                questionName: questionToDuplicate.questionName || '',
+                explanation: questionToDuplicate.explanation || '',
                 singleChoiceOptions: questionToDuplicate.singleChoiceOptions || [],
             };
             allQuestions.splice(currentQuestionIndex, 0, duplicatedQuestion);
-            setValue("questions", allQuestions);
+            setValue('questions', allQuestions);
         }
     };
 
@@ -63,13 +63,13 @@ export const SingleCorrectQuestionPaperTemplatePPTView = ({
 
         // Check current state of the selected option
         const isCurrentlySelected = getValues(
-            `questions.${currentQuestionIndex}.singleChoiceOptions.${optionIndex}.isSelected`,
+            `questions.${currentQuestionIndex}.singleChoiceOptions.${optionIndex}.isSelected`
         );
 
         options.forEach((option) => {
             setValue(
                 `questions.${currentQuestionIndex}.singleChoiceOptions.${option}.isSelected`,
-                option === optionIndex ? !isCurrentlySelected : false, // Toggle only the selected option
+                option === optionIndex ? !isCurrentlySelected : false // Toggle only the selected option
             );
         });
     };
@@ -97,13 +97,13 @@ export const SingleCorrectQuestionPaperTemplatePPTView = ({
                 <div className="flex gap-2">
                     <div
                         className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-2 ${
-                            option1?.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                            option1?.isSelected ? 'border border-primary-300 bg-primary-50' : ''
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">
                             <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
                                 <span className="!p-0 text-sm">
-                                    {optionsType ? formatStructure(optionsType, "a") : "(a.)"}
+                                    {optionsType ? formatStructure(optionsType, 'a') : '(a.)'}
                                 </span>
                             </div>
                         </div>
@@ -119,8 +119,8 @@ export const SingleCorrectQuestionPaperTemplatePPTView = ({
                                                 onCheckedChange={() => handleOptionChange(0)}
                                                 className={`mt-1 size-5 rounded-xl border-2 shadow-none ${
                                                     field.value
-                                                        ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
-                                                        : "" // Default styles when unchecked
+                                                        ? 'border-none bg-green-500 text-white' // Blue background and red tick when checked
+                                                        : '' // Default styles when unchecked
                                                 }`}
                                             />
                                         </FormControl>
@@ -132,13 +132,13 @@ export const SingleCorrectQuestionPaperTemplatePPTView = ({
                     </div>
                     <div
                         className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-2 ${
-                            option2?.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                            option2?.isSelected ? 'border border-primary-300 bg-primary-50' : ''
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">
                             <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
                                 <span className="!p-0 text-sm">
-                                    {optionsType ? formatStructure(optionsType, "b") : "(b.)"}
+                                    {optionsType ? formatStructure(optionsType, 'b') : '(b.)'}
                                 </span>
                             </div>
                         </div>
@@ -154,8 +154,8 @@ export const SingleCorrectQuestionPaperTemplatePPTView = ({
                                                 onCheckedChange={() => handleOptionChange(1)}
                                                 className={`mt-1 size-5 rounded-xl border-2 shadow-none ${
                                                     field.value
-                                                        ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
-                                                        : "" // Default styles when unchecked
+                                                        ? 'border-none bg-green-500 text-white' // Blue background and red tick when checked
+                                                        : '' // Default styles when unchecked
                                                 }`}
                                             />
                                         </FormControl>
@@ -169,13 +169,13 @@ export const SingleCorrectQuestionPaperTemplatePPTView = ({
                 <div className="flex gap-2">
                     <div
                         className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-2 ${
-                            option3?.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                            option3?.isSelected ? 'border border-primary-300 bg-primary-50' : ''
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">
                             <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
                                 <span className="!p-0 text-sm">
-                                    {optionsType ? formatStructure(optionsType, "c") : "(c.)"}
+                                    {optionsType ? formatStructure(optionsType, 'c') : '(c.)'}
                                 </span>
                             </div>
                         </div>
@@ -191,8 +191,8 @@ export const SingleCorrectQuestionPaperTemplatePPTView = ({
                                                 onCheckedChange={() => handleOptionChange(2)}
                                                 className={`mt-1 size-5 rounded-xl border-2 shadow-none ${
                                                     field.value
-                                                        ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
-                                                        : "" // Default styles when unchecked
+                                                        ? 'border-none bg-green-500 text-white' // Blue background and red tick when checked
+                                                        : '' // Default styles when unchecked
                                                 }`}
                                             />
                                         </FormControl>
@@ -204,13 +204,13 @@ export const SingleCorrectQuestionPaperTemplatePPTView = ({
                     </div>
                     <div
                         className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-2 ${
-                            option4?.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                            option4?.isSelected ? 'border border-primary-300 bg-primary-50' : ''
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">
                             <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
                                 <span className="!p-0 text-sm">
-                                    {optionsType ? formatStructure(optionsType, "d") : "(d.)"}
+                                    {optionsType ? formatStructure(optionsType, 'd') : '(d.)'}
                                 </span>
                             </div>
                         </div>
@@ -226,8 +226,8 @@ export const SingleCorrectQuestionPaperTemplatePPTView = ({
                                                 onCheckedChange={() => handleOptionChange(3)}
                                                 className={`mt-1 size-5 rounded-xl border-2 shadow-none ${
                                                     field.value
-                                                        ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
-                                                        : "" // Default styles when unchecked
+                                                        ? 'border-none bg-green-500 text-white' // Blue background and red tick when checked
+                                                        : '' // Default styles when unchecked
                                                 }`}
                                             />
                                         </FormControl>

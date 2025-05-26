@@ -6,19 +6,17 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
 import { languageSupport } from '@/constants/dummy-data';
-import {
-    AudioAIQuestionFormSchema,
-    audioQuestionsFormSchema,
-} from '@/routes/ai-center/-utils/audio-questions-schema';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { AudioAIQuestionFormSchema } from '@/routes/ai-center/-utils/audio-questions-schema';
 import { useState } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
+import { FormProvider, UseFormReturn } from 'react-hook-form';
 
 const GenerateQuestionsFromAudioForm = ({
+    form,
     audioId,
     handleCallApi,
     status,
 }: {
+    form: UseFormReturn<AudioAIQuestionFormSchema>;
     audioId: string;
     handleCallApi: (
         audioId: string,
@@ -31,16 +29,6 @@ const GenerateQuestionsFromAudioForm = ({
     status: string;
 }) => {
     const [open, setOpen] = useState(audioId ? true : false);
-    const form = useForm<AudioAIQuestionFormSchema>({
-        resolver: zodResolver(audioQuestionsFormSchema),
-        defaultValues: {
-            numQuestions: '',
-            prompt: '',
-            difficulty: '',
-            language: languageSupport[0],
-            taskName: '',
-        },
-    });
 
     const onSubmit = (values: AudioAIQuestionFormSchema) => {
         handleCallApi(
@@ -51,8 +39,8 @@ const GenerateQuestionsFromAudioForm = ({
             values.language,
             values.taskName
         );
-        form.reset();
     };
+
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogContent className="flex w-[500px] flex-col p-0">
@@ -112,9 +100,16 @@ const GenerateQuestionsFromAudioForm = ({
                                             onChangeFunction={(e) => field.onChange(e.target.value)}
                                             label="Number of Questions"
                                             required={true}
-                                            inputType="text"
+                                            inputType="number"
                                             inputPlaceholder="For example, 10"
                                             className="w-full"
+                                            min={0}
+                                            onKeyDown={(e) => {
+                                                if (['e', 'E', '-', '+'].includes(e.key)) {
+                                                    e.preventDefault();
+                                                }
+                                            }}
+                                            onWheel={(e) => e.currentTarget.blur()}
                                         />
                                     </FormControl>
                                 </FormItem>
