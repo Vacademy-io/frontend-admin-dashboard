@@ -36,6 +36,8 @@ export const AddReply = ({ parent, refetch }: { parent: DoubtType; refetch: () =
             parent_id: parent.id || null,
             parent_level: parent.parent_level + 1,
             doubt_assignee_request_user_ids: parent.doubt_assignee_request_user_ids,
+            delete_assignee_request: parent.delete_assignee_request,
+            all_doubt_assignee: parent.all_doubt_assignee,
         };
         await handleAddReply({ replyData, addReply, setReply: setTeacherReply, refetch });
     };

@@ -3,7 +3,7 @@ import { CaretDown } from '@phosphor-icons/react';
 import { Doubt } from '../../-types/get-doubts-type';
 import { useState } from 'react';
 import { AddReply } from './AddReply';
-import { Reply } from './Reply';
+import { Reply } from './reply';
 import { getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
 import { getTokenDecodedData } from '@/lib/auth/sessionUtility';
