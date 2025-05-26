@@ -12,7 +12,7 @@ import { Doubt as DoubtType } from '../../-types/get-doubts-type';
 const TabsTriggerClass =
     'w-full data-[state=active]:shadow-none rounded-none rounded-tl-md rounded-tr-md border-white border-l-[1px] border-r-[1px] border-t-[1px] data-[state=active]:border-primary-200 data-[state=active]:text-primary-500 pt-2';
 
-export const DoubtResolutionSidebar = ({
+const DoubtResolutionSidebar = ({
     setDoubtProgressMarkerPdf,
     setDoubtProgressMarkerVideo,
 }: {
@@ -22,6 +22,7 @@ export const DoubtResolutionSidebar = ({
     const { open, setOpen } = useSidebar();
     const { activeItem } = useContentStore();
     const observer = useRef<IntersectionObserver | null>(null);
+    const [activeTab, setActiveTab] = useState('ALL');
 
     const [filter, setFilter] = useState<DoubtFilter>({
         name: '',
@@ -71,6 +72,7 @@ export const DoubtResolutionSidebar = ({
     }, [filter]);
 
     const handleTabChange = (value: string) => {
+        setActiveTab(value);
         if (value === 'RESOLVED') {
             setFilter((prev) => ({ ...prev, status: ['RESOLVED'] }));
         } else if (value === 'UNRESOLVED') {
@@ -98,7 +100,6 @@ export const DoubtResolutionSidebar = ({
     if (isError) return <p>Error fetching doubts</p>;
 
     return (
-        // <SidebarProvider >
         <Sidebar
             side="right"
             className={`${open ? 'w-[50vw]' : 'w-0'} flex flex-col gap-6 overflow-y-hidden bg-white p-4`}
@@ -112,12 +113,7 @@ export const DoubtResolutionSidebar = ({
                 </div>
             </SidebarHeader>
             <SidebarContent className="no-scrollbar flex flex-col gap-4 overflow-y-scroll bg-white pt-6">
-                <Tabs
-                    defaultValue="ALL"
-                    onValueChange={(value) => {
-                        handleTabChange(value);
-                    }}
-                >
+                <Tabs value={activeTab} onValueChange={handleTabChange}>
                     <TabsList className="flex w-full rounded-none border-b border-neutral-300 bg-white p-0">
                         <TabsTrigger value="ALL" className={TabsTriggerClass}>
                             All
@@ -186,6 +182,7 @@ export const DoubtResolutionSidebar = ({
                 </Tabs>
             </SidebarContent>
         </Sidebar>
-        // </SidebarProvider>
     );
 };
+
+export default DoubtResolutionSidebar;

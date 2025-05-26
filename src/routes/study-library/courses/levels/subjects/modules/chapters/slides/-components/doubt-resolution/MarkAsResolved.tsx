@@ -26,6 +26,8 @@ export const MarkAsResolved = ({ doubt, refetch }: { doubt: Doubt; refetch: () =
             parent_id: doubt.parent_id,
             parent_level: doubt.parent_level,
             doubt_assignee_request_user_ids: doubt.doubt_assignee_request_user_ids,
+            all_doubt_assignee: doubt.all_doubt_assignee,
+            delete_assignee_request: doubt.delete_assignee_request,
         };
         await handleAddReply({ replyData, addReply, refetch, id: doubt.id });
     };

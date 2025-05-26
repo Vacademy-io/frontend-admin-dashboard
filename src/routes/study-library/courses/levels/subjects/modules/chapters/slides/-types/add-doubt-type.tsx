@@ -1,3 +1,10 @@
+export interface DoubtAssignee {
+    id: string;
+    source_id: string;
+    source: string;
+    status: string;
+}
+
 export interface DoubtType {
     id?: string;
     user_id: string;
@@ -13,6 +20,8 @@ export interface DoubtType {
     parent_id: string | null;
     parent_level: number;
     doubt_assignee_request_user_ids: string[];
+    all_doubt_assignee: DoubtAssignee[];
+    delete_assignee_request: string[];
 }
 
 export interface StudentDetailsType {

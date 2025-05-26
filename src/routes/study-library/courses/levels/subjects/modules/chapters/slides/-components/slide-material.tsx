@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 import YooptaEditor, { createYooptaEditor } from '@yoopta/editor';
-import { useEffect, useMemo, useRef } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useRef } from 'react';
 import { MyButton } from '@/components/design-system/button';
 import PDFViewer from './pdf-viewer';
 import { ActivityStatsSidebar } from './stats-dialog/activity-sidebar';
@@ -35,7 +35,9 @@ import { updateHeading } from './slide-operations/updateSlideHeading';
 import { formatHTMLString } from './slide-operations/formatHtmlString';
 import { handleConvertAndUpload } from './slide-operations/handleConvertUpload';
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
-import { DoubtResolutionSidebar } from './doubt-resolution/doubtResolutionSidebar';
+import { Loader2 } from 'lucide-react';
+
+const LazyDoubtResolutionSidebar = lazy(() => import('./doubt-resolution/doubtResolutionSidebar'));
 
 export function fixCodeBlocksInHtml(html: string) {
     // Use DOMParser (browser) or JSDOM (Node.js) for robust parsing
@@ -499,10 +501,19 @@ export const SlideMaterial = ({
             >
                 {content}
             </div>
-            <DoubtResolutionSidebar
-                setDoubtProgressMarkerPdf={setDoubtProgressMarkerPdf}
-                setDoubtProgressMarkerVideo={setDoubtProgressMarkerVideo}
-            />
+
+            <Suspense
+                fallback={
+                    <div className="flex w-full justify-center py-4">
+                        <Loader2 className="size-6 animate-spin text-primary-500" />
+                    </div>
+                }
+            >
+                <LazyDoubtResolutionSidebar
+                    setDoubtProgressMarkerPdf={setDoubtProgressMarkerPdf}
+                    setDoubtProgressMarkerVideo={setDoubtProgressMarkerVideo}
+                />
+            </Suspense>
         </div>
     );
 };

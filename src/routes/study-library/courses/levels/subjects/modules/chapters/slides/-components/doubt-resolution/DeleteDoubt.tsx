@@ -10,8 +10,6 @@ import { MyButton } from '@/components/design-system/button';
 export const DeleteDoubt = ({ doubt, refetch }: { doubt: Doubt; refetch: () => void }) => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const addReply = useAddReply();
-    console.log('doubt in delete doubt: ', doubt);
-    console.log('doubt.id in delete doubt: ', doubt.id);
 
     const submitReply = async () => {
         const replyData: DoubtType = {
@@ -29,6 +27,8 @@ export const DeleteDoubt = ({ doubt, refetch }: { doubt: Doubt; refetch: () => v
             parent_id: doubt.parent_id,
             parent_level: doubt.parent_level,
             doubt_assignee_request_user_ids: doubt.doubt_assignee_request_user_ids,
+            all_doubt_assignee: doubt.all_doubt_assignee,
+            delete_assignee_request: doubt.delete_assignee_request,
         };
         await handleAddReply({ replyData, addReply, refetch, id: doubt.id });
         setIsDialogOpen(false);

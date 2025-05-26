@@ -10,7 +10,6 @@ import { getInstituteId } from '@/constants/helper';
 import { useRouter } from '@tanstack/react-router';
 import { FacultyFilterParams } from '@/routes/dashboard/-services/dashboard-services';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
-import { useTeacherList } from '@/routes/dashboard/-hooks/useTeacherList';
 import { ShowReplies } from './ShowReplies';
 import { DeleteDoubt } from './DeleteDoubt';
 import { MarkAsResolved } from './MarkAsResolved';
@@ -18,6 +17,8 @@ import { formatISODateTimeReadable } from '@/helpers/formatISOTime';
 import { useGetUserBasicDetails } from '@/services/get_user_basic_details';
 import { EnrollFormUploadImage } from '@/assets/svgs';
 import { getPublicUrl } from '@/services/upload_file';
+import { TeacherSelection } from './TeacherSelection';
+
 export const Doubt = ({
     doubt,
     setDoubtProgressMarkerPdf,
@@ -40,7 +41,7 @@ export const Doubt = ({
     const InstituteId = getInstituteId();
     const userId = tokenData?.user;
     const isAdmin = tokenData?.authorities[InstituteId || '']?.roles.includes('ADMIN');
-    const isTeacher = tokenData?.authorities[InstituteId || '']?.roles.includes('TEACHER');
+    // const isTeacher = tokenData?.authorities[InstituteId || '']?.roles.includes('TEACHER');
     // get teacher list
     const { courseId, sessionId, levelId, subjectId } = router.state.location.search;
     const pksId = getPackageSessionId({
@@ -55,8 +56,6 @@ export const Doubt = ({
         status: [],
         sort_columns: { name: 'DESC' },
     };
-    const { data } = useTeacherList(InstituteId || '', 0, 100, filters, true);
-    console.log('data: ', data, isTeacher, userId);
 
     const { data: userBasicDetails } = useGetUserBasicDetails([doubt.user_id]);
 
@@ -138,6 +137,8 @@ export const Doubt = ({
                     }}
                     className="custom-html-content"
                 />
+
+                <TeacherSelection doubt={doubt} filters={filters} refetch={refetch} />
                 {isAdmin && <DeleteDoubt doubt={doubt} refetch={refetch} />}
                 <ShowReplies parent={doubt} refetch={refetch} />
             </div>
