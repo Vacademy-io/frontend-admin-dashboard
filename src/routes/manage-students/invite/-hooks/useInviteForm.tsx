@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import { inviteFormSchema, InviteForm, defaultFormValues } from '../-schema/InviteFormSchema';
+import { DropdownOption } from '../-components/create-invite/AddCustomFieldDialog';
 
 export const useInviteForm = (initialValues?: InviteForm) => {
     const [copySuccess, setCopySuccess] = useState<string | null>(null);
@@ -34,7 +35,12 @@ export const useInviteForm = (initialValues?: InviteForm) => {
         setValue('custom_fields', updatedFields);
     };
 
-    const handleAddOpenFieldValues = (type: string, name: string, oldKey: boolean) => {
+    const handleAddOpenFieldValues = (
+        type: string,
+        name: string,
+        oldKey: boolean,
+        options?: DropdownOption[]
+    ) => {
         const customFields = getValues('custom_fields');
         // Add the new field to the array
         const updatedFields = [
@@ -45,6 +51,7 @@ export const useInviteForm = (initialValues?: InviteForm) => {
                 name,
                 oldKey,
                 isRequired: true,
+                options,
             },
         ];
 
