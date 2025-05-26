@@ -112,9 +112,16 @@ const GenerateQuestionsFromAudioForm = ({
                                             onChangeFunction={(e) => field.onChange(e.target.value)}
                                             label="Number of Questions"
                                             required={true}
-                                            inputType="text"
+                                            inputType="number"
                                             inputPlaceholder="For example, 10"
                                             className="w-full"
+                                            min={0}
+                                            onKeyDown={(e) => {
+                                                if (['e', 'E', '-', '+'].includes(e.key)) {
+                                                    e.preventDefault();
+                                                }
+                                            }}
+                                            onWheel={(e) => e.currentTarget.blur()}
                                         />
                                     </FormControl>
                                 </FormItem>
