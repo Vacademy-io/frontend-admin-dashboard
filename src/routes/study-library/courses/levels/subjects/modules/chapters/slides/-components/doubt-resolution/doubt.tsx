@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction } from 'react';
+import { Dispatch, SetStateAction, useEffect } from 'react';
 import { ArrowSquareOut } from '@phosphor-icons/react';
 import { StatusChip } from '@/components/design-system/status-chips';
 import { useContentStore } from '../../-stores/chapter-sidebar-store';
@@ -15,7 +15,7 @@ import { ShowReplies } from './ShowReplies';
 import { DeleteDoubt } from './DeleteDoubt';
 import { MarkAsResolved } from './MarkAsResolved';
 import { formatISODateTimeReadable } from '@/helpers/formatISOTime';
-
+import { useGetUserBasicDetails } from '@/services/get_user_basic_details';
 export const Doubt = ({
     doubt,
     setDoubtProgressMarkerPdf,
@@ -56,6 +56,11 @@ export const Doubt = ({
     };
     const { data } = useTeacherList(InstituteId || '', 0, 100, filters, true);
     console.log('data: ', data, isTeacher, userId);
+
+    const { data: userBasicDetails } = useGetUserBasicDetails([doubt.user_id]);
+    useEffect(() => {
+        console.log('userBasicDetails: ', userBasicDetails);
+    }, [userBasicDetails]);
 
     const handleTimeStampClick = (timestamp: number) => {
         if (activeItem?.source_type == 'VIDEO') {
