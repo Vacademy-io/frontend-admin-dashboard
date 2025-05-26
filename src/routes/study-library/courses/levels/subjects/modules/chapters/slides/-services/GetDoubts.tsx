@@ -10,9 +10,7 @@ export const useGetDoubts = (filter: Omit<DoubtFilter, 'page_no' | 'page_size'>)
         queryFn: async ({ pageParam = 0 }) => {
             const response = await authenticatedAxiosInstance.post<PaginatedDoubtResponse>(
                 `${GET_DOUBTS}?pageNo=${pageParam}&pageSize=10`,
-                {
-                    ...filter,
-                }
+                { ...filter }
             );
             return response.data;
         },

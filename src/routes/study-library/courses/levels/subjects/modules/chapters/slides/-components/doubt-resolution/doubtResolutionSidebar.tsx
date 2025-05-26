@@ -37,7 +37,7 @@ export const DoubtResolutionSidebar = ({
         ],
         sources: ['SLIDE'],
         source_ids: [activeItem?.id || ''],
-        status: ['ACTIVE'],
+        status: ['ACTIVE', 'RESOLVED'],
         sort_columns: {
             created_at: 'DESC',
         },

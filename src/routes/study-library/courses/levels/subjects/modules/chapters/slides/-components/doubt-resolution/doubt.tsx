@@ -14,6 +14,7 @@ import { useTeacherList } from '@/routes/dashboard/-hooks/useTeacherList';
 import { ShowReplies } from './ShowReplies';
 import { DeleteDoubt } from './DeleteDoubt';
 import { MarkAsResolved } from './MarkAsResolved';
+import { formatISODateTimeReadable } from '@/helpers/formatISOTime';
 
 export const Doubt = ({
     doubt,
@@ -108,7 +109,7 @@ export const Doubt = ({
                             status={doubt.status === 'RESOLVED' ? 'SUCCESS' : 'INFO'}
                         />
                         <p className="text-caption text-neutral-500 sm:text-body">
-                            {doubt.raised_time}
+                            {formatISODateTimeReadable(doubt.raised_time)}
                         </p>
                     </div>
                 </div>
