@@ -253,6 +253,13 @@ const AIQuestionsPreview = ({
     });
 
     const handleSaveQuestionsInSection = () => {
+        if (Object.values(form.formState.errors).length > 0) {
+            toast.error('some of your questions are incomplete or needs attentions!', {
+                className: 'error-toast',
+                duration: 3000,
+            });
+            return;
+        }
         handleSubmitFormData.mutate({
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-expect-error
@@ -400,7 +407,11 @@ const AIQuestionsPreview = ({
                                                             >
                                                                 <div
                                                                     key={index}
-                                                                    onClick={() => {
+                                                                    onClick={(
+                                                                        e: React.MouseEvent
+                                                                    ) => {
+                                                                        e.preventDefault(); // Prevent form submission
+                                                                        e.stopPropagation(); // Stop event bubbling
                                                                         setCurrentQuestionIndex(
                                                                             index
                                                                         );
