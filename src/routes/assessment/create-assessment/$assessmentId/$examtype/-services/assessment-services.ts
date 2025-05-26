@@ -104,6 +104,7 @@ function getTestBoundation(
     testType: string | undefined,
     liveDateRange: { startDate?: string; endDate?: string }
 ) {
+    console.log(liveDateRange);
     switch (testType) {
         case 'LIVE':
             return {
