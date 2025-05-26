@@ -1,26 +1,32 @@
-import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
-import { TokenKey } from "./auth/tokens";
+import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { TokenKey } from './auth/tokens';
 
-export function convertToLocalDateTime(utcDate: string): string {
-    const date = new Date(utcDate);
+export const convertToLocalDateTime = (dateString: string): string => {
+    if (!dateString) return '';
+
+    const date = new Date(dateString);
 
     const options: Intl.DateTimeFormatOptions = {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
         hour12: true,
+        timeZone: 'UTC', // ← Force UTC output
     };
 
-    const formattedDate = date.toLocaleString("en-GB", options);
-    return formattedDate.replace(",", "").replace(/\s(am|pm)/i, (match) => match.toUpperCase());
-}
+    // Use en-GB for day-month-year ordering
+    const formatted = new Intl.DateTimeFormat('en-GB', options).format(date);
+
+    return formatted.replace(',', '').replace(/\s(am|pm)/i, (match) => match.toUpperCase());
+};
 
 export function extractDateTime(utcDate: string) {
     const [date, time] = [
-        utcDate.split(" ").slice(0, 3).join(" "),
-        utcDate.split(" ").slice(3).join(" "),
+        utcDate.split(' ').slice(0, 3).join(' '),
+        utcDate.split(' ').slice(3).join(' '),
     ];
 
     return { date, time };
