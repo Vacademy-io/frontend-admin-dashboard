@@ -32,6 +32,9 @@ importers:
       '@excalidraw/mermaid-to-excalidraw':
         specifier: ^1.1.2
         version: 1.1.2
+      '@excalidraw/random-username':
+        specifier: ^1.2.0
+        version: 1.2.0
       '@hookform/resolvers':
         specifier: ^3.9.1
         version: 3.10.0(react-hook-form@7.56.2(react@18.3.1))
@@ -2233,6 +2236,10 @@ packages:
 
   '@excalidraw/prettier-config@1.0.2':
     resolution: {integrity: sha512-rFIq8+A8WvkEzBsF++Rw6gzxE+hU3ZNkdg8foI+Upz2y/rOC/gUpWJaggPbCkoH3nlREVU59axQjZ1+F6ePRGg==}
+
+  '@excalidraw/random-username@1.2.0':
+    resolution: {integrity: sha512-05lXTrPCJV30YDm7LRDtdXdGKTNfH2/zc+hq5uVltlyKo5Z1rKDgjXKLcCdS4ROPDohrFhqZplhaTZaHL7peVQ==}
+    engines: {node: '>=10'}
 
   '@firebase/analytics-compat@0.2.17':
     resolution: {integrity: sha512-SJNVOeTvzdqZQvXFzj7yAirXnYcLDxh57wBFROfeowq/kRN1AqOw1tG6U4OiFOEhqi7s3xLze/LMkZatk2IEww==}
@@ -14621,6 +14628,8 @@ snapshots:
       - supports-color
 
   '@excalidraw/prettier-config@1.0.2': {}
+
+  '@excalidraw/random-username@1.2.0': {}
 
   '@firebase/analytics-compat@0.2.17(@firebase/app-compat@0.2.50)(@firebase/app@0.11.1)':
     dependencies:

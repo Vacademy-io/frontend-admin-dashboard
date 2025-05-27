@@ -41,8 +41,6 @@ export const Doubt = ({
     const InstituteId = getInstituteId();
     const userId = tokenData?.user;
     const isAdmin = tokenData?.authorities[InstituteId || '']?.roles.includes('ADMIN');
-    // const isTeacher = tokenData?.authorities[InstituteId || '']?.roles.includes('TEACHER');
-    // get teacher list
     const { courseId, sessionId, levelId, subjectId } = router.state.location.search;
     const pksId = getPackageSessionId({
         courseId: courseId || '',
@@ -138,7 +136,12 @@ export const Doubt = ({
                     className="custom-html-content"
                 />
 
-                <TeacherSelection doubt={doubt} filters={filters} refetch={refetch} />
+                <TeacherSelection
+                    doubt={doubt}
+                    filters={filters}
+                    refetch={refetch}
+                    canChange={isAdmin || false}
+                />
                 {isAdmin && <DeleteDoubt doubt={doubt} refetch={refetch} />}
                 <ShowReplies parent={doubt} refetch={refetch} />
             </div>
