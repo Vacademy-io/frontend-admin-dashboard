@@ -14,7 +14,7 @@ interface AddCourseButtonProps {
 }
 
 const triggerButton = (
-    <MyButton buttonType="primary" layoutVariant="default" scale="large" id="create-new-course">
+    <MyButton buttonType="secondary" layoutVariant="default" scale="large" id="create-new-course">
         Create Course Manually
     </MyButton>
 );
@@ -88,7 +88,7 @@ const CourseTypeButtons = ({ onSubmit, courseButton }: AddCourseButtonProps) => 
                     }}
                 />
             </MyDialog>
-            <MyButton type="button" scale="large" buttonType="primary" className="font-medium">
+            <MyButton type="button" scale="large" buttonType="secondary" className="font-medium">
                 Create Course Through AI
             </MyButton>
         </div>
