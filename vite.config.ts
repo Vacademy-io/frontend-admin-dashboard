@@ -35,6 +35,9 @@ export default defineConfig({
                     },
                 ],
             },
+            workbox: {
+                maximumFileSizeToCacheInBytes: 30 * 1024 * 1024, // 30MB
+            },
         }),
     ],
     // plugins: [react(), tsconfigPaths(), svgr({ include: "**/*.svg" })],

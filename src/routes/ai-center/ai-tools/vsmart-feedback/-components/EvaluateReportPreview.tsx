@@ -29,10 +29,11 @@ import {
     Lightbulb, // For Scope of Improvement
     NotebookText, // For Summary
     HelpCircle, // Default/Fallback Icon
+    LucideIcon,
 } from 'lucide-react';
 
 // Helper function to get the appropriate icon based on criterion name
-const getCriteriaIcon = (name: string | undefined): React.ElementType => {
+const getCriteriaIcon = (name: string | undefined): LucideIcon => {
     const lowerCaseName = name?.toLowerCase() || '';
 
     if (lowerCaseName.includes('delivery') || lowerCaseName.includes('presentation')) return Mic;
