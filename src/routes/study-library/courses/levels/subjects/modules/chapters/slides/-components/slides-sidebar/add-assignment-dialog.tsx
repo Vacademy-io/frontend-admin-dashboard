@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { useContentStore } from '../../-stores/chapter-sidebar-store';
 import { Route } from '../..';
 import { useSlides } from '../../-hooks/use-slides';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
 
 const AddAssignmentDialog = ({
     openState,
@@ -15,8 +16,10 @@ const AddAssignmentDialog = ({
     const { chapterId } = Route.useSearch();
     const { updateAssignmentOrder } = useSlides(chapterId);
     const [title, setTitle] = useState('');
+    const [isAssignmentAdding, setIsAssignmentAdding] = useState(false);
 
     const handleAddAssignment = async (title: string | undefined) => {
+        setIsAssignmentAdding(true);
         try {
             const response: string = await updateAssignmentOrder({
                 id: crypto.randomUUID(),
@@ -52,11 +55,11 @@ const AddAssignmentDialog = ({
 
             toast.success('Assignment added successfully!');
             openState?.(false);
-            setTimeout(() => {
-                setActiveItem(getSlideById(response));
-            }, 500);
+            setActiveItem(getSlideById(response));
         } catch (error) {
             toast.error('Failed to add assignment');
+        } finally {
+            setIsAssignmentAdding(false);
         }
     };
 
@@ -72,15 +75,27 @@ const AddAssignmentDialog = ({
                 className="w-full"
             />
             <div>
-                <MyButton
-                    type="button"
-                    scale="large"
-                    buttonType="primary"
-                    className="font-medium"
-                    onClick={() => handleAddAssignment(title)}
-                >
-                    Add
-                </MyButton>
+                {isAssignmentAdding ? (
+                    <MyButton
+                        type="button"
+                        scale="large"
+                        buttonType="primary"
+                        className="font-medium"
+                    >
+                        <DashboardLoader size={18} color="#ffffff" />
+                    </MyButton>
+                ) : (
+                    <MyButton
+                        type="button"
+                        scale="large"
+                        buttonType="primary"
+                        className="font-medium"
+                        onClick={() => handleAddAssignment(title)}
+                        disable={!title}
+                    >
+                        Add
+                    </MyButton>
+                )}
             </div>
         </div>
     );
