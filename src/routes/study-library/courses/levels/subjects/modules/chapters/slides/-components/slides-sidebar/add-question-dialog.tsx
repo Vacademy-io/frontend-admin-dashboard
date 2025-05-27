@@ -152,9 +152,7 @@ const AddQuestionDialog = ({
             toast.success('Question added successfully!');
             form.reset();
             openState?.(false);
-            setTimeout(() => {
-                setActiveItem(getSlideById(response));
-            }, 500);
+            setActiveItem(getSlideById(response));
         } catch (error) {
             toast.error('Failed to add question');
         } finally {
