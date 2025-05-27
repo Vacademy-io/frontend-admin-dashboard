@@ -72,7 +72,7 @@ const CourseTypeButtons = ({ onSubmit, courseButton }: AddCourseButtonProps) => 
             <MyDialog
                 trigger={triggerWithPreventSubmit}
                 heading="Add Course"
-                dialogWidth="w-[400px]"
+                dialogWidth="w-[700px]"
                 open={openDialog}
                 onOpenChange={handleOpenChange}
                 isTour
