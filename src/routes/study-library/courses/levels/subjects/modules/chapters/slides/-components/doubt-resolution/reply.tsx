@@ -4,32 +4,13 @@ import { getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
 import { DeleteDoubt } from './DeleteDoubt';
 import { formatISODateTimeReadable } from '@/helpers/formatISOTime';
-import { useState, useEffect } from 'react';
-import { useGetUserBasicDetails } from '@/services/get_user_basic_details';
-import { getPublicUrl } from '@/services/upload_file';
 
 export const Reply = ({ reply, refetch }: { reply: Doubt; refetch: () => void }) => {
-    const [imageUrl, setImageUrl] = useState<string | null>(null);
+    // const [imageUrl, setImageUrl] = useState<string | null>(null);
+    const imageUrl: string | null = null;
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
     const userId = tokenData?.user;
-
-    const { data: userBasicDetails } = useGetUserBasicDetails([reply.user_id]);
-
-    useEffect(() => {
-        const fetchImageUrl = async () => {
-            if (userBasicDetails?.[0]?.face_file_id) {
-                try {
-                    const url = await getPublicUrl(userBasicDetails?.[0]?.face_file_id);
-                    setImageUrl(url);
-                } catch (error) {
-                    console.error('Failed to fetch image URL:', error);
-                }
-            }
-        };
-
-        fetchImageUrl();
-    }, [userBasicDetails?.[0]?.face_file_id]);
 
     return (
         <div className="text-regular flex flex-col gap-3 max-sm:text-caption">
