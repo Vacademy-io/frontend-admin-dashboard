@@ -245,16 +245,16 @@ html {
         font-size: 16px;
     }
 
-    .yoopta-editor-custom [data-slate-placeholder="true"] {
+    .yoopta-editor-custom [data-slate-placeholder='true'] {
         font-size: 16px !important;
     }
 
-    .yoopta-editor-custom [contenteditable="true"] {
+    .yoopta-editor-custom [contenteditable='true'] {
         font-size: 16px !important;
     }
 
     /* Target the command input specifically */
-    .yoopta-editor-custom [role="textbox"],
+    .yoopta-editor-custom [role='textbox'],
     .yoopta-editor-custom input {
         font-size: 16px !important;
     }
@@ -306,7 +306,7 @@ html {
 }
 
 .introjs-tooltip-title {
-    color: rgb(234 88 12) !important;
+    color: hsl(var(--primary-500)) !important;
     text-wrap: nowrap !important;
     font-size: 1.1rem !important;
     text-align: left !important;
@@ -317,7 +317,7 @@ html {
 }
 .introjs-tooltip-header {
     text-align: left !important;
-    background-color: #fcf3ec !important;
+    background-color: hsl(var(--primary-50)) !important;
     display: flex !important;
     padding: 6px !important;
     padding-left: 16px !important;
@@ -349,7 +349,7 @@ html {
 }
 
 .custom-tooltip .introjs-progress .introjs-progressbar {
-    background-color: orange !important;
+    background-color: hsl(var(--primary-500)) !important;
 }
 
 .custom-tooltip .introjs-tooltipbuttons {
@@ -386,7 +386,7 @@ html {
 
 .custom-highlight {
     background-color: rgba(33, 150, 243, 0.2) !important;
-    outline: 2px solid orange !important;
+    outline: 2px solid hsl(var(--primary-300)) !important;
 }
 
 @layer base {
@@ -398,38 +398,69 @@ html {
     }
 }
 
-.App-menu_top{
-    position: fixed  !important;
+.App-menu_top {
+    position: fixed !important;
     top: 10;
     left: 0;
 }
-.toolbar{
+.toolbar {
     display: none !important;
 }
-.sidebar-trigger__label-element{
+.sidebar-trigger__label-element {
     display: none !important;
-  
 }
 /* .App-toolbar{
     background-color: hsl(var(--primary-100)) !important;
 } */
 
-.HintViewer{
+.HintViewer {
     display: none !important;
 }
 /* .Island{
     background-color: hsl(var(--primary-100)) !important;
 } */
 
-.zoom-actions{
+.zoom-actions {
     display: none !important;
 }
 
-.buttonList{
+.buttonList {
     display: flex !important;
     flex-wrap: nowrap !important;
     gap: 4px !important;
 }
-.App-menu__left{
+.App-menu__left {
     max-width: 80vw !important;
+}
+
+/* In your global CSS file (e.g., global.css, or a PresentationView.module.css) */
+
+/* Ensure the .reveal container establishes a clear stacking context if needed,
+   though position:fixed already does. */
+.reveal {
+    /* position: relative; /* Or fixed, absolute if it's not already */
+    /* z-index: 1000; /* Already handled by inline style on your container div */
+}
+
+/* Target the Reveal.js controls specifically */
+.reveal .controls {
+    z-index: 40 !important; /* Default is often around 30. Increase if necessary.
+                             Use !important to override theme styles if there's a conflict.
+                             Pick a value that is logically above your slide content's z-index.
+                             If your main container is 1000, and slides might have content reaching
+                             up to say, 10 within the reveal context, 40 is fine.
+                             If slide content itself has very high z-indexes, you might need higher.
+                             Let's try a moderately high value that should be above most slide content.
+                          */
+}
+
+/* Optional: If slides or their backgrounds are an issue */
+.reveal .slides > section {
+    /* By default, slides don't have a high z-index unless transformed or stacked.
+     Ensure their content doesn't create an unexpectedly high z-index. */
+    /* z-index: 1; /* Example: keep slides on a base level within .slides */
+}
+
+.reveal .slide-background {
+    /* z-index: 0; /* Example: keep backgrounds behind slide content */
 }

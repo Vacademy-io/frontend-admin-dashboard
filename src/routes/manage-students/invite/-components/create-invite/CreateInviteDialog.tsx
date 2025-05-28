@@ -202,15 +202,22 @@ export const CreateInviteDialog = ({
             <FormProvider {...form}>
                 <form
                     ref={formRef}
-                    onSubmit={form.handleSubmit((data: InviteForm) => {
-                        try {
-                            onCreateInvite && onCreateInvite(data);
-                            // Other success handling
-                            form.reset();
-                        } catch {
-                            toast.error('error updating/creating invite');
+                    onSubmit={form.handleSubmit(
+                        (data: InviteForm) => {
+                            try {
+                                console.log('inside on submit function: ', data);
+                                onCreateInvite && onCreateInvite(data);
+                                // Other success handling
+                                form.reset();
+                            } catch {
+                                toast.error('error updating/creating invite');
+                            }
+                        },
+                        (errors) => {
+                            console.log('Form validation errors:', errors);
+                            toast.error('Please fix the form errors before submitting');
                         }
-                    })}
+                    )}
                 >
                     <div className="flex flex-col gap-10 text-neutral-600">
                         {/* Invite Link & Active Status */}

@@ -104,6 +104,7 @@ function getTestBoundation(
     testType: string | undefined,
     liveDateRange: { startDate?: string; endDate?: string }
 ) {
+    console.log(liveDateRange);
     switch (testType) {
         case 'LIVE':
             return {
@@ -151,7 +152,8 @@ export const handlePostStep1Data = async (
         assessment_preview_time: data.assessmentPreview.checked
             ? parseInt(data.assessmentPreview.previewTimeLimit)
             : 0,
-        default_reattempt_count: data.reattemptCount,
+        default_reattempt_count:
+            type === 'MOCK' || type === 'PRACTICE' ? 100000 : data.reattemptCount,
         switch_sections: data.switchSections,
         evaluation_type: data.evaluationType,
         submission_type: data.submissionType,
@@ -251,6 +253,7 @@ export const convertCustomFields = (customFields: CustomFields): ConvertedCustom
             comma_separated_options: field.options
                 ? field.options.map((opt) => opt.value).join(',')
                 : '', // Join options for dropdowns
+            order_field: field.order,
         };
     });
     return convertedFields;

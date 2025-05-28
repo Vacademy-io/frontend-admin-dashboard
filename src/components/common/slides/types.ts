@@ -1,7 +1,7 @@
 export interface Slide {
     id: string;
     elements: unknown;
-    type?: string
+    type?: string;
 }
 
 // Sample presentation data
@@ -12,10 +12,10 @@ export interface Presentation {
     description: string;
     cover_file_id: string;
     added_slides: SlideData[];
-  }
-  
-  // Slide types: can be a visual slide or a question-based slide
-  interface SlideData {
+}
+
+// Slide types: can be a visual slide or a question-based slide
+interface SlideData {
     id: string;
     presentation_id: string | null;
     title: string;
@@ -30,10 +30,10 @@ export interface Presentation {
     updated_at: string | null;
     added_question?: Question | null;
     updated_question?: Question | null;
-  }
-  
-  // Question embedded in a slide
-  interface Question {
+}
+
+// Question embedded in a slide
+interface Question {
     id: string;
     preview_id: string | null;
     section_id: string | null;
@@ -47,26 +47,26 @@ export interface Presentation {
     access_level: 'PRIVATE' | 'PUBLIC' | string;
     auto_evaluation_json: string;
     options_json: string | null;
-    parsed_evaluation_object: Record<string, any>;
+    parsed_evaluation_object: Record<string, string>;
     evaluation_type: 'auto' | 'manual' | string;
     explanation_text: RichText;
     parent_rich_text_id: string | null;
     parent_rich_text: RichText | null;
     default_question_time_mins: number | null;
     options: Option[];
-    errors: any[];
-    warnings: any[];
-  }
-  
-  // Text or explanation content
-  interface RichText {
+    errors: string[];
+    warnings: string[];
+}
+
+// Text or explanation content
+interface RichText {
     id: string | null;
     type: string;
     content: string | null;
-  }
-  
-  // Options for multiple-choice questions
-  interface Option {
+}
+
+// Options for multiple-choice questions
+interface Option {
     id: string;
     preview_id: string | null;
     question_id: string;
@@ -76,5 +76,4 @@ export interface Presentation {
     created_on: string;
     updated_on: string;
     explanation_text: RichText | null;
-  }
-  
+}

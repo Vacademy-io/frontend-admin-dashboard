@@ -10,7 +10,7 @@ import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtili
 import { TokenKey } from '@/constants/auth/tokens';
 import { QuestionType, QUESTION_TYPES } from '@/constants/dummy-data';
 import { getInstituteId } from '@/constants/helper';
-import { AIAssessmentResponseInterface } from '@/types/ai/generate-assessment/generate-complete-assessment';
+import { formatTimeStudyLibraryInSeconds } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-helper/helper';
 
 export function getPPTViewTitle(type: QuestionType): string {
     const question = QUESTION_TYPES.find((q) => q.code === type);
@@ -41,12 +41,188 @@ export function transformFilterData(data: Record<string, FilterOption[]>) {
     return result;
 }
 
-export function transformQuestionPaperDataAI(data: AIAssessmentResponseInterface) {
+export function transformQuestionPaperDataAI(data: MyQuestionPaperFormInterface) {
     const instituteId = getInstituteId();
     return {
         title: data.title || '',
         institute_id: instituteId,
-        questions: data?.questions,
+        questions: data?.questions?.map((question) => {
+            let options;
+            if (question.questionType === QuestionType.MCQS) {
+                options = question.singleChoiceOptions.map((opt, idx) => ({
+                    id: null, // Assuming no direct mapping for option ID
+                    preview_id: idx, // Using index as preview_id
+                    question_id: null,
+                    text: {
+                        id: null, // Assuming no direct mapping for option text ID
+                        type: 'HTML', // Assuming option content is HTML
+                        content: opt?.name?.replace(/<\/?p>/g, ''), // Remove <p> tags from content
+                    },
+                    media_id: null, // Assuming no direct mapping for option media ID
+                    option_order: null,
+                    created_on: null,
+                    updated_on: null,
+                    explanation_text: {
+                        id: null, // Assuming no direct mapping for explanation text ID
+                        type: 'HTML', // Assuming explanation for options is in HTML
+                        content: question.explanation, // Assuming no explanation provided for options
+                    },
+                }));
+            } else if (question.questionType === QuestionType.TRUE_FALSE) {
+                options = question.trueFalseOptions.map((opt, idx) => ({
+                    id: null, // Assuming no direct mapping for option ID
+                    preview_id: idx, // Using index as preview_id
+                    question_id: null,
+                    text: {
+                        id: null, // Assuming no direct mapping for option text ID
+                        type: 'HTML', // Assuming option content is HTML
+                        content: opt?.name?.replace(/<\/?p>/g, ''), // Remove <p> tags from content
+                    },
+                    media_id: null, // Assuming no direct mapping for option media ID
+                    option_order: null,
+                    created_on: null,
+                    updated_on: null,
+                    explanation_text: {
+                        id: null, // Assuming no direct mapping for explanation text ID
+                        type: 'HTML', // Assuming explanation for options is in HTML
+                        content: question.explanation, // Assuming no explanation provided for options
+                    },
+                }));
+            } else if (question.questionType === QuestionType.MCQM) {
+                options = question.multipleChoiceOptions.map((opt, idx) => ({
+                    id: null, // Assuming no direct mapping for option ID
+                    preview_id: idx, // Using index as preview_id
+                    question_id: null,
+                    text: {
+                        id: null, // Assuming no direct mapping for option text ID
+                        type: 'HTML', // Assuming option content is HTML
+                        content: opt?.name?.replace(/<\/?p>/g, ''), // Remove <p> tags from content
+                    },
+                    media_id: null, // Assuming no direct mapping for option media ID
+                    option_order: null,
+                    created_on: null,
+                    updated_on: null,
+                    explanation_text: {
+                        id: null, // Assuming no direct mapping for explanation text ID
+                        type: 'HTML', // Assuming explanation for options is in HTML
+                        content: question.explanation, // Assuming no explanation provided for options
+                    },
+                }));
+            } else if (question.questionType === QuestionType.CMCQS) {
+                options = question.csingleChoiceOptions.map((opt, idx) => ({
+                    id: null, // Assuming no direct mapping for option ID
+                    preview_id: idx, // Using index as preview_id
+                    question_id: null,
+                    text: {
+                        id: null, // Assuming no direct mapping for option text ID
+                        type: 'HTML', // Assuming option content is HTML
+                        content: opt?.name?.replace(/<\/?p>/g, ''), // Remove <p> tags from content
+                    },
+                    media_id: null, // Assuming no direct mapping for option media ID
+                    option_order: null,
+                    created_on: null,
+                    updated_on: null,
+                    explanation_text: {
+                        id: null, // Assuming no direct mapping for explanation text ID
+                        type: 'HTML', // Assuming explanation for options is in HTML
+                        content: question.explanation, // Assuming no explanation provided for options
+                    },
+                }));
+            } else if (question.questionType === QuestionType.CMCQM) {
+                options = question.cmultipleChoiceOptions.map((opt, idx) => ({
+                    id: null, // Assuming no direct mapping for option ID
+                    preview_id: idx, // Using index as preview_id
+                    question_id: null,
+                    text: {
+                        id: null, // Assuming no direct mapping for option text ID
+                        type: 'HTML', // Assuming option content is HTML
+                        content: opt?.name?.replace(/<\/?p>/g, ''), // Remove <p> tags from content
+                    },
+                    media_id: null, // Assuming no direct mapping for option media ID
+                    option_order: null,
+                    created_on: null,
+                    updated_on: null,
+                    explanation_text: {
+                        id: null, // Assuming no direct mapping for explanation text ID
+                        type: 'HTML', // Assuming explanation for options is in HTML
+                        content: question.explanation, // Assuming no explanation provided for options
+                    },
+                }));
+            }
+
+            // Extract correct option indices as strings
+            let correctOptionIds;
+
+            if (question.questionType === QuestionType.MCQS) {
+                correctOptionIds = question.singleChoiceOptions
+                    .map((opt, idx) => (opt.isSelected ? (opt.id ? opt.id : idx.toString()) : null))
+                    .filter((idx) => idx !== null); // Remove null values
+            } else if (question.questionType === QuestionType.MCQM) {
+                correctOptionIds = question.multipleChoiceOptions
+                    .map((opt, idx) => (opt.isSelected ? (opt.id ? opt.id : idx.toString()) : null))
+                    .filter((idx) => idx !== null); // Remove null values
+            } else if (question.questionType === QuestionType.CMCQS) {
+                correctOptionIds = question.csingleChoiceOptions
+                    .map((opt, idx) => (opt.isSelected ? (opt.id ? opt.id : idx.toString()) : null))
+                    .filter((idx) => idx !== null); // Remove null values
+            } else if (question.questionType === QuestionType.CMCQM) {
+                correctOptionIds = question.cmultipleChoiceOptions
+                    .map((opt, idx) => (opt.isSelected ? (opt.id ? opt.id : idx.toString()) : null))
+                    .filter((idx) => idx !== null); // Remove null values
+            } else if (question.questionType === QuestionType.TRUE_FALSE) {
+                correctOptionIds = question.trueFalseOptions
+                    .map((opt, idx) => (opt.isSelected ? (opt.id ? opt.id : idx.toString()) : null))
+                    .filter((idx) => idx !== null); // Remove null values
+            }
+
+            const auto_evaluation_json = getEvaluationJSON(
+                question,
+                correctOptionIds,
+                question.validAnswers,
+                question.subjectiveAnswerText
+            );
+            const options_json = getOptionsJson(question);
+            const parent_rich_text = question.parentRichTextContent
+                ? {
+                      id: null,
+                      type: 'HTML',
+                      content: question.parentRichTextContent,
+                  }
+                : null;
+
+            const questionTypeForBackend = getQuestionType(question.questionType);
+
+            return {
+                id: null,
+                preview_id: question.questionId, // Assuming no direct mapping for preview_id
+                text: {
+                    id: null, // Assuming no direct mapping for text ID
+                    type: 'HTML', // Assuming the content is HTML
+                    content: question.questionName.replace(/<\/?p>/g, ''), // Remove <p> tags from content
+                },
+                media_id: null, // Assuming no direct mapping for media_id
+                created_at: null,
+                updated_at: null,
+                question_response_type: null, // Assuming no direct mapping for response type
+                question_type: questionTypeForBackend,
+                access_level: null, // Assuming no direct mapping for access level
+                auto_evaluation_json, // Add auto_evaluation_json
+                evaluation_type: null, // Assuming no direct mapping for evaluation type
+                explanation_text: {
+                    id: null, // Assuming no direct mapping for explanation text ID
+                    type: 'HTML', // Assuming explanation is in HTML
+                    content: question.explanation,
+                },
+                default_question_time_mins:
+                    Number(question.questionDuration.hrs || 0) * 60 +
+                    Number(question.questionDuration.min || 0),
+                options, // Use the mapped options
+                parent_rich_text,
+                options_json,
+                errors: [], // Assuming no errors are provided
+                warnings: [], // Assuming no warnings are provided
+            };
+        }),
     };
 }
 
@@ -431,9 +607,12 @@ export const getIdBySubjectName = (
 
 export const transformResponseDataToMyQuestionsSchema = (data: QuestionResponse[]) => {
     return data?.map((item) => {
-        const correctOptionIds =
-            JSON.parse(item.auto_evaluation_json)?.data?.correctOptionIds || [];
-        const validAnswers = JSON.parse(item.auto_evaluation_json)?.data?.validAnswers || [];
+        const correctOptionIds = item.auto_evaluation_json
+            ? JSON.parse(item.auto_evaluation_json)?.data?.correctOptionIds
+            : [];
+        const validAnswers = item.auto_evaluation_json
+            ? JSON.parse(item.auto_evaluation_json)?.data?.validAnswers
+            : [];
         let decimals;
         let numericType;
         let subjectiveAnswerText;
@@ -451,8 +630,9 @@ export const transformResponseDataToMyQuestionsSchema = (data: QuestionResponse[
         const baseQuestion: MyQuestion = {
             id: item.id || '',
             questionId: item.id || item.preview_id || undefined,
-            questionName: item.text?.content || '',
-            explanation: item.explanation_text?.content || '',
+            questionName: item.text?.content || item.text_data?.content || '',
+            explanation:
+                item.explanation_text?.content || item.explanation_text_data?.content || '',
             questionType: item.question_type,
             questionMark: '',
             questionPenalty: '',
@@ -485,11 +665,17 @@ export const transformResponseDataToMyQuestionsSchema = (data: QuestionResponse[
                 name: '',
                 isSelected: false,
             }),
+            timestamp: item.question_time_in_millis
+                ? formatTimeStudyLibraryInSeconds(item.question_time_in_millis / 1000)
+                : '0:0:0',
+            newQuestion: item?.new_question,
             validAnswers: [],
             decimals,
             numericType,
             parentRichTextContent: item.parent_rich_text?.content || null,
             subjectiveAnswerText,
+            status: item.status,
+            canSkip: item.can_skip,
         };
 
         if (item.question_type === 'MCQS') {
@@ -527,6 +713,111 @@ export const transformResponseDataToMyQuestionsSchema = (data: QuestionResponse[
         }
         return baseQuestion;
     });
+};
+
+export const transformResponseDataToMyQuestionsSchemaSingleQuestion = (item: QuestionResponse) => {
+    const correctOptionIds = item.auto_evaluation_json
+        ? JSON.parse(item.auto_evaluation_json)?.data?.correctOptionIds
+        : [];
+    const validAnswers = item.auto_evaluation_json
+        ? JSON.parse(item.auto_evaluation_json)?.data?.validAnswers
+        : [];
+    let decimals;
+    let numericType;
+    let subjectiveAnswerText;
+    if (item.options_json) {
+        decimals = JSON.parse(item.options_json)?.decimals || 0;
+        numericType = JSON.parse(item.options_json)?.numeric_type || '';
+    }
+    if (item.auto_evaluation_json) {
+        if (item.question_type === 'ONE_WORD') {
+            subjectiveAnswerText = JSON.parse(item.auto_evaluation_json)?.data?.answer;
+        } else if (item.question_type === 'LONG_ANSWER') {
+            subjectiveAnswerText = JSON.parse(item.auto_evaluation_json)?.data?.answer?.content;
+        }
+    }
+    const baseQuestion: MyQuestion = {
+        id: item.id || '',
+        questionId: item.id || item.preview_id || undefined,
+        questionName: item.text?.content || item.text_data?.content || '',
+        explanation: item.explanation_text?.content || item.explanation_text_data?.content || '',
+        questionType: item.question_type,
+        questionMark: '',
+        questionPenalty: '',
+        questionDuration: {
+            hrs: String(Math.floor((item.default_question_time_mins ?? 0) / 60)), // Extract hours
+            min: String((item.default_question_time_mins ?? 0) % 60), // Extract remaining minutes
+        },
+        singleChoiceOptions: Array(4).fill({
+            id: '',
+            name: '',
+            isSelected: false,
+        }),
+        multipleChoiceOptions: Array(4).fill({
+            id: '',
+            name: '',
+            isSelected: false,
+        }),
+        csingleChoiceOptions: Array(4).fill({
+            id: '',
+            name: '',
+            isSelected: false,
+        }),
+        cmultipleChoiceOptions: Array(4).fill({
+            id: '',
+            name: '',
+            isSelected: false,
+        }),
+        trueFalseOptions: Array(2).fill({
+            id: '',
+            name: '',
+            isSelected: false,
+        }),
+        timestamp: item.question_time_in_millis
+            ? formatTimeStudyLibraryInSeconds(item.question_time_in_millis / 1000)
+            : '0:0:0',
+        newQuestion: item?.new_question,
+        validAnswers: [],
+        decimals,
+        numericType,
+        parentRichTextContent: item.parent_rich_text?.content || null,
+        subjectiveAnswerText,
+    };
+
+    if (item.question_type === 'MCQS') {
+        baseQuestion.singleChoiceOptions = item.options.map((option) => ({
+            id: option.id ? option.id : '',
+            name: option.text?.content || '',
+            isSelected: correctOptionIds.includes(option.id || option.preview_id),
+        }));
+    } else if (item.question_type === 'MCQM') {
+        baseQuestion.multipleChoiceOptions = item.options.map((option) => ({
+            id: option.id ? option.id : '',
+            name: option.text?.content || '',
+            isSelected: correctOptionIds.includes(option.id || option.preview_id),
+        }));
+    } else if (item.question_type === 'CMCQS') {
+        baseQuestion.csingleChoiceOptions = item.options.map((option) => ({
+            id: option.id ? option.id : '',
+            name: option.text?.content || '',
+            isSelected: correctOptionIds.includes(option.id || option.preview_id),
+        }));
+    } else if (item.question_type === 'CMCQM') {
+        baseQuestion.cmultipleChoiceOptions = item.options.map((option) => ({
+            id: option.id ? option.id : '',
+            name: option.text?.content || '',
+            isSelected: correctOptionIds.includes(option.id || option.preview_id),
+        }));
+    } else if (item.question_type === 'TRUE_FALSE') {
+        baseQuestion.trueFalseOptions = item.options.map((option) => ({
+            id: option.id ? option.id : '',
+            name: option.text?.content || '',
+            isSelected: correctOptionIds.includes(option.id || option.preview_id),
+        }));
+    } else if (item.question_type === 'NUMERIC') {
+        baseQuestion.validAnswers = validAnswers;
+    }
+    return baseQuestion;
 };
 
 export const convertQuestionsToExportSchema = (rawQuestions: QuestionResponse[]) => {

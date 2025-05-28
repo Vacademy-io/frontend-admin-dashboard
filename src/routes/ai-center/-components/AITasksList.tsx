@@ -21,6 +21,7 @@ import { useAIQuestionDialogStore } from '@/routes/assessment/create-assessment/
 const AITasksList = ({
     heading,
     enableDialog = false,
+    setEnableDialog,
     pollGenerateAssessment,
     handleGenerateQuestionsForAssessment,
     pollGenerateQuestionsFromText,
@@ -30,6 +31,7 @@ const AITasksList = ({
 }: {
     heading: string;
     enableDialog?: boolean;
+    setEnableDialog?: React.Dispatch<React.SetStateAction<boolean>>;
     pollGenerateAssessment?: (prompt?: string, taskId?: string) => void;
     handleGenerateQuestionsForAssessment?: (
         pdfId?: string,
@@ -80,7 +82,7 @@ const AITasksList = ({
                     taskType: getTaskTypeFromFeature(heading),
                 });
                 count++;
-            }, 10000);
+            }, 20000);
 
             return () => clearInterval(interval); // cleanup on unmount
         }
@@ -109,10 +111,13 @@ const AITasksList = ({
         setIsAIQuestionDialog9(enableDialog);
     }, [enableDialog]);
 
-    if (isLoading) return <DashboardLoader />;
+    const handleCloseListDialog = () => {
+        setIsAIQuestionDialog9(!isAIQuestionDialog9);
+        setEnableDialog!(false);
+    };
 
     return (
-        <Dialog open={isAIQuestionDialog9} onOpenChange={setIsAIQuestionDialog9}>
+        <Dialog open={isAIQuestionDialog9} onOpenChange={handleCloseListDialog}>
             <DialogTrigger
                 asChild
                 onClick={(e) => {
@@ -123,7 +128,7 @@ const AITasksList = ({
                     type="button"
                     scale="small"
                     buttonType="secondary"
-                    className="text-normal border-none !text-blue-600 shadow-none hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 active:bg-transparent"
+                    className="border-none font-normal !text-blue-600 shadow-none hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 active:bg-transparent"
                 >
                     View All Tasks
                 </MyButton>
@@ -142,7 +147,7 @@ const AITasksList = ({
                         <ArrowCounterClockwise size={18} className="font-thin text-neutral-600" />
                     </div>
                 </div>
-                {getAITasksIndividualListMutation.status === 'pending' ? (
+                {getAITasksIndividualListMutation.status === 'pending' || isLoading ? (
                     <DashboardLoader size={24} />
                 ) : (
                     <div className="flex flex-col gap-4 overflow-y-auto p-4">

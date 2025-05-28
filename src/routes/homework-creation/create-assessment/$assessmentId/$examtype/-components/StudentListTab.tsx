@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
-import { useGetSessions } from '@/routes/manage-students/students-list/-hooks/useFilters';
 import { GetFilterData } from '@/routes/manage-students/students-list/-constants/all-filters';
 import { MyTable, TableData } from '@/components/design-system/table';
 import { MyPagination } from '@/components/design-system/pagination';
@@ -28,6 +27,7 @@ import { Route } from '..';
 import { Step3ParticipantsListIndiviudalStudentInterface } from '@/types/assessments/student-questionwise-status';
 import { getInstituteId } from '@/constants/helper';
 import { handleGetIndividualStudentList } from '@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-services/assessment-details-services';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 type TestAccessFormType = z.infer<typeof testAccessSchema>;
 
@@ -58,8 +58,13 @@ export const StudentListTab = ({ form }: { form: UseFormReturn<TestAccessFormTyp
     }, [storeDataStep3.select_individually?.student_details]);
 
     const { isError, isLoading } = useSuspenseQuery(useInstituteQuery());
-    const sessions = useGetSessions();
-    const filters = GetFilterData(getCurrentSession());
+    const { instituteDetails } = useInstituteDetailsStore();
+    const sessions =
+        instituteDetails?.sessions.map((session) => ({
+            id: session.id,
+            name: session.session_name,
+        })) || [];
+    const filters = GetFilterData(instituteDetails, getCurrentSession());
     const [isAssessment] = useState(true);
     const { setValue } = form;
 

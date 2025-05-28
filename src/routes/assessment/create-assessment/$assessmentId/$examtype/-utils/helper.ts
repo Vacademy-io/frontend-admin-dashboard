@@ -275,8 +275,8 @@ export function getAllSessions(data: BatchData[]): { id: string; name: string }[
 
 export const convertToUTC = (dateString: string) => {
     if (dateString === '') return '';
-    // Parse the input ISO 8601 date string into a Date object
-    const date = new Date(dateString);
+    // Treat input as UTC
+    const date = new Date(dateString + 'Z');
     return date.toISOString();
 };
 
@@ -627,6 +627,7 @@ export function convertToCustomFieldsData(data: RegistrationFormField[] | undefi
                 disabled: false,
             })),
         }),
+        order: field.field_order,
     }));
 }
 
@@ -639,6 +640,7 @@ export function getCustomFieldsWhileEditStep3(assessmentDetails: Steps) {
             oldKey: true,
             isRequired: true,
             key: 'full_name',
+            order: 0,
         },
         {
             id: '1',
@@ -647,6 +649,7 @@ export function getCustomFieldsWhileEditStep3(assessmentDetails: Steps) {
             oldKey: true,
             isRequired: true,
             key: 'email',
+            order: 1,
         },
         {
             id: '2',
@@ -655,6 +658,7 @@ export function getCustomFieldsWhileEditStep3(assessmentDetails: Steps) {
             oldKey: true,
             isRequired: true,
             key: 'phone_number',
+            order: 2,
         },
     ];
 

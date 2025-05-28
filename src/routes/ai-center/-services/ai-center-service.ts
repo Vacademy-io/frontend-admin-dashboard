@@ -35,19 +35,6 @@ export const handleStartProcessUploadedFile = async (fileId: string) => {
     return response?.data;
 };
 
-export const handleGetListIndividualTopics = async (taskType: string) => {
-    const instituteId = getInstituteId();
-    const response = await axios({
-        method: 'GET',
-        url: LIST_INDIVIDUAL_AI_TASKS_URL,
-        params: {
-            instituteId,
-            taskType,
-        },
-    });
-    return response?.data;
-};
-
 export const handleRetryAITask = async (taskId: string) => {
     const response = await axios({
         method: 'POST',
@@ -59,9 +46,22 @@ export const handleRetryAITask = async (taskId: string) => {
     return response?.data;
 };
 
-export const handleQueryGetListIndividualTopics = (taskType: string) => {
+export const handleGetListIndividualTopics = async (taskType?: string) => {
+    const instituteId = getInstituteId();
+    const response = await axios({
+        method: 'GET',
+        url: LIST_INDIVIDUAL_AI_TASKS_URL,
+        params: {
+            instituteId,
+            ...(taskType ? { taskType } : {}),
+        },
+    });
+    return response?.data;
+};
+
+export const handleQueryGetListIndividualTopics = (taskType?: string) => {
     return {
-        queryKey: ['GET_INDIVIDUAL_AI_LIST_DATA', taskType],
+        queryKey: ['GET_INDIVIDUAL_AI_LIST_DATA', taskType ?? null],
         queryFn: () => handleGetListIndividualTopics(taskType),
         staleTime: 60 * 60 * 1000,
     };

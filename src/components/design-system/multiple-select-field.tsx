@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CaretDown, CaretUp, Check } from "phosphor-react";
-import { Badge } from "../ui/badge";
-import { FormControl, FormField, FormItem, FormLabel } from "../ui/form";
-import { type Control } from "react-hook-form";
-import { cn } from "@/lib/utils";
+import { useEffect, useState } from 'react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CaretDown, CaretUp, Check } from 'phosphor-react';
+import { Badge } from '../ui/badge';
+import { FormControl, FormField, FormItem, FormLabel } from '../ui/form';
+import { type Control } from 'react-hook-form';
+import { cn } from '@/lib/utils';
 
 interface Options {
     _id: string | number;
@@ -34,23 +34,33 @@ export default function MultiSelectDropdown({
     className,
 }: SelectFieldProps) {
     const [selectedOptions, setSelectedOptions] = useState<(string | number)[]>([
-        ...form.getValues("roleType"),
+        ...form.getValues(name),
     ]);
+    const [tags, setTags] = useState<(string | undefined)[]>([]);
 
     const [isOpen, setIsOpen] = useState(false);
 
     const toggleSelection = (value: string | number) => {
         setSelectedOptions((prev) =>
-            prev.includes(value) ? prev.filter((item) => item !== value) : [...prev, value],
+            prev.includes(value) ? prev.filter((item) => item !== value) : [...prev, value]
+        );
+        setTags(
+            selectedOptions.map((option) => options.find((opt) => opt.value === option)?.label)
         );
     };
 
     useEffect(() => {
-        form.setValue("roleType", selectedOptions);
+        form.setValue(name, selectedOptions);
+        setTags(
+            selectedOptions.map((option) => options.find((opt) => opt.value === option)?.label)
+        );
     }, [selectedOptions]);
 
     useEffect(() => {
-        setSelectedOptions(form.getValues("roleType"));
+        setSelectedOptions(form.getValues(name));
+        setTags(
+            selectedOptions.map((option) => options.find((opt) => opt.value === option)?.label)
+        );
     }, []);
     return (
         <>
@@ -65,7 +75,7 @@ export default function MultiSelectDropdown({
 
                     return (
                         <div>
-                            <FormItem className={cn("w-44", className)}>
+                            <FormItem className={cn('w-44', className)}>
                                 <FormLabel className={labelStyle}>
                                     {label}
                                     {required && <span className="text-red-500">*</span>}
@@ -73,7 +83,7 @@ export default function MultiSelectDropdown({
                                 <FormControl>
                                     <Popover open={isOpen} onOpenChange={setIsOpen}>
                                         <PopoverTrigger>
-                                            <div className="flex w-96 items-center justify-between rounded-lg border px-3 py-2">
+                                            <div className="flex w-full items-center justify-between rounded-lg border px-3 py-2">
                                                 <h1 className="text-sm">Select options</h1>
                                                 {isOpen ? <CaretUp /> : <CaretDown />}
                                             </div>
@@ -98,7 +108,7 @@ export default function MultiSelectDropdown({
                                 </FormControl>
                             </FormItem>
                             <div className="mt-4 flex flex-wrap justify-start gap-4">
-                                {selectedOptions.map((value, index) => (
+                                {tags.map((value, index) => (
                                     <Badge key={index} className="bg-[#F4F9FF] px-2 py-1">
                                         {value}
                                     </Badge>

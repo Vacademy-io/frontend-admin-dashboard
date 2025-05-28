@@ -1,26 +1,27 @@
-import React, { useRef, useState } from "react";
-import { OrganizationOnboardingProps } from "..";
-import { OnboardingFrame } from "@/svgs";
-import { z } from "zod";
-import { FormProvider, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { FormControl, FormField, FormItem } from "@/components/ui/form";
-import { MyInput } from "@/components/design-system/input";
-import SelectField from "@/components/design-system/select-field";
-import { InstituteType } from "@/constants/dummy-data";
-import { MyButton } from "@/components/design-system/button";
-import { PencilSimpleLine } from "phosphor-react";
-import { FileUploadComponent } from "@/components/design-system/file-upload";
-import { UploadFileInS3Public } from "../../-services/signup-services";
-import useOrganizationStore from "../-zustand-store/step1OrganizationZustand";
-import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
-import { TokenKey } from "@/constants/auth/tokens";
+import React, { useRef, useState } from 'react';
+import { OrganizationOnboardingProps } from '..';
+import { OnboardingFrame } from '@/svgs';
+import { z } from 'zod';
+import { FormProvider, useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { FormControl, FormField, FormItem } from '@/components/ui/form';
+import { MyInput } from '@/components/design-system/input';
+import SelectField from '@/components/design-system/select-field';
+import { InstituteType } from '@/constants/dummy-data';
+import { MyButton } from '@/components/design-system/button';
+import { PencilSimpleLine } from 'phosphor-react';
+import { FileUploadComponent } from '@/components/design-system/file-upload';
+import { UploadFileInS3Public } from '../../-services/signup-services';
+import useOrganizationStore from '../-zustand-store/step1OrganizationZustand';
+import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
 
 const organizationSetupSchema = z.object({
     profilePictureUrl: z.string(),
     instituteProfilePic: z.union([z.string(), z.undefined()]),
-    instituteName: z.string().min(1, "Institute Name is required"),
-    instituteType: z.string().min(1, "Select institute type"),
+    instituteName: z.string().min(1, 'Institute Name is required'),
+    instituteType: z.string().min(1, 'Select institute type'),
+    instituteThemeCode: z.union([z.string(), z.undefined()]),
 });
 
 type FormValues = z.infer<typeof organizationSetupSchema>;
@@ -40,14 +41,15 @@ const Step1OrganizationSetup: React.FC<OrganizationOnboardingProps> = ({
     const form = useForm<FormValues>({
         resolver: zodResolver(organizationSetupSchema),
         defaultValues: {
-            profilePictureUrl: formData.profilePictureUrl || "",
+            profilePictureUrl: formData.profilePictureUrl || '',
             instituteProfilePic: formData.instituteProfilePic || undefined,
-            instituteName: formData.instituteName || "",
-            instituteType: formData.instituteType || "",
+            instituteName: formData.instituteName || '',
+            instituteType: formData.instituteType || '',
+            instituteThemeCode: formData.instituteThemeCode ?? '',
         },
-        mode: "onChange",
+        mode: 'onChange',
     });
-    const isValid = !!form.getValues("instituteName") && !!form.getValues("instituteType");
+    const isValid = !!form.getValues('instituteName') && !!form.getValues('instituteType');
     form.watch();
     function onSubmit(values: FormValues) {
         handleCompleteCurrentStep();
@@ -62,13 +64,13 @@ const Step1OrganizationSetup: React.FC<OrganizationOnboardingProps> = ({
                 file,
                 setIsUploading,
                 INSTITUTE_ID,
-                "STUDENTS",
+                'STUDENTS'
             );
             const imageUrl = URL.createObjectURL(file);
-            form.setValue("profilePictureUrl", imageUrl);
-            form.setValue("instituteProfilePic", fileId);
+            form.setValue('profilePictureUrl', imageUrl);
+            form.setValue('instituteProfilePic', fileId);
         } catch (error) {
-            console.error("Upload failed:", error);
+            console.error('Upload failed:', error);
         } finally {
             setIsUploading(false);
         }
@@ -80,9 +82,9 @@ const Step1OrganizationSetup: React.FC<OrganizationOnboardingProps> = ({
                 <div className="flex flex-col items-center justify-center gap-8">
                     <h1 className="text-[1.6rem]">Share your organization details</h1>
                     <div className="relative">
-                        {form.getValues("profilePictureUrl") ? (
+                        {form.getValues('profilePictureUrl') ? (
                             <img
-                                src={form.getValues("profilePictureUrl")}
+                                src={form.getValues('profilePictureUrl')}
                                 alt="logo"
                                 className="size-52 rounded-full"
                             />

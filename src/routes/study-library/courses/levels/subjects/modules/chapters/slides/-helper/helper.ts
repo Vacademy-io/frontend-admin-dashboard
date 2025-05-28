@@ -1,9 +1,17 @@
 import { QuestionType } from '@/constants/dummy-data';
-import { UploadQuestionPaperFormType } from '@/routes/assessment/question-papers/-components/QuestionPaperUpload';
-import { getEvaluationJSON } from '@/routes/assessment/question-papers/-utils/helper';
+import {
+    getEvaluationJSON,
+    transformResponseDataToMyQuestionsSchema,
+    transformResponseDataToMyQuestionsSchemaSingleQuestion,
+} from '@/routes/assessment/question-papers/-utils/helper';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import { Slide } from '../-hooks/use-slides';
+import { AssignmentSlide, Slide } from '../-hooks/use-slides';
+import { MyQuestion } from '@/types/assessments/question-paper-form';
+import { convertDateFormat } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-components/StepComponents/Step1BasicInfo';
+import { convertToUTC } from '@/routes/homework-creation/create-assessment/$assessmentId/$examtype/-utils/helper';
+import { AssignmentFormType } from '../-form-schemas/assignmentFormSchema';
+import { parseHtmlToString } from '@/lib/utils';
 
 export const convertHtmlToPdf = async (
     htmlString: string
@@ -202,20 +210,24 @@ export function updateDocumentDataInSlides<T>(
         return item;
     });
 }
+const generateTextBlock = (content: string | null | undefined) => ({
+    id: null,
+    type: 'text',
+    content: content || '',
+});
 
-export function convertToSlideFormat(question: UploadQuestionPaperFormType, status: string) {
-    const questionsData = question.questions[0];
-    if (!questionsData) return;
-    const generateTextBlock = (content: string | null | undefined) => ({
-        id: '',
-        type: 'text',
-        content: content || '',
-    });
+export const formatTimeStudyLibraryInSeconds = (seconds: number) => {
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${hrs}:${mins < 10 ? '0' + mins : mins}:${secs < 10 ? '0' + secs : secs}`;
+};
 
+export function convertStudyLibraryQuestion(question: MyQuestion) {
     let options;
-    if (questionsData?.questionType === QuestionType.MCQS) {
-        options = questionsData?.singleChoiceOptions?.map((opt, idx) => ({
-            id: null, // Assuming no direct mapping for option ID
+    if (question.questionType === QuestionType.MCQS) {
+        options = question?.singleChoiceOptions?.map((opt, idx) => ({
+            id: opt.id, // Assuming no direct mapping for option ID
             preview_id: idx, // Using index as preview_id
             question_id: null,
             text: {
@@ -226,12 +238,13 @@ export function convertToSlideFormat(question: UploadQuestionPaperFormType, stat
             explanation_text: {
                 id: null, // Assuming no direct mapping for explanation text ID
                 type: 'HTML', // Assuming explanation for options is in HTML
-                content: questionsData.explanation, // Assuming no explanation provided for options
+                content: question.explanation, // Assuming no explanation provided for options
             },
         }));
-    } else if (questionsData?.questionType === QuestionType.TRUE_FALSE) {
-        options = questionsData?.trueFalseOptions?.map((opt) => ({
+    } else if (question?.questionType === QuestionType.TRUE_FALSE) {
+        options = question?.trueFalseOptions?.map((opt, idx) => ({
             id: opt.id, // Assuming no direct mapping for option ID
+            preview_id: idx, // Using index as preview_id
             text: {
                 id: null, // Assuming no direct mapping for option text ID
                 type: 'HTML', // Assuming option content is HTML
@@ -240,12 +253,13 @@ export function convertToSlideFormat(question: UploadQuestionPaperFormType, stat
             explanation_text: {
                 id: null, // Assuming no direct mapping for explanation text ID
                 type: 'HTML', // Assuming explanation for options is in HTML
-                content: questionsData.explanation, // Assuming no explanation provided for options
+                content: question.explanation, // Assuming no explanation provided for options
             },
         }));
-    } else if (questionsData?.questionType === QuestionType.MCQM) {
-        options = questionsData?.multipleChoiceOptions?.map((opt) => ({
+    } else if (question?.questionType === QuestionType.MCQM) {
+        options = question?.multipleChoiceOptions?.map((opt, idx) => ({
             id: opt.id, // Assuming no direct mapping for option ID
+            preview_id: idx, // Using index as preview_id
             text: {
                 id: null, // Assuming no direct mapping for option text ID
                 type: 'HTML', // Assuming option content is HTML
@@ -254,12 +268,13 @@ export function convertToSlideFormat(question: UploadQuestionPaperFormType, stat
             explanation_text: {
                 id: null, // Assuming no direct mapping for explanation text ID
                 type: 'HTML', // Assuming explanation for options is in HTML
-                content: questionsData.explanation, // Assuming no explanation provided for options
+                content: question.explanation, // Assuming no explanation provided for options
             },
         }));
-    } else if (questionsData?.questionType === QuestionType.CMCQS) {
-        options = questionsData?.csingleChoiceOptions?.map((opt) => ({
+    } else if (question?.questionType === QuestionType.CMCQS) {
+        options = question?.csingleChoiceOptions?.map((opt, idx) => ({
             id: opt.id, // Assuming no direct mapping for option ID
+            preview_id: idx, // Using index as preview_id
             text: {
                 id: null, // Assuming no direct mapping for option text ID
                 type: 'HTML', // Assuming option content is HTML
@@ -268,12 +283,13 @@ export function convertToSlideFormat(question: UploadQuestionPaperFormType, stat
             explanation_text: {
                 id: null, // Assuming no direct mapping for explanation text ID
                 type: 'HTML', // Assuming explanation for options is in HTML
-                content: questionsData.explanation, // Assuming no explanation provided for options
+                content: question.explanation, // Assuming no explanation provided for options
             },
         }));
-    } else if (questionsData?.questionType === QuestionType.CMCQM) {
-        options = questionsData?.cmultipleChoiceOptions?.map((opt) => ({
+    } else if (question?.questionType === QuestionType.CMCQM) {
+        options = question?.cmultipleChoiceOptions?.map((opt, idx) => ({
             id: opt.id, // Assuming no direct mapping for option ID
+            preview_id: idx, // Using index as preview_id
             text: {
                 id: null, // Assuming no direct mapping for option text ID
                 type: 'HTML', // Assuming option content is HTML
@@ -282,7 +298,7 @@ export function convertToSlideFormat(question: UploadQuestionPaperFormType, stat
             explanation_text: {
                 id: null, // Assuming no direct mapping for explanation text ID
                 type: 'HTML', // Assuming explanation for options is in HTML
-                content: questionsData.explanation, // Assuming no explanation provided for options
+                content: question.explanation, // Assuming no explanation provided for options
             },
         }));
     }
@@ -290,91 +306,341 @@ export function convertToSlideFormat(question: UploadQuestionPaperFormType, stat
     // Extract correct option indices as strings
     let correctOptionIds;
 
-    if (questionsData?.questionType === QuestionType.MCQS) {
-        correctOptionIds = questionsData?.singleChoiceOptions
+    if (question?.questionType === QuestionType.MCQS) {
+        correctOptionIds = question?.singleChoiceOptions
             ?.map((opt, idx) => (opt.isSelected ? (opt.id ? opt.id : idx.toString()) : null))
             .filter((idx) => idx !== null); // Remove null values
-    } else if (questionsData?.questionType === QuestionType.MCQM) {
-        correctOptionIds = questionsData?.multipleChoiceOptions
+    } else if (question?.questionType === QuestionType.MCQM) {
+        correctOptionIds = question?.multipleChoiceOptions
             ?.map((opt, idx) => (opt.isSelected ? (opt.id ? opt.id : idx.toString()) : null))
             .filter((idx) => idx !== null); // Remove null values
-    } else if (questionsData?.questionType === QuestionType.CMCQS) {
-        correctOptionIds = questionsData?.csingleChoiceOptions
+    } else if (question?.questionType === QuestionType.CMCQS) {
+        correctOptionIds = question?.csingleChoiceOptions
             ?.map((opt, idx) => (opt.isSelected ? (opt.id ? opt.id : idx.toString()) : null))
             .filter((idx) => idx !== null); // Remove null values
-    } else if (questionsData?.questionType === QuestionType.CMCQM) {
-        correctOptionIds = questionsData?.cmultipleChoiceOptions
+    } else if (question?.questionType === QuestionType.CMCQM) {
+        correctOptionIds = question?.cmultipleChoiceOptions
             ?.map((opt, idx) => (opt.isSelected ? (opt.id ? opt.id : idx.toString()) : null))
             .filter((idx) => idx !== null); // Remove null values
-    } else if (questionsData?.questionType === QuestionType.TRUE_FALSE) {
-        correctOptionIds = questionsData?.trueFalseOptions
+    } else if (question?.questionType === QuestionType.TRUE_FALSE) {
+        correctOptionIds = question?.trueFalseOptions
             ?.map((opt, idx) => (opt.isSelected ? (opt.id ? opt.id : idx.toString()) : null))
             .filter((idx) => idx !== null); // Remove null values
     }
 
     const auto_evaluation_json = getEvaluationJSON(
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
-        questionsData!,
+        question!,
         correctOptionIds,
-        questionsData?.validAnswers,
-        questionsData?.subjectiveAnswerText
+        question?.validAnswers,
+        question?.subjectiveAnswerText
     );
 
     return {
-        id: crypto.randomUUID(),
-        source_id: '',
-        source_type: 'QUESTION',
-        title: '',
-        image_file_id: '',
-        description: '',
+        id: question.id ? question.id : crypto.randomUUID(),
+        parent_rich_text: generateTextBlock(question?.parentRichTextContent),
+        text_data: generateTextBlock(question?.questionName),
+        explanation_text_data: generateTextBlock(question?.explanation),
+        media_id: '',
+        question_response_type: 'OPTION',
+        question_type: question?.questionType,
+        access_level: 'PUBLIC',
+        auto_evaluation_json: auto_evaluation_json,
+        evaluation_type: 'AUTO',
+        question_time_in_millis: timestampToSeconds(question.timestamp) * 1000,
+        question_order: 0,
+        status: question?.status || 'ACTIVE',
+        options: options?.map((opt, idx) => ({
+            id: opt.id || null,
+            preview_id: opt.id || idx,
+            text: generateTextBlock(opt.text.content),
+            explanationTextData: generateTextBlock(opt.explanation_text.content),
+            mediaId: '',
+        })),
+        new_question: question.newQuestion === false ? false : true,
+        can_skip: question.canSkip,
+    };
+}
+
+export const converDataToVideoFormat = ({
+    activeItem,
+    status,
+    notify,
+    newSlide,
+}: {
+    activeItem: Slide;
+    status: string;
+    notify: boolean;
+    newSlide: boolean;
+}) => {
+    return {
+        id: activeItem?.id || '',
+        title: activeItem?.title || '',
+        description: activeItem?.description || '',
+        image_file_id: activeItem?.image_file_id || '',
+        source_id: activeItem?.video_slide?.id || '',
+        source_type: activeItem?.source_type || '',
         status: status,
         slide_order: 0,
         video_slide: {
-            id: '',
-            description: '',
-            title: '',
+            id: activeItem?.video_slide?.id || '',
+            description: activeItem?.video_slide?.description || '',
+            title: activeItem?.video_slide?.title || '',
             url: '',
             video_length_in_millis: 0,
-            published_url: '',
+            published_url:
+                activeItem?.video_slide?.url || activeItem?.video_slide?.published_url || '',
             published_video_length_in_millis: 0,
-            source_type: 'QUESTION',
+            source_type: '',
+            questions:
+                activeItem?.video_slide?.questions.map((question) =>
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-expect-error
+                    convertStudyLibraryQuestion(question)
+                ) || [],
         },
-        document_slide: {
-            id: '',
-            type: '',
-            data: '',
-            title: '',
-            cover_file_id: '',
-            total_pages: 0,
-            published_data: '',
-            published_document_total_pages: 0,
-        },
-        question_slide: {
-            id: crypto.randomUUID(),
-            parent_rich_text: generateTextBlock(questionsData?.parentRichTextContent),
-            text_data: generateTextBlock(questionsData?.questionName),
-            explanation_text_data: generateTextBlock(questionsData?.explanation),
-            media_id: '',
-            question_response_type: 'OPTION',
-            question_type: questionsData?.questionType,
-            access_level: '',
-            auto_evaluation_json: auto_evaluation_json,
-            evaluation_type: 'AUTO',
-            default_question_time_mins: parseInt(questionsData?.questionDuration?.min || '0'),
-            re_attempt_count: questionsData?.reattemptCount || '',
-            points: questionsData.questionPoints || '',
-            options: options?.map((opt) => ({
-                id: opt.id || '',
-                questionSlideId: '',
-                text: generateTextBlock(opt.text.content),
-                explanationTextData: generateTextBlock(opt.explanation_text.content),
-                mediaId: '',
-            })),
-        },
+        document_slide: null,
+        question_slide: null,
         assignment_slide: null,
         is_loaded: true,
-        new_slide: true,
+        new_slide: newSlide,
+        notify,
+    };
+};
+
+export const convertToAssignmentSlideBackendFormat = (assignmentSlide: AssignmentFormType) => {
+    return {
+        id: assignmentSlide.id,
+        parent_rich_text: {
+            id: '',
+            type: 'RICH_TEXT',
+            content: assignmentSlide.taskDescription,
+        },
+        text_data: {
+            id: '',
+            type: 'TEXT',
+            content: assignmentSlide.task,
+        },
+        live_date: convertToUTC(assignmentSlide.startDate),
+        end_date: convertToUTC(assignmentSlide.endDate),
+        re_attempt_count: assignmentSlide.reattemptCount,
+        comma_separated_media_ids: '',
+        questions: assignmentSlide.adaptive_marking_for_each_question.map((question, idx) => {
+            return {
+                id: question.questionId,
+                text_data: {
+                    id: '',
+                    type: 'text',
+                    content: question.questionName,
+                },
+                question_order: idx,
+                status: 'ACTIVE',
+                question_type: question.questionType,
+                new_question: question.newQuestion,
+            };
+        }),
+    };
+};
+
+export const converDataToAssignmentFormat = ({
+    activeItem,
+    status,
+    notify,
+    newSlide,
+}: {
+    activeItem: Slide;
+    status: string;
+    notify: boolean;
+    newSlide: boolean;
+}) => {
+    return {
+        id: activeItem?.id || '',
+        title: activeItem?.title || '',
+        description: activeItem?.description || '',
+        image_file_id: activeItem?.image_file_id || '',
+        source_id: activeItem?.source_id || '',
+        source_type: activeItem?.source_type || '',
+        status: status,
+        slide_order: 0,
+        video_slide: null,
+        document_slide: null,
+        question_slide: null,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        assignment_slide: convertToAssignmentSlideBackendFormat(activeItem.assignment_slide),
+        is_loaded: true,
+        new_slide: newSlide,
+        notify,
+    };
+};
+
+export function convertToQuestionSlideFormat(question: MyQuestion, sourceId?: string) {
+    let options;
+    if (question?.questionType === QuestionType.MCQS) {
+        options = question?.singleChoiceOptions?.map((opt, idx) => ({
+            id: opt.id, // Assuming no direct mapping for option ID
+            preview_id: idx, // Using index as preview_id
+            question_id: null,
+            text: {
+                id: null, // Assuming no direct mapping for option text ID
+                type: 'HTML', // Assuming option content is HTML
+                content: opt?.name?.replace(/<\/?p>/g, ''), // Remove <p> tags from content
+            },
+            explanation_text: {
+                id: null, // Assuming no direct mapping for explanation text ID
+                type: 'HTML', // Assuming explanation for options is in HTML
+                content: question.explanation, // Assuming no explanation provided for options
+            },
+        }));
+    } else if (question?.questionType === QuestionType.TRUE_FALSE) {
+        options = question?.trueFalseOptions?.map((opt) => ({
+            id: opt.id, // Assuming no direct mapping for option ID
+            text: {
+                id: null, // Assuming no direct mapping for option text ID
+                type: 'HTML', // Assuming option content is HTML
+                content: opt?.name?.replace(/<\/?p>/g, ''), // Remove <p> tags from content
+            },
+            explanation_text: {
+                id: null, // Assuming no direct mapping for explanation text ID
+                type: 'HTML', // Assuming explanation for options is in HTML
+                content: question.explanation, // Assuming no explanation provided for options
+            },
+        }));
+    } else if (question?.questionType === QuestionType.MCQM) {
+        options = question?.multipleChoiceOptions?.map((opt) => ({
+            id: opt.id, // Assuming no direct mapping for option ID
+            text: {
+                id: null, // Assuming no direct mapping for option text ID
+                type: 'HTML', // Assuming option content is HTML
+                content: opt?.name?.replace(/<\/?p>/g, ''), // Remove <p> tags from content
+            },
+            explanation_text: {
+                id: null, // Assuming no direct mapping for explanation text ID
+                type: 'HTML', // Assuming explanation for options is in HTML
+                content: question.explanation, // Assuming no explanation provided for options
+            },
+        }));
+    } else if (question?.questionType === QuestionType.CMCQS) {
+        options = question?.csingleChoiceOptions?.map((opt) => ({
+            id: opt.id, // Assuming no direct mapping for option ID
+            text: {
+                id: null, // Assuming no direct mapping for option text ID
+                type: 'HTML', // Assuming option content is HTML
+                content: opt?.name?.replace(/<\/?p>/g, ''), // Remove <p> tags from content
+            },
+            explanation_text: {
+                id: null, // Assuming no direct mapping for explanation text ID
+                type: 'HTML', // Assuming explanation for options is in HTML
+                content: question.explanation, // Assuming no explanation provided for options
+            },
+        }));
+    } else if (question?.questionType === QuestionType.CMCQM) {
+        options = question?.cmultipleChoiceOptions?.map((opt) => ({
+            id: opt.id, // Assuming no direct mapping for option ID
+            text: {
+                id: null, // Assuming no direct mapping for option text ID
+                type: 'HTML', // Assuming option content is HTML
+                content: opt?.name?.replace(/<\/?p>/g, ''), // Remove <p> tags from content
+            },
+            explanation_text: {
+                id: null, // Assuming no direct mapping for explanation text ID
+                type: 'HTML', // Assuming explanation for options is in HTML
+                content: question.explanation, // Assuming no explanation provided for options
+            },
+        }));
+    }
+
+    // Extract correct option indices as strings
+    let correctOptionIds;
+
+    if (question?.questionType === QuestionType.MCQS) {
+        correctOptionIds = question?.singleChoiceOptions
+            ?.map((opt, idx) => (opt.isSelected ? (opt.id ? opt.id : idx.toString()) : null))
+            .filter((idx) => idx !== null); // Remove null values
+    } else if (question?.questionType === QuestionType.MCQM) {
+        correctOptionIds = question?.multipleChoiceOptions
+            ?.map((opt, idx) => (opt.isSelected ? (opt.id ? opt.id : idx.toString()) : null))
+            .filter((idx) => idx !== null); // Remove null values
+    } else if (question?.questionType === QuestionType.CMCQS) {
+        correctOptionIds = question?.csingleChoiceOptions
+            ?.map((opt, idx) => (opt.isSelected ? (opt.id ? opt.id : idx.toString()) : null))
+            .filter((idx) => idx !== null); // Remove null values
+    } else if (question?.questionType === QuestionType.CMCQM) {
+        correctOptionIds = question?.cmultipleChoiceOptions
+            ?.map((opt, idx) => (opt.isSelected ? (opt.id ? opt.id : idx.toString()) : null))
+            .filter((idx) => idx !== null); // Remove null values
+    } else if (question?.questionType === QuestionType.TRUE_FALSE) {
+        correctOptionIds = question?.trueFalseOptions
+            ?.map((opt, idx) => (opt.isSelected ? (opt.id ? opt.id : idx.toString()) : null))
+            .filter((idx) => idx !== null); // Remove null values
+    }
+
+    const auto_evaluation_json = getEvaluationJSON(
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        question!,
+        correctOptionIds,
+        question?.validAnswers,
+        question?.subjectiveAnswerText
+    );
+
+    return {
+        id: sourceId ? sourceId : crypto.randomUUID(),
+        parent_rich_text: generateTextBlock(question?.parentRichTextContent),
+        text_data: generateTextBlock(question?.questionName),
+        explanation_text_data: generateTextBlock(question?.explanation),
+        media_id: '',
+        question_response_type: 'OPTION',
+        question_type: question?.questionType,
+        access_level: 'PUBLIC',
+        auto_evaluation_json: auto_evaluation_json,
+        evaluation_type: 'AUTO',
+        default_question_time_mins: parseInt(question?.questionDuration?.min || '0'),
+        re_attempt_count: question?.reattemptCount || '',
+        points: 0,
+        options: options?.map((opt, idx) => ({
+            id: opt.id || '',
+            preview_id: opt.id || idx,
+            questionSlideId: '',
+            text: generateTextBlock(opt.text.content),
+            explanationTextData: generateTextBlock(opt.explanation_text.content),
+            mediaId: '',
+        })),
+        source_type: 'QUESTION',
+    };
+}
+
+export function convertToQuestionBackendSlideFormat({
+    activeItem,
+    status,
+    notify,
+    newSlide,
+}: {
+    activeItem: Slide;
+    status: string;
+    notify: boolean;
+    newSlide: boolean;
+}) {
+    return {
+        id: activeItem?.id || '',
+        title: activeItem?.title || '',
+        description: activeItem?.description || '',
+        image_file_id: activeItem?.image_file_id || '',
+        source_id: activeItem?.source_id || '',
+        source_type: activeItem?.source_type || '',
+        status: status,
+        slide_order: 0,
+        video_slide: null,
+        document_slide: null,
+        question_slide: convertToQuestionSlideFormat(
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            activeItem.question_slide,
+            activeItem?.source_id
+        ),
+        assignment_slide: null,
+        is_loaded: true,
+        new_slide: newSlide,
+        notify,
     };
 }
 
@@ -382,4 +648,63 @@ export function timestampToSeconds(timestamp: string | undefined): number {
     if (!timestamp) return 0;
     const [hours = 0, minutes = 0, seconds = 0] = timestamp.split(':').map(Number);
     return hours * 3600 + minutes * 60 + seconds;
+}
+
+const transformAssignmentSlide = (assignment: AssignmentSlide) => {
+    return {
+        id: assignment?.id,
+        task: parseHtmlToString(assignment?.text_data.content),
+        taskDescription: assignment?.parent_rich_text.content,
+        startDate: convertDateFormat(assignment?.live_date || ''),
+        endDate: convertDateFormat(assignment?.end_date || ''),
+        reattemptCount: String(assignment?.re_attempt_count),
+        uploaded_question_paper: null,
+        adaptive_marking_for_each_question: assignment.questions?.map((question) => {
+            return {
+                questionId: question.id,
+                questionName: question.text_data.content,
+                questionType: question.question_type,
+                newQuestion: question.new_question,
+            };
+        }),
+        totalParticipants: 0,
+        submittedParticipants: 0,
+    };
+};
+
+export function cleanVideoQuestions(data: Slide[]) {
+    return data.map((item) => {
+        if (item.source_type === 'VIDEO' && item.video_slide) {
+            return {
+                ...item,
+                video_slide: {
+                    ...item.video_slide,
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-expect-error
+                    questions: transformResponseDataToMyQuestionsSchema(item.video_slide.questions),
+                },
+            };
+        }
+        if (item.source_type === 'QUESTION') {
+            return {
+                ...item,
+                question_slide: transformResponseDataToMyQuestionsSchemaSingleQuestion(
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-expect-error
+                    item.question_slide
+                ),
+            };
+        }
+        if (item.source_type === 'ASSIGNMENT') {
+            return {
+                ...item,
+                assignment_slide: transformAssignmentSlide(
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-expect-error
+                    item.assignment_slide
+                ),
+            };
+        }
+        return item;
+    });
 }

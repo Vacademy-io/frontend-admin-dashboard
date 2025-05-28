@@ -1,10 +1,11 @@
-import { create } from "zustand";
+import { create } from 'zustand';
 
 interface FormValues {
     profilePictureUrl: string;
     instituteProfilePic?: string;
     instituteName: string;
     instituteType: string;
+    instituteThemeCode?: string;
 }
 
 interface OrganizationStore {
@@ -15,19 +16,21 @@ interface OrganizationStore {
 
 const useOrganizationStore = create<OrganizationStore>((set) => ({
     formData: {
-        profilePictureUrl: "",
+        profilePictureUrl: '',
         instituteProfilePic: undefined,
-        instituteName: "",
-        instituteType: "",
+        instituteName: '',
+        instituteType: '',
+        instituteThemeCode: '',
     },
     setFormData: (data) => set({ formData: data }),
     resetForm: () =>
         set({
             formData: {
-                profilePictureUrl: "",
+                profilePictureUrl: '',
                 instituteProfilePic: undefined,
-                instituteName: "",
-                instituteType: "",
+                instituteName: '',
+                instituteType: '',
+                instituteThemeCode: '',
             },
         }),
 }));

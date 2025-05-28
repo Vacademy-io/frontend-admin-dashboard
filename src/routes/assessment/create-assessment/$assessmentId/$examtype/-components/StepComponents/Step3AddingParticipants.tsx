@@ -1,6 +1,6 @@
 import { StepContentProps } from '@/types/assessments/step-content-props';
 import React, { useEffect, useRef, useState } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
+import { FormProvider, useFieldArray, useForm } from 'react-hook-form';
 import { MyButton } from '@/components/design-system/button';
 import { z } from 'zod';
 import testAccessSchema from '../../-utils/add-participants-schema';
@@ -53,6 +53,7 @@ import { convertDateFormat } from './Step1BasicInfo';
 import { handleGetIndividualStudentList } from '@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-services/assessment-details-services';
 import { getInstituteId } from '@/constants/helper';
 import { Step3ParticipantsListIndiviudalStudentInterface } from '@/types/assessments/student-questionwise-status';
+import { Sortable, SortableDragHandle, SortableItem } from '@/components/ui/sortable';
 type TestAccessFormType = z.infer<typeof testAccessSchema>;
 
 const Step3AddingParticipants: React.FC<StepContentProps> = ({
@@ -130,6 +131,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                         oldKey: true,
                         isRequired: true,
                         key: 'full_name',
+                        order: 0,
                     },
                     {
                         id: '1',
@@ -138,6 +140,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                         oldKey: true,
                         isRequired: true,
                         key: 'email',
+                        order: 1,
                     },
                     {
                         id: '2',
@@ -146,6 +149,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                         oldKey: true,
                         isRequired: true,
                         key: 'phone_number',
+                        order: 2,
                     },
                 ],
             },
@@ -188,6 +192,11 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
     const { handleSubmit, getValues, control, watch, setValue } = form;
     const customFields = getValues('open_test.custom_fields');
     watch('open_test.custom_fields');
+
+    const { fields: customFieldsArray, move: moveCustomField } = useFieldArray({
+        control,
+        name: 'open_test.custom_fields',
+    });
 
     const handleSubmitStep3Form = useMutation({
         mutationFn: ({
@@ -281,19 +290,63 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                 oldKey,
                 isRequired: true,
                 key: '',
+                order: customFields.length,
             },
         ];
 
         // Update the form state with the new array
         setValue('open_test.custom_fields', updatedFields);
     };
-
     const handleDeleteOpenField = (id: string) => {
-        const updatedFields = customFields?.filter((field) => field.id !== id);
+        const updatedFields = customFieldsArray
+            .filter((field) => field.id !== id)
+            .map((field, index) => ({
+                ...field,
+                order: index, // Update order of remaining fields
+            }));
         setValue('open_test.custom_fields', updatedFields);
     };
+
     const handleDeleteOptionField = (id: string) => {
         setDropdownOptions((prevFields) => prevFields.filter((field) => field.id !== id));
+    };
+
+    const handleAddGender = (type: string, name: string, oldKey: boolean) => {
+        // Create the new field
+        const newField = {
+            id: String(customFields.length), // Use the current array length as the new ID
+            type,
+            name,
+            oldKey,
+            ...(type === 'dropdown' && {
+                options: [
+                    {
+                        id: '0',
+                        value: 'MALE',
+                        disabled: true,
+                    },
+                    {
+                        id: '1',
+                        value: 'FEMALE',
+                        disabled: true,
+                    },
+                    {
+                        id: '2',
+                        value: 'OTHER',
+                        disabled: true,
+                    },
+                ],
+            }), // Include options if type is dropdown
+            isRequired: true,
+            key: '',
+            order: customFields.length,
+        };
+
+        // Add the new field to the array
+        const updatedFields = [...customFields, newField];
+
+        // Update the form state
+        setValue('open_test.custom_fields', updatedFields);
     };
 
     // Function to close the dialog
@@ -307,6 +360,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
             ...(type === 'dropdown' && { options: dropdownOptions }), // Include options if type is dropdown
             isRequired: true,
             key: '',
+            order: customFields.length,
         };
 
         // Add the new field to the array
@@ -335,6 +389,25 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                 option.id === id ? { ...option, disabled: !option.disabled } : option
             )
         );
+    };
+
+    // Function that explicitly updates the order property of all fields
+    const updateFieldOrders = () => {
+        const currentFields = getValues('open_test.custom_fields');
+
+        if (!currentFields) return;
+
+        // Create a copy with updated order values matching their array positions
+        const updatedFields = currentFields.map((field, index) => ({
+            ...field,
+            order: index,
+        }));
+
+        // Update the form values
+        setValue('open_test.custom_fields', updatedFields, {
+            shouldDirty: true,
+            shouldTouch: true,
+        });
     };
 
     useIntroJsTour({
@@ -659,60 +732,91 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                 <div className="flex w-full flex-col gap-4">
                                     <h1>Registration Input Field</h1>
                                     <div className="flex flex-col gap-4">
-                                        {customFields?.map((fields, index) => {
-                                            return (
-                                                <div
-                                                    key={index}
-                                                    className="flex items-center gap-4"
-                                                >
-                                                    <div className="flex w-3/4 items-center justify-between rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-2">
-                                                        <h1 className="text-sm">
-                                                            {fields.name}
-                                                            {fields.oldKey && (
-                                                                <span className="text-subtitle text-danger-600">
-                                                                    *
-                                                                </span>
-                                                            )}
-                                                            {!fields.oldKey &&
-                                                                fields.isRequired && (
-                                                                    <span className="text-subtitle text-danger-600">
-                                                                        *
-                                                                    </span>
+                                        <Sortable
+                                            value={customFieldsArray}
+                                            onMove={({ activeIndex, overIndex }) => {
+                                                // Update the form with the new order
+                                                moveCustomField(activeIndex, overIndex);
+                                                updateFieldOrders();
+                                            }}
+                                        >
+                                            <div className="flex flex-col gap-4">
+                                                {customFieldsArray.map((field, index) => {
+                                                    return (
+                                                        <SortableItem
+                                                            key={field.id}
+                                                            value={field.id}
+                                                            asChild
+                                                        >
+                                                            <div
+                                                                key={index}
+                                                                className="flex items-center gap-4"
+                                                            >
+                                                                <div className="flex w-3/4 items-center justify-between rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-2">
+                                                                    <h1 className="text-sm">
+                                                                        {field.name}
+                                                                        {field.oldKey && (
+                                                                            <span className="text-subtitle text-danger-600">
+                                                                                *
+                                                                            </span>
+                                                                        )}
+                                                                        {!field.oldKey &&
+                                                                            field.isRequired && (
+                                                                                <span className="text-subtitle text-danger-600">
+                                                                                    *
+                                                                                </span>
+                                                                            )}
+                                                                    </h1>
+                                                                    <div className="flex items-center gap-6">
+                                                                        {!field.oldKey && (
+                                                                            <MyButton
+                                                                                type="button"
+                                                                                scale="small"
+                                                                                buttonType="secondary"
+                                                                                className="min-w-6 !rounded-sm !p-0"
+                                                                                onClick={() =>
+                                                                                    handleDeleteOpenField(
+                                                                                        field.id
+                                                                                    )
+                                                                                }
+                                                                            >
+                                                                                <TrashSimple className="!size-4 text-danger-500" />
+                                                                            </MyButton>
+                                                                        )}
+                                                                        <SortableDragHandle
+                                                                            variant="ghost"
+                                                                            size="icon"
+                                                                            className="cursor-grab"
+                                                                        >
+                                                                            <DotsSixVertical
+                                                                                size={20}
+                                                                            />
+                                                                        </SortableDragHandle>
+                                                                    </div>
+                                                                </div>
+                                                                {!field.oldKey && (
+                                                                    <>
+                                                                        <h1 className="text-sm">
+                                                                            Required
+                                                                        </h1>
+                                                                        <Switch
+                                                                            checked={
+                                                                                field.isRequired
+                                                                            }
+                                                                            onCheckedChange={() =>
+                                                                                toggleIsRequired(
+                                                                                    field.id
+                                                                                )
+                                                                            }
+                                                                        />
+                                                                    </>
                                                                 )}
-                                                        </h1>
-                                                        <div className="flex items-center gap-6">
-                                                            {!fields.oldKey && (
-                                                                <MyButton
-                                                                    type="button"
-                                                                    scale="small"
-                                                                    buttonType="secondary"
-                                                                    className="min-w-6 !rounded-sm !p-0"
-                                                                    onClick={() =>
-                                                                        handleDeleteOpenField(
-                                                                            fields.id
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    <TrashSimple className="!size-4 text-danger-500" />
-                                                                </MyButton>
-                                                            )}
-                                                            <DotsSixVertical size={20} />
-                                                        </div>
-                                                    </div>
-                                                    {!fields.oldKey && (
-                                                        <>
-                                                            <h1 className="text-sm">Required</h1>
-                                                            <Switch
-                                                                checked={fields.isRequired}
-                                                                onCheckedChange={() =>
-                                                                    toggleIsRequired(fields.id)
-                                                                }
-                                                            />
-                                                        </>
-                                                    )}
-                                                </div>
-                                            );
-                                        })}
+                                                            </div>
+                                                        </SortableItem>
+                                                    );
+                                                })}
+                                            </div>
+                                        </Sortable>
                                     </div>
                                     <div className="mt-2 flex items-center gap-6">
                                         {!customFields?.some(
@@ -723,11 +827,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                 scale="medium"
                                                 buttonType="secondary"
                                                 onClick={() =>
-                                                    handleAddOpenFieldValues(
-                                                        'textfield',
-                                                        'Gender',
-                                                        false
-                                                    )
+                                                    handleAddGender('dropdown', 'Gender', false)
                                                 }
                                             >
                                                 <Plus size={32} /> Add Gender
@@ -932,9 +1032,6 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                                                         <TrashSimple className="!size-4 text-danger-500" />
                                                                                     </MyButton>
                                                                                 )}
-                                                                                <DotsSixVertical
-                                                                                    size={20}
-                                                                                />
                                                                             </div>
                                                                         </div>
                                                                     );

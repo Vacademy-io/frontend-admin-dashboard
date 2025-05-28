@@ -4,7 +4,6 @@ import { FormItemWrapper } from '../form-components/form-item-wrapper';
 import { useForm } from 'react-hook-form';
 import { MyInput } from '@/components/design-system/input';
 import { MyDropdown } from '../dropdownForPackageItems';
-import { useGetGenders } from '@/routes/manage-students/students-list/-hooks/useFilters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useFormStore } from '@/stores/students/enroll-students-manually/enroll-manually-form-store';
 import {
@@ -13,7 +12,7 @@ import {
 } from '@/schemas/student/student-list/schema-enroll-students-manually';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { useEffect, useRef, useState } from 'react';
-import { DropdownItemType } from '../dropdownTypesForPackageItems';
+import { DropdownItemType, DropdownValueType } from '../dropdownTypesForPackageItems';
 import { StudentTable } from '@/types/student-table-types';
 import { BatchForSessionType } from '@/schemas/student/student-list/institute-schema';
 import { MyButton } from '@/components/design-system/button';
@@ -33,10 +32,10 @@ export const StepTwoForm = ({
     submitFn: (fn: () => void) => void;
 }) => {
     const { stepTwoData, setStepTwoData, nextStep } = useFormStore();
-    const genderList = useGetGenders();
     const addLevelMutation = useAddLevel();
 
     const {
+        instituteDetails,
         getCourseFromPackage,
         getSessionFromPackage,
         getLevelsFromPackage,
@@ -47,9 +46,14 @@ export const StepTwoForm = ({
     const [sessionList, setSessionList] = useState<DropdownItemType[]>(getSessionFromPackage());
     const [levelList, setLevelList] = useState<DropdownItemType[]>(getLevelsFromPackage());
     const addCourseMutation = useAddCourse();
-    const { instituteDetails } = useInstituteDetailsStore();
     const [initialBatch, setInitialBatch] = useState<BatchForSessionType | null>(null);
     const addSessionMutation = useAddSession();
+
+    const genderList: DropdownValueType[] =
+        instituteDetails?.genders.map((gender, index) => ({
+            id: index.toString(),
+            name: gender as string,
+        })) || [];
 
     console.log('course list', courseList);
     console.log('session list', sessionList);
@@ -103,7 +107,10 @@ export const StepTwoForm = ({
                     },
                     accessDays: initialValues?.session_expiry_days?.toString() || '',
                     enrollmentNumber: initialValues?.institute_enrollment_id || '',
-                    gender: initialValues?.gender || '',
+                    gender: {
+                        id: initialValues?.gender || '',
+                        name: initialValues?.gender || '',
+                    },
                     collegeName: initialValues?.linked_institute_name || '',
                 });
             }
@@ -133,7 +140,10 @@ export const StepTwoForm = ({
             },
             accessDays: initialValues?.session_expiry_days?.toString() || '',
             enrollmentNumber: initialValues?.institute_enrollment_id || '',
-            gender: initialValues?.gender || '',
+            gender: {
+                id: initialValues?.gender || '',
+                name: initialValues?.gender || '',
+            },
             collegeName: initialValues?.linked_institute_name || '',
         },
         mode: 'onChange',
@@ -171,7 +181,6 @@ export const StepTwoForm = ({
 
     // When course changes, update session and level lists
     useEffect(() => {
-        console.log('course value', courseValue);
         if (lastChangedField.current === 'course' && courseValue?.id) {
             // Update the sessions based on selected course
             setSessionList(
@@ -387,6 +396,10 @@ export const StepTwoForm = ({
             }
         );
     };
+
+    useEffect(() => {
+        console.log('gender', form.getValues('gender'));
+    }, [form.watch('gender')]);
 
     useEffect(() => {
         if (submitFn) {

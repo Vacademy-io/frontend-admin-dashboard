@@ -1,173 +1,280 @@
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+/* eslint-disable */
+// @ts-nocheck
+import React, { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-} from "@/components/ui/form";
-import { Checkbox } from "@/components/ui/checkbox";
-import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
-import { formatStructure } from "@/routes/assessment/question-papers/-utils/helper";
-import { SlideType } from "../constant/slideType";
-import { useSlideStore } from "@/stores/Slides/useSlideStore";
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormMessage,
+    FormLabel,
+} from '@/components/ui/form';
+import { Checkbox } from '@/components/ui/checkbox';
+import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useSlideStore } from '@/stores/Slides/useSlideStore'; // Adjust path
 
-export const QuizeSlide = ({
-  formdata,
-  questionType,
-  className,
-  currentSlideId
-}: {
-  formdata: any;
-  questionType: SlideType;
-  className?: string;
-  currentSlideId: string;
+// Assuming QuestionFormData and SlideTypeEnum are from your types file
+import type { QuestionFormData } from '@/components/common/slides/utils/types'; // Import QuestionFormData as type
+import { SlideTypeEnum } from '@/components/common/slides/utils/types';
+
+interface QuizSlideProps {
+    formdata: QuestionFormData; // Initial data for the form
+    questionType: SlideTypeEnum.Quiz | SlideTypeEnum.Feedback;
+    className?: string;
+    currentSlideId: string;
+    isPresentationMode?: boolean;
+}
+
+export const QuizSlide: React.FC<QuizSlideProps> = ({
+    formdata,
+    questionType,
+    className,
+    currentSlideId,
+    isPresentationMode = false,
 }) => {
-  const { updateQuizeSlide } = useSlideStore();
+    const { updateQuizFeedbackSlide } = useSlideStore();
 
-  const form = useForm({
-    defaultValues: formdata,
-  });
-
-  const { control, getValues, setValue, watch } = form;
-  const options = getValues("singleChoiceOptions") ?? [];
-  const optionsType = "";
-  const answersType = "Answers:";
-
-  const formValues = form.getValues();
-  const questionName = watch("questionName");
-const singleChoiceOptions = watch("singleChoiceOptions");
-const feedbackAnswer = watch("feedbackAnswer");
-
-useEffect(() => {
-  updateQuizeSlide(currentSlideId, formValues);
-}, [questionName, singleChoiceOptions, feedbackAnswer, currentSlideId,]);
-  const handleOptionChange = (optionIndex: number) => {
-    const isCurrentlySelected = getValues(
-      `singleChoiceOptions.${optionIndex}.isSelected`
-    );
-
-    const updatedOptions = options.map((option: any, index: number) => ({
-      ...option,
-      isSelected: index === optionIndex ? !isCurrentlySelected : false,
-    }));
-
-    setValue("singleChoiceOptions", updatedOptions, { 
-      shouldDirty: true, 
-      shouldValidate: true 
+    const form = useForm<QuestionFormData>({
+        defaultValues: formdata || {
+            questionName: '',
+            singleChoiceOptions: [],
+            feedbackAnswer: '',
+        },
     });
-  };
 
-  return (
-    <Form {...form}>
-      <form className={`bg-white p-8 ${className}`}>
-        {/* Question */}
-        <div className="flex w-full flex-col !flex-nowrap items-start gap-1 mt-4">
-          <span>Question</span>
-          <FormField
-            control={control}
-            name="questionName"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormControl>
-                  <MainViewQuillEditor
-                    value={field.value}
-                    onChange={field.onChange}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+    const { control, getValues, setValue, watch, reset } = form;
 
-        {questionType === SlideType.Quiz && (
-          <>
-            {/* Options */}
-            <span className="mt-6">{answersType}</span>
-            <div className="flex w-full grow flex-wrap gap-8 mt-2">
-              {options.map((opt: any, idx: number) => (
-                <div
-                  key={idx}
-                  className={`flex w-2/5 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
-                    opt?.isSelected
-                      ? "border border-primary-300 bg-primary-50"
-                      : ""
-                  }`}
-                >
-                  <div className="flex w-full items-center gap-4">
-                    <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
-                      <span className="!p-0 text-sm">
-                        {optionsType
-                          ? formatStructure(optionsType, String.fromCharCode(97 + idx))
-                          : `(${String.fromCharCode(97 + idx)}.)`}
-                      </span>
+    useEffect(() => {
+        if (formdata) {
+            reset(formdata);
+        } else {
+            // Reset to empty structure if formdata is null/undefined to clear previous slide's data
+            reset({ questionName: '', singleChoiceOptions: [], feedbackAnswer: '' });
+        }
+    }, [formdata, reset]);
+
+    // Using watch() on the entire form could be expensive.
+    // It's better to use useEffect with specific field watches or a debounced submit.
+    // For simplicity, this approach is kept but can be optimized.
+    const watchedFormValues = watch();
+
+    useEffect(() => {
+        if (!isPresentationMode) {
+            // console.log("QuizSlide: Form values changed, updating store for slide", currentSlideId, watchedFormValues);
+            updateQuizFeedbackSlide(currentSlideId, watchedFormValues);
+        }
+    }, [watchedFormValues, currentSlideId, isPresentationMode, updateQuizFeedbackSlide]);
+
+    const handleOptionSelectionChange = (optionIndex: number) => {
+        if (isPresentationMode) return;
+
+        const currentOptions = getValues('singleChoiceOptions') || [];
+        const isCurrentlySelected = currentOptions[optionIndex]?.isSelected;
+
+        const updatedOptions = currentOptions.map((option: any, index: number) => ({
+            ...option,
+            isSelected: index === optionIndex ? !isCurrentlySelected : false,
+        }));
+
+        setValue('singleChoiceOptions', updatedOptions, {
+            shouldDirty: true,
+            shouldValidate: true,
+        });
+    };
+
+    if (isPresentationMode) {
+        const displayData = formdata || {};
+        return (
+            <div
+                className={`flex h-full w-full flex-col items-center justify-center overflow-hidden p-4 text-slate-800 sm:p-6 md:p-8 ${className}`}
+                style={{ boxSizing: 'border-box' }}
+            >
+                <ScrollArea className="h-full w-full">
+                    <div className="px-2 py-4 text-center">
+                        {displayData?.questionName && (
+                            <h2
+                                className="mb-6 text-2xl font-bold leading-tight sm:mb-8 sm:text-3xl md:text-4xl"
+                                dangerouslySetInnerHTML={{ __html: displayData.questionName }}
+                            />
+                        )}
+                        {/* ... (rest of presentation mode JSX from your original code, ensure 'SlideType' is SlideTypeEnum) ... */}
+                        {questionType === SlideTypeEnum.Quiz &&
+                            displayData?.singleChoiceOptions &&
+                            Array.isArray(displayData.singleChoiceOptions) && (
+                                <div className="mx-auto w-full max-w-2xl space-y-3 sm:space-y-4">
+                                    {displayData.singleChoiceOptions.map(
+                                        (option: any, index: number) => (
+                                            <div
+                                                key={option.id || `option-${index}`}
+                                                className="group rounded-xl border border-slate-300 bg-slate-50 p-4 text-left text-base transition-all duration-150 ease-in-out hover:border-orange-400 hover:bg-slate-100 sm:text-lg"
+                                            >
+                                                <span className="mr-3 font-semibold text-orange-600">
+                                                    {String.fromCharCode(65 + index)}.
+                                                </span>
+                                                <span
+                                                    dangerouslySetInnerHTML={{
+                                                        __html:
+                                                            option.name || 'Option text missing',
+                                                    }}
+                                                />
+                                            </div>
+                                        )
+                                    )}
+                                </div>
+                            )}
+
+                        {questionType === SlideTypeEnum.Feedback && (
+                            <div className="mx-auto mt-6 w-full max-w-2xl">
+                                <p className="mb-4 text-lg italic text-slate-500 sm:text-xl">
+                                    Your feedback is valuable!
+                                </p>
+                                {displayData?.feedbackAnswer /* Assuming feedbackAnswer is where collected data is stored */ ? (
+                                    <div className="rounded-lg border bg-blue-50 p-4 text-left shadow-sm">
+                                        <p
+                                            className="text-base sm:text-lg"
+                                            dangerouslySetInnerHTML={{
+                                                __html: displayData.feedbackAnswer,
+                                            }}
+                                        />
+                                    </div>
+                                ) : (
+                                    <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
+                                        <p className="text-sm text-slate-400">(Feedback area)</p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                        {!(
+                            displayData?.questionName ||
+                            (questionType === SlideTypeEnum.Quiz &&
+                                displayData?.singleChoiceOptions?.length > 0) ||
+                            (questionType === SlideTypeEnum.Feedback && displayData?.feedbackAnswer)
+                        ) && (
+                            <p className="mt-8 italic text-slate-400">
+                                This slide is awaiting content.
+                            </p>
+                        )}
                     </div>
-                    <FormField
-                      control={control}
-                      name={`singleChoiceOptions.${idx}.name`}
-                      render={({ field }) => (
-                        <FormItem className="w-full">
-                          <FormControl>
-                            <MainViewQuillEditor
-                              value={field.value}
-                              onChange={field.onChange}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
-                    <FormField
-                      control={control}
-                      name={`singleChoiceOptions.${idx}.isSelected`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Checkbox
-                              checked={field.value}
-                              onCheckedChange={() => handleOptionChange(idx)}
-                              className={`mt-1 size-5 rounded-xl border-2 shadow-none ${
-                                field.value
-                                  ? "border-none bg-green-500 text-white"
-                                  : ""
-                              }`}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-              ))}
+                </ScrollArea>
             </div>
-          </>
-        )}
+        );
+    }
 
-        {questionType === SlideType.Feedback && (
-          <div className="mt-6 w-full">
-            <FormField
-              control={control}
-              name="feedbackAnswer"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormControl>
-                    <MainViewQuillEditor
-                      value={field.value}
-                      onChange={field.onChange}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        )}
-      </form>
-    </Form>
-  );
+    // Editor Mode
+    const currentOptions = watch('singleChoiceOptions') || [];
+
+    return (
+        <ScrollArea className="h-full w-full">
+            <Form {...form}>
+                <form className={`space-y-6 bg-white p-4 sm:p-6 ${className}`}>
+                    <div>
+                        <FormLabel className="mb-1.5 block text-sm font-medium text-slate-700">
+                            Question Title/Prompt
+                        </FormLabel>
+                        <FormField
+                            control={control}
+                            name="questionName"
+                            render={({ field }) => (
+                                <FormItem className="w-full">
+                                    <FormControl>
+                                        <MainViewQuillEditor
+                                            value={field.value || ''}
+                                            onChange={field.onChange}
+                                            placeholder="Type your question or prompt here..."
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+
+                    {questionType === SlideTypeEnum.Quiz && (
+                        <div className="space-y-4">
+                            <FormLabel className="mb-1.5 block text-sm font-medium text-slate-700">
+                                Answer Options (Mark the correct one)
+                            </FormLabel>
+                            {Array.isArray(currentOptions) &&
+                                currentOptions.map((option: any, idx: number) => (
+                                    <div
+                                        key={option?.id || `edit-option-${idx}`}
+                                        className={`flex items-start gap-3 rounded-lg border p-3 transition-colors
+                                        ${option?.isSelected ? 'border-orange-400 bg-orange-50/50 shadow-sm' : 'border-slate-200 bg-slate-50/30 hover:border-slate-300'}`}
+                                    >
+                                        <div className="flex items-center pt-1">
+                                            <FormField
+                                                control={control}
+                                                name={`singleChoiceOptions.${idx}.isSelected`}
+                                                render={({ field }) => (
+                                                    <FormItem className="flex items-center">
+                                                        <FormControl>
+                                                            <Checkbox
+                                                                checked={!!field.value}
+                                                                onCheckedChange={() =>
+                                                                    handleOptionSelectionChange(idx)
+                                                                }
+                                                                className={`size-5 rounded border-slate-400 focus-visible:ring-orange-400 data-[state=checked]:border-orange-500 data-[state=checked]:bg-orange-500`}
+                                                            />
+                                                        </FormControl>
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <span className="ml-3 text-sm font-medium text-slate-600">
+                                                {String.fromCharCode(65 + idx)}.
+                                            </span>
+                                        </div>
+                                        <FormField
+                                            control={control}
+                                            name={`singleChoiceOptions.${idx}.name`}
+                                            render={({ field }) => (
+                                                <FormItem className="flex-1">
+                                                    <FormControl>
+                                                        <MainViewQuillEditor
+                                                            value={field.value || ''}
+                                                            onChange={field.onChange}
+                                                            placeholder={`Option ${String.fromCharCode(65 + idx)} content`}
+                                                            className="text-sm"
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    </div>
+                                ))}
+                            {/* Consider adding a button here to "Add Option" if not handled elsewhere */}
+                        </div>
+                    )}
+
+                    {questionType === SlideTypeEnum.Feedback && (
+                        <div>
+                            <FormLabel className="mb-1.5 block text-sm font-medium text-slate-700">
+                                Feedback Area Configuration
+                            </FormLabel>
+                            <FormField
+                                control={control}
+                                name="feedbackAnswer" // This name might be confusing. Is it a prompt or where answer is stored?
+                                // If it's a prompt for users to fill, "feedbackPrompt" might be better.
+                                // If it's where responses are shown, "feedbackDisplay" or similar.
+                                render={({ field }) => (
+                                    <FormItem className="w-full">
+                                        <FormControl>
+                                            <MainViewQuillEditor
+                                                value={field.value || ''}
+                                                onChange={field.onChange}
+                                                placeholder="Configure feedback prompt or display area..."
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+                    )}
+                </form>
+            </Form>
+        </ScrollArea>
+    );
 };

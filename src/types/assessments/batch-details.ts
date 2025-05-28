@@ -20,7 +20,7 @@ export interface BatchData {
     id: string;
     level: Level;
     session: Session;
-    start_time: string;
+    start_time: string | null;
     status: string;
     package_dto: PackageDTO;
 }

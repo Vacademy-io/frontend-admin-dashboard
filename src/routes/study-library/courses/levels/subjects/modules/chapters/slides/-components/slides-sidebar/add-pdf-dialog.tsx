@@ -16,6 +16,9 @@ import { useContentStore } from '@/routes/study-library/courses/levels/subjects/
 import { MyInput } from '@/components/design-system/input';
 import * as pdfjs from 'pdfjs-dist';
 
+// Set the workerSrc for pdfjs
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+
 interface FormData {
     pdfFile: FileList | null;
     pdfTitle: string;

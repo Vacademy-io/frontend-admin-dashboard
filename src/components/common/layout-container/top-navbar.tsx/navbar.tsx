@@ -1,33 +1,45 @@
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { useState } from "react";
-import { CaretDown, CaretUp } from "@phosphor-icons/react";
-import { DummyProfile } from "@/assets/svgs";
-import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
-import { useSidebarStore } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/global-states";
+import { SidebarTrigger } from '@/components/ui/sidebar';
+import { useEffect, useState } from 'react';
+import { CaretDown, CaretUp } from '@phosphor-icons/react';
+import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
+import { useSidebarStore } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/global-states';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { removeCookiesAndLogout } from "@/lib/auth/sessionUtility";
-import { useNavigate } from "@tanstack/react-router";
-import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-import useInstituteLogoStore from "../sidebar/institutelogo-global-zustand";
-import { useStudyLibraryStore } from "@/stores/study-library/use-study-library-store";
-import { useModulesWithChaptersStore } from "@/stores/study-library/use-modules-with-chapters-store";
-import { usePDFStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/temp-pdf-store";
-import { useSelectedSessionStore } from "@/stores/study-library/selected-session-store";
-import { useContentStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store";
-import { SidebarSimple } from "@phosphor-icons/react";
-import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
-import { Separator } from "@/components/ui/separator";
-import EditDashboardProfileComponent from "@/routes/dashboard/-components/EditDashboardProfileComponent";
+} from '@/components/ui/dropdown-menu';
+import { removeCookiesAndLogout } from '@/lib/auth/sessionUtility';
+import { useNavigate } from '@tanstack/react-router';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import useInstituteLogoStore from '../sidebar/institutelogo-global-zustand';
+import { useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
+import { useModulesWithChaptersStore } from '@/stores/study-library/use-modules-with-chapters-store';
+import { usePDFStore } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/temp-pdf-store';
+import { useSelectedSessionStore } from '@/stores/study-library/selected-session-store';
+import { useContentStore } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
+import { SidebarSimple } from '@phosphor-icons/react';
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
+import { Separator } from '@/components/ui/separator';
+import EditDashboardProfileComponent from '@/routes/dashboard/-components/EditDashboardProfileComponent';
+import AdminProfile from '@/routes/dashboard/-components/AdminProfile';
+import { Badge } from '@/components/ui/badge';
+import { handleGetAdminDetails } from '@/services/student-list-section/getAdminDetails';
+import useAdminLogoStore from '../sidebar/admin-logo-zustand';
+import { useFileUpload } from '@/hooks/use-file-upload';
 
 export function Navbar() {
+    const roleColors: Record<string, string> = {
+        ADMIN: '#F4F9FF',
+        'COURSE CREATOR': '#F4FFF9',
+        'ASSESSMENT CREATOR': '#FFF4F5',
+        TEACHER: '#FFF4F5',
+        EVALUATOR: '#F5F0FF',
+    };
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
+    const { data: adminDetails } = useSuspenseQuery(handleGetAdminDetails());
     const { resetStore } = useInstituteDetailsStore();
     const { resetStudyLibraryStore } = useStudyLibraryStore();
     const { resetInstituteLogo } = useInstituteLogoStore();
@@ -40,6 +52,8 @@ export function Navbar() {
     const { navHeading } = useNavHeadingStore();
     const { sidebarOpen, setSidebarOpen } = useSidebarStore();
     const { instituteLogo } = useInstituteLogoStore();
+    const { getPublicUrl } = useFileUpload();
+    const { adminLogo, setAdminLogo, resetAdminLogo } = useAdminLogoStore();
 
     const handleLogout = async (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         event.preventDefault(); // Prevents dropdown from closing immediately
@@ -47,18 +61,34 @@ export function Navbar() {
         resetStudyLibraryStore();
         resetModulesWithChaptersStore();
         resetInstituteLogo();
+        resetAdminLogo();
         resetPdfStore();
         resetSelectedSessionStore();
         resetChapterSidebarStore();
 
         removeCookiesAndLogout(); // Ensure logout completes
         navigate({
-            to: "/login",
+            to: '/login',
         });
     };
 
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            const fetchPublicUrl = async () => {
+                if (adminDetails?.profile_pic_file_id) {
+                    const publicUrl = await getPublicUrl(adminDetails?.profile_pic_file_id);
+                    setAdminLogo(publicUrl);
+                }
+            };
+
+            fetchPublicUrl();
+        }, 300); // Adjust the debounce time as needed
+
+        return () => clearTimeout(timer); // Cleanup the timeout on component unmount
+    }, [adminDetails?.profile_pic_file_id]);
+
     return (
-        <div className="sticky top-0 z-[10] flex h-[72px] items-center justify-between border-b bg-neutral-50 px-8 py-4">
+        <div className="sticky top-0 z-10 flex h-[72px] items-center justify-between border-b bg-neutral-50 px-8 py-4">
             <div className="flex items-center gap-4">
                 <SidebarTrigger onClick={() => setSidebarOpen(!sidebarOpen)}>
                     <SidebarSimple className="text-neutral-600" />
@@ -68,30 +98,69 @@ export function Navbar() {
                 </div>
             </div>
             <div className="flex gap-6 text-neutral-600">
-                {/* <IconContainer>
-                    <MagnifyingGlass className="size-5" />
-                </IconContainer> */}
-                {/* <IconContainer className="relative">
-                    <Bell className="size-5" />
-                    {notifications && (
-                        <div className="absolute right-2 top-2 size-2 rounded-full bg-primary-500"></div>
-                    )}
-                </IconContainer> */}
-                {/* <IconContainer>
-                    <Sliders className="size-5" />
-                </IconContainer> */}
                 <div className="flex items-center gap-1">
                     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
                         <DropdownMenuTrigger className="flex items-center gap-2">
-                            <DummyProfile />
+                            {adminLogo !== '' && (
+                                <img src={adminLogo} alt="logo" className="size-10 rounded-full" />
+                            )}
                             {isOpen ? <CaretDown /> : <CaretUp />}
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                            {/* <DropdownMenuItem className="cursor-pointer">
-                                View Profile Details
-                            </DropdownMenuItem> */}
+                        <DropdownMenuContent className="flex flex-col items-start">
                             <Sheet>
-                                <SheetTrigger className="px-2 py-2 text-sm hover:rounded-sm hover:bg-gray-100">
+                                <SheetTrigger className="w-full p-2 text-left text-sm hover:rounded-sm hover:bg-accent hover:text-accent-foreground">
+                                    View Profile Details
+                                </SheetTrigger>
+                                <SheetContent className="max-h-screen !min-w-[565px] overflow-y-auto !border-l border-gray-200 bg-primary-50 p-8 shadow-none [&>button>svg]:size-6 [&>button>svg]:font-thin [&>button>svg]:text-neutral-600 [&>button]:mt-[19px]">
+                                    <SheetTitle className="text-primary-500">
+                                        Profile Details
+                                    </SheetTitle>
+                                    <div className="flex flex-col gap-8">
+                                        <div className="flex flex-col items-center justify-center gap-4">
+                                            {adminLogo !== '' && (
+                                                <img
+                                                    src={adminLogo}
+                                                    alt="logo"
+                                                    className="size-48 rounded-full"
+                                                />
+                                            )}
+                                            <h1>{adminDetails?.full_name}</h1>
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <h1 className="whitespace-nowrap">Role Type</h1>
+                                                {adminDetails.roles?.map((role, idx) => {
+                                                    const bgColor =
+                                                        roleColors[role.role_name.toUpperCase()] ||
+                                                        '#EDEDED'; // Default color if not mapped
+                                                    return (
+                                                        <Badge
+                                                            key={idx}
+                                                            className={`whitespace-nowrap rounded-lg border border-neutral-300 py-1.5 font-thin shadow-none`}
+                                                            style={{ backgroundColor: bgColor }}
+                                                        >
+                                                            {role.role_name}
+                                                        </Badge>
+                                                    );
+                                                })}
+                                            </div>
+                                            <AdminProfile adminDetails={adminDetails} />
+                                        </div>
+                                        <Separator />
+                                        <div className="flex flex-col gap-2">
+                                            <h1>Contact Information</h1>
+                                            <p className="text-sm text-neutral-600">
+                                                <span>Email:&nbsp;</span>
+                                                <span>{adminDetails?.email}</span>
+                                            </p>
+                                            <p className="text-sm text-neutral-600">
+                                                <span>Mobile:&nbsp;</span>
+                                                <span>+{adminDetails?.mobile_number}</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </SheetContent>
+                            </Sheet>
+                            <Sheet>
+                                <SheetTrigger className="w-full p-2 text-sm hover:rounded-sm hover:bg-accent hover:text-accent-foreground">
                                     View Institute Details
                                 </SheetTrigger>
                                 <SheetContent className="max-h-screen !min-w-[565px] overflow-y-auto !border-l border-gray-200 bg-primary-50 p-8 shadow-none [&>button>svg]:size-6 [&>button>svg]:font-thin [&>button>svg]:text-neutral-600 [&>button]:mt-[19px]">
@@ -100,7 +169,7 @@ export function Navbar() {
                                     </SheetTitle>
                                     <div className="flex flex-col gap-8">
                                         <div className="flex flex-col items-center justify-center gap-4">
-                                            {instituteLogo !== "" && (
+                                            {instituteLogo !== '' && (
                                                 <img
                                                     src={instituteLogo}
                                                     alt="logo"
@@ -159,7 +228,10 @@ export function Navbar() {
                                     </div>
                                 </SheetContent>
                             </Sheet>
-                            <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                            <DropdownMenuItem
+                                onClick={handleLogout}
+                                className="w-full cursor-pointer"
+                            >
                                 Logout
                             </DropdownMenuItem>
                         </DropdownMenuContent>

@@ -103,3 +103,25 @@
     border-radius: 4px;
     padding: 0.4rem;
 }
+
+/* Custom padding for React Quill editor input area */
+.custom-quill-padding .ql-editor {
+    padding-right: 60px !important;
+}
+
+/* Additional padding options */
+.quill-padding-small .ql-editor {
+    padding: 10px !important;
+}
+
+.quill-padding-medium .ql-editor {
+    padding: 20px !important;
+}
+
+.quill-padding-large .ql-editor {
+    padding: 30px !important;
+}
+
+.quill-padding-right-only .ql-editor {
+    padding-right: 40px !important;
+}

@@ -10,11 +10,13 @@ export interface StudentListSectionProps {
 export interface FilterProps {
     filterDetails: {
         label: string;
-        filters: string[] | number[];
+        filters: { id: string; label: string }[];
     };
-    onFilterChange?: (values: string[]) => void;
+    onFilterChange?: (values: { id: string; label: string }[]) => void;
     clearFilters?: boolean;
-    id: FilterId;
+    filterId: FilterId;
+    columnFilters?: { id: string; value: { id: string; label: string }[] }[];
+    setColumnFilters?: (values: { id: string; value: { id: string; label: string }[] }[]) => void;
 }
 
 export type FilterId = 'session' | 'batch' | 'statuses' | 'gender' | 'session_expiry_days';
@@ -22,24 +24,24 @@ export type FilterId = 'session' | 'batch' | 'statuses' | 'gender' | 'session_ex
 export interface FilterConfig {
     id: FilterId; // Change this line
     title: string;
-    filterList: string[] | number[];
+    filterList: { id: string; label: string }[];
 }
 
 export interface StudentFiltersProps {
     currentSession: DropdownItemType;
     sessionList: DropdownItemType[];
-    sessions?: string[];
+    sessions?: { id: string; name: string }[];
     filters: FilterConfig[];
     searchInput: string;
     searchFilter: string;
-    columnFilters: { id: string; value: string[] }[];
+    columnFilters: { id: string; value: { id: string; label: string }[] }[];
     clearFilters: boolean;
     getActiveFiltersState: () => boolean;
     onSessionChange: (value: DropdownValueType) => void;
     onSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
     onSearchEnter: () => void;
     onClearSearch: () => void;
-    onFilterChange: (filterId: string, values: string[]) => void;
+    onFilterChange: (filterId: string, values: { id: string; label: string }[]) => void;
     onFilterClick: () => void;
     onClearFilters: () => void;
     appliedFilters: StudentFilterRequest;

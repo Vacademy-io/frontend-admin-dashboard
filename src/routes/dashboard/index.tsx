@@ -4,7 +4,7 @@ import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore
 import { useEffect, useState } from 'react';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { MyButton } from '@/components/design-system/button';
-import { ArrowSquareOut, Plus } from 'phosphor-react';
+import { ArrowSquareOut, Plus, Sparkle, FilePdf, LightbulbFilament } from 'phosphor-react';
 import { CreateAssessmentDashboardLogo, DashboardCreateCourse } from '@/svgs';
 import { Badge } from '@/components/ui/badge';
 import { CompletionStatusComponent } from './-components/CompletionStatusComponent';
@@ -21,12 +21,11 @@ import {
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { SSDC_INSTITUTE_ID } from '@/constants/urls';
 import { Helmet } from 'react-helmet';
-import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
-import { TokenKey } from '@/constants/auth/tokens';
 import { getModuleFlags } from '@/components/common/layout-container/sidebar/helper';
 import RoleTypeComponent from './-components/RoleTypeComponent';
 import useLocalStorage from '@/hooks/use-local-storage';
 import EditDashboardProfileComponent from './-components/EditDashboardProfileComponent';
+import { handleGetAdminDetails } from '@/services/student-list-section/getAdminDetails';
 
 export const Route = createFileRoute('/dashboard/')({
     component: () => (
@@ -37,12 +36,11 @@ export const Route = createFileRoute('/dashboard/')({
 });
 
 export function DashboardComponent() {
-    const accessToken = getTokenFromCookie(TokenKey.accessToken);
-    const tokenData = getTokenDecodedData(accessToken);
     const location = useLocation();
     const { getValue, setValue } = useLocalStorage<boolean>(IntroKey.dashboardWelcomeVideo, true);
     const { data: instituteDetails, isLoading: isInstituteLoading } =
         useSuspenseQuery(useInstituteQuery());
+    const { data: adminDetails } = useSuspenseQuery(handleGetAdminDetails());
     const subModules = getModuleFlags(instituteDetails?.sub_modules);
 
     const { data, isLoading: isDashboardLoading } = useSuspenseQuery(
@@ -59,6 +57,7 @@ export function DashboardComponent() {
         'COURSE CREATOR': 0,
         'ASSESSMENT CREATOR': 0,
         EVALUATOR: 0,
+        TEACHER: 0,
     });
 
     useIntroJsTour({
@@ -90,9 +89,16 @@ export function DashboardComponent() {
         });
     };
 
+    const handleAICenterNavigation = () => {
+        router.navigate({
+            to: '/ai-center',
+        });
+    };
+
     useEffect(() => {
-        setNavHeading(<h1 className="text-lg">Dashboard</h1>);
-    }, []);
+        // Slightly more compact nav heading
+        setNavHeading(<h1 className="text-md font-medium">Dashboard</h1>);
+    }, [setNavHeading]);
 
     useEffect(() => {
         if (location.pathname !== '/dashboard') {
@@ -102,6 +108,7 @@ export function DashboardComponent() {
 
     if (isInstituteLoading || isDashboardLoading || isAssessmentCountLoading)
         return <DashboardLoader />;
+
     return (
         <>
             <Helmet>
@@ -112,18 +119,18 @@ export function DashboardComponent() {
                 />
             </Helmet>
             <h1 className="text-base">
-                Hello <span className="text-primary-500">{tokenData?.fullname}!</span>
+                Hello <span className="text-primary-500">{adminDetails?.full_name}!</span>
             </h1>
             {getValue() && (
                 <>
-                    <p className="mt-1 text-sm">
+                    <p className="mt-0.5 text-xs text-neutral-600">
                         Welcome aboard! We&apos;re excited to have you here. Let&apos;s set up your
                         admin dashboard and make learning seamless and engaging.
                     </p>
                     {instituteDetails?.id !== SSDC_INSTITUTE_ID && (
                         <iframe
-                            className="m-auto mt-6 h-[70vh] w-[70%] rounded-xl"
-                            src="https://www.youtube.com/embed/s2z1xbCWwRE?si=cgJvdMCJ8xg32lZ7"
+                            className="m-auto mt-4 h-[35vh] w-full rounded-lg md:h-[60vh] md:w-[65%]" // Reduced margin, height, width
+                            src="https://www.youtube.com/embed/s2z1xbCWwRE?si=cgJvdMCJ8xg32lZ7" // Placeholder URL
                             title="YouTube video player"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                             allowFullScreen
@@ -131,14 +138,24 @@ export function DashboardComponent() {
                     )}
                 </>
             )}
-            <div className="mt-8 flex w-full flex-col gap-6">
+            {/* Main content - Reduced top margin and gap */}
+            <div className="mt-5 flex w-full flex-col gap-4">
+                {' '}
+                {/* Reduced mt-8 to mt-5, gap-6 to gap-4 */}
                 <Card className="grow bg-neutral-50 shadow-none">
-                    <CardHeader>
+                    <CardHeader className="p-4">
+                        {' '}
+                        {/* Reduced padding */}
                         <div className="flex items-center justify-between">
-                            <CardTitle>Complete your institute profile</CardTitle>
+                            <CardTitle className="text-sm font-semibold">
+                                Complete your institute profile
+                            </CardTitle>{' '}
+                            {/* Smaller title */}
                             <EditDashboardProfileComponent isEdit={false} />
                         </div>
-                        <CardDescription className="flex items-center gap-2">
+                        <CardDescription className="mt-1 flex items-center gap-1.5 text-xs">
+                            {' '}
+                            {/* Reduced margin, gap, text size */}
                             <CompletionStatusComponent
                                 profileCompletionPercentage={data.profile_completion_percentage}
                             />
@@ -146,90 +163,210 @@ export function DashboardComponent() {
                         </CardDescription>
                     </CardHeader>
                 </Card>
-                <div className={`flex ${subModules.assess ? 'flex-col' : 'flex-row'} gap-6`}>
+                {/* AI Features Card - Compacted Internals */}
+                <Card
+                    className="grow cursor-pointer bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg transition-all hover:scale-[1.01] hover:shadow-md" // slightly reduced hover shadow
+                    onClick={handleAICenterNavigation}
+                >
+                    <CardHeader className="p-4 sm:p-5">
+                        {' '}
+                        {/* Reduced padding */}
+                        <div className="flex items-center justify-between">
+                            <CardTitle className="mb-0.5 flex items-center gap-1.5 text-base font-semibold">
+                                {' '}
+                                {/* Reduced gap, mb */}
+                                <Sparkle size={22} weight="fill" /> {/* Slightly smaller icon */}
+                                Try New AI Features!
+                            </CardTitle>
+                            <ArrowSquareOut size={18} className="text-purple-200" />{' '}
+                            {/* Slightly smaller icon */}
+                        </div>
+                        <CardDescription className="text-xs text-purple-100">
+                            {' '}
+                            {/* Smaller text */}
+                            Explore cutting-edge AI tools to enhance your teaching
+                        </CardDescription>
+                        {/* Compacted feature blurbs */}
+                        <div className="mt-3 flex flex-wrap justify-start gap-2 sm:gap-2.5">
+                            {' '}
+                            {/* Reduced margin-top and gap */}
+                            {[
+                                { icon: FilePdf, text: 'Questions from PDF' },
+                                { icon: LightbulbFilament, text: 'Questions From Lecture Audio' },
+                                { icon: LightbulbFilament, text: 'Sort Questions Topic wise' },
+                                { icon: LightbulbFilament, text: 'Questions From Image' },
+                                { icon: LightbulbFilament, text: 'Get Feedback of Lecture' },
+                                { icon: LightbulbFilament, text: 'Plan Your Lecture' },
+                            ].map((item, index) => (
+                                <div
+                                    key={index}
+                                    className="flex h-auto min-h-10 w-32 flex-col items-center justify-center rounded-md border border-purple-300/70 bg-white/10 p-1.5 text-center shadow-sm backdrop-blur-sm transition-colors hover:bg-white/20 sm:w-32" // Compacted size, padding
+                                >
+                                    <item.icon size={18} className="mb-0.5 text-purple-200" />{' '}
+                                    {/* Smaller icon, margin */}
+                                    <span className="text-[11px] font-normal leading-tight text-white">
+                                        {' '}
+                                        {/* Smaller text, tighter leading */}
+                                        {item.text}
+                                    </span>
+                                </div>
+                            ))}
+                            <div className="flex h-auto min-h-10 w-32 flex-col items-center justify-center rounded-md border border-purple-300/70 bg-white/10 p-1.5 text-center shadow-sm backdrop-blur-sm transition-colors hover:bg-white/20 sm:w-32">
+                                <span className="text-[11px] font-normal leading-tight text-white">
+                                    Many More
+                                </span>
+                            </div>
+                        </div>
+                    </CardHeader>
+                </Card>
+                {/* End of AI Features Card */}
+                <div
+                    className={`flex flex-col ${subModules.assess ? 'lg:flex-col' : 'lg:flex-row'} gap-4`} // Reduced gap
+                >
                     <div
-                        className={`flex flex-1 ${
-                            subModules.assess ? 'flex-row' : 'flex-col'
-                        } gap-6`}
+                        className={`flex flex-1 flex-col ${
+                            subModules.assess ? 'md:flex-row' : 'md:flex-col'
+                        } gap-4`} // Reduced gap
                     >
                         <Card className="flex-1 bg-neutral-50 shadow-none">
-                            <CardHeader className="flex flex-col gap-4">
+                            <CardHeader className="p-4">
+                                {' '}
+                                {/* Reduced padding */}
                                 <div className="flex items-center justify-between">
-                                    <CardTitle>Role Type Users</CardTitle>
+                                    <CardTitle className="text-sm font-semibold">
+                                        Role Type Users
+                                    </CardTitle>{' '}
+                                    {/* Smaller title */}
                                     <RoleTypeComponent setRoleTypeCount={setRoleTypeCount} />
                                 </div>
-                                <div className="flex items-center gap-3">
-                                    <Badge className="whitespace-nowrap rounded-lg border border-neutral-300 bg-[#F4F9FF] py-1.5 font-thin shadow-none">
-                                        Admin
-                                    </Badge>
-                                    <span className="font-thin text-primary-500">
-                                        {roleTypeCount.ADMIN}
-                                    </span>
-                                    <Badge className="whitespace-nowrap rounded-lg border border-neutral-300 bg-[#F4FFF9] py-1.5 font-thin shadow-none">
-                                        Course Creator
-                                    </Badge>
-                                    <span className="font-thin text-primary-500">
-                                        {roleTypeCount['COURSE CREATOR']}
-                                    </span>
-                                    <Badge className="whitespace-nowrap rounded-lg border border-neutral-300 bg-[#FFF4F5] py-1.5 font-thin shadow-none">
-                                        Assessment Creator
-                                    </Badge>
-                                    <span className="font-thin text-primary-500">
-                                        {roleTypeCount['ASSESSMENT CREATOR']}
-                                    </span>
-                                    <Badge className="whitespace-nowrap rounded-lg border border-neutral-300 bg-[#F5F0FF] py-1.5 font-thin shadow-none">
-                                        Evaluator
-                                    </Badge>
-                                    <span className="font-thin text-primary-500">
-                                        {roleTypeCount.EVALUATOR}
-                                    </span>
+                                <div className="mt-2 flex flex-col items-start gap-1.5">
+                                    {' '}
+                                    {/* Reduced margin-top and gap */}
+                                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                        {' '}
+                                        {/* Reduced gap */}
+                                        {[
+                                            {
+                                                label: 'Admin',
+                                                count: roleTypeCount.ADMIN,
+                                                bg: 'bg-[#E6EFFC]',
+                                                textCol: 'text-blue-700',
+                                                borderCol: 'border-blue-200',
+                                            },
+                                            {
+                                                label: 'Course Creator',
+                                                count: roleTypeCount['COURSE CREATOR'],
+                                                bg: 'bg-[#E6FCEF]',
+                                                textCol: 'text-green-700',
+                                                borderCol: 'border-green-200',
+                                            },
+                                            {
+                                                label: 'Assessment Creator',
+                                                count: roleTypeCount['ASSESSMENT CREATOR'],
+                                                bg: 'bg-[#FCE6E7]',
+                                                textCol: 'text-red-700',
+                                                borderCol: 'border-red-200',
+                                            },
+                                        ].map((role) => (
+                                            <>
+                                                <Badge
+                                                    className={`whitespace-nowrap rounded border px-1.5 py-0.5 text-[11px] font-normal shadow-none ${role.bg} ${role.textCol} ${role.borderCol}`}
+                                                >
+                                                    {role.label}
+                                                </Badge>
+                                                <span className="text-xs font-medium text-primary-500">
+                                                    {role.count}
+                                                </span>
+                                            </>
+                                        ))}
+                                    </div>
+                                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                        {' '}
+                                        {/* Reduced gap */}
+                                        {[
+                                            {
+                                                label: 'Teacher',
+                                                count: roleTypeCount['TEACHER'],
+                                                bg: 'bg-[#FCE6E7]',
+                                                textCol: 'text-red-700',
+                                                borderCol: 'border-red-200',
+                                            }, // Example color, adjust as needed
+                                            {
+                                                label: 'Evaluator',
+                                                count: roleTypeCount.EVALUATOR,
+                                                bg: 'bg-[#F0E6FC]',
+                                                textCol: 'text-purple-700',
+                                                borderCol: 'border-purple-200',
+                                            },
+                                        ].map((role) => (
+                                            <>
+                                                <Badge
+                                                    className={`whitespace-nowrap rounded border px-1.5 py-0.5 text-[11px] font-normal shadow-none ${role.bg} ${role.textCol} ${role.borderCol}`}
+                                                >
+                                                    {role.label}
+                                                </Badge>
+                                                <span className="text-xs font-medium text-primary-500">
+                                                    {role.count}
+                                                </span>
+                                            </>
+                                        ))}
+                                    </div>
                                 </div>
                             </CardHeader>
                         </Card>
                         <Card className="flex-1 grow bg-neutral-50 shadow-none">
-                            <CardHeader className="flex flex-col gap-3">
-                                <div className="flex items-center justify-between">
-                                    <CardTitle>Enroll students in institute batches</CardTitle>
+                            <CardHeader className="p-4">
+                                {' '}
+                                {/* Reduced padding */}
+                                <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                    <CardTitle className="text-sm font-semibold sm:mb-0">
+                                        Enroll students
+                                    </CardTitle>{' '}
+                                    {/* Smaller title */}
                                     <MyButton
                                         type="submit"
-                                        scale="medium"
+                                        scale="small" // Adjusted scale
                                         buttonType="secondary"
                                         id="quick-enrollment"
                                         layoutVariant="default"
-                                        className="text-sm"
+                                        className="w-full px-3 py-1.5 text-xs sm:w-auto" // Custom class for finer control
                                         onClick={handleEnrollButtonClick}
                                     >
                                         Enroll
                                     </MyButton>
                                 </div>
-                                <CardDescription className="flex items-center gap-4">
+                                <CardDescription className="mt-1.5 flex flex-col gap-1 text-xs text-neutral-600 sm:flex-row sm:items-center sm:gap-3">
+                                    {' '}
+                                    {/* Reduced margin, gap, text size */}
                                     <div
                                         className="flex cursor-pointer items-center gap-1"
                                         onClick={() =>
-                                            navigate({
-                                                to: '/manage-institute/batches',
-                                            })
+                                            navigate({ to: '/manage-institute/batches' })
                                         }
                                     >
-                                        <div className="flex items-center gap-1">
+                                        <div className="flex items-center gap-0.5">
+                                            {' '}
+                                            {/* Reduced gap */}
                                             <span>Batches</span>
-                                            <ArrowSquareOut />
+                                            <ArrowSquareOut size={14} /> {/* Smaller icon */}
                                         </div>
-                                        <span className="text-primary-500">{data.batch_count}</span>
+                                        <span className="font-medium text-primary-500">
+                                            {data.batch_count}
+                                        </span>
                                     </div>
                                     <div
                                         className="flex cursor-pointer items-center gap-1"
                                         onClick={() =>
-                                            navigate({
-                                                to: '/manage-students/students-list',
-                                            })
+                                            navigate({ to: '/manage-students/students-list' })
                                         }
                                     >
-                                        <div className="flex items-center gap-1">
+                                        <div className="flex items-center gap-0.5">
+                                            {' '}
+                                            {/* Reduced gap */}
                                             <span>Students</span>
-                                            <ArrowSquareOut />
+                                            <ArrowSquareOut size={14} /> {/* Smaller icon */}
                                         </div>
-                                        <span className="text-primary-500">
+                                        <span className="font-medium text-primary-500">
                                             {data.student_count}
                                         </span>
                                     </div>
@@ -237,213 +374,192 @@ export function DashboardComponent() {
                             </CardHeader>
                         </Card>
                     </div>
-                    <div className="flex flex-1 flex-row gap-6">
+                    <div className="flex flex-1 flex-col gap-4 md:flex-row">
+                        {' '}
+                        {/* Reduced gap */}
                         <Card className="flex-1 bg-neutral-50 shadow-none">
-                            <CardHeader>
-                                <div className="flex items-center justify-between">
-                                    <CardTitle>Learning Center</CardTitle>
-                                    <MyButton
-                                        type="submit"
-                                        scale="medium"
-                                        id="first-course"
-                                        buttonType="secondary"
-                                        layoutVariant="default"
-                                        className="text-sm"
-                                    >
-                                        <Plus size={32} />
-                                        Create Course
-                                    </MyButton>
-                                    <MyButton
-                                        type="submit"
-                                        scale="medium"
-                                        id="first-course"
-                                        buttonType="secondary"
-                                        layoutVariant="default"
-                                        className="text-sm"
-                                    >
-                                        <Plus size={32} />
-                                        Add Study Slides
-                                    </MyButton>
-                                </div>
-                                <CardDescription className="flex items-center gap-4 py-6">
-                                    <div className="flex cursor-pointer items-center gap-1">
-                                        <div
-                                            className="flex items-center gap-1"
-                                            onClick={() =>
-                                                navigate({
-                                                    to: '/study-library/courses',
-                                                })
-                                            }
+                            <CardHeader className="p-4">
+                                {' '}
+                                {/* Reduced padding */}
+                                <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                    <CardTitle className="text-sm font-semibold sm:mb-0">
+                                        Learning Center
+                                    </CardTitle>{' '}
+                                    {/* Smaller title */}
+                                    <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+                                        <MyButton
+                                            type="submit"
+                                            scale="small" // Adjusted scale
+                                            id="first-course"
+                                            buttonType="secondary"
+                                            layoutVariant="default"
+                                            className="w-full px-3 py-1.5 text-xs sm:w-auto" // Custom class
                                         >
+                                            <Plus size={16} /> {/* Smaller icon */}
+                                            Create Course
+                                        </MyButton>
+                                        <MyButton
+                                            type="submit"
+                                            scale="small" // Adjusted scale
+                                            id="add-study-slides"
+                                            buttonType="secondary"
+                                            layoutVariant="default"
+                                            className="w-full px-3 py-1.5 text-xs sm:w-auto" // Custom class
+                                        >
+                                            <Plus size={16} /> {/* Smaller icon */}
+                                            Add Study Slides
+                                        </MyButton>
+                                    </div>
+                                </div>
+                                <CardDescription className="flex flex-col gap-1 py-2 text-xs text-neutral-600 sm:flex-row sm:items-center sm:gap-3 sm:py-3">
+                                    {' '}
+                                    {/* Reduced padding, gap, text size */}
+                                    <div
+                                        className="flex cursor-pointer items-center gap-1"
+                                        onClick={() => navigate({ to: '/study-library/courses' })}
+                                    >
+                                        <div className="flex items-center gap-0.5">
+                                            {' '}
+                                            {/* Reduced gap */}
                                             <span>Courses</span>
-                                            <ArrowSquareOut />
+                                            <ArrowSquareOut size={14} /> {/* Smaller icon */}
                                         </div>
-                                        <span className="text-primary-500">
+                                        <span className="font-medium text-primary-500">
                                             {data.course_count}
                                         </span>
                                     </div>
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-1">
                                         <span>Level</span>
-                                        <span className="text-primary-500">
+                                        <span className="font-medium text-primary-500">
                                             {instituteDetails?.levels?.length}
                                         </span>
                                     </div>
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-1">
                                         <span>Subjects</span>
-                                        <span className="text-primary-500">
+                                        <span className="font-medium text-primary-500">
                                             {instituteDetails?.subjects?.length}
                                         </span>
                                     </div>
                                 </CardDescription>
-                                <CardDescription className="flex justify-center">
-                                    <DashboardCreateCourse />
+                                <CardDescription className="mt-1 flex justify-center">
+                                    {' '}
+                                    {/* Reduced margin */}
+                                    <DashboardCreateCourse className="h-auto w-full max-w-[180px] sm:max-w-[200px]" />{' '}
+                                    {/* Smaller SVG */}
                                 </CardDescription>
                             </CardHeader>
                         </Card>
                         {subModules.assess && (
                             <Card className="flex-1 grow bg-neutral-50 shadow-none">
-                                <CardHeader>
-                                    <div className="flex items-center justify-between">
-                                        <CardTitle>Assessment</CardTitle>
+                                <CardHeader className="p-4">
+                                    {' '}
+                                    {/* Reduced padding */}
+                                    <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                        <CardTitle className="text-sm font-semibold sm:mb-0">
+                                            Assessment
+                                        </CardTitle>{' '}
+                                        {/* Smaller title */}
                                         <Dialog>
-                                            <DialogTrigger>
+                                            <DialogTrigger asChild>
                                                 <MyButton
-                                                    type="submit"
-                                                    scale="medium"
+                                                    type="button"
+                                                    scale="small" // Adjusted scale
                                                     id="first-assessment"
                                                     buttonType="secondary"
                                                     layoutVariant="default"
-                                                    className="text-sm"
+                                                    className="w-full px-3 py-1.5 text-xs sm:w-auto" // Custom class
                                                 >
-                                                    <Plus size={32} />
+                                                    <Plus size={16} /> {/* Smaller icon */}
                                                     Create
                                                 </MyButton>
                                             </DialogTrigger>
-                                            <DialogContent className="p-0">
-                                                <h1 className="rounded-lg bg-primary-50 p-4 text-primary-500">
+                                            <DialogContent className="max-w-xs p-0 sm:max-w-sm">
+                                                {' '}
+                                                {/* Compact dialog */}
+                                                <h1 className="rounded-t-md bg-neutral-50 p-3 text-base font-medium text-primary-500">
+                                                    {' '}
+                                                    {/* Adjusted padding */}
                                                     Create Assessment
                                                 </h1>
-                                                <div className="flex flex-col items-center justify-center gap-6">
-                                                    <MyButton
-                                                        type="button"
-                                                        scale="large"
-                                                        buttonType="secondary"
-                                                        className="mt-2 font-medium"
-                                                        onClick={() =>
-                                                            handleAssessmentTypeRoute('EXAM')
-                                                        }
-                                                    >
-                                                        Examination
-                                                    </MyButton>
-                                                    <MyButton
-                                                        type="button"
-                                                        scale="large"
-                                                        buttonType="secondary"
-                                                        className="font-medium"
-                                                        onClick={() =>
-                                                            handleAssessmentTypeRoute('MOCK')
-                                                        }
-                                                    >
-                                                        Mock
-                                                    </MyButton>
-                                                    <MyButton
-                                                        type="button"
-                                                        scale="large"
-                                                        buttonType="secondary"
-                                                        className="font-medium"
-                                                        onClick={() =>
-                                                            handleAssessmentTypeRoute('PRACTICE')
-                                                        }
-                                                    >
-                                                        Practice
-                                                    </MyButton>
-                                                    <MyButton
-                                                        type="button"
-                                                        scale="large"
-                                                        buttonType="secondary"
-                                                        className="mb-6 font-medium"
-                                                        onClick={() =>
-                                                            handleAssessmentTypeRoute('SURVEY')
-                                                        }
-                                                    >
-                                                        Survey
-                                                    </MyButton>
+                                                <div className="flex flex-col items-center justify-center gap-3 p-4 sm:gap-4">
+                                                    {' '}
+                                                    {/* Adjusted padding and gap */}
+                                                    {['EXAM', 'MOCK', 'PRACTICE', 'SURVEY'].map(
+                                                        (type) => (
+                                                            <MyButton
+                                                                key={type}
+                                                                type="button"
+                                                                scale="medium" // Medium is okay for dialog choices
+                                                                buttonType="secondary"
+                                                                className="w-full text-sm font-medium sm:w-auto"
+                                                                onClick={() =>
+                                                                    handleAssessmentTypeRoute(type)
+                                                                }
+                                                            >
+                                                                {type.charAt(0) +
+                                                                    type.slice(1).toLowerCase()}
+                                                            </MyButton>
+                                                        )
+                                                    )}
                                                 </div>
                                             </DialogContent>
                                         </Dialog>
                                     </div>
-                                    <CardDescription className="flex items-center gap-4 py-6">
-                                        <div
-                                            className="flex cursor-pointer items-center gap-1"
-                                            onClick={() =>
-                                                navigate({
-                                                    to: '/assessment/assessment-list',
-                                                    search: { selectedTab: 'liveTests' },
-                                                })
-                                            }
-                                        >
-                                            <div className="flex items-center gap-1">
-                                                <span>Live</span>
-                                                <ArrowSquareOut />
+                                    <CardDescription className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2 text-xs text-neutral-600 sm:py-3">
+                                        {' '}
+                                        {/* Reduced padding, gap, text size */}
+                                        {[
+                                            {
+                                                label: 'Live',
+                                                count: assessmentCount?.live_count,
+                                                tab: 'liveTests',
+                                            },
+                                            {
+                                                label: 'Upcoming',
+                                                count: assessmentCount?.upcoming_count,
+                                                tab: 'upcomingTests',
+                                            },
+                                            {
+                                                label: 'Previous',
+                                                count: assessmentCount?.previous_count,
+                                                tab: 'previousTests',
+                                            },
+                                            {
+                                                label: 'Drafts',
+                                                count: assessmentCount?.draft_count,
+                                                tab: 'draftTests',
+                                            },
+                                        ].map((item) => (
+                                            <div
+                                                key={item.tab}
+                                                className="flex cursor-pointer items-center gap-1"
+                                                onClick={() =>
+                                                    navigate({
+                                                        to: '/assessment/assessment-list',
+                                                        search: { selectedTab: item.tab },
+                                                    })
+                                                }
+                                            >
+                                                <div className="flex items-center gap-0.5">
+                                                    {' '}
+                                                    {/* Reduced gap */}
+                                                    <span>{item.label}</span>
+                                                    <ArrowSquareOut size={14} />{' '}
+                                                    {/* Smaller icon */}
+                                                </div>
+                                                <span className="font-medium text-primary-500">
+                                                    {item.count}
+                                                </span>
                                             </div>
-                                            <span className="text-primary-500">
-                                                {assessmentCount?.live_count}
-                                            </span>
-                                        </div>
-                                        <div
-                                            className="flex cursor-pointer items-center gap-1"
-                                            onClick={() =>
-                                                navigate({
-                                                    to: '/assessment/assessment-list',
-                                                    search: { selectedTab: 'upcomingTests' },
-                                                })
-                                            }
-                                        >
-                                            <div className="flex items-center gap-1">
-                                                <span>Upcoming</span>
-                                                <ArrowSquareOut />
-                                            </div>
-                                            <span className="text-primary-500">
-                                                {assessmentCount?.upcoming_count}
-                                            </span>
-                                        </div>
-                                        <div
-                                            className="flex cursor-pointer items-center gap-1"
-                                            onClick={() =>
-                                                navigate({
-                                                    to: '/assessment/assessment-list',
-                                                    search: { selectedTab: 'previousTests' },
-                                                })
-                                            }
-                                        >
-                                            <div className="flex items-center gap-1">
-                                                <span>Previous</span>
-                                                <ArrowSquareOut />
-                                            </div>
-                                            <span className="text-primary-500">
-                                                {assessmentCount?.previous_count}
-                                            </span>
-                                        </div>
-                                        <div
-                                            className="flex cursor-pointer items-center gap-1"
-                                            onClick={() =>
-                                                navigate({
-                                                    to: '/assessment/assessment-list',
-                                                    search: { selectedTab: 'draftTests' },
-                                                })
-                                            }
-                                        >
-                                            <div className="flex items-center gap-1">
-                                                <span>Drafts</span>
-                                                <ArrowSquareOut />
-                                            </div>
-                                            <span className="text-primary-500">
-                                                {assessmentCount?.draft_count}
-                                            </span>
-                                        </div>
+                                        ))}
                                     </CardDescription>
-                                    <CardDescription className="mt-2 flex items-center justify-center">
-                                        <CreateAssessmentDashboardLogo className="mt-4" />
+                                    <CardDescription className="mt-1 flex items-center justify-center">
+                                        {' '}
+                                        {/* Reduced margin */}
+                                        <CreateAssessmentDashboardLogo
+                                            className="mt-2 h-auto w-full max-w-[160px] text-primary-500 sm:max-w-[180px]" // Smaller SVG, applied primary color via text
+                                            fill="currentColor" // Use currentColor to inherit text color
+                                        />
                                     </CardDescription>
                                 </CardHeader>
                             </Card>

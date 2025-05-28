@@ -1,3 +1,5 @@
+'use client';
+
 import { MyButton } from '@/components/design-system/button';
 import { MyInput } from '@/components/design-system/input';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,6 +11,8 @@ import { toast } from 'sonner';
 import { Route } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/index';
 import { useContentStore } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
 import { useEffect, useRef, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
 
 const formSchema = z.object({
     videoUrl: z
@@ -33,6 +37,8 @@ export const AddVideoDialog = ({
     const { setActiveItem, getSlideById } = useContentStore();
     const [isAPIReady, setIsAPIReady] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
+    const queryClient = useQueryClient();
+    const [isVideoUploading, setIsVideoUploading] = useState(false);
 
     const extractVideoId = (url: string): string => {
         const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -106,6 +112,7 @@ export const AddVideoDialog = ({
     };
 
     const submitFormWithDuration = async (data: FormValues, duration: number) => {
+        setIsVideoUploading(true);
         try {
             const slideId = crypto.randomUUID();
             const response: string = await addUpdateVideoSlide({
@@ -122,6 +129,7 @@ export const AddVideoDialog = ({
                     video_length_in_millis: duration,
                     published_url: null,
                     published_video_length_in_millis: 0,
+                    source_type: 'VIDEO',
                 },
                 status: 'DRAFT',
                 new_slide: true,
@@ -131,11 +139,13 @@ export const AddVideoDialog = ({
             toast.success('Video added successfully!');
             form.reset();
             openState?.(false);
-            setTimeout(() => {
-                setActiveItem(getSlideById(response));
-            }, 500);
+            setActiveItem(getSlideById(response));
+            await queryClient.invalidateQueries({ queryKey: ['slides'] });
+            queryClient.getQueryData(['slides']);
         } catch (error) {
             toast.error('Failed to add video');
+        } finally {
+            setIsVideoUploading(false);
         }
     };
 
@@ -193,9 +203,27 @@ export const AddVideoDialog = ({
                     )}
                 />
                 <div ref={containerRef} className="hidden" />
-                <MyButton type="submit" buttonType="primary" scale="large" layoutVariant="default">
-                    Add Video
-                </MyButton>
+
+                {isVideoUploading ? (
+                    <MyButton
+                        type="button"
+                        buttonType="primary"
+                        scale="large"
+                        layoutVariant="default"
+                    >
+                        <DashboardLoader size={18} />
+                    </MyButton>
+                ) : (
+                    <MyButton
+                        type="submit"
+                        buttonType="primary"
+                        scale="large"
+                        layoutVariant="default"
+                        disable={!form.getValues('videoName') || !form.getValues('videoUrl')}
+                    >
+                        Add Video
+                    </MyButton>
+                )}
             </form>
         </Form>
     );

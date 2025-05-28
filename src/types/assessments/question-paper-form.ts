@@ -38,7 +38,10 @@ export interface MyQuestion {
     parentRichTextContent?: string | null;
     subjectiveAnswerText?: string;
     timestamp?: string;
-    // optionsJson: string | null; //Array for numerical answers
+    newQuestion?: boolean;
+    reattemptCount?: string;
+    status?: string;
+    canSkip?: boolean;
 }
 
 export interface MySingleChoiceOption {

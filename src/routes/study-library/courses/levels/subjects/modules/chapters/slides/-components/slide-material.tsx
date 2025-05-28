@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 import YooptaEditor, { createYooptaEditor } from '@yoopta/editor';
-import { useEffect, useMemo, useRef } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useRef } from 'react';
 import { MyButton } from '@/components/design-system/button';
 import PDFViewer from './pdf-viewer';
 import { ActivityStatsSidebar } from './stats-dialog/activity-sidebar';
@@ -19,8 +19,13 @@ import {
     useSlides,
 } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides';
 import { toast } from 'sonner';
-import { Check, DownloadSimple, PencilSimpleLine } from 'phosphor-react';
-import { convertHtmlToPdf, convertToSlideFormat } from '../-helper/helper';
+import { ChatText, Check, DownloadSimple, PencilSimpleLine } from 'phosphor-react';
+import {
+    converDataToAssignmentFormat,
+    converDataToVideoFormat,
+    convertHtmlToPdf,
+    convertToQuestionBackendSlideFormat,
+} from '../-helper/helper';
 import { StudyLibraryQuestionsPreview } from './questions-preview';
 import StudyLibraryAssignmentPreview from './assignment-preview';
 import VideoSlidePreview from './video-slide-preview';
@@ -29,7 +34,38 @@ import { handleUnpublishSlide } from './slide-operations/handleUnpublishSlide';
 import { updateHeading } from './slide-operations/updateSlideHeading';
 import { formatHTMLString } from './slide-operations/formatHtmlString';
 import { handleConvertAndUpload } from './slide-operations/handleConvertUpload';
-import { UploadQuestionPaperFormType } from '@/routes/assessment/question-papers/-components/QuestionPaperUpload';
+import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
+import { Loader2 } from 'lucide-react';
+
+const LazyDoubtResolutionSidebar = lazy(() => import('./doubt-resolution/doubtResolutionSidebar'));
+
+export function fixCodeBlocksInHtml(html: string) {
+    // Use DOMParser (browser) or JSDOM (Node.js) for robust parsing
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+
+    // Find all <p><code>...</code></p>
+    const paragraphs = doc.querySelectorAll('p > code:only-child');
+
+    paragraphs.forEach((codeElem) => {
+        const pElem = codeElem.parentElement;
+        const codeText = codeElem.textContent;
+
+        // Create new <pre><code>...</code></pre>
+        const pre = doc.createElement('pre');
+        const code = doc.createElement('code');
+        code.textContent = codeText;
+        pre.appendChild(code);
+
+        // Replace <p> with <pre>
+        if (pElem && pElem.parentNode) {
+            pElem.parentNode.replaceChild(pre, pElem);
+        }
+    });
+
+    // Return the fixed HTML as a string
+    return doc.body.innerHTML;
+}
 
 export const SlideMaterial = ({
     setGetCurrentEditorHTMLContent,
@@ -48,12 +84,19 @@ export const SlideMaterial = ({
     const router = useRouter();
     const [content, setContent] = useState<JSX.Element | null>(null);
 
-    const { chapterId } = router.state.location.search;
+    const { chapterId, slideId } = router.state.location.search;
     const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
     const [isUnpublishDialogOpen, setIsUnpublishDialogOpen] = useState(false);
     const { addUpdateDocumentSlide } = useSlides(chapterId || '');
     const { addUpdateVideoSlide } = useSlides(chapterId || '');
     const { updateQuestionOrder } = useSlides(chapterId || '');
+    const { updateAssignmentOrder } = useSlides(chapterId || '');
+    const editingContainerRef = useRef<HTMLDivElement>(null);
+    const [doubtProgressMarkerPdf, setDoubtProgressMarkerPdf] = useState<number | null>(null);
+    const [doubtProgressMarkerVideo, setDoubtProgressMarkerVideo] = useState<number | null>(null);
+    const { toggleSidebar, open } = useSidebar();
+
+    console.log(doubtProgressMarkerPdf, doubtProgressMarkerVideo);
 
     const handleHeadingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setHeading(e.target.value);
@@ -90,7 +133,8 @@ export const SlideMaterial = ({
         const data = editor.getEditorValue();
         const htmlString = html.serialize(editor, data);
         const formattedHtmlString = formatHTMLString(htmlString);
-        return formattedHtmlString;
+        const codeBlockFormattedHTML = fixCodeBlocksInHtml(formattedHtmlString);
+        return codeBlockFormattedHTML;
     };
 
     const loadContent = async () => {
@@ -136,6 +180,13 @@ export const SlideMaterial = ({
         } else if (activeItem.source_type == 'ASSIGNMENT') {
             setContent(<StudyLibraryAssignmentPreview activeItem={activeItem} />);
             return;
+        } else {
+            setContent(
+                <div className="flex h-[500px] flex-col items-center justify-center rounded-lg py-10">
+                    <EmptySlideMaterial />
+                    <p className="mt-4 text-neutral-500">No study material has been added yet</p>
+                </div>
+            );
         }
         return;
     };
@@ -149,47 +200,86 @@ export const SlideMaterial = ({
                   ? 'UNSYNC'
                   : 'DRAFT'
             : 'DRAFT';
+
+        if (activeItem?.source_type == 'ASSIGNMENT') {
+            const convertedData = converDataToAssignmentFormat({
+                activeItem,
+                status,
+                notify: false,
+                newSlide: false,
+            });
+            try {
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-expect-error
+                await updateAssignmentOrder(convertedData!);
+                toast.success(`slide saved in draft successfully!`);
+            } catch {
+                toast.error(`Error in publishing the slide`);
+            }
+        }
+
+        if (activeItem?.source_type == 'VIDEO') {
+            const convertedData = converDataToVideoFormat({
+                activeItem,
+                status,
+                notify: false,
+                newSlide: false,
+            });
+            try {
+                await addUpdateVideoSlide(convertedData);
+                toast.success(`slide saved in draft successfully!`);
+            } catch {
+                toast.error(`Error in unpublishing the slide`);
+            }
+        }
+
         if (activeItem?.source_type === 'QUESTION') {
-            const questionsData: UploadQuestionPaperFormType = JSON.parse('');
-            // need to add my question logic
-            const convertedData = convertToSlideFormat(questionsData, status);
+            const convertedData = convertToQuestionBackendSlideFormat({
+                activeItem,
+                status,
+                notify: false,
+                newSlide: false,
+            });
             try {
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-expect-error
                 await updateQuestionOrder(convertedData!);
+                toast.success(`slide saved in draft successfully!`);
             } catch {
                 toast.error('error saving slide');
             }
             return;
         }
 
-        const currentHtml = getCurrentEditorHTMLContent();
-        const { totalPages } = await convertHtmlToPdf(currentHtml);
+        if (activeItem?.source_type == 'DOCUMENT' && activeItem?.document_slide?.type == 'DOC') {
+            const currentHtml = getCurrentEditorHTMLContent();
+            const { totalPages } = await convertHtmlToPdf(currentHtml);
 
-        try {
-            await addUpdateDocumentSlide({
-                id: slide?.id || '',
-                title: slide?.title || '',
-                image_file_id: '',
-                description: slide?.description || '',
-                slide_order: null,
-                document_slide: {
-                    id: slide?.document_slide?.id || '',
-                    type: 'DOC',
-                    data: currentHtml,
-                    title: slide?.document_slide?.title || '',
-                    cover_file_id: '',
-                    total_pages: totalPages,
-                    published_data: null,
-                    published_document_total_pages:
-                        slide?.document_slide?.published_document_total_pages || 0,
-                },
-                status: status,
-                new_slide: false,
-                notify: false,
-            });
-        } catch {
-            toast.error('error updating slide');
+            try {
+                await addUpdateDocumentSlide({
+                    id: slide?.id || '',
+                    title: slide?.title || '',
+                    image_file_id: '',
+                    description: slide?.description || '',
+                    slide_order: null,
+                    document_slide: {
+                        id: slide?.document_slide?.id || '',
+                        type: 'DOC',
+                        data: currentHtml,
+                        title: slide?.document_slide?.title || '',
+                        cover_file_id: '',
+                        total_pages: totalPages,
+                        published_data: null,
+                        published_document_total_pages:
+                            slide?.document_slide?.published_document_total_pages || 0,
+                    },
+                    status: status,
+                    new_slide: false,
+                    notify: false,
+                });
+            } catch {
+                toast.error('error updating slide');
+            }
         }
     };
 
@@ -203,6 +293,7 @@ export const SlideMaterial = ({
     };
 
     useEffect(() => {
+        if (open) toggleSidebar();
         setSlideTitle(
             (activeItem?.source_type === 'DOCUMENT' && activeItem?.document_slide?.title) ||
                 (activeItem?.source_type === 'VIDEO' && activeItem?.video_slide?.title) ||
@@ -211,13 +302,17 @@ export const SlideMaterial = ({
     }, [activeItem]);
 
     useEffect(() => {
-        if (items.length == 0) setActiveItem(null);
+        if (items.length == 0 && slideId == undefined) {
+            setActiveItem(null);
+        } else {
+            setActiveItem(items.find((slide) => slide.id == slideId) || items[0] || null);
+        }
     }, [items]);
 
     useEffect(() => {
         setHeading(activeItem?.title || '');
         loadContent();
-    }, [activeItem]);
+    }, [activeItem, items]);
 
     useEffect(() => {
         let intervalId: NodeJS.Timeout | null = null;
@@ -228,10 +323,10 @@ export const SlideMaterial = ({
                 const data = editor.getEditorValue();
                 const htmlString = html.serialize(editor, data);
                 const formattedHtmlString = formatHTMLString(htmlString);
-
+                const codeBlockFormattedHTML = fixCodeBlocksInHtml(formattedHtmlString);
                 // Only save if the content has changed
-                if (formattedHtmlString !== previousHtmlString) {
-                    previousHtmlString = formattedHtmlString;
+                if (codeBlockFormattedHTML !== previousHtmlString) {
+                    previousHtmlString = codeBlockFormattedHTML;
                     SaveDraft(activeItem);
                 }
             }, 60000);
@@ -243,6 +338,23 @@ export const SlideMaterial = ({
             }
         };
     }, [activeItem?.document_slide?.type, editor]);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                isEditing &&
+                editingContainerRef.current &&
+                !editingContainerRef.current.contains(event.target as Node)
+            ) {
+                setIsEditing(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isEditing]);
 
     // Update the refs whenever these functions change
     useEffect(() => {
@@ -256,15 +368,21 @@ export const SlideMaterial = ({
                 <div className="-m-8 flex items-center justify-between gap-6 border-b border-neutral-300 px-8 py-4">
                     <div className="flex items-center gap-4">
                         {isEditing ? (
-                            <div className="flex items-center justify-center gap-2">
+                            <div
+                                ref={editingContainerRef}
+                                className="flex items-center justify-center gap-2"
+                            >
                                 <input
                                     type="text"
                                     value={heading}
                                     onChange={handleHeadingChange}
-                                    className="w-fit text-h3 font-semibold text-neutral-600 focus:outline-none"
+                                    className="w-fit rounded-md border border-neutral-300 p-2 text-h3 font-semibold text-neutral-600 focus:outline-none"
                                     autoFocus
                                 />
-                                <Check
+                                <MyButton
+                                    layoutVariant="icon"
+                                    className="rounded-full p-0 hover:text-primary-500"
+                                    buttonType="secondary"
                                     onClick={() =>
                                         updateHeading(
                                             activeItem,
@@ -275,8 +393,9 @@ export const SlideMaterial = ({
                                             addUpdateDocumentSlide
                                         )
                                     }
-                                    className="cursor-pointer hover:text-primary-500"
-                                />
+                                >
+                                    <Check className="size-6 cursor-pointer font-semibold hover:text-primary-500" />
+                                </MyButton>
                             </div>
                         ) : (
                             <div className="flex items-center justify-center gap-2">
@@ -284,7 +403,7 @@ export const SlideMaterial = ({
                                     {heading || 'No content selected'}
                                 </h3>
                                 <PencilSimpleLine
-                                    className="cursor-pointer hover:text-primary-500"
+                                    className="size-5 cursor-pointer hover:text-primary-500"
                                     onClick={() => setIsEditing(true)}
                                 />
                             </div>
@@ -342,6 +461,7 @@ export const SlideMaterial = ({
                                         addUpdateDocumentSlide,
                                         addUpdateVideoSlide,
                                         updateQuestionOrder,
+                                        updateAssignmentOrder,
                                         SaveDraft
                                     )
                                 }
@@ -357,11 +477,19 @@ export const SlideMaterial = ({
                                         addUpdateDocumentSlide,
                                         addUpdateVideoSlide,
                                         updateQuestionOrder,
+                                        updateAssignmentOrder,
                                         SaveDraft
                                     )
                                 }
                             />
                         </div>
+
+                        <MyButton layoutVariant="icon" buttonType="secondary">
+                            <SidebarTrigger className="[&_svg]:size-5">
+                                <ChatText className="text-neutral-500" />
+                            </SidebarTrigger>
+                        </MyButton>
+
                         <SlidesMenuOption />
                     </div>
                 </div>
@@ -373,6 +501,19 @@ export const SlideMaterial = ({
             >
                 {content}
             </div>
+
+            <Suspense
+                fallback={
+                    <div className="flex w-full justify-center py-4">
+                        <Loader2 className="size-6 animate-spin text-primary-500" />
+                    </div>
+                }
+            >
+                <LazyDoubtResolutionSidebar
+                    setDoubtProgressMarkerPdf={setDoubtProgressMarkerPdf}
+                    setDoubtProgressMarkerVideo={setDoubtProgressMarkerVideo}
+                />
+            </Suspense>
         </div>
     );
 };
