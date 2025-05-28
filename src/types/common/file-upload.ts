@@ -5,6 +5,9 @@ import { MutableRefObject } from "react";
 
 export type FileType =
     | "image/*"
+    | "image/jpeg"
+    | "image/png"
+    | "image/svg+xml"
     | "application/pdf"
     | "video/*"
     | "audio/*"
@@ -19,5 +22,5 @@ export interface FileUploadComponentProps<T extends FieldValues> {
     children?: React.ReactNode;
     isUploading?: boolean;
     error?: string | null;
-    className?: string; // Add this line
+    className?: string;
 }

@@ -2,30 +2,26 @@
 import { AddSessionInput } from '@/components/design-system/add-session-input';
 import { MyDropdown } from '@/components/common/students/enroll-manually/dropdownForPackageItems';
 import { RadioGroupItem, RadioGroup } from '@/components/ui/radio-group';
-import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+
 import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { FormControl, FormField, FormItem } from '@/components/ui/form';
-import {
-    convertToFormSession,
-    Session,
-} from '@/components/common/study-library/add-course/add-course-form';
+// import { Session } from '@/components/common/study-library/add-course/add-course-form';
 import { MyButton } from '@/components/design-system/button';
 import { X } from 'phosphor-react';
 
 export const CreateSessionStep = () => {
-    const { instituteDetails, getAllSessions } = useInstituteDetailsStore();
     const [newSessionName, setNewSessionName] = useState('');
     const [newSessionStartDate, setNewSessionStartDate] = useState('');
     const form = useFormContext();
     const { watch } = form;
     const [sessionList, setSessionList] = useState<Session[]>([]);
-    useEffect(() => {
-        setSessionList(getAllSessions().map((session) => convertToFormSession(session)));
-    }, [instituteDetails]);
+    // useEffect(() => {
+    //     setSessionList(getAllSessions().map((session) => convertToFormSession(session)));
+    // }, [instituteDetails]);
 
     const handleAddSession = (sessionName: string, startDate: string) => {
-        const newSession: Session = {
+        const newSession = {
             id: '',
             new_session: true,
             session_name: sessionName,
