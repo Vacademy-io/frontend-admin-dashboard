@@ -43,15 +43,18 @@ export const AddReply = ({ parent, refetch }: { parent: DoubtType; refetch: () =
     };
 
     return (
-        <div className=" flex w-full items-center gap-2 rounded-md p-3">
+        <div className=" relative flex w-full items-center gap-2 rounded-md">
             <MainViewQuillEditor
                 value={teacherReply}
                 onChange={setTeacherReply}
-                CustomclasssName="mb-16 h-[80px] w-full max-sm:h-[50px] sm:mb-10"
+                CustomclasssName="mb-16 h-[80px] w-full max-sm:h-[50px] sm:mb-10 custom-quill-padding"
                 placeholder="Add your reply here"
             />
-            <div className="flex flex-col items-center gap-3" onClick={submitReply}>
-                <MyButton layoutVariant="icon">
+            <div
+                className="absolute bottom-6 right-2 flex flex-col items-center gap-3"
+                onClick={submitReply}
+            >
+                <MyButton layoutVariant="icon" className="rounded-full">
                     <ArrowUp />
                 </MyButton>
             </div>

@@ -18,6 +18,7 @@ import { useGetUserBasicDetails } from '@/services/get_user_basic_details';
 import { EnrollFormUploadImage } from '@/assets/svgs';
 import { getPublicUrl } from '@/services/upload_file';
 import { TeacherSelection } from './TeacherSelection';
+import { formatTime } from '@/helpers/formatYoutubeVideoTime';
 
 export const Doubt = ({
     doubt,
@@ -114,16 +115,25 @@ export const Doubt = ({
                     </div>
                 </div>
                 <div className="flex w-full items-center justify-between ">
-                    <div className="flex gap-2">
-                        <p>
-                            <span className="font-semibold">Timestamp: </span>
-                            {doubt.content_position}
-                        </p>
-                        <ArrowSquareOut
-                            className="mt-[3px] cursor-pointer"
-                            onClick={() => handleTimeStampClick(parseInt(doubt.content_position))}
-                        />
-                    </div>
+                    {(activeItem?.source_type == 'VIDEO' ||
+                        activeItem?.source_type == 'DOCUMENT') && (
+                        <div className="flex gap-2">
+                            <p>
+                                <span className="font-semibold">Timestamp: </span>
+                                {activeItem?.source_type == 'VIDEO'
+                                    ? formatTime(parseInt(doubt.content_position) / 1000)
+                                    : activeItem?.source_type == 'DOCUMENT'
+                                      ? parseInt(doubt.content_position) + 1
+                                      : doubt.content_position}
+                            </p>
+                            <ArrowSquareOut
+                                className="mt-[3px] cursor-pointer"
+                                onClick={() =>
+                                    handleTimeStampClick(parseInt(doubt.content_position))
+                                }
+                            />
+                        </div>
+                    )}
                     {(isAdmin ||
                         (userId && doubt.doubt_assignee_request_user_ids.includes(userId))) && (
                         <MarkAsResolved doubt={doubt} refetch={refetch} />

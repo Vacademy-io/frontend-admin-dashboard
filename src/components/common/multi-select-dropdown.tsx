@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, CaretDown, CaretUp } from 'phosphor-react';
+import { X } from 'phosphor-react';
 
 export interface MultiSelectOption {
     id: string | number;
@@ -61,60 +61,55 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
     );
 
     return (
-        <div className={`relative w-full ${className}`} ref={dropdownRef}>
-            <button
-                type="button"
-                className={`flex min-h-[40px] w-full flex-wrap items-center gap-2 rounded border bg-white px-3 py-2 text-left transition-all focus:outline-none ${
-                    isOpen ? 'border-primary-500' : 'border-neutral-300 hover:border-primary-200'
-                } ${disabled ? 'cursor-not-allowed bg-neutral-100' : ''}`}
-                onClick={() => !disabled && setIsOpen((open) => !open)}
-                disabled={disabled}
-            >
-                <div className="flex flex-1 flex-wrap items-center gap-1">
-                    {selected?.length === 0 && (
-                        <span className="text-neutral-400">{placeholder}</span>
-                    )}
-                    {selected?.map((item) => (
-                        <span
-                            key={item.id}
-                            className="text-primary-700 mb-1 mr-1 flex items-center gap-1 rounded bg-primary-50 px-2 py-1 text-xs font-medium"
+        <div className={`relative flex items-center gap-2 ${className}`} ref={dropdownRef}>
+            <div className="flex items-center gap-1">
+                {selected?.map((item) => (
+                    <span
+                        key={item.id}
+                        className="text-primary-700 mr-1 flex items-center gap-1 rounded bg-primary-50 px-2 py-1 text-xs font-medium"
+                    >
+                        {item.name}
+                        <button
+                            type="button"
+                            className="ml-1 focus:outline-none"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleRemove(item);
+                            }}
+                            aria-label={`Remove ${item.name}`}
                         >
-                            {item.name}
-                            <button
-                                type="button"
-                                className="ml-1 focus:outline-none"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleRemove(item);
-                                }}
-                                aria-label={`Remove ${item.name}`}
-                            >
-                                <X size={14} />
-                            </button>
-                        </span>
-                    ))}
-                </div>
-                <span className="ml-2">
-                    {isOpen ? <CaretUp size={18} /> : <CaretDown size={18} />}
-                </span>
-            </button>
-            {isOpen && (
-                <div className="absolute left-0 z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-neutral-200 bg-white shadow-lg">
-                    {availableOptions?.length === 0 ? (
-                        <div className="px-4 py-2 text-sm text-neutral-400">No options</div>
-                    ) : (
-                        availableOptions?.map((option) => (
-                            <div
-                                key={option.id}
-                                className="cursor-pointer px-4 py-2 text-sm text-neutral-700 hover:bg-primary-50"
-                                onClick={() => handleSelect(option)}
-                            >
-                                {option.name}
-                            </div>
-                        ))
-                    )}
-                </div>
-            )}
+                            <X size={14} />
+                        </button>
+                    </span>
+                ))}
+            </div>
+            <div>
+                <button
+                    type="button"
+                    className={`flex  flex-wrap items-center gap-2 rounded bg-white  text-left transition-all focus:outline-none  ${disabled ? 'cursor-not-allowed bg-neutral-100' : ''}`}
+                    onClick={() => !disabled && setIsOpen((open) => !open)}
+                    disabled={disabled}
+                >
+                    <p className="text-sm text-primary-500">{placeholder}</p>
+                </button>
+                {isOpen && (
+                    <div className="absolute z-10 mt-1 max-h-60 overflow-auto rounded-lg bg-white shadow-lg">
+                        {availableOptions?.length === 0 ? (
+                            <div className="px-4 py-2 text-sm text-neutral-400">No options</div>
+                        ) : (
+                            availableOptions?.map((option) => (
+                                <div
+                                    key={option.id}
+                                    className="cursor-pointer px-4 py-2 text-sm text-neutral-700 hover:bg-primary-50"
+                                    onClick={() => handleSelect(option)}
+                                >
+                                    {option.name}
+                                </div>
+                            ))
+                        )}
+                    </div>
+                )}
+            </div>
         </div>
     );
 };
