@@ -4,9 +4,8 @@ import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { MyInput } from '@/components/design-system/input';
 import { MyButton } from '@/components/design-system/button';
-
 import React, { useState } from 'react';
-import { Trash2, Plus, Calendar, Copy, User } from 'lucide-react';
+import { Trash2, Plus, Calendar } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -23,6 +22,14 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import AddCourseStep2StructureTypes from './add-course-step2-structure-types';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface Session {
     id: string;
@@ -177,6 +184,8 @@ export const AddCourseStep2 = ({
             setExistingSessions((prev) => [...prev, newSession]);
         }
     };
+
+    console.log('existingSessions', existingSessions);
     const addExistingSession = (levelId: string, sessionId: string) => {
         const sessionToAdd = existingSessions.find((s) => s.id === sessionId);
         if (sessionToAdd) {
@@ -551,9 +560,20 @@ const LevelCard: React.FC<LevelCardProps> = ({
     const [selectedExistingSession, setSelectedExistingSession] = useState('');
 
     // Add validation check
-    const isNewSessionValid = sessionType === 'new' && sessionName.trim() !== '' && startDate !== '';
+    const isNewSessionValid =
+        sessionType === 'new' && sessionName.trim() !== '' && startDate !== '';
     const isExistingSessionValid = sessionType === 'existing' && selectedExistingSession !== '';
     const isAddSessionDisabled = !isNewSessionValid && !isExistingSessionValid;
+
+    // Filter out sessions that are already added to this level
+    const availableSessions = existingSessions.filter(
+        session => !level.sessions.some(
+            levelSession => levelSession.name === session.name &&
+            levelSession.startDate === session.startDate
+        )
+    );
+
+    console.log('Available sessions:', availableSessions);
 
     const handleAddSession = () => {
         if (sessionType === 'new' && sessionName.trim() && startDate) {
@@ -632,7 +652,7 @@ const LevelCard: React.FC<LevelCardProps> = ({
                                             Create New Session
                                         </Label>
                                     </div>
-                                    {existingSessions.length > 0 && (
+                                    {availableSessions.length > 0 && (
                                         <div className="flex items-center space-x-2">
                                             <RadioGroupItem
                                                 value="existing"
@@ -678,21 +698,26 @@ const LevelCard: React.FC<LevelCardProps> = ({
                                         Select Existing Session
                                     </Label>
                                     <Select
-                                        value={selectedExistingSession}
-                                        onValueChange={setSelectedExistingSession}
+                                        defaultValue={selectedExistingSession}
+                                        onValueChange={(value) => {
+                                            console.log('Selected session:', value);
+                                            setSelectedExistingSession(value);
+                                        }}
                                     >
                                         <SelectTrigger className="h-8 border-gray-300">
                                             <SelectValue placeholder="Choose a session to copy" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {existingSessions.map((session) => (
+                                            {availableSessions.map((session) => (
                                                 <SelectItem key={session.id} value={session.id}>
-                                                    {session.name} -{' '}
-                                                    {new Date(
-                                                        session.startDate
-                                                    ).toLocaleDateString()}
+                                                    {session.name} - {new Date(session.startDate).toLocaleDateString()}
                                                 </SelectItem>
                                             ))}
+                                            {availableSessions.length === 0 && (
+                                                <SelectItem value="no-sessions" disabled>
+                                                    No sessions available
+                                                </SelectItem>
+                                            )}
                                         </SelectContent>
                                     </Select>
                                 </div>
