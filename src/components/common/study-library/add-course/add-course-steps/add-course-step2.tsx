@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import AddCourseStep2StructureTypes from './add-course-step2-structure-types';
 interface Session {
     id: string;
     name: string;
@@ -257,58 +258,7 @@ export const AddCourseStep2 = ({
                         <h3 className="mb-3 text-base font-medium text-gray-900">
                             Select course structure that is suitable for your institute
                         </h3>
-                        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                            {structures.map((structure) => (
-                                <Card
-                                    key={structure.id}
-                                    className={`cursor-pointer border transition-all duration-200 ${
-                                        selectedStructure === structure.id
-                                            ? 'border-[#3B82F6] bg-blue-50'
-                                            : 'border-gray-200 hover:border-gray-300'
-                                    }`}
-                                    onClick={() => setSelectedStructure(structure.id)}
-                                >
-                                    <CardContent className="p-3">
-                                        <div className="flex items-start gap-3">
-                                            <div className="mt-0.5 flex-shrink-0">
-                                                <div
-                                                    className={`h-4 w-4 rounded-full border-2 transition-colors ${
-                                                        selectedStructure === structure.id
-                                                            ? 'border-[#3B82F6] bg-[#3B82F6]'
-                                                            : 'border-gray-300'
-                                                    }`}
-                                                >
-                                                    {selectedStructure === structure.id && (
-                                                        <div className="m-0.75 h-1.5 w-1.5 rounded-full bg-white"></div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <div className="flex-1 space-y-2">
-                                                <h4 className="text-sm font-medium text-gray-900">
-                                                    {structure.title}
-                                                </h4>
-                                                <p className="text-xs text-gray-600">
-                                                    {structure.subtitle}
-                                                </p>
-                                                <div className="text-xs font-medium text-gray-700">
-                                                    {structure.example}
-                                                </div>
-                                                <div className="space-y-0.5">
-                                                    {structure.details.map((detail, index) => (
-                                                        <div
-                                                            key={index}
-                                                            className="font-mono text-xs text-gray-600"
-                                                        >
-                                                            {detail}
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            ))}
-                        </div>
+                        <AddCourseStep2StructureTypes />
                     </div>
 
                     <Separator className="bg-gray-200" />
@@ -546,6 +496,7 @@ export const AddCourseStep2 = ({
                         <Button
                             variant="outline"
                             className="h-9 border-gray-300 px-6 text-gray-700"
+                            onClick={onBack}
                         >
                             Back
                         </Button>
