@@ -19,9 +19,6 @@ export const handleAddReply = async ({
     refetch?: () => void;
     id?: string;
 }) => {
-    console.log('delete doubt data in handleAddReply: ', replyData);
-    console.log('id in handleAddReply: ', id);
-
     if (id) {
         replyData.id = id;
     }

@@ -43,7 +43,7 @@ export const AddReply = ({ parent, refetch }: { parent: DoubtType; refetch: () =
     };
 
     return (
-        <div className=" flex w-full items-center gap-2 rounded-md p-3">
+        <div className=" flex w-full items-center gap-2 rounded-md py-3">
             <MainViewQuillEditor
                 value={teacherReply}
                 onChange={setTeacherReply}
