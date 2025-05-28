@@ -8,11 +8,16 @@ export type FileType =
     | "image/jpeg"
     | "image/png"
     | "image/svg+xml"
-    | "application/pdf"
     | "video/*"
+    | "video/mp4"
+    | "video/quicktime"
+    | "video/x-msvideo"
+    | "video/webm"
+    | "application/pdf"
     | "audio/*"
     | "application/msword"
     | "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+
 export interface FileUploadComponentProps<T extends FieldValues> {
     fileInputRef: MutableRefObject<HTMLInputElement | null>;
     onFileSubmit: (file: File) => void;

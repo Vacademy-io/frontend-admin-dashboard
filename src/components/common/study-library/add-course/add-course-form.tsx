@@ -50,6 +50,10 @@ export interface CourseFormData {
     sessions?: Session[]; // Changed from levels to sessions at top level
 }
 
+// Add this type near the top of the file
+type MediaType = 'image' | 'video';
+
+// Update the schema to include mediaType
 const formSchema = z.object({
     course: z.string().min(1, 'Course name is required'),
     description: z.string().min(10, 'Description must be at least 10 characters'),
@@ -67,6 +71,7 @@ const formSchema = z.object({
     courseMedia: z.object({
         id: z.string().optional(),
         url: z.string().optional(),
+        mediaType: z.enum(['image', 'video']).optional(),
     }),
 });
 
@@ -99,7 +104,7 @@ export const AddCourseForm = () => {
             targetAudience: '',
             coursePreview: { id: '', url: '' },
             courseBanner: { id: '', url: '' },
-            courseMedia: { id: '', url: '' },
+            courseMedia: { id: '', url: '', mediaType: undefined },
         },
     });
 
@@ -115,6 +120,12 @@ export const AddCourseForm = () => {
 
             const imageUrl = URL.createObjectURL(file);
             form.setValue(`${field}.url`, imageUrl);
+
+            // Set media type for course media
+            if (field === 'courseMedia') {
+                const mediaType: MediaType = file.type.startsWith('video/') ? 'video' : 'image';
+                form.setValue('courseMedia.mediaType', mediaType);
+            }
 
             const uploadedFileId = await uploadFile({
                 file,
@@ -406,7 +417,7 @@ export const AddCourseForm = () => {
                                                 <p className="text-sm text-gray-500">
                                                     A featured media block within the course page;
                                                     this can visually represent the content or offer
-                                                    a teaser. Recommended size: 16:1 ratio
+                                                    a teaser. For videos, recommended format: MP4
                                                 </p>
                                                 <div className="relative">
                                                     {uploadingStates.courseMedia ? (
@@ -415,11 +426,21 @@ export const AddCourseForm = () => {
                                                         </div>
                                                     ) : form.watch('courseMedia.url') ? (
                                                         <div className="h-[200px] w-full rounded-lg bg-gray-100">
-                                                            <img
-                                                                src={form.watch('courseMedia.url')}
-                                                                alt="Course Media"
-                                                                className="h-full w-full rounded-lg object-contain"
-                                                            />
+                                                            {form.watch('courseMedia.mediaType') === 'video' ? (
+                                                                <video
+                                                                    src={form.watch('courseMedia.url')}
+                                                                    controls
+                                                                    className="h-full w-full rounded-lg object-contain"
+                                                                >
+                                                                    Your browser does not support the video tag.
+                                                                </video>
+                                                            ) : (
+                                                                <img
+                                                                    src={form.watch('courseMedia.url')}
+                                                                    alt="Course Media"
+                                                                    className="h-full w-full rounded-lg object-contain"
+                                                                />
+                                                            )}
                                                         </div>
                                                     ) : (
                                                         <div className="flex h-[200px] items-center justify-center rounded-lg bg-gray-100">
@@ -439,6 +460,10 @@ export const AddCourseForm = () => {
                                                             'image/jpeg',
                                                             'image/png',
                                                             'image/svg+xml',
+                                                            'video/mp4',
+                                                            'video/quicktime',
+                                                            'video/x-msvideo',
+                                                            'video/webm'
                                                         ]}
                                                     />
                                                     <MyButton
