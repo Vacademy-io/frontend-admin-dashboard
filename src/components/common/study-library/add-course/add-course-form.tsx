@@ -56,10 +56,10 @@ type MediaType = 'image' | 'video';
 // Update the schema to include mediaType
 const formSchema = z.object({
     course: z.string().min(1, 'Course name is required'),
-    description: z.string().min(10, 'Description must be at least 10 characters'),
-    learningOutcome: z.string().min(10, 'Learning outcome must be at least 10 characters'),
-    aboutCourse: z.string().min(10, 'About course must be at least 10 characters'),
-    targetAudience: z.string().min(10, 'Target audience must be at least 10 characters'),
+    description: z.string().optional(),
+    learningOutcome: z.string().optional(),
+    aboutCourse: z.string().optional(),
+    targetAudience: z.string().optional(),
     coursePreview: z.object({
         id: z.string().optional(),
         url: z.string().optional(),
@@ -106,6 +106,7 @@ export const AddCourseForm = () => {
             courseBanner: { id: '', url: '' },
             courseMedia: { id: '', url: '', mediaType: undefined },
         },
+        mode: 'onSubmit', // Only validate on form submission
     });
 
     const handleFileUpload = async (
