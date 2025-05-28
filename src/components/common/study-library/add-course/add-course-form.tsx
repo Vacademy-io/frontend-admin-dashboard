@@ -475,7 +475,7 @@ export const AddCourseForm = () => {
                                                         buttonType="secondary"
                                                         layoutVariant="icon"
                                                         scale="small"
-                                                        className="absolute bottom-2 right-2 bg-white"
+                                                        className="absolute bottom-2 right-2 bg-white hover:bg-white"
                                                     >
                                                         <PencilSimpleLine />
                                                     </MyButton>
