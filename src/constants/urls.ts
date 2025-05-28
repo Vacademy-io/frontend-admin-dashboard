@@ -1,5 +1,5 @@
 export const BASE_URL = 'https://backend-stage.vacademy.io';
-export const BASE_URL_LEARNER_DASHBOARD = 'https://learner.vacademy.io/';
+export const BASE_URL_LEARNER_DASHBOARD = 'https://learner.vacademy.io';
 
 export const SSDC_INSTITUTE_ID = '69ca11c6-54e1-4e99-9498-50c9a4272ce6';
 export const SHUBHAM_INSTITUTE_ID = 'd0de8707-f36c-43a0-953c-019ca507c81d';
@@ -215,3 +215,7 @@ export const GET_USER_DETAILS = `${BASE_URL}/auth-service/v1/user-details/by-use
 export const DUPLICATE_STUDY_MATERIAL_FROM_SESSION = `${BASE_URL}/admin-core-service/sessions/v1/copy-study-material`;
 
 export const GET_ALL_FACULTY = `${BASE_URL}/admin-core-service/institute/v1/faculty/faculty/get-all`;
+
+export const ADD_DOUBT = `${BASE_URL}/admin-core-service/institute/v1/doubts/create`;
+export const GET_DOUBTS = `${BASE_URL}/admin-core-service/institute/v1/doubts/get-all`;
+export const GET_USER_BASIC_DETAILS = `${BASE_URL}/auth-service/v1/user-details/get-basic-details`;

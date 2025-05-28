@@ -1,13 +1,18 @@
 import { MyButton } from '@/components/design-system/button';
 import { Switch } from '@/components/ui/switch';
 import { DotsSixVertical, Plus, TrashSimple } from 'phosphor-react';
-import { AddCustomFieldDialog } from './AddCustomFieldDialog';
+import { AddCustomFieldDialog, DropdownOption } from './AddCustomFieldDialog';
 import { useFormContext } from 'react-hook-form';
 import { InviteForm } from '../../-schema/InviteFormSchema';
 
 interface CustomFieldsSectionProps {
     toggleIsRequired: (id: number) => void;
-    handleAddOpenFieldValues: (type: string, name: string, oldKey: boolean) => void;
+    handleAddOpenFieldValues: (
+        type: string,
+        name: string,
+        oldKey: boolean,
+        options?: DropdownOption[]
+    ) => void;
     handleDeleteOpenField: (id: number) => void;
 }
 
@@ -19,8 +24,13 @@ export const CustomFieldsSection = ({
     const { watch } = useFormContext<InviteForm>();
     const customFields = watch('custom_fields');
 
-    const handleAddCustomField = (type: string, name: string, oldKey: boolean) => {
-        handleAddOpenFieldValues(type, name, oldKey);
+    const handleAddCustomField = (
+        type: string,
+        name: string,
+        oldKey: boolean,
+        options?: DropdownOption[]
+    ) => {
+        handleAddOpenFieldValues(type, name, oldKey, options);
     };
 
     return (

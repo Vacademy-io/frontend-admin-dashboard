@@ -11,8 +11,14 @@ import { useAICenter } from '../../../-contexts/useAICenterContext';
 import GenerateQuestionsFromAudioForm from './GenerateQuestionsFromAudioForm';
 import { QuestionsFromTextData } from '@/routes/ai-center/ai-tools/vsmart-prompt/-components/GenerateQuestionsFromText';
 import AITasksList from '@/routes/ai-center/-components/AITasksList';
-import { UseFormReturn } from 'react-hook-form';
+import { useForm, UseFormReturn } from 'react-hook-form';
 import { SectionFormType } from '@/types/assessments/assessment-steps';
+import {
+    AudioAIQuestionFormSchema,
+    audioQuestionsFormSchema,
+} from '@/routes/ai-center/-utils/audio-questions-schema';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { languageSupport } from '@/constants/dummy-data';
 
 export const GenerateQuestionsFromAudio = ({
     form,
@@ -21,6 +27,17 @@ export const GenerateQuestionsFromAudio = ({
     form?: UseFormReturn<SectionFormType>;
     currentSectionIndex?: number;
 }) => {
+    const audioQuesitionsForm = useForm<AudioAIQuestionFormSchema>({
+        resolver: zodResolver(audioQuestionsFormSchema),
+        defaultValues: {
+            numQuestions: '',
+            prompt: '',
+            difficulty: '',
+            language: languageSupport[0],
+            taskName: '',
+        },
+    });
+
     const [audioId, setAudioId] = useState('');
     const queryClient = useQueryClient();
     const [taskName, setTaskName] = useState('');
@@ -91,6 +108,7 @@ export const GenerateQuestionsFromAudio = ({
             setTimeout(() => {
                 queryClient.invalidateQueries({ queryKey: ['GET_INDIVIDUAL_AI_LIST_DATA'] });
             }, 100);
+            audioQuesitionsForm.reset();
         },
         onError: (error: unknown) => {
             console.log(error);
@@ -151,6 +169,7 @@ export const GenerateQuestionsFromAudio = ({
             />
             {audioId !== '' && (
                 <GenerateQuestionsFromAudioForm
+                    form={audioQuesitionsForm}
                     audioId={audioId}
                     handleCallApi={handleCallApi}
                     status={getQuestionsFromAudioMutation.status}

@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import { useSlides } from '../../-hooks/use-slides';
 import { Route } from '../..';
 import { convertToQuestionSlideFormat } from '../../-helper/helper';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
 
 export interface QuestionTypeProps {
     icon: React.ReactNode; // Accepts an SVG or any React component
@@ -78,11 +79,14 @@ const AddQuestionDialog = ({
         name: 'questions', // Name of the field array
     });
 
+    const [isQuestionSlideAdding, setIsQuestionSlideAdding] = useState(false);
+
     const handleAddQuestion = async (
         newQuestionType: string,
         title: string | undefined,
         reattemptCount: string | undefined
     ) => {
+        setIsQuestionSlideAdding(true);
         const responseData = {
             id: '',
             questionId: String(fields.length + 1),
@@ -123,7 +127,7 @@ const AddQuestionDialog = ({
             parentRichTextContent: '',
             decimals: 0,
             numericType: '',
-            validAnswers: [],
+            validAnswers: [0],
             questionResponseType: '',
             subjectiveAnswerText: '',
             reattemptCount: reattemptCount || '',
@@ -148,11 +152,11 @@ const AddQuestionDialog = ({
             toast.success('Question added successfully!');
             form.reset();
             openState?.(false);
-            setTimeout(() => {
-                setActiveItem(getSlideById(response));
-            }, 500);
+            setActiveItem(getSlideById(response));
         } catch (error) {
             toast.error('Failed to add question');
+        } finally {
+            setIsQuestionSlideAdding(false);
         }
     };
 
@@ -291,23 +295,35 @@ const AddQuestionDialog = ({
                             }}
                         />
                         <div>
-                            <MyButton
-                                type="button"
-                                scale="large"
-                                buttonType="primary"
-                                className="font-medium"
-                                onClick={() => {
-                                    if (activeQuestionDialog) {
-                                        handleAddQuestion(
-                                            activeQuestionDialog,
-                                            title,
-                                            localReattempts
-                                        );
-                                    }
-                                }}
-                            >
-                                Add
-                            </MyButton>
+                            {isQuestionSlideAdding ? (
+                                <MyButton
+                                    type="button"
+                                    scale="large"
+                                    buttonType="primary"
+                                    className="font-medium"
+                                >
+                                    <DashboardLoader size={18} color="#ffffff" />
+                                </MyButton>
+                            ) : (
+                                <MyButton
+                                    type="button"
+                                    scale="large"
+                                    buttonType="primary"
+                                    className="font-medium"
+                                    onClick={() => {
+                                        if (activeQuestionDialog) {
+                                            handleAddQuestion(
+                                                activeQuestionDialog,
+                                                title,
+                                                localReattempts
+                                            );
+                                        }
+                                    }}
+                                    disable={!title || !localReattempts}
+                                >
+                                    Add
+                                </MyButton>
+                            )}
                         </div>
                     </div>
                 </DialogContent>

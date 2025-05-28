@@ -7,6 +7,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { AIToolCardData } from './-constants/AICardsData';
 import { AIToolsCard } from './-components/AIToolsCard';
 import MyResources from './-components/My-Resources-List/MyResources';
+import UploadFileMyResourcesComponent from './-components/UploadFileMyResourcesComponent';
 
 export const Route = createFileRoute('/ai-center/')({
     component: () => (
@@ -50,36 +51,39 @@ function RouteComponent() {
     return (
         <>
             <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-                <TabsList className="mb-2 inline-flex h-auto justify-start gap-4 rounded-none border-b !bg-transparent p-0">
-                    <TabsTrigger
-                        value="myResources"
-                        className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
-                            selectedTab === 'myResources'
-                                ? 'border-4px rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
-                                : 'border-none bg-transparent'
-                        }`}
-                    >
-                        <span
-                            className={`${selectedTab === 'myResources' ? 'text-primary-500' : ''}`}
+                <div className="flex items-center justify-between">
+                    <TabsList className="mb-2 inline-flex h-auto justify-start gap-4 rounded-none border-b !bg-transparent p-0">
+                        <TabsTrigger
+                            value="myResources"
+                            className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
+                                selectedTab === 'myResources'
+                                    ? 'border-4px rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                    : 'border-none bg-transparent'
+                            }`}
                         >
-                            My Resources
-                        </span>
-                    </TabsTrigger>
-                    <TabsTrigger
-                        value="aiTaskList"
-                        className={`inline-flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
-                            selectedTab === 'aiTaskList'
-                                ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
-                                : 'border-none bg-transparent'
-                        }`}
-                    >
-                        <span
-                            className={`${selectedTab === 'aiTaskList' ? 'text-primary-500' : ''}`}
+                            <span
+                                className={`${selectedTab === 'myResources' ? 'text-primary-500' : ''}`}
+                            >
+                                My Resources
+                            </span>
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="aiTaskList"
+                            className={`inline-flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
+                                selectedTab === 'aiTaskList'
+                                    ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                    : 'border-none bg-transparent'
+                            }`}
                         >
-                            AI Tools
-                        </span>
-                    </TabsTrigger>
-                </TabsList>
+                            <span
+                                className={`${selectedTab === 'aiTaskList' ? 'text-primary-500' : ''}`}
+                            >
+                                AI Tools
+                            </span>
+                        </TabsTrigger>
+                    </TabsList>
+                    <UploadFileMyResourcesComponent />
+                </div>
                 <TabsContent value="myResources">
                     <MyResources />
                 </TabsContent>
