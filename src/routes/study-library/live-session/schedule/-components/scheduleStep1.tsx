@@ -18,10 +18,16 @@ import { sessionFormSchema } from '../-schema/schema';
 import { Trash } from 'phosphor-react';
 import { MyDialog } from '@/components/design-system/dialog';
 import { MeetLogo, YoutubeLogo, ZoomLogo } from '@/svgs';
-import { mapFormToStep1DTO, timeOptions } from '../../-constants/helper';
+import { transformFormToDTOStep1, timeOptions } from '../../-constants/helper';
+import { createLiveSessionStep1 } from '../-services/utils';
+import { useNavigate } from '@tanstack/react-router';
+import { useLiveSessionStore } from '../-store/sessionIdstore';
+import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
 
 export default function ScheduleStep1() {
     const [createLinkDialog, setCreateLinkDialog] = useState<boolean>(false);
+    const navigate = useNavigate();
 
     const form = useForm<z.infer<typeof sessionFormSchema>>({
         resolver: zodResolver(sessionFormSchema),
@@ -30,7 +36,7 @@ export default function ScheduleStep1() {
             description: '',
             meetingType: RecurringType.ONCE,
             recurringSchedule: WEEK_DAYS.map((day) => ({
-                day: day.value,
+                day: day.label,
                 isSelect: false,
                 sessions: [
                     {
@@ -89,12 +95,24 @@ export default function ScheduleStep1() {
         control,
         name: 'meetingType',
     });
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const tokenData = getTokenDecodedData(accessToken);
+    const INSTITUTE_ID = (tokenData && Object.keys(tokenData.authorities)[0]) || '';
 
-    const onSubmit = (data: z.infer<typeof sessionFormSchema>) => {
+    const onSubmit = async (data: z.infer<typeof sessionFormSchema>) => {
         console.log('Valid form data:', data);
+
         // Perform your API call or next step here
-        const body = mapFormToStep1DTO(data);
+        const body = transformFormToDTOStep1(data, INSTITUTE_ID, []);
         console.log(body);
+        try {
+            const response = await createLiveSessionStep1(body);
+            useLiveSessionStore.getState().setSessionId(response.id);
+            console.log(response);
+            navigate({ to: '/study-library/live-session/schedule/step2' });
+        } catch (error) {
+            console.error(error);
+        }
     };
 
     const onError = (errors: FieldErrors<typeof sessionFormSchema>) => {
@@ -404,24 +422,22 @@ export default function ScheduleStep1() {
                     </div>
 
                     {meetingType === RecurringType.WEEKLY && (
-                        <>
-                            <div className="flex w-fit flex-col items-start justify-start gap-4">
-                                <div className="flex flex-row items-center gap-2 ">
-                                    <MyButton
-                                        type="button"
-                                        buttonType="secondary"
-                                        scale="small"
-                                        onClick={toggleEveryDay}
-                                        className="p-4"
-                                    >
-                                        Every day
-                                    </MyButton>
-                                    <div className="w-[100px]">Start Time</div>
-                                    <div className="w-[200px]">Duration</div>
-                                    <div>Live Class link</div>
-                                </div>
+                        <div className="flex w-fit flex-col items-start justify-start gap-4">
+                            <div className="flex flex-row items-center gap-2 ">
+                                <MyButton
+                                    type="button"
+                                    buttonType="secondary"
+                                    scale="small"
+                                    onClick={toggleEveryDay}
+                                    className="p-4"
+                                >
+                                    Every day
+                                </MyButton>
+                                <div className="w-[100px]">Start Time</div>
+                                <div className="w-[200px]">Duration</div>
+                                <div>Live Class link</div>
                             </div>
-                        </>
+                        </div>
                     )}
 
                     {meetingType === RecurringType.WEEKLY &&
@@ -431,7 +447,8 @@ export default function ScheduleStep1() {
                             return (
                                 <div key={dayField.day} className="flex flex-col">
                                     <div className="flex flex-row gap-2">
-                                        <div
+                                        <button
+                                            type="button"
                                             className={`flex h-9 w-24 cursor-pointer items-center justify-center rounded-lg border px-2 py-1 text-center ${
                                                 isSelect
                                                     ? 'border-primary-500 bg-primary-100'
@@ -444,8 +461,9 @@ export default function ScheduleStep1() {
                                                 )
                                             }
                                         >
-                                            {dayField.day}
-                                        </div>
+                                            {WEEK_DAYS.find((d) => d.label === dayField.day)
+                                                ?.value ?? dayField.day}
+                                        </button>
                                         <div className="flex  flex-col  gap-2">
                                             {isSelect &&
                                                 dayField.sessions.map((session, sessionIndex) => (
@@ -465,7 +483,7 @@ export default function ScheduleStep1() {
                                                                 })
                                                             )}
                                                             control={form.control}
-                                                            className="mt w-[100px] -translate-y-1 font-thin"
+                                                            className="w-[100px] -translate-y-1 font-thin"
                                                         />
                                                         <FormField
                                                             control={control}

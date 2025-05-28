@@ -1,7 +1,15 @@
 import { z } from 'zod';
 import { AccessType, RecurringType } from '../../-constants/enums';
 
-const weekDaysEnum = z.enum(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']);
+const weekDaysEnum = z.enum([
+    'monday',
+    'tuesday',
+    'wednesday',
+    'thursday',
+    'friday',
+    'saturday',
+    'sunday',
+]);
 
 const sessionDetailsSchema = z.object({
     startTime: z.string().optional(),
@@ -9,22 +17,27 @@ const sessionDetailsSchema = z.object({
     link: z.string().url('Invalid URL').optional().or(z.literal('')),
 });
 
-const weeklyClassSchema = z.object({
+export const weeklyClassSchema = z.object({
+    id: z.string().optional(),
     day: weekDaysEnum,
     isSelect: z.boolean(),
     sessions: z.array(sessionDetailsSchema),
 });
 
 export const sessionFormSchema = z.object({
+    id: z.string().optional(),
     title: z.string().min(3, 'Title must be at least 3 characters'),
+    subject: z.string(),
     startTime: z.string({
         required_error: 'Start time is required',
         invalid_type_error: 'Invalid date',
     }),
-    endDate: z.string({
-        required_error: 'End date is required',
-        invalid_type_error: 'Invalid date',
-    }),
+    endDate: z
+        .string({
+            required_error: 'End date is required',
+            invalid_type_error: 'Invalid date',
+        })
+        .optional(),
     timeZone: z.string().min(1, 'Time zone is required'),
     events: z.string().regex(/^\d+$/, 'Must be a number'),
     description: z.string().min(1, 'Enter some description'),
