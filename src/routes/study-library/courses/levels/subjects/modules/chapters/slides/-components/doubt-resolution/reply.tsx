@@ -35,16 +35,16 @@ export const Reply = ({ reply, refetch }: { reply: Doubt; refetch: () => void })
         <div className="text-regular flex flex-col max-sm:text-caption">
             <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
                 <div className="flex items-center gap-2">
-                    <div className="size-8 rounded-full bg-neutral-300 sm:size-10">
+                    <div className="size-8 rounded-full bg-neutral-300 object-contain sm:size-10">
                         {/* add image here */}
                         {imageUrl ? (
                             <img
                                 src={imageUrl}
                                 alt={reply.name}
-                                className="size-full rounded-lg object-cover "
+                                className="size-full rounded-lg object-cover"
                             />
                         ) : (
-                            <EnrollFormUploadImage className="size-10" />
+                            <EnrollFormUploadImage className="size-10 object-contain" />
                         )}
                     </div>
                     <p className="text-subtitle font-semibold text-neutral-700">
