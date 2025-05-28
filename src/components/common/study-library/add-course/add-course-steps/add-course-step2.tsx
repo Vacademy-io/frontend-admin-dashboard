@@ -230,7 +230,6 @@ export const AddCourseStep2 = ({
             <Card className="w-full overflow-auto  rounded-none border-none bg-white shadow-sm">
                 <div className="flex items-center justify-between border-b border-gray-100 p-5">
                     <div>
-                        <h1 className="text-xl font-medium text-gray-900">Create Course</h1>
                         <div className="mt-1 flex items-center gap-2">
                             <span className="text-sm text-gray-600">Step 2</span>
                             <span className="text-sm font-medium text-gray-900">
