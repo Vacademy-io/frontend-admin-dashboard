@@ -7,7 +7,6 @@ import { MyButton } from '@/components/design-system/button';
 
 import React, { useState } from 'react';
 import { Trash2, Plus, Calendar, Copy, User } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -24,6 +23,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import AddCourseStep2StructureTypes from './add-course-step2-structure-types';
+
 interface Session {
     id: string;
     name: string;
@@ -298,14 +298,17 @@ export const AddCourseStep2 = ({
                                     <Label className="text-base font-medium text-gray-900">
                                         Course Levels
                                     </Label>
-                                    <Button
-                                        variant="outline"
+                                    <MyButton
+                                        type="button"
+                                        buttonType="secondary"
+                                        scale="medium"
+                                        layoutVariant="default"
                                         onClick={() => setShowAddLevel(true)}
-                                        className="h-8 border-gray-300 px-3 text-sm text-gray-700 hover:bg-gray-50"
+                                        className="font-light"
                                     >
-                                        <Plus className="mr-1 h-3 w-3" />
+                                        <Plus />
                                         Add
-                                    </Button>
+                                    </MyButton>
                                 </div>
 
                                 {showAddLevel && (
@@ -323,22 +326,25 @@ export const AddCourseStep2 = ({
                                                     }
                                                     className="h-9 border-gray-300"
                                                 />
-                                                <Button
+                                                <MyButton
+                                                    buttonType="primary"
+                                                    scale="medium"
+                                                    layoutVariant="default"
                                                     onClick={addLevel}
-                                                    className="h-9 bg-[#3B82F6] px-3 text-sm hover:bg-blue-700"
                                                 >
                                                     Add
-                                                </Button>
-                                                <Button
-                                                    variant="outline"
+                                                </MyButton>
+                                                <MyButton
+                                                    buttonType="secondary"
+                                                    scale="medium"
+                                                    layoutVariant="default"
                                                     onClick={() => {
                                                         setShowAddLevel(false);
                                                         setNewLevelName('');
                                                     }}
-                                                    className="h-9 border-gray-300 px-3 text-sm text-gray-700"
                                                 >
                                                     Cancel
-                                                </Button>
+                                                </MyButton>
                                             </div>
                                         </CardContent>
                                     </Card>
@@ -408,14 +414,16 @@ export const AddCourseStep2 = ({
                             <Label className="text-base font-medium text-gray-900">
                                 Add Instructors to Course
                             </Label>
-                            <Button
-                                variant="outline"
+                            <MyButton
+                                type="button"
+                                buttonType="secondary"
+                                scale="medium"
+                                layoutVariant="default"
                                 onClick={addInstructor}
-                                className="h-8 border-gray-300 px-3 text-sm text-gray-700 hover:bg-gray-50"
                             >
-                                <Plus className="mr-1 h-3 w-3" />
+                                <Plus />
                                 Add
-                            </Button>
+                            </MyButton>
                         </div>
 
                         <div className="flex gap-2">
@@ -447,14 +455,16 @@ export const AddCourseStep2 = ({
                                                 {email}
                                             </span>
                                         </div>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
+                                        <MyButton
+                                            type="button"
+                                            buttonType="text"
+                                            scale="medium"
+                                            layoutVariant="icon"
                                             onClick={() => removeInstructor(email)}
-                                            className="h-6 w-6 p-0 text-red-600 hover:bg-red-50 hover:text-red-700"
+                                            className="text-red-600 hover:text-red-700"
                                         >
                                             <Trash2 className="h-3 w-3" />
-                                        </Button>
+                                        </MyButton>
                                     </div>
                                 ))}
                             </div>
@@ -489,17 +499,25 @@ export const AddCourseStep2 = ({
 
                     {/* Action Buttons */}
                     <div className="flex justify-between pt-3">
-                        <Button
-                            variant="outline"
-                            className="h-9 border-gray-300 px-6 text-gray-700"
+                        <MyButton
+                            type="button"
+                            buttonType="secondary"
+                            scale="medium"
+                            layoutVariant="default"
                             onClick={onBack}
                         >
                             Back
-                        </Button>
-                        <Button className="h-9 bg-[#3B82F6] px-6 hover:bg-blue-700">
-                            <Plus className="mr-2 h-4 w-4" />
+                        </MyButton>
+                        <MyButton
+                            type="button"
+                            buttonType="primary"
+                            scale="medium"
+                            layoutVariant="default"
+                            onClick={() => onSubmit(form.getValues())}
+                        >
+                            <Plus />
                             Create
-                        </Button>
+                        </MyButton>
                     </div>
                 </CardContent>
             </Card>
@@ -532,6 +550,11 @@ const LevelCard: React.FC<LevelCardProps> = ({
     const [sessionType, setSessionType] = useState<'new' | 'existing'>('new');
     const [selectedExistingSession, setSelectedExistingSession] = useState('');
 
+    // Add validation check
+    const isNewSessionValid = sessionType === 'new' && sessionName.trim() !== '' && startDate !== '';
+    const isExistingSessionValid = sessionType === 'existing' && selectedExistingSession !== '';
+    const isAddSessionDisabled = !isNewSessionValid && !isExistingSessionValid;
+
     const handleAddSession = () => {
         if (sessionType === 'new' && sessionName.trim() && startDate) {
             onAddSession(level.id, sessionName, startDate);
@@ -560,24 +583,28 @@ const LevelCard: React.FC<LevelCardProps> = ({
                     </div>
                     <div className="flex gap-2">
                         {hasSessions && (
-                            <Button
-                                variant="outline"
-                                size="sm"
+                            <MyButton
+                                type="button"
+                                buttonType="secondary"
+                                scale="medium"
+                                layoutVariant="default"
                                 onClick={() => setShowAddSession(true)}
-                                className="h-7 border-gray-300 px-2 text-xs text-gray-700 hover:bg-gray-50"
+                                className="font-light"
                             >
-                                <Plus className="mr-1 h-3 w-3" />
+                                <Plus />
                                 Add
-                            </Button>
+                            </MyButton>
                         )}
-                        <Button
-                            variant="ghost"
-                            size="sm"
+                        <MyButton
+                            type="button"
+                            buttonType="text"
+                            scale="medium"
+                            layoutVariant="icon"
                             onClick={() => onRemoveLevel(level.id)}
-                            className="h-7 w-7 p-0 text-red-600 hover:bg-red-50 hover:text-red-700"
+                            className="text-red-600 hover:text-red-700"
                         >
                             <Trash2 className="h-3 w-3" />
-                        </Button>
+                        </MyButton>
                     </div>
                 </div>
 
@@ -672,24 +699,30 @@ const LevelCard: React.FC<LevelCardProps> = ({
                             )}
 
                             <div className="flex gap-2">
-                                <Button
+                                <MyButton
+                                    type="button"
+                                    buttonType="primary"
+                                    scale="medium"
+                                    layoutVariant="default"
                                     onClick={handleAddSession}
-                                    className="h-8 bg-[#3B82F6] px-3 text-sm hover:bg-blue-700"
+                                    disable={isAddSessionDisabled}
                                 >
                                     {sessionType === 'existing' ? 'Copy Session' : 'Add Session'}
-                                </Button>
-                                <Button
-                                    variant="outline"
+                                </MyButton>
+                                <MyButton
+                                    type="button"
+                                    buttonType="secondary"
+                                    scale="medium"
+                                    layoutVariant="default"
                                     onClick={() => {
                                         setShowAddSession(false);
                                         setSessionName('');
                                         setStartDate('');
                                         setSelectedExistingSession('');
                                     }}
-                                    className="h-8 border-gray-300 px-3 text-sm text-gray-700"
                                 >
                                     Cancel
-                                </Button>
+                                </MyButton>
                             </div>
                         </div>
                     </div>
@@ -711,14 +744,16 @@ const LevelCard: React.FC<LevelCardProps> = ({
                                         {new Date(session.startDate).toLocaleDateString()}
                                     </span>
                                 </div>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
+                                <MyButton
+                                    type="button"
+                                    buttonType="text"
+                                    scale="medium"
+                                    layoutVariant="icon"
                                     onClick={() => onRemoveSession(level.id, session.id)}
-                                    className="h-6 w-6 p-0 text-red-600 hover:bg-red-50 hover:text-red-700"
+                                    className="text-red-600 hover:text-red-700"
                                 >
                                     <Trash2 className="h-3 w-3" />
-                                </Button>
+                                </MyButton>
                             </div>
                         ))}
                     </div>
@@ -743,6 +778,9 @@ const GlobalSessionsSection: React.FC<GlobalSessionsSectionProps> = ({
     const [sessionName, setSessionName] = useState('');
     const [startDate, setStartDate] = useState('');
 
+    // Add validation check
+    const isAddSessionDisabled = !sessionName.trim() || !startDate;
+
     const handleAddSession = () => {
         if (sessionName.trim() && startDate) {
             onAddSession(sessionName, startDate);
@@ -756,14 +794,17 @@ const GlobalSessionsSection: React.FC<GlobalSessionsSectionProps> = ({
         <div className="space-y-3">
             <div className="flex items-center justify-between">
                 <Label className="text-base font-medium text-gray-900">Course Sessions</Label>
-                <Button
-                    variant="outline"
+                <MyButton
+                    type="button"
+                    buttonType="secondary"
+                    scale="medium"
+                    layoutVariant="default"
                     onClick={() => setShowAddSession(true)}
-                    className="h-8 border-gray-300 px-3 text-sm text-gray-700 hover:bg-gray-50"
+                    className="font-light"
                 >
-                    <Plus className="mr-1 h-3 w-3" />
+                    <Plus />
                     Add
-                </Button>
+                </MyButton>
             </div>
 
             {showAddSession && (
@@ -794,23 +835,29 @@ const GlobalSessionsSection: React.FC<GlobalSessionsSectionProps> = ({
                             </div>
                         </div>
                         <div className="flex gap-2">
-                            <Button
+                            <MyButton
+                                type="button"
+                                buttonType="primary"
+                                scale="medium"
+                                layoutVariant="default"
                                 onClick={handleAddSession}
-                                className="h-8 bg-[#3B82F6] px-3 text-sm hover:bg-blue-700"
+                                disable={isAddSessionDisabled}
                             >
                                 Add Session
-                            </Button>
-                            <Button
-                                variant="outline"
+                            </MyButton>
+                            <MyButton
+                                type="button"
+                                buttonType="secondary"
+                                scale="medium"
+                                layoutVariant="default"
                                 onClick={() => {
                                     setShowAddSession(false);
                                     setSessionName('');
                                     setStartDate('');
                                 }}
-                                className="h-8 border-gray-300 px-3 text-sm text-gray-700"
                             >
                                 Cancel
-                            </Button>
+                            </MyButton>
                         </div>
                     </CardContent>
                 </Card>
@@ -831,14 +878,16 @@ const GlobalSessionsSection: React.FC<GlobalSessionsSectionProps> = ({
                                             {new Date(session.startDate).toLocaleDateString()}
                                         </span>
                                     </div>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
+                                    <MyButton
+                                        type="button"
+                                        buttonType="text"
+                                        scale="medium"
+                                        layoutVariant="icon"
                                         onClick={() => onRemoveSession(session.id)}
-                                        className="h-6 w-6 p-0 text-red-600 hover:bg-red-50 hover:text-red-700"
+                                        className="text-red-600 hover:text-red-700"
                                     >
                                         <Trash2 className="h-3 w-3" />
-                                    </Button>
+                                    </MyButton>
                                 </div>
                             </CardContent>
                         </Card>
