@@ -39,7 +39,7 @@ export const ShowReplies = ({ parent, refetch }: { parent: Doubt; refetch: () =>
                         )}
                     </div>
                     {showReplies && (
-                        <div className="flex flex-col gap-6 rounded-md border border-neutral-300 p-4">
+                        <div className="flex flex-col gap-2 rounded-md border border-neutral-300 p-4">
                             {parent.replies.map((reply, key) => (
                                 <Reply reply={reply} key={key} refetch={refetch} />
                             ))}
