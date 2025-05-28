@@ -135,7 +135,7 @@ export const Doubt = ({
                         </div>
                     )}
                     {(isAdmin ||
-                        (userId && doubt.doubt_assignee_request_user_ids.includes(userId))) && (
+                        (userId && doubt.doubt_assignee_request_user_ids?.includes(userId))) && (
                         <MarkAsResolved doubt={doubt} refetch={refetch} />
                     )}
                 </div>
