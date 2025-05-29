@@ -41,6 +41,7 @@ import { Route as EvaluatorAiEvaluationIndexImport } from './routes/evaluator-ai
 import { Route as EvaluatorAiAssessmentIndexImport } from './routes/evaluator-ai/assessment/index';
 import { Route as EvaluationEvaluationsIndexImport } from './routes/evaluation/evaluations/index';
 import { Route as EvaluationEvaluationToolIndexImport } from './routes/evaluation/evaluation-tool/index';
+import { Route as EngagementDoubtManagementIndexImport } from './routes/engagement/doubt-management/index';
 import { Route as CommunityQuestionPaperIndexImport } from './routes/community/question-paper/index';
 import { Route as AssessmentQuestionPapersIndexImport } from './routes/assessment/question-papers/index';
 import { Route as AssessmentAssessmentListIndexImport } from './routes/assessment/assessment-list/index';
@@ -254,6 +255,12 @@ const EvaluationEvaluationsIndexRoute = EvaluationEvaluationsIndexImport.update(
 const EvaluationEvaluationToolIndexRoute = EvaluationEvaluationToolIndexImport.update({
     id: '/evaluation/evaluation-tool/',
     path: '/evaluation/evaluation-tool/',
+    getParentRoute: () => rootRoute,
+} as any);
+
+const EngagementDoubtManagementIndexRoute = EngagementDoubtManagementIndexImport.update({
+    id: '/engagement/doubt-management/',
+    path: '/engagement/doubt-management/',
     getParentRoute: () => rootRoute,
 } as any);
 
@@ -589,6 +596,13 @@ declare module '@tanstack/react-router' {
             path: '/community/question-paper';
             fullPath: '/community/question-paper';
             preLoaderRoute: typeof CommunityQuestionPaperIndexImport;
+            parentRoute: typeof rootRoute;
+        };
+        '/engagement/doubt-management/': {
+            id: '/engagement/doubt-management/';
+            path: '/engagement/doubt-management';
+            fullPath: '/engagement/doubt-management';
+            preLoaderRoute: typeof EngagementDoubtManagementIndexImport;
             parentRoute: typeof rootRoute;
         };
         '/evaluation/evaluation-tool/': {
@@ -942,6 +956,7 @@ export interface FileRoutesByFullPath {
     '/assessment/assessment-list': typeof AssessmentAssessmentListIndexRoute;
     '/assessment/question-papers': typeof AssessmentQuestionPapersIndexRoute;
     '/community/question-paper': typeof CommunityQuestionPaperIndexRoute;
+    '/engagement/doubt-management': typeof EngagementDoubtManagementIndexRoute;
     '/evaluation/evaluation-tool': typeof EvaluationEvaluationToolIndexRoute;
     '/evaluation/evaluations': typeof EvaluationEvaluationsIndexRoute;
     '/evaluator-ai/assessment': typeof EvaluatorAiAssessmentIndexRoute;
@@ -1008,6 +1023,7 @@ export interface FileRoutesByTo {
     '/assessment/assessment-list': typeof AssessmentAssessmentListIndexRoute;
     '/assessment/question-papers': typeof AssessmentQuestionPapersIndexRoute;
     '/community/question-paper': typeof CommunityQuestionPaperIndexRoute;
+    '/engagement/doubt-management': typeof EngagementDoubtManagementIndexRoute;
     '/evaluation/evaluation-tool': typeof EvaluationEvaluationToolIndexRoute;
     '/evaluation/evaluations': typeof EvaluationEvaluationsIndexRoute;
     '/evaluator-ai/assessment': typeof EvaluatorAiAssessmentIndexRoute;
@@ -1075,6 +1091,7 @@ export interface FileRoutesById {
     '/assessment/assessment-list/': typeof AssessmentAssessmentListIndexRoute;
     '/assessment/question-papers/': typeof AssessmentQuestionPapersIndexRoute;
     '/community/question-paper/': typeof CommunityQuestionPaperIndexRoute;
+    '/engagement/doubt-management/': typeof EngagementDoubtManagementIndexRoute;
     '/evaluation/evaluation-tool/': typeof EvaluationEvaluationToolIndexRoute;
     '/evaluation/evaluations/': typeof EvaluationEvaluationsIndexRoute;
     '/evaluator-ai/assessment/': typeof EvaluatorAiAssessmentIndexRoute;
@@ -1143,6 +1160,7 @@ export interface FileRouteTypes {
         | '/assessment/assessment-list'
         | '/assessment/question-papers'
         | '/community/question-paper'
+        | '/engagement/doubt-management'
         | '/evaluation/evaluation-tool'
         | '/evaluation/evaluations'
         | '/evaluator-ai/assessment'
@@ -1208,6 +1226,7 @@ export interface FileRouteTypes {
         | '/assessment/assessment-list'
         | '/assessment/question-papers'
         | '/community/question-paper'
+        | '/engagement/doubt-management'
         | '/evaluation/evaluation-tool'
         | '/evaluation/evaluations'
         | '/evaluator-ai/assessment'
@@ -1273,6 +1292,7 @@ export interface FileRouteTypes {
         | '/assessment/assessment-list/'
         | '/assessment/question-papers/'
         | '/community/question-paper/'
+        | '/engagement/doubt-management/'
         | '/evaluation/evaluation-tool/'
         | '/evaluation/evaluations/'
         | '/evaluator-ai/assessment/'
@@ -1340,6 +1360,7 @@ export interface RootRouteChildren {
     AssessmentAssessmentListIndexRoute: typeof AssessmentAssessmentListIndexRoute;
     AssessmentQuestionPapersIndexRoute: typeof AssessmentQuestionPapersIndexRoute;
     CommunityQuestionPaperIndexRoute: typeof CommunityQuestionPaperIndexRoute;
+    EngagementDoubtManagementIndexRoute: typeof EngagementDoubtManagementIndexRoute;
     EvaluationEvaluationToolIndexRoute: typeof EvaluationEvaluationToolIndexRoute;
     EvaluationEvaluationsIndexRoute: typeof EvaluationEvaluationsIndexRoute;
     EvaluatorAiAssessmentIndexRoute: typeof EvaluatorAiAssessmentIndexRoute;
@@ -1406,6 +1427,7 @@ const rootRouteChildren: RootRouteChildren = {
     AssessmentAssessmentListIndexRoute: AssessmentAssessmentListIndexRoute,
     AssessmentQuestionPapersIndexRoute: AssessmentQuestionPapersIndexRoute,
     CommunityQuestionPaperIndexRoute: CommunityQuestionPaperIndexRoute,
+    EngagementDoubtManagementIndexRoute: EngagementDoubtManagementIndexRoute,
     EvaluationEvaluationToolIndexRoute: EvaluationEvaluationToolIndexRoute,
     EvaluationEvaluationsIndexRoute: EvaluationEvaluationsIndexRoute,
     EvaluatorAiAssessmentIndexRoute: EvaluatorAiAssessmentIndexRoute,
@@ -1491,6 +1513,7 @@ export const routeTree = rootRoute
         "/assessment/assessment-list/",
         "/assessment/question-papers/",
         "/community/question-paper/",
+        "/engagement/doubt-management/",
         "/evaluation/evaluation-tool/",
         "/evaluation/evaluations/",
         "/evaluator-ai/assessment/",
@@ -1587,6 +1610,9 @@ export const routeTree = rootRoute
     },
     "/community/question-paper/": {
       "filePath": "community/question-paper/index.tsx"
+    },
+    "/engagement/doubt-management/": {
+      "filePath": "engagement/doubt-management/index.tsx"
     },
     "/evaluation/evaluation-tool/": {
       "filePath": "evaluation/evaluation-tool/index.tsx"

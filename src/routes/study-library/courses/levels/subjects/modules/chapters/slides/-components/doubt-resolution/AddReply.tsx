@@ -3,18 +3,14 @@ import { MyButton } from '@/components/design-system/button';
 import { ArrowUp } from '@phosphor-icons/react';
 import { handleAddReply } from '../../-helper/handleAddReply';
 import { DoubtType } from '../../-types/add-doubt-type';
-import { getTokenFromCookie } from '@/lib/auth/sessionUtility';
-import { TokenKey } from '@/constants/auth/tokens';
-import { getTokenDecodedData } from '@/lib/auth/sessionUtility';
 import { useContentStore } from '../../-stores/chapter-sidebar-store';
 import { useState } from 'react';
 import { useAddReply } from '../../-services/AddReply';
+import { getUserId, getUserName } from '@/utils/userDetails';
 
 export const AddReply = ({ parent, refetch }: { parent: DoubtType; refetch: () => void }) => {
-    const accessToken = getTokenFromCookie(TokenKey.accessToken);
-    const tokenData = getTokenDecodedData(accessToken);
-    const userId = tokenData?.user;
-    const userName = tokenData?.username;
+    const userId = getUserId();
+    const userName = getUserName();
     const { activeItem } = useContentStore();
     const [teacherReply, setTeacherReply] = useState<string>('');
     const addReply = useAddReply();

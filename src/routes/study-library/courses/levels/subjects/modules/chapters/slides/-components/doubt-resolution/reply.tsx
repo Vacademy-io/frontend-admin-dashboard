@@ -1,19 +1,15 @@
 import { Doubt } from '../../-types/get-doubts-type';
-import { getTokenDecodedData } from '@/lib/auth/sessionUtility';
-import { getTokenFromCookie } from '@/lib/auth/sessionUtility';
-import { TokenKey } from '@/constants/auth/tokens';
 import { DeleteDoubt } from './DeleteDoubt';
 import { formatISODateTimeReadable } from '@/helpers/formatISOTime';
 import { useGetUserBasicDetails } from '@/services/get_user_basic_details';
 import { getPublicUrl } from '@/services/upload_file';
 import { useEffect, useState } from 'react';
 import { EnrollFormUploadImage } from '@/assets/svgs';
+import { getUserId } from '@/utils/userDetails';
 
 export const Reply = ({ reply, refetch }: { reply: Doubt; refetch: () => void }) => {
     const [imageUrl, setImageUrl] = useState<string | null>(null);
-    const accessToken = getTokenFromCookie(TokenKey.accessToken);
-    const tokenData = getTokenDecodedData(accessToken);
-    const userId = tokenData?.user;
+    const userId = getUserId();
 
     const { data: userBasicDetails } = useGetUserBasicDetails([reply.user_id]);
     useEffect(() => {
