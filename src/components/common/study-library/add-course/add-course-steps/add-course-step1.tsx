@@ -185,31 +185,30 @@ export const AddCourseStep1 = ({
                                         </FormItem>
                                     )}
                                 />
-                                <FormField
-                                    control={form.control}
-                                    name="description"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormControl>
-                                                <MyInput
-                                                    id="course-description"
-                                                    required={false}
-                                                    inputType="text"
-                                                    label="Description"
-                                                    inputPlaceholder="Enter course description"
-                                                    className="w-full"
-                                                    input={field.value}
-                                                    onChangeFunction={(e) =>
-                                                        field.onChange(e.target.value)
-                                                    }
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
+
+                                <div className="flex flex-col gap-16">
+                                    <FormField
+                                        control={form.control}
+                                        name="description"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Description</FormLabel>
+                                                <FormControl>
+                                                    <MainViewQuillEditor
+                                                        onChange={field.onChange}
+                                                        value={field.value}
+                                                        CustomclasssName="h-[120px]"
+                                                        placeholder="Enter course description"
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+
                                 {/* Tags Section */}
-                                <div className="space-y-2">
+                                <div className="space-y-2 pt-10">
                                     <Label className="text-normal font-medium text-gray-900">
                                         Course Tags
                                     </Label>
