@@ -22,15 +22,6 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import AddCourseStep2StructureTypes from './add-course-step2-structure-types';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-
 interface Session {
     id: string;
     name: string;
@@ -51,71 +42,6 @@ export const step2Schema = z.object({
 });
 export type Step2Data = z.infer<typeof step2Schema>;
 
-const structures = [
-    {
-        id: '5',
-        title: '5 stepped structure',
-        subtitle: 'Suitable for: Foundation Coaching Classes, Test Prep Centers (e.g., JEE, NEET)',
-        example: 'Class 10 Foundation Course',
-        hierarchy: 'Subject → Module → Chapter → Session',
-        exampleHierarchy:
-            'S1 Science → M1 Physics → C1 Light - Reflection and Refraction → S1 Laws of Reflection (7 min)',
-        details: [
-            'S1 Science',
-            '  M1 Physics',
-            '    C1 Light - Reflection and Refraction',
-            '      S1 Laws of Reflection - 7 min',
-            '      S2 Spherical Mirrors and Their Uses - 12 pages',
-            '      S3 Mirror Formula and Numerical Problems',
-        ],
-    },
-    {
-        id: '4',
-        title: '4 stepped structure',
-        subtitle: 'Suitable for: Vocational Training Institutes, Creative Workshops',
-        example: 'Spoken English - Beginner to Intermediate',
-        hierarchy: 'Module → Chapter → Session',
-        exampleHierarchy:
-            'M1 Grammar Essentials → C1 Tenses Overview → S1 Introduction to Tenses (7 min)',
-        details: [
-            'M1 Grammar Essentials',
-            '  C1 Tenses Overview',
-            '    S1 Introduction to Tenses - 7 min',
-            '    S2 Present, Past, and Future - 12 pages',
-            '    S3 Practice Sentences - 13 min',
-        ],
-    },
-    {
-        id: '3',
-        title: '3 stepped structure',
-        subtitle: 'Suitable for: Short Courses, Bootcamps, Weekend Learning Programs',
-        example: 'Speed Math Crash Course',
-        hierarchy: 'Chapter → Session',
-        exampleHierarchy:
-            'C1 Multiplication Shortcuts → S1 Vedic Math Multiplication Techniques (7 min)',
-        details: [
-            'C1 Multiplication Shortcuts',
-            '  S1 Vedic Math Multiplication Techniques - 7 min',
-            '  S2 Two-Digit Multiplication in Seconds - 12 pages',
-            '  S3 Practice Problems - 13 min',
-        ],
-    },
-    {
-        id: '2',
-        title: '2 stepped structure',
-        subtitle: 'Suitable for: Corporate Training, Internal Team Learning',
-        example: 'Workplace Cybersecurity',
-        hierarchy: 'Session',
-        exampleHierarchy:
-            'S1 Why Cybersecurity Matters (7 min) → S2 Recognizing Phishing Emails (12 pages)',
-        details: [
-            'S1 Why Cybersecurity Matters - 7 min',
-            'S2 Recognizing Phishing Emails - 12 pages',
-            'S3 Strong Password Practices - 13 min',
-        ],
-    },
-];
-
 export const AddCourseStep2 = ({
     onBack,
     onSubmit,
@@ -125,7 +51,6 @@ export const AddCourseStep2 = ({
     onSubmit: (data: Step2Data) => void;
     initialData?: Step2Data;
 }) => {
-    const [selectedStructure, setSelectedStructure] = useState('2');
     const [hasLevels, setHasLevels] = useState('yes');
     const [hasSessions, setHasSessions] = useState('yes');
     const [levels, setLevels] = useState<Level[]>([]);
