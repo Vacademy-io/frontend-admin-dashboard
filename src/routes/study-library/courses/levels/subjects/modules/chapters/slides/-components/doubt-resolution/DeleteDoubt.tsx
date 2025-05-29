@@ -39,6 +39,7 @@ export const DeleteDoubt = ({ doubt, refetch }: { doubt: Doubt; refetch: () => v
             <div
                 className="flex cursor-pointer items-center gap-1"
                 onClick={() => setIsDialogOpen(true)}
+                data-delete-doubt
             >
                 <TrashSimple className="text-danger-500" />
                 <p className="text-body">Delete</p>

@@ -1,28 +1,23 @@
 import { Sidebar, SidebarContent, SidebarHeader, useSidebar } from '@/components/ui/sidebar';
 import { X } from '@phosphor-icons/react';
-import { Dispatch, SetStateAction, useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useContentStore } from '../../-stores/chapter-sidebar-store';
 import { DoubtFilter } from '../../-types/get-doubts-type';
 import { useGetDoubts } from '../../-services/GetDoubts';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
-import { Doubt } from './doubt';
 import { Doubt as DoubtType } from '../../-types/get-doubts-type';
+import { DoubtList } from './doubtList';
 
 const TabsTriggerClass =
     'w-full data-[state=active]:shadow-none rounded-none rounded-tl-md rounded-tr-md border-white border-l-[1px] border-r-[1px] border-t-[1px] data-[state=active]:border-primary-200 data-[state=active]:text-primary-500 pt-2';
 
-const DoubtResolutionSidebar = ({
-    setDoubtProgressMarkerPdf,
-    setDoubtProgressMarkerVideo,
-}: {
-    setDoubtProgressMarkerPdf: Dispatch<SetStateAction<number | null>>;
-    setDoubtProgressMarkerVideo: Dispatch<SetStateAction<number | null>>;
-}) => {
+const DoubtResolutionSidebar = () => {
     const { open, setOpen } = useSidebar();
     const { activeItem } = useContentStore();
     const observer = useRef<IntersectionObserver | null>(null);
     const [activeTab, setActiveTab] = useState('ALL');
+    const sidebarRef = useRef<HTMLDivElement>(null);
 
     const [filter, setFilter] = useState<DoubtFilter>({
         name: '',
@@ -71,6 +66,42 @@ const DoubtResolutionSidebar = ({
         refetch();
     }, [filter]);
 
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            // Only handle click outside if sidebar is open
+            if (!open) return;
+
+            const target = event.target as Element;
+
+            // Check if click is outside the sidebar
+            if (sidebarRef.current && !sidebarRef.current.contains(target)) {
+                // Check if the click is on a DeleteDoubt component or its children
+                const isDeleteDoubtClick = target.closest('[data-delete-doubt]');
+
+                // Check if the click is on a dialog or its children
+                const isDialogClick =
+                    target.closest('[role="dialog"]') ||
+                    target.closest('[data-radix-popper-content-wrapper]') ||
+                    target.closest('.radix-dialog-content') ||
+                    target.closest('[data-state="open"]') ||
+                    target.closest('[data-radix-dialog-content]');
+
+                // If it's not a delete doubt click or dialog click, close the sidebar
+                if (!isDeleteDoubtClick && !isDialogClick) {
+                    setOpen(false);
+                }
+            }
+        };
+
+        // Add event listener
+        document.addEventListener('mousedown', handleClickOutside);
+
+        // Cleanup
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [open, setOpen]);
+
     const handleTabChange = (value: string) => {
         setActiveTab(value);
         if (value === 'RESOLVED') {
@@ -96,13 +127,14 @@ const DoubtResolutionSidebar = ({
         [isLoading, hasNextPage, isFetchingNextPage, fetchNextPage]
     );
 
-    if (isLoading) return <DashboardLoader />;
+    if (isLoading && !data) return <DashboardLoader />;
     if (isError) return <p>Error fetching doubts</p>;
 
     return (
         <Sidebar
+            ref={sidebarRef}
             side="right"
-            className={`${open ? 'w-[50vw]' : 'w-0'} flex flex-col gap-6 overflow-y-hidden bg-white p-4`}
+            className={`${open ? 'w-[35vw]' : 'w-0'} flex flex-col gap-6 overflow-y-hidden bg-white p-4`}
         >
             <SidebarHeader className="flex w-full items-center justify-between overflow-y-hidden bg-white">
                 <div className="flex w-full items-center justify-between bg-white">
@@ -125,59 +157,44 @@ const DoubtResolutionSidebar = ({
                             Unresolved
                         </TabsTrigger>
                     </TabsList>
-                    <TabsContent value="ALL" className="flex flex-col gap-4">
-                        {allDoubts.map((doubt, index) => (
-                            <div
-                                key={doubt.id || index}
-                                ref={
-                                    index === allDoubts.length - 1 ? lastDoubtElementRef : undefined
-                                }
-                            >
-                                <Doubt
-                                    doubt={doubt}
-                                    setDoubtProgressMarkerPdf={setDoubtProgressMarkerPdf}
-                                    setDoubtProgressMarkerVideo={setDoubtProgressMarkerVideo}
-                                    refetch={refetch}
-                                />
-                            </div>
-                        ))}
-                        {isFetchingNextPage && <DashboardLoader />}
+                    <TabsContent
+                        value="ALL"
+                        className="flex flex-col gap-4 data-[state=inactive]:hidden"
+                    >
+                        <DoubtList
+                            allDoubts={allDoubts}
+                            isLoading={isLoading}
+                            lastDoubtElementRef={lastDoubtElementRef}
+                            refetch={refetch}
+                            isFetchingNextPage={isFetchingNextPage}
+                            status={activeTab}
+                        />
                     </TabsContent>
-                    <TabsContent value="RESOLVED" className="flex flex-col gap-4">
-                        {allDoubts.map((doubt, index) => (
-                            <div
-                                key={doubt.id || index}
-                                ref={
-                                    index === allDoubts.length - 1 ? lastDoubtElementRef : undefined
-                                }
-                            >
-                                <Doubt
-                                    doubt={doubt}
-                                    setDoubtProgressMarkerPdf={setDoubtProgressMarkerPdf}
-                                    setDoubtProgressMarkerVideo={setDoubtProgressMarkerVideo}
-                                    refetch={refetch}
-                                />
-                            </div>
-                        ))}
-                        {isFetchingNextPage && <DashboardLoader />}
+                    <TabsContent
+                        value="RESOLVED"
+                        className="flex flex-col gap-4 data-[state=inactive]:hidden"
+                    >
+                        <DoubtList
+                            allDoubts={allDoubts}
+                            isLoading={isLoading}
+                            lastDoubtElementRef={lastDoubtElementRef}
+                            refetch={refetch}
+                            isFetchingNextPage={isFetchingNextPage}
+                            status={activeTab}
+                        />
                     </TabsContent>
-                    <TabsContent value="UNRESOLVED" className="flex flex-col gap-4">
-                        {allDoubts.map((doubt, index) => (
-                            <div
-                                key={doubt.id || index}
-                                ref={
-                                    index === allDoubts.length - 1 ? lastDoubtElementRef : undefined
-                                }
-                            >
-                                <Doubt
-                                    doubt={doubt}
-                                    setDoubtProgressMarkerPdf={setDoubtProgressMarkerPdf}
-                                    setDoubtProgressMarkerVideo={setDoubtProgressMarkerVideo}
-                                    refetch={refetch}
-                                />
-                            </div>
-                        ))}
-                        {isFetchingNextPage && <DashboardLoader />}
+                    <TabsContent
+                        value="UNRESOLVED"
+                        className="flex flex-col gap-4 data-[state=inactive]:hidden"
+                    >
+                        <DoubtList
+                            allDoubts={allDoubts}
+                            isLoading={isLoading}
+                            lastDoubtElementRef={lastDoubtElementRef}
+                            refetch={refetch}
+                            isFetchingNextPage={isFetchingNextPage}
+                            status={activeTab}
+                        />
                     </TabsContent>
                 </Tabs>
             </SidebarContent>
