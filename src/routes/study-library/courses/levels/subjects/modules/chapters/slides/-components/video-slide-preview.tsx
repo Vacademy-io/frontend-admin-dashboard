@@ -3,12 +3,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { Slide } from '../-hooks/use-slides';
 import { useContentStore } from '../-stores/chapter-sidebar-store';
+import { useMediaNavigationStore } from '../-stores/media-navigation-store';
 import { getPublicUrl } from '@/services/upload_file';
 import YouTubePlayer from './youtube-player';
 import { toast } from 'sonner';
 
 const VideoSlidePreview = ({ activeItem }: { activeItem: Slide }) => {
     const { items } = useContentStore();
+    const { videoSeekTime, clearVideoSeekTime } = useMediaNavigationStore();
     const videoSourceType = activeItem.video_slide?.source_type;
     const videoStatus = activeItem.status;
     // const videoTitle = activeItem.video_slide?.title || 'Video';
@@ -37,6 +39,43 @@ const VideoSlidePreview = ({ activeItem }: { activeItem: Slide }) => {
             setIsLoading(false);
         }
     };
+
+    // Handle video seeking when videoSeekTime changes
+    useEffect(() => {
+        if (videoSeekTime !== null && videoRef.current) {
+            const video = videoRef.current;
+
+            // Wait for video to be loaded enough to seek
+            const handleSeek = () => {
+                video.currentTime = videoSeekTime;
+                clearVideoSeekTime(); // Clear the seek time after seeking
+                toast.success(
+                    `Video jumped to ${Math.floor(videoSeekTime / 60)}:${Math.floor(
+                        videoSeekTime % 60
+                    )
+                        .toString()
+                        .padStart(2, '0')}`
+                );
+            };
+
+            if (video.readyState >= 2) {
+                // HAVE_CURRENT_DATA or higher
+                handleSeek();
+            } else {
+                // If video isn't ready, wait for it to be loadable
+                const onLoadedData = () => {
+                    handleSeek();
+                    video.removeEventListener('loadeddata', onLoadedData);
+                };
+                video.addEventListener('loadeddata', onLoadedData);
+
+                // Cleanup function to remove event listener if component unmounts
+                return () => {
+                    video.removeEventListener('loadeddata', onLoadedData);
+                };
+            }
+        }
+    }, [videoSeekTime, clearVideoSeekTime]);
 
     useEffect(() => {
         const fetchVideoUrl = async () => {

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { ArrowSquareOut } from '@phosphor-icons/react';
 import { StatusChip } from '@/components/design-system/status-chips';
 import { useContentStore } from '../../-stores/chapter-sidebar-store';
+import { useMediaNavigationStore } from '../../-stores/media-navigation-store';
 import { useSidebar } from '@/components/ui/sidebar';
 import { Doubt as DoubtType } from '../../-types/get-doubts-type';
 import { TokenKey } from '@/constants/auth/tokens';
@@ -23,6 +24,7 @@ import { formatTime } from '@/helpers/formatYoutubeVideoTime';
 export const Doubt = ({ doubt, refetch }: { doubt: DoubtType; refetch: () => void }) => {
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const { activeItem } = useContentStore();
+    const { navigateToTimestamp } = useMediaNavigationStore();
     const { setOpen } = useSidebar();
     const router = useRouter();
     const { getPackageSessionId } = useInstituteDetailsStore();
@@ -49,7 +51,15 @@ export const Doubt = ({ doubt, refetch }: { doubt: DoubtType; refetch: () => voi
     const { data: userBasicDetails } = useGetUserBasicDetails([doubt.user_id]);
 
     const handleTimeStampClick = (timestamp: number) => {
-        console.log('timestamp', timestamp);
+        // Navigate to the appropriate timestamp based on media type
+        if (activeItem?.source_type === 'VIDEO') {
+            // For videos, timestamp is in milliseconds, convert to seconds for video player
+            navigateToTimestamp(timestamp, 'VIDEO');
+        } else if (activeItem?.source_type === 'DOCUMENT') {
+            // For PDFs, timestamp represents page number
+            navigateToTimestamp(timestamp, 'DOCUMENT');
+        }
+
         setOpen(false);
     };
 
@@ -100,12 +110,15 @@ export const Doubt = ({ doubt, refetch }: { doubt: DoubtType; refetch: () => voi
                         </p>
                     </div>
                 </div>
-                <div className="flex w-full items-center justify-between ">
+                <div className="flex w-full items-center justify-between">
                     {(activeItem?.source_type == 'VIDEO' ||
-                        activeItem?.source_type == 'DOCUMENT') && (
+                        (activeItem?.source_type == 'DOCUMENT' &&
+                            activeItem?.document_slide?.type == 'PDF')) && (
                         <div className="flex gap-2">
                             <p>
-                                <span className="font-semibold">Timestamp: </span>
+                                <span className="font-semibold">
+                                    {activeItem?.source_type == 'VIDEO' ? 'Timestamp' : 'Page No'}:{' '}
+                                </span>
                                 {activeItem?.source_type == 'VIDEO'
                                     ? formatTime(parseInt(doubt.content_position) / 1000)
                                     : activeItem?.source_type == 'DOCUMENT'
