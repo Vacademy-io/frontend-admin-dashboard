@@ -8,6 +8,7 @@ import { useGetDoubts } from '../../-services/GetDoubts';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { Doubt as DoubtType } from '../../-types/get-doubts-type';
 import { DoubtList } from './doubtList';
+import { get30DaysAgo, getTomorrow } from '@/utils/dateUtils';
 
 const TabsTriggerClass =
     'w-full data-[state=active]:shadow-none rounded-none rounded-tl-md rounded-tr-md border-white border-l-[1px] border-r-[1px] border-t-[1px] data-[state=active]:border-primary-200 data-[state=active]:text-primary-500 pt-2';
@@ -21,9 +22,8 @@ const DoubtResolutionSidebar = () => {
 
     const [filter, setFilter] = useState<DoubtFilter>({
         name: '',
-        start_date:
-            new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] || '',
-        end_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0] || '',
+        start_date: get30DaysAgo(),
+        end_date: getTomorrow(),
         user_ids: [],
         content_positions: [],
         content_types: [

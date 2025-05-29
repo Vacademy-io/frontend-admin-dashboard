@@ -27,4 +27,5 @@ export interface DoubtFilter {
     sort_columns: {
         [key: string]: 'ASC' | 'DESC';
     };
+    batch_ids?: string[];
 }
