@@ -83,6 +83,10 @@ export const AddCourseStep1 = ({
         mode: 'onSubmit',
     });
 
+    // Watch the course field value
+    const courseValue = form.watch('course');
+    const isNextDisabled = !courseValue || courseValue.trim() === '' || Object.values(uploadingStates).some((state) => state);
+
     const handleFileUpload = async (
         file: File,
         field: 'coursePreview' | 'courseBanner' | 'courseMedia'
@@ -437,7 +441,7 @@ export const AddCourseStep1 = ({
                             scale="large"
                             id="next-button"
                             className="px-8"
-                            disable={Object.values(uploadingStates).some((state) => state)}
+                            disable={isNextDisabled}
                         >
                             Next
                         </MyButton>
