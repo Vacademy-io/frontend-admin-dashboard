@@ -557,13 +557,10 @@ const LevelCard: React.FC<LevelCardProps> = ({
     const [sessionName, setSessionName] = useState('');
     const [startDate, setStartDate] = useState('');
     const [sessionType, setSessionType] = useState<'new' | 'existing'>('new');
-    const [selectedExistingSession, setSelectedExistingSession] = useState('');
 
     // Add validation check
     const isNewSessionValid =
         sessionType === 'new' && sessionName.trim() !== '' && startDate !== '';
-    const isExistingSessionValid = sessionType === 'existing' && selectedExistingSession !== '';
-    const isAddSessionDisabled = !isNewSessionValid && !isExistingSessionValid;
 
     // Filter out sessions that are already added to this level
     const availableSessions = existingSessions.filter(
@@ -581,11 +578,12 @@ const LevelCard: React.FC<LevelCardProps> = ({
             setSessionName('');
             setStartDate('');
             setShowAddSession(false);
-        } else if (sessionType === 'existing' && selectedExistingSession) {
-            onAddExistingSession(level.id, selectedExistingSession);
-            setSelectedExistingSession('');
-            setShowAddSession(false);
         }
+    };
+
+    const handleExistingSessionSelect = (sessionId: string) => {
+        onAddExistingSession(level.id, sessionId);
+        setShowAddSession(false);
     };
 
     return (
@@ -668,41 +666,64 @@ const LevelCard: React.FC<LevelCardProps> = ({
                             </div>
 
                             {sessionType === 'new' ? (
-                                <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-                                    <div>
-                                        <Label className="mb-1 block text-sm font-medium text-gray-700">
-                                            Session Name
-                                        </Label>
-                                        <Input
-                                            placeholder="e.g., January 2025 Batch"
-                                            value={sessionName}
-                                            onChange={(e) => setSessionName(e.target.value)}
-                                            className="h-8 border-gray-300"
-                                        />
+                                <>
+                                    <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                                        <div>
+                                            <Label className="mb-1 block text-sm font-medium text-gray-700">
+                                                Session Name
+                                            </Label>
+                                            <Input
+                                                placeholder="e.g., January 2025 Batch"
+                                                value={sessionName}
+                                                onChange={(e) => setSessionName(e.target.value)}
+                                                className="h-8 border-gray-300"
+                                            />
+                                        </div>
+                                        <div>
+                                            <Label className="mb-1 block text-sm font-medium text-gray-700">
+                                                Start Date
+                                            </Label>
+                                            <Input
+                                                type="date"
+                                                value={startDate}
+                                                onChange={(e) => setStartDate(e.target.value)}
+                                                className="h-8 border-gray-300"
+                                            />
+                                        </div>
                                     </div>
-                                    <div>
-                                        <Label className="mb-1 block text-sm font-medium text-gray-700">
-                                            Start Date
-                                        </Label>
-                                        <Input
-                                            type="date"
-                                            value={startDate}
-                                            onChange={(e) => setStartDate(e.target.value)}
-                                            className="h-8 border-gray-300"
-                                        />
+                                    <div className="flex gap-2">
+                                        <MyButton
+                                            type="button"
+                                            buttonType="primary"
+                                            scale="medium"
+                                            layoutVariant="default"
+                                            onClick={handleAddSession}
+                                            disable={!isNewSessionValid}
+                                        >
+                                            Add Session
+                                        </MyButton>
+                                        <MyButton
+                                            type="button"
+                                            buttonType="secondary"
+                                            scale="medium"
+                                            layoutVariant="default"
+                                            onClick={() => {
+                                                setShowAddSession(false);
+                                                setSessionName('');
+                                                setStartDate('');
+                                            }}
+                                        >
+                                            Cancel
+                                        </MyButton>
                                     </div>
-                                </div>
+                                </>
                             ) : (
                                 <div>
                                     <Label className="mb-1 block text-sm font-medium text-gray-700">
                                         Select Existing Session
                                     </Label>
                                     <Select
-                                        defaultValue={selectedExistingSession}
-                                        onValueChange={(value) => {
-                                            console.log('Selected session:', value);
-                                            setSelectedExistingSession(value);
-                                        }}
+                                        onValueChange={handleExistingSessionSelect}
                                     >
                                         <SelectTrigger className="h-8 border-gray-300">
                                             <SelectValue placeholder="Choose a session to copy" />
@@ -722,33 +743,6 @@ const LevelCard: React.FC<LevelCardProps> = ({
                                     </Select>
                                 </div>
                             )}
-
-                            <div className="flex gap-2">
-                                <MyButton
-                                    type="button"
-                                    buttonType="primary"
-                                    scale="medium"
-                                    layoutVariant="default"
-                                    onClick={handleAddSession}
-                                    disable={isAddSessionDisabled}
-                                >
-                                    {sessionType === 'existing' ? 'Copy Session' : 'Add Session'}
-                                </MyButton>
-                                <MyButton
-                                    type="button"
-                                    buttonType="secondary"
-                                    scale="medium"
-                                    layoutVariant="default"
-                                    onClick={() => {
-                                        setShowAddSession(false);
-                                        setSessionName('');
-                                        setStartDate('');
-                                        setSelectedExistingSession('');
-                                    }}
-                                >
-                                    Cancel
-                                </MyButton>
-                            </div>
                         </div>
                     </div>
                 )}
