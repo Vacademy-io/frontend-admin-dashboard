@@ -19,29 +19,25 @@ import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { ImageSquare, PencilSimpleLine } from 'phosphor-react';
 import { FileUploadComponent } from '@/components/design-system/file-upload';
 import { MyButton } from '@/components/design-system/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { X } from 'lucide-react';
 
 type MediaType = 'image' | 'video';
 
 // Step 1 Schema
 export const step1Schema = z.object({
-    course: z.string().min(1, 'Course name is required'),
+    course: z.string().min(1, { message: 'Course name is required' }),
     description: z.string().optional(),
     learningOutcome: z.string().optional(),
     aboutCourse: z.string().optional(),
     targetAudience: z.string().optional(),
-    coursePreview: z.object({
-        id: z.string().optional(),
-        url: z.string().optional(),
-    }),
-    courseBanner: z.object({
-        id: z.string().optional(),
-        url: z.string().optional(),
-    }),
-    courseMedia: z.object({
-        id: z.string().optional(),
-        url: z.string().optional(),
-        mediaType: z.enum(['image', 'video']).optional(),
-    }),
+    coursePreview: z.any().optional(),
+    courseBanner: z.any().optional(),
+    courseMedia: z.any().optional(),
+    tags: z.array(z.string()).default([]),
 });
 export type Step1Data = z.infer<typeof step1Schema>;
 
@@ -68,6 +64,9 @@ export const AddCourseStep1 = ({
         courseMedia: false,
     });
 
+    const [newTag, setNewTag] = useState('');
+    const [tags, setTags] = useState<string[]>(initialData?.tags || []);
+
     const form = useForm<Step1Data>({
         resolver: zodResolver(step1Schema),
         defaultValues: initialData || {
@@ -76,9 +75,10 @@ export const AddCourseStep1 = ({
             learningOutcome: '',
             aboutCourse: '',
             targetAudience: '',
-            coursePreview: { id: '', url: '' },
-            courseBanner: { id: '', url: '' },
-            courseMedia: { id: '', url: '', mediaType: undefined },
+            coursePreview: null,
+            courseBanner: null,
+            courseMedia: null,
+            tags: [],
         },
     });
 
@@ -131,6 +131,22 @@ export const AddCourseStep1 = ({
                 [field]: false,
             }));
         }
+    };
+
+    const addTag = (e: React.MouseEvent | React.KeyboardEvent) => {
+        e.preventDefault();
+        if (newTag.trim() && !tags.includes(newTag.trim())) {
+            const updatedTags = [...tags, newTag.trim()];
+            setTags(updatedTags);
+            form.setValue('tags', updatedTags);
+            setNewTag('');
+        }
+    };
+
+    const removeTag = (tagToRemove: string) => {
+        const updatedTags = tags.filter((tag) => tag !== tagToRemove);
+        setTags(updatedTags);
+        form.setValue('tags', updatedTags);
     };
 
     return (
@@ -192,6 +208,57 @@ export const AddCourseStep1 = ({
                                         </FormItem>
                                     )}
                                 />
+                                {/* Tags Section */}
+                                <div className="space-y-2">
+                                    <Label className="text-normal font-medium text-gray-900">
+                                        Course Tags
+                                    </Label>
+                                    <p className="text-sm text-gray-600">
+                                        Add tags to help categorize and find your course easily
+                                    </p>
+                                    <div className="flex gap-2">
+                                        <Input
+                                            type="text"
+                                            placeholder="Enter a tag"
+                                            value={newTag}
+                                            onChange={(e) => setNewTag(e.target.value)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    addTag(e);
+                                                }
+                                            }}
+                                            className="h-9 border-gray-300"
+                                        />
+                                        <MyButton
+                                            type="button"
+                                            buttonType="secondary"
+                                            scale="medium"
+                                            layoutVariant="default"
+                                            onClick={addTag}
+                                            disable={!newTag.trim()}
+                                        >
+                                            Add
+                                        </MyButton>
+                                    </div>
+
+                                    {tags.length > 0 && (
+                                        <div className="flex flex-wrap gap-2">
+                                            {tags.map((tag, index) => (
+                                                <Badge
+                                                    key={index}
+                                                    variant="secondary"
+                                                    className="flex items-center gap-1 px-3 py-1"
+                                                >
+                                                    {tag}
+                                                    <X
+                                                        className="h-3 w-3 cursor-pointer"
+                                                        onClick={() => removeTag(tag)}
+                                                    />
+                                                </Badge>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                                 <div className="flex flex-col gap-16">
                                     <FormField
                                         control={form.control}

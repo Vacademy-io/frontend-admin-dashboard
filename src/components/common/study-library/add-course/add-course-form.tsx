@@ -63,6 +63,7 @@ export const AddCourseForm = () => {
                 coursePreview: finalData.coursePreview,
                 courseBanner: finalData.courseBanner,
                 courseMedia: finalData.courseMedia,
+                tags: finalData.tags || [],
                 levelStructure: finalData.levelStructure,
                 hasLevels: finalData.hasLevels === 'yes',
                 hasSessions: finalData.hasSessions === 'yes',
