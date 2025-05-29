@@ -162,28 +162,22 @@ export const ParticipantsSidePanel: React.FC<ParticipantsSidePanelProps> = ({
     const StatusIndicator = () => {
         if (sseStatus === 'connecting') {
             return (
-                <Loader2
-                    size={16}
-                    className="mr-1 animate-spin text-yellow-500"
-                    title="Connecting for participant updates..."
-                />
+                <span title="Connecting for participant updates...">
+                    <Loader2 size={16} className="mr-1 animate-spin text-yellow-500" />
+                </span>
             );
         }
         if (sseStatus === 'connected') {
             return (
-                <Wifi
-                    size={16}
-                    className="mr-1 text-green-500"
-                    title="Participant updates active"
-                />
+                <span title="Participant updates active">
+                    <Wifi size={16} className="mr-1 text-green-500" />
+                </span>
             );
         }
         return (
-            <WifiOff
-                size={16}
-                className="mr-1 text-red-500"
-                title="Participant updates disconnected. Retrying..."
-            />
+            <span title="Participant updates disconnected. Retrying...">
+                <WifiOff size={16} className="mr-1 text-red-500" />
+            </span>
         );
     };
 
