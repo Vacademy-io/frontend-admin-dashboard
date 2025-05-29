@@ -45,10 +45,9 @@ const VideoSlidePreview = ({ activeItem }: { activeItem: Slide }) => {
         if (videoSeekTime !== null && videoRef.current) {
             const video = videoRef.current;
 
-            // Wait for video to be loaded enough to seek
             const handleSeek = () => {
                 video.currentTime = videoSeekTime;
-                clearVideoSeekTime(); // Clear the seek time after seeking
+                clearVideoSeekTime();
                 toast.success(
                     `Video jumped to ${Math.floor(videoSeekTime / 60)}:${Math.floor(
                         videoSeekTime % 60
@@ -59,22 +58,21 @@ const VideoSlidePreview = ({ activeItem }: { activeItem: Slide }) => {
             };
 
             if (video.readyState >= 2) {
-                // HAVE_CURRENT_DATA or higher
                 handleSeek();
+                return undefined; // Explicit return, but not necessary in React
             } else {
-                // If video isn't ready, wait for it to be loadable
                 const onLoadedData = () => {
                     handleSeek();
                     video.removeEventListener('loadeddata', onLoadedData);
                 };
                 video.addEventListener('loadeddata', onLoadedData);
-
-                // Cleanup function to remove event listener if component unmounts
                 return () => {
                     video.removeEventListener('loadeddata', onLoadedData);
                 };
             }
         }
+        // No return needed if the condition isn't met, but you can return undefined if you want
+        return undefined;
     }, [videoSeekTime, clearVideoSeekTime]);
 
     useEffect(() => {
