@@ -34,7 +34,6 @@ import { SectionFormType } from '@/types/assessments/assessment-steps';
 import { addQuestionPaper } from '@/routes/assessment/question-papers/-utils/question-paper-services';
 import { getQuestionPaperById } from '@/routes/community/question-paper/-service/utils';
 import { useAIQuestionDialogStore } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/zustand-global-states/ai-add-questions-dialog-zustand';
-import { useEffect } from 'react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface AIQuestionsPreviewProps {
@@ -266,11 +265,6 @@ const AIQuestionsPreview = ({
             data: form.getValues(),
         });
     };
-
-    useEffect(() => {
-        setCurrentQuestionIndex(Math.max(0, questions.length - 1));
-        form.trigger();
-    }, [form.watch(`questions.${currentQuestionIndex}.questionType`)]);
 
     return (
         <>
