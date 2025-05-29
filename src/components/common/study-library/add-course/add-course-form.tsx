@@ -11,22 +11,16 @@ import { AddCourseStep1, step1Schema } from './add-course-steps/add-course-step1
 import { AddCourseStep2, step2Schema } from './add-course-steps/add-course-step2';
 import { toast } from 'sonner';
 
-export interface Session {
-    id: string;
-    session_name: string;
-    status: string;
-    start_date?: string;
-    new_session?: boolean;
-    levels: Level[]; // Add levels array to sessions
-}
-
-// Update Level interface (remove sessions)
 export interface Level {
     id: string;
-    level_name: string;
-    duration_in_days: number | null;
-    thumbnail_id: string | null;
-    new_level?: boolean;
+    name: string;
+}
+
+export interface Session {
+    id: string;
+    name: string;
+    startDate: string;
+    levels: Level[];
 }
 
 export type Step1Data = z.infer<typeof step1Schema>;
@@ -67,16 +61,12 @@ export const AddCourseForm = () => {
                 levelStructure: finalData.levelStructure,
                 hasLevels: finalData.hasLevels === 'yes',
                 hasSessions: finalData.hasSessions === 'yes',
-                levels: finalData.levels?.map(level => ({
-                    name: level.name,
-                    sessions: level.sessions.map(session => ({
-                        name: session.name,
-                        startDate: session.startDate
-                    }))
-                })),
-                globalSessions: finalData.globalSessions?.map(session => ({
+                sessions: finalData.sessions.map(session => ({
                     name: session.name,
-                    startDate: session.startDate
+                    startDate: session.startDate,
+                    levels: session.levels.map(level => ({
+                        name: level.name
+                    }))
                 })),
                 instructors: finalData.instructors || [],
                 publishToCatalogue: finalData.publishToCatalogue
