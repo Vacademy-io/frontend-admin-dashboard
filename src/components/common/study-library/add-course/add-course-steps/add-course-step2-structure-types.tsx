@@ -11,6 +11,8 @@ import {
     FolderOpen,
     CheckCircle2,
 } from 'lucide-react';
+import { UseFormReturn } from 'react-hook-form';
+import { Step2Data } from './add-course-step2';
 
 // Types and mockCourses remain the same as in your previous version
 // ... (Slide, Chapter, Module, Subject, Course, mockCourses types) ...
@@ -488,13 +490,15 @@ const CourseCard: React.FC<CourseCardProps> = ({
     );
 };
 
-function AddCourseStep2StructureTypes() {
-    const [selectedCourseId, setSelectedCourseId] = useState<string | null>(
-        mockCourses[0]?.id || ''
+function AddCourseStep2StructureTypes({ form }: { form: UseFormReturn<Step2Data> }) {
+    const [selectedCourseId, setSelectedCourseId] = useState<number | null>(
+        mockCourses[0]?.level || 2
     ); // Default to first course selected
 
-    const handleCourseSelect = (courseId: string) => {
+    const handleCourseSelect = (courseId: number) => {
+        console.log('courseId', courseId);
         setSelectedCourseId(courseId);
+        form.setValue('levelStructure', courseId);
     };
 
     return (
@@ -505,8 +509,8 @@ function AddCourseStep2StructureTypes() {
                         <CourseCard
                             key={course.id}
                             course={course}
-                            isSelected={selectedCourseId === course.id}
-                            onSelect={handleCourseSelect}
+                            isSelected={selectedCourseId === course.level}
+                            onSelect={() => handleCourseSelect(course.level)}
                             delay={100 * (index + 1) + 300} // Staggered delay for cards after header
                         />
                     ))}

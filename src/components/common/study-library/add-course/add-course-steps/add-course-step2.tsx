@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { MyInput } from '@/components/design-system/input';
 import { MyButton } from '@/components/design-system/button';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Trash2, Plus, Calendar } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,24 +22,52 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import AddCourseStep2StructureTypes from './add-course-step2-structure-types';
+
 interface Session {
     id: string;
     name: string;
     startDate: string;
 }
+
 interface Level {
     id: string;
     name: string;
     sessions: Session[];
 }
 
-// Step 2 Schema
+// Update the schema to include all step 2 fields
 export const step2Schema = z.object({
-    price: z.string().optional(),
-    duration: z.string().optional(),
-    startDate: z.string().optional(),
-    maxStudents: z.string().optional(),
+    levelStructure: z.number(),
+    hasLevels: z.string(),
+    hasSessions: z.string(),
+    levels: z
+        .array(
+            z.object({
+                id: z.string(),
+                name: z.string(),
+                sessions: z.array(
+                    z.object({
+                        id: z.string(),
+                        name: z.string(),
+                        startDate: z.string(),
+                    })
+                ),
+            })
+        )
+        .optional(),
+    globalSessions: z
+        .array(
+            z.object({
+                id: z.string(),
+                name: z.string(),
+                startDate: z.string(),
+            })
+        )
+        .optional(),
+    instructors: z.array(z.string()).optional(),
+    publishToCatalogue: z.boolean(),
 });
+
 export type Step2Data = z.infer<typeof step2Schema>;
 
 export const AddCourseStep2 = ({
@@ -61,15 +89,55 @@ export const AddCourseStep2 = ({
     const [instructorEmails, setInstructorEmails] = useState<string[]>([]);
     const [newInstructorEmail, setNewInstructorEmail] = useState('');
     const [publishToCatalogue, setPublishToCatalogue] = useState(false);
+
+    // Initialize form with step 2 data
     const form = useForm<Step2Data>({
         resolver: zodResolver(step2Schema),
         defaultValues: initialData || {
-            price: '',
-            duration: '',
-            startDate: '',
-            maxStudents: '',
+            levelStructure: 2,
+            hasLevels: 'yes',
+            hasSessions: 'yes',
+            levels: [],
+            globalSessions: [],
+            instructors: [],
+            publishToCatalogue: false,
         },
     });
+
+    // Update form data when state changes
+    useEffect(() => {
+        form.setValue('hasLevels', hasLevels);
+        form.setValue('hasSessions', hasSessions);
+        form.setValue('levels', levels);
+        form.setValue('globalSessions', globalSessions);
+        form.setValue('instructors', instructorEmails);
+        form.setValue('publishToCatalogue', publishToCatalogue);
+    }, [
+        hasLevels,
+        hasSessions,
+        levels,
+        globalSessions,
+        instructorEmails,
+        publishToCatalogue,
+        form,
+    ]);
+
+    const handleSubmit = (data: Step2Data) => {
+        console.log('Submitting form data:', data);
+        // Include all the current state in the submission
+        const completeData: Step2Data = {
+            ...data,
+            levelStructure: data.levelStructure || 2,
+            hasLevels,
+            hasSessions,
+            levels,
+            globalSessions,
+            instructors: instructorEmails,
+            publishToCatalogue,
+        };
+        console.log('Complete form data:', completeData);
+        onSubmit(completeData);
+    };
 
     const addLevel = () => {
         if (newLevelName.trim()) {
@@ -160,279 +228,302 @@ export const AddCourseStep2 = ({
     };
 
     return (
-        <div className="flex flex-col overflow-auto bg-[#F7FAFF]">
-            <Card className="w-full overflow-auto  rounded-none border-none bg-white shadow-sm">
-                <div className="flex items-center justify-between border-b border-gray-100 p-5">
-                    <div>
-                        <div className="mt-1 flex items-center gap-2">
-                            <span className="text-sm text-gray-600">Step 2</span>
-                            <span className="text-sm font-medium text-gray-900">
-                                Course Structure
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                <CardContent className="space-y-6 p-5">
-                    {/* Warning Note */}
-                    <div className="rounded-lg border border-red-200 bg-red-50 p-3">
-                        <p className="text-sm text-red-700">
-                            <strong>Note:</strong> Once you create the course, its
-                            structure—including levels, subjects, modules, and chapters—cannot be
-                            changed. Please review carefully before proceeding.
-                        </p>
-                    </div>
-
-                    {/* Structure Selection */}
-                    <div>
-                        <h3 className="mb-3 text-base font-medium text-gray-900">
-                            Select course structure that is suitable for your institute
-                        </h3>
-                        <AddCourseStep2StructureTypes />
-                    </div>
-
-                    <Separator className="bg-gray-200" />
-
-                    {/* Course Configuration */}
-                    <div className="space-y-5">
-                        {/* Contains Levels */}
-                        <div className="space-y-2">
-                            <Label className="block text-base font-medium text-gray-900">
-                                Contains Levels?
-                            </Label>
-                            <p className="text-sm text-gray-600">
-                                Levels organize a course into structured learning stages. These
-                                stages may represent increasing difficulty, different modules, or
-                                key milestones within the course. For eg: Basic, Advanced
-                            </p>
-                            <RadioGroup
-                                value={hasLevels}
-                                onValueChange={setHasLevels}
-                                className="flex gap-6"
-                            >
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="yes" id="levels-yes" />
-                                    <Label htmlFor="levels-yes" className="text-sm font-normal">
-                                        Yes
-                                    </Label>
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="flex h-full flex-col">
+                <div className="flex flex-col overflow-auto bg-[#F7FAFF]">
+                    <Card className="w-full overflow-auto  rounded-none border-none bg-white shadow-sm">
+                        <div className="flex items-center justify-between border-b border-gray-100 p-5">
+                            <div>
+                                <div className="mt-1 flex items-center gap-2">
+                                    <span className="text-sm text-gray-600">Step 2</span>
+                                    <span className="text-sm font-medium text-gray-900">
+                                        Course Structure
+                                    </span>
                                 </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="no" id="levels-no" />
-                                    <Label htmlFor="levels-no" className="text-sm font-normal">
-                                        No
-                                    </Label>
-                                </div>
-                            </RadioGroup>
+                            </div>
                         </div>
 
-                        {/* Level Management */}
-                        {hasLevels === 'yes' && (
+                        <CardContent className="space-y-6 p-5">
+                            {/* Warning Note */}
+                            <div className="rounded-lg border border-red-200 bg-red-50 p-3">
+                                <p className="text-sm text-red-700">
+                                    <strong>Note:</strong> Once you create the course, its
+                                    structure—including levels, subjects, modules, and
+                                    chapters—cannot be changed. Please review carefully before
+                                    proceeding.
+                                </p>
+                            </div>
+
+                            {/* Structure Selection */}
+                            <div>
+                                <h3 className="mb-3 text-base font-medium text-gray-900">
+                                    Select course structure that is suitable for your institute
+                                </h3>
+                                <AddCourseStep2StructureTypes form={form} />
+                            </div>
+
+                            <Separator className="bg-gray-200" />
+
+                            {/* Course Configuration */}
+                            <div className="space-y-5">
+                                {/* Contains Levels */}
+                                <div className="space-y-2">
+                                    <Label className="block text-base font-medium text-gray-900">
+                                        Contains Levels?
+                                    </Label>
+                                    <p className="text-sm text-gray-600">
+                                        Levels organize a course into structured learning stages.
+                                        These stages may represent increasing difficulty, different
+                                        modules, or key milestones within the course. For eg: Basic,
+                                        Advanced
+                                    </p>
+                                    <RadioGroup
+                                        value={hasLevels}
+                                        onValueChange={setHasLevels}
+                                        className="flex gap-6"
+                                    >
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem value="yes" id="levels-yes" />
+                                            <Label
+                                                htmlFor="levels-yes"
+                                                className="text-sm font-normal"
+                                            >
+                                                Yes
+                                            </Label>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem value="no" id="levels-no" />
+                                            <Label
+                                                htmlFor="levels-no"
+                                                className="text-sm font-normal"
+                                            >
+                                                No
+                                            </Label>
+                                        </div>
+                                    </RadioGroup>
+                                </div>
+
+                                {/* Level Management */}
+                                {hasLevels === 'yes' && (
+                                    <div className="space-y-3">
+                                        <div className="flex items-center justify-between">
+                                            <Label className="text-base font-medium text-gray-900">
+                                                Course Levels
+                                            </Label>
+                                            <MyButton
+                                                type="button"
+                                                buttonType="secondary"
+                                                scale="medium"
+                                                layoutVariant="default"
+                                                onClick={() => setShowAddLevel(true)}
+                                                className="font-light"
+                                            >
+                                                <Plus />
+                                                Add
+                                            </MyButton>
+                                        </div>
+
+                                        {showAddLevel && (
+                                            <Card className="border-gray-200">
+                                                <CardContent className="p-3">
+                                                    <div className="flex gap-2">
+                                                        <Input
+                                                            placeholder="Enter level name (e.g., Beginner, Intermediate, Advanced)"
+                                                            value={newLevelName}
+                                                            onChange={(e) =>
+                                                                setNewLevelName(e.target.value)
+                                                            }
+                                                            onKeyPress={(e) =>
+                                                                e.key === 'Enter' && addLevel()
+                                                            }
+                                                            className="h-9 border-gray-300"
+                                                        />
+                                                        <MyButton
+                                                            buttonType="primary"
+                                                            scale="medium"
+                                                            layoutVariant="default"
+                                                            onClick={addLevel}
+                                                        >
+                                                            Add
+                                                        </MyButton>
+                                                        <MyButton
+                                                            buttonType="secondary"
+                                                            scale="medium"
+                                                            layoutVariant="default"
+                                                            onClick={() => {
+                                                                setShowAddLevel(false);
+                                                                setNewLevelName('');
+                                                            }}
+                                                        >
+                                                            Cancel
+                                                        </MyButton>
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
+                                        )}
+
+                                        {levels.map((level) => (
+                                            <LevelCard
+                                                key={level.id}
+                                                level={level}
+                                                hasSessions={hasSessions === 'yes'}
+                                                existingSessions={existingSessions}
+                                                onRemoveLevel={removeLevel}
+                                                onAddSession={addSession}
+                                                onAddExistingSession={addExistingSession}
+                                                onRemoveSession={removeSession}
+                                            />
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* Contains Sessions */}
+                                <div className="space-y-2">
+                                    <Label className="block text-base font-medium text-gray-900">
+                                        Contains Sessions/Cohorts?
+                                    </Label>
+                                    <p className="text-sm text-gray-600">
+                                        Sessions/cohorts group learners who start and progress
+                                        through the course together. Each cohort follows the same
+                                        timeline, enabling better interaction, tracking, and a
+                                        tailored learning experience. For example: January 2025
+                                        Batch, Summer Cohort, Q2 Session.
+                                    </p>
+                                    <RadioGroup
+                                        value={hasSessions}
+                                        onValueChange={setHasSessions}
+                                        className="flex gap-6"
+                                    >
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem value="yes" id="sessions-yes" />
+                                            <Label
+                                                htmlFor="sessions-yes"
+                                                className="text-sm font-normal"
+                                            >
+                                                Yes
+                                            </Label>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem value="no" id="sessions-no" />
+                                            <Label
+                                                htmlFor="sessions-no"
+                                                className="text-sm font-normal"
+                                            >
+                                                No
+                                            </Label>
+                                        </div>
+                                    </RadioGroup>
+                                </div>
+
+                                {/* Global Sessions (when no levels) */}
+                                {hasLevels === 'no' && hasSessions === 'yes' && (
+                                    <GlobalSessionsSection
+                                        sessions={globalSessions}
+                                        onAddSession={(name, date) => addSession(null, name, date)}
+                                        onRemoveSession={(sessionId) =>
+                                            removeSession(null, sessionId)
+                                        }
+                                    />
+                                )}
+                            </div>
+
+                            <Separator className="bg-gray-200" />
+
+                            {/* Add Instructors Section */}
                             <div className="space-y-3">
                                 <div className="flex items-center justify-between">
                                     <Label className="text-base font-medium text-gray-900">
-                                        Course Levels
+                                        Add Instructors to Course
                                     </Label>
                                     <MyButton
                                         type="button"
                                         buttonType="secondary"
                                         scale="medium"
                                         layoutVariant="default"
-                                        onClick={() => setShowAddLevel(true)}
-                                        className="font-light"
+                                        onClick={addInstructor}
                                     >
                                         <Plus />
                                         Add
                                     </MyButton>
                                 </div>
 
-                                {showAddLevel && (
-                                    <Card className="border-gray-200">
-                                        <CardContent className="p-3">
-                                            <div className="flex gap-2">
-                                                <Input
-                                                    placeholder="Enter level name (e.g., Beginner, Intermediate, Advanced)"
-                                                    value={newLevelName}
-                                                    onChange={(e) =>
-                                                        setNewLevelName(e.target.value)
-                                                    }
-                                                    onKeyPress={(e) =>
-                                                        e.key === 'Enter' && addLevel()
-                                                    }
-                                                    className="h-9 border-gray-300"
-                                                />
+                                <div className="flex gap-2">
+                                    <Input
+                                        type="email"
+                                        placeholder="Enter instructor email"
+                                        value={newInstructorEmail}
+                                        onChange={(e) => setNewInstructorEmail(e.target.value)}
+                                        onKeyPress={(e) => e.key === 'Enter' && addInstructor()}
+                                        className="h-9 border-gray-300"
+                                    />
+                                </div>
+
+                                {instructorEmails.length > 0 && (
+                                    <div className="space-y-2">
+                                        {instructorEmails.map((email, index) => (
+                                            <div
+                                                key={index}
+                                                className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-2"
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <Avatar className="h-8 w-8">
+                                                        <AvatarImage src="" alt={email} />
+                                                        <AvatarFallback className="bg-[#3B82F6] text-xs font-medium text-white">
+                                                            {getInitials(email)}
+                                                        </AvatarFallback>
+                                                    </Avatar>
+                                                    <span className="text-sm font-medium text-gray-900">
+                                                        {email}
+                                                    </span>
+                                                </div>
                                                 <MyButton
-                                                    buttonType="primary"
+                                                    type="button"
+                                                    buttonType="text"
                                                     scale="medium"
-                                                    layoutVariant="default"
-                                                    onClick={addLevel}
+                                                    layoutVariant="icon"
+                                                    onClick={() => removeInstructor(email)}
+                                                    className="text-red-600 hover:text-red-700"
                                                 >
-                                                    Add
-                                                </MyButton>
-                                                <MyButton
-                                                    buttonType="secondary"
-                                                    scale="medium"
-                                                    layoutVariant="default"
-                                                    onClick={() => {
-                                                        setShowAddLevel(false);
-                                                        setNewLevelName('');
-                                                    }}
-                                                >
-                                                    Cancel
+                                                    <Trash2 className="h-3 w-3" />
                                                 </MyButton>
                                             </div>
-                                        </CardContent>
-                                    </Card>
-                                )}
-
-                                {levels.map((level) => (
-                                    <LevelCard
-                                        key={level.id}
-                                        level={level}
-                                        hasSessions={hasSessions === 'yes'}
-                                        existingSessions={existingSessions}
-                                        onRemoveLevel={removeLevel}
-                                        onAddSession={addSession}
-                                        onAddExistingSession={addExistingSession}
-                                        onRemoveSession={removeSession}
-                                    />
-                                ))}
-                            </div>
-                        )}
-
-                        {/* Contains Sessions */}
-                        <div className="space-y-2">
-                            <Label className="block text-base font-medium text-gray-900">
-                                Contains Sessions/Cohorts?
-                            </Label>
-                            <p className="text-sm text-gray-600">
-                                Sessions/cohorts group learners who start and progress through the
-                                course together. Each cohort follows the same timeline, enabling
-                                better interaction, tracking, and a tailored learning experience.
-                                For example: January 2025 Batch, Summer Cohort, Q2 Session.
-                            </p>
-                            <RadioGroup
-                                value={hasSessions}
-                                onValueChange={setHasSessions}
-                                className="flex gap-6"
-                            >
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="yes" id="sessions-yes" />
-                                    <Label htmlFor="sessions-yes" className="text-sm font-normal">
-                                        Yes
-                                    </Label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="no" id="sessions-no" />
-                                    <Label htmlFor="sessions-no" className="text-sm font-normal">
-                                        No
-                                    </Label>
-                                </div>
-                            </RadioGroup>
-                        </div>
-
-                        {/* Global Sessions (when no levels) */}
-                        {hasLevels === 'no' && hasSessions === 'yes' && (
-                            <GlobalSessionsSection
-                                sessions={globalSessions}
-                                onAddSession={(name, date) => addSession(null, name, date)}
-                                onRemoveSession={(sessionId) => removeSession(null, sessionId)}
-                            />
-                        )}
-                    </div>
-
-                    <Separator className="bg-gray-200" />
-
-                    {/* Add Instructors Section */}
-                    <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                            <Label className="text-base font-medium text-gray-900">
-                                Add Instructors to Course
-                            </Label>
-                            <MyButton
-                                type="button"
-                                buttonType="secondary"
-                                scale="medium"
-                                layoutVariant="default"
-                                onClick={addInstructor}
-                            >
-                                <Plus />
-                                Add
-                            </MyButton>
-                        </div>
-
-                        <div className="flex gap-2">
-                            <Input
-                                type="email"
-                                placeholder="Enter instructor email"
-                                value={newInstructorEmail}
-                                onChange={(e) => setNewInstructorEmail(e.target.value)}
-                                onKeyPress={(e) => e.key === 'Enter' && addInstructor()}
-                                className="h-9 border-gray-300"
-                            />
-                        </div>
-
-                        {instructorEmails.length > 0 && (
-                            <div className="space-y-2">
-                                {instructorEmails.map((email, index) => (
-                                    <div
-                                        key={index}
-                                        className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-2"
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <Avatar className="h-8 w-8">
-                                                <AvatarImage src="" alt={email} />
-                                                <AvatarFallback className="bg-[#3B82F6] text-xs font-medium text-white">
-                                                    {getInitials(email)}
-                                                </AvatarFallback>
-                                            </Avatar>
-                                            <span className="text-sm font-medium text-gray-900">
-                                                {email}
-                                            </span>
-                                        </div>
-                                        <MyButton
-                                            type="button"
-                                            buttonType="text"
-                                            scale="medium"
-                                            layoutVariant="icon"
-                                            onClick={() => removeInstructor(email)}
-                                            className="text-red-600 hover:text-red-700"
-                                        >
-                                            <Trash2 className="h-3 w-3" />
-                                        </MyButton>
+                                        ))}
                                     </div>
-                                ))}
+                                )}
                             </div>
-                        )}
-                    </div>
 
-                    <Separator className="bg-gray-200" />
+                            <Separator className="bg-gray-200" />
 
-                    {/* Course Catalogue Section */}
-                    <div className="space-y-2">
-                        <div className="flex items-center space-x-3">
-                            <Checkbox
-                                id="publish-catalogue"
-                                checked={publishToCatalogue}
-                                onCheckedChange={handlePublishChange}
-                                className="data-[state=checked]:border-[#3B82F6] data-[state=checked]:bg-[#3B82F6]"
-                            />
-                            <Label
-                                htmlFor="publish-catalogue"
-                                className="text-base font-medium text-gray-900"
-                            >
-                                Publish to Course Catalogue
-                            </Label>
-                        </div>
-                        <p className="ml-7 text-sm text-gray-600">
-                            The course will be added to the course catalogue which will be viewed by
-                            the learners.
-                        </p>
-                    </div>
+                            {/* Course Catalogue Section */}
+                            <div className="space-y-2">
+                                <div className="flex items-center space-x-3">
+                                    <Checkbox
+                                        id="publish-catalogue"
+                                        checked={publishToCatalogue}
+                                        onCheckedChange={handlePublishChange}
+                                        className="data-[state=checked]:border-[#3B82F6] data-[state=checked]:bg-[#3B82F6]"
+                                    />
+                                    <Label
+                                        htmlFor="publish-catalogue"
+                                        className="text-base font-medium text-gray-900"
+                                    >
+                                        Publish to Course Catalogue
+                                    </Label>
+                                </div>
+                                <p className="ml-7 text-sm text-gray-600">
+                                    The course will be added to the course catalogue which will be
+                                    viewed by the learners.
+                                </p>
+                            </div>
 
-                    <Separator className="bg-gray-200" />
+                            <Separator className="bg-gray-200" />
+                        </CardContent>
+                    </Card>
+                </div>
 
-                    {/* Action Buttons */}
-                    <div className="flex justify-between pt-3">
+                {/* Fixed Footer */}
+                <div className="sticky bottom-0 mt-auto border-t bg-white px-8 py-4">
+                    <div className="flex justify-between">
                         <MyButton
                             type="button"
                             buttonType="secondary"
@@ -447,15 +538,14 @@ export const AddCourseStep2 = ({
                             buttonType="primary"
                             scale="medium"
                             layoutVariant="default"
-                            onClick={() => onSubmit(form.getValues())}
+                            onClick={() => handleSubmit(form.getValues())}
                         >
-                            <Plus />
-                            Create
+                            Create Course
                         </MyButton>
                     </div>
-                </CardContent>
-            </Card>
-        </div>
+                </div>
+            </form>
+        </Form>
     );
 };
 
@@ -489,10 +579,12 @@ const LevelCard: React.FC<LevelCardProps> = ({
 
     // Filter out sessions that are already added to this level
     const availableSessions = existingSessions.filter(
-        session => !level.sessions.some(
-            levelSession => levelSession.name === session.name &&
-            levelSession.startDate === session.startDate
-        )
+        (session) =>
+            !level.sessions.some(
+                (levelSession) =>
+                    levelSession.name === session.name &&
+                    levelSession.startDate === session.startDate
+            )
     );
 
     console.log('Available sessions:', availableSessions);
@@ -647,16 +739,17 @@ const LevelCard: React.FC<LevelCardProps> = ({
                                     <Label className="mb-1 block text-sm font-medium text-gray-700">
                                         Select Existing Session
                                     </Label>
-                                    <Select
-                                        onValueChange={handleExistingSessionSelect}
-                                    >
+                                    <Select onValueChange={handleExistingSessionSelect}>
                                         <SelectTrigger className="h-8 border-gray-300">
                                             <SelectValue placeholder="Choose a session to copy" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {availableSessions.map((session) => (
                                                 <SelectItem key={session.id} value={session.id}>
-                                                    {session.name} - {new Date(session.startDate).toLocaleDateString()}
+                                                    {session.name} -{' '}
+                                                    {new Date(
+                                                        session.startDate
+                                                    ).toLocaleDateString()}
                                                 </SelectItem>
                                             ))}
                                             {availableSessions.length === 0 && (

@@ -9,6 +9,7 @@ import { MyButton } from '@/components/design-system/button';
 import { MyInput } from '@/components/design-system/input';
 import { AddCourseStep1, step1Schema } from './add-course-steps/add-course-step1';
 import { AddCourseStep2, step2Schema } from './add-course-steps/add-course-step2';
+import { toast } from 'sonner';
 
 export interface Session {
     id: string;
@@ -41,21 +42,54 @@ export const AddCourseForm = () => {
     const [isOpen, setIsOpen] = useState(false);
 
     const handleStep1Submit = (data: Step1Data) => {
+        console.log('Step 1 data:', data);
         setFormData((prev) => ({ ...prev, ...data }));
         setStep(2);
     };
 
     const handleStep2Submit = async (data: Step2Data) => {
+        console.log('Step 2 data:', data);
         const finalData = { ...formData, ...data };
+        console.log('Final combined data:', finalData);
+
         try {
-            // Call your API here with finalData
-            console.log('Submitting course data:', finalData);
-            // await createCourse(finalData);
+            // Format the data according to your API requirements
+            const formattedData = {
+                course: finalData.course,
+                description: finalData.description,
+                learningOutcome: finalData.learningOutcome,
+                aboutCourse: finalData.aboutCourse,
+                targetAudience: finalData.targetAudience,
+                coursePreview: finalData.coursePreview,
+                courseBanner: finalData.courseBanner,
+                courseMedia: finalData.courseMedia,
+                levelStructure: finalData.levelStructure,
+                hasLevels: finalData.hasLevels === 'yes',
+                hasSessions: finalData.hasSessions === 'yes',
+                levels: finalData.levels?.map(level => ({
+                    name: level.name,
+                    sessions: level.sessions.map(session => ({
+                        name: session.name,
+                        startDate: session.startDate
+                    }))
+                })),
+                globalSessions: finalData.globalSessions?.map(session => ({
+                    name: session.name,
+                    startDate: session.startDate
+                })),
+                instructors: finalData.instructors || [],
+                publishToCatalogue: finalData.publishToCatalogue
+            };
+
+            console.log('Formatted data for API:', formattedData);
+            // await createCourse(formattedData);
+            toast.success('Course created successfully!');
             setIsOpen(false);
             setStep(1);
             setFormData({});
         } catch (error) {
             console.error('Failed to create course:', error);
+            toast.error('Failed to create course. Please try again.');
         }
     };
 
