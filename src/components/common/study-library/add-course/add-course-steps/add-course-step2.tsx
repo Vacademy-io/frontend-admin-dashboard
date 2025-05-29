@@ -210,7 +210,8 @@ export const AddCourseStep2 = ({
             );
         }
     };
-    const addInstructor = () => {
+    const addInstructor = (e?: React.MouseEvent | React.KeyboardEvent) => {
+        e?.preventDefault(); // Prevent form submission
         if (newInstructorEmail.trim() && !instructorEmails.includes(newInstructorEmail.trim())) {
             setInstructorEmails([...instructorEmails, newInstructorEmail.trim()]);
             setNewInstructorEmail('');
@@ -230,8 +231,8 @@ export const AddCourseStep2 = ({
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="flex h-full flex-col">
-                <div className="flex flex-col overflow-auto bg-[#F7FAFF]">
-                    <Card className="w-full overflow-auto  rounded-none border-none bg-white shadow-sm">
+                <div className="flex-1 overflow-y-auto pb-24">
+                    <Card className="w-full rounded-none border-none bg-white shadow-sm">
                         <div className="flex items-center justify-between border-b border-gray-100 p-5">
                             <div>
                                 <div className="mt-1 flex items-center gap-2">
@@ -440,7 +441,11 @@ export const AddCourseStep2 = ({
                                         buttonType="secondary"
                                         scale="medium"
                                         layoutVariant="default"
-                                        onClick={addInstructor}
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            addInstructor();
+                                        }}
+                                        disable={!newInstructorEmail.trim()}
                                     >
                                         <Plus />
                                         Add
@@ -453,7 +458,12 @@ export const AddCourseStep2 = ({
                                         placeholder="Enter instructor email"
                                         value={newInstructorEmail}
                                         onChange={(e) => setNewInstructorEmail(e.target.value)}
-                                        onKeyPress={(e) => e.key === 'Enter' && addInstructor()}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault(); // Prevent form submission
+                                                addInstructor();
+                                            }
+                                        }}
                                         className="h-9 border-gray-300"
                                     />
                                 </div>
@@ -522,12 +532,12 @@ export const AddCourseStep2 = ({
                 </div>
 
                 {/* Fixed Footer */}
-                <div className="sticky bottom-0 mt-auto border-t bg-white px-8 py-4">
+                <div className="fixed bottom-0 left-0 right-0 border-t bg-white px-8 py-4">
                     <div className="flex justify-between">
                         <MyButton
                             type="button"
                             buttonType="secondary"
-                            scale="medium"
+                            scale="large"
                             layoutVariant="default"
                             onClick={onBack}
                         >
@@ -536,11 +546,12 @@ export const AddCourseStep2 = ({
                         <MyButton
                             type="button"
                             buttonType="primary"
-                            scale="medium"
+                            scale="large"
                             layoutVariant="default"
                             onClick={() => handleSubmit(form.getValues())}
                         >
-                            Create Course
+                            <Plus />
+                            Create
                         </MyButton>
                     </div>
                 </div>

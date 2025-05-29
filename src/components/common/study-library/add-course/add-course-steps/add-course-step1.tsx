@@ -80,12 +80,14 @@ export const AddCourseStep1 = ({
             courseBanner: { id: '', url: '' },
             courseMedia: { id: '', url: '', mediaType: undefined },
         },
-        mode: 'onSubmit',
     });
 
     // Watch the course field value
     const courseValue = form.watch('course');
-    const isNextDisabled = !courseValue || courseValue.trim() === '' || Object.values(uploadingStates).some((state) => state);
+    const isNextDisabled =
+        !courseValue ||
+        courseValue.trim() === '' ||
+        Object.values(uploadingStates).some((state) => state);
 
     const handleFileUpload = async (
         file: File,
