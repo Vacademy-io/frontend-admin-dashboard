@@ -26,7 +26,6 @@ import { MyButton } from '@/components/design-system/button';
 interface Level {
     id: string;
     name: string;
-    startDate: string;
 }
 
 interface Session {
@@ -50,7 +49,6 @@ export const step2Schema = z.object({
                 z.object({
                     id: z.string(),
                     name: z.string(),
-                    startDate: z.string(),
                 })
             ),
         })
@@ -71,10 +69,13 @@ export const AddCourseStep2 = ({
     initialData?: Step2Data;
 }) => {
     const [hasLevels, setHasLevels] = useState(initialData?.hasLevels || 'yes');
+    const [hasSessions, setHasSessions] = useState(initialData?.hasSessions || 'yes');
     const [sessions, setSessions] = useState<Session[]>(initialData?.sessions || []);
     const [showAddSession, setShowAddSession] = useState(false);
+    const [showAddLevel, setShowAddLevel] = useState(false);
     const [newSessionName, setNewSessionName] = useState('');
     const [newSessionStartDate, setNewSessionStartDate] = useState('');
+    const [newLevelName, setNewLevelName] = useState('');
     const [instructorEmails, setInstructorEmails] = useState<string[]>(initialData?.instructors || []);
     const [newInstructorEmail, setNewInstructorEmail] = useState('');
     const [publishToCatalogue, setPublishToCatalogue] = useState(initialData?.publishToCatalogue || false);
@@ -93,12 +94,14 @@ export const AddCourseStep2 = ({
 
     // Update form data when state changes
     useEffect(() => {
-        form.setValue('hasLevels', 'yes');
-        form.setValue('hasSessions', 'yes');
+        form.setValue('hasLevels', hasLevels);
+        form.setValue('hasSessions', hasSessions);
         form.setValue('sessions', sessions);
         form.setValue('instructors', instructorEmails);
         form.setValue('publishToCatalogue', publishToCatalogue);
     }, [
+        hasLevels,
+        hasSessions,
         sessions,
         instructorEmails,
         publishToCatalogue,
@@ -129,12 +132,11 @@ export const AddCourseStep2 = ({
         form.setValue('sessions', updatedSessions);
     };
 
-    const addLevel = (sessionId: string, levelName: string, startDate: string) => {
-        if (levelName.trim() && startDate) {
+    const addLevel = (sessionId: string, levelName: string) => {
+        if (levelName.trim()) {
             const newLevel: Level = {
                 id: Date.now().toString(),
-                name: levelName.trim(),
-                startDate: startDate
+                name: levelName.trim()
             };
             const updatedSessions = sessions.map(session =>
                 session.id === sessionId
@@ -199,6 +201,53 @@ export const AddCourseStep2 = ({
         setPublishToCatalogue(checked === true);
     };
 
+    // Add standalone level
+    const addStandaloneLevel = () => {
+        if (newLevelName.trim()) {
+            const dummySession: Session = {
+                id: 'standalone',
+                name: 'Standalone',
+                startDate: new Date().toISOString(),
+                levels: []
+            };
+
+            const newLevel: Level = {
+                id: Date.now().toString(),
+                name: newLevelName.trim()
+            };
+
+            // If there's no standalone session yet, create one
+            const standaloneSession = sessions.find(s => s.id === 'standalone');
+            if (!standaloneSession) {
+                setSessions([{ ...dummySession, levels: [newLevel] }]);
+            } else {
+                // Add level to existing standalone session
+                const updatedSessions = sessions.map(session =>
+                    session.id === 'standalone'
+                        ? { ...session, levels: [...session.levels, newLevel] }
+                        : session
+                );
+                setSessions(updatedSessions);
+            }
+
+            setNewLevelName('');
+            setShowAddLevel(false);
+        }
+    };
+
+    // Remove standalone level
+    const removeStandaloneLevel = (levelId: string) => {
+        const updatedSessions = sessions.map(session =>
+            session.id === 'standalone'
+                ? {
+                      ...session,
+                      levels: session.levels.filter(level => level.id !== levelId)
+                  }
+                : session
+        );
+        setSessions(updatedSessions);
+    };
+
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="flex h-full flex-col">
@@ -235,6 +284,43 @@ export const AddCourseStep2 = ({
 
                             <Separator className="bg-gray-200" />
 
+                            {/* Contains Sessions Radio */}
+                            <div className="space-y-2">
+                                <Label className="block text-base font-medium text-gray-900">
+                                    Contains Sessions?
+                                </Label>
+                                <p className="text-sm text-gray-600">
+                                    Sessions organize a course into different batches or time periods.
+                                    For eg: January 2025 Batch, February 2025 Batch
+                                </p>
+                                <RadioGroup
+                                    value={hasSessions}
+                                    onValueChange={(value) => {
+                                        setHasSessions(value);
+                                        // Clear sessions when switching to 'no'
+                                        if (value === 'no') {
+                                            setSessions([]);
+                                        }
+                                    }}
+                                    className="flex gap-6"
+                                >
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="yes" id="sessions-yes" />
+                                        <Label htmlFor="sessions-yes" className="text-sm font-normal">
+                                            Yes
+                                        </Label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="no" id="sessions-no" />
+                                        <Label htmlFor="sessions-no" className="text-sm font-normal">
+                                            No
+                                        </Label>
+                                    </div>
+                                </RadioGroup>
+                            </div>
+
+                            <Separator className="bg-gray-200" />
+
                             {/* Contains Levels Radio */}
                             <div className="space-y-2">
                                 <Label className="block text-base font-medium text-gray-900">
@@ -250,7 +336,7 @@ export const AddCourseStep2 = ({
                                     value={hasLevels}
                                     onValueChange={(value) => {
                                         setHasLevels(value);
-                                        // Clear existing levels when switching to 'no'
+                                        // Clear levels when switching to 'no'
                                         if (value === 'no') {
                                             setSessions(sessions.map(session => ({
                                                 ...session,
@@ -275,101 +361,205 @@ export const AddCourseStep2 = ({
                                 </RadioGroup>
                             </div>
 
-                            {/* Sessions Management */}
-                            <div className="space-y-3">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <Label className="text-base font-medium text-gray-900">
-                                            Course Sessions
-                                        </Label>
-                                        <p className="text-sm text-gray-600">
-                                            {hasLevels === 'yes'
-                                                ? 'Create sessions and add levels within each session'
-                                                : 'Create sessions for your course'
-                                            }
-                                        </p>
-                                    </div>
-                                    <MyButton
-                                        type="button"
-                                        buttonType="secondary"
-                                        scale="medium"
-                                        layoutVariant="default"
-                                        onClick={() => setShowAddSession(true)}
-                                        className="font-light"
-                                    >
-                                        <Plus />
-                                        Add Session
-                                    </MyButton>
+                            {/* Info message when both are No */}
+                            {hasSessions === 'no' && hasLevels === 'no' && (
+                                <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
+                                    <p className="text-sm text-blue-700">
+                                        This course will not have any sessions or levels. Students will directly access the course content.
+                                    </p>
                                 </div>
+                            )}
 
-                                {showAddSession && (
-                                    <Card className="border-gray-200">
-                                        <CardContent className="p-3">
-                                            <div className="grid grid-cols-2 gap-2">
+                            {/* Sessions Management */}
+                            {hasSessions === 'yes' && (
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <Label className="text-base font-medium text-gray-900">
+                                                Course Sessions
+                                            </Label>
+                                            <p className="text-sm text-gray-600">
+                                                {hasLevels === 'yes'
+                                                    ? 'Create sessions and add levels within each session'
+                                                    : 'Create sessions for your course'
+                                                }
+                                            </p>
+                                        </div>
+                                        <MyButton
+                                            type="button"
+                                            buttonType="secondary"
+                                            scale="medium"
+                                            layoutVariant="default"
+                                            onClick={() => setShowAddSession(true)}
+                                            className="font-light"
+                                        >
+                                            <Plus />
+                                            Add Session
+                                        </MyButton>
+                                    </div>
+
+                                    {showAddSession && (
+                                        <Card className="border-gray-200">
+                                            <CardContent className="p-3">
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    <div>
+                                                        <Label className="mb-1 block text-sm font-medium text-gray-700">
+                                                            Session Name
+                                                        </Label>
+                                                        <Input
+                                                            placeholder="e.g., January 2025 Batch"
+                                                            value={newSessionName}
+                                                            onChange={(e) => setNewSessionName(e.target.value)}
+                                                            className="h-8 border-gray-300"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <Label className="mb-1 block text-sm font-medium text-gray-700">
+                                                            Start Date
+                                                        </Label>
+                                                        <Input
+                                                            type="date"
+                                                            value={newSessionStartDate}
+                                                            onChange={(e) => setNewSessionStartDate(e.target.value)}
+                                                            className="h-8 border-gray-300"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="mt-3 flex gap-2">
+                                                    <MyButton
+                                                        type="button"
+                                                        buttonType="primary"
+                                                        scale="medium"
+                                                        layoutVariant="default"
+                                                        onClick={addSession}
+                                                        disable={!newSessionName.trim() || !newSessionStartDate}
+                                                    >
+                                                        Add Session
+                                                    </MyButton>
+                                                    <MyButton
+                                                        type="button"
+                                                        buttonType="secondary"
+                                                        scale="medium"
+                                                        layoutVariant="default"
+                                                        onClick={() => {
+                                                            setShowAddSession(false);
+                                                            setNewSessionName('');
+                                                            setNewSessionStartDate('');
+                                                        }}
+                                                    >
+                                                        Cancel
+                                                    </MyButton>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    )}
+
+                                    {/* Session Cards */}
+                                    {sessions.map((session) => (
+                                        <SessionCard
+                                            key={session.id}
+                                            session={session}
+                                            hasLevels={hasLevels === 'yes'}
+                                            onRemoveSession={removeSession}
+                                            onAddLevel={addLevel}
+                                            onRemoveLevel={removeLevel}
+                                        />
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Standalone Levels (when sessions are disabled) */}
+                            {hasSessions === 'no' && hasLevels === 'yes' && (
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <Label className="text-base font-medium text-gray-900">
+                                                Course Levels
+                                            </Label>
+                                            <p className="text-sm text-gray-600">
+                                                Create levels for your course
+                                            </p>
+                                        </div>
+                                        <MyButton
+                                            type="button"
+                                            buttonType="secondary"
+                                            scale="medium"
+                                            layoutVariant="default"
+                                            onClick={() => setShowAddLevel(true)}
+                                            className="font-light"
+                                        >
+                                            <Plus />
+                                            Add Level
+                                        </MyButton>
+                                    </div>
+
+                                    {showAddLevel && (
+                                        <Card className="border-gray-200">
+                                            <CardContent className="p-3">
                                                 <div>
                                                     <Label className="mb-1 block text-sm font-medium text-gray-700">
-                                                        Session Name
+                                                        Level Name
                                                     </Label>
                                                     <Input
-                                                        placeholder="e.g., January 2025 Batch"
-                                                        value={newSessionName}
-                                                        onChange={(e) => setNewSessionName(e.target.value)}
+                                                        placeholder="Enter level name (e.g., Basic)"
+                                                        value={newLevelName}
+                                                        onChange={(e) => setNewLevelName(e.target.value)}
                                                         className="h-8 border-gray-300"
                                                     />
                                                 </div>
-                                                <div>
-                                                    <Label className="mb-1 block text-sm font-medium text-gray-700">
-                                                        Start Date
-                                                    </Label>
-                                                    <Input
-                                                        type="date"
-                                                        value={newSessionStartDate}
-                                                        onChange={(e) => setNewSessionStartDate(e.target.value)}
-                                                        className="h-8 border-gray-300"
-                                                    />
+                                                <div className="mt-3 flex gap-2">
+                                                    <MyButton
+                                                        type="button"
+                                                        buttonType="primary"
+                                                        scale="medium"
+                                                        layoutVariant="default"
+                                                        onClick={addStandaloneLevel}
+                                                        disable={!newLevelName.trim()}
+                                                    >
+                                                        Add Level
+                                                    </MyButton>
+                                                    <MyButton
+                                                        type="button"
+                                                        buttonType="secondary"
+                                                        scale="medium"
+                                                        layoutVariant="default"
+                                                        onClick={() => {
+                                                            setShowAddLevel(false);
+                                                            setNewLevelName('');
+                                                        }}
+                                                    >
+                                                        Cancel
+                                                    </MyButton>
                                                 </div>
-                                            </div>
-                                            <div className="mt-3 flex gap-2">
-                                                <MyButton
-                                                    type="button"
-                                                    buttonType="primary"
-                                                    scale="medium"
-                                                    layoutVariant="default"
-                                                    onClick={addSession}
-                                                    disable={!newSessionName.trim() || !newSessionStartDate}
-                                                >
-                                                    Add Session
-                                                </MyButton>
-                                                <MyButton
-                                                    type="button"
-                                                    buttonType="secondary"
-                                                    scale="medium"
-                                                    layoutVariant="default"
-                                                    onClick={() => {
-                                                        setShowAddSession(false);
-                                                        setNewSessionName('');
-                                                        setNewSessionStartDate('');
-                                                    }}
-                                                >
-                                                    Cancel
-                                                </MyButton>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                )}
+                                            </CardContent>
+                                        </Card>
+                                    )}
 
-                                {/* Session Cards */}
-                                {sessions.map((session) => (
-                                    <SessionCard
-                                        key={session.id}
-                                        session={session}
-                                        hasLevels={hasLevels === 'yes'}
-                                        onRemoveSession={removeSession}
-                                        onAddLevel={addLevel}
-                                        onRemoveLevel={removeLevel}
-                                    />
-                                ))}
-                            </div>
+                                    {/* Level Cards */}
+                                    {sessions
+                                        .find(s => s.id === 'standalone')
+                                        ?.levels.map((level) => (
+                                            <div
+                                                key={level.id}
+                                                className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-2"
+                                            >
+                                                <span className="text-sm font-medium text-gray-900">
+                                                    {level.name}
+                                                </span>
+                                                <MyButton
+                                                    type="button"
+                                                    buttonType="text"
+                                                    scale="medium"
+                                                    layoutVariant="icon"
+                                                    onClick={() => removeStandaloneLevel(level.id)}
+                                                    className="text-red-600 hover:text-red-700"
+                                                >
+                                                    <Trash2 className="h-3 w-3" />
+                                                </MyButton>
+                                            </div>
+                                        ))}
+                                </div>
+                            )}
 
                             <Separator className="bg-gray-200" />
 
@@ -508,18 +698,16 @@ const SessionCard: React.FC<{
     session: Session;
     hasLevels: boolean;
     onRemoveSession: (sessionId: string) => void;
-    onAddLevel: (sessionId: string, levelName: string, startDate: string) => void;
+    onAddLevel: (sessionId: string, levelName: string) => void;
     onRemoveLevel: (sessionId: string, levelId: string) => void;
 }> = ({ session, hasLevels, onRemoveSession, onAddLevel, onRemoveLevel }) => {
     const [showAddLevel, setShowAddLevel] = useState(false);
     const [newLevelName, setNewLevelName] = useState('');
-    const [newLevelStartDate, setNewLevelStartDate] = useState('');
 
     const handleAddLevel = () => {
-        if (newLevelName.trim() && newLevelStartDate) {
-            onAddLevel(session.id, newLevelName, newLevelStartDate);
+        if (newLevelName.trim()) {
+            onAddLevel(session.id, newLevelName);
             setNewLevelName('');
-            setNewLevelStartDate('');
             setShowAddLevel(false);
         }
     };
@@ -568,38 +756,25 @@ const SessionCard: React.FC<{
                     <>
                         {showAddLevel && (
                             <div className="mb-3 rounded-lg border bg-gray-50 p-3">
-                                <div className="grid grid-cols-2 gap-2 mb-2">
-                                    <div>
-                                        <Label className="mb-1 block text-sm font-medium text-gray-700">
-                                            Level Name
-                                        </Label>
-                                        <Input
-                                            placeholder="Enter level name (e.g., Basic)"
-                                            value={newLevelName}
-                                            onChange={(e) => setNewLevelName(e.target.value)}
-                                            className="h-8 border-gray-300"
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label className="mb-1 block text-sm font-medium text-gray-700">
-                                            Start Date
-                                        </Label>
-                                        <Input
-                                            type="date"
-                                            value={newLevelStartDate}
-                                            onChange={(e) => setNewLevelStartDate(e.target.value)}
-                                            className="h-8 border-gray-300"
-                                        />
-                                    </div>
+                                <div>
+                                    <Label className="mb-1 block text-sm font-medium text-gray-700">
+                                        Level Name
+                                    </Label>
+                                    <Input
+                                        placeholder="Enter level name (e.g., Basic)"
+                                        value={newLevelName}
+                                        onChange={(e) => setNewLevelName(e.target.value)}
+                                        className="h-8 border-gray-300"
+                                    />
                                 </div>
-                                <div className="flex gap-2">
+                                <div className="mt-2 flex gap-2">
                                     <MyButton
                                         type="button"
                                         buttonType="primary"
                                         scale="medium"
                                         layoutVariant="default"
                                         onClick={handleAddLevel}
-                                        disable={!newLevelName.trim() || !newLevelStartDate}
+                                        disable={!newLevelName.trim()}
                                     >
                                         Add
                                     </MyButton>
@@ -611,7 +786,6 @@ const SessionCard: React.FC<{
                                         onClick={() => {
                                             setShowAddLevel(false);
                                             setNewLevelName('');
-                                            setNewLevelStartDate('');
                                         }}
                                     >
                                         Cancel
@@ -627,14 +801,9 @@ const SessionCard: React.FC<{
                                         key={level.id}
                                         className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-2"
                                     >
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-sm font-medium text-gray-900">
-                                                {level.name}
-                                            </span>
-                                            <span className="text-xs text-gray-500">
-                                                {new Date(level.startDate).toLocaleDateString()}
-                                            </span>
-                                        </div>
+                                        <span className="text-sm font-medium text-gray-900">
+                                            {level.name}
+                                        </span>
                                         <MyButton
                                             type="button"
                                             buttonType="text"
