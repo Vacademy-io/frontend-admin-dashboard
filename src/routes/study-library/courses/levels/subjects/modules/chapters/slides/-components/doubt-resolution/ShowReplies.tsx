@@ -4,18 +4,12 @@ import { Doubt } from '../../-types/get-doubts-type';
 import { useState } from 'react';
 import { AddReply } from './AddReply';
 import { Reply } from './reply';
-import { getTokenFromCookie } from '@/lib/auth/sessionUtility';
-import { TokenKey } from '@/constants/auth/tokens';
-import { getTokenDecodedData } from '@/lib/auth/sessionUtility';
-import { getInstituteId } from '@/constants/helper';
+import { getUserId, isUserAdmin } from '@/utils/userDetails';
 
 export const ShowReplies = ({ parent, refetch }: { parent: Doubt; refetch: () => void }) => {
     const [showReplies, setShowReplies] = useState<boolean>(false);
-    const accessToken = getTokenFromCookie(TokenKey.accessToken);
-    const tokenData = getTokenDecodedData(accessToken);
-    const InstituteId = getInstituteId();
-    const userId = tokenData?.user;
-    const isAdmin = tokenData?.authorities[InstituteId || '']?.roles.includes('ADMIN');
+    const userId = getUserId();
+    const isAdmin = isUserAdmin();
     return (
         <>
             {parent.replies.length > 0 ? (

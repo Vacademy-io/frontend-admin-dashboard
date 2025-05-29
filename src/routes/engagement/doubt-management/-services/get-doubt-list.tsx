@@ -4,12 +4,20 @@ import { PaginatedDoubtResponse } from '@/routes/study-library/courses/levels/su
 import { DoubtFilter } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-types/get-doubts-type';
 import { useQuery } from '@tanstack/react-query';
 
-export const useGetDoubtList = ({ filter }: { filter: DoubtFilter }) => {
+export const useGetDoubtList = ({
+    filter,
+    pageNo,
+    pageSize,
+}: {
+    filter: DoubtFilter;
+    pageNo: number;
+    pageSize: number;
+}) => {
     return useQuery({
-        queryKey: ['GET_DOUBTS', filter],
-        queryFn: async ({ pageParam = 0 }) => {
+        queryKey: ['GET_DOUBTS', filter, pageNo, pageSize],
+        queryFn: async ({ pageParam = pageNo }) => {
             const response = await authenticatedAxiosInstance.post<PaginatedDoubtResponse>(
-                `${GET_DOUBTS}?pageNo=${pageParam}&pageSize=10`,
+                `${GET_DOUBTS}?pageNo=${pageParam}&pageSize=${pageSize}`,
                 { ...filter }
             );
             return response.data;

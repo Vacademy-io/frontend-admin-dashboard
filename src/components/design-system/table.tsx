@@ -105,7 +105,7 @@ export function MyTable<T>({
     } = useDialogStore();
 
     if (isLoading) return <div>Loading...</div>;
-    if (error) return <div>Error loading data</div>;
+    if (error) return <div>Error loading data {JSON.stringify(error)}</div>;
     if (!data) return null;
     if (!table) return <DashboardLoader />;
 

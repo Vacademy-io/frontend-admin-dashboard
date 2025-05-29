@@ -5,9 +5,6 @@ import { useContentStore } from '../../-stores/chapter-sidebar-store';
 import { useMediaNavigationStore } from '../../-stores/media-navigation-store';
 import { useSidebar } from '@/components/ui/sidebar';
 import { Doubt as DoubtType } from '../../-types/get-doubts-type';
-import { TokenKey } from '@/constants/auth/tokens';
-import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
-import { getInstituteId } from '@/constants/helper';
 import { useRouter } from '@tanstack/react-router';
 import { FacultyFilterParams } from '@/routes/dashboard/-services/dashboard-services';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
@@ -20,6 +17,7 @@ import { EnrollFormUploadImage } from '@/assets/svgs';
 import { getPublicUrl } from '@/services/upload_file';
 import { TeacherSelection } from './TeacherSelection';
 import { formatTime } from '@/helpers/formatYoutubeVideoTime';
+import { getUserId, isUserAdmin } from '@/utils/userDetails';
 
 export const Doubt = ({ doubt, refetch }: { doubt: DoubtType; refetch: () => void }) => {
     const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -28,12 +26,8 @@ export const Doubt = ({ doubt, refetch }: { doubt: DoubtType; refetch: () => voi
     const { setOpen } = useSidebar();
     const router = useRouter();
     const { getPackageSessionId } = useInstituteDetailsStore();
-
-    const accessToken = getTokenFromCookie(TokenKey.accessToken);
-    const tokenData = getTokenDecodedData(accessToken);
-    const InstituteId = getInstituteId();
-    const userId = tokenData?.user;
-    const isAdmin = tokenData?.authorities[InstituteId || '']?.roles.includes('ADMIN');
+    const userId = getUserId();
+    const isAdmin = isUserAdmin();
     const { courseId, sessionId, levelId, subjectId } = router.state.location.search;
     const pksId = getPackageSessionId({
         courseId: courseId || '',
@@ -134,9 +128,10 @@ export const Doubt = ({ doubt, refetch }: { doubt: DoubtType; refetch: () => voi
                         </div>
                     )}
                     {(isAdmin ||
-                        (userId && doubt.doubt_assignee_request_user_ids?.includes(userId))) && (
-                        <MarkAsResolved doubt={doubt} refetch={refetch} />
-                    )}
+                        (userId &&
+                            doubt.all_doubt_assignee?.some(
+                                (assignee) => assignee.id === userId
+                            ))) && <MarkAsResolved doubt={doubt} refetch={refetch} />}
                 </div>
                 <div
                     dangerouslySetInnerHTML={{

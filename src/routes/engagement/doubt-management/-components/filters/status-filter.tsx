@@ -28,7 +28,7 @@ export const StatusFilter = () => {
     };
 
     useEffect(() => {
-        if (selectedStatus.includes(statusFilterList[0]!)) {
+        if (selectedStatus[0]?.value === 'All') {
             updateFilters({
                 status: ['ACTIVE', 'RESOLVED'],
             });

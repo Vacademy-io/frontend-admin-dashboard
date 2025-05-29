@@ -1,4 +1,4 @@
-import { getDaysAgo, getToday, getTomorrow, getYesterday } from '@/utils/dateUtils';
+import { getDaysAgo, getTomorrow, getYesterday } from '@/utils/dateUtils';
 import { FilterType } from '../../-types/filter-type';
 import SelectChips from '@/components/design-system/SelectChips';
 import { useEffect, useState } from 'react';
@@ -19,15 +19,15 @@ export const DateFilter = () => {
         },
         {
             label: 'This Week',
-            value: [getDaysAgo(7), getToday()].join(','),
+            value: [getDaysAgo(7), getTomorrow()].join(','),
         },
         {
             label: 'This Month',
-            value: [getDaysAgo(30), getToday()].join(','),
+            value: [getDaysAgo(30), getTomorrow()].join(','),
         },
         {
             label: 'This Year',
-            value: [getDaysAgo(365), getToday()].join(','),
+            value: [getDaysAgo(365), getTomorrow()].join(','),
         },
     ];
 
