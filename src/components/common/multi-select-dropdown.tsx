@@ -93,9 +93,9 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
                     <p className="text-sm text-primary-500">{placeholder}</p>
                 </button>
                 {isOpen && (
-                    <div className="absolute z-10 mt-1 max-h-60 overflow-auto rounded-lg bg-white shadow-lg">
+                    <div className="absolute z-10 mt-1 max-h-60 w-max overflow-auto rounded-lg bg-white shadow-lg">
                         {availableOptions?.length === 0 ? (
-                            <div className="px-4 py-2 text-sm text-neutral-400">No options</div>
+                            <div className="px-4 py-2 text-sm text-neutral-400">No teachers</div>
                         ) : (
                             availableOptions?.map((option) => (
                                 <div

@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ArrowSquareOut } from '@phosphor-icons/react';
 import { StatusChip } from '@/components/design-system/status-chips';
 import { useContentStore } from '../../-stores/chapter-sidebar-store';
@@ -20,17 +20,7 @@ import { getPublicUrl } from '@/services/upload_file';
 import { TeacherSelection } from './TeacherSelection';
 import { formatTime } from '@/helpers/formatYoutubeVideoTime';
 
-export const Doubt = ({
-    doubt,
-    setDoubtProgressMarkerPdf,
-    setDoubtProgressMarkerVideo,
-    refetch,
-}: {
-    doubt: DoubtType;
-    setDoubtProgressMarkerPdf: Dispatch<SetStateAction<number | null>>;
-    setDoubtProgressMarkerVideo: Dispatch<SetStateAction<number | null>>;
-    refetch: () => void;
-}) => {
+export const Doubt = ({ doubt, refetch }: { doubt: DoubtType; refetch: () => void }) => {
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const { activeItem } = useContentStore();
     const { setOpen } = useSidebar();
@@ -59,11 +49,7 @@ export const Doubt = ({
     const { data: userBasicDetails } = useGetUserBasicDetails([doubt.user_id]);
 
     const handleTimeStampClick = (timestamp: number) => {
-        if (activeItem?.source_type == 'VIDEO') {
-            setDoubtProgressMarkerVideo(timestamp);
-        } else if (activeItem?.source_type == 'DOCUMENT') {
-            setDoubtProgressMarkerPdf(timestamp);
-        }
+        console.log('timestamp', timestamp);
         setOpen(false);
     };
 
@@ -146,12 +132,7 @@ export const Doubt = ({
                     className="custom-html-content"
                 />
 
-                <TeacherSelection
-                    doubt={doubt}
-                    filters={filters}
-                    refetch={refetch}
-                    canChange={isAdmin || false}
-                />
+                <TeacherSelection doubt={doubt} filters={filters} canChange={isAdmin || false} />
                 {isAdmin && <DeleteDoubt doubt={doubt} refetch={refetch} />}
                 <ShowReplies parent={doubt} refetch={refetch} />
             </div>

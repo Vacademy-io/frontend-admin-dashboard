@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 import YooptaEditor, { createYooptaEditor } from '@yoopta/editor';
-import { lazy, Suspense, useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { MyButton } from '@/components/design-system/button';
 import PDFViewer from './pdf-viewer';
 import { ActivityStatsSidebar } from './stats-dialog/activity-sidebar';
@@ -35,9 +35,7 @@ import { updateHeading } from './slide-operations/updateSlideHeading';
 import { formatHTMLString } from './slide-operations/formatHtmlString';
 import { handleConvertAndUpload } from './slide-operations/handleConvertUpload';
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
-import { Loader2 } from 'lucide-react';
-
-const LazyDoubtResolutionSidebar = lazy(() => import('./doubt-resolution/doubtResolutionSidebar'));
+import DoubtResolutionSidebar from './doubt-resolution/doubtResolutionSidebar';
 
 export function fixCodeBlocksInHtml(html: string) {
     // Use DOMParser (browser) or JSDOM (Node.js) for robust parsing
@@ -92,11 +90,7 @@ export const SlideMaterial = ({
     const { updateQuestionOrder } = useSlides(chapterId || '');
     const { updateAssignmentOrder } = useSlides(chapterId || '');
     const editingContainerRef = useRef<HTMLDivElement>(null);
-    const [doubtProgressMarkerPdf, setDoubtProgressMarkerPdf] = useState<number | null>(null);
-    const [doubtProgressMarkerVideo, setDoubtProgressMarkerVideo] = useState<number | null>(null);
     const { toggleSidebar, open } = useSidebar();
-
-    console.log(doubtProgressMarkerPdf, doubtProgressMarkerVideo);
 
     const handleHeadingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setHeading(e.target.value);
@@ -501,19 +495,7 @@ export const SlideMaterial = ({
             >
                 {content}
             </div>
-
-            <Suspense
-                fallback={
-                    <div className="flex w-full justify-center py-4">
-                        <Loader2 className="size-6 animate-spin text-primary-500" />
-                    </div>
-                }
-            >
-                <LazyDoubtResolutionSidebar
-                    setDoubtProgressMarkerPdf={setDoubtProgressMarkerPdf}
-                    setDoubtProgressMarkerVideo={setDoubtProgressMarkerVideo}
-                />
-            </Suspense>
+            <DoubtResolutionSidebar />
         </div>
     );
 };

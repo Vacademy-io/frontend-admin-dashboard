@@ -31,12 +31,10 @@ const useDebounce = <T extends (...args: unknown[]) => void>(callback: T, delay:
 export const TeacherSelection = ({
     doubt,
     filters,
-    refetch,
     canChange,
 }: {
     doubt: DoubtType;
     filters: FacultyFilterParams;
-    refetch: () => void;
     canChange: boolean;
 }) => {
     const addReply = useAddReply();
@@ -107,8 +105,8 @@ export const TeacherSelection = ({
                 )
                 .map((assignee) => assignee.id),
         };
-        await handleAddReply({ replyData, addReply, refetch, id: doubt.id });
-    }, [doubt, selectedTeachers, activeItem?.id, addReply, refetch]);
+        await handleAddReply({ replyData, addReply, id: doubt.id });
+    }, [doubt, selectedTeachers, activeItem?.id, addReply]);
 
     const debouncedSubmitReply = useDebounce(submitReply, 1000); // 60 seconds debounce
 
