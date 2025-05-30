@@ -1,9 +1,5 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Doubt } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-types/get-doubts-type";
-import { DeleteDoubt } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-components/doubt-resolution/DeleteDoubt";
-import { TeacherSelection } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-components/doubt-resolution/TeacherSelection";
-import { isUserAdmin } from "@/utils/userDetails";
-import { useDoubtFilters } from "@/routes/engagement/doubt-management/-stores/filter-store";
 import { useDoubtTable } from "./useDoubtTable";
 import { formatISODateTimeReadable } from "@/helpers/formatISOTime";
 import { DoubtCell } from "../-components/doubt-table/doubt-cell";
@@ -15,9 +11,8 @@ import { ActionsCell } from "../-components/doubt-table/actions-cell";
 
 export const useDoubtTableColumns = () => {
 
-    const { filters } = useDoubtFilters();
-    const isAdmin = isUserAdmin();
     const { refetch } = useDoubtTable();
+    const { userDetailsRecord } = useDoubtTable();
 
     const columns: ColumnDef<Doubt>[] = [
         {
@@ -41,7 +36,7 @@ export const useDoubtTableColumns = () => {
         {
             accessorKey: 'learner',
             header: 'Learner',
-            cell: ({ row }) => row.original.name,
+            cell: ({ row }) => <p>{userDetailsRecord[row.original.user_id]?.name}</p>,
         },
         {
             accessorKey: 'batch',
