@@ -22,6 +22,6 @@ export const useGetDoubtList = ({
             );
             return response.data;
         },
-        
+        enabled: !!filter,
     });
 };
