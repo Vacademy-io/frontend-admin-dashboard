@@ -7,7 +7,7 @@ import { MyDialog } from '@/components/design-system/dialog';
 import { useState } from 'react';
 import { MyButton } from '@/components/design-system/button';
 
-export const DeleteDoubt = ({ doubt, refetch }: { doubt: Doubt; refetch: () => void }) => {
+export const DeleteDoubt = ({ doubt, refetch, showText=true }: { doubt: Doubt; refetch: () => void, showText?: boolean }) => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const addReply = useAddReply();
 
@@ -42,7 +42,7 @@ export const DeleteDoubt = ({ doubt, refetch }: { doubt: Doubt; refetch: () => v
                 data-delete-doubt
             >
                 <TrashSimple className="text-danger-500" />
-                <p className="text-body">Delete</p>
+                {showText && <p className="text-body">Delete</p>}
             </div>
 
             <MyDialog

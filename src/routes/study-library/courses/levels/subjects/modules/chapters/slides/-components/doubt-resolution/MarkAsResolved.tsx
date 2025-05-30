@@ -4,8 +4,9 @@ import { useState } from 'react';
 import { DoubtType } from '../../-types/add-doubt-type';
 import { useAddReply } from '../../-services/AddReply';
 import { handleAddReply } from '../../-helper/handleAddReply';
+import { MarkAsResolvedCell, MarkResolutionDropdown } from '@/routes/engagement/doubt-management/-components/doubt-table/mark-as-resolved-cell';
 
-export const MarkAsResolved = ({ doubt, refetch }: { doubt: Doubt; refetch: () => void }) => {
+export const MarkAsResolved = ({ doubt, refetch, dropdownComponent }: { doubt: Doubt; refetch: () => void, dropdownComponent?: boolean }) => {
     const [resolved, setResolved] = useState(doubt.status === 'RESOLVED');
     const addReply = useAddReply();
 
@@ -33,7 +34,11 @@ export const MarkAsResolved = ({ doubt, refetch }: { doubt: Doubt; refetch: () =
     };
     return (
         <div className="flex items-center gap-2 font-semibold">
-            Mark as resolved <Switch checked={resolved} onCheckedChange={handleDoubtResolve} />
+            {dropdownComponent && dropdownComponent==true ?
+                <MarkResolutionDropdown resolved={resolved} handleDoubtResolve={handleDoubtResolve} doubt={doubt} />
+                :
+                <div>Mark as resolved <Switch checked={resolved} onCheckedChange={handleDoubtResolve} /></div>
+            }
         </div>
     );
 };

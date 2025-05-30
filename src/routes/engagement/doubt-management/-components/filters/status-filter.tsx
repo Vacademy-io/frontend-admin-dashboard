@@ -9,7 +9,7 @@ export const StatusFilter = () => {
     const statusFilterList: FilterType[] = [
         {
             label: 'All',
-            value: '',
+            value: 'ACTIVE,RESOLVED',
         },
         {
             label: 'Resolved',
@@ -28,15 +28,9 @@ export const StatusFilter = () => {
     };
 
     useEffect(() => {
-        if (selectedStatus[0]?.value === 'All') {
-            updateFilters({
-                status: ['ACTIVE', 'RESOLVED'],
-            });
-        } else {
-            updateFilters({
-                status: selectedStatus.map((status) => status.value),
-            });
-        }
+        updateFilters({
+            status: selectedStatus.flatMap((status) => status.value.split(',')),
+        });
     }, [selectedStatus]);
 
     return (
