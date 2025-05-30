@@ -7,6 +7,7 @@ import { AddCourseStep1, step1Schema } from './add-course-steps/add-course-step1
 import { AddCourseStep2, step2Schema } from './add-course-steps/add-course-step2';
 import { toast } from 'sonner';
 import { convertToApiFormat } from '../-utils/helper';
+import { useAddCourse } from '@/services/study-library/course-operations/add-course';
 
 export interface Level {
     id: string;
@@ -28,6 +29,7 @@ export interface CourseFormData extends Step1Data, Step2Data {}
 
 // Main wrapper component
 export const AddCourseForm = () => {
+    const addCourseMutation = useAddCourse();
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState<Partial<CourseFormData>>({});
     const [isOpen, setIsOpen] = useState(false);
@@ -38,27 +40,28 @@ export const AddCourseForm = () => {
         setStep(2);
     };
 
-    const handleStep2Submit = async (data: Step2Data) => {
-        console.log('Step 2 data:', data);
+    const handleStep2Submit = (data: Step2Data) => {
         const finalData = { ...formData, ...data };
-        console.log('Final combined data:', finalData);
 
-        try {
-            // Format the data using the helper function
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
-            const formattedData = convertToApiFormat(finalData);
-            console.log('Formatted data for API:', formattedData);
+        // Format the data using the helper function
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        const formattedData = convertToApiFormat(finalData);
 
-            // await createCourse(formattedData);
-            toast.success('Course created successfully!');
-            setIsOpen(false);
-            setStep(1);
-            setFormData({});
-        } catch (error) {
-            console.error('Failed to create course:', error);
-            toast.error('Failed to create course. Please try again.');
-        }
+        addCourseMutation.mutate(
+            { requestData: formattedData },
+            {
+                onSuccess: () => {
+                    toast.success('Course created successfully');
+                    setIsOpen(false);
+                    setStep(1);
+                    setFormData({});
+                },
+                onError: () => {
+                    toast.error('Failed to create course');
+                },
+            }
+        );
     };
 
     const handleBack = () => {
