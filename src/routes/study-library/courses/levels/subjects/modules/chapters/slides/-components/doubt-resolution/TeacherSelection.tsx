@@ -32,10 +32,12 @@ export const TeacherSelection = ({
     doubt,
     filters,
     canChange,
+    showCanAssign
 }: {
     doubt: DoubtType;
     filters: FacultyFilterParams;
     canChange: boolean;
+    showCanAssign?: boolean;
 }) => {
     const addReply = useAddReply();
     const InstituteId = getInstituteId();
@@ -118,7 +120,7 @@ export const TeacherSelection = ({
 
     return (
         <div className="flex items-center gap-2">
-            <p className="font-semibold ">Assigned to:</p>
+            {(showCanAssign==undefined || showCanAssign==true) && <p className="font-semibold ">Assigned to:</p>}
             {canChange ? (
                 <MultiSelectDropdown
                     options={teacherOptions}

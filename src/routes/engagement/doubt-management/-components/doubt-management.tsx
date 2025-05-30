@@ -12,7 +12,6 @@ export const DoubtManagement = () => {
     return (
         <div className="flex flex-col gap-8">
             <Filters />
-            
             <DoubtTable />
         </div>
     );

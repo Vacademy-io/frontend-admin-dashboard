@@ -1,8 +1,9 @@
 import { MyTable } from '@/components/design-system/table';
 import { MyPagination } from '@/components/design-system/pagination';
 import { Doubt } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-types/get-doubts-type';
-import { useDoubtTable, useDoubtTableColumns } from '../../-hooks/useDoubtTable';
+import { useDoubtTable } from '../../-hooks/useDoubtTable';
 import { DOUBTS_TABLE_COLUMN_WIDTHS } from '@/components/design-system/utils/constants/table-layout';
+import { useDoubtTableColumns } from '../../-hooks/useDoubtColumns';
 
 export const DoubtTable = () => {
     const { currentPage, setCurrentPage, doubts, isLoading, error } = useDoubtTable();
@@ -10,7 +11,6 @@ export const DoubtTable = () => {
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
     };
-
     return (
         <div className="no-scrollbar flex w-full flex-col gap-10 overflow-y-scroll">
             <div className="flex w-full flex-col gap-6 ">

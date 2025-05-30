@@ -2,6 +2,9 @@ import { DoubtType } from './add-doubt-type';
 
 export interface Doubt extends DoubtType {
     id: string;
+    source_name: string;
+    batch_id: string;
+    subject_id: string;
     replies: Doubt[]; // Recursive structure for nested replies
 }
 
