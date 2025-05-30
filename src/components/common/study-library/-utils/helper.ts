@@ -66,7 +66,27 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
     // Determine sessions structure
     let sessions: FormattedSession[] = [];
     if (!hasLevels && !hasSessions) {
-        sessions = [];
+        sessions = [{
+            id: 'DEFAULT',
+            session_name: '',
+            status: 'ACTIVE',
+            start_date: '',
+            new_session: true,
+            levels: [{
+                id: 'DEFAULT',
+                new_level: true,
+                level_name: '',
+                duration_in_days: 0,
+                thumbnail_file_id: '',
+                package_id: '',
+                group: {
+                    id: 'DEFAULT',
+                    group_name: '',
+                    group_value: '',
+                    new_group: true,
+                },
+            }],
+        }];
     } else if (hasSessions) {
         sessions = formData.sessions.map((session) => ({
             id: session.id,
@@ -74,13 +94,26 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
             status: 'ACTIVE',
             start_date: session.startDate,
             new_session: true,
-            levels: formatLevels(session.levels),
+            levels: hasLevels ? formatLevels(session.levels) : [{
+                id: 'DEFAULT',
+                new_level: true,
+                level_name: '',
+                duration_in_days: 0,
+                thumbnail_file_id: '',
+                package_id: '',
+                group: {
+                    id: 'DEFAULT',
+                    group_name: '',
+                    group_value: '',
+                    new_group: true,
+                },
+            }],
         }));
     } else if (hasLevels) {
         const standaloneLevels = formData.sessions.find((s) => s.id === 'standalone')?.levels || [];
         sessions = [{
-            id: '',
-            session_name: 'DEFAULT',
+            id: 'DEFAULT',
+            session_name: '',
             status: 'ACTIVE',
             start_date: '',
             new_session: true,
