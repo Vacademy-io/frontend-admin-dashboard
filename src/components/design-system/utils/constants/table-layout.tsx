@@ -141,3 +141,15 @@ export const QUESTION_WISE_COLUMNS_EXTERNAL_WIDTH: ColumnWidthConfig = {
     full_name: 'min-w-[180px] sticky',
     response_time_in_seconds: 'min-w-[240px]',
 };
+
+export const DOUBTS_TABLE_COLUMN_WIDTHS: ColumnWidthConfig = {
+    doubt: "min-w-[200px]",
+    status: "min-w-[200px]",
+    learner: "min-w-[200px]",
+    batch: "min-w-[200px]",
+    type: "min-w-[200px]",
+    assignedTo: "min-w-[200px]",
+    raised: "min-w-[200px]",
+    resolved: "min-w-[200px]",
+    actions: "min-w-[200px]",
+}
