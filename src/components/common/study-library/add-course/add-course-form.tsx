@@ -6,7 +6,7 @@ import { MyButton } from '@/components/design-system/button';
 import { AddCourseStep1, step1Schema } from './add-course-steps/add-course-step1';
 import { AddCourseStep2, step2Schema } from './add-course-steps/add-course-step2';
 import { toast } from 'sonner';
-import { convertToApiFormat } from '../-utils/helper';
+import { convertToApiCourseFormat } from '../-utils/helper';
 import { useAddCourse } from '@/services/study-library/course-operations/add-course';
 
 export interface Level {
@@ -46,7 +46,7 @@ export const AddCourseForm = () => {
         // Format the data using the helper function
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
-        const formattedData = convertToApiFormat(finalData);
+        const formattedData = convertToApiCourseFormat(finalData);
 
         addCourseMutation.mutate(
             { requestData: formattedData },

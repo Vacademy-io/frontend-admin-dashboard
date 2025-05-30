@@ -42,7 +42,7 @@ interface FormattedCourseData {
 type FormattedSession = FormattedCourseData['sessions'][0];
 type FormattedLevel = FormattedSession['levels'][0];
 
-export const convertToApiFormat = (formData: CourseFormData): FormattedCourseData => {
+export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCourseData => {
     const hasLevels = formData.hasLevels === 'yes';
     const hasSessions = formData.hasSessions === 'yes';
 
