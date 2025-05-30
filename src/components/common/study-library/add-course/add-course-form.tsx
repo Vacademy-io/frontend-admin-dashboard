@@ -1,15 +1,12 @@
 // add-course-form.tsx
 import { useState } from 'react';
 import { z } from 'zod';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { MyButton } from '@/components/design-system/button';
-import { MyInput } from '@/components/design-system/input';
 import { AddCourseStep1, step1Schema } from './add-course-steps/add-course-step1';
 import { AddCourseStep2, step2Schema } from './add-course-steps/add-course-step2';
 import { toast } from 'sonner';
+import { convertToApiFormat } from '../-utils/helper';
 
 export interface Level {
     id: string;
@@ -47,32 +44,12 @@ export const AddCourseForm = () => {
         console.log('Final combined data:', finalData);
 
         try {
-            // Format the data according to your API requirements
-            const formattedData = {
-                course: finalData.course,
-                description: finalData.description,
-                learningOutcome: finalData.learningOutcome,
-                aboutCourse: finalData.aboutCourse,
-                targetAudience: finalData.targetAudience,
-                coursePreview: finalData.coursePreview,
-                courseBanner: finalData.courseBanner,
-                courseMedia: finalData.courseMedia,
-                tags: finalData.tags || [],
-                levelStructure: finalData.levelStructure,
-                hasLevels: finalData.hasLevels === 'yes',
-                hasSessions: finalData.hasSessions === 'yes',
-                sessions: finalData.sessions.map(session => ({
-                    name: session.name,
-                    startDate: session.startDate,
-                    levels: session.levels.map(level => ({
-                        name: level.name
-                    }))
-                })),
-                instructors: finalData.instructors || [],
-                publishToCatalogue: finalData.publishToCatalogue
-            };
-
+            // Format the data using the helper function
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            const formattedData = convertToApiFormat(finalData);
             console.log('Formatted data for API:', formattedData);
+
             // await createCourse(formattedData);
             toast.success('Course created successfully!');
             setIsOpen(false);

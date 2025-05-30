@@ -19,7 +19,6 @@ import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { ImageSquare, PencilSimpleLine } from 'phosphor-react';
 import { FileUploadComponent } from '@/components/design-system/file-upload';
 import { MyButton } from '@/components/design-system/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -258,7 +257,7 @@ export const AddCourseStep1 = ({
                                         </div>
                                     )}
                                 </div>
-                                <div className="flex flex-col gap-16">
+                                <div className="flex flex-col gap-16 pb-8">
                                     <FormField
                                         control={form.control}
                                         name="learningOutcome"
