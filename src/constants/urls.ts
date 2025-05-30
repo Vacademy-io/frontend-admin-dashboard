@@ -214,6 +214,11 @@ export const DELETE_BATCHES = `${BASE_URL}/admin-core-service/batch/v1/delete-ba
 export const GET_USER_DETAILS = `${BASE_URL}/auth-service/v1/user-details/by-user-id`;
 export const DUPLICATE_STUDY_MATERIAL_FROM_SESSION = `${BASE_URL}/admin-core-service/sessions/v1/copy-study-material`;
 
+// Live sessions
+export const CREATE_LIVE_SESSION_STEP_1 = `${BASE_URL}/admin-core-service/live-sessions/v1/create/step1`;
+export const CREATE_LIVE_SESSION_STEP_2 = `${BASE_URL}/admin-core-service/live-sessions/v1/create/step2`;
+export const GET_LIVE_SESSIONS = `${BASE_URL}/admin-core-service/get-sessions/live`;
+
 export const GET_ALL_FACULTY = `${BASE_URL}/admin-core-service/institute/v1/faculty/faculty/get-all`;
 
 export const ADD_DOUBT = `${BASE_URL}/admin-core-service/institute/v1/doubts/create`;
