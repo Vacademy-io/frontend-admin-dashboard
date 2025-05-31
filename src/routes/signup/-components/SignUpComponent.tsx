@@ -19,6 +19,7 @@ import { useEffect } from 'react';
 import { handleOAuthLogin, type OAuthProvider } from '@/hooks/login/oauth-login';
 import { FcGoogle } from 'react-icons/fc';
 import { GitHubLogoIcon } from '@radix-ui/react-icons';
+import { Fragment } from 'react';
 
 const items = [
     {
@@ -107,7 +108,9 @@ export function SignUpComponent() {
                                         form.getValues('items.lms')
                                     }
                                 >
-                                    <FcGoogle className="size-5" />
+                                    <Fragment>
+                                        <FcGoogle className="size-5" />
+                                    </Fragment>
                                     Continue with Google
                                 </button>
                                 <button
