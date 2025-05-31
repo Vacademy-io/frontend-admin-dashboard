@@ -20,6 +20,7 @@ import LinkTool, { DefaultLinkToolRender } from "@yoopta/link-tool";
 import { getPublicUrl, UploadFileInS3 } from "@/services/upload_file";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { TokenKey } from "../auth/tokens";
+import { MultiLangCodePlugin } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-components/yoopta-editor-customizations/python-editor";
 
 export const plugins: YooptaPlugin<Record<string, SlateElement>, Record<string, unknown>>[] = [
     Paragraph,
@@ -155,6 +156,7 @@ export const plugins: YooptaPlugin<Record<string, SlateElement>, Record<string, 
             },
         },
     }),
+    MultiLangCodePlugin,
 ];
 
 export const TOOLS = {
