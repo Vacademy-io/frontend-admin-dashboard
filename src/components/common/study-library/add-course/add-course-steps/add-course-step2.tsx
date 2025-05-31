@@ -19,11 +19,6 @@ import { fetchInstituteDashboardUsers } from '@/routes/dashboard/-services/dashb
 import { getInstituteId } from '@/constants/helper';
 import InviteInstructorForm from './InviteInstructorForm';
 
-interface Instructor {
-    id: string;
-    email: string;
-}
-
 interface Level {
     id: string;
     name: string;
@@ -35,6 +30,11 @@ interface Session {
     name: string;
     startDate: string;
     levels: Level[];
+}
+
+interface Instructor {
+    id: string;
+    email: string;
 }
 
 // Update the schema
@@ -55,6 +55,14 @@ export const step2Schema = z.object({
                         userIds: z.array(z.string()).default([]),
                     })
                 ),
+            })
+        )
+        .default([]),
+    selectedInstructors: z
+        .array(
+            z.object({
+                id: z.string(),
+                email: z.string(),
             })
         )
         .default([]),
@@ -146,12 +154,11 @@ export const AddCourseStep2 = ({
             hasLevels: 'yes',
             hasSessions: 'yes',
             sessions: [],
+            selectedInstructors: [],
             instructors: [],
             publishToCatalogue: false,
         },
     });
-
-    console.log(form.getValues());
 
     // Effect to update form when state changes
     useEffect(() => {
@@ -394,32 +401,95 @@ export const AddCourseStep2 = ({
     // Function to handle assignment save
     const handleAssignmentSave = () => {
         if (selectedInstructorId && selectedInstructorEmail) {
-            // First, remove the instructor's ID from all levels they were previously assigned to
-            const updatedSessions = sessions.map((session) => ({
-                ...session,
-                levels: session.levels.map((level) => ({
-                    ...level,
-                    userIds: level.userIds.filter((id) => id !== selectedInstructorId),
-                })),
-            }));
+            let updatedSessions: Session[] = [];
 
-            // Then, add the instructor's ID to newly selected levels
-            selectedSessionLevels.forEach(({ sessionId, levelId }) => {
-                const sessionIndex = updatedSessions.findIndex((s) => s.id === sessionId);
-                if (sessionIndex !== -1) {
-                    const levelIndex = updatedSessions[sessionIndex]?.levels.findIndex(
-                        (l) => l.id === levelId
-                    );
-                    if (levelIndex !== -1) {
-                        updatedSessions[sessionIndex]?.levels[levelIndex!]?.userIds.push(
-                            selectedInstructorId
-                        );
-                    }
+            if (hasSessions === 'no' && hasLevels === 'no') {
+                // When both are 'no', create or update the default session with default level
+                if (sessions.length === 0) {
+                    // Create default session and level if they don't exist
+                    updatedSessions = [
+                        {
+                            id: 'DEFAULT',
+                            name: '',
+                            startDate: '',
+                            levels: [
+                                {
+                                    id: 'DEFAULT',
+                                    name: '',
+                                    userIds: selectedInstructors.map((instructor) => instructor.id),
+                                },
+                            ],
+                        },
+                    ];
+                } else {
+                    // Update existing default session
+                    updatedSessions = sessions.map((session) => ({
+                        ...session,
+                        levels: session.levels.map((level) => ({
+                            ...level,
+                            userIds: selectedInstructors.map((instructor) => instructor.id),
+                        })),
+                    }));
                 }
-            });
+            } else {
+                // First, remove the instructor's ID from all levels they were previously assigned to
+                updatedSessions = sessions.map((session) => ({
+                    ...session,
+                    levels: session.levels.map((level) => ({
+                        ...level,
+                        userIds: level.userIds.filter((id) => id !== selectedInstructorId),
+                    })),
+                }));
+
+                // Then, add the instructor's ID to newly selected levels
+                selectedSessionLevels.forEach(({ sessionId, levelId }) => {
+                    if (hasSessions === 'yes') {
+                        // Handle sessions case
+                        const session = updatedSessions.find((s: Session) => s.id === sessionId);
+                        if (session) {
+                            if (hasLevels === 'yes') {
+                                // For sessions with levels, add to specific level
+                                const level = session.levels.find((l: Level) => l.id === levelId);
+                                if (level) {
+                                    level.userIds.push(selectedInstructorId);
+                                }
+                            } else {
+                                // For sessions without levels, add to the default level
+                                if (session.levels.length === 0) {
+                                    // If no default level exists, create one
+                                    session.levels = [
+                                        {
+                                            id: 'DEFAULT',
+                                            name: '',
+                                            userIds: [selectedInstructorId],
+                                        },
+                                    ];
+                                } else if (session.levels[0]) {
+                                    // Add to existing default level
+                                    session.levels[0].userIds.push(selectedInstructorId);
+                                }
+                            }
+                        }
+                    } else if (hasLevels === 'yes') {
+                        // Handle levels-only case
+                        const standaloneSession = updatedSessions.find(
+                            (s: Session) => s.id === 'standalone'
+                        );
+                        if (standaloneSession) {
+                            const level = standaloneSession.levels.find(
+                                (l: Level) => l.id === levelId
+                            );
+                            if (level) {
+                                level.userIds.push(selectedInstructorId);
+                            }
+                        }
+                    }
+                });
+            }
 
             setSessions(updatedSessions);
             form.setValue('sessions', updatedSessions);
+            form.setValue('selectedInstructors', selectedInstructors);
 
             // Update instructor mappings
             setInstructorMappings((prev) => {
@@ -898,46 +968,50 @@ export const AddCourseStep2 = ({
                                                                                 )?.sessionLevels
                                                                                     .length ||
                                                                                     0}{' '}
-                                                                                assignments
+                                                                                batches assigned
                                                                             </span>
                                                                         </div>
                                                                     </div>
                                                                     <div className="flex gap-2">
-                                                                        <MyButton
-                                                                            type="button"
-                                                                            buttonType="secondary"
-                                                                            scale="small"
-                                                                            layoutVariant="default"
-                                                                            onClick={() => {
-                                                                                setSelectedInstructorId(
-                                                                                    instructor.id
-                                                                                );
-                                                                                setSelectedInstructorEmail(
-                                                                                    instructor.email
-                                                                                );
-                                                                                const existingMappings =
-                                                                                    instructorMappings.find(
-                                                                                        (m) =>
-                                                                                            m.id ===
-                                                                                            instructor.id
+                                                                        {(hasSessions === 'yes' ||
+                                                                            hasLevels ===
+                                                                                'yes') && (
+                                                                            <MyButton
+                                                                                type="button"
+                                                                                buttonType="secondary"
+                                                                                scale="small"
+                                                                                layoutVariant="default"
+                                                                                onClick={() => {
+                                                                                    setSelectedInstructorId(
+                                                                                        instructor.id
                                                                                     );
-                                                                                setSelectedSessionLevels(
-                                                                                    existingMappings?.sessionLevels ||
-                                                                                        []
-                                                                                );
-                                                                                setShowAssignmentCard(
-                                                                                    true
-                                                                                );
-                                                                            }}
-                                                                        >
-                                                                            {instructorMappings.find(
-                                                                                (m) =>
-                                                                                    m.id ===
-                                                                                    instructor.id
-                                                                            )
-                                                                                ? 'Edit'
-                                                                                : 'Assign'}
-                                                                        </MyButton>
+                                                                                    setSelectedInstructorEmail(
+                                                                                        instructor.email
+                                                                                    );
+                                                                                    const existingMappings =
+                                                                                        instructorMappings.find(
+                                                                                            (m) =>
+                                                                                                m.id ===
+                                                                                                instructor.id
+                                                                                        );
+                                                                                    setSelectedSessionLevels(
+                                                                                        existingMappings?.sessionLevels ||
+                                                                                            []
+                                                                                    );
+                                                                                    setShowAssignmentCard(
+                                                                                        true
+                                                                                    );
+                                                                                }}
+                                                                            >
+                                                                                {instructorMappings.find(
+                                                                                    (m) =>
+                                                                                        m.id ===
+                                                                                        instructor.id
+                                                                                )
+                                                                                    ? 'Edit'
+                                                                                    : 'Assign'}
+                                                                            </MyButton>
+                                                                        )}
                                                                         <MyButton
                                                                             type="button"
                                                                             buttonType="text"
@@ -972,20 +1046,132 @@ export const AddCourseStep2 = ({
                                                                     <>
                                                                         <Separator className="my-3" />
                                                                         <div className="grid grid-cols-2 gap-4">
-                                                                            {sessions.map(
-                                                                                (session) => (
-                                                                                    <div
-                                                                                        key={
-                                                                                            session.id
-                                                                                        }
-                                                                                    >
-                                                                                        <h4 className="mb-2 text-sm font-medium text-gray-700">
-                                                                                            {
-                                                                                                session.name
+                                                                            {hasSessions ===
+                                                                                'yes' &&
+                                                                                hasLevels ===
+                                                                                    'yes' &&
+                                                                                // Show session-level combinations
+                                                                                sessions.map(
+                                                                                    (session) => (
+                                                                                        <div
+                                                                                            key={
+                                                                                                session.id
                                                                                             }
-                                                                                        </h4>
-                                                                                        <div className="space-y-1">
-                                                                                            {session.levels.map(
+                                                                                        >
+                                                                                            <h4 className="mb-2 text-sm font-medium text-gray-700">
+                                                                                                {
+                                                                                                    session.name
+                                                                                                }
+                                                                                            </h4>
+                                                                                            <div className="space-y-1">
+                                                                                                {session.levels.map(
+                                                                                                    (
+                                                                                                        level
+                                                                                                    ) => {
+                                                                                                        const isChecked =
+                                                                                                            selectedSessionLevels.some(
+                                                                                                                (
+                                                                                                                    item
+                                                                                                                ) =>
+                                                                                                                    item.sessionId ===
+                                                                                                                        session.id &&
+                                                                                                                    item.levelId ===
+                                                                                                                        level.id
+                                                                                                            );
+                                                                                                        return (
+                                                                                                            <div
+                                                                                                                key={`${session.id}-${level.id}`}
+                                                                                                                className="flex items-center gap-2 rounded border border-gray-100 bg-gray-50 px-2 py-1"
+                                                                                                            >
+                                                                                                                <Checkbox
+                                                                                                                    checked={
+                                                                                                                        isChecked
+                                                                                                                    }
+                                                                                                                    onCheckedChange={() =>
+                                                                                                                        handleSessionLevelCheckboxChange(
+                                                                                                                            session.id,
+                                                                                                                            session.name,
+                                                                                                                            level.id,
+                                                                                                                            level.name
+                                                                                                                        )
+                                                                                                                    }
+                                                                                                                    className="size-4"
+                                                                                                                />
+                                                                                                                <span className="text-sm text-gray-700">
+                                                                                                                    {`${session.name} - ${level.name}`}
+                                                                                                                </span>
+                                                                                                            </div>
+                                                                                                        );
+                                                                                                    }
+                                                                                                )}
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    )
+                                                                                )}
+                                                                            {hasSessions ===
+                                                                                'yes' &&
+                                                                                hasLevels ===
+                                                                                    'no' && (
+                                                                                    // Show only sessions
+                                                                                    <div className="space-y-1">
+                                                                                        {sessions.map(
+                                                                                            (
+                                                                                                session
+                                                                                            ) => {
+                                                                                                const isChecked =
+                                                                                                    selectedSessionLevels.some(
+                                                                                                        (
+                                                                                                            item
+                                                                                                        ) =>
+                                                                                                            item.sessionId ===
+                                                                                                            session.id
+                                                                                                    );
+                                                                                                return (
+                                                                                                    <div
+                                                                                                        key={
+                                                                                                            session.id
+                                                                                                        }
+                                                                                                        className="flex items-center gap-2 rounded border border-gray-100 bg-gray-50 px-2 py-1"
+                                                                                                    >
+                                                                                                        <Checkbox
+                                                                                                            checked={
+                                                                                                                isChecked
+                                                                                                            }
+                                                                                                            onCheckedChange={() =>
+                                                                                                                handleSessionLevelCheckboxChange(
+                                                                                                                    session.id,
+                                                                                                                    session.name,
+                                                                                                                    'DEFAULT',
+                                                                                                                    ''
+                                                                                                                )
+                                                                                                            }
+                                                                                                            className="size-4"
+                                                                                                        />
+                                                                                                        <span className="text-sm text-gray-700">
+                                                                                                            {
+                                                                                                                session.name
+                                                                                                            }
+                                                                                                        </span>
+                                                                                                    </div>
+                                                                                                );
+                                                                                            }
+                                                                                        )}
+                                                                                    </div>
+                                                                                )}
+                                                                            {hasSessions === 'no' &&
+                                                                                hasLevels ===
+                                                                                    'yes' && (
+                                                                                    // Show only levels
+                                                                                    <div className="space-y-1">
+                                                                                        {sessions
+                                                                                            .find(
+                                                                                                (
+                                                                                                    s
+                                                                                                ) =>
+                                                                                                    s.id ===
+                                                                                                    'standalone'
+                                                                                            )
+                                                                                            ?.levels.map(
                                                                                                 (
                                                                                                     level
                                                                                                 ) => {
@@ -994,14 +1180,14 @@ export const AddCourseStep2 = ({
                                                                                                             (
                                                                                                                 item
                                                                                                             ) =>
-                                                                                                                item.sessionId ===
-                                                                                                                    session.id &&
                                                                                                                 item.levelId ===
-                                                                                                                    level.id
+                                                                                                                level.id
                                                                                                         );
                                                                                                     return (
                                                                                                         <div
-                                                                                                            key={`${session.id}-${level.id}`}
+                                                                                                            key={
+                                                                                                                level.id
+                                                                                                            }
                                                                                                             className="flex items-center gap-2 rounded border border-gray-100 bg-gray-50 px-2 py-1"
                                                                                                         >
                                                                                                             <Checkbox
@@ -1010,8 +1196,8 @@ export const AddCourseStep2 = ({
                                                                                                                 }
                                                                                                                 onCheckedChange={() =>
                                                                                                                     handleSessionLevelCheckboxChange(
-                                                                                                                        session.id,
-                                                                                                                        session.name,
+                                                                                                                        'DEFAULT',
+                                                                                                                        '',
                                                                                                                         level.id,
                                                                                                                         level.name
                                                                                                                     )
@@ -1027,10 +1213,8 @@ export const AddCourseStep2 = ({
                                                                                                     );
                                                                                                 }
                                                                                             )}
-                                                                                        </div>
                                                                                     </div>
-                                                                                )
-                                                                            )}
+                                                                                )}
                                                                         </div>
                                                                         <div className="mt-3 flex justify-end gap-2">
                                                                             <MyButton
@@ -1127,7 +1311,10 @@ export const AddCourseStep2 = ({
                                 buttonType="primary"
                                 scale="large"
                                 layoutVariant="default"
-                                onClick={() => handleSubmit(form.getValues())}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    handleSubmit(form.getValues());
+                                }}
                             >
                                 <Plus />
                                 Create
