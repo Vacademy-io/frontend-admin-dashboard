@@ -17,9 +17,9 @@ import { useNavigate } from '@tanstack/react-router';
 import useOrganizationStore from '../onboarding/-zustand-store/step1OrganizationZustand';
 import { useEffect } from 'react';
 import { handleOAuthLogin, type OAuthProvider } from '@/hooks/login/oauth-login';
-import { FcGoogle } from 'react-icons/fc';
 import { GitHubLogoIcon } from '@radix-ui/react-icons';
 import { Fragment } from 'react';
+import { GoogleLogo } from 'phosphor-react';
 
 const items = [
     {
@@ -109,7 +109,8 @@ export function SignUpComponent() {
                                     }
                                 >
                                     <Fragment>
-                                        <FcGoogle className="size-5" />
+                                        {/* <FcGoogle className="size-5" /> */}
+                                        <GoogleLogo className="size-5" />
                                     </Fragment>
                                     Continue with Google
                                 </button>
