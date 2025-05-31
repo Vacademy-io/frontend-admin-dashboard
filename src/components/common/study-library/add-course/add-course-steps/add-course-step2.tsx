@@ -249,7 +249,6 @@ export const AddCourseStep2 = ({
             instructors: instructors,
             publishToCatalogue,
         };
-        console.log('Complete form data:', completeData);
         onSubmit(completeData);
     };
 
