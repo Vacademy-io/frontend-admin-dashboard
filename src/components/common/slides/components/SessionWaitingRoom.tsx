@@ -72,10 +72,7 @@ export const WaitingRoom: React.FC<WaitingRoomProps> = ({
     const { session_id: sessionId, invite_code: inviteCode } = sessionDetails;
     const presentationTitle =
         sessionDetails.title || sessionDetails.slides?.title || 'Live Session Starting Soon';
-    const invitationLink =
-        typeof window !== 'undefined'
-            ? `${window.location.origin}/engage/${inviteCode}`
-            : `/engage/${inviteCode}`;
+    const invitationLink = `https://engage.vacademy.io/${inviteCode}`;
 
     useEffect(() => {
         if (qrRef.current && invitationLink) {
@@ -85,7 +82,7 @@ export const WaitingRoom: React.FC<WaitingRoomProps> = ({
         }
     }, [invitationLink]);
 
-    useEffect(() => {
+    useEffect(() => {``
         if (!sessionId) {
             if (eventSourceRef.current) {
                 eventSourceRef.current.close();
