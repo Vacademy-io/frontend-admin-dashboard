@@ -8,6 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { Presentation } from "../types";
 import { getPublicUrl } from "@/services/upload_file";
+import { SlideTypeEnum } from "../utils/types";
 
 export const fetchPresentation = async (presentationId: string, setSlides: any, setCurrentSlideId: any) => {
 
@@ -42,9 +43,37 @@ export const fetchPresentation = async (presentationId: string, setSlides: any, 
                     headers: { "Cache-Control": "no-cache" }
                 });
 
+                let slideDataFromS3 = s3Response.data;
+
+                // Ensure basic structure for Excalidraw-like slides
+                if (slide.source !== 'question') { // Assuming non-question slides are Excalidraw-like
+                    slideDataFromS3 = {
+                        elements: [], // Default empty elements
+                        appState: {}, // Default empty appState
+                        files: null, // Default null files
+                        ...slideDataFromS3, // Spread S3 data, potentially overriding defaults if present
+                    };
+                    // Ensure elements is always an array if it came from S3 but wasn't an array
+                    if (!Array.isArray(slideDataFromS3.elements)) {
+                        slideDataFromS3.elements = [];
+                    }
+                     // Ensure appState is always an object
+                    if (typeof slideDataFromS3.appState !== 'object' || slideDataFromS3.appState === null) {
+                        slideDataFromS3.appState = {};
+                    }
+                }
+
                 const slideContent = {
-                    ...s3Response.data,
-                    id: slide.id // Inject original slide ID
+                    ...slideDataFromS3,
+                    id: slide.id, // Inject original slide ID
+                    slide_order: slide.slide_order, // Ensure slide_order is carried over
+                    type: slide.source === 'question' 
+                        ? (slide.added_question?.question_type === 'MCQS' || slide.added_question?.question_type === 'MCQM' 
+                            ? SlideTypeEnum.Quiz 
+                            : (slide.added_question?.question_type === 'LONG_ANSWER' 
+                                ? SlideTypeEnum.Feedback 
+                                : SlideTypeEnum.Feedback)) // Default to Feedback for unknown question types from 'question' source
+                        : (slideDataFromS3.type || SlideTypeEnum.Excalidraw)
                 };
 
                 slidesData.push(slideContent);

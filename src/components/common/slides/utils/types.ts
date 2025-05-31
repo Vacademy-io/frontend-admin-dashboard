@@ -25,6 +25,7 @@ export enum SlideTypeEnum {
     Excalidraw = 'excalidraw', // Generic Excalidraw slide
     Quiz = 'quiz',
     Feedback = 'feedback',
+    InteractiveVideo = 'interactive-video',
 }
 
 // Data structure for Quiz/Feedback slide elements
@@ -43,9 +44,9 @@ interface BaseSlide {
     title?: string; // Optional title for the slide itself
 }
 
-// Interface for Excalidraw-based slides (Title, Text, Blank, Excalidraw)
+// Interface for Excalidraw-based slides (Title, Text, Blank, Excalidraw, and others by default)
 export interface ExcalidrawSlideData extends BaseSlide {
-    type: SlideTypeEnum.Title | SlideTypeEnum.Text | SlideTypeEnum.Blank | SlideTypeEnum.Excalidraw;
+    type: SlideTypeEnum; // Broadened to accept any slide type, discriminated by Slide union.
     elements: readonly ExcalidrawElement[];
     appState: PartialAppState; // Storing partial appState is usually fine for initial data
     files: BinaryFiles | null;

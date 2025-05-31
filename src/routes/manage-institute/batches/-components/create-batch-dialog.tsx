@@ -10,6 +10,7 @@ import { useAddCourse } from '@/services/study-library/course-operations/add-cou
 import { AddCourseData } from '@/components/common/study-library/add-course/add-course-form';
 import { useCopyStudyMaterialFromSession } from '../../../manage-students/students-list/-services/copyStudyMaterialFromSession';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { Plus } from 'phosphor-react';
 
 interface FormData {
     // Course step
@@ -30,7 +31,11 @@ interface FormData {
 }
 
 export const CreateBatchDialog = () => {
-    const triggerButton = <MyButton scale="large">Create Batch</MyButton>;
+    const triggerButton = (
+        <MyButton scale="medium" buttonType="primary" className="flex items-center">
+            <Plus size={18} className="mr-2" /> Create Batch
+        </MyButton>
+    );
     const [currentStep, setCurrentStep] = useState(0);
     const [openManageBatchDialog, setOpenManageBatchDialog] = useState(false);
     const addCourseMutation = useAddCourse();
@@ -229,18 +234,23 @@ export const CreateBatchDialog = () => {
     };
 
     const backButton = (
-        <MyButton buttonType="secondary" onClick={prevStep}>
+        <MyButton buttonType="secondary" onClick={prevStep} className="font-normal">
             Back
         </MyButton>
     );
+
+    const nextButtonText = currentStep === 2 ? 'Create Batch' : 'Next Step';
+    const nextButtonIcon = currentStep === 2 ? <Plus size={18} className="mr-1.5" /> : null;
 
     const nextButton = (
         <MyButton
             onClick={() => {
                 currentStep === 2 ? submit() : nextStep();
             }}
+            buttonType={currentStep === 2 ? 'secondary' : 'text'}
+            className={currentStep === 2 ? "text-neutral-700 font-semibold" : "text-primary-600 hover:text-primary-700 font-semibold"}
         >
-            {currentStep === 2 ? 'Create' : 'Next'}
+            {nextButtonIcon}{nextButtonText}
         </MyButton>
     );
 
@@ -260,17 +270,23 @@ export const CreateBatchDialog = () => {
         <CreateLevelStep key="level" />,
     ];
 
+    const stepTitles = ['Select Course', 'Select Session', 'Select Level'];
+
     return (
         <MyDialog
             trigger={triggerButton}
-            heading="Create Batch"
+            heading={`Create Batch - Step ${currentStep + 1}: ${stepTitles[currentStep]}`}
             footer={footer}
-            dialogWidth="w-[800px]"
+            dialogWidth="w-[600px]"
             open={openManageBatchDialog}
             onOpenChange={handleOpenManageBatchDialog}
+            bodyClassName="pt-6 pb-8 px-8"
+            headerClassName="pb-4"
         >
             <FormProvider {...methods}>
-                <form onSubmit={methods.handleSubmit(submit)}>{steps[currentStep]}</form>
+                <form onSubmit={methods.handleSubmit(submit)} className="space-y-6">
+                    {steps[currentStep]}
+                </form>
             </FormProvider>
         </MyDialog>
     );

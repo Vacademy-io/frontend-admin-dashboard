@@ -1,6 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import {
     Form,
@@ -14,6 +14,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useSlideStore } from '@/stores/Slides/useSlideStore'; // Adjust path
+import debounce from 'lodash.debounce'; // Import debounce
 
 // Assuming QuestionFormData and SlideTypeEnum are from your types file
 import type { QuestionFormData } from '@/components/common/slides/utils/types'; // Import QuestionFormData as type
@@ -36,6 +37,8 @@ export const QuizSlide: React.FC<QuizSlideProps> = ({
 }) => {
     const { updateQuizFeedbackSlide } = useSlideStore();
 
+    // console.log(`[QuizSlide] ID: ${currentSlideId}, PresentationMode: ${isPresentationMode}, Received formdata:`, JSON.parse(JSON.stringify(formdata)));
+
     const form = useForm<QuestionFormData>({
         defaultValues: formdata || {
             questionName: '',
@@ -57,15 +60,30 @@ export const QuizSlide: React.FC<QuizSlideProps> = ({
 
     // Using watch() on the entire form could be expensive.
     // It's better to use useEffect with specific field watches or a debounced submit.
-    // For simplicity, this approach is kept but can be optimized.
     const watchedFormValues = watch();
 
+    // Debounce the function that updates the Zustand store
+    const debouncedUpdateStore = useMemo(
+        () =>
+            debounce((data: QuestionFormData) => {
+                if (!isPresentationMode) {
+                    // console.log("QuizSlide: Debounced update to store for slide", currentSlideId, data);
+                    updateQuizFeedbackSlide(currentSlideId, data);
+                }
+            }, 500), // 500ms delay, adjust as needed
+        [currentSlideId, isPresentationMode, updateQuizFeedbackSlide]
+    );
+
     useEffect(() => {
-        if (!isPresentationMode) {
-            // console.log("QuizSlide: Form values changed, updating store for slide", currentSlideId, watchedFormValues);
-            updateQuizFeedbackSlide(currentSlideId, watchedFormValues);
-        }
-    }, [watchedFormValues, currentSlideId, isPresentationMode, updateQuizFeedbackSlide]);
+        // Call the debounced function when form values change
+        debouncedUpdateStore(watchedFormValues);
+
+        // Cleanup function to cancel any pending debounced calls if the component unmounts
+        // or if the dependencies of debouncedUpdateStore change.
+        return () => {
+            debouncedUpdateStore.cancel();
+        };
+    }, [watchedFormValues, debouncedUpdateStore]);
 
     const handleOptionSelectionChange = (optionIndex: number) => {
         if (isPresentationMode) return;
@@ -86,6 +104,8 @@ export const QuizSlide: React.FC<QuizSlideProps> = ({
 
     if (isPresentationMode) {
         const displayData = formdata || {};
+        // console.log(`[QuizSlide] Presentation Mode - ID: ${currentSlideId}, DisplayData:`, JSON.parse(JSON.stringify(displayData)));
+
         return (
             <div
                 className={`flex h-full w-full flex-col items-center justify-center overflow-hidden p-4 text-slate-800 sm:p-6 md:p-8 ${className}`}

@@ -6,7 +6,7 @@ import { DoubtType } from '../../-types/add-doubt-type';
 import { FacultyFilterParams } from '@/routes/dashboard/-services/dashboard-services';
 import { useAddReply } from '../../-services/AddReply';
 import { handleAddReply } from '../../-helper/handleAddReply';
-import { useContentStore } from '../../-stores/chapter-sidebar-store';
+import { Tag } from '@phosphor-icons/react';
 
 // Custom debounce hook
 const useDebounce = <T extends (...args: unknown[]) => void>(callback: T, delay: number) => {
@@ -17,14 +17,12 @@ const useDebounce = <T extends (...args: unknown[]) => void>(callback: T, delay:
             if (timeoutId) {
                 clearTimeout(timeoutId);
             }
-
             const newTimeoutId = setTimeout(() => {
                 callback(...args);
             }, delay);
-
             setTimeoutId(newTimeoutId);
         },
-        [callback, delay]
+        [callback, delay, timeoutId]
     );
 };
 
@@ -32,7 +30,7 @@ export const TeacherSelection = ({
     doubt,
     filters,
     canChange,
-    showCanAssign
+    showCanAssign = true,
 }: {
     doubt: DoubtType;
     filters: FacultyFilterParams;
@@ -41,18 +39,14 @@ export const TeacherSelection = ({
 }) => {
     const addReply = useAddReply();
     const InstituteId = getInstituteId();
-    const { activeItem } = useContentStore();
     const { data: TeachersList } = useTeacherList(InstituteId || '', 0, 100, filters, true);
 
     const teacherOptions = useMemo(
         () =>
-            TeachersList?.content?.map(
-                (teacher) =>
-                    ({ id: teacher.id, name: teacher.name }) as {
-                        id: string | number;
-                        name: string;
-                    }
-            ) || [],
+            TeachersList?.content?.map((teacher) => ({
+                id: teacher.id,
+                name: teacher.name,
+            })) || [],
         [TeachersList?.content]
     );
 
@@ -72,11 +66,14 @@ export const TeacherSelection = ({
         );
     }, [teacherOptions, doubt?.all_doubt_assignee]);
 
-    const handleTeacherSelection = (selectedTeachers: { id: string | number; name: string }[]) => {
-        setSelectedTeachers(selectedTeachers);
+    const handleTeacherSelection = (newlySelectedTeachers: { id: string | number; name: string }[]) => {
+        setSelectedTeachers(newlySelectedTeachers);
+        if (canChange) {
+            debouncedSubmitReply(newlySelectedTeachers);
+        }
     };
 
-    const submitReply = useCallback(async () => {
+    const submitReply = useCallback(async (currentSelectedTeachers: { id: string | number; name: string }[]) => {
         const replyData: DoubtType = {
             id: doubt.id,
             user_id: doubt.user_id,
@@ -91,49 +88,57 @@ export const TeacherSelection = ({
             status: doubt.status,
             parent_id: doubt.parent_id,
             parent_level: doubt.parent_level,
-            doubt_assignee_request_user_ids: selectedTeachers
-                ?.filter(
+            doubt_assignee_request_user_ids: currentSelectedTeachers
+                .filter(
                     (teacher) =>
-                        !doubt.all_doubt_assignee.some(
-                            (assignee) => assignee.source_id === teacher.id
-                        )
+                        !doubt.all_doubt_assignee.some((assignee) => assignee.source_id === teacher.id)
                 )
                 .map((teacher) => String(teacher.id)),
             all_doubt_assignee: doubt.all_doubt_assignee,
             delete_assignee_request: doubt.all_doubt_assignee
                 .filter(
                     (assignee) =>
-                        !selectedTeachers.some((teacher) => teacher.id === assignee.source_id)
+                        !currentSelectedTeachers.some((teacher) => teacher.id === assignee.source_id)
                 )
                 .map((assignee) => assignee.id),
         };
         await handleAddReply({ replyData, addReply, id: doubt.id });
-    }, [doubt, selectedTeachers, activeItem?.id, addReply]);
+    }, [doubt, addReply]);
 
-    const debouncedSubmitReply = useDebounce(submitReply, 1000); // 60 seconds debounce
+    const debouncedSubmitReply = useDebounce(submitReply, 1000);
 
-    useEffect(() => {
-        if (selectedTeachers?.length > 0) {
-            debouncedSubmitReply();
-        }
-    }, [selectedTeachers]);
+    const hasAssignedTeachers = selectedTeachers && selectedTeachers.length > 0;
 
     return (
-        <div className="flex items-center gap-2">
-            {(showCanAssign==undefined || showCanAssign==true) && <p className="font-semibold ">Assigned to:</p>}
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+            {showCanAssign && (
+                <div className="flex items-center gap-1 text-neutral-500">
+                    <Tag size={14} weight="duotone" />
+                    <span className="font-medium">Assigned:</span>
+                </div>
+            )}
             {canChange ? (
                 <MultiSelectDropdown
                     options={teacherOptions}
                     selected={selectedTeachers}
                     onChange={handleTeacherSelection}
-                    placeholder="+ Assign"
+                    placeholder={hasAssignedTeachers ? "Change Assignee" : "+ Assign Teacher"}
+                    className="min-w-[160px] text-xs"
+                    triggerClassName="text-xs px-2 py-1 border-neutral-300 hover:border-neutral-400 data-[state=open]:border-blue-500"
                 />
-            ) : (
-                <div className="flex items-center gap-2">
-                    <p className="rounded-md border border-neutral-300 p-1">
-                        {selectedTeachers.map((teacher) => teacher.name).join(', ')}
-                    </p>
+            ) : hasAssignedTeachers ? (
+                <div className="flex flex-wrap gap-1">
+                    {selectedTeachers.map((teacher) => (
+                        <span
+                            key={teacher.id}
+                            className="rounded-full bg-neutral-100 px-2.5 py-0.5 text-xs font-medium text-neutral-700"
+                        >
+                            {teacher.name}
+                        </span>
+                    ))}
                 </div>
+            ) : (
+                showCanAssign && <p className="text-neutral-500 italic">None</p>
             )}
         </div>
     );

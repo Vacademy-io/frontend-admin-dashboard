@@ -7,7 +7,7 @@ import { Plus } from 'phosphor-react';
 import { AddCourseButton } from '@/components/common/study-library/add-course/add-course-button';
 import { MyButton } from '@/components/design-system/button';
 import { useFormContext } from 'react-hook-form';
-import { FormControl, FormField, FormItem } from '@/components/ui/form';
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useAddCourse } from '@/services/study-library/course-operations/add-course';
 import { AddCourseData } from '@/components/common/study-library/add-course/add-course-form';
 import { toast } from 'sonner';
@@ -49,74 +49,78 @@ export const CreateCourseStep = ({ handleOpenManageBatchDialog }: CreateCourseSt
 
     return (
         <div className="flex flex-col gap-6">
-            <div className="text-regular">
-                Step 1 <span className="font-semibold">Select Course</span>
-            </div>
-
             <FormField
                 control={form.control}
                 name="courseCreationType"
                 render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="space-y-3">
+                        <FormLabel className="text-base font-medium text-neutral-700">Course Selection</FormLabel>
                         <FormControl>
                             <RadioGroup
-                                className="flex gap-10"
-                                onValueChange={field.onChange}
+                                className="flex gap-6 pt-1"
+                                onValueChange={(value) => {
+                                    field.onChange(value);
+                                    form.setValue('selectedCourse', null); // Reset dependent field
+                                }}
                                 value={field.value}
                             >
-                                <div className="flex items-center gap-2">
-                                    <RadioGroupItem
-                                        value="existing"
-                                        id="existing"
-                                        disabled={courseList.length === 0}
-                                    />
-                                    <label
-                                        htmlFor="existing"
-                                        className={
-                                            courseList.length === 0 ? 'text-neutral-400' : ''
-                                        }
+                                <FormItem className="flex items-center space-x-2 space-y-0">
+                                    <FormControl>
+                                        <RadioGroupItem
+                                            value="existing"
+                                            id="existing-course"
+                                            disabled={courseList.length === 0}
+                                        />
+                                    </FormControl>
+                                    <FormLabel
+                                        htmlFor="existing-course"
+                                        className={`font-normal cursor-pointer ${courseList.length === 0 ? 'text-neutral-400' : 'text-neutral-600'}`}
                                     >
-                                        Pre-existing course
-                                    </label>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <RadioGroupItem value="new" id="new" />
-                                    <label htmlFor="new">Create new course</label>
-                                </div>
+                                        Select existing course
+                                    </FormLabel>
+                                </FormItem>
+                                <FormItem className="flex items-center space-x-2 space-y-0">
+                                    <FormControl>
+                                        <RadioGroupItem value="new" id="new-course" />
+                                    </FormControl>
+                                    <FormLabel htmlFor="new-course" className="font-normal text-neutral-600 cursor-pointer">
+                                        Create new course
+                                    </FormLabel>
+                                </FormItem>
                             </RadioGroup>
                         </FormControl>
+                        <FormMessage />
                     </FormItem>
                 )}
             />
 
-            <div className="flex flex-col gap-1">
-                {courseList.length > 0 && form.watch('courseCreationType') === 'existing' && (
-                    <>
-                        <div>
-                            Course
-                            <span className="text-subtitle text-danger-600">*</span>
-                        </div>
-                        <FormField
-                            control={form.control}
-                            name="selectedCourse"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormControl>
-                                        <MyDropdown
-                                            currentValue={field.value}
-                                            dropdownList={courseList}
-                                            handleChange={field.onChange}
-                                            placeholder="Select course"
-                                            required={true}
-                                        />
-                                    </FormControl>
-                                </FormItem>
-                            )}
-                        />
-                    </>
-                )}
+            {form.watch('courseCreationType') === 'existing' && (
+                <FormField
+                    control={form.control}
+                    name="selectedCourse"
+                    rules={{ required: 'Please select a course' }}
+                    render={({ field }) => (
+                        <FormItem className="flex flex-col gap-1.5">
+                            <FormLabel className="text-neutral-700">
+                                Course <span className="text-danger-500">*</span>
+                            </FormLabel>
+                            <FormControl>
+                                <MyDropdown
+                                    currentValue={field.value}
+                                    dropdownList={courseList}
+                                    handleChange={field.onChange}
+                                    placeholder="Select a course"
+                                    disabled={courseList.length === 0}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+            )}
 
-                {form.watch('courseCreationType') === 'new' && (
+            {form.watch('courseCreationType') === 'new' && (
+                <div className="mt-2">
                     <AddCourseButton
                         onSubmit={handleAddCourse}
                         courseButton={
@@ -124,19 +128,19 @@ export const CreateCourseStep = ({ handleOpenManageBatchDialog }: CreateCourseSt
                                 type="button"
                                 buttonType="text"
                                 layoutVariant="default"
-                                scale="small"
-                                className="w-fit text-primary-500 hover:bg-white active:bg-white"
+                                scale="medium"
+                                className="flex items-center text-neutral-600 hover:text-primary-600 p-0 hover:bg-transparent active:bg-transparent font-normal"
                                 onClick={(e) => {
                                     e.preventDefault();
                                     e.stopPropagation();
                                 }}
                             >
-                                <Plus /> Add Course
+                                <Plus size={18} className="mr-1" /> Add New Course
                             </MyButton>
                         }
                     />
-                )}
-            </div>
+                </div>
+            )}
         </div>
     );
 };

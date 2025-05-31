@@ -10,46 +10,41 @@ export const ShowReplies = ({ parent, refetch }: { parent: Doubt; refetch: () =>
     const [showReplies, setShowReplies] = useState<boolean>(false);
     const userId = getUserId();
     const isAdmin = isUserAdmin();
+    const canReply = isAdmin || (userId && parent.all_doubt_assignee?.some(assignee => assignee.id === userId)) || (userId && parent.doubt_assignee_request_user_ids?.includes(userId));
+
+    // Determine if the AddReply component should be shown when there are no replies
+    const showAddReplyWithoutReplies = canReply && parent.replies.length === 0;
+
     return (
-        <>
-            {parent.replies.length > 0 ? (
-                <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-2">
-                        <p className="text-caption font-semibold sm:text-body">
-                            Replies{' '}
-                            <span className="text-primary-500">{parent.replies.length}</span>
-                        </p>
-                        {showReplies == false && (
-                            <CaretDown
-                                onClick={() => setShowReplies(true)}
-                                className="cursor-pointer"
-                            />
-                        )}
-                        {showReplies == true && (
-                            <CaretUp
-                                onClick={() => setShowReplies(false)}
-                                className="cursor-pointer"
-                            />
-                        )}
-                    </div>
-                    {showReplies && (
-                        <div className="flex flex-col gap-2 rounded-md border border-neutral-300 p-4">
-                            {parent.replies?.map((reply, key) => (
-                                <Reply reply={reply} key={key} refetch={refetch} />
-                            ))}
-                            {(isAdmin ||
-                                (userId &&
-                                    parent.doubt_assignee_request_user_ids?.includes(userId))) && (
-                                <AddReply parent={parent} refetch={refetch} />
-                            )}
-                        </div>
-                    )}
+        <div className="w-full">
+            {parent.replies.length > 0 && (
+                <div
+                    className="flex cursor-pointer items-center gap-1 text-xs text-primary-500 hover:underline"
+                    onClick={() => setShowReplies(!showReplies)}
+                >
+                    <span>
+                        {showReplies ? 'Hide Replies' : 'Show Replies'} ({parent.replies.length})
+                    </span>
+                    {showReplies ? <CaretUp size={14} /> : <CaretDown size={14} />}
                 </div>
-            ) : isAdmin || (userId && parent.doubt_assignee_request_user_ids.includes(userId)) ? (
-                <AddReply parent={parent} refetch={refetch} />
-            ) : (
-                <></>
             )}
-        </>
+
+            {showReplies && parent.replies.length > 0 && (
+                <div className="mt-2 flex flex-col gap-2 rounded-md border border-neutral-200 bg-neutral-50 p-3">
+                    {parent.replies?.map((reply, key) => (
+                        <Reply reply={reply} key={key} refetch={refetch} />
+                    ))}
+                     {/* Always show AddReply inside the expanded replies section if user can reply */}
+                    {canReply && <AddReply parent={parent} refetch={refetch} />}
+                </div>
+            )}
+
+            {/* Show AddReply directly if there are no replies and user can reply */}
+            {showAddReplyWithoutReplies && (
+                 <div className="mt-2">
+                    <AddReply parent={parent} refetch={refetch} />
+                </div>
+            )}
+        </div>
     );
 };

@@ -5,7 +5,7 @@ import { useInstituteDetailsStore } from '@/stores/students/students-list/useIns
 import { useEffect, useState } from 'react';
 import { MyDropdown } from '@/components/common/students/enroll-manually/dropdownForPackageItems';
 import { useFormContext } from 'react-hook-form';
-import { FormControl, FormField, FormItem } from '@/components/ui/form';
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { X } from 'phosphor-react';
 import { MyButton } from '@/components/design-system/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -71,150 +71,170 @@ export const CreateLevelStep = () => {
 
     return (
         <div className="flex flex-col gap-6">
-            <div className="text-regular">
-                Step 3 <span className="font-semibold">Select Level</span>
-            </div>
-
             <FormField
                 control={form.control}
                 name="levelCreationType"
                 render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="space-y-3">
+                        <FormLabel className="text-base font-medium text-neutral-700">Level Selection</FormLabel>
                         <FormControl>
                             <RadioGroup
-                                className="flex gap-10"
-                                onValueChange={field.onChange}
+                                className="flex gap-6 pt-1"
+                                onValueChange={(value) => {
+                                    field.onChange(value);
+                                    form.setValue('selectedLevel', null); // Reset dependent field
+                                    form.setValue('selectedLevelDuration', null);
+                                    setNewLevelAdded(false); // Reset new level state
+                                    setNewLevelName('');
+                                    setNewLevelDuration(null);
+                                }}
                                 value={field.value}
                             >
-                                <div className="flex items-center gap-2">
-                                    <RadioGroupItem
-                                        value="existing"
-                                        id="existing"
-                                        disabled={levelList.length === 0}
-                                    />
-                                    <label
-                                        htmlFor="existing"
-                                        className={
-                                            levelList.length === 0
-                                                ? 'text-neutral-400'
-                                                : 'text-neutral-600'
-                                        }
+                                <FormItem className="flex items-center space-x-2 space-y-0">
+                                    <FormControl>
+                                        <RadioGroupItem
+                                            value="existing"
+                                            id="existing-level"
+                                            disabled={levelList.length === 0}
+                                        />
+                                    </FormControl>
+                                    <FormLabel
+                                        htmlFor="existing-level"
+                                        className={`font-normal cursor-pointer ${levelList.length === 0 ? 'text-neutral-400' : 'text-neutral-600'}`}
                                     >
-                                        Pre-existing level
-                                    </label>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <RadioGroupItem value="new" id="new" />
-                                    <label htmlFor="new">Create new level</label>
-                                </div>
+                                        Select existing level
+                                    </FormLabel>
+                                </FormItem>
+                                <FormItem className="flex items-center space-x-2 space-y-0">
+                                    <FormControl>
+                                        <RadioGroupItem value="new" id="new-level" />
+                                    </FormControl>
+                                    <FormLabel htmlFor="new-level" className="font-normal text-neutral-600 cursor-pointer">
+                                        Create new level
+                                    </FormLabel>
+                                </FormItem>
                             </RadioGroup>
                         </FormControl>
+                        <FormMessage />
                     </FormItem>
                 )}
             />
 
-            <div className="flex flex-col gap-1">
-                {levelList.length > 0 && form.watch('levelCreationType') === 'existing' && (
-                    <>
-                        <div>
-                            Level
-                            <span className="text-subtitle text-danger-600">*</span>
-                        </div>
+            {form.watch('levelCreationType') === 'existing' && (
+                <FormField
+                    control={form.control}
+                    name="selectedLevel"
+                    rules={{ required: 'Please select a level' }}
+                    render={({ field }) => (
+                        <FormItem className="flex flex-col gap-1.5">
+                            <FormLabel className="text-neutral-700">
+                                Level <span className="text-danger-500">*</span>
+                            </FormLabel>
+                            <FormControl>
+                                <MyDropdown
+                                    currentValue={field.value}
+                                    dropdownList={levelList}
+                                    handleChange={field.onChange}
+                                    placeholder="Select a level"
+                                    disable={levelList.length === 0}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+            )}
 
+            {form.watch('levelCreationType') === 'new' &&
+                (newLevelAdded ? (
+                    <div className="flex items-center gap-3 p-3 rounded-md border border-neutral-200 bg-neutral-50">
+                        <div className="flex flex-col flex-grow">
+                            <p className="text-sm font-medium text-neutral-700">{newLevelName}</p>
+                            {newLevelDuration && (
+                                <p className="text-xs text-neutral-500">
+                                    Duration: {newLevelDuration} days
+                                </p>
+                            )}
+                        </div>
+                        <MyButton
+                            onClick={() => {
+                                setNewLevelName('');
+                                setNewLevelDuration(null);
+                                setNewLevelAdded(false);
+                                form.setValue('selectedLevel', null);
+                                form.setValue('selectedLevelDuration', null);
+                            }}
+                            layoutVariant="icon"
+                            buttonType='text'
+                            className="text-neutral-500 hover:text-danger-600 hover:bg-danger-50 p-1"
+                            scale="small"
+                        >
+                            <X size={18} />
+                        </MyButton>
+                    </div>
+                ) : (
+                    <AddLevelInput
+                        newLevelName={newLevelName}
+                        setNewLevelName={setNewLevelName}
+                        newLevelDuration={newLevelDuration}
+                        setNewLevelDuration={setNewLevelDuration}
+                        handleAddLevel={handleAddLevel}
+                        batchCreation={true}
+                    />
+                ))}
+
+            {shouldShowDuplicateOption && (
+                <div className="pt-4 mt-4 border-t border-neutral-200">
+                    <FormField
+                        control={form.control}
+                        name="duplicateStudyMaterials"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-center space-x-3 space-y-0 py-1">
+                                <FormControl>
+                                    <Checkbox
+                                        checked={field.value}
+                                        onCheckedChange={(checked) => {
+                                            field.onChange(checked);
+                                            if (!checked) {
+                                                form.setValue('selectedDuplicateSession', null);
+                                            }
+                                        }}
+                                        id="duplicate-materials"
+                                    />
+                                </FormControl>
+                                <FormLabel htmlFor="duplicate-materials" className="text-sm font-normal text-neutral-700 cursor-pointer">
+                                    Duplicate study materials from a pre-existing session
+                                </FormLabel>
+                            </FormItem>
+                        )}
+                    />
+
+                    {form.watch('duplicateStudyMaterials') && (
                         <FormField
                             control={form.control}
-                            name="selectedLevel"
+                            name="selectedDuplicateSession"
+                            rules={{ required: 'Please select a session to duplicate from' }}
                             render={({ field }) => (
-                                <FormItem>
+                                <FormItem className="flex flex-col gap-1.5 mt-3">
+                                    <FormLabel className="text-neutral-700">
+                                        Duplicate from Session <span className="text-danger-500">*</span>
+                                    </FormLabel>
                                     <FormControl>
                                         <MyDropdown
                                             currentValue={field.value}
-                                            dropdownList={levelList}
+                                            dropdownList={sessionList}
                                             handleChange={field.onChange}
-                                            placeholder="Select level"
-                                            required={true}
+                                            placeholder="Select session for duplication"
+                                            disable={sessionList.length === 0}
                                         />
                                     </FormControl>
+                                    <FormMessage />
                                 </FormItem>
                             )}
                         />
-                    </>
-                )}
-
-                {form.watch('levelCreationType') === 'new' &&
-                    (newLevelName != '' && setNewLevelDuration != null && newLevelAdded ? (
-                        <div className="flex items-center gap-2">
-                            <div className="flex flex-col gap-1">
-                                <p className="text-body font-semibold">Level: {newLevelName}</p>
-                                <p className="text-caption text-neutral-500">
-                                    Duration: {newLevelDuration}
-                                </p>
-                            </div>
-                            <MyButton
-                                onClick={() => {
-                                    setNewLevelName('');
-                                    setNewLevelDuration(null);
-                                    setNewLevelAdded(false);
-                                }}
-                                scale="small"
-                                layoutVariant="icon"
-                            >
-                                <X />
-                            </MyButton>
-                        </div>
-                    ) : (
-                        <AddLevelInput
-                            newLevelName={newLevelName}
-                            setNewLevelName={setNewLevelName}
-                            newLevelDuration={newLevelDuration}
-                            setNewLevelDuration={setNewLevelDuration}
-                            handleAddLevel={handleAddLevel}
-                            batchCreation={true}
-                        />
-                    ))}
-
-                {shouldShowDuplicateOption && (
-                    <div className="mt-4 flex items-center gap-4">
-                        <FormField
-                            control={form.control}
-                            name="duplicateStudyMaterials"
-                            render={({ field }) => (
-                                <FormItem className="flex flex-row items-center space-x-2">
-                                    <FormControl>
-                                        <Checkbox
-                                            checked={field.value}
-                                            onCheckedChange={field.onChange}
-                                        />
-                                    </FormControl>
-                                    <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                                        Duplicate study materials from pre-existing session
-                                    </label>
-                                </FormItem>
-                            )}
-                        />
-
-                        {form.watch('duplicateStudyMaterials') && (
-                            <FormField
-                                control={form.control}
-                                name="selectedDuplicateSession"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <MyDropdown
-                                                currentValue={field.value}
-                                                dropdownList={sessionList}
-                                                handleChange={field.onChange}
-                                                placeholder="Select session"
-                                                required={true}
-                                            />
-                                        </FormControl>
-                                    </FormItem>
-                                )}
-                            />
-                        )}
-                    </div>
-                )}
-            </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 };
