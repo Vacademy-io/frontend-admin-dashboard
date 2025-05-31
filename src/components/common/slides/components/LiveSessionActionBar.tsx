@@ -1,7 +1,7 @@
 // components/LiveSessionActionBar.tsx
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Users, Tv2, X, Edit3, Copy } from 'lucide-react'; // Added more icons
+import { Users, Tv2, X, Edit3, Copy, Loader2, Wifi, WifiOff } from 'lucide-react'; // Added more icons
 import { toast } from 'sonner';
 
 interface LiveSessionActionBarProps {
@@ -10,17 +10,12 @@ interface LiveSessionActionBarProps {
     totalSlides: number;
     participantsCount: number;
     onToggleParticipantsView: () => void;
-    isParticipantsPanelOpen: boolean; // To show active state
+    isParticipantsPanelOpen: boolean;
     onToggleWhiteboard: () => void;
-    isWhiteboardOpen: boolean; // To show active state
+    isWhiteboardOpen: boolean;
     onEndSession: () => void;
-    // Optional: Add more controls as needed
-    // onToggleMic?: () => void;
-    // isMicOn?: boolean;
-    // onToggleCamera?: () => void;
-    // isCameraOn?: boolean;
-    // onToggleHandRaise?: () => void; // For presenter to acknowledge
-    // handRaisesCount?: number;
+    isEndingSession?: boolean; // New prop for loading state
+    sseStatus?: 'connecting' | 'connected' | 'disconnected'; // New prop for SSE status
 }
 
 export const LiveSessionActionBar: React.FC<LiveSessionActionBarProps> = ({
@@ -33,8 +28,9 @@ export const LiveSessionActionBar: React.FC<LiveSessionActionBarProps> = ({
     onToggleWhiteboard,
     isWhiteboardOpen,
     onEndSession,
+    isEndingSession, // Destructure new prop
+    sseStatus, // Destructure new prop
 }) => {
-    // Assuming window.location.origin is accessible and correct for the invite link
     const invitationLink =
         typeof window !== 'undefined'
             ? `${window.location.origin}/engage/${inviteCode}`
@@ -51,17 +47,28 @@ export const LiveSessionActionBar: React.FC<LiveSessionActionBarProps> = ({
         }
     };
 
+    const SseStatusIndicator = () => {
+        if (sseStatus === 'connected') {
+            return <Wifi size={14} className="text-green-400" />;
+        }
+        if (sseStatus === 'connecting') {
+            return <Loader2 size={14} className="animate-spin text-yellow-400" />;
+        }
+        return <WifiOff size={14} className="text-red-400" />;
+    };
+
     return (
-        <div
-            className="fixed inset-x-0 top-0 z-[1001] flex h-14 items-center justify-between bg-slate-800 px-3 text-white shadow-md sm:px-4"
-            // Ensure z-index is high enough to be above Reveal.js (z-index 50) but below modals (z-index > 1001)
-        >
-            {/* Left Section: Session Info & Invite */}
+        <div className="fixed inset-x-0 top-0 z-[1001] flex h-14 items-center justify-between bg-slate-800 px-3 text-white shadow-md sm:px-4">
             <div className="flex items-center gap-2 sm:gap-3">
                 <Tv2 size={20} className="shrink-0 text-orange-400" />
                 <span className="hidden text-xs font-medium sm:text-sm md:inline">
                     Live Session
                 </span>
+                <div className="ml-1">
+                    {' '}
+                    <SseStatusIndicator />
+                </div>{' '}
+                {/* SSE Status */}
                 <div className="flex items-center rounded-full bg-slate-700 px-2 py-1 text-xs">
                     <span className="mr-1 hidden sm:inline">Code:</span>
                     <span className="font-mono tracking-wider">{inviteCode}</span>
@@ -77,14 +84,12 @@ export const LiveSessionActionBar: React.FC<LiveSessionActionBarProps> = ({
                 </div>
             </div>
 
-            {/* Center Section: Slide Navigation Info */}
             <div className="flex items-center text-xs sm:text-sm">
                 <span className="font-mono">
                     Slide: {currentSlideIndex + 1} / {totalSlides}
                 </span>
             </div>
 
-            {/* Right Section: Controls */}
             <div className="flex items-center gap-1 sm:gap-2">
                 <Button
                     variant="ghost"
@@ -106,23 +111,22 @@ export const LiveSessionActionBar: React.FC<LiveSessionActionBarProps> = ({
                     <Edit3 size={16} className="mr-0 sm:mr-1.5" />
                     <span className="hidden sm:inline">Whiteboard</span>
                 </Button>
-                {/* Placeholder for more controls 
-                <Button variant="ghost" size="icon" className="text-slate-200 hover:bg-slate-700 hover:text-white"><Mic size={16}/></Button>
-                <Button variant="ghost" size="icon" className="text-slate-200 hover:bg-slate-700 hover:text-white"><Video size={16}/></Button>
-                <Button variant="ghost" size="icon" className="text-slate-200 hover:bg-slate-700 hover:text-white relative">
-                    <Hand size={16}/>
-                    {handRaisesCount > 0 && <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">{handRaisesCount}</span>}
-                </Button>
-                */}
                 <Button
                     variant="destructive"
                     size="sm"
                     onClick={onEndSession}
-                    className="bg-red-500 text-white hover:bg-red-600 focus-visible:ring-red-400"
+                    disabled={isEndingSession} // Disable when ending
+                    className="min-w-[70px] bg-red-500 text-white hover:bg-red-600 focus-visible:ring-red-400 sm:min-w-[80px]"
                     title="End Session"
                 >
-                    <X size={16} className="mr-0 sm:mr-1.5" />
-                    <span className="hidden sm:inline">End</span>
+                    {isEndingSession ? (
+                        <Loader2 size={16} className="animate-spin" />
+                    ) : (
+                        <>
+                            <X size={16} className="mr-0 sm:mr-1.5" />
+                            <span className="hidden sm:inline">End</span>
+                        </>
+                    )}
                 </Button>
             </div>
         </div>

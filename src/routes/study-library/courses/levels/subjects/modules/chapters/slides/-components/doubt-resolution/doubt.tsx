@@ -1,42 +1,33 @@
-import { DoubtType } from '../../-types/doubt-list-type';
-import { useEffect, Dispatch, SetStateAction, useState } from 'react';
-import { ArrowSquareOut, CaretUp, TrashSimple } from '@phosphor-icons/react';
-import { CaretDown } from '@phosphor-icons/react';
-import { Reply } from './reply';
-import { getPublicUrl } from '@/services/upload_file';
+import { useEffect, useState } from 'react';
+import { ArrowSquareOut } from '@phosphor-icons/react';
 import { StatusChip } from '@/components/design-system/status-chips';
-import { Switch } from '@/components/ui/switch';
 import { useContentStore } from '../../-stores/chapter-sidebar-store';
+import { useMediaNavigationStore } from '../../-stores/media-navigation-store';
 import { useSidebar } from '@/components/ui/sidebar';
-import { getTokenFromCookie, getTokenDecodedData } from '@/lib/auth/sessionUtility';
-import { TokenKey } from '@/constants/auth/tokens';
-import { getInstituteId } from '@/constants/helper';
-import { useTeacherList } from '@/routes/dashboard/-hooks/useTeacherList';
+import { Doubt as DoubtType } from '../../-types/get-doubts-type';
 import { useRouter } from '@tanstack/react-router';
-import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { FacultyFilterParams } from '@/routes/dashboard/-services/dashboard-services';
-export const Doubt = ({
-    doubt,
-    setDoubtProgressMarkerPdf,
-    setDoubtProgressMarkerVideo,
-}: {
-    doubt: DoubtType;
-    setDoubtProgressMarkerPdf: Dispatch<SetStateAction<number | null>>;
-    setDoubtProgressMarkerVideo: Dispatch<SetStateAction<number | null>>;
-}) => {
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { ShowReplies } from './ShowReplies';
+import { DeleteDoubt } from './DeleteDoubt';
+import { MarkAsResolved } from './MarkAsResolved';
+import { formatISODateTimeReadable } from '@/helpers/formatISOTime';
+import { useGetUserBasicDetails } from '@/services/get_user_basic_details';
+import { EnrollFormUploadImage } from '@/assets/svgs';
+import { getPublicUrl } from '@/services/upload_file';
+import { TeacherSelection } from './TeacherSelection';
+import { formatTime } from '@/helpers/formatYoutubeVideoTime';
+import { getUserId, isUserAdmin } from '@/utils/userDetails';
+
+export const Doubt = ({ doubt, refetch }: { doubt: DoubtType; refetch: () => void }) => {
+    const [imageUrl, setImageUrl] = useState<string | null>(null);
+    const { activeItem } = useContentStore();
+    const { navigateToTimestamp } = useMediaNavigationStore();
+    const { setOpen } = useSidebar();
     const router = useRouter();
     const { getPackageSessionId } = useInstituteDetailsStore();
-    const [imageUrl, setImageUrl] = useState<string | null>(null);
-    const [showReplies, setShowReplies] = useState<boolean>(false);
-    const { activeItem } = useContentStore();
-    const { setOpen } = useSidebar();
-    const accessToken = getTokenFromCookie(TokenKey.accessToken);
-    const tokenData = getTokenDecodedData(accessToken);
-    const InstituteId = getInstituteId();
-    const isAdmin = tokenData?.authorities[InstituteId || '']?.roles.includes('ADMIN');
-    const isTeacher = tokenData?.authorities[InstituteId || '']?.roles.includes('TEACHER');
-    const userId = tokenData?.user;
-    // get teacher list
+    const userId = getUserId();
+    const isAdmin = isUserAdmin();
     const { courseId, sessionId, levelId, subjectId } = router.state.location.search;
     const pksId = getPackageSessionId({
         courseId: courseId || '',
@@ -50,23 +41,27 @@ export const Doubt = ({
         status: [],
         sort_columns: { name: 'DESC' },
     };
-    const { data } = useTeacherList(InstituteId || '', 0, 100, filters, true);
-    console.log('data: ', data, isTeacher, userId);
+
+    const { data: userBasicDetails } = useGetUserBasicDetails([doubt.user_id]);
 
     const handleTimeStampClick = (timestamp: number) => {
-        if (activeItem?.source_type == 'VIDEO') {
-            setDoubtProgressMarkerVideo(timestamp);
-        } else if (activeItem?.source_type == 'DOCUMENT') {
-            setDoubtProgressMarkerPdf(timestamp);
+        // Navigate to the appropriate timestamp based on media type
+        if (activeItem?.source_type === 'VIDEO') {
+            // For videos, timestamp is in milliseconds, convert to seconds for video player
+            navigateToTimestamp(timestamp, 'VIDEO');
+        } else if (activeItem?.source_type === 'DOCUMENT') {
+            // For PDFs, timestamp represents page number
+            navigateToTimestamp(timestamp, 'DOCUMENT');
         }
+
         setOpen(false);
     };
 
     useEffect(() => {
         const fetchImageUrl = async () => {
-            if (doubt.face_file_id) {
+            if (userBasicDetails?.[0]?.face_file_id) {
                 try {
-                    const url = await getPublicUrl(doubt.face_file_id);
+                    const url = await getPublicUrl(userBasicDetails?.[0]?.face_file_id);
                     setImageUrl(url);
                 } catch (error) {
                     console.error('Failed to fetch image URL:', error);
@@ -75,7 +70,7 @@ export const Doubt = ({
         };
 
         fetchImageUrl();
-    }, [doubt.face_file_id]);
+    }, [userBasicDetails?.[0]?.face_file_id]);
 
     return (
         <div className="flex flex-col gap-3 rounded-lg p-3 max-sm:text-caption md:px-1 lg:px-3">
@@ -87,14 +82,16 @@ export const Doubt = ({
                             {imageUrl ? (
                                 <img
                                     src={imageUrl}
-                                    alt={doubt.user_name}
+                                    alt={doubt.name}
                                     className="size-full rounded-lg object-cover "
                                 />
                             ) : (
-                                <></>
+                                <EnrollFormUploadImage className="size-10" />
                             )}
                         </div>
-                        <div className="text-body font-semibold">{doubt.user_name}</div>
+                        <div className="text-subtitle font-semibold text-neutral-700">
+                            {userBasicDetails?.[0]?.name}
+                        </div>
                     </div>
                     <div className="flex items-center gap-3">
                         <StatusChip
@@ -102,72 +99,51 @@ export const Doubt = ({
                             textSize="text-caption"
                             status={doubt.status === 'RESOLVED' ? 'SUCCESS' : 'INFO'}
                         />
-                        <p className="sm:text-regular text-caption text-neutral-500">
-                            {doubt.timestamp}
+                        <p className="text-caption text-neutral-500 sm:text-body">
+                            {formatISODateTimeReadable(doubt.raised_time)}
                         </p>
                     </div>
                 </div>
                 <div className="flex w-full items-center justify-between">
-                    <div className="flex gap-2">
-                        <p className="flex">
-                            <span className="font-semibold">Timestamp: </span>
-                            {doubt.slide_progress_marker}
-                        </p>
-                        <ArrowSquareOut
-                            className="mt-[3px] cursor-pointer"
-                            onClick={() => handleTimeStampClick(doubt.slide_progress_marker)}
-                        />
-                    </div>
-                    {/* {userId && doubt.user_id === userId && ( */}
-                    <div className="flex items-center gap-2 font-semibold ">
-                        Mark as resolved{' '}
-                        <Switch checked={doubt.status === 'RESOLVED'} onCheckedChange={() => {}} />
-                    </div>
-                    {/* )} */}
+                    {(activeItem?.source_type == 'VIDEO' ||
+                        (activeItem?.source_type == 'DOCUMENT' &&
+                            activeItem?.document_slide?.type == 'PDF')) && (
+                        <div className="flex gap-2">
+                            <p>
+                                <span className="font-semibold">
+                                    {activeItem?.source_type == 'VIDEO' ? 'Timestamp' : 'Page No'}:{' '}
+                                </span>
+                                {activeItem?.source_type == 'VIDEO'
+                                    ? formatTime(parseInt(doubt.content_position) / 1000)
+                                    : activeItem?.source_type == 'DOCUMENT'
+                                      ? parseInt(doubt.content_position) + 1
+                                      : doubt.content_position}
+                            </p>
+                            <ArrowSquareOut
+                                className="mt-[3px] cursor-pointer"
+                                onClick={() =>
+                                    handleTimeStampClick(parseInt(doubt.content_position))
+                                }
+                            />
+                        </div>
+                    )}
+                    {(isAdmin ||
+                        (userId &&
+                            doubt.all_doubt_assignee?.some(
+                                (assignee) => assignee.id === userId
+                            ))) && <MarkAsResolved doubt={doubt} refetch={refetch} />}
                 </div>
                 <div
                     dangerouslySetInnerHTML={{
-                        __html: doubt.doubt_text || '',
+                        __html: doubt.html_text || '',
                     }}
                     className="custom-html-content"
                 />
-                {isAdmin && (
-                    <div className="flex flex-col gap-2">
-                        <div className="flex cursor-pointer items-center gap-1">
-                            <TrashSimple className="text-danger-500" />
-                            <p className="text-body">Delete</p>
-                        </div>
-                    </div>
-                )}
+
+                <TeacherSelection doubt={doubt} filters={filters} canChange={isAdmin || false} />
+                {isAdmin && <DeleteDoubt doubt={doubt} refetch={refetch} />}
+                <ShowReplies parent={doubt} refetch={refetch} />
             </div>
-            {doubt.replies.length > 0 && (
-                <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-2">
-                        <p className="text-caption font-semibold sm:text-body">
-                            Replies <span className="text-primary-500">{doubt.replies.length}</span>
-                        </p>
-                        {showReplies == false && (
-                            <CaretDown
-                                onClick={() => setShowReplies(true)}
-                                className="cursor-pointer"
-                            />
-                        )}
-                        {showReplies == true && (
-                            <CaretUp
-                                onClick={() => setShowReplies(false)}
-                                className="cursor-pointer"
-                            />
-                        )}
-                    </div>
-                    {showReplies && (
-                        <div className="flex flex-col gap-6 rounded-md border border-neutral-300 p-4">
-                            {doubt.replies.map((reply, key) => (
-                                <Reply reply={reply} key={key} />
-                            ))}
-                        </div>
-                    )}
-                </div>
-            )}
         </div>
     );
 };

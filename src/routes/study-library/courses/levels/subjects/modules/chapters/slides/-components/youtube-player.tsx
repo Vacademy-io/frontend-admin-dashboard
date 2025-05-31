@@ -16,9 +16,11 @@ import VideoQuestionDialogEditPreview from './slides-sidebar/video-question-dial
 import { StudyLibraryQuestion } from '@/types/study-library/study-library-video-questions';
 import { formatTimeStudyLibraryInSeconds, timestampToSeconds } from '../-helper/helper';
 import { useContentStore } from '../-stores/chapter-sidebar-store';
+import { useMediaNavigationStore } from '../-stores/media-navigation-store';
 import { TrashSimple } from 'phosphor-react';
 import { MyButton } from '@/components/design-system/button';
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { toast } from 'sonner';
 
 export interface YTPlayer {
     destroy(): void;
@@ -79,6 +81,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
     const isAddTimeFrameRef = useRef<HTMLButtonElement | null>(null);
     const isAddQuestionTypeRef = useRef<HTMLButtonElement | null>(null);
     const { activeItem, setActiveItem } = useContentStore();
+    const { videoSeekTime, clearVideoSeekTime } = useMediaNavigationStore();
 
     const [formData, setFormData] = useState<UploadQuestionPaperFormType>({
         questionPaperId: '1',
@@ -400,6 +403,28 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
     useEffect(() => {
         formRefData.current = formData;
     }, [formData]);
+
+    // Handle video seeking when videoSeekTime changes
+    useEffect(() => {
+        if (videoSeekTime !== null && playerRef.current) {
+            try {
+                playerRef.current.seekTo(videoSeekTime, true);
+                setCurrentTime(videoSeekTime);
+                clearVideoSeekTime();
+                toast.success(
+                    `Video jumped to ${Math.floor(videoSeekTime / 60)}:${Math.floor(
+                        videoSeekTime % 60
+                    )
+                        .toString()
+                        .padStart(2, '0')}`
+                );
+            } catch (error) {
+                console.error('Error seeking video:', error);
+                toast.error('Failed to seek video');
+                clearVideoSeekTime();
+            }
+        }
+    }, [videoSeekTime, clearVideoSeekTime]);
 
     useEffect(() => {
         setFormData((prev) => ({
