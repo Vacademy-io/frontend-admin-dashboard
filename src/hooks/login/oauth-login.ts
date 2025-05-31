@@ -16,7 +16,7 @@ export const handleOAuthLogin = (provider: OAuthProvider, options: OAuthLoginOpt
 
         // Create state object with redirect information
         const stateObj = {
-            from: `http://localhost:5173/${isSignup ? 'signup/onboarding?assess=true&lms=false&' : 'login'}`,
+            from: `https://dash.vacademy.io/${isSignup ? 'signup/onboarding?assess=true&lms=false&' : 'login'}`,
             account_type: isSignup ? (assess ? 'assess' : lms ? 'lms' : '') : '',
         };
 
