@@ -19,6 +19,7 @@ import InviteInstructorDialog from './InviteInstructorDialog';
 import SessionLevelMappingDialog from './SessionLevelMappingDialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog } from '@/components/ui/dialog';
+import MultiSelectDropdown from '@/components/common/multi-select-dropdown';
 
 interface Level {
     id: string;
@@ -86,8 +87,9 @@ export const AddCourseStep2 = ({
     const [newLevelName, setNewLevelName] = useState('');
     const [showInviteDialog, setShowInviteDialog] = useState(false);
     const [showMappingDialog, setShowMappingDialog] = useState(false);
-    const [instructorMappings, setInstructorMappings] = useState<InstructorMapping[]>([]);
     const [selectedInstructorEmail, setSelectedInstructorEmail] = useState('');
+    const [selectedInstructors, setSelectedInstructors] = useState<string[]>([]);
+    const [instructorMappings, setInstructorMappings] = useState<InstructorMapping[]>([]);
     const [instructorEmails, setInstructorEmails] = useState<string[]>([
         'john.doe@example.com',
         'jane.smith@example.com',
@@ -618,25 +620,28 @@ export const AddCourseStep2 = ({
                                     </div>
 
                                     <div className="flex gap-2">
-                                        <Select
-                                            value={selectedInstructorEmail}
-                                            onValueChange={(value) => {
-                                                console.log("Selected value:", value);
-                                                setSelectedInstructorEmail(value);
-                                                setShowMappingDialog(true);
+                                        <MultiSelectDropdown
+                                            options={instructorEmails.map(email => ({
+                                                id: email,
+                                                name: email
+                                            }))}
+                                            selected={selectedInstructors.map(email => ({
+                                                id: email,
+                                                name: email
+                                            }))}
+                                            onChange={(selected) => {
+                                                const emails = selected.map(s => s.id.toString());
+                                                setSelectedInstructors(emails);
+                                                // If a new instructor was added, show the mapping dialog for the latest one
+                                                const lastEmail = emails[emails.length - 1];
+                                                if (lastEmail && !selectedInstructors.includes(lastEmail)) {
+                                                    setSelectedInstructorEmail(lastEmail);
+                                                    setShowMappingDialog(true);
+                                                }
                                             }}
-                                        >
-                                            <SelectTrigger className="h-9 w-full">
-                                                <SelectValue placeholder="Select instructor email" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {instructorEmails.map((email) => (
-                                                    <SelectItem key={email} value={email}>
-                                                        {email}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
+                                            placeholder="Select instructor emails"
+                                            className="w-[300px]"
+                                        />
                                     </div>
 
                                     {instructorMappings.length > 0 && (
