@@ -1,4 +1,4 @@
-import { SHUBHAM_INSTITUTE_ID, SSDC_INSTITUTE_ID } from "@/constants/urls";
+import { SHUBHAM_INSTITUTE_ID } from "@/constants/urls";
 import { SidebarItemsType } from "@/types/layout-container/layout-container-types";
 
 export function getModuleFlags(
@@ -23,9 +23,8 @@ export function filterMenuList(
 }
 
 export function filterMenuItems(menuList: SidebarItemsType[], instituteId: string | undefined) {
-    const ssdc_id = SSDC_INSTITUTE_ID;
     const shubham_id = SHUBHAM_INSTITUTE_ID;
-    if (instituteId === ssdc_id || instituteId === shubham_id) {
+    if ( instituteId === shubham_id) {
         return menuList.filter(
             (item) =>
                 item.id !== "evaluation-centre" &&
