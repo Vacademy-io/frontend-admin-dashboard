@@ -528,6 +528,7 @@ export const CreateInviteDialog = ({
                                                                                     value
                                                                                 );
                                                                             }}
+                                                                            onWheel={(e) => e.preventDefault()}
                                                                             className="w-[50px] rounded-lg border border-neutral-300 px-2 py-1"
                                                                         />
                                                                     </div>
@@ -545,7 +546,7 @@ export const CreateInviteDialog = ({
 
                         {/* Student Expiry Date */}
                         <div className="flex items-center gap-6" id="student-access-duration">
-                            <p className="text-subtitle font-semibold">Student expiry date</p>
+                            <p className="text-subtitle font-semibold">Link expiration date</p>
                             <div className="flex items-center gap-2">
                                 <FormField
                                     control={control}
@@ -561,6 +562,7 @@ export const CreateInviteDialog = ({
                                                             parseInt(e.target.value) || 0
                                                         )
                                                     }
+                                                    onWheel={(e) => e.preventDefault()}
                                                     className="w-[70px]"
                                                 />
                                             </FormControl>
