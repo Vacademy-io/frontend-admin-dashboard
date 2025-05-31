@@ -287,15 +287,14 @@ const GenerateCompleteAssessment = ({
                                                         >
                                                             <div
                                                                 key={index}
-                                                                // onClick={() => handlePageClick(index)}
+                                                                onClick={() =>
+                                                                    handlePageClick(index)
+                                                                }
                                                                 className={`rounded-xl border-4 bg-primary-50 p-6 ${
                                                                     currentQuestionIndex === index
                                                                         ? 'border-primary-500 bg-none'
                                                                         : 'bg-none'
                                                                 }`}
-                                                                onMouseEnter={() =>
-                                                                    handlePageClick(index)
-                                                                }
                                                             >
                                                                 <div className="flex flex-col">
                                                                     <div className="flex items-center justify-start gap-4">
