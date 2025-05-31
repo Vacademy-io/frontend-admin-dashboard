@@ -19,6 +19,7 @@ export function JupyterNotebook({
   const [contentBranch, setContentBranch] = useState(element?.props?.contentBranch || "main");
   const [notebookLocation, setNotebookLocation] = useState(element?.props?.notebookLocation || "root");
   const [isDeploying, setIsDeploying] = useState(false);
+  const [activeTab, setActiveTab] = useState<"preview" | "settings">("settings");
 
   // Sync with Yoopta block state
   useEffect(() => {
@@ -58,8 +59,6 @@ export function JupyterNotebook({
     }
   };
 
-
-
   return (
     <div {...attributes} style={{
       border: "1px solid #e0e0e0",
@@ -69,190 +68,263 @@ export function JupyterNotebook({
       backgroundColor: "#fafafa"
     }}>
       <div style={{ marginBottom: "16px" }}>
-        <h3 style={{ margin: "0 0 16px 0", fontSize: "18px", fontWeight: "600", color: "#333" }}>
-          📓 Jupyter Notebook Configuration
-        </h3>
-      </div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+          <h3 style={{ margin: "0", fontSize: "18px", fontWeight: "600", color: "#333" }}>
+            📓 Jupyter Notebook Configuration
+          </h3>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "20px" }}>
-        {/* Project Name */}
-        <div>
-          <label style={{
-            display: "block",
-            marginBottom: "6px",
-            fontSize: "14px",
-            fontWeight: "500",
-            color: "#555"
-          }}>
-            Project Name
-          </label>
-          <input
-            type="text"
-            value={projectName}
-            onChange={(e) => setProjectName(e.target.value)}
-            placeholder="pythoncourse"
-            style={{
-              width: "100%",
-              padding: "8px 12px",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
-              fontSize: "14px",
-              backgroundColor: "white"
-            }}
-            onKeyDown={handleInputKeyDown}
-          />
-        </div>
-
-        {/* Content URL */}
-        <div>
-          <label style={{
-            display: "block",
-            marginBottom: "6px",
-            fontSize: "14px",
-            fontWeight: "500",
-            color: "#555"
-          }}>
-            Content URL (Link to a Github repo that contains the notebook)
-          </label>
-          <input
-            type="url"
-            value={contentUrl}
-            onChange={(e) => setContentUrl(e.target.value)}
-            placeholder="https://github.com/amirtds/jupyter-notebooks"
-            style={{
-              width: "100%",
-              padding: "8px 12px",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
-              fontSize: "14px",
-              backgroundColor: "white"
-            }}
-            onKeyDown={handleInputKeyDown}
-          />
-        </div>
-
-        {/* Content Branch */}
-        <div>
-          <label style={{
-            display: "block",
-            marginBottom: "6px",
-            fontSize: "14px",
-            fontWeight: "500",
-            color: "#555"
-          }}>
-            Content Branch
-          </label>
-          <select
-            value={contentBranch}
-            onChange={(e) => setContentBranch(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "8px 12px",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
-              fontSize: "14px",
-              backgroundColor: "white"
-            }}
-            onKeyDown={handleInputKeyDown}
-          >
-            <option value="main">main</option>
-            <option value="master">master</option>
-            <option value="develop">develop</option>
-            <option value="staging">staging</option>
-          </select>
-        </div>
-
-        {/* Notebook Location */}
-        <div>
-          <label style={{
-            display: "block",
-            marginBottom: "6px",
-            fontSize: "14px",
-            fontWeight: "500",
-            color: "#555"
-          }}>
-            Notebook Location
-          </label>
-          <select
-            value={notebookLocation}
-            onChange={(e) => setNotebookLocation(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "8px 12px",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
-              fontSize: "14px",
-              backgroundColor: "white"
-            }}
-            onKeyDown={handleInputKeyDown}
-          >
-            <option value="root">root</option>
-            <option value="notebooks">notebooks</option>
-            <option value="src">src</option>
-            <option value="examples">examples</option>
-          </select>
+          {/* Tab Navigation */}
+          <div style={{ display: "flex", border: "1px solid #ddd", borderRadius: "6px", overflow: "hidden" }}>
+            <button
+              onClick={() => setActiveTab("preview")}
+              style={{
+                padding: "6px 16px",
+                fontSize: "14px",
+                border: "none",
+                backgroundColor: activeTab === "preview" ? "#007acc" : "white",
+                color: activeTab === "preview" ? "white" : "#666",
+                cursor: "pointer"
+              }}
+            >
+              Preview
+            </button>
+            <button
+              onClick={() => setActiveTab("settings")}
+              style={{
+                padding: "6px 16px",
+                fontSize: "14px",
+                border: "none",
+                backgroundColor: activeTab === "settings" ? "#007acc" : "white",
+                color: activeTab === "settings" ? "white" : "#666",
+                cursor: "pointer"
+              }}
+            >
+              Settings
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Deploy Button */}
-      <div style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "16px",
-        backgroundColor: "#f5f5f5",
-        borderRadius: "6px",
-        border: "1px solid #e0e0e0"
-      }}>
-        <button
-          onClick={handleDeploy}
-          disabled={isDeploying || !projectName || !contentUrl}
-          style={{
-            padding: "12px 24px",
-            fontSize: "14px",
-            fontWeight: "500",
-            borderRadius: "6px",
-            border: "none",
-            backgroundColor: isDeploying ? "#f0f0f0" : "#007acc",
-            color: isDeploying ? "#666" : "white",
-            cursor: isDeploying || !projectName || !contentUrl ? "not-allowed" : "pointer",
+      {activeTab === "settings" ? (
+        <>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "20px" }}>
+            {/* Project Name */}
+            <div>
+              <label style={{
+                display: "block",
+                marginBottom: "6px",
+                fontSize: "14px",
+                fontWeight: "500",
+                color: "#555"
+              }}>
+                Project Name
+              </label>
+              <input
+                type="text"
+                value={projectName}
+                onChange={(e) => setProjectName(e.target.value)}
+                placeholder="pythoncourse"
+                style={{
+                  width: "100%",
+                  padding: "8px 12px",
+                  border: "1px solid #ddd",
+                  borderRadius: "4px",
+                  fontSize: "14px",
+                  backgroundColor: "white"
+                }}
+                onKeyDown={handleInputKeyDown}
+              />
+            </div>
+
+            {/* Content URL */}
+            <div>
+              <label style={{
+                display: "block",
+                marginBottom: "6px",
+                fontSize: "14px",
+                fontWeight: "500",
+                color: "#555"
+              }}>
+                Content URL (Link to a Github repo that contains the notebook)
+              </label>
+              <input
+                type="url"
+                value={contentUrl}
+                onChange={(e) => setContentUrl(e.target.value)}
+                placeholder="https://github.com/amirtds/jupyter-notebooks"
+                style={{
+                  width: "100%",
+                  padding: "8px 12px",
+                  border: "1px solid #ddd",
+                  borderRadius: "4px",
+                  fontSize: "14px",
+                  backgroundColor: "white"
+                }}
+                onKeyDown={handleInputKeyDown}
+              />
+            </div>
+
+            {/* Content Branch */}
+            <div>
+              <label style={{
+                display: "block",
+                marginBottom: "6px",
+                fontSize: "14px",
+                fontWeight: "500",
+                color: "#555"
+              }}>
+                Content Branch
+              </label>
+              <select
+                value={contentBranch}
+                onChange={(e) => setContentBranch(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "8px 12px",
+                  border: "1px solid #ddd",
+                  borderRadius: "4px",
+                  fontSize: "14px",
+                  backgroundColor: "white"
+                }}
+                onKeyDown={handleInputKeyDown}
+              >
+                <option value="main">main</option>
+                <option value="master">master</option>
+                <option value="develop">develop</option>
+                <option value="staging">staging</option>
+              </select>
+            </div>
+
+            {/* Notebook Location */}
+            <div>
+              <label style={{
+                display: "block",
+                marginBottom: "6px",
+                fontSize: "14px",
+                fontWeight: "500",
+                color: "#555"
+              }}>
+                Notebook Location
+              </label>
+              <select
+                value={notebookLocation}
+                onChange={(e) => setNotebookLocation(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "8px 12px",
+                  border: "1px solid #ddd",
+                  borderRadius: "4px",
+                  fontSize: "14px",
+                  backgroundColor: "white"
+                }}
+                onKeyDown={handleInputKeyDown}
+              >
+                <option value="root">root</option>
+                <option value="notebooks">notebooks</option>
+                <option value="src">src</option>
+                <option value="examples">examples</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Deploy Button */}
+          <div style={{
             display: "flex",
             alignItems: "center",
-            gap: "8px",
-            transition: "background-color 0.2s ease"
-          }}
-        >
-          {isDeploying ? (
-            <>
-              <div style={{
-                width: "16px",
-                height: "16px",
-                border: "2px solid #666",
-                borderTop: "2px solid transparent",
-                borderRadius: "50%",
-                animation: "spin 1s linear infinite"
-              }} />
-              Deploying notebook...
-            </>
-          ) : (
-            <>
-              🚀 Deploy Notebook
-            </>
-          )}
-        </button>
-      </div>
+            justifyContent: "center",
+            padding: "16px",
+            backgroundColor: "#f5f5f5",
+            borderRadius: "6px",
+            border: "1px solid #e0e0e0"
+          }}>
+            <button
+              onClick={handleDeploy}
+              disabled={isDeploying || !projectName || !contentUrl}
+              style={{
+                padding: "12px 24px",
+                fontSize: "14px",
+                fontWeight: "500",
+                borderRadius: "6px",
+                border: "none",
+                backgroundColor: isDeploying ? "#f0f0f0" : "#007acc",
+                color: isDeploying ? "#666" : "white",
+                cursor: isDeploying || !projectName || !contentUrl ? "not-allowed" : "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                transition: "background-color 0.2s ease"
+              }}
+            >
+              {isDeploying ? (
+                <>
+                  <div style={{
+                    width: "16px",
+                    height: "16px",
+                    border: "2px solid #666",
+                    borderTop: "2px solid transparent",
+                    borderRadius: "50%",
+                    animation: "spin 1s linear infinite"
+                  }} />
+                  Deploying notebook...
+                </>
+              ) : (
+                <>
+                  🚀 Deploy Notebook
+                </>
+              )}
+            </button>
+          </div>
 
-      {/* Status Display */}
-      {(projectName && contentUrl) && (
-        <div style={{
-          marginTop: "16px",
-          padding: "12px",
-          backgroundColor: "#e8f5e8",
-          borderRadius: "4px",
-          fontSize: "14px",
-          color: "#2d5a2d"
-        }}>
-          <strong>Ready to deploy:</strong> {projectName} from {contentUrl} ({contentBranch} branch, {notebookLocation} location)
+          {/* Status Display */}
+          {(projectName && contentUrl) && (
+            <div style={{
+              marginTop: "16px",
+              padding: "12px",
+              backgroundColor: "#e8f5e8",
+              borderRadius: "4px",
+              fontSize: "14px",
+              color: "#2d5a2d"
+            }}>
+              <strong>Ready to deploy:</strong> {projectName} from {contentUrl} ({contentBranch} branch, {notebookLocation} location)
+            </div>
+          )}
+        </>
+      ) : (
+        /* Preview Mode */
+        <div style={{ minHeight: "400px" }}>
+          {projectName && contentUrl ? (
+            <div style={{
+              width: "100%",
+              height: "500px",
+              border: "1px solid #ddd",
+              borderRadius: "6px",
+              overflow: "hidden"
+            }}>
+              <iframe
+                src={`https://mybinder.org/v2/gh/${contentUrl.replace('https://github.com/', '')}/${contentBranch}?labpath=${notebookLocation}`}
+                width="100%"
+                height="100%"
+                style={{ border: "none" }}
+                title="Jupyter Notebook Preview"
+              />
+            </div>
+          ) : (
+            <div style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              height: "400px",
+              color: "#666",
+              backgroundColor: "#f9f9f9",
+              borderRadius: "6px",
+              border: "1px solid #ddd"
+            }}>
+              <div style={{ fontSize: "48px", marginBottom: "16px" }}>📓</div>
+              <p style={{ fontSize: "16px", marginBottom: "8px" }}>No notebook configured</p>
+              <p style={{ fontSize: "14px", color: "#999" }}>Switch to Settings tab to configure your Jupyter notebook</p>
+            </div>
+          )}
         </div>
       )}
 
