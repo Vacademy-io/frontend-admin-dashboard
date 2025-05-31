@@ -64,7 +64,7 @@ export const handlePublishSlide = async (
     }
 
     if (activeItem?.source_type == 'DOCUMENT') {
-        if (activeItem?.document_slide?.type == 'DOC') SaveDraft(activeItem);
+        if (activeItem?.document_slide?.type == 'DOC') await SaveDraft(activeItem);
         const publishedData = activeItem.document_slide?.data;
         try {
             await addUpdateDocumentSlide({

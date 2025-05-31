@@ -1,22 +1,22 @@
 /* eslint-disable */
 // @ts-nocheck
-'useclient';
+'use client';
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import Reveal from 'reveal.js';
 import 'reveal.js/dist/reveal.css';
-import 'reveal.js/dist/theme/white.css'; // Or your preferred theme
+import 'reveal.js/dist/theme/white.css';
 
-import { SlideEditor } from './SlideEditor'; // For rendering Excalidraw slides in view mode
-import { QuizSlide } from './slidesTypes/QuizSlides'; // Ensure path is correct
+import { SlideEditor } from './SlideEditor';
+import { QuizSlide } from './slidesTypes/QuizSlides';
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react'; // For loading state
+import { Loader2, Wifi, WifiOff } from 'lucide-react';
 
 import { LiveSessionActionBar } from './components/LiveSessionActionBar';
 import { ParticipantsSidePanel } from './components/ParticipantsSidePanel';
-import { SessionExcalidrawOverlay } from './components/SessionExcalidrawOverlay'; // Ensure path and naming
+import { SessionExcalidrawOverlay } from './components/SessionExcalidrawOverlay';
 
 import type {
     Slide as AppSlide,
@@ -25,19 +25,20 @@ import type {
     FeedbackSlideData,
 } from '././utils/types';
 
-import type { QuestionFormData } from '@/components/common/slides/utils/types'; // Import QuestionFormData as type
+import type { QuestionFormData } from '@/components/common/slides/utils/types';
 import { SlideTypeEnum } from '@/components/common/slides/utils/types';
 
 const MOVE_SESSION_API_URL =
     'https://backend-stage.vacademy.io/community-service/engage/admin/move';
-const PARTICIPANTS_SSE_URL_BASE =
-    'https://backend-stage.vacademy.io/community-service/engage/admin/'; // e.g., admin/${sessionId}/participants
+const FINISH_SESSION_API_URL =
+    'https://backend-stage.vacademy.io/community-service/engage/admin/finish';
+const ADMIN_SSE_URL_BASE = 'https://backend-stage.vacademy.io/community-service/engage/admin/'; // Used by PresentationView for its own stream
 
 interface PresentationViewProps {
     slides: AppSlide[];
     onExit: () => void;
     liveSessionData?: { session_id: string; invite_code: string; [key: string]: any };
-    initialSlideId?: string; // To start Reveal.js on a specific slide
+    initialSlideId?: string;
 }
 
 export const PresentationView: React.FC<PresentationViewProps> = ({
@@ -48,17 +49,23 @@ export const PresentationView: React.FC<PresentationViewProps> = ({
 }) => {
     const revealContainerRef = useRef<HTMLDivElement>(null);
     const deckInstanceRef = useRef<Reveal.Api | null>(null);
+    const eventSourceRef = useRef<EventSource | null>(null);
     const isLiveSession = !!liveSessionData?.session_id;
 
-    const [currentRevealVisualIndex, setCurrentRevealVisualIndex] = useState(0); // 0-based visual index
-    const [participantsCount, setParticipantsCount] = useState(0);
+    const [currentRevealVisualIndex, setCurrentRevealVisualIndex] = useState(0);
+    // This 'participants' state is for PresentationView's direct needs, like count for ActionBar.
+    // ParticipantsSidePanel fetches and manages its own detailed list.
+    const [participantsForCount, setParticipantsForCount] = useState<any[]>([]);
     const [isParticipantsPanelOpen, setIsParticipantsPanelOpen] = useState(false);
     const [isSessionWhiteboardOpen, setIsSessionWhiteboardOpen] = useState(false);
     const [isRevealInitialized, setIsRevealInitialized] = useState(false);
+    const [isFinishingSession, setIsFinishingSession] = useState(false);
+    const [adminSseStatus, setAdminSseStatus] = useState<
+        'connecting' | 'connected' | 'disconnected'
+    >('connecting');
+    const [receivedSlideIndexFromSSE, setReceivedSlideIndexFromSSE] = useState<number | null>(null);
 
-    // Debounced API call for moving slide in live session
     const debouncedMoveApiCall = useCallback(
-        // Basic debounce implementation
         (() => {
             let timeoutId: NodeJS.Timeout;
             return async (sessionId: string, slideOrder: number, visualIndex: number) => {
@@ -67,103 +74,223 @@ export const PresentationView: React.FC<PresentationViewProps> = ({
                     try {
                         await authenticatedAxiosInstance.post(MOVE_SESSION_API_URL, {
                             session_id: sessionId,
-                            move_to: slideOrder, // This should be the logical slide_order
+                            move_to: slideOrder,
                         });
-                        // Minimal toast or none to avoid clutter during presentation
-                        // toast.info(`Synced to slide ${visualIndex + 1}`, { duration: 700, id: "slide-sync" });
                     } catch (error: any) {
                         console.error('Error moving slide in live session:', error);
-                        toast.error(
-                            error.response?.data?.message || 'Failed to sync slide movement.'
-                        );
+                        // toast.error(
+                        //     error.response?.data?.message || 'Failed to sync slide movement.'
+                        // );
                     }
-                }, 300); // 300ms debounce
+                }, 300);
             };
         })(),
         []
     );
 
-    // SSE for participants count
+    // Main Admin SSE (Presenter's stream for general session events)
     useEffect(() => {
-        if (!isLiveSession || !liveSessionData?.session_id) return;
+        if (!isLiveSession || !liveSessionData?.session_id) {
+            if (eventSourceRef.current) {
+                eventSourceRef.current.close();
+                eventSourceRef.current = null;
+            }
+            setAdminSseStatus('disconnected');
+            setParticipantsForCount([]); // Clear count data
+            return;
+        }
 
-        const sseUrl = `${PARTICIPANTS_SSE_URL_BASE}${liveSessionData.session_id}`; // Example: ensure correct endpoint
-        const eventSource = new EventSource(sseUrl, { withCredentials: true });
+        if (eventSourceRef.current) {
+            console.log('[PresentationView] Admin SSE: Closing existing EventSource.');
+            eventSourceRef.current.close();
+        }
 
-        const participantListener = (event: MessageEvent) => {
+        const sseUrl = `${ADMIN_SSE_URL_BASE}${liveSessionData.session_id}`;
+        const newEventSource = new EventSource(sseUrl, { withCredentials: true });
+        eventSourceRef.current = newEventSource;
+        setAdminSseStatus('connecting');
+        console.log(`[PresentationView] Admin SSE: Attempting to connect to: ${sseUrl}`);
+
+        newEventSource.onopen = () => {
+            console.log('[PresentationView] Admin SSE: Connection established.');
+            setAdminSseStatus('connected');
+            // toast.info("Presenter live connection active.", { duration: 1500, id: "presenter-sse-status" });
+        };
+
+        newEventSource.onerror = (errorEvent: Event) => {
+            console.error(
+                '[PresentationView] Admin SSE: Error occurred with EventSource. Allowing browser to retry.',
+                errorEvent
+            );
+            setAdminSseStatus('disconnected');
+            // toast.error("Presenter live connection issue. Auto-retrying...", { duration: 2500, id: "presenter-sse-status" });
+        };
+
+        // Listener for 'participants' event on the main admin stream
+        const directParticipantsListener = (event: MessageEvent) => {
+            console.log(
+                "[PresentationView] Main Admin SSE received 'participants' event data:",
+                event.data
+            );
             try {
                 const data = JSON.parse(event.data);
                 if (Array.isArray(data)) {
-                    setParticipantsCount(data.length);
-                } else if (typeof data.count === 'number') {
-                    // If backend sends { count: X }
-                    setParticipantsCount(data.count);
+                    setParticipantsForCount(data); // Update PresentationView's participant count data
                 }
             } catch (e) {
-                /* console.warn("Error parsing participants count from SSE:", e); */
+                console.warn(
+                    "[PresentationView] Main Admin SSE: Error parsing 'participants' (direct) data:",
+                    e
+                );
             }
         };
+        newEventSource.addEventListener('participants', directParticipantsListener);
 
-        eventSource.addEventListener('participants', participantListener); // Ensure backend sends 'participants' event
+        // Listener for 'participants_update' (if backend sends this specifically on this stream)
+        const participantsUpdateListener = (event: MessageEvent) => {
+            console.log(
+                "[PresentationView] Main Admin SSE received 'participants_update' event data:",
+                event.data
+            );
+            try {
+                const data = JSON.parse(event.data);
+                if (Array.isArray(data)) {
+                    setParticipantsForCount(data);
+                }
+            } catch (e) {
+                console.warn(
+                    "[PresentationView] Main Admin SSE: Error parsing 'participants_update' data:",
+                    e
+                );
+            }
+        };
+        newEventSource.addEventListener('participants_update', participantsUpdateListener);
 
-        eventSource.onopen = () => {
-            /* console.log("PresentationView SSE for count: Connection open."); */
+        const sessionStateListener = (event: MessageEvent) => {
+            try {
+                const data = JSON.parse(event.data);
+                console.log(
+                    "[PresentationView] Main Admin SSE: 'session_state_presenter' received",
+                    data
+                );
+
+                if (data.currentSlideIndex !== undefined && data.currentSlideIndex !== null) {
+                    if (isRevealInitialized && deckInstanceRef.current) {
+                        const currentDeckIndices = deckInstanceRef.current.getIndices();
+                        if (currentDeckIndices.h !== data.currentSlideIndex) {
+                            console.log(
+                                `[PresentationView] Main Admin SSE: Syncing Reveal slide to index ${data.currentSlideIndex}`
+                            );
+                            deckInstanceRef.current.slide(
+                                data.currentSlideIndex,
+                                undefined,
+                                undefined
+                            );
+                        }
+                    } else {
+                        console.warn(
+                            `[PresentationView] Main Admin SSE: Received slide index ${data.currentSlideIndex}, but Reveal not ready. Storing.`
+                        );
+                        setReceivedSlideIndexFromSSE(data.currentSlideIndex);
+                    }
+                }
+                if (data.participants && Array.isArray(data.participants)) {
+                    setParticipantsForCount(data.participants); // Update from full state
+                }
+            } catch (e) {
+                console.warn(
+                    "[PresentationView] Main Admin SSE: Error parsing 'session_state_presenter' data:",
+                    e
+                );
+            }
         };
-        eventSource.onerror = () => {
-            eventSource.close(); /* console.error("PresentationView SSE for count: Error. Closing."); */
+        newEventSource.addEventListener('session_state_presenter', sessionStateListener);
+
+        const heartbeatListener = (event: MessageEvent) => {
+            /* console.log("[PresentationView] Admin SSE: Heartbeat received", event.data); */
         };
+        newEventSource.addEventListener('presenter_heartbeat', heartbeatListener);
+        newEventSource.addEventListener('heartbeat_presenter', heartbeatListener);
+        newEventSource.addEventListener('heartbeat', heartbeatListener);
 
         return () => {
-            eventSource.removeEventListener('participants', participantListener);
-            eventSource.close();
+            if (newEventSource) {
+                console.log(
+                    '[PresentationView] Main Admin SSE: Cleaning up and closing EventSource.'
+                );
+                newEventSource.removeEventListener('participants', directParticipantsListener);
+                newEventSource.removeEventListener(
+                    'participants_update',
+                    participantsUpdateListener
+                );
+                newEventSource.removeEventListener('session_state_presenter', sessionStateListener);
+                newEventSource.removeEventListener('presenter_heartbeat', heartbeatListener);
+                newEventSource.removeEventListener('heartbeat_presenter', heartbeatListener);
+                newEventSource.removeEventListener('heartbeat', heartbeatListener);
+                newEventSource.close();
+                eventSourceRef.current = null;
+            }
         };
     }, [isLiveSession, liveSessionData?.session_id]);
 
-    // Reveal.js initialization and slide change handling
+    // Reveal.js initialization
     useEffect(() => {
-        if (revealContainerRef.current && slides && slides.length > 0 && !deckInstanceRef.current) {
+        if (revealContainerRef.current && slides && slides.length > 0 && !isRevealInitialized) {
+            console.log('[PresentationView] Reveal: Initializing...');
             const deck = new Reveal(revealContainerRef.current, {
                 controls: true,
                 progress: true,
-                history: false, // Manage history via app state if needed
+                history: false,
                 center: true,
                 width: '100%',
                 height: '100%',
                 margin: 0,
                 minScale: 0.2,
-                maxScale: 1.5, // Adjusted for typical presentation
-                embedded: true, // Important for containing within the div
+                maxScale: 1.5,
+                embedded: true,
                 keyboard: true,
                 touch: true,
                 navigationMode: 'linear',
-                slideNumber: isLiveSession ? 'c/t' : false, // Show slide numbers in live session
-                // fragments: true, // Enable if you use fragments within slides
-                // Consider plugins: e.g. RevealMarkdown, RevealNotes, RevealHighlight
+                slideNumber: isLiveSession ? 'c/t' : false,
             });
 
-            let initialH = 0;
-            if (initialSlideId) {
+            let revealInitialH = 0;
+            if (receivedSlideIndexFromSSE !== null) {
+                revealInitialH = receivedSlideIndexFromSSE;
+                console.log(
+                    `[PresentationView] Reveal: Using stored SSE slide index for init: ${revealInitialH}`
+                );
+            } else if (initialSlideId) {
                 const startIndex = slides.findIndex((s) => s.id === initialSlideId);
-                if (startIndex !== -1) initialH = startIndex;
+                if (startIndex !== -1) {
+                    revealInitialH = startIndex;
+                    console.log(
+                        `[PresentationView] Reveal: Using initialSlideId prop for init: ${revealInitialH}`
+                    );
+                }
+            } else if (slides.length > 0) {
+                revealInitialH = 0;
+                console.log(
+                    `[PresentationView] Reveal: Defaulting to first slide for init: ${revealInitialH}`
+                );
             }
 
-            deck.initialize({ H: initialH }).then(() => {
+            deck.initialize({ h: revealInitialH }).then(() => {
                 deckInstanceRef.current = deck;
                 setIsRevealInitialized(true);
+                console.log(
+                    '[PresentationView] Reveal: Initialized successfully at slide index:',
+                    revealInitialH
+                );
                 const indices = deck.getIndices();
                 setCurrentRevealVisualIndex(indices.h || 0);
 
-                // Initial sync if live session (optional, depends on backend logic)
-                if (isLiveSession && liveSessionData) {
-                    const initialSlideData = slides[indices.h || 0];
-                    if (initialSlideData && typeof initialSlideData.slide_order === 'number') {
-                        // debouncedMoveApiCall(liveSessionData.session_id, initialSlideData.slide_order, indices.h || 0);
-                    }
-                }
-
                 deck.on('slidechanged', (event: any) => {
-                    // { indexh, indexv, previousSlide, currentSlide, ... }
                     const visualIndex = event.indexh;
+                    console.log(
+                        '[PresentationView] Reveal: Slide changed to visual index:',
+                        visualIndex
+                    );
                     setCurrentRevealVisualIndex(visualIndex);
 
                     if (isLiveSession && liveSessionData) {
@@ -174,7 +301,21 @@ export const PresentationView: React.FC<PresentationViewProps> = ({
                                 currentSlideData.slide_order,
                                 visualIndex
                             );
+                        } else if (currentSlideData) {
+                            // Slide exists but slide_order is missing/invalid
+                            console.warn(
+                                `[PresentationView] Reveal: slide_order missing or invalid for slide at index ${visualIndex}. Using visualIndex as fallback for move API.`
+                            );
+                            debouncedMoveApiCall(
+                                liveSessionData.session_id,
+                                visualIndex, // Fallback to visualIndex for slide_order
+                                visualIndex
+                            );
                         } else {
+                            // currentSlideData is undefined/null
+                            console.error(
+                                `[PresentationView] Reveal: Slide data not found for visual index ${visualIndex}. Cannot sync slide movement.`
+                            );
                             toast.error('Slide data missing for live sync.');
                         }
                     }
@@ -185,7 +326,7 @@ export const PresentationView: React.FC<PresentationViewProps> = ({
                 if (event.key === 'Escape') {
                     if (isSessionWhiteboardOpen) setIsSessionWhiteboardOpen(false);
                     else if (isParticipantsPanelOpen) setIsParticipantsPanelOpen(false);
-                    else onExit(); // Exit presentation on Escape if no overlays are open
+                    else onExit();
                 }
             };
             window.addEventListener('keydown', handleGlobalKeyDown);
@@ -198,34 +339,62 @@ export const PresentationView: React.FC<PresentationViewProps> = ({
                 ) {
                     try {
                         (deckInstanceRef.current as any).destroy();
+                        console.log('[PresentationView] Reveal: Instance destroyed.');
                     } catch (e) {
-                        /* console.error("Error destroying Reveal.js on cleanup:", e); */
+                        /* console.error("[PresentationView] Reveal: Error destroying instance:", e); */
                     }
                 }
                 deckInstanceRef.current = null;
                 setIsRevealInitialized(false);
             };
         }
-    }, [
-        slides,
-        onExit,
-        isLiveSession,
-        liveSessionData?.session_id,
-        debouncedMoveApiCall,
-        initialSlideId,
-    ]);
+    }, [slides, onExit, isLiveSession, liveSessionData, initialSlideId, debouncedMoveApiCall]);
+
+    useEffect(() => {
+        if (isRevealInitialized && deckInstanceRef.current && receivedSlideIndexFromSSE !== null) {
+            const currentDeckIndices = deckInstanceRef.current.getIndices();
+            if (currentDeckIndices.h !== receivedSlideIndexFromSSE) {
+                console.log(
+                    `[PresentationView] Syncing Reveal to stored SSE slide index post-init: ${receivedSlideIndexFromSSE}`
+                );
+                deckInstanceRef.current.slide(receivedSlideIndexFromSSE, undefined, undefined);
+            }
+            setReceivedSlideIndexFromSSE(null);
+        }
+    }, [isRevealInitialized, receivedSlideIndexFromSSE]);
 
     const handleEndSession = async () => {
-        if (!isLiveSession || !liveSessionData) return;
-        // API call to end/archive session on backend (optional)
-        // e.g., await authenticatedAxiosInstance.post(`${END_SESSION_API_URL}`, { session_id: liveSessionData.session_id });
-        toast.info('Session ended by administrator.', { duration: 2000 });
-        onExit(); // Return to editor or previous screen
+        // ... (handleEndSession remains the same)
+        if (!isLiveSession || !liveSessionData?.session_id) return;
+        setIsFinishingSession(true);
+        toast.promise(
+            authenticatedAxiosInstance.post(FINISH_SESSION_API_URL, {
+                session_id: liveSessionData.session_id,
+            }),
+            {
+                loading: 'Ending session...',
+                success: (response) => {
+                    setIsFinishingSession(false);
+                    if (eventSourceRef.current) {
+                        eventSourceRef.current.close();
+                        eventSourceRef.current = null;
+                    }
+                    onExit();
+                    return response.data?.message || 'Session ended successfully!';
+                },
+                error: (error) => {
+                    setIsFinishingSession(false);
+                    console.error('Error ending session:', error);
+                    return error.response?.data?.message || 'Failed to end session.';
+                },
+            }
+        );
     };
 
-    const actionBarHeight = isLiveSession ? '3.5rem' : '0px'; // 56px for h-14
+    const actionBarHeight = isLiveSession ? '3.5rem' : '0px';
 
     if (!slides || slides.length === 0) {
+        // ... (no slides view remains same)
         return (
             <div className="fixed inset-0 z-[1000] flex flex-col items-center justify-center bg-slate-100 p-6 text-slate-700">
                 <img
@@ -254,59 +423,55 @@ export const PresentationView: React.FC<PresentationViewProps> = ({
                     inviteCode={liveSessionData.invite_code}
                     currentSlideIndex={currentRevealVisualIndex}
                     totalSlides={slides.length}
-                    participantsCount={participantsCount}
+                    participantsCount={participantsForCount.length} // Use participantsForCount
                     onToggleParticipantsView={() => setIsParticipantsPanelOpen((prev) => !prev)}
                     isParticipantsPanelOpen={isParticipantsPanelOpen}
                     onToggleWhiteboard={() => setIsSessionWhiteboardOpen((prev) => !prev)}
                     isWhiteboardOpen={isSessionWhiteboardOpen}
                     onEndSession={handleEndSession}
+                    isEndingSession={isFinishingSession}
+                    sseStatus={adminSseStatus}
                 />
             )}
 
             <div
                 ref={revealContainerRef}
-                className="reveal" // Reveal.js root
+                className="reveal"
                 style={{
                     width: '100vw',
                     height: '100vh',
                     position: 'fixed',
                     top: 0,
                     left: 0,
-                    zIndex: 50, // Ensure it's below action bar and overlays
-                    // backgroundColor: '#F0F2F5', // Default background for the reveal area
+                    zIndex: 50,
                 }}
             >
                 <div className="slides">
-                    {' '}
-                    {/* Reveal.js slides container */}
+                    {/* ... (slide mapping remains same) ... */}
                     {slides.map((slide) => (
                         <section
                             key={slide.id}
-                            // Reveal handles background color per slide if set, or use global theme
                             data-background-color={
                                 slide.type === SlideTypeEnum.Quiz ||
                                 slide.type === SlideTypeEnum.Feedback
-                                    ? '#FFFFFF' // White for quiz/feedback slides
+                                    ? '#FFFFFF'
                                     : (slide as ExcalidrawSlideData).appState
-                                          ?.viewBackgroundColor || '#F8F9FA' // Light neutral for Excalidraw
+                                          ?.viewBackgroundColor || '#F8F9FA'
                             }
-                            // Padding for content area to not be obscured by fixed action bar
                             style={{
                                 paddingTop: actionBarHeight,
                                 boxSizing: 'border-box',
                                 height: '100vh',
                             }}
                         >
-                            {/* Wrapper to control content sizing and centering within the padded section */}
                             <div
                                 style={{
-                                    width: '100%', // Full width of the padded section
-                                    height: `calc(100% - ${isLiveSession ? '0px' : '0px'})`, // Full height, padding handled by section
+                                    width: '100%',
+                                    height: `calc(100% - ${isLiveSession ? '0px' : '0px'})`,
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     boxSizing: 'border-box',
-                                    // padding: '1rem 2rem', // Optional general padding around content
                                 }}
                             >
                                 {slide.type === SlideTypeEnum.Quiz ||
@@ -314,7 +479,7 @@ export const PresentationView: React.FC<PresentationViewProps> = ({
                                     <div
                                         style={{
                                             width: 'clamp(320px, 70%, 800px)',
-                                            maxHeight: '80vh', // Ensure it fits viewport
+                                            maxHeight: '80vh',
                                             backgroundColor: 'white',
                                             padding: '2rem 2.5rem',
                                             borderRadius: '12px',
@@ -330,18 +495,17 @@ export const PresentationView: React.FC<PresentationViewProps> = ({
                                                 (slide as QuizSlideData | FeedbackSlideData)
                                                     .elements as QuestionFormData
                                             }
-                                            className={'flex flex-grow flex-col'} // quiz slide takes available space
+                                            className={'flex flex-grow flex-col'}
                                             questionType={
                                                 slide.type as
                                                     | SlideTypeEnum.Quiz
                                                     | SlideTypeEnum.Feedback
                                             }
                                             currentSlideId={slide.id}
-                                            isPresentationMode={true} // Always true in PresentationView
+                                            isPresentationMode={true}
                                         />
                                     </div>
                                 ) : (
-                                    // Excalidraw or other rich content types
                                     <div
                                         style={{
                                             width: '100%',
@@ -352,11 +516,9 @@ export const PresentationView: React.FC<PresentationViewProps> = ({
                                         }}
                                     >
                                         <SlideEditor
-                                            editMode={false} // View mode for presentation
-                                            slide={slide as ExcalidrawSlideData} // Pass Excalidraw specific data
-                                            onSlideChange={() => {
-                                                /* No changes in view mode */
-                                            }}
+                                            editMode={false}
+                                            slide={slide as ExcalidrawSlideData}
+                                            onSlideChange={() => {}}
                                             key={`${slide.id}-viewer`}
                                         />
                                     </div>
@@ -367,10 +529,10 @@ export const PresentationView: React.FC<PresentationViewProps> = ({
                 </div>
             </div>
 
-            {/* Loading overlay for Reveal.js initialization */}
             {!isRevealInitialized && slides && slides.length > 0 && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center bg-white/70 backdrop-blur-sm">
                     <Loader2 className="size-10 animate-spin text-orange-500" />
+                    <p className="ml-3 text-slate-700">Loading presentation...</p>
                 </div>
             )}
 
@@ -383,10 +545,9 @@ export const PresentationView: React.FC<PresentationViewProps> = ({
                         topOffset={actionBarHeight}
                     />
                     <SessionExcalidrawOverlay
-                        sessionId={liveSessionData.session_id} // Assuming it needs session ID
+                        sessionId={liveSessionData.session_id}
                         isOpen={isSessionWhiteboardOpen}
                         onClose={() => setIsSessionWhiteboardOpen(false)}
-                        // Pass other necessary props for SessionExcalidrawOverlay
                     />
                 </>
             )}

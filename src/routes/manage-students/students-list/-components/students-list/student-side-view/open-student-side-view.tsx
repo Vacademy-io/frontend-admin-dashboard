@@ -74,6 +74,18 @@ export const OpenStudentSidebar = () => {
                             <span className="text-sm">
                                 City/Village: <span>{studentDetails?.city}</span>{' '}
                             </span>
+                            <span className="text-sm">
+                                Gender: <span>{studentDetails?.gender}</span>{' '}
+                            </span>
+                            <span className="text-sm">
+                                Pin Code: <span>{studentDetails?.pin_code}</span>{' '}
+                            </span>
+                            <span className="text-sm">
+                                DOB: <span>{studentDetails?.date_of_birth}</span>{' '}
+                            </span>
+                            <span className="text-sm">
+                                Address: <span>{studentDetails?.address_line}</span>{' '}
+                            </span>
                         </div>
                     </SidebarMenuItem>
                 </SidebarMenu>
