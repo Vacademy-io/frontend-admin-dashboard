@@ -619,12 +619,14 @@ export const AddCourseStep2 = ({
                                         </MyButton>
                                     </div>
 
-                                    <div className="flex gap-2">
+                                    <div className="flex flex-col gap-4">
                                         <MultiSelectDropdown
-                                            options={instructorEmails.map(email => ({
-                                                id: email,
-                                                name: email
-                                            }))}
+                                            options={instructorEmails
+                                                .filter(email => !selectedInstructors.includes(email))
+                                                .map(email => ({
+                                                    id: email,
+                                                    name: email
+                                                }))}
                                             selected={selectedInstructors.map(email => ({
                                                 id: email,
                                                 name: email
@@ -632,76 +634,70 @@ export const AddCourseStep2 = ({
                                             onChange={(selected) => {
                                                 const emails = selected.map(s => s.id.toString());
                                                 setSelectedInstructors(emails);
-                                                // If a new instructor was added, show the mapping dialog for the latest one
-                                                const lastEmail = emails[emails.length - 1];
-                                                if (lastEmail && !selectedInstructors.includes(lastEmail)) {
-                                                    setSelectedInstructorEmail(lastEmail);
-                                                    setShowMappingDialog(true);
-                                                }
                                             }}
                                             placeholder="Select instructor emails"
-                                            className="w-[300px]"
+                                            className="w-full"
                                         />
-                                    </div>
 
-                                    {instructorMappings.length > 0 && (
-                                        <div className="space-y-2">
-                                            {instructorMappings.map((mapping) => (
-                                                <div
-                                                    key={mapping.email}
-                                                    className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-2"
-                                                >
-                                                    <div className="flex items-center gap-3">
-                                                        <Avatar className="h-8 w-8">
-                                                            <AvatarImage src="" alt={mapping.email} />
-                                                            <AvatarFallback className="bg-[#3B82F6] text-xs font-medium text-white">
-                                                                {getInitials(mapping.email)}
-                                                            </AvatarFallback>
-                                                        </Avatar>
-                                                        <div className="flex flex-col">
-                                                            <span className="text-sm font-medium text-gray-900">
-                                                                {mapping.email}
-                                                            </span>
-                                                            <span className="text-xs text-gray-500">
-                                                                {mapping.sessionLevels.length} assignments
-                                                            </span>
+                                        {selectedInstructors.length > 0 && (
+                                            <div className="space-y-2">
+                                                {selectedInstructors.map((email) => (
+                                                    <div
+                                                        key={email}
+                                                        className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-2"
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                            <Avatar className="h-8 w-8">
+                                                                <AvatarImage src="" alt={email} />
+                                                                <AvatarFallback className="bg-[#3B82F6] text-xs font-medium text-white">
+                                                                    {getInitials(email)}
+                                                                </AvatarFallback>
+                                                            </Avatar>
+                                                            <div className="flex flex-col">
+                                                                <span className="text-sm font-medium text-gray-900">
+                                                                    {email}
+                                                                </span>
+                                                                <span className="text-xs text-gray-500">
+                                                                    {instructorMappings.find(m => m.email === email)?.sessionLevels.length || 0} assignments
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex gap-2">
+                                                            <MyButton
+                                                                type="button"
+                                                                buttonType="secondary"
+                                                                scale="small"
+                                                                layoutVariant="default"
+                                                                onClick={() => {
+                                                                    setSelectedInstructorEmail(email);
+                                                                    setShowMappingDialog(true);
+                                                                }}
+                                                            >
+                                                                {instructorMappings.find(m => m.email === email) ? 'Edit' : 'Assign'}
+                                                            </MyButton>
+                                                            <MyButton
+                                                                type="button"
+                                                                buttonType="text"
+                                                                scale="medium"
+                                                                layoutVariant="icon"
+                                                                onClick={() => {
+                                                                    setSelectedInstructors(prev =>
+                                                                        prev.filter(e => e !== email)
+                                                                    );
+                                                                    setInstructorMappings(prev =>
+                                                                        prev.filter(m => m.email !== email)
+                                                                    );
+                                                                }}
+                                                                className="text-red-600 hover:text-red-700"
+                                                            >
+                                                                <Trash2 className="h-3 w-3" />
+                                                            </MyButton>
                                                         </div>
                                                     </div>
-                                                    <div className="flex gap-2">
-                                                        <MyButton
-                                                            type="button"
-                                                            buttonType="secondary"
-                                                            scale="small"
-                                                            layoutVariant="default"
-                                                            onClick={() => {
-                                                                setSelectedInstructorEmail(mapping.email);
-                                                                setShowMappingDialog(true);
-                                                            }}
-                                                        >
-                                                            Edit
-                                                        </MyButton>
-                                                        <MyButton
-                                                            type="button"
-                                                            buttonType="text"
-                                                            scale="medium"
-                                                            layoutVariant="icon"
-                                                            onClick={() => {
-                                                                setInstructorMappings(prev =>
-                                                                    prev.filter(m => m.email !== mapping.email)
-                                                                );
-                                                                setInstructorEmails(prev =>
-                                                                    prev.filter(email => email !== mapping.email)
-                                                                );
-                                                            }}
-                                                            className="text-red-600 hover:text-red-700"
-                                                        >
-                                                            <Trash2 className="h-3 w-3" />
-                                                        </MyButton>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
 
                                 <Separator className="bg-gray-200" />
