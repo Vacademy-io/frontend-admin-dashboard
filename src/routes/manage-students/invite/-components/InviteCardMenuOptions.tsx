@@ -74,9 +74,7 @@ export const InviteCardMenuOptions = ({ invite }: InviteCardMenuOptionsProps) =>
                 const data = await getInviteDetailsMutation.mutateAsync({
                     learnerInvitationId: invite.id,
                 });
-                console.log('data', JSON.parse(data.batch_options_json));
                 const formData = responseDataToFormData(data, getDetailsFromPackageSessionId);
-                console.log('formData', formData);
                 setInitialValues(formData);
                 resetContext(formData);
                 setOpenEditDialog(true);
@@ -87,7 +85,6 @@ export const InviteCardMenuOptions = ({ invite }: InviteCardMenuOptionsProps) =>
     };
 
     const onUpdateInvite = async (inviteData: InviteForm) => {
-        console.log('insite update invite');
         try {
             const requestFormat = formDataToRequestData(inviteData, getPackageSessionId, invite.id);
             await updateInviteMutation.mutateAsync({
