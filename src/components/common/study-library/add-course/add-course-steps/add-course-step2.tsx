@@ -122,8 +122,6 @@ export const AddCourseStep2 = ({
         },
     });
 
-    console.log(form.getValues());
-
     // Update form data when state changes
     useEffect(() => {
         form.setValue('hasLevels', hasLevels);
@@ -718,7 +716,7 @@ export const AddCourseStep2 = ({
                                 <Separator className="bg-gray-200" />
 
                                 {/* Add Instructors Section */}
-                                <div className="space-y-3 p-4">
+                                <div className="space-y-3">
                                     <div className="flex items-center justify-between">
                                         <Label className="text-base font-medium text-gray-900">
                                             Add Instructors to Course
