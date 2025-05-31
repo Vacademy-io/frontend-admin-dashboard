@@ -24,6 +24,7 @@ import MultiSelectDropdown from '@/components/common/multi-select-dropdown';
 interface Level {
     id: string;
     name: string;
+    userIds: string[];
 }
 
 interface Session {
@@ -47,6 +48,7 @@ export const step2Schema = z.object({
                 z.object({
                     id: z.string(),
                     name: z.string(),
+                    userIds: z.array(z.string()).default([])
                 })
             ),
         })
@@ -98,6 +100,15 @@ export const AddCourseStep2 = ({
         'michael.brown@example.com'
     ]);
     const [publishToCatalogue, setPublishToCatalogue] = useState(initialData?.publishToCatalogue || false);
+    const [newInstructorName, setNewInstructorName] = useState('');
+    const [newInstructorEmail, setNewInstructorEmail] = useState('');
+    const [showAssignmentCard, setShowAssignmentCard] = useState(false);
+    const [selectedSessionLevels, setSelectedSessionLevels] = useState<Array<{
+        sessionId: string;
+        sessionName: string;
+        levelId: string;
+        levelName: string;
+    }>>([]);
 
     const form = useForm<Step2Data>({
         resolver: zodResolver(step2Schema),
@@ -110,6 +121,8 @@ export const AddCourseStep2 = ({
             publishToCatalogue: false,
         },
     });
+
+    console.log(form.getValues());
 
     // Update form data when state changes
     useEffect(() => {
@@ -149,13 +162,24 @@ export const AddCourseStep2 = ({
         const updatedSessions = sessions.filter(session => session.id !== sessionId);
         setSessions(updatedSessions);
         form.setValue('sessions', updatedSessions);
+
+        // Remove all assignments for this session from all instructors
+        setInstructorMappings(prev =>
+            prev.map(instructor => ({
+                ...instructor,
+                sessionLevels: instructor.sessionLevels.filter(
+                    sl => sl.sessionId !== sessionId
+                )
+            }))
+        );
     };
 
     const addLevel = (sessionId: string, levelName: string) => {
         if (levelName.trim()) {
             const newLevel: Level = {
                 id: Date.now().toString(),
-                name: levelName.trim()
+                name: levelName.trim(),
+                userIds: []
             };
             const updatedSessions = sessions.map(session =>
                 session.id === sessionId
@@ -178,6 +202,16 @@ export const AddCourseStep2 = ({
         );
         setSessions(updatedSessions);
         form.setValue('sessions', updatedSessions);
+
+        // Remove all assignments for this level from all instructors
+        setInstructorMappings(prev =>
+            prev.map(instructor => ({
+                ...instructor,
+                sessionLevels: instructor.sessionLevels.filter(
+                    sl => !(sl.sessionId === sessionId && sl.levelId === levelId)
+                )
+            }))
+        );
     };
 
     // Effect to update form when sessions change
@@ -200,7 +234,14 @@ export const AddCourseStep2 = ({
     };
 
     const handleInviteSuccess = (email: string) => {
-        setInstructorEmails(prev => [...prev, email]);
+        // Add to available instructors list if not already present
+        if (!instructorEmails.includes(email)) {
+            setInstructorEmails(prev => [...prev, email]);
+        }
+        // Add to selected instructors list
+        if (!selectedInstructors.includes(email)) {
+            setSelectedInstructors(prev => [...prev, email]);
+        }
     };
 
     const handleSessionLevelMappingSave = (mappings: Array<{
@@ -246,7 +287,8 @@ export const AddCourseStep2 = ({
 
             const newLevel: Level = {
                 id: Date.now().toString(),
-                name: newLevelName.trim()
+                name: newLevelName.trim(),
+                userIds: []
             };
 
             // If there's no standalone session yet, create one
@@ -279,6 +321,84 @@ export const AddCourseStep2 = ({
                 : session
         );
         setSessions(updatedSessions);
+    };
+
+    // Function to get all session-level combinations
+    const getAllSessionLevelPairs = () => {
+        return sessions.flatMap(session =>
+            session.levels.map(level => ({
+                sessionId: session.id,
+                sessionName: session.name,
+                levelId: level.id,
+                levelName: level.name,
+                key: `${session.id}-${level.id}`
+            }))
+        );
+    };
+
+    // Function to handle checkbox changes
+    const handleSessionLevelCheckboxChange = (sessionId: string, sessionName: string, levelId: string, levelName: string) => {
+        const key = `${sessionId}-${levelId}`;
+        setSelectedSessionLevels(prev => {
+            const exists = prev.some(item =>
+                item.sessionId === sessionId && item.levelId === levelId
+            );
+
+            if (exists) {
+                return prev.filter(item =>
+                    !(item.sessionId === sessionId && item.levelId === levelId)
+                );
+            } else {
+                return [...prev, { sessionId, sessionName, levelId, levelName }];
+            }
+        });
+    };
+
+    // Function to handle assignment save
+    const handleAssignmentSave = () => {
+        if (selectedInstructorEmail) {
+            // First, remove the instructor's email from all levels they were previously assigned to
+            const updatedSessions = sessions.map(session => ({
+                ...session,
+                levels: session.levels.map(level => ({
+                    ...level,
+                    userIds: level.userIds.filter(id => id !== selectedInstructorEmail)
+                }))
+            }));
+
+            // Then, add the instructor's email to newly selected levels
+            selectedSessionLevels.forEach(({ sessionId, levelId }) => {
+                const sessionIndex = updatedSessions.findIndex(s => s.id === sessionId);
+                if (sessionIndex !== -1) {
+                    const levelIndex = updatedSessions[sessionIndex]?.levels.findIndex(l => l.id === levelId);
+                    if (levelIndex !== -1) {
+                        updatedSessions[sessionIndex]?.levels[levelIndex!]?.userIds.push(selectedInstructorEmail);
+                    }
+                }
+            });
+
+            setSessions(updatedSessions);
+            form.setValue('sessions', updatedSessions);
+
+            // Update instructor mappings
+            setInstructorMappings(prev => {
+                const existingIndex = prev.findIndex(m => m.email === selectedInstructorEmail);
+                if (existingIndex >= 0) {
+                    const updated = [...prev];
+                    updated[existingIndex] = {
+                        email: selectedInstructorEmail,
+                        sessionLevels: selectedSessionLevels,
+                    };
+                    return updated;
+                }
+                return [...prev, {
+                    email: selectedInstructorEmail,
+                    sessionLevels: selectedSessionLevels
+                }];
+            });
+        }
+        setShowAssignmentCard(false);
+        setSelectedSessionLevels([]);
     };
 
     return (
@@ -608,16 +728,93 @@ export const AddCourseStep2 = ({
                                             buttonType="secondary"
                                             scale="medium"
                                             layoutVariant="default"
-                                            onClick={() => {
-                                                console.log("Opening invite dialog");
-                                                setShowInviteDialog(true);
-                                            }}
+                                            onClick={() => setShowInviteDialog(true)}
                                             className="font-light"
                                         >
                                             <Plus className="h-4 w-4" />
                                             Invite
                                         </MyButton>
                                     </div>
+
+                                    {showInviteDialog && (
+                                        <Card className="border-gray-200">
+                                            <CardContent className="p-3">
+                                                <div className="grid gap-3">
+                                                    <div>
+                                                        <Label className="mb-1 block text-sm font-medium text-gray-700">
+                                                            Full Name
+                                                        </Label>
+                                                        <Input
+                                                            placeholder="Full name (First and Last)"
+                                                            value={newInstructorName}
+                                                            onChange={(e) => setNewInstructorName(e.target.value)}
+                                                            className="h-8 border-gray-300"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <Label className="mb-1 block text-sm font-medium text-gray-700">
+                                                            Email
+                                                        </Label>
+                                                        <Input
+                                                            type="email"
+                                                            placeholder="Enter Email"
+                                                            value={newInstructorEmail}
+                                                            onChange={(e) => setNewInstructorEmail(e.target.value)}
+                                                            className="h-8 border-gray-300"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <Label className="mb-1 block text-sm font-medium text-gray-700">
+                                                            Role Type
+                                                        </Label>
+                                                        <div className="rounded-lg border border-gray-300 bg-white p-2">
+                                                            <div className="flex items-center gap-2">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={true}
+                                                                    disabled
+                                                                    className="h-4 w-4 rounded border-gray-300"
+                                                                />
+                                                                <Label className="text-sm">Teacher</Label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="mt-3 flex gap-2">
+                                                    <MyButton
+                                                        type="button"
+                                                        buttonType="primary"
+                                                        scale="medium"
+                                                        layoutVariant="default"
+                                                        onClick={() => {
+                                                            if (newInstructorEmail && newInstructorName) {
+                                                                handleInviteSuccess(newInstructorEmail);
+                                                                setNewInstructorName('');
+                                                                setNewInstructorEmail('');
+                                                                setShowInviteDialog(false);
+                                                            }
+                                                        }}
+                                                        disable={!newInstructorEmail || !newInstructorName}
+                                                    >
+                                                        Add Instructor
+                                                    </MyButton>
+                                                    <MyButton
+                                                        type="button"
+                                                        buttonType="secondary"
+                                                        scale="medium"
+                                                        layoutVariant="default"
+                                                        onClick={() => {
+                                                            setShowInviteDialog(false);
+                                                            setNewInstructorName('');
+                                                            setNewInstructorEmail('');
+                                                        }}
+                                                    >
+                                                        Cancel
+                                                    </MyButton>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    )}
 
                                     <div className="flex flex-col gap-4">
                                         <MultiSelectDropdown
@@ -641,60 +838,134 @@ export const AddCourseStep2 = ({
 
                                         {selectedInstructors.length > 0 && (
                                             <div className="space-y-2">
-                                                {selectedInstructors.map((email) => (
-                                                    <div
-                                                        key={email}
-                                                        className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-2"
-                                                    >
-                                                        <div className="flex items-center gap-3">
-                                                            <Avatar className="h-8 w-8">
-                                                                <AvatarImage src="" alt={email} />
-                                                                <AvatarFallback className="bg-[#3B82F6] text-xs font-medium text-white">
-                                                                    {getInitials(email)}
-                                                                </AvatarFallback>
-                                                            </Avatar>
-                                                            <div className="flex flex-col">
-                                                                <span className="text-sm font-medium text-gray-900">
-                                                                    {email}
-                                                                </span>
-                                                                <span className="text-xs text-gray-500">
-                                                                    {instructorMappings.find(m => m.email === email)?.sessionLevels.length || 0} assignments
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                        <div className="flex gap-2">
-                                                            <MyButton
-                                                                type="button"
-                                                                buttonType="secondary"
-                                                                scale="small"
-                                                                layoutVariant="default"
-                                                                onClick={() => {
-                                                                    setSelectedInstructorEmail(email);
-                                                                    setShowMappingDialog(true);
-                                                                }}
-                                                            >
-                                                                {instructorMappings.find(m => m.email === email) ? 'Edit' : 'Assign'}
-                                                            </MyButton>
-                                                            <MyButton
-                                                                type="button"
-                                                                buttonType="text"
-                                                                scale="medium"
-                                                                layoutVariant="icon"
-                                                                onClick={() => {
-                                                                    setSelectedInstructors(prev =>
-                                                                        prev.filter(e => e !== email)
-                                                                    );
-                                                                    setInstructorMappings(prev =>
-                                                                        prev.filter(m => m.email !== email)
-                                                                    );
-                                                                }}
-                                                                className="text-red-600 hover:text-red-700"
-                                                            >
-                                                                <Trash2 className="h-3 w-3" />
-                                                            </MyButton>
-                                                        </div>
-                                                    </div>
-                                                ))}
+                                                {selectedInstructors.map((email) => {
+                                                    const isAssigning = showAssignmentCard && selectedInstructorEmail === email;
+                                                    return (
+                                                        <Card key={email} className="border-gray-200">
+                                                            <CardContent className={`p-3 ${isAssigning ? 'pb-3' : 'pb-2'}`}>
+                                                                <div className="flex items-center justify-between">
+                                                                    <div className="flex items-center gap-3">
+                                                                        <Avatar className="h-8 w-8">
+                                                                            <AvatarImage src="" alt={email} />
+                                                                            <AvatarFallback className="bg-[#3B82F6] text-xs font-medium text-white">
+                                                                                {getInitials(email)}
+                                                                            </AvatarFallback>
+                                                                        </Avatar>
+                                                                        <div className="flex flex-col">
+                                                                            <span className="text-sm font-medium text-gray-900">
+                                                                                {email}
+                                                                            </span>
+                                                                            <span className="text-xs text-gray-500">
+                                                                                {instructorMappings.find(m => m.email === email)?.sessionLevels.length || 0} assignments
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="flex gap-2">
+                                                                        <MyButton
+                                                                            type="button"
+                                                                            buttonType="secondary"
+                                                                            scale="small"
+                                                                            layoutVariant="default"
+                                                                            onClick={() => {
+                                                                                setSelectedInstructorEmail(email);
+                                                                                const existingMappings = instructorMappings.find(m => m.email === email);
+                                                                                setSelectedSessionLevels(existingMappings?.sessionLevels || []);
+                                                                                setShowAssignmentCard(true);
+                                                                            }}
+                                                                        >
+                                                                            {instructorMappings.find(m => m.email === email) ? 'Edit' : 'Assign'}
+                                                                        </MyButton>
+                                                                        <MyButton
+                                                                            type="button"
+                                                                            buttonType="text"
+                                                                            scale="medium"
+                                                                            layoutVariant="icon"
+                                                                            onClick={() => {
+                                                                                setSelectedInstructors(prev =>
+                                                                                    prev.filter(e => e !== email)
+                                                                                );
+                                                                                setInstructorMappings(prev =>
+                                                                                    prev.filter(m => m.email !== email)
+                                                                                );
+                                                                            }}
+                                                                            className="text-red-600 hover:text-red-700 !size-6"
+                                                                        >
+                                                                            <Trash2 className="h-3 w-3" />
+                                                                        </MyButton>
+                                                                    </div>
+                                                                </div>
+
+                                                                {isAssigning && (
+                                                                    <>
+                                                                        <Separator className="my-3" />
+                                                                        <div className="grid grid-cols-2 gap-4">
+                                                                            {sessions.map((session) => (
+                                                                                <div key={session.id}>
+                                                                                    <h4 className="mb-2 text-sm font-medium text-gray-700">
+                                                                                        {session.name}
+                                                                                    </h4>
+                                                                                    <div className="space-y-1">
+                                                                                        {session.levels.map((level) => {
+                                                                                            const isChecked = selectedSessionLevels.some(
+                                                                                                item => item.sessionId === session.id && item.levelId === level.id
+                                                                                            );
+                                                                                            return (
+                                                                                                <div
+                                                                                                    key={`${session.id}-${level.id}`}
+                                                                                                    className="flex items-center gap-2 rounded border border-gray-100 bg-gray-50 px-2 py-1"
+                                                                                                >
+                                                                                                    <Checkbox
+                                                                                                        checked={isChecked}
+                                                                                                        onCheckedChange={() =>
+                                                                                                            handleSessionLevelCheckboxChange(
+                                                                                                                session.id,
+                                                                                                                session.name,
+                                                                                                                level.id,
+                                                                                                                level.name
+                                                                                                            )
+                                                                                                        }
+                                                                                                        className="size-4"
+                                                                                                    />
+                                                                                                    <span className="text-sm text-gray-700">
+                                                                                                        {level.name}
+                                                                                                    </span>
+                                                                                                </div>
+                                                                                            );
+                                                                                        })}
+                                                                                    </div>
+                                                                                </div>
+                                                                            ))}
+                                                                        </div>
+                                                                        <div className="mt-3 flex justify-end gap-2">
+                                                                            <MyButton
+                                                                                type="button"
+                                                                                buttonType="secondary"
+                                                                                scale="small"
+                                                                                layoutVariant="default"
+                                                                                onClick={() => {
+                                                                                    setShowAssignmentCard(false);
+                                                                                    setSelectedSessionLevels([]);
+                                                                                }}
+                                                                            >
+                                                                                Cancel
+                                                                            </MyButton>
+                                                                            <MyButton
+                                                                                type="button"
+                                                                                buttonType="primary"
+                                                                                scale="small"
+                                                                                layoutVariant="default"
+                                                                                onClick={handleAssignmentSave}
+                                                                                disable={!instructorMappings.find(m => m.email === selectedInstructorEmail) && selectedSessionLevels.length === 0}
+                                                                            >
+                                                                                Save
+                                                                            </MyButton>
+                                                                        </div>
+                                                                    </>
+                                                                )}
+                                                            </CardContent>
+                                                        </Card>
+                                                    );
+                                                })}
                                             </div>
                                         )}
                                     </div>
@@ -757,15 +1028,6 @@ export const AddCourseStep2 = ({
             </Form>
 
             {/* Move dialogs outside the Form component */}
-            <InviteInstructorDialog
-                open={showInviteDialog}
-                onOpenChange={(open) => {
-                    console.log("Dialog state changing to:", open);
-                    setShowInviteDialog(open);
-                }}
-                onInviteSuccess={handleInviteSuccess}
-            />
-
             <SessionLevelMappingDialog
                 open={showMappingDialog}
                 onOpenChange={setShowMappingDialog}
