@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { DoubtManagement } from './-components/doubt-management';
 import { LayoutContainer } from '@/components/common/layout-container/layout-container';
 
-export const Route = createFileRoute('/engagement/doubt-management/')({
+export const Route = createFileRoute('/study-library/doubt-management/')({
     component: RouteComponent,
 });
 
