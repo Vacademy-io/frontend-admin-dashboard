@@ -1,33 +1,33 @@
-import { DotsSixVertical, Plus } from "phosphor-react";
-import { Dispatch, SetStateAction, useState } from "react";
-import { useFieldArray, UseFormReturn } from "react-hook-form";
-import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Sortable, SortableDragHandle, SortableItem } from "@/components/ui/sortable";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { PPTComponentFactory } from "./PPTComponentFactory";
-import { MainViewComponentFactory } from "./MainViewComponentFactory";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { DotsSixVertical, Plus } from 'phosphor-react';
+import { Dispatch, SetStateAction, useState } from 'react';
+import { useFieldArray, UseFormReturn } from 'react-hook-form';
+import { Dialog, DialogClose, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { Sortable, SortableDragHandle, SortableItem } from '@/components/ui/sortable';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { PPTComponentFactory } from './PPTComponentFactory';
+import { MainViewComponentFactory } from './MainViewComponentFactory';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
     getQuestionPaperById,
     updateQuestionPaper,
-} from "@/routes/assessment/question-papers/-utils/question-paper-services";
+} from '@/routes/assessment/question-papers/-utils/question-paper-services';
 import {
     transformResponseDataToMyQuestionsSchema,
     getPPTViewTitle,
-} from "@/routes/assessment/question-papers/-utils/helper";
+} from '@/routes/assessment/question-papers/-utils/helper';
 import {
     MyQuestion,
     MyQuestionPaperFormEditInterface,
     MyQuestionPaperFormInterface,
-} from "@/types/assessments/question-paper-form";
-import { toast } from "sonner";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { useRefetchStore } from "@/routes/assessment/question-papers/-global-states/refetch-store";
-import { QuestionType } from "@/constants/dummy-data";
-import { z } from "zod";
-import { uploadQuestionPaperFormSchema } from "../../-utils/upload-question-paper-form-schema";
+} from '@/types/assessments/question-paper-form';
+import { toast } from 'sonner';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { useRefetchStore } from '@/routes/assessment/question-papers/-global-states/refetch-store';
+import { QuestionType } from '@/constants/dummy-data';
+import { z } from 'zod';
+import { uploadQuestionPaperFormSchema } from '../../-utils/upload-question-paper-form-schema';
 
 type QuestionPaperForm = z.infer<typeof uploadQuestionPaperFormSchema>;
 export interface QuestionPaperTemplateProps {
@@ -56,10 +56,10 @@ export function QuestionPaperTemplate({
     const { handleRefetchData } = useRefetchStore();
     const queryClient = useQueryClient();
     const { getValues, setValue, formState, watch } = form;
-    const questions = watch("questions") || [];
+    const questions = watch('questions') || [];
     const [isQuestionDataLoading, setIsQuestionDataLoading] = useState(false);
     const [previousQuestionPaperData, setPreviousQuestionPaperData] = useState(
-        {} as MyQuestionPaperFormEditInterface,
+        {} as MyQuestionPaperFormEditInterface
     );
 
     watch(`questions.${currentQuestionIndex}`);
@@ -68,55 +68,55 @@ export function QuestionPaperTemplate({
     // UseFieldArray to manage questions array
     const { fields, append, move } = useFieldArray({
         control: form.control,
-        name: "questions", // Name of the field array
+        name: 'questions', // Name of the field array
     });
 
     // Function to handle adding a new question
     const handleAddNewQuestion = () => {
         append({
             questionId: String(questions.length + 1),
-            questionName: "",
-            explanation: "",
-            questionType: "LONG_ANSWER",
-            questionPenalty: "",
+            questionName: '',
+            explanation: '',
+            questionType: 'LONG_ANSWER',
+            questionPenalty: '',
             questionDuration: {
-                hrs: "",
-                min: "",
+                hrs: '',
+                min: '',
             },
-            questionMark: "",
+            questionMark: '',
             singleChoiceOptions: [
                 {
-                    name: "",
+                    name: '',
                     isSelected: false,
                 },
                 {
-                    name: "",
+                    name: '',
                     isSelected: false,
                 },
                 {
-                    name: "",
+                    name: '',
                     isSelected: false,
                 },
                 {
-                    name: "",
+                    name: '',
                     isSelected: false,
                 },
             ],
             multipleChoiceOptions: [
                 {
-                    name: "",
+                    name: '',
                     isSelected: false,
                 },
                 {
-                    name: "",
+                    name: '',
                     isSelected: false,
                 },
                 {
-                    name: "",
+                    name: '',
                     isSelected: false,
                 },
                 {
-                    name: "",
+                    name: '',
                     isSelected: false,
                 },
             ],
@@ -142,8 +142,8 @@ export function QuestionPaperTemplate({
         onSuccess: () => {
             setCurrentQuestionIndex(0);
             handleRefetchData();
-            toast.success("Question Paper updated successfully", {
-                className: "success-toast",
+            toast.success('Question Paper updated successfully', {
+                className: 'success-toast',
                 duration: 2000,
             });
         },
@@ -170,21 +170,21 @@ export function QuestionPaperTemplate({
         },
         onSuccess: async (data) => {
             const transformQuestionsData: MyQuestion[] = transformResponseDataToMyQuestionsSchema(
-                data.question_dtolist,
+                data.question_dtolist
             );
             setPreviousQuestionPaperData({
                 questionPaperId: questionPaperId,
-                title: "",
-                ...(data.yearClass !== "N/A" && {
-                    level_id: "",
+                title: '',
+                ...(data.yearClass !== 'N/A' && {
+                    level_id: '',
                 }),
-                ...(data.subject !== "N/A" && {
-                    subject_id: "",
+                ...(data.subject !== 'N/A' && {
+                    subject_id: '',
                 }),
                 questions: transformQuestionsData,
             });
-            setValue("questions", transformQuestionsData);
-            queryClient.invalidateQueries({ queryKey: ["GET_QUESTION_PAPER_FILTERED_DATA"] });
+            setValue('questions', transformQuestionsData);
+            queryClient.invalidateQueries({ queryKey: ['GET_QUESTION_PAPER_FILTERED_DATA'] });
         },
         onError: (error: unknown) => {
             setIsQuestionDataLoading(false);
@@ -213,7 +213,7 @@ export function QuestionPaperTemplate({
                         type="button"
                         variant="outline"
                         className={`m-0 border-none pl-2 font-normal shadow-none ${
-                            isAssessment ? "text-primary-500" : ""
+                            isAssessment ? 'text-primary-500' : ''
                         }`}
                         onClick={handleViewQuestionPaper}
                     >
@@ -246,7 +246,7 @@ export function QuestionPaperTemplate({
                                         isViewMode
                                             ? () =>
                                                   handleSaveClick(
-                                                      form.getValues() as MyQuestionPaperFormInterface,
+                                                      form.getValues() as MyQuestionPaperFormInterface
                                                   )
                                             : handleTriggerForm
                                     }
@@ -294,15 +294,12 @@ export function QuestionPaperTemplate({
                                                     >
                                                         <div
                                                             key={index}
-                                                            // onClick={() => handlePageClick(index)}
+                                                            onClick={() => handlePageClick(index)}
                                                             className={`rounded-xl border-4 bg-primary-50 p-6 ${
                                                                 currentQuestionIndex === index
-                                                                    ? "border-primary-500 bg-none"
-                                                                    : "bg-none"
+                                                                    ? 'border-primary-500 bg-none'
+                                                                    : 'bg-none'
                                                             }`}
-                                                            onMouseEnter={() =>
-                                                                handlePageClick(index)
-                                                            }
                                                         >
                                                             <TooltipProvider>
                                                                 <Tooltip
@@ -316,8 +313,8 @@ export function QuestionPaperTemplate({
                                                                                     &nbsp;
                                                                                     {getPPTViewTitle(
                                                                                         getValues(
-                                                                                            `questions.${index}.questionType`,
-                                                                                        ) as QuestionType,
+                                                                                            `questions.${index}.questionType`
+                                                                                        ) as QuestionType
                                                                                     )}
                                                                                 </h1>
                                                                                 <SortableDragHandle
@@ -337,7 +334,7 @@ export function QuestionPaperTemplate({
                                                                                     setCurrentQuestionIndex:
                                                                                         setCurrentQuestionIndex,
                                                                                     className:
-                                                                                        "relative mt-4 rounded-xl border-4 border-primary-300 bg-white p-4",
+                                                                                        'relative mt-4 rounded-xl border-4 border-primary-300 bg-white p-4',
                                                                                 }}
                                                                             />
                                                                         </div>
@@ -376,7 +373,7 @@ export function QuestionPaperTemplate({
                                         currentQuestionIndex: currentQuestionIndex,
                                         setCurrentQuestionIndex: setCurrentQuestionIndex,
                                         className:
-                                            "dialog-height overflow-auto ml-6 flex w-full flex-col gap-6 pr-6 pt-4",
+                                            'dialog-height overflow-auto ml-6 flex w-full flex-col gap-6 pr-6 pt-4',
                                     }}
                                 />
                             )}
