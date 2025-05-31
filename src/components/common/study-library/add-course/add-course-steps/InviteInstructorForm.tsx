@@ -78,7 +78,7 @@ const InviteInstructorForm = ({ onInviteSuccess, onCancel }: InviteInstructorFor
                                             error={form.formState.errors.name?.message}
                                             size="large"
                                             label="Full Name"
-                                            className="h-8 border-gray-300"
+                                            className="h-8 border-gray-300 w-full"
                                         />
                                     </FormControl>
                                 </FormItem>
@@ -99,29 +99,13 @@ const InviteInstructorForm = ({ onInviteSuccess, onCancel }: InviteInstructorFor
                                             error={form.formState.errors.email?.message}
                                             size="large"
                                             label="Email"
-                                            className="h-8 border-gray-300"
+                                            className="h-8 border-gray-300 w-full"
                                         />
                                     </FormControl>
                                 </FormItem>
                             )}
                         />
-                        <div>
-                            <Label className="mb-1 block text-sm font-medium text-gray-700">
-                                Role Type
-                            </Label>
-                            <div className="rounded-lg border border-gray-300 bg-white p-2">
-                                <div className="flex items-center gap-2">
-                                    <input
-                                        type="checkbox"
-                                        checked={true}
-                                        disabled
-                                        className="h-4 w-4 rounded border-gray-300"
-                                    />
-                                    <Label className="text-sm">Teacher</Label>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="mt-3 flex gap-2">
+                        <div className="mt-3 flex gap-4">
                             <MyButton
                                 type="button"
                                 buttonType="primary"
