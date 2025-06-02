@@ -8,6 +8,7 @@ import { AddCourseStep2, step2Schema } from './add-course-steps/add-course-step2
 import { toast } from 'sonner';
 import { convertToApiCourseFormat } from '../-utils/helper';
 import { useAddCourse } from '@/services/study-library/course-operations/add-course';
+import { useNavigate } from '@tanstack/react-router';
 
 export interface Level {
     id: string;
@@ -29,6 +30,7 @@ export interface CourseFormData extends Step1Data, Step2Data {}
 
 // Main wrapper component
 export const AddCourseForm = () => {
+    const navigate = useNavigate();
     const addCourseMutation = useAddCourse();
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState<Partial<CourseFormData>>({});
@@ -51,11 +53,12 @@ export const AddCourseForm = () => {
         addCourseMutation.mutate(
             { requestData: formattedData },
             {
-                onSuccess: () => {
+                onSuccess: (response) => {
                     toast.success('Course created successfully');
                     setIsOpen(false);
                     setStep(1);
                     setFormData({});
+                    navigate({ to: `/study-library/courses/levels?courseId=${response.data}` });
                 },
                 onError: () => {
                     toast.error('Failed to create course');
