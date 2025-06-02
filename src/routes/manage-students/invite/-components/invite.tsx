@@ -1,19 +1,17 @@
 import { InviteForm } from '../-schema/InviteFormSchema';
 import { EmptyInvitePage } from '@/assets/svgs';
 import { InviteCardMenuOptions } from './InviteCardMenuOptions';
-import { TokenKey } from '@/constants/auth/tokens';
-import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { MyPagination } from '@/components/design-system/pagination';
 import { usePaginationState } from '@/hooks/pagination';
 import { useGetInviteList } from '../-services/get-invite-list';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { InviteLink } from '../../-components/InviteLink';
 import { CreateInvite } from './create-invite/CreateInvite';
+import { getInstituteId } from '@/constants/helper';
 
 export const Invite = () => {
-    const accessToken = getTokenFromCookie(TokenKey.accessToken);
-    const tokenData = getTokenDecodedData(accessToken);
-    const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
+    
+    const INSTITUTE_ID = getInstituteId()
 
     const { page, pageSize, handlePageChange } = usePaginationState({
         initialPage: 0,

@@ -13,6 +13,10 @@ import { CreateInvite } from '@/routes/manage-students/invite/-components/create
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { NoCourseDialog } from '@/components/common/students/no-course-dialog';
 import { cn } from '@/lib/utils';
+import { useGetInviteList } from '@/routes/manage-students/invite/-services/get-invite-list';
+import { getInstituteId } from '@/constants/helper';
+import { usePaginationState } from '@/hooks/pagination';
+import { MyPagination } from '@/components/design-system/pagination';
 
 const InviteLinksDialog = ({
     currentSession,
@@ -25,8 +29,27 @@ const InviteLinksDialog = ({
 }) => {
     const router = useRouter();
 
-    const { data, isLoading, isError } = useGetBatchesQuery({
-        sessionId: currentSession?.id || '',
+    const INSTITUTE_ID = getInstituteId()
+
+    const { page, pageSize, handlePageChange } = usePaginationState({
+        initialPage: 0,
+        initialPageSize: 5,
+    });
+
+    const filterRequest = {
+        status: ['ACTIVE', 'INACTIVE'],
+        name: '',
+    };
+
+    const {
+        data: inviteList,
+        isLoading,
+        isError,
+    } = useGetInviteList({
+        instituteId: INSTITUTE_ID || '',
+        pageNo: page,
+        pageSize: pageSize,
+        requestFilterBody: filterRequest,
     });
 
     const footer = (
@@ -47,29 +70,35 @@ const InviteLinksDialog = ({
             open={openInviteLinksDialog}
             onOpenChange={handleOpenChange}
             footer={footer}
+            dialogWidth='w-fit'
         >
             {isLoading ? (
                 <DashboardLoader />
             ) : isError ? (
                 <RootErrorComponent />
             ) : (
-                <div className="flex flex-col gap-3">
-                    {currentSession?.id ? (
-                        data?.flatMap((batch) =>
-                            batch.batches.map((b, index) => (
-                                <div className="flex flex-col gap-1" key={index}>
-                                    <p className="text-subtitle font-semibold text-primary-500">
-                                        {b.batch_name}
-                                    </p>
-                                    <div className="flex gap-2 text-body ">
-                                        <InviteLink inviteCode={b.invite_code} linkLen={40} />
-                                    </div>
+                <div className="flex flex-col gap-3 items-center w-full">
+                    {inviteList?.content?.length && inviteList?.content?.length>0 ?
+                        <div className='flex flex-col gap-3 items-center'>
+                        {inviteList?.content?.map((invite, index) => (
+                            <div className="flex flex-col gap-1" key={index}>
+                                <p className="text-subtitle font-semibold text-primary-500">
+                                    {invite.name}
+                                </p>
+                                <div className="flex gap-2 text-body ">
+                                    <InviteLink inviteCode={invite.invite_code} linkLen={60} />
                                 </div>
-                            ))
-                        )
-                    ) : (
-                        <p>No batches found</p>
-                    )}
+                            </div>
+                        ))}
+                        <MyPagination
+                            currentPage={page}
+                            totalPages={inviteList.totalPages}
+                            onPageChange={handlePageChange}
+                        />
+                        </div>
+                    :
+                        (<p>No invite links found</p>)
+                    }
                 </div>
             )}
         </MyDialog>
