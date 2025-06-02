@@ -96,7 +96,7 @@ export const SlideMaterial = ({
         setHeading(e.target.value);
     };
 
-    
+
 
     const setEditorContent = () => {
         const docData =
@@ -287,6 +287,13 @@ export const SlideMaterial = ({
             toast.error('error saving document');
         }
     };
+
+    useEffect(()=>{
+        setInterval(()=>{
+            console.log("edtitor content: ", editor.getEditorValue())
+            console.log("html content: ", getCurrentEditorHTMLContent())
+        }, 3000)
+    }, [])
 
     useEffect(() => {
         if (open) toggleSidebar();
