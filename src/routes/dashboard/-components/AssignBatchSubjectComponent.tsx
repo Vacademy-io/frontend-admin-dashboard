@@ -17,13 +17,12 @@ import { MultiSelect } from '@/components/design-system/multi-select';
 import { MyButton } from '@/components/design-system/button';
 import { DialogContent } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { BASE_URL } from '@/constants/urls';
 import type { UserRolesDataEntry } from '@/types/dashboard/user-roles';
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 import { getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
+import { GET_FACULTY_BATCHES_URL, UPDATE_FACULTY_BATCHES_URL } from '@/constants/urls';
 
-// Schema for the form data (primarily for client-side validation if needed for enabling submit button)
 const facultyAssignmentsSchema = z.object({
     batch_subject_mappings: z
         .array(
@@ -34,16 +33,12 @@ const facultyAssignmentsSchema = z.object({
                     .min(1, 'Each selected batch must have at least one subject.'),
             })
         )
-        // This schema part can be tricky if we allow deselecting all batches,
-        // as batch_subject_mappings might become empty.
-        // The actual payload is built not directly from form values but from component state.
-        .min(0), // Allow empty if no batches are assigned.
+        .min(0),
 });
 
 type FacultyAssignmentsFormValues = z.infer<typeof facultyAssignmentsSchema>;
 
 interface FacultyAssignmentPayloadEntry {
-    // Renamed for clarity, this is for the API payload
     batch_id: string;
     subject_assignments: { subjectId: string; newAssignment: boolean }[];
 }
@@ -51,9 +46,8 @@ interface FacultyAssignmentPayloadEntry {
 interface FacultyAssignmentsResponse {
     faculty_id: string;
     batch_subject_assignments: {
-        // Structure from GET API
         batch_id: string;
-        subject_assignments: { subjectId: string }[]; // Assuming GET doesn't return newAssignment
+        subject_assignments: { subjectId: string }[];
     }[];
 }
 
@@ -62,8 +56,6 @@ interface AssignBatchSubjectComponentProps {
     onClose: () => void;
     refetchData: () => void;
 }
-const GET_FACULTY_BATCHES_URL = `${BASE_URL}/admin-core-service/institute/v1/faculty/batch-subject-assignments`;
-const UPDATE_FACULTY_BATCHES_URL = `${BASE_URL}/admin-core-service/institute/v1/faculty/update-assign-subjects-and-batches`;
 
 const fetchFacultyAssignments = async (facultyId: string): Promise<FacultyAssignmentsResponse> => {
     const response = await authenticatedAxiosInstance({
@@ -72,10 +64,6 @@ const fetchFacultyAssignments = async (facultyId: string): Promise<FacultyAssign
         params: { userId: facultyId },
         headers: { Authorization: `Bearer ${getTokenFromCookie(TokenKey.accessToken)}` },
     });
-    // Ensure the response structure matches FacultyAssignmentsResponse
-    // If response.data.data is the correct path:
-    // return response.data.data;
-    // If response.data is the correct path (as per user's existing code):
     return response.data;
 };
 
@@ -213,18 +201,6 @@ export const AssignBatchSubjectComponent: React.FC<AssignBatchSubjectComponentPr
             const newSelectedBatches = prevSelectedBatches.includes(batchId)
                 ? prevSelectedBatches.filter((id) => id !== batchId)
                 : [...prevSelectedBatches, batchId];
-
-            if (!newSelectedBatches.includes(batchId)) {
-                // If batch is being deselected
-                // Option 1: Clear subject selections for this batch
-                // setSubjectSelections((prevSubjects) => {
-                //     const newSubjects = { ...prevSubjects };
-                //     delete newSubjects[batchId];
-                //     return newSubjects;
-                // });
-                // Option 2: Keep subject selections, they will be used for `newAssignment: false` if batch was initially assigned.
-                // No change to subjectSelections here needed if we follow the onSubmit logic for deselected batches.
-            }
             return newSelectedBatches;
         });
     };
@@ -234,29 +210,24 @@ export const AssignBatchSubjectComponent: React.FC<AssignBatchSubjectComponentPr
     };
 
     const onSubmit = () => {
-        // Removed data: FacultyAssignmentsFormValues as it's not directly used for payload
         const finalBatchSubjectAssignments: FacultyAssignmentPayloadEntry[] = [];
 
-        // Consider all batches: those initially assigned or those currently selected in UI
         const allProcessedBatchIds = new Set([...initialAssignmentsMap.keys(), ...selectedBatches]);
 
         for (const batchId of allProcessedBatchIds) {
             const initialSubjectsForThisBatch =
                 initialAssignmentsMap.get(batchId) || new Set<string>();
 
-            // Current subjects for this batch, *only if the batch is currently selected in UI*
             const currentUISubjectsForThisBatch = selectedBatches.includes(batchId)
                 ? new Set(subjectSelections[batchId] || [])
                 : new Set<string>();
 
             const subjectAssignmentsPayload: { subjectId: string; newAssignment: boolean }[] = [];
 
-            // Add/Keep: Subjects currently in UI selection for this batch
             for (const subjectId of currentUISubjectsForThisBatch) {
                 subjectAssignmentsPayload.push({ subjectId, newAssignment: true });
             }
 
-            // Remove: Subjects initially present but NOT in current UI selection for this batch
             for (const subjectId of initialSubjectsForThisBatch) {
                 if (!currentUISubjectsForThisBatch.has(subjectId)) {
                     subjectAssignmentsPayload.push({ subjectId, newAssignment: false });
@@ -273,14 +244,11 @@ export const AssignBatchSubjectComponent: React.FC<AssignBatchSubjectComponentPr
 
         const payload = {
             faculty_id: teacher.id,
-            // Filter out batches if API doesn't want empty subject_assignments list
-            // (though our current logic ensures subjectAssignmentsPayload.length > 0)
             batch_subject_assignments: finalBatchSubjectAssignments.filter(
                 (b) => b.subject_assignments.length > 0
             ),
         };
 
-        // console.log("Final Payload to API:", JSON.stringify(payload, null, 2));
         updateMutation.mutate(payload);
     };
 
@@ -298,7 +266,6 @@ export const AssignBatchSubjectComponent: React.FC<AssignBatchSubjectComponentPr
                 Assign Batches and Subjects to {teacher.full_name}
             </h1>
             <FormProvider {...form}>
-                {/* Use form.handleSubmit(onSubmit) if you intend to use form's submit capabilities */}
                 <form
                     onSubmit={form.handleSubmit(onSubmit)}
                     className="flex grow flex-col overflow-hidden p-6"
@@ -388,8 +355,6 @@ export const AssignBatchSubjectComponent: React.FC<AssignBatchSubjectComponentPr
                             type="submit"
                             scale="medium"
                             buttonType="primary"
-                            // Disable if no changes or if mutation is pending.
-                            // form.formState.isDirty ensures something changed from initial load.
                             disable={
                                 updateMutation.isPending ||
                                 (!form.formState.isDirty && initialAssignmentsMap.size > 0)
