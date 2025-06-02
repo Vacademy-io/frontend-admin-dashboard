@@ -1,6 +1,7 @@
 import {
     CREATE_LIVE_SESSION_STEP_1,
     CREATE_LIVE_SESSION_STEP_2,
+    GET_LIVE_SESSIONS,
     // GET_LIVE_SESSIONS,
 } from '@/constants/urls';
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
@@ -59,17 +60,14 @@ export const createLiveSessionStep2 = async (data: LiveSessionStep2RequestDTO) =
 };
 
 export const getLiveSessions = async (instituteId: string) => {
-    const response = await authenticatedAxiosInstance.get(
-        'http://localhost:8072/admin-core-service/get-sessions/live',
-        {
-            headers: {
-                Accept: '*/*',
-                'Content-Type': 'application/json',
-            },
-            params: {
-                instituteId,
-            },
-        }
-    );
+    const response = await authenticatedAxiosInstance.get(GET_LIVE_SESSIONS, {
+        headers: {
+            Accept: '*/*',
+            'Content-Type': 'application/json',
+        },
+        params: {
+            instituteId,
+        },
+    });
     return response.data;
 };

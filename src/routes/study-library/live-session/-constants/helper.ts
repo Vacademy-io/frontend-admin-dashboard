@@ -30,6 +30,13 @@ export interface LiveSessionStep1RequestDTO {
     updated_schedules: ScheduleDTO[];
     deleted_schedule_ids: string[];
     institute_id: string;
+    background_score_file_id?: string;
+    thumbnail_file_id?: string;
+    waiting_room_time?: number;
+    link_type?: string;
+    allow_rewind?: boolean;
+    is_live?: boolean;
+    session_streaming_service_type?: string;
 }
 
 interface ScheduleDTO {
@@ -96,7 +103,9 @@ export interface FieldOptionDTO {
 export function transformFormToDTOStep1(
     form: SessionFormInput,
     instituteId: string,
-    originalSchedules: WeeklyClass[] = []
+    originalSchedules: WeeklyClass[] = [],
+    musicFileId: string | undefined,
+    thumbnailFileId: string | undefined
 ): LiveSessionStep1RequestDTO {
     const {
         id: sessionId,
@@ -111,6 +120,10 @@ export function transformFormToDTOStep1(
         defaultLink,
         meetingType,
         recurringSchedule = [],
+        openWaitingRoomBefore,
+        streamingType,
+        sessionPlatform,
+        allowRewind,
     } = form;
 
     // Convert hours and minutes to total duration in hours
@@ -171,6 +184,12 @@ export function transformFormToDTOStep1(
         updated_schedules,
         deleted_schedule_ids,
         institute_id: instituteId,
+        background_score_file_id: musicFileId,
+        thumbnail_file_id: thumbnailFileId,
+        waiting_room_time: Number(openWaitingRoomBefore),
+        link_type: sessionPlatform,
+        allow_rewind: allowRewind,
+        session_streaming_service_type: streamingType,
     };
 }
 

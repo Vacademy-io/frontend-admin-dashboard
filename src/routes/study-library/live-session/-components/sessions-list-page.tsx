@@ -5,10 +5,10 @@ import { MyButton } from '@/components/design-system/button';
 import { SessionStatus, sessionStatusLabels } from '../-constants/enums';
 import LiveSessionCard from './live-session-card';
 import { useNavigate } from '@tanstack/react-router';
-import { useLiveSessions } from '../schedule/-hooks/useLiveSessions';
+import { useLiveSessions, useUpcomingSessions, usePastSessions } from '../-hooks/useLiveSessions';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
-import { LiveSession } from '../schedule/-services/utils';
+import { LiveSession, SessionsByDate } from '../-services/utils';
 
 export default function SessionListPage() {
     const { setNavHeading } = useNavHeadingStore();
@@ -19,8 +19,22 @@ export default function SessionListPage() {
     const tokenData = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = (tokenData && Object.keys(tokenData.authorities)[0]) || '';
 
-    // Only fetch live sessions when the Live tab is selected
-    const { data: liveSessions, isLoading, error } = useLiveSessions(INSTITUTE_ID);
+    // Fetch sessions data
+    const {
+        data: liveSessions,
+        isLoading: isLiveLoading,
+        error: liveError,
+    } = useLiveSessions(INSTITUTE_ID);
+    const {
+        data: upcomingSessions,
+        isLoading: isUpcomingLoading,
+        error: upcomingError,
+    } = useUpcomingSessions(INSTITUTE_ID);
+    const {
+        data: pastSessions,
+        isLoading: isPastLoading,
+        error: pastError,
+    } = usePastSessions(INSTITUTE_ID);
 
     const handleTabChange = (value: string) => {
         setSelectedTab(value as SessionStatus);
@@ -31,11 +45,34 @@ export default function SessionListPage() {
     }, []);
 
     const renderLiveSessions = (sessions: LiveSession[] | undefined) => {
-        if (isLoading) return <div>Loading...</div>;
-        if (error) return <div>Error loading sessions: {error.message}</div>;
+        if (isLiveLoading) return <div>Loading...</div>;
+        if (liveError) return <div>Error loading sessions: {liveError.message}</div>;
         if (!sessions?.length) return <div>No live sessions found</div>;
         return sessions.map((session) => (
             <LiveSessionCard key={session.session_id} session={session} />
+        ));
+    };
+
+    const renderSessionsByDate = (
+        sessions: SessionsByDate[] | undefined,
+        isLoading: boolean,
+        error: Error | null,
+        emptyMessage: string
+    ) => {
+        if (isLoading) return <div>Loading...</div>;
+        if (error) return <div>Error loading sessions: {error.message}</div>;
+        if (!sessions?.length) return <div>{emptyMessage}</div>;
+
+        return sessions.map((day) => (
+            <div key={day.date} className="mb-4">
+                <h2 className="mb-2 text-lg font-semibold">{day.date}</h2>
+                {day.sessions.map((session) => (
+                    <LiveSessionCard
+                        key={`${session.session_id}-${session.schedule_id}`}
+                        session={session}
+                    />
+                ))}
+            </div>
         ));
     };
 
@@ -70,12 +107,20 @@ export default function SessionListPage() {
                     {renderLiveSessions(liveSessions)}
                 </TabsContent>
                 <TabsContent value={SessionStatus.UPCOMING} className="space-y-4">
-                    {/* TODO: Add upcoming sessions component */}
-                    <div>Upcoming sessions will be shown here</div>
+                    {renderSessionsByDate(
+                        upcomingSessions,
+                        isUpcomingLoading,
+                        upcomingError,
+                        'No upcoming sessions found'
+                    )}
                 </TabsContent>
                 <TabsContent value={SessionStatus.PAST} className="space-y-4">
-                    {/* TODO: Add past sessions component */}
-                    <div>Past sessions will be shown here</div>
+                    {renderSessionsByDate(
+                        pastSessions,
+                        isPastLoading,
+                        pastError,
+                        'No past sessions found'
+                    )}
                 </TabsContent>
                 <TabsContent value={SessionStatus.DRAFTS} className="space-y-4">
                     {/* TODO: Add draft sessions component */}

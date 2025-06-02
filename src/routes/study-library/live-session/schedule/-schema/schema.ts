@@ -28,6 +28,12 @@ export const sessionFormSchema = z.object({
     id: z.string().optional(),
     title: z.string().min(3, 'Title must be at least 3 characters'),
     subject: z.string(),
+    openWaitingRoomBefore: z.string(),
+    sessionType: z.string(),
+    sessionPlatform: z.string(),
+    enableWaitingRoom: z.boolean(),
+    streamingType: z.string(),
+    allowRewind: z.boolean(),
     startTime: z.string({
         required_error: 'Start time is required',
         invalid_type_error: 'Invalid date',

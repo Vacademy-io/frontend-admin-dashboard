@@ -23,3 +23,11 @@ export const sessionStatusLabels: Record<SessionStatus, string> = {
     [SessionStatus.DRAFTS]: 'Drafts',
     [SessionStatus.LIVE]: 'Live',
 };
+export enum SessionType {
+    LIVE = 'live',
+    PRE_RECORDED = 'pre-recorded',
+}
+export enum SessionPlatform {
+    EMBED_IN_APP = 'embed-in-app',
+    REDIRECT_TO_OTHER_PLATFORM = 'redirect-to-other-platform',
+}
