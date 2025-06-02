@@ -1,9 +1,9 @@
 import { LevelWithDetailsType } from "@/stores/study-library/use-study-library-store";
 import { useNavigate, useRouter } from "@tanstack/react-router";
 import { LevelMenuOptions } from "./level-menu-options";
-import { AddLevelData } from "./add-level-form";
+import { AddLevelData } from "./add-course-details-form";
 
-export const LevelCard = ({
+export const CourseDetailsCard = ({
     level,
     onDelete,
     onEdit,

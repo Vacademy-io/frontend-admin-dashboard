@@ -2,7 +2,7 @@ import { MyButton } from "@/components/design-system/button";
 import { MyDialog } from "@/components/design-system/dialog";
 import { ReactNode, useRef, useState } from "react";
 import { Plus } from "phosphor-react";
-import { AddLevelData, AddLevelForm } from "./add-level-form";
+import { AddCourseDetailsForm, AddLevelData } from "./add-course-details-form";
 
 const triggerButton = (
     <MyButton buttonType="primary" scale="large" layoutVariant="default" id="assign-year">
@@ -25,7 +25,7 @@ interface AddLevelButtonProps {
     packageId?: string;
 }
 
-export const AddLevelButton = ({ onSubmit, trigger, packageId }: AddLevelButtonProps) => {
+export const AddCourseDetailsButton = ({ onSubmit, trigger, packageId }: AddLevelButtonProps) => {
     const [openDialog, setOpenDialog] = useState(false);
 
     const handleOpenChange = () => {
@@ -63,14 +63,14 @@ export const AddLevelButton = ({ onSubmit, trigger, packageId }: AddLevelButtonP
             className="z-[99999]"
         >
             {packageId ?
-                <AddLevelForm
+                <AddCourseDetailsForm
                     onSubmitSuccess={onSubmit}
                     setOpenDialog={setOpenDialog}
                     submitForm={submitFormFn}
                     packageId={packageId}
                 />
                 :
-                <AddLevelForm
+                <AddCourseDetailsForm
                     onSubmitSuccess={onSubmit}
                     setOpenDialog={setOpenDialog}
                     submitForm={submitFormFn}

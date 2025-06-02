@@ -1,12 +1,10 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from 'react';
-import { LevelCard } from './level-card';
 import { useRouter } from '@tanstack/react-router';
 import { useSidebar } from '@/components/ui/sidebar';
 import { getCourseSessions } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSessionsForLevels';
 import { getCourseLevels } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getLevelWithDetails';
-import { AddLevelButton } from './add-level-button';
-import { AddLevelData } from './add-level-form';
+import { AddLevelData } from './add-course-details-form';
 import { toast } from 'sonner';
 import { useAddLevel } from '@/routes/study-library/courses/course-details/-services/add-level';
 import { useDeleteLevel } from '@/routes/study-library/courses/course-details/-services/delete-level';
@@ -20,8 +18,10 @@ import {
   DropdownItemType,
   DropdownValueType,
 } from '@/components/common/students/enroll-manually/dropdownTypesForPackageItems';
+import { CourseDetailsCard } from './course-details-card';
+import { AddCourseDetailsButton } from './add-course-details-button';
 
-export const LevelPage = () => {
+export const CourseDetailsPage = () => {
   const { open } = useSidebar();
   const router = useRouter();
   const searchParams = router.state.location.search;
@@ -146,7 +146,7 @@ export const LevelPage = () => {
           </div>
         </div>
         <div className="flex flex-col items-center gap-4">
-          <AddLevelButton onSubmit={handleAddLevel} />
+          <AddCourseDetailsButton onSubmit={handleAddLevel} />
         </div>
       </div>
     );
@@ -184,7 +184,7 @@ export const LevelPage = () => {
           >
             {levelList.map((level, key) => (
               <div key={key}>
-                <LevelCard level={level} onDelete={handleLeveLDelete} onEdit={handleLevelUpdate} />
+                <CourseDetailsCard level={level} onDelete={handleLeveLDelete} onEdit={handleLevelUpdate} />
               </div>
             ))}
           </div>

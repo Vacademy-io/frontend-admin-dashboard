@@ -14,7 +14,7 @@ import { getCourseSessions } from '@/utils/helpers/study-library-helpers.ts/get-
 import { getCourseNameById } from '@/utils/helpers/study-library-helpers.ts/get-name-by-id/getCourseNameById';
 import { getCourseLevels } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getLevelWithDetails';
 import { getCourses } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getCourses';
-import { LevelPage } from './-components/level-page';
+import { CourseDetailsPage } from './-components/course-details-page';
 
 interface CourseSearchParams {
     courseId: string;
@@ -93,7 +93,7 @@ function RouteComponent() {
             sideBarData={{ title: 'Courses', listIconText: 'C', searchParam: 'courseId' }}
         >
             <InitStudyLibraryProvider>
-                <LevelPage />
+                <CourseDetailsPage />
             </InitStudyLibraryProvider>
         </LayoutContainer>
     );

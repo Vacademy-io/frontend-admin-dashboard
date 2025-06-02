@@ -54,7 +54,7 @@ interface AddLevelFormProps {
     packageId?: string;
 }
 
-export const AddLevelForm = ({
+export const AddCourseDetailsForm = ({
     onSubmitSuccess,
     initialValues,
     setOpenDialog,
