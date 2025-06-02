@@ -1,5 +1,4 @@
 import React from 'react';
-import { OrganizationOnboardingProps, Route } from '..';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -42,31 +41,57 @@ export const organizationDetailsSignupStep1 = z
         message: 'Passwords do not match',
         path: ['confirmPassword'],
     });
+
 type FormValues = z.infer<typeof organizationDetailsSignupStep1>;
 
-const Step3AddOrgDetails: React.FC<OrganizationOnboardingProps> = ({
-    currentStep,
-    handleCompleteCurrentStep,
-    completedSteps,
-}) => {
+interface SignupData {
+    name: string;
+    email: string;
+    profile?: string;
+}
+
+export function Step3AddOrgDetails() {
     const queryClient = useQueryClient();
-    const searchParams = Route.useSearch();
+    const navigate = useNavigate();
     const { formDataAddOrg, setFormDataAddOrg, resetAddOrgForm } = useAddOrgStore();
     const { formData, resetForm } = useOrganizationStore();
-    console.log(currentStep, completedSteps);
-    const navigate = useNavigate();
+
+    // Fix URL parsing to handle the extra ? in the URL
+    const url = new URL(window.location.href);
+    console.log('url', url);
+
+    // Extract signupData from the search string
+    const searchStr = url.search;
+    const signupDataMatch = searchStr.match(/[?&]signupData=([^&]+)/);
+    const rawSignupData = signupDataMatch ? signupDataMatch[1] : null;
+    console.log('rawSignupData', rawSignupData);
+
+    // Parse signup data if available
+    let signupData: SignupData | null = null;
+    if (rawSignupData) {
+        try {
+            // First decode the URL-encoded string, then decode base64
+            const decodedData = decodeURIComponent(rawSignupData);
+            signupData = JSON.parse(atob(decodedData));
+            console.log('Decoded signup data:', signupData);
+        } catch (e) {
+            console.error('Error parsing signup data:', e);
+        }
+    }
+
     const form = useForm<FormValues>({
         resolver: zodResolver(organizationDetailsSignupStep1),
         defaultValues: {
-            name: formDataAddOrg.name || '',
+            name: signupData?.name || formDataAddOrg.name || '',
             username: formDataAddOrg.username || '',
-            email: formDataAddOrg.email || '',
+            email: signupData?.email || formDataAddOrg.email || '',
             password: formDataAddOrg.password || '',
             confirmPassword: formDataAddOrg.confirmPassword || '',
             roleType: ['ADMIN'],
         },
         mode: 'onChange',
     });
+
     const { getValues } = form;
     const isValid =
         !!getValues('name') &&
@@ -89,7 +114,6 @@ const Step3AddOrgDetails: React.FC<OrganizationOnboardingProps> = ({
         },
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
-            handleCompleteCurrentStep();
             setAuthorizationCookie(TokenKey.accessToken, data.accessToken);
             setAuthorizationCookie(TokenKey.refreshToken, data.refreshToken);
             resetForm();
@@ -113,7 +137,10 @@ const Step3AddOrgDetails: React.FC<OrganizationOnboardingProps> = ({
     function onSubmit(values: FormValues) {
         setFormDataAddOrg({ ...values });
         handleSignupInstituteMutation.mutate({
-            searchParams,
+            searchParams: {
+                assess: url.searchParams.get('assess') === 'true',
+                lms: url.searchParams.get('lms') === 'true',
+            },
             formData,
             formDataOrg: values,
         });
@@ -185,6 +212,7 @@ const Step3AddOrgDetails: React.FC<OrganizationOnboardingProps> = ({
                                         label="Email"
                                         {...field}
                                         className="w-96"
+                                        disabled={!!signupData?.email}
                                     />
                                 </FormControl>
                             </FormItem>
@@ -249,6 +277,6 @@ const Step3AddOrgDetails: React.FC<OrganizationOnboardingProps> = ({
             </form>
         </FormProvider>
     );
-};
+}
 
 export default Step3AddOrgDetails;

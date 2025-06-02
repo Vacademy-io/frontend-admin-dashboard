@@ -34,6 +34,7 @@ import { SectionFormType } from '@/types/assessments/assessment-steps';
 import { addQuestionPaper } from '@/routes/assessment/question-papers/-utils/question-paper-services';
 import { getQuestionPaperById } from '@/routes/community/question-paper/-service/utils';
 import { useAIQuestionDialogStore } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/zustand-global-states/ai-add-questions-dialog-zustand';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface AIQuestionsPreviewProps {
     task: AITaskIndividualListInterface;
@@ -114,11 +115,6 @@ const AIQuestionsPreview = ({
 
     const questions = form.getValues('questions');
 
-    const handlePageClick = (pageIndex: number) => {
-        setCurrentQuestionIndex(pageIndex);
-        form.trigger();
-    };
-
     const [noResponse, setNoResponse] = useState(false);
     const getQuestionsListMutation = useMutation({
         mutationFn: async ({ taskId }: { taskId: string }) => {
@@ -145,6 +141,7 @@ const AIQuestionsPreview = ({
                 tags: response?.tags,
                 questions: transformQuestionsData,
             });
+            form.trigger();
         },
         onError: (error: unknown) => {
             console.log(error);
@@ -256,6 +253,13 @@ const AIQuestionsPreview = ({
     });
 
     const handleSaveQuestionsInSection = () => {
+        if (Object.values(form.formState.errors).length > 0) {
+            toast.error('some of your questions are incomplete or needs attentions!', {
+                className: 'error-toast',
+                duration: 3000,
+            });
+            return;
+        }
         handleSubmitFormData.mutate({
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-expect-error
@@ -317,171 +321,201 @@ const AIQuestionsPreview = ({
                         </MyButton>
                     )}
                 </DialogTrigger>
-                {assessmentData &&
-                    assessmentData.questions &&
-                    assessmentData.questions.length > 0 && (
-                        <DialogContent className="no-scrollbar !m-0 flex h-full !w-full !max-w-full flex-col !gap-0 overflow-y-auto !rounded-none !p-0 [&>button]:hidden">
-                            <FormProvider {...form}>
-                                <form className="flex h-screen flex-col items-start">
-                                    <div className="flex w-full items-start justify-between bg-primary-100 p-2">
-                                        <div>
-                                            <div className="flex items-center gap-2">
-                                                <img
-                                                    src={instituteLogo}
-                                                    alt="logo"
-                                                    className="size-12 rounded-full"
-                                                />
-                                                <span className="text-lg font-semibold text-neutral-500">
-                                                    {form.getValues('title')}
-                                                </span>
-                                            </div>
-                                            <div className="flex flex-wrap items-center gap-2">
-                                                {form.getValues('tags')?.map((tag, idx) => {
-                                                    return (
-                                                        <Badge variant="outline" key={idx}>
-                                                            {tag}
-                                                        </Badge>
-                                                    );
-                                                })}
-                                            </div>
-                                        </div>
-                                        <div className="mt-2 flex items-center gap-4">
-                                            {currentSectionIndex !== undefined &&
-                                                (handleSubmitFormData.status === 'pending' ? (
-                                                    <MyButton type="button">
-                                                        <DashboardLoader
-                                                            size={18}
-                                                            color="#ffffff"
-                                                        />
-                                                    </MyButton>
-                                                ) : (
-                                                    <MyButton
-                                                        onClick={handleSaveQuestionsInSection}
-                                                        type="button"
-                                                    >
-                                                        Save
-                                                    </MyButton>
-                                                ))}
-                                            <MyButton
-                                                type="button"
-                                                scale="medium"
-                                                buttonType="secondary"
-                                                layoutVariant="default"
-                                                className="mr-4 text-sm"
-                                                onClick={() => {
-                                                    setOpenQuestionsPreview(false);
-                                                }}
-                                            >
-                                                Cancel
-                                            </MyButton>
-                                            <ExportQuestionPaperAI
-                                                responseQuestionsData={assessmentData?.questions}
+                {form.getValues('questions') && form.getValues('questions').length > 0 && (
+                    <DialogContent className="no-scrollbar !m-0 flex h-full !w-full !max-w-full flex-col !gap-0 overflow-y-auto !rounded-none !p-0 [&>button]:hidden">
+                        <FormProvider {...form}>
+                            <form className="flex h-screen flex-col items-start">
+                                <div className="flex w-full items-start justify-between bg-primary-100 p-2">
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <img
+                                                src={instituteLogo}
+                                                alt="logo"
+                                                className="size-12 rounded-full"
                                             />
+                                            <span className="text-lg font-semibold text-neutral-500">
+                                                {form.getValues('title')}
+                                            </span>
+                                        </div>
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            {form.getValues('tags')?.map((tag, idx) => {
+                                                return (
+                                                    <Badge variant="outline" key={idx}>
+                                                        {tag}
+                                                    </Badge>
+                                                );
+                                            })}
                                         </div>
                                     </div>
-                                    <div className="flex w-full">
-                                        <div className="mt-4 flex w-40 flex-col items-center justify-center gap-2">
-                                            <div className="flex h-[325vh] w-40 flex-col items-start justify-between gap-4 overflow-x-hidden overflow-y-scroll p-2">
-                                                <Sortable
-                                                    value={fields}
-                                                    onMove={({ activeIndex, overIndex }) =>
-                                                        move(activeIndex, overIndex)
-                                                    }
+                                    <div className="mt-2 flex items-center gap-4">
+                                        {currentSectionIndex !== undefined &&
+                                            (handleSubmitFormData.status === 'pending' ? (
+                                                <MyButton type="button">
+                                                    <DashboardLoader size={18} color="#ffffff" />
+                                                </MyButton>
+                                            ) : (
+                                                <MyButton
+                                                    onClick={handleSaveQuestionsInSection}
+                                                    type="button"
                                                 >
-                                                    <div className="flex origin-top-left scale-[0.26] flex-col gap-8 overflow-x-hidden">
-                                                        {fields.map((field, index) => {
-                                                            return (
-                                                                <SortableItem
-                                                                    key={field.id}
-                                                                    value={field.id}
-                                                                    asChild
-                                                                >
-                                                                    <div
-                                                                        key={index}
-                                                                        // onClick={() => handlePageClick(index)}
-                                                                        className={`rounded-xl border-4 bg-primary-50 p-6 ${
-                                                                            currentQuestionIndex ===
-                                                                            index
-                                                                                ? 'border-primary-500 bg-none'
-                                                                                : 'bg-none'
-                                                                        }`}
-                                                                        onMouseEnter={() =>
-                                                                            handlePageClick(index)
-                                                                        }
-                                                                    >
-                                                                        <div className="flex flex-col">
-                                                                            <div className="flex items-center justify-start gap-4">
-                                                                                <h1 className="left-0 w-96 whitespace-nowrap text-4xl font-bold">
-                                                                                    {index + 1}
-                                                                                    &nbsp;
-                                                                                    {getPPTViewTitle(
-                                                                                        getValues(
-                                                                                            `questions.${index}.questionType`
-                                                                                        ) as QuestionType
-                                                                                    )}
-                                                                                </h1>
-                                                                                <SortableDragHandle
-                                                                                    variant="outline"
-                                                                                    size="icon"
-                                                                                    className="size-16"
-                                                                                >
-                                                                                    <DotsSixVertical className="!size-12" />
-                                                                                </SortableDragHandle>
-                                                                            </div>
-                                                                            <PPTComponentFactory
-                                                                                key={index}
-                                                                                type={
-                                                                                    getValues(
-                                                                                        `questions.${index}.questionType`
-                                                                                    ) as QuestionType
-                                                                                }
-                                                                                props={{
-                                                                                    form: form,
-                                                                                    currentQuestionIndex:
-                                                                                        index,
-                                                                                    setCurrentQuestionIndex:
-                                                                                        setCurrentQuestionIndex,
-                                                                                    className:
-                                                                                        'relative mt-4 rounded-xl border-4 border-primary-300 bg-white p-4',
-                                                                                }}
-                                                                            />
-                                                                        </div>
-                                                                    </div>
-                                                                </SortableItem>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                </Sortable>
-                                            </div>
-                                        </div>
-                                        <Separator orientation="vertical" className="h-screen" />
-                                        {questions && questions.length === 0 ? (
-                                            <div className="flex h-screen w-screen items-center justify-center">
-                                                <h1>No Question Exists.</h1>
-                                            </div>
-                                        ) : (
-                                            <MainViewComponentFactory
-                                                key={currentQuestionIndex}
-                                                type={
-                                                    getValues(
-                                                        `questions.${currentQuestionIndex}.questionType`
-                                                    ) as QuestionType
-                                                }
-                                                props={{
-                                                    form: form,
-                                                    currentQuestionIndex: currentQuestionIndex,
-                                                    setCurrentQuestionIndex:
-                                                        setCurrentQuestionIndex,
-                                                    className:
-                                                        'dialog-height overflow-auto ml-6 flex w-full flex-col gap-6 pr-6 pt-4',
-                                                }}
-                                            />
-                                        )}
+                                                    Save
+                                                </MyButton>
+                                            ))}
+                                        <MyButton
+                                            type="button"
+                                            scale="medium"
+                                            buttonType="secondary"
+                                            layoutVariant="default"
+                                            className="mr-4 text-sm"
+                                            onClick={() => {
+                                                setOpenQuestionsPreview(false);
+                                            }}
+                                        >
+                                            Cancel
+                                        </MyButton>
+                                        <ExportQuestionPaperAI
+                                            responseQuestionsData={assessmentData?.questions}
+                                        />
                                     </div>
-                                </form>
-                            </FormProvider>
-                        </DialogContent>
-                    )}
+                                </div>
+                                <div className="flex w-full">
+                                    <div className="mt-4 flex w-40 flex-col items-center justify-center gap-2">
+                                        <div className="flex h-[325vh] w-40 flex-col items-start justify-between gap-4 overflow-x-hidden overflow-y-scroll p-2">
+                                            <Sortable
+                                                value={fields}
+                                                onMove={({ activeIndex, overIndex }) =>
+                                                    move(activeIndex, overIndex)
+                                                }
+                                            >
+                                                <div className="flex origin-top-left scale-[0.26] flex-col gap-8 overflow-x-hidden">
+                                                    {fields.map((field, index) => {
+                                                        // Check if the current question has an error
+                                                        const hasError =
+                                                            form.formState.errors?.questions?.[
+                                                                index
+                                                            ];
+                                                        return (
+                                                            <SortableItem
+                                                                key={field.id}
+                                                                value={field.id}
+                                                                asChild
+                                                            >
+                                                                <div
+                                                                    key={index}
+                                                                    onClick={(
+                                                                        e: React.MouseEvent
+                                                                    ) => {
+                                                                        e.preventDefault(); // Prevent form submission
+                                                                        e.stopPropagation(); // Stop event bubbling
+                                                                        setCurrentQuestionIndex(
+                                                                            index
+                                                                        );
+                                                                        return;
+                                                                    }}
+                                                                    className={`rounded-xl border-4 bg-primary-50 p-6 ${
+                                                                        currentQuestionIndex ===
+                                                                        index
+                                                                            ? 'border-primary-500 bg-none'
+                                                                            : 'bg-none'
+                                                                    }`}
+                                                                >
+                                                                    <TooltipProvider>
+                                                                        <Tooltip
+                                                                            open={
+                                                                                hasError
+                                                                                    ? true
+                                                                                    : false
+                                                                            }
+                                                                        >
+                                                                            <TooltipTrigger>
+                                                                                <div className="flex flex-col">
+                                                                                    <div className="flex items-center justify-start gap-4">
+                                                                                        <h1 className="left-0 w-96 whitespace-nowrap text-4xl font-bold">
+                                                                                            {index +
+                                                                                                1}
+                                                                                            &nbsp;
+                                                                                            {getPPTViewTitle(
+                                                                                                getValues(
+                                                                                                    `questions.${index}.questionType`
+                                                                                                ) as QuestionType
+                                                                                            )}
+                                                                                        </h1>
+                                                                                        <SortableDragHandle
+                                                                                            variant="outline"
+                                                                                            size="icon"
+                                                                                            className="size-16"
+                                                                                        >
+                                                                                            <DotsSixVertical className="!size-12" />
+                                                                                        </SortableDragHandle>
+                                                                                    </div>
+                                                                                    <PPTComponentFactory
+                                                                                        key={index}
+                                                                                        type={
+                                                                                            getValues(
+                                                                                                `questions.${index}.questionType`
+                                                                                            ) as QuestionType
+                                                                                        }
+                                                                                        props={{
+                                                                                            form: form,
+                                                                                            currentQuestionIndex:
+                                                                                                index,
+                                                                                            setCurrentQuestionIndex:
+                                                                                                setCurrentQuestionIndex,
+                                                                                            className:
+                                                                                                'relative mt-4 rounded-xl border-4 border-primary-300 bg-white p-4',
+                                                                                        }}
+                                                                                    />
+                                                                                </div>
+                                                                            </TooltipTrigger>
+                                                                            {hasError && (
+                                                                                <TooltipContent
+                                                                                    className="ml-3 border-2 border-danger-400 bg-primary-50"
+                                                                                    side="right"
+                                                                                >
+                                                                                    <p>
+                                                                                        Question
+                                                                                        isn&apos;t
+                                                                                        complete
+                                                                                    </p>
+                                                                                </TooltipContent>
+                                                                            )}
+                                                                        </Tooltip>
+                                                                    </TooltipProvider>
+                                                                </div>
+                                                            </SortableItem>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </Sortable>
+                                        </div>
+                                    </div>
+                                    <Separator orientation="vertical" className="h-screen" />
+                                    {questions && questions.length === 0 ? (
+                                        <div className="flex h-screen w-screen items-center justify-center">
+                                            <h1>No Question Exists.</h1>
+                                        </div>
+                                    ) : (
+                                        <MainViewComponentFactory
+                                            key={currentQuestionIndex}
+                                            type={
+                                                getValues(
+                                                    `questions.${currentQuestionIndex}.questionType`
+                                                ) as QuestionType
+                                            }
+                                            props={{
+                                                form: form,
+                                                currentQuestionIndex: currentQuestionIndex,
+                                                setCurrentQuestionIndex: setCurrentQuestionIndex,
+                                                className:
+                                                    'dialog-height overflow-auto ml-6 flex w-full flex-col gap-6 pr-6 pt-4',
+                                            }}
+                                        />
+                                    )}
+                                </div>
+                            </form>
+                        </FormProvider>
+                    </DialogContent>
+                )}
             </Dialog>
         </>
     );

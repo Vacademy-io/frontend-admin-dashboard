@@ -1,44 +1,44 @@
-import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { DotsSixVertical, Plus, X } from "phosphor-react";
-import { useState } from "react";
-import { useFieldArray } from "react-hook-form";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Sortable, SortableDragHandle, SortableItem } from "@/components/ui/sortable";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { PPTComponentFactory } from "./QuestionPaperTemplatesTypes/PPTComponentFactory";
-import { MainViewComponentFactory } from "./QuestionPaperTemplatesTypes/MainViewComponentFactory";
-import { QuestionPaperTemplateProps } from "@/types/assessments/question-paper-template";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { getQuestionPaperById, updateQuestionPaper } from "../-utils/question-paper-services";
+import { FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { DotsSixVertical, Plus, X } from 'phosphor-react';
+import { useEffect, useState } from 'react';
+import { useFieldArray } from 'react-hook-form';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { Sortable, SortableDragHandle, SortableItem } from '@/components/ui/sortable';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { PPTComponentFactory } from './QuestionPaperTemplatesTypes/PPTComponentFactory';
+import { MainViewComponentFactory } from './QuestionPaperTemplatesTypes/MainViewComponentFactory';
+import { QuestionPaperTemplateProps } from '@/types/assessments/question-paper-template';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { getQuestionPaperById, updateQuestionPaper } from '../-utils/question-paper-services';
 import {
     getIdByLevelName,
     getIdBySubjectName,
     transformResponseDataToMyQuestionsSchema,
     getPPTViewTitle,
-} from "../-utils/helper";
+} from '../-utils/helper';
 import {
     MyQuestion,
     MyQuestionPaperFormEditInterface,
     MyQuestionPaperFormInterface,
-} from "../../../../types/assessments/question-paper-form";
-import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-import { toast } from "sonner";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { QuestionPaperEditDialog } from "./QuestionPaperEditDialogue";
-import { useRefetchStore } from "../-global-states/refetch-store";
-import useInstituteLogoStore from "@/components/common/layout-container/sidebar/institutelogo-global-zustand";
+} from '../../../../types/assessments/question-paper-form';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { toast } from 'sonner';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { QuestionPaperEditDialog } from './QuestionPaperEditDialogue';
+import { useRefetchStore } from '../-global-states/refetch-store';
+import useInstituteLogoStore from '@/components/common/layout-container/sidebar/institutelogo-global-zustand';
 import {
     AlertDialog,
     AlertDialogCancel,
     AlertDialogContent,
     AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { QuestionType } from "@/constants/dummy-data";
-import { QuestionTypeSelection } from "./QuestionTypeSelection";
-import { DialogClose } from "@radix-ui/react-dialog";
+} from '@/components/ui/alert-dialog';
+import { QuestionType } from '@/constants/dummy-data';
+import { QuestionTypeSelection } from './QuestionTypeSelection';
+import { DialogClose } from '@radix-ui/react-dialog';
 
 export function QuestionPaperTemplate({
     form,
@@ -50,7 +50,6 @@ export function QuestionPaperTemplate({
     currentQuestionIndex,
     setCurrentQuestionIndex,
 }: QuestionPaperTemplateProps) {
-    console.log(form.getValues());
     const [isQuestionPaperTemplateDialog, setIsQuestionPaperTemplateDialog] = useState(false);
     const { instituteLogo } = useInstituteLogoStore();
     const { handleRefetchData } = useRefetchStore();
@@ -58,13 +57,13 @@ export function QuestionPaperTemplate({
     const { instituteDetails } = useInstituteDetailsStore();
     const [addQuestionDialogBox, setAddQuestionDialogBox] = useState(false);
     const { control, getValues, setValue, formState, watch } = form;
-    const questions = watch("questions") || [];
-    const title = getValues("title") || "";
-    const yearClass = getValues("yearClass") || "";
-    const subject = getValues("subject") || "";
+    const questions = watch('questions') || [];
+    const title = getValues('title') || '';
+    const yearClass = getValues('yearClass') || '';
+    const subject = getValues('subject') || '';
     const [isQuestionDataLoading, setIsQuestionDataLoading] = useState(false);
     const [previousQuestionPaperData, setPreviousQuestionPaperData] = useState(
-        {} as MyQuestionPaperFormEditInterface,
+        {} as MyQuestionPaperFormEditInterface
     );
 
     watch(`questions.${currentQuestionIndex}`);
@@ -73,67 +72,61 @@ export function QuestionPaperTemplate({
     // UseFieldArray to manage questions array
     const { fields, append, move } = useFieldArray({
         control: form.control,
-        name: "questions", // Name of the field array
+        name: 'questions', // Name of the field array
     });
 
     // Function to handle adding a new question
     const handleAddNewQuestion = (newQuestionType: string) => {
         append({
             questionId: String(questions.length + 1),
-            questionName: "",
-            explanation: "",
+            questionName: '',
+            explanation: '',
             questionType: newQuestionType,
-            questionPenalty: "",
+            questionPenalty: '',
             questionDuration: {
-                hrs: "",
-                min: "",
+                hrs: '',
+                min: '',
             },
-            questionMark: "",
+            questionMark: '',
             singleChoiceOptions: [
                 {
-                    name: "",
+                    name: '',
                     isSelected: false,
                 },
                 {
-                    name: "",
+                    name: '',
                     isSelected: false,
                 },
                 {
-                    name: "",
+                    name: '',
                     isSelected: false,
                 },
                 {
-                    name: "",
+                    name: '',
                     isSelected: false,
                 },
             ],
             multipleChoiceOptions: [
                 {
-                    name: "",
+                    name: '',
                     isSelected: false,
                 },
                 {
-                    name: "",
+                    name: '',
                     isSelected: false,
                 },
                 {
-                    name: "",
+                    name: '',
                     isSelected: false,
                 },
                 {
-                    name: "",
+                    name: '',
                     isSelected: false,
                 },
             ],
         });
         setCurrentQuestionIndex(0);
         setAddQuestionDialogBox(false);
-        form.trigger();
-    };
-
-    // Function to handle page navigation by question number
-    const handlePageClick = (pageIndex: number) => {
-        setCurrentQuestionIndex(pageIndex);
         form.trigger();
     };
 
@@ -148,12 +141,12 @@ export function QuestionPaperTemplate({
         onSuccess: () => {
             setCurrentQuestionIndex(0);
             handleRefetchData();
-            toast.success("Question Paper updated successfully", {
-                className: "success-toast",
+            toast.success('Question Paper updated successfully', {
+                className: 'success-toast',
                 duration: 2000,
             });
             setIsQuestionPaperTemplateDialog(false);
-            queryClient.invalidateQueries({ queryKey: ["GET_QUESTION_PAPER_FILTERED_DATA"] });
+            queryClient.invalidateQueries({ queryKey: ['GET_QUESTION_PAPER_FILTERED_DATA'] });
         },
         onError: (error: unknown) => {
             throw error;
@@ -163,10 +156,10 @@ export function QuestionPaperTemplate({
     const handleSaveClick = (values: MyQuestionPaperFormInterface) => {
         const changedValues = {
             ...values,
-            ...(values.yearClass !== "N/A" && {
+            ...(values.yearClass !== 'N/A' && {
                 yearClass: getIdByLevelName(instituteDetails?.levels || [], yearClass),
             }),
-            ...(values.subject !== "N/A" && {
+            ...(values.subject !== 'N/A' && {
                 subject: getIdBySubjectName(instituteDetails?.subjects || [], subject),
             }),
         };
@@ -184,21 +177,21 @@ export function QuestionPaperTemplate({
         },
         onSuccess: async (data) => {
             const transformQuestionsData: MyQuestion[] = transformResponseDataToMyQuestionsSchema(
-                data.question_dtolist,
+                data.question_dtolist
             );
             setPreviousQuestionPaperData({
                 questionPaperId: questionPaperId,
                 title: title,
-                ...(data.yearClass !== "N/A" && {
+                ...(data.yearClass !== 'N/A' && {
                     level_id: getIdByLevelName(instituteDetails?.levels || [], yearClass),
                 }),
-                ...(data.subject !== "N/A" && {
+                ...(data.subject !== 'N/A' && {
                     subject_id: getIdBySubjectName(instituteDetails?.subjects || [], subject),
                 }),
                 questions: transformQuestionsData,
             });
-            setValue("questions", transformQuestionsData);
-            queryClient.invalidateQueries({ queryKey: ["GET_QUESTION_PAPER_FILTERED_DATA"] });
+            setValue('questions', transformQuestionsData);
+            queryClient.invalidateQueries({ queryKey: ['GET_QUESTION_PAPER_FILTERED_DATA'] });
         },
         onError: (error: unknown) => {
             setIsQuestionDataLoading(false);
@@ -213,8 +206,8 @@ export function QuestionPaperTemplate({
     const handleTriggerForm = () => {
         form.trigger();
         if (Object.values(form.formState.errors).length > 0) {
-            toast.error("some of your questions are incomplete or needs attentions!", {
-                className: "error-toast",
+            toast.error('some of your questions are incomplete or needs attentions!', {
+                className: 'error-toast',
                 duration: 3000,
             });
             return;
@@ -233,7 +226,7 @@ export function QuestionPaperTemplate({
                         type="button"
                         variant="outline"
                         className={`m-0 border-none pl-2 font-normal shadow-none ${
-                            isAssessment ? "text-primary-500" : ""
+                            isAssessment ? 'text-primary-500' : ''
                         }`}
                         onClick={handleViewQuestionPaper}
                     >
@@ -292,7 +285,7 @@ export function QuestionPaperTemplate({
                                         isViewMode
                                             ? () =>
                                                   handleSaveClick(
-                                                      form.getValues() as MyQuestionPaperFormInterface,
+                                                      form.getValues() as MyQuestionPaperFormInterface
                                                   )
                                             : handleTriggerForm
                                     }
@@ -324,7 +317,7 @@ export function QuestionPaperTemplate({
                                             Add Question
                                         </Button>
                                     </AlertDialogTrigger>
-                                    <AlertDialogContent className="h-[80%] overflow-y-auto p-0">
+                                    <AlertDialogContent className="h-4/5 overflow-y-auto p-0">
                                         <div className="sticky top-0 flex items-center justify-between rounded-md bg-primary-50">
                                             <h1 className="rounded-sm p-4 font-bold text-primary-500">
                                                 Add Question
@@ -364,15 +357,15 @@ export function QuestionPaperTemplate({
                                                     >
                                                         <div
                                                             key={index}
-                                                            // onClick={() => handlePageClick(index)}
+                                                            onClick={() => {
+                                                                setCurrentQuestionIndex(index);
+                                                                return;
+                                                            }}
                                                             className={`rounded-xl border-4 bg-primary-50 p-6 ${
                                                                 currentQuestionIndex === index
-                                                                    ? "border-primary-500 bg-none"
-                                                                    : "bg-none"
+                                                                    ? 'border-primary-500 bg-none'
+                                                                    : 'bg-none'
                                                             }`}
-                                                            onMouseEnter={() =>
-                                                                handlePageClick(index)
-                                                            }
                                                         >
                                                             <TooltipProvider>
                                                                 <Tooltip
@@ -386,8 +379,8 @@ export function QuestionPaperTemplate({
                                                                                     &nbsp;
                                                                                     {getPPTViewTitle(
                                                                                         getValues(
-                                                                                            `questions.${index}.questionType`,
-                                                                                        ) as QuestionType,
+                                                                                            `questions.${index}.questionType`
+                                                                                        ) as QuestionType
                                                                                     )}
                                                                                 </h1>
                                                                                 <SortableDragHandle
@@ -402,7 +395,7 @@ export function QuestionPaperTemplate({
                                                                                 key={index}
                                                                                 type={
                                                                                     getValues(
-                                                                                        `questions.${index}.questionType`,
+                                                                                        `questions.${index}.questionType`
                                                                                     ) as QuestionType
                                                                                 }
                                                                                 props={{
@@ -412,7 +405,7 @@ export function QuestionPaperTemplate({
                                                                                     setCurrentQuestionIndex:
                                                                                         setCurrentQuestionIndex,
                                                                                     className:
-                                                                                        "relative mt-4 rounded-xl border-4 border-primary-300 bg-white p-4",
+                                                                                        'relative mt-4 rounded-xl border-4 border-primary-300 bg-white p-4',
                                                                                 }}
                                                                             />
                                                                         </div>
@@ -448,7 +441,7 @@ export function QuestionPaperTemplate({
                                     key={currentQuestionIndex}
                                     type={
                                         getValues(
-                                            `questions.${currentQuestionIndex}.questionType`,
+                                            `questions.${currentQuestionIndex}.questionType`
                                         ) as QuestionType
                                     }
                                     props={{
@@ -456,7 +449,7 @@ export function QuestionPaperTemplate({
                                         currentQuestionIndex: currentQuestionIndex,
                                         setCurrentQuestionIndex: setCurrentQuestionIndex,
                                         className:
-                                            "dialog-height overflow-auto ml-6 flex w-full flex-col gap-6 pr-6 pt-4",
+                                            'dialog-height overflow-auto ml-6 flex w-full flex-col gap-6 pr-6 pt-4',
                                     }}
                                 />
                             )}

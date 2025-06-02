@@ -35,7 +35,7 @@ import { updateHeading } from './slide-operations/updateSlideHeading';
 import { formatHTMLString } from './slide-operations/formatHtmlString';
 import { handleConvertAndUpload } from './slide-operations/handleConvertUpload';
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
-import { DoubtResolutionSidebar } from './doubt-resolution/doubtResolutionSidebar';
+import DoubtResolutionSidebar from './doubt-resolution/doubtResolutionSidebar';
 
 export function fixCodeBlocksInHtml(html: string) {
     // Use DOMParser (browser) or JSDOM (Node.js) for robust parsing
@@ -90,15 +90,13 @@ export const SlideMaterial = ({
     const { updateQuestionOrder } = useSlides(chapterId || '');
     const { updateAssignmentOrder } = useSlides(chapterId || '');
     const editingContainerRef = useRef<HTMLDivElement>(null);
-    const [doubtProgressMarkerPdf, setDoubtProgressMarkerPdf] = useState<number | null>(null);
-    const [doubtProgressMarkerVideo, setDoubtProgressMarkerVideo] = useState<number | null>(null);
     const { toggleSidebar, open } = useSidebar();
-
-    console.log(doubtProgressMarkerPdf, doubtProgressMarkerVideo);
 
     const handleHeadingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setHeading(e.target.value);
     };
+
+    
 
     const setEditorContent = () => {
         const docData =
@@ -499,10 +497,7 @@ export const SlideMaterial = ({
             >
                 {content}
             </div>
-            <DoubtResolutionSidebar
-                setDoubtProgressMarkerPdf={setDoubtProgressMarkerPdf}
-                setDoubtProgressMarkerVideo={setDoubtProgressMarkerVideo}
-            />
+            <DoubtResolutionSidebar />
         </div>
     );
 };

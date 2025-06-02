@@ -1,395 +1,336 @@
 /* eslint-disable */
 // @ts-nocheck
-'useclient';
+'use client';
 
-import React, { useEffect, useRef, useState, useCallback } from 'react';
-import Reveal from 'reveal.js';
-import 'reveal.js/dist/reveal.css';
-import 'reveal.js/dist/theme/white.css'; // Or your preferred theme
-
-import { SlideEditor } from './SlideEditor'; // For rendering Excalidraw slides in view mode
-import { QuizSlide } from './slidesTypes/QuizSlides'; // Ensure path is correct
-import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
-import { toast } from 'sonner';
+import React, { useState, useEffect, memo } from 'react';
+import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react'; // For loading state
-
-import { LiveSessionActionBar } from './components/LiveSessionActionBar';
-import { ParticipantsSidePanel } from './components/ParticipantsSidePanel';
-import { SessionExcalidrawOverlay } from './components/SessionExcalidrawOverlay'; // Ensure path and naming
-
+import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { cn } from '@/lib/utils';
+import { exportToSvg } from '@excalidraw/excalidraw';
+import { GripVertical, Presentation, Trash2, ImageOff, AlertTriangle } from 'lucide-react';
+import { ExportIcon, ImportIcon } from './Icons';
+import { SlideTypeSheet } from './slideTypeSheet';
 import type {
     Slide as AppSlide,
     ExcalidrawSlideData,
     QuizSlideData,
     FeedbackSlideData,
-} from '././utils/types';
+    PartialAppState,
+} from './types';
+import { SlideTypeEnum } from '././utils/types';
+import { QuzizIcon, feedbackIcon } from '@/svgs';
 
-import type { QuestionFormData } from '@/components/common/slides/utils/types'; // Import QuestionFormData as type
-import { SlideTypeEnum } from '@/components/common/slides/utils/types';
-
-const MOVE_SESSION_API_URL =
-    'https://backend-stage.vacademy.io/community-service/engage/admin/move';
-const PARTICIPANTS_SSE_URL_BASE =
-    'https://backend-stage.vacademy.io/community-service/engage/admin/'; // e.g., admin/${sessionId}/participants
-
-interface PresentationViewProps {
+interface SlideListProps {
     slides: AppSlide[];
-    onExit: () => void;
-    liveSessionData?: { session_id: string; invite_code: string; [key: string]: any };
-    initialSlideId?: string; // To start Reveal.js on a specific slide
+    currentSlideId: string | undefined;
+    onSlideChange: (id: string) => void;
+    onAddSlide: (type: SlideTypeEnum) => void;
+    onDeleteSlide: (id: string) => void;
+    onExport: () => void;
+    onImport: (event: React.ChangeEvent<HTMLInputElement>) => void;
+    onReorderSlides: (newSlides: AppSlide[]) => void;
 }
 
-export const PresentationView: React.FC<PresentationViewProps> = ({
-    slides,
-    onExit,
-    liveSessionData,
-    initialSlideId,
-}) => {
-    const revealContainerRef = useRef<HTMLDivElement>(null);
-    const deckInstanceRef = useRef<Reveal.Api | null>(null);
-    const isLiveSession = !!liveSessionData?.session_id;
+interface PreviewProps {
+    slide: AppSlide;
+}
 
-    const [currentRevealVisualIndex, setCurrentRevealVisualIndex] = useState(0); // 0-based visual index
-    const [participantsCount, setParticipantsCount] = useState(0);
-    const [isParticipantsPanelOpen, setIsParticipantsPanelOpen] = useState(false);
-    const [isSessionWhiteboardOpen, setIsSessionWhiteboardOpen] = useState(false);
-    const [isRevealInitialized, setIsRevealInitialized] = useState(false);
+function stripHtml(html: string): string {
+    if (typeof document === 'undefined') return html;
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    return tempDiv.textContent || tempDiv.innerText || '';
+}
 
-    // Debounced API call for moving slide in live session
-    const debouncedMoveApiCall = useCallback(
-        // Basic debounce implementation
-        (() => {
-            let timeoutId: NodeJS.Timeout;
-            return async (sessionId: string, slideOrder: number, visualIndex: number) => {
-                clearTimeout(timeoutId);
-                timeoutId = setTimeout(async () => {
-                    try {
-                        await authenticatedAxiosInstance.post(MOVE_SESSION_API_URL, {
-                            session_id: sessionId,
-                            move_to: slideOrder, // This should be the logical slide_order
-                        });
-                        // Minimal toast or none to avoid clutter during presentation
-                        // toast.info(`Synced to slide ${visualIndex + 1}`, { duration: 700, id: "slide-sync" });
-                    } catch (error: any) {
-                        console.error('Error moving slide in live session:', error);
-                        toast.error(
-                            error.response?.data?.message || 'Failed to sync slide movement.'
-                        );
-                    }
-                }, 300); // 300ms debounce
-            };
-        })(),
-        []
+const SlideTypePreview = memo(({ slide }: PreviewProps) => {
+    const [svg, setSvg] = useState<string | null>(null);
+    const [previewError, setPreviewError] = useState(false);
+    let isMounted = true;
+
+    useEffect(() => {
+        isMounted = true;
+        setPreviewError(false);
+        setSvg(null);
+
+        const generateThumbnail = async () => {
+            if (slide.type === SlideTypeEnum.Quiz || slide.type === SlideTypeEnum.Feedback) {
+                return; 
+            }
+            const excalidrawSlide = slide as ExcalidrawSlideData;
+            if (!excalidrawSlide.elements || excalidrawSlide.elements.length === 0) {
+                if (isMounted) setSvg(null);
+                return;
+            }
+            try {
+                const appStateForExport: PartialAppState & {
+                    exportWithDarkMode: boolean;
+                    viewBackgroundColor: string;
+                    theme: string;
+                    exportEmbedScene: boolean;
+                } = {
+                    ...(excalidrawSlide.appState || {}),
+                    exportEmbedScene: true,
+                    exportWithDarkMode: false,
+                    viewBackgroundColor: excalidrawSlide.appState?.viewBackgroundColor || '#FFFFFF',
+                    theme: 'light',
+                };
+                const svgElement = await exportToSvg({
+                    elements: excalidrawSlide.elements,
+                    appState: appStateForExport,
+                    files: excalidrawSlide.files || null,
+                });
+                svgElement.setAttribute('width', '100%');
+                svgElement.setAttribute('height', '100%');
+                const serializer = new XMLSerializer();
+                let svgStr = serializer.serializeToString(svgElement);
+                if (!svgStr.includes('xmlns="http://www.w3.org/2000/svg"')) {
+                    svgStr = svgStr.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
+                }
+                const dataUrl = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgStr)))}`;
+                if (isMounted) setSvg(dataUrl);
+            } catch (error) {
+                console.error('Error generating Excalidraw thumbnail for slide:', slide.id, error);
+                if (isMounted) {
+                    setSvg(null);
+                    setPreviewError(true);
+                }
+            }
+        };
+        generateThumbnail();
+        return () => {
+            isMounted = false;
+        };
+    }, [slide]);
+
+    const commonPreviewContainerClass =
+        'h-full w-full rounded-md flex flex-col items-center justify-center p-1 text-xs overflow-hidden';
+    const commonImageContainerClass =
+        'h-full w-full rounded-md bg-white overflow-hidden border flex items-center justify-center';
+    const commonTitleClass = 'text-sm text-center font-medium truncate w-full px-1 py-0.5';
+    const placeholderIconClass = 'mb-1 h-6 w-6 text-gray-400';
+
+    const renderPlaceholder = (text: string, icon?: React.ReactNode) => (
+        <div className={cn(commonPreviewContainerClass, 'border border-gray-200 bg-gray-50')}>
+            {icon || <Presentation className={placeholderIconClass} />}
+            <div className="text-center text-gray-500">{text}</div>
+        </div>
     );
 
-    // SSE for participants count
-    useEffect(() => {
-        if (!isLiveSession || !liveSessionData?.session_id) return;
+    if (previewError && slide.type !== SlideTypeEnum.Quiz && slide.type !== SlideTypeEnum.Feedback) {
+        return renderPlaceholder('Preview Error', <AlertTriangle className={cn(placeholderIconClass, 'text-red-400')} />);
+    }
 
-        const sseUrl = `${PARTICIPANTS_SSE_URL_BASE}${liveSessionData.session_id}`; // Example: ensure correct endpoint
-        const eventSource = new EventSource(sseUrl, { withCredentials: true });
-
-        const participantListener = (event: MessageEvent) => {
-            try {
-                const data = JSON.parse(event.data);
-                if (Array.isArray(data)) {
-                    setParticipantsCount(data.length);
-                } else if (typeof data.count === 'number') {
-                    // If backend sends { count: X }
-                    setParticipantsCount(data.count);
-                }
-            } catch (e) {
-                /* console.warn("Error parsing participants count from SSE:", e); */
-            }
-        };
-
-        eventSource.addEventListener('participants', participantListener); // Ensure backend sends 'participants' event
-
-        eventSource.onopen = () => {
-            /* console.log("PresentationView SSE for count: Connection open."); */
-        };
-        eventSource.onerror = () => {
-            eventSource.close(); /* console.error("PresentationView SSE for count: Error. Closing."); */
-        };
-
-        return () => {
-            eventSource.removeEventListener('participants', participantListener);
-            eventSource.close();
-        };
-    }, [isLiveSession, liveSessionData?.session_id]);
-
-    // Reveal.js initialization and slide change handling
-    useEffect(() => {
-        if (revealContainerRef.current && slides && slides.length > 0 && !deckInstanceRef.current) {
-            const deck = new Reveal(revealContainerRef.current, {
-                controls: true,
-                progress: true,
-                history: false, // Manage history via app state if needed
-                center: true,
-                width: '100%',
-                height: '100%',
-                margin: 0,
-                minScale: 0.2,
-                maxScale: 1.5, // Adjusted for typical presentation
-                embedded: true, // Important for containing within the div
-                keyboard: true,
-                touch: true,
-                navigationMode: 'linear',
-                slideNumber: isLiveSession ? 'c/t' : false, // Show slide numbers in live session
-                // fragments: true, // Enable if you use fragments within slides
-                // Consider plugins: e.g. RevealMarkdown, RevealNotes, RevealHighlight
-            });
-
-            let initialH = 0;
-            if (initialSlideId) {
-                const startIndex = slides.findIndex((s) => s.id === initialSlideId);
-                if (startIndex !== -1) initialH = startIndex;
-            }
-
-            deck.initialize({ H: initialH }).then(() => {
-                deckInstanceRef.current = deck;
-                setIsRevealInitialized(true);
-                const indices = deck.getIndices();
-                setCurrentRevealVisualIndex(indices.h || 0);
-
-                // Initial sync if live session (optional, depends on backend logic)
-                if (isLiveSession && liveSessionData) {
-                    const initialSlideData = slides[indices.h || 0];
-                    if (initialSlideData && typeof initialSlideData.slide_order === 'number') {
-                        // debouncedMoveApiCall(liveSessionData.session_id, initialSlideData.slide_order, indices.h || 0);
-                    }
-                }
-
-                deck.on('slidechanged', (event: any) => {
-                    // { indexh, indexv, previousSlide, currentSlide, ... }
-                    const visualIndex = event.indexh;
-                    setCurrentRevealVisualIndex(visualIndex);
-
-                    if (isLiveSession && liveSessionData) {
-                        const currentSlideData = slides[visualIndex];
-                        if (currentSlideData && typeof currentSlideData.slide_order === 'number') {
-                            debouncedMoveApiCall(
-                                liveSessionData.session_id,
-                                currentSlideData.slide_order,
-                                visualIndex
-                            );
-                        } else {
-                            toast.error('Slide data missing for live sync.');
-                        }
-                    }
-                });
-            });
-
-            const handleGlobalKeyDown = (event: KeyboardEvent) => {
-                if (event.key === 'Escape') {
-                    if (isSessionWhiteboardOpen) setIsSessionWhiteboardOpen(false);
-                    else if (isParticipantsPanelOpen) setIsParticipantsPanelOpen(false);
-                    else onExit(); // Exit presentation on Escape if no overlays are open
-                }
-            };
-            window.addEventListener('keydown', handleGlobalKeyDown);
-
-            return () => {
-                window.removeEventListener('keydown', handleGlobalKeyDown);
-                if (
-                    deckInstanceRef.current &&
-                    typeof (deckInstanceRef.current as any).destroy === 'function'
-                ) {
-                    try {
-                        (deckInstanceRef.current as any).destroy();
-                    } catch (e) {
-                        /* console.error("Error destroying Reveal.js on cleanup:", e); */
-                    }
-                }
-                deckInstanceRef.current = null;
-                setIsRevealInitialized(false);
-            };
+    switch (slide.type) {
+        case SlideTypeEnum.Quiz: {
+            const quizSlide = slide as QuizSlideData;
+            return (
+                <div className={cn(commonPreviewContainerClass, 'border border-orange-200 bg-orange-50 justify-center')}>
+                    {quizSlide.elements?.questionName ? (
+                        <div className={cn(commonTitleClass, 'text-orange-700 break-words whitespace-normal line-clamp-3')}>
+                            {stripHtml(quizSlide.elements.questionName)}
+                        </div>
+                    ) : (
+                        <div className={cn(commonTitleClass, 'text-orange-700 opacity-75')}>
+                            Quiz
+                        </div>
+                    )}
+                </div>
+            );
         }
-    }, [
-        slides,
-        onExit,
-        isLiveSession,
-        liveSessionData?.session_id,
-        debouncedMoveApiCall,
-        initialSlideId,
-    ]);
+        case SlideTypeEnum.Feedback: {
+            const feedbackSlide = slide as FeedbackSlideData;
+            return (
+                <div className={cn(commonPreviewContainerClass, 'border border-sky-200 bg-sky-50 justify-center')}>
+                    {feedbackSlide.elements?.questionName ? (
+                        <div className={cn(commonTitleClass, 'text-sky-700 break-words whitespace-normal line-clamp-3')}>
+                            {stripHtml(feedbackSlide.elements.questionName)}
+                        </div>
+                    ) : (
+                        <div className={cn(commonTitleClass, 'text-sky-700 opacity-75')}>
+                            Feedback
+                        </div>
+                    )}
+                </div>
+            );
+        }
+        default: {
+            const excalidrawSlide = slide as ExcalidrawSlideData;
+            if (svg) {
+                return (
+                    <div className={cn(commonImageContainerClass, 'border-gray-200')}>
+                        <img
+                            src={svg}
+                            alt="Slide thumbnail"
+                            className="pointer-events-none h-full w-full bg-white object-contain"
+                            onError={() => {
+                                if (isMounted) {
+                                    setSvg(null);
+                                    setPreviewError(true);
+                                }
+                            }}
+                        />
+                    </div>
+                );
+            }
+            if (!excalidrawSlide.elements || excalidrawSlide.elements.length === 0) {
+                return renderPlaceholder(
+                    slide.type === SlideTypeEnum.Title
+                        ? 'Title (Empty)'
+                        : slide.type === SlideTypeEnum.Text
+                          ? 'Text (Empty)'
+                          : 'Blank Slide',
+                    <ImageOff className={placeholderIconClass} />
+                );
+            }
+            return renderPlaceholder(
+                slide.type === SlideTypeEnum.Title
+                    ? 'Title Slide'
+                    : slide.type === SlideTypeEnum.Text
+                      ? 'Text Slide'
+                      : 'Drawing'
+            );
+        }
+    }
+});
+SlideTypePreview.displayName = 'SlideTypePreview';
 
-    const handleEndSession = async () => {
-        if (!isLiveSession || !liveSessionData) return;
-        // API call to end/archive session on backend (optional)
-        // e.g., await authenticatedAxiosInstance.post(`${END_SESSION_API_URL}`, { session_id: liveSessionData.session_id });
-        toast.info('Session ended by administrator.', { duration: 2000 });
-        onExit(); // Return to editor or previous screen
+const SlideList = ({
+    slides,
+    currentSlideId,
+    onSlideChange,
+    onAddSlide,
+    onDeleteSlide,
+    onExport,
+    onImport,
+    onReorderSlides,
+}: SlideListProps) => {
+    const [isTypeSheetOpen, setIsTypeSheetOpen] = useState(false);
+
+    const handleSelectSlideType = (type: SlideTypeEnum) => {
+        onAddSlide(type);
+        setIsTypeSheetOpen(false);
     };
 
-    const actionBarHeight = isLiveSession ? '3.5rem' : '0px'; // 56px for h-14
+    const handleDragEnd = (result: DropResult) => {
+        if (!result.destination || result.source.index === result.destination.index) return;
 
-    if (!slides || slides.length === 0) {
-        return (
-            <div className="fixed inset-0 z-[1000] flex flex-col items-center justify-center bg-slate-100 p-6 text-slate-700">
-                <img
-                    src="/placeholder-empty-slides.svg"
-                    alt="No Slides"
-                    className="mb-6 h-44 w-44 opacity-60"
-                />
-                <p className="mb-8 text-xl font-medium">
-                    No slides available for this presentation.
-                </p>
-                <Button
-                    onClick={onExit}
-                    variant="outline"
-                    className="border-slate-300 px-6 py-2 text-base hover:bg-slate-200"
-                >
-                    Return to Editor
-                </Button>
-            </div>
-        );
-    }
+        const reordered = Array.from(slides);
+        const [moved] = reordered.splice(result.source.index, 1);
+        reordered.splice(result.destination.index, 0, moved);
+        onReorderSlides(reordered);
+    };
 
     return (
         <>
-            {isLiveSession && liveSessionData && (
-                <LiveSessionActionBar
-                    inviteCode={liveSessionData.invite_code}
-                    currentSlideIndex={currentRevealVisualIndex}
-                    totalSlides={slides.length}
-                    participantsCount={participantsCount}
-                    onToggleParticipantsView={() => setIsParticipantsPanelOpen((prev) => !prev)}
-                    isParticipantsPanelOpen={isParticipantsPanelOpen}
-                    onToggleWhiteboard={() => setIsSessionWhiteboardOpen((prev) => !prev)}
-                    isWhiteboardOpen={isSessionWhiteboardOpen}
-                    onEndSession={handleEndSession}
-                />
-            )}
-
-            <div
-                ref={revealContainerRef}
-                className="reveal" // Reveal.js root
-                style={{
-                    width: '100vw',
-                    height: '100vh',
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    zIndex: 50, // Ensure it's below action bar and overlays
-                    // backgroundColor: '#F0F2F5', // Default background for the reveal area
-                }}
-            >
-                <div className="slides">
-                    {' '}
-                    {/* Reveal.js slides container */}
-                    {slides.map((slide) => (
-                        <section
-                            key={slide.id}
-                            // Reveal handles background color per slide if set, or use global theme
-                            data-background-color={
-                                slide.type === SlideTypeEnum.Quiz ||
-                                slide.type === SlideTypeEnum.Feedback
-                                    ? '#FFFFFF' // White for quiz/feedback slides
-                                    : (slide as ExcalidrawSlideData).appState
-                                          ?.viewBackgroundColor || '#F8F9FA' // Light neutral for Excalidraw
-                            }
-                            // Padding for content area to not be obscured by fixed action bar
-                            style={{
-                                paddingTop: actionBarHeight,
-                                boxSizing: 'border-box',
-                                height: '100vh',
-                            }}
+            <div className="flex h-full w-72 flex-col bg-white p-3 shadow-sm">
+                <div className="pb-2 pt-1">
+                    <Button
+                        onClick={() => setIsTypeSheetOpen(true)}
+                        className="w-full gap-2 bg-orange-500 py-2.5 text-sm font-medium text-white hover:bg-orange-600 focus-visible:ring-orange-400"
+                    >
+                        <span className="mr-0.5 text-lg font-semibold leading-none">+</span> Add
+                        Slide
+                    </Button>
+                </div>
+                <Separator className="my-3 bg-gray-200" />
+                <div className="mb-2 flex items-center justify-between px-1">
+                    <h2 className="text-base font-semibold text-gray-700">Slides</h2>
+                    <div className="flex gap-1">
+                        <button
+                            className="rounded p-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+                            onClick={onExport}
+                            title="Export Presentation"
                         >
-                            {/* Wrapper to control content sizing and centering within the padded section */}
-                            <div
-                                style={{
-                                    width: '100%', // Full width of the padded section
-                                    height: `calc(100% - ${isLiveSession ? '0px' : '0px'})`, // Full height, padding handled by section
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    boxSizing: 'border-box',
-                                    // padding: '1rem 2rem', // Optional general padding around content
-                                }}
-                            >
-                                {slide.type === SlideTypeEnum.Quiz ||
-                                slide.type === SlideTypeEnum.Feedback ? (
-                                    <div
-                                        style={{
-                                            width: 'clamp(320px, 70%, 800px)',
-                                            maxHeight: '80vh', // Ensure it fits viewport
-                                            backgroundColor: 'white',
-                                            padding: '2rem 2.5rem',
-                                            borderRadius: '12px',
-                                            boxShadow: '0 10px 30px rgba(0,0,0,0.08)',
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            overflowY: 'auto',
-                                            scrollbarWidth: 'thin',
-                                        }}
+                            <ExportIcon width={18} height={18} />
+                        </button>
+                        <label className="cursor-pointer rounded p-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700">
+                            <ImportIcon width={18} height={18} />
+                            <input
+                                type="file"
+                                onChange={onImport}
+                                className="sr-only"
+                                accept=".excalidraw,application/json"
+                            />
+                        </label>
+                    </div>
+                </div>
+                <div className="flex-1 overflow-hidden">
+                    <ScrollArea className="scrollbar-thin scrollbar-thumb-slate-300 h-full rounded-md">
+                        <DragDropContext onDragEnd={handleDragEnd}>
+                            <Droppable droppableId="slides">
+                                {(provided) => (
+                                    <ul
+                                        ref={provided.innerRef}
+                                        {...provided.droppableProps}
+                                        className="space-y-2"
                                     >
-                                        <QuizSlide
-                                            formdata={
-                                                (slide as QuizSlideData | FeedbackSlideData)
-                                                    .elements as QuestionFormData
-                                            }
-                                            className={'flex flex-grow flex-col'} // quiz slide takes available space
-                                            questionType={
-                                                slide.type as
-                                                    | SlideTypeEnum.Quiz
-                                                    | SlideTypeEnum.Feedback
-                                            }
-                                            currentSlideId={slide.id}
-                                            isPresentationMode={true} // Always true in PresentationView
-                                        />
-                                    </div>
-                                ) : (
-                                    // Excalidraw or other rich content types
-                                    <div
-                                        style={{
-                                            width: '100%',
-                                            height: '100%',
-                                            display: 'flex',
-                                            alignItems: 'stretch',
-                                            justifyContent: 'stretch',
-                                        }}
-                                    >
-                                        <SlideEditor
-                                            editMode={false} // View mode for presentation
-                                            slide={slide as ExcalidrawSlideData} // Pass Excalidraw specific data
-                                            onSlideChange={() => {
-                                                /* No changes in view mode */
-                                            }}
-                                            key={`${slide.id}-viewer`}
-                                        />
-                                    </div>
+                                        {slides.map((slide, index) => (
+                                            <Draggable
+                                                key={slide.id}
+                                                draggableId={slide.id}
+                                                index={index}
+                                            >
+                                                {(providedDraggable, snapshot) => (
+                                                    <li
+                                                        ref={providedDraggable.innerRef}
+                                                        {...providedDraggable.draggableProps}
+                                                        className={cn(
+                                                            'group relative overflow-hidden mb-2 flex flex-col cursor-pointer rounded-lg border bg-white p-1.5 shadow-sm transition-all duration-150 ease-in-out hover:border-orange-400 hover:bg-orange-50/30 hover:shadow-md h-28',
+                                                            {
+                                                                'border-orange-500 bg-orange-50 shadow-md ring-2 ring-orange-500 ring-offset-1':
+                                                                    slide.id === currentSlideId,
+                                                                'border-slate-200': slide.id !== currentSlideId, 
+                                                            }
+                                                        )}
+                                                        onClick={() => onSlideChange(slide.id)}
+                                                    >
+                                                        <div className="pointer-events-none flex-1"> {/* Ensure preview takes space */}
+                                                            <SlideTypePreview slide={slide} />
+                                                        </div>
+                                                        {/* CONTROLS BAR - Ensure classes are correct for hover visibility */}
+                                                        <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between rounded-b-md border-t border-gray-200 bg-gray-50/80 px-1.5 py-1 transition-all duration-150 z-10 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto">
+                                                            <div
+                                                                {...providedDraggable.dragHandleProps}
+                                                                className="cursor-grab rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 active:cursor-grabbing"
+                                                            >
+                                                                <GripVertical className="h-4 w-4" />
+                                                            </div>
+                                                            <span className="text-xs font-medium text-gray-500">
+                                                                {index + 1}
+                                                            </span>
+                                                            <button
+                                                                className="rounded p-1 text-gray-400 transition-colors hover:bg-red-100 hover:text-red-600"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation(); // Prevent li's onClick
+                                                                    onDeleteSlide(slide.id);
+                                                                }}
+                                                                title="Delete slide"
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </button>
+                                                        </div>
+                                                    </li>
+                                                )}
+                                            </Draggable>
+                                        ))}
+                                        {provided.placeholder}
+                                    </ul>
                                 )}
-                            </div>
-                        </section>
-                    ))}
+                            </Droppable>
+                        </DragDropContext>
+                    </ScrollArea>
                 </div>
             </div>
 
-            {/* Loading overlay for Reveal.js initialization */}
-            {!isRevealInitialized && slides && slides.length > 0 && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-white/70 backdrop-blur-sm">
-                    <Loader2 className="size-10 animate-spin text-orange-500" />
-                </div>
-            )}
-
-            {isLiveSession && liveSessionData && (
-                <>
-                    <ParticipantsSidePanel
-                        sessionId={liveSessionData.session_id}
-                        isOpen={isParticipantsPanelOpen}
-                        onClose={() => setIsParticipantsPanelOpen(false)}
-                        topOffset={actionBarHeight}
-                    />
-                    <SessionExcalidrawOverlay
-                        sessionId={liveSessionData.session_id} // Assuming it needs session ID
-                        isOpen={isSessionWhiteboardOpen}
-                        onClose={() => setIsSessionWhiteboardOpen(false)}
-                        // Pass other necessary props for SessionExcalidrawOverlay
-                    />
-                </>
-            )}
+            <SlideTypeSheet
+                open={isTypeSheetOpen}
+                onOpenChange={setIsTypeSheetOpen}
+                onSelectType={handleSelectSlideType}
+            />
         </>
     );
 };
+
+export default memo(SlideList);

@@ -145,7 +145,7 @@ export const fetchBatchOptions = (data: InviteForm): string => {
 export const fetchCustomFields = (data: InviteForm): CustomFieldType[] => {
     const customFields: CustomFieldType[] =
         data.custom_fields?.map((field) => ({
-            id: field.id.toString(),
+            id: field._id || crypto.randomUUID(),
             field_name: field.name,
             field_type: field.type == 'dropdown' ? 'DROPDOWN' : 'TEXT',
             default_value: null,

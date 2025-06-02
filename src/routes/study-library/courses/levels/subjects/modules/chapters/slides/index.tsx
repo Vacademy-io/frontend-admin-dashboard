@@ -119,9 +119,13 @@ function RouteComponent() {
         <div className="flex w-full flex-col items-center">
             <div className={`flex w-full flex-col gap-6 px-3 pb-3 `}>
                 <div className="flex flex-wrap items-center gap-1 text-neutral-500">
-                    <p onClick={handleSubjectRoute}>{subjectName}</p>
+                    <p onClick={handleSubjectRoute} className="cursor-pointer ">
+                        {subjectName}
+                    </p>
                     <ChevronRightIcon className={`size-4 `} />
-                    <p onClick={handleModuleRoute}>{moduleName}</p>
+                    <p onClick={handleModuleRoute} className="cursor-pointer ">
+                        {moduleName}
+                    </p>
                     <ChevronRightIcon className={`size-4 `} />
                     <p className="cursor-pointer text-primary-500">{chapterName}</p>
                 </div>

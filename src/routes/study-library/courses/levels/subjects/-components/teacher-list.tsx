@@ -11,7 +11,6 @@ export const TeachersList = ({ packageSessionId }: { packageSessionId: string })
     const [page, setPage] = useState(0);
     const pageSize = 10;
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
-
     const tokenData = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = (tokenData?.authorities && Object.keys(tokenData.authorities)[0]) ?? '';
     const filters: FacultyFilterParams = {
