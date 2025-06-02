@@ -8,7 +8,7 @@ import {
     HeadCircuit,
 } from '@phosphor-icons/react';
 import { SidebarItemsType } from '../../../../types/layout-container/layout-container-types';
-import { Chats, NotePencil, UsersFour } from 'phosphor-react';
+import { NotePencil, UsersFour } from 'phosphor-react';
 
 export const SidebarItemsData: SidebarItemsType[] = [
     {
@@ -94,6 +94,7 @@ export const SidebarItemsData: SidebarItemsType[] = [
             {
                 subItem: 'Doubt Management',
                 subItemLink: '/study-library/doubt-management',
+                tabId: 'doubtManagement',
             },
         ],
     },
