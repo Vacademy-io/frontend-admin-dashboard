@@ -10,7 +10,7 @@ import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtili
 import { TokenKey } from '@/constants/auth/tokens';
 import { QuestionType, QUESTION_TYPES } from '@/constants/dummy-data';
 import { getInstituteId } from '@/constants/helper';
-import { formatTimeStudyLibraryInSeconds } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-helper/helper';
+import { formatTimeStudyLibraryInSeconds } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-helper/helper';
 
 export function getPPTViewTitle(type: QuestionType): string {
     const question = QUESTION_TYPES.find((q) => q.code === type);

@@ -14,8 +14,8 @@ import {
     activityResponseAssignmentColumns,
     activityResponseTypeColumns,
 } from '@/components/design-system/utils/constants/table-column-data';
-import { useActivityStatsStore } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/activity-stats-store';
-import { useContentStore } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
+import { useActivityStatsStore } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-stores/activity-stats-store';
+import { useContentStore } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
 import { useQuery } from '@tanstack/react-query';
 import {
     getUserVideoSlideActivityLogs,

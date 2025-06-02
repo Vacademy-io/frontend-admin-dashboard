@@ -7,7 +7,6 @@ import { getCourses } from '@/utils/helpers/study-library-helpers.ts/get-list-fr
 import { CourseCard } from './course-card';
 import { AddCourseButton } from '@/components/common/study-library/add-course/add-course-button';
 import { useAddCourse } from '@/services/study-library/course-operations/add-course';
-import { AddCourseData } from '../../../../components/common/study-library/add-course/add-course-form';
 import { useDeleteCourse } from '@/services/study-library/course-operations/delete-course';
 import { useUpdateCourse } from '@/services/study-library/course-operations/update-course';
 import { useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
@@ -33,20 +32,6 @@ export const CourseMaterial = () => {
         partial: true,
     });
 
-    const handleAddCourse = ({ requestData }: { requestData: AddCourseData }) => {
-        addCourseMutation.mutate(
-            { requestData: requestData },
-            {
-                onSuccess: () => {
-                    toast.success('Course added successfully');
-                },
-                onError: (error) => {
-                    toast.error(error.message || 'Failed to add course');
-                },
-            }
-        );
-    };
-
     const handleCourseDelete = (courseId: string) => {
         deleteCourseMutation.mutate(courseId, {
             onSuccess: () => {
@@ -62,7 +47,7 @@ export const CourseMaterial = () => {
         courseId,
         requestData,
     }: {
-        requestData: AddCourseData;
+        requestData: any;
         courseId?: string;
     }) => {
         updateCourseMutation.mutate(
@@ -100,7 +85,7 @@ export const CourseMaterial = () => {
                 <div className="flex flex-col items-center gap-4">
                     <CreateStudyDocButton />
                     <UploadStudyMaterialButton />
-                    <AddCourseButton onSubmit={handleAddCourse} />
+                    <AddCourseButton />
                 </div>
             </div>
 

@@ -13,15 +13,15 @@ import {
 import { myDropDownProps, DropdownItem, DropdownItemType } from './dropdownTypesForPackageItems';
 import { AddCourseButton } from '@/components/common/study-library/add-course/add-course-button';
 import { AddSessionDialog } from '@/routes/manage-institute/sessions/-components/session-operations/add-session/add-session-dialog';
-import { AddLevelButton } from '@/routes/study-library/courses/levels/-components/add-level-button';
+import { AddLevelButton } from '@/routes/study-library/courses/course-details/-components/add-level-button';
 import { MyButton } from '@/components/design-system/button';
 import { Plus } from 'lucide-react';
 import { AddCourseData } from '@/components/common/study-library/add-course/add-course-form';
 import { AddSessionDataType } from '@/routes/manage-institute/sessions/-components/session-operations/add-session/add-session-form';
-import { AddLevelData } from '@/routes/study-library/courses/levels/-components/add-level-form';
+import { AddLevelData } from '@/routes/study-library/courses/course-details/-components/add-level-form';
 import { useAddCourse } from '@/services/study-library/course-operations/add-course';
 import { useAddSession } from '@/services/study-library/session-management/addSession';
-import { useAddLevel } from '@/routes/study-library/courses/levels/-services/add-level';
+import { useAddLevel } from '@/routes/study-library/courses/course-details/-services/add-level';
 import { toast } from 'sonner';
 
 const isDropdownItem = (item: string | DropdownItem | DropdownItemType): item is DropdownItem => {

@@ -15,9 +15,9 @@ import { AddCourseData } from '@/components/common/study-library/add-course/add-
 import { toast } from 'sonner';
 import { useAddCourse } from '@/services/study-library/course-operations/add-course';
 import { useAddSession } from '@/services/study-library/session-management/addSession';
-import { useAddLevel } from '@/routes/study-library/courses/levels/-services/add-level';
+import { useAddLevel } from '@/routes/study-library/courses/course-details/-services/add-level';
 import { AddSessionDataType } from '@/routes/manage-institute/sessions/-components/session-operations/add-session/add-session-form';
-import { AddLevelData } from '@/routes/study-library/courses/levels/-components/add-level-form';
+import { AddLevelData } from '@/routes/study-library/courses/course-details/-components/add-level-form';
 
 export const EnrollBulkDialog = () => {
     const { getCourseFromPackage, getSessionFromPackage, getLevelsFromPackage, instituteDetails } =

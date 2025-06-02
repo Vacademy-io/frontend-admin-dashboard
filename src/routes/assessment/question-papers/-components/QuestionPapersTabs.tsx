@@ -19,7 +19,7 @@ import sectionDetailsSchema from '../../create-assessment/$assessmentId/$examtyp
 import { UseFormReturn } from 'react-hook-form';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
-import { AssignmentFormType } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-form-schemas/assignmentFormSchema';
+import { AssignmentFormType } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-form-schemas/assignmentFormSchema';
 
 export type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 
