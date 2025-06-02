@@ -1,6 +1,6 @@
 import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
 import { MyButton } from '@/components/design-system/button';
-import { ArrowUp } from '@phosphor-icons/react';
+import { PaperPlaneTilt } from '@phosphor-icons/react';
 import { handleAddReply } from '../../-helper/handleAddReply';
 import { DoubtType } from '../../-types/add-doubt-type';
 import { useContentStore } from '../../-stores/chapter-sidebar-store';
@@ -16,6 +16,8 @@ export const AddReply = ({ parent, refetch }: { parent: DoubtType; refetch: () =
     const addReply = useAddReply();
 
     const submitReply = async () => {
+        if (!teacherReply.trim()) return;
+
         const replyData: DoubtType = {
             user_id: userId || '',
             name: userName || '',
@@ -39,21 +41,22 @@ export const AddReply = ({ parent, refetch }: { parent: DoubtType; refetch: () =
     };
 
     return (
-        <div className=" relative flex w-full items-center gap-2 rounded-md">
+        <div className="relative flex w-full items-center gap-2">
             <MainViewQuillEditor
                 value={teacherReply}
                 onChange={setTeacherReply}
-                CustomclasssName="mb-16 h-[80px] w-full max-sm:h-[50px] sm:mb-10 custom-quill-padding"
-                placeholder="Add your reply here"
+                CustomclasssName="flex-grow min-h-[70px] max-h-[150px] w-full text-sm custom-quill-compact-padding ql-editor-flex-grow"
+                placeholder="Type your reply..."
             />
-            <div
-                className="absolute bottom-6 right-2 flex flex-col items-center gap-3"
+            <MyButton
+                layoutVariant="icon"
+                buttonType='primary'
+                className="absolute bottom-3 right-2 rounded-full p-1.5 shadow-md transition-shadow hover:shadow-lg"
                 onClick={submitReply}
+                disabled={!teacherReply.trim()}
             >
-                <MyButton layoutVariant="icon" className="rounded-full">
-                    <ArrowUp />
-                </MyButton>
-            </div>
+                <PaperPlaneTilt size={18} weight="fill" />
+            </MyButton>
         </div>
     );
 };

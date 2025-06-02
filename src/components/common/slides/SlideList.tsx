@@ -49,25 +49,22 @@ function stripHtml(html: string): string {
 const SlideTypePreview = memo(({ slide }: PreviewProps) => {
     const [svg, setSvg] = useState<string | null>(null);
     const [previewError, setPreviewError] = useState(false);
+    let isMounted = true; 
 
     useEffect(() => {
-        let isMounted = true;
+        isMounted = true;
         setPreviewError(false);
-        setSvg(null); // Reset SVG on slide change
+        setSvg(null);
 
         const generateThumbnail = async () => {
             if (slide.type === SlideTypeEnum.Quiz || slide.type === SlideTypeEnum.Feedback) {
-                // No SVG for Quiz/Feedback, handled by specific cases
-                return;
+                return; // No SVG generation for Quiz/Feedback
             }
-
-            // Handle Excalidraw-based slides
-            const excalidrawSlide = slide as ExcalidrawSlideData; // Type assertion
+            const excalidrawSlide = slide as ExcalidrawSlideData;
             if (!excalidrawSlide.elements || excalidrawSlide.elements.length === 0) {
-                if (isMounted) setSvg(null); // Will show placeholder for blank Excalidraw
+                if (isMounted) setSvg(null);
                 return;
             }
-
             try {
                 const appStateForExport: PartialAppState & {
                     exportWithDarkMode: boolean;
@@ -81,16 +78,13 @@ const SlideTypePreview = memo(({ slide }: PreviewProps) => {
                     viewBackgroundColor: excalidrawSlide.appState?.viewBackgroundColor || '#FFFFFF',
                     theme: 'light',
                 };
-
                 const svgElement = await exportToSvg({
                     elements: excalidrawSlide.elements,
                     appState: appStateForExport,
                     files: excalidrawSlide.files || null,
                 });
-
                 svgElement.setAttribute('width', '100%');
                 svgElement.setAttribute('height', '100%');
-
                 const serializer = new XMLSerializer();
                 let svgStr = serializer.serializeToString(svgElement);
                 if (!svgStr.includes('xmlns="http://www.w3.org/2000/svg"')) {
@@ -106,19 +100,17 @@ const SlideTypePreview = memo(({ slide }: PreviewProps) => {
                 }
             }
         };
-
         generateThumbnail();
-
         return () => {
             isMounted = false;
         };
-    }, [slide]); // Regenerate if slide content or type changes
+    }, [slide]);
 
     const commonPreviewContainerClass =
-        'h-20 w-full rounded-md flex flex-col items-center justify-center p-1 text-xs overflow-hidden';
+        'h-full w-full rounded-md flex flex-col items-center justify-center p-1 text-xs overflow-hidden';
     const commonImageContainerClass =
         'h-full w-full rounded-md bg-white overflow-hidden border flex items-center justify-center';
-    const commonTitleClass = 'text-xs text-center font-medium truncate w-full px-1 py-0.5';
+    const commonTitleClass = 'text-sm text-center font-medium truncate w-full px-1 py-0.5';
     const placeholderIconClass = 'mb-1 h-6 w-6 text-gray-400';
 
     const renderPlaceholder = (text: string, icon?: React.ReactNode) => (
@@ -128,58 +120,40 @@ const SlideTypePreview = memo(({ slide }: PreviewProps) => {
         </div>
     );
 
-    if (
-        previewError &&
-        slide.type !== SlideTypeEnum.Quiz &&
-        slide.type !== SlideTypeEnum.Feedback
-    ) {
-        return renderPlaceholder(
-            'Preview Error',
-            <AlertTriangle className={cn(placeholderIconClass, 'text-red-400')} />
-        );
+    if (previewError && slide.type !== SlideTypeEnum.Quiz && slide.type !== SlideTypeEnum.Feedback) {
+        return renderPlaceholder('Preview Error', <AlertTriangle className={cn(placeholderIconClass, 'text-red-400')} />);
     }
 
     switch (slide.type) {
         case SlideTypeEnum.Quiz: {
             const quizSlide = slide as QuizSlideData;
             return (
-                <div
-                    className={cn(
-                        commonPreviewContainerClass,
-                        'border border-orange-200 bg-orange-50'
-                    )}
-                >
-                    {quizSlide.elements?.questionName && (
-                        <div className={cn(commonTitleClass, 'text-orange-700')}>
+                <div className={cn(commonPreviewContainerClass, 'border border-orange-200 bg-orange-50 justify-center')}>
+                    {quizSlide.elements?.questionName ? (
+                        <div className={cn(commonTitleClass, 'text-orange-700 break-words whitespace-normal line-clamp-3')}>
                             {stripHtml(quizSlide.elements.questionName)}
                         </div>
+                    ) : (
+                        <div className={cn(commonTitleClass, 'text-orange-700 opacity-75')}>
+                            Quiz
+                        </div>
                     )}
-                    <div className={cn(commonImageContainerClass, 'border-orange-100')}>
-                        <img
-                            src={QuzizIcon as string} // Assuming QuzizIcon is a string path or data URL
-                            alt="Quiz slide"
-                            className="pointer-events-none max-h-[45%] max-w-[45%] object-contain"
-                        />
-                    </div>
                 </div>
             );
         }
         case SlideTypeEnum.Feedback: {
             const feedbackSlide = slide as FeedbackSlideData;
             return (
-                <div className={cn(commonPreviewContainerClass, 'border border-sky-200 bg-sky-50')}>
-                    {feedbackSlide.elements?.questionName && (
-                        <div className={cn(commonTitleClass, 'text-sky-700')}>
+                <div className={cn(commonPreviewContainerClass, 'border border-sky-200 bg-sky-50 justify-center')}>
+                    {feedbackSlide.elements?.questionName ? (
+                        <div className={cn(commonTitleClass, 'text-sky-700 break-words whitespace-normal line-clamp-3')}>
                             {stripHtml(feedbackSlide.elements.questionName)}
                         </div>
+                    ) : (
+                        <div className={cn(commonTitleClass, 'text-sky-700 opacity-75')}>
+                            Feedback
+                        </div>
                     )}
-                    <div className={cn(commonImageContainerClass, 'border-sky-100')}>
-                        <img
-                            src={feedbackIcon as string} // Assuming feedbackIcon is a string path or data URL
-                            alt="Feedback slide"
-                            className="pointer-events-none max-h-[45%] max-w-[45%] object-contain"
-                        />
-                    </div>
                 </div>
             );
         }
@@ -188,7 +162,7 @@ const SlideTypePreview = memo(({ slide }: PreviewProps) => {
             const excalidrawSlide = slide as ExcalidrawSlideData;
             if (svg) {
                 return (
-                    <div className={cn(commonImageContainerClass, 'h-20 border-gray-200')}>
+                    <div className={cn(commonImageContainerClass, 'border-gray-200')}>
                         <img
                             src={svg}
                             alt="Slide thumbnail"
@@ -198,7 +172,7 @@ const SlideTypePreview = memo(({ slide }: PreviewProps) => {
                                     setSvg(null);
                                     setPreviewError(true);
                                 }
-                            }} // isMounted check might be needed if component unmounts fast
+                            }}
                         />
                     </div>
                 );
@@ -213,7 +187,6 @@ const SlideTypePreview = memo(({ slide }: PreviewProps) => {
                     <ImageOff className={placeholderIconClass} />
                 );
             }
-            // If SVG is null but elements exist, it might be loading or a non-visual error
             return renderPlaceholder(
                 slide.type === SlideTypeEnum.Title
                     ? 'Title Slide'
@@ -254,7 +227,7 @@ const SlideList = ({
 
     return (
         <>
-            <div className="flex h-full w-60 flex-col bg-white p-3 shadow-sm">
+            <div className="flex h-full w-72 flex-col bg-white p-3 shadow-sm">
                 <div className="pb-2 pt-1">
                     <Button
                         onClick={() => setIsTypeSheetOpen(true)}
@@ -287,14 +260,14 @@ const SlideList = ({
                     </div>
                 </div>
                 <div className="flex-1 overflow-hidden">
-                    <ScrollArea className="scrollbar-thin scrollbar-thumb-slate-300 h-full rounded-md pr-1.5">
+                    <ScrollArea className="scrollbar-thin scrollbar-thumb-slate-300 h-full rounded-md">
                         <DragDropContext onDragEnd={handleDragEnd}>
                             <Droppable droppableId="slides">
                                 {(provided) => (
                                     <ul
                                         ref={provided.innerRef}
                                         {...provided.droppableProps}
-                                        className="space-y-2 p-0.5"
+                                        className="space-y-2"
                                     >
                                         {slides.map((slide, index) => (
                                             <Draggable
@@ -307,18 +280,19 @@ const SlideList = ({
                                                         ref={providedDraggable.innerRef}
                                                         {...providedDraggable.draggableProps}
                                                         className={cn(
-                                                            'group relative cursor-pointer rounded-lg border-2 transition-all duration-150 ease-in-out',
-                                                            snapshot.isDragging
-                                                                ? 'z-10 border-orange-400 bg-white shadow-xl ring-2 ring-orange-300'
-                                                                : 'bg-white hover:border-gray-300 hover:shadow-sm',
-                                                            slide.id === currentSlideId
-                                                                ? 'border-orange-500 shadow-md ring-2 ring-orange-500/70'
-                                                                : 'border-gray-200'
+                                                            'group relative mb-2 flex flex-col cursor-pointer rounded-lg border bg-white p-1.5 shadow-sm transition-all duration-150 ease-in-out hover:border-orange-400 hover:bg-orange-50/30 hover:shadow-md h-28 overflow-visible',
+                                                            {
+                                                                'border-orange-500 bg-orange-50 shadow-md ring-2 ring-orange-500 ring-offset-1':
+                                                                    slide.id === currentSlideId,
+                                                                'border-slate-200': slide.id !== currentSlideId, 
+                                                            }
                                                         )}
                                                         onClick={() => onSlideChange(slide.id)}
                                                     >
-                                                        <SlideTypePreview slide={slide} />
-                                                        <div className="flex items-center justify-between rounded-b-md border-t border-gray-200 bg-gray-50/80 px-1.5 py-1">
+                                                        <div className="pointer-events-none flex-1">
+                                                            <SlideTypePreview slide={slide} />
+                                                        </div>
+                                                        <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between rounded-b-md border-t border-gray-200 bg-gray-50/80 px-1.5 py-1 transition-all duration-150 z-10 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto">
                                                             <div
                                                                 {...providedDraggable.dragHandleProps}
                                                                 className="cursor-grab rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 active:cursor-grabbing"
@@ -329,7 +303,7 @@ const SlideList = ({
                                                                 {index + 1}
                                                             </span>
                                                             <button
-                                                                className="rounded p-1 text-gray-400 opacity-0 transition-opacity hover:bg-red-100 hover:text-red-600 focus:opacity-100 group-hover:opacity-100"
+                                                                className="rounded p-1 text-gray-400 transition-colors hover:bg-red-100 hover:text-red-600"
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
                                                                     onDeleteSlide(slide.id);

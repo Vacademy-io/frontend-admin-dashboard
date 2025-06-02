@@ -74,6 +74,6 @@ export const MarkResolutionDropdown = ({resolved, handleDoubtResolve, doubt}: {r
 
 export const MarkAsResolvedCell = ({doubt, refetch}: {doubt: Doubt, refetch: () => void}) => {
     return(
-        <MarkAsResolved doubt={doubt} refetch={refetch} dropdownComponent={true} />
+        <MarkAsResolved doubt={doubt} refetch={refetch} />
     )
 }
