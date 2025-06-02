@@ -1,4 +1,5 @@
 // batch-section.tsx
+import React, { useState } from 'react';
 import { MyButton } from '@/components/design-system/button';
 import { MyDialog } from '@/components/design-system/dialog';
 import {
@@ -6,16 +7,31 @@ import {
     batchWithStudentDetails,
 } from '@/routes/manage-institute/batches/-types/manage-batches-types';
 import { Plus, TrashSimple, Users, Copy } from 'phosphor-react';
-import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useGetStudentBatch } from '@/routes/manage-students/students-list/-hooks/useGetStudentBatch';
 import { EnrollManuallyButton } from '@/components/common/students/enroll-manually/enroll-manually-button';
 import { useDeleteBatches } from '@/routes/manage-institute/batches/-services/delete-batches';
 import { toast } from 'sonner';
-// import { InviteLink } from '@/routes/manage-students/-components/InviteLink'; Remove this as we only need the utility
 import { CreateBatchDialog } from './create-batch-dialog';
-import createInviteLink from '@/routes/manage-students/invite/-utils/createInviteLink'; // Added import
-import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore'; // Added import
+import createInviteLink from '@/routes/manage-students/invite/-utils/createInviteLink';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+
+// Locally defined type based on observed structure from useInstituteDetailsStore
+interface BatchForSessionStoreType {
+    id: string; // This is the package_session_id
+    session: {
+        id: string;
+        session_name: string;
+    };
+    level: {
+        id: string;
+        level_name: string;
+    };
+    package_dto: {
+        id: string; // This is courseId / packageId
+        package_name: string;
+    };
+}
 
 interface batchCardProps {
     batch: BatchType;
@@ -156,7 +172,7 @@ const BatchCard = ({ batch }: batchCardProps) => {
 
 interface BatchSectionProps {
     batch: batchWithStudentDetails;
-    currentSessionId?: string; // Added prop
+    currentSessionId?: string;
 }
 
 export const BatchSection = ({ batch, currentSessionId }: BatchSectionProps) => {
@@ -164,12 +180,12 @@ export const BatchSection = ({ batch, currentSessionId }: BatchSectionProps) => 
 
     const filteredBatches = currentSessionId && instituteDetails?.batches_for_sessions
         ? batch.batches.filter(b => {
-            const batchDetail = instituteDetails.batches_for_sessions.find(
-                detail => detail.id === b.package_session_id
+            const batchDetail: BatchForSessionStoreType | undefined = instituteDetails.batches_for_sessions.find(
+                (detail: BatchForSessionStoreType) => detail.id === b.package_session_id
             );
             return batchDetail?.session.id === currentSessionId;
           })
-        : batch.batches; // Fallback to all batches if no currentSessionId or details
+        : batch.batches;
 
     return (
         <>
@@ -178,19 +194,15 @@ export const BatchSection = ({ batch, currentSessionId }: BatchSectionProps) => 
                     <p className="text-xl font-semibold text-neutral-700">{batch.package_dto.package_name}</p>
                     <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
                         {filteredBatches.map((batchLevel, index) => (
-                            <BatchCard batch={batchLevel} key={index} />
+                            <BatchCard batch={batchLevel} />
                         ))}
                     </div>
                 </div>
             ) : (
-                // Optionally, you might want to hide the package section entirely if no batches match the session
-                // For now, it will show the package name and then "No batches found" if filtering results in an empty list.
-                // Or, if batch.batches was already empty, it shows the original empty state.
-                currentSessionId && batch.batches.length > 0 ? null : ( // If filtering happened and made it empty, render nothing for this package section.
+                currentSessionId && batch.batches.length > 0 ? null : (
                     <div className="flex flex-col gap-3 rounded-lg border border-dashed border-neutral-300 bg-neutral-50 p-8 text-center items-center">
                         <p className="text-lg font-semibold text-neutral-700">{batch.package_dto.package_name}</p>
                         <p className="text-neutral-500">No batches found for this package{currentSessionId ? " in the selected session" : ""}.</p>
-                        {/* The CreateBatchDialog was here, consider if it's needed in this specific empty state */}
                     </div>
                 )
             )}

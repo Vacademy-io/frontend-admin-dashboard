@@ -23,7 +23,8 @@ import { SessionOptionsModal, type SessionOptions } from './components/SessionOp
 import { WaitingRoom } from './components/SessionWaitingRoom'; // Assumed path
 import { ADD_PRESENTATION, EDIT_PRESENTATION } from '@/constants/urls';
 import { SlideRenderer } from './SlideRenderer'; // Import the extracted SlideRenderer
-import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg'; // Import ffmpeg
+import { FFmpeg } from '@ffmpeg/ffmpeg';
+import { fetchFile } from '@ffmpeg/util';
 
 import type {
     Slide as AppSlide,
@@ -92,7 +93,39 @@ export default function SlidesEditorComponent({
     const [audioBlobUrl, setAudioBlobUrl] = useState<string | null>(null); // For playback/final download
     const [recordingDuration, setRecordingDuration] = useState<number>(0);
     const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
-    const ffmpegRef = useRef<any>(null); // Ref to store initialized ffmpeg instance
+    const ffmpegRef = useRef<FFmpeg>(new FFmpeg()); // Ref to store initialized ffmpeg instance
+    const [isFFmpegLoaded, setIsFFmpegLoaded] = useState<boolean>(false);
+
+    useEffect(() => {
+        console.log("SlideEditorComponent useEffect fired");
+        const loadFFmpeg = async () => {
+            console.log("loadFFmpeg called");
+            if (isFFmpegLoaded) {
+                console.log("FFmpeg already considered loaded, skipping load attempt.");
+                return;
+            }
+            try {
+                console.log("Attempting to call ffmpegRef.current.load()");
+                await ffmpegRef.current.load()
+                    .then(() => {
+                        console.log("ffmpegRef.current.load() promise resolved.");
+                        setIsFFmpegLoaded(true);
+                        console.log("FFmpeg loaded successfully.");
+                    })
+                    .catch(loadError => {
+                        console.error("ffmpegRef.current.load() promise rejected:", loadError);
+                        toast.error("MP3 converter failed to initialize during load. Details in console.");
+                        setIsFFmpegLoaded(false);
+                    });
+                console.log("After ffmpegRef.current.load() attempt");
+            } catch (error) {
+                console.error("Outer catch: Failed to load FFmpeg:", error);
+                toast.error("Failed to initialize MP3 converter. MP3 download may not be available.");
+                setIsFFmpegLoaded(false);
+            }
+        };
+        loadFFmpeg();
+    }, []); // Empty dependency array ensures this runs once on mount
 
     const downloadCurrentAudioSnapshot = async (format: 'webm' | 'mp3' = 'webm') => {
         if (audioChunksRef.current && audioChunksRef.current.length > 0) {
@@ -103,16 +136,11 @@ export default function SlidesEditorComponent({
             try {
                 if (format === 'mp3') {
                     toast.info('Preparing MP3 converter...');
-                    if (!ffmpegRef.current) {
-                        ffmpegRef.current = createFFmpeg({
-                            log: true, // Enable logging for debugging
-                            // corePath: 'https://unpkg.com/@ffmpeg/core@0.10.0/dist/ffmpeg-core.js', // Optional: specify core path if needed
-                        });
+                    if (!isFFmpegLoaded) {
+                        toast.error("MP3 converter is not ready. Please try again shortly or ensure FFmpeg is loaded.");
+                        return;
                     }
-                    const ffmpeg = ffmpegRef.current;
-                    if (!ffmpeg.isLoaded()) {
-                        await ffmpeg.load();
-                    }
+                    const ffmpeg = ffmpegRef.current; // Directly use the initialized ref
                     toast.info('Converting to MP3... This may take a moment.');
 
                     const inputName = 'input.webm';

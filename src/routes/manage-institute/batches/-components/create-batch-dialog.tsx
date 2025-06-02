@@ -280,8 +280,7 @@ export const CreateBatchDialog = () => {
             dialogWidth="w-[600px]"
             open={openManageBatchDialog}
             onOpenChange={handleOpenManageBatchDialog}
-            bodyClassName="pt-6 pb-8 px-8"
-            headerClassName="pb-4"
+            className="pt-6 pb-8 px-8"
         >
             <FormProvider {...methods}>
                 <form onSubmit={methods.handleSubmit(submit)} className="space-y-6">

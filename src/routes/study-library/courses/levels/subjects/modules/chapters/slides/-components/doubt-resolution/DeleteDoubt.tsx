@@ -6,6 +6,7 @@ import { handleAddReply } from '../../-helper/handleAddReply';
 import { MyDialog } from '@/components/design-system/dialog';
 import { useState } from 'react';
 import { MyButton } from '@/components/design-system/button';
+import React from 'react';
 
 export const DeleteDoubt = ({
     doubt,
@@ -61,7 +62,6 @@ export const DeleteDoubt = ({
                 open={isDialogOpen}
                 onOpenChange={setIsDialogOpen}
                 heading="Delete Doubt"
-                dialogContentClassName="max-w-md"
                 content={
                     <div className="py-4">
                         <p className="text-sm text-neutral-600">
@@ -78,7 +78,8 @@ export const DeleteDoubt = ({
                             Cancel
                         </MyButton>
                         <MyButton 
-                            buttonType="danger"
+                            buttonType="primary"
+                            className="bg-danger-500 hover:bg-danger-600 text-white"
                             onClick={submitReply}
                         >
                             Delete

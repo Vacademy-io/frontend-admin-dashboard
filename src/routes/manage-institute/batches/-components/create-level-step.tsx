@@ -74,13 +74,13 @@ export const CreateLevelStep = () => {
             <FormField
                 control={form.control}
                 name="levelCreationType"
-                render={({ field }) => (
+                render={({ field }: any) => (
                     <FormItem className="space-y-3">
                         <FormLabel className="text-base font-medium text-neutral-700">Level Selection</FormLabel>
                         <FormControl>
                             <RadioGroup
                                 className="flex gap-6 pt-1"
-                                onValueChange={(value) => {
+                                onValueChange={(value: any) => {
                                     field.onChange(value);
                                     form.setValue('selectedLevel', null); // Reset dependent field
                                     form.setValue('selectedLevelDuration', null);
@@ -125,7 +125,7 @@ export const CreateLevelStep = () => {
                     control={form.control}
                     name="selectedLevel"
                     rules={{ required: 'Please select a level' }}
-                    render={({ field }) => (
+                    render={({ field }: any) => (
                         <FormItem className="flex flex-col gap-1.5">
                             <FormLabel className="text-neutral-700">
                                 Level <span className="text-danger-500">*</span>
@@ -188,12 +188,12 @@ export const CreateLevelStep = () => {
                     <FormField
                         control={form.control}
                         name="duplicateStudyMaterials"
-                        render={({ field }) => (
+                        render={({ field }: any) => (
                             <FormItem className="flex flex-row items-center space-x-3 space-y-0 py-1">
                                 <FormControl>
                                     <Checkbox
                                         checked={field.value}
-                                        onCheckedChange={(checked) => {
+                                        onCheckedChange={(checked: any) => {
                                             field.onChange(checked);
                                             if (!checked) {
                                                 form.setValue('selectedDuplicateSession', null);
@@ -214,7 +214,7 @@ export const CreateLevelStep = () => {
                             control={form.control}
                             name="selectedDuplicateSession"
                             rules={{ required: 'Please select a session to duplicate from' }}
-                            render={({ field }) => (
+                            render={({ field }: any) => (
                                 <FormItem className="flex flex-col gap-1.5 mt-3">
                                     <FormLabel className="text-neutral-700">
                                         Duplicate from Session <span className="text-danger-500">*</span>

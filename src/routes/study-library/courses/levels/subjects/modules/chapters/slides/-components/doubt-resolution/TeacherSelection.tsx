@@ -7,9 +7,10 @@ import { FacultyFilterParams } from '@/routes/dashboard/-services/dashboard-serv
 import { useAddReply } from '../../-services/AddReply';
 import { handleAddReply } from '../../-helper/handleAddReply';
 import { Tag } from '@phosphor-icons/react';
+import React from 'react';
 
 // Custom debounce hook
-const useDebounce = <T extends (...args: unknown[]) => void>(callback: T, delay: number) => {
+const useDebounce = <T extends (...args: any[]) => void>(callback: T, delay: number) => {
     const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout>();
 
     return useCallback(
@@ -124,7 +125,6 @@ export const TeacherSelection = ({
                     onChange={handleTeacherSelection}
                     placeholder={hasAssignedTeachers ? "Change Assignee" : "+ Assign Teacher"}
                     className="min-w-[160px] text-xs"
-                    triggerClassName="text-xs px-2 py-1 border-neutral-300 hover:border-neutral-400 data-[state=open]:border-blue-500"
                 />
             ) : hasAssignedTeachers ? (
                 <div className="flex flex-wrap gap-1">

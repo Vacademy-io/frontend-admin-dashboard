@@ -21,7 +21,7 @@ export const CreateSessionStep = () => {
     const { watch } = form;
     const [sessionList, setSessionList] = useState<Session[]>([]);
     useEffect(() => {
-        setSessionList(getAllSessions().map((session) => convertToFormSession(session)));
+        setSessionList(getAllSessions().map((session: any) => convertToFormSession(session)));
     }, [instituteDetails]);
 
     const handleAddSession = (sessionName: string, startDate: string) => {
@@ -50,13 +50,13 @@ export const CreateSessionStep = () => {
             <FormField
                 control={form.control}
                 name="sessionCreationType"
-                render={({ field }) => (
+                render={({ field }: any) => (
                     <FormItem className="space-y-3">
                         <FormLabel className="text-base font-medium text-neutral-700">Session Selection</FormLabel>
                         <FormControl>
                             <RadioGroup
                                 className="flex gap-6 pt-1"
-                                onValueChange={(value) => {
+                                onValueChange={(value: any) => {
                                     field.onChange(value);
                                     form.setValue('selectedSession', null); // Reset dependent field
                                     form.setValue('selectedStartDate', null);
@@ -91,7 +91,7 @@ export const CreateSessionStep = () => {
                     control={form.control}
                     name="selectedSession"
                     rules={{ required: 'Please select a session' }}
-                    render={({ field }) => (
+                    render={({ field }: any) => (
                         <FormItem className="flex flex-col gap-1.5">
                             <FormLabel className="text-neutral-700">
                                 Session <span className="text-danger-500">*</span>
@@ -99,7 +99,7 @@ export const CreateSessionStep = () => {
                             <FormControl>
                                 <MyDropdown
                                     currentValue={field.value}
-                                    dropdownList={sessionList.map((session) => ({
+                                    dropdownList={sessionList.map((session: any) => ({
                                         id: session.id,
                                         name: session.session_name,
                                     }))}

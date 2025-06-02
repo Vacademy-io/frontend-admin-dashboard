@@ -96,6 +96,8 @@ export const SlideMaterial = ({
         setHeading(e.target.value);
     };
 
+    
+
     const setEditorContent = () => {
         const docData =
             activeItem?.status == 'PUBLISHED'
