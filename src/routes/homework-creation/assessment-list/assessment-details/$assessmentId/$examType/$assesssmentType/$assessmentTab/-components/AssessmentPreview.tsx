@@ -563,9 +563,6 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                                                                             ? 'border-primary-500 bg-none'
                                                                             : 'bg-none'
                                                                     }`}
-                                                                    onMouseEnter={() =>
-                                                                        handlePageClick(index)
-                                                                    }
                                                                 >
                                                                     <div className="flex flex-col">
                                                                         <div className="flex items-center justify-start gap-4">

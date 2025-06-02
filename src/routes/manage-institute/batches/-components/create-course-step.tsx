@@ -110,7 +110,7 @@ export const CreateCourseStep = ({ handleOpenManageBatchDialog }: CreateCourseSt
                                     dropdownList={courseList}
                                     handleChange={field.onChange}
                                     placeholder="Select a course"
-                                    disabled={courseList.length === 0}
+                                    disable={courseList.length === 0}
                                 />
                             </FormControl>
                             <FormMessage />

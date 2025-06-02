@@ -319,17 +319,6 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
         }
     }, [selectedSection, currentQuestionIndexes]);
 
-    useEffect(() => {
-        setCurrentQuestionIndexes((prev) => ({
-            ...prev,
-            [selectedSection]: currentSectionQuestions.length - 1,
-        }));
-    }, [
-        form.watch(
-            `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionType`
-        ),
-    ]);
-
     if (isLoading || isQuestionsLoading) return <DashboardLoader />;
     return (
         <div className="flex flex-col">
@@ -528,9 +517,6 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                                                                             ? 'border-primary-500 bg-none'
                                                                             : 'bg-none'
                                                                     }`}
-                                                                    // onMouseEnter={() =>
-                                                                    //     handlePageClick(index)
-                                                                    // }
                                                                 >
                                                                     <div className="flex flex-col">
                                                                         <div className="flex items-center justify-start gap-4">

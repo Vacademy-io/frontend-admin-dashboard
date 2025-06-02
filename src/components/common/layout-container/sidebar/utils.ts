@@ -77,16 +77,9 @@ export const SidebarItemsData: SidebarItemsType[] = [
                 subItem: 'Presentation',
                 subItemLink: '/study-library/present',
             },
-        ],
-    },
-    {
-        icon: Chats,
-        id: 'Engagement Center',
-        title: 'Engagement Center',
-        subItems: [
             {
                 subItem: 'Doubt Management',
-                subItemLink: '/engagement/doubt-management',
+                subItemLink: '/study-library/doubt-management',
             },
         ],
     },
