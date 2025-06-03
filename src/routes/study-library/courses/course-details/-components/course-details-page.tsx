@@ -33,6 +33,9 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { CourseDetailsFormValues, courseDetailsSchema } from './course-details-schema';
 
 type DialogType = 'subject' | 'module' | 'chapter' | 'slide' | null;
 
@@ -67,7 +70,7 @@ type Subject = {
 interface Course {
     id: string;
     title: string;
-    level: 2 | 3 | 4 | 5;
+    level: 1 | 2 | 3 | 4 | 5;
     structure: {
         courseName: string;
         items: Subject[] | Module[] | Slide[];
@@ -113,93 +116,99 @@ const mockCourses: Course[] = [
     },
 ];
 
+// Mock data for static display
+const courseData = {
+    title: 'Advanced Web Development Bootcamp',
+    description:
+        'Master modern web development with this comprehensive course covering React, Node.js, and more.',
+    tags: ['Web Development', 'React', 'Node.js', 'Full Stack'],
+    imageUrl: 'https://example.com/course-banner.jpg',
+    stats: {
+        students: 1234,
+        rating: 4.8,
+        reviews: 256,
+        lastUpdated: 'December 2023',
+    },
+    courseStructure: 5, // Set to 4 for testing
+    whatYoullLearn: [
+        'Build full-stack web applications using React and Node.js',
+        'Master modern JavaScript ES6+ features',
+        'Implement authentication and authorization',
+        'Deploy applications to production',
+    ],
+    instructors: [
+        {
+            id: '1',
+            email: 'john.doe@example.com',
+            name: 'John Doe',
+        },
+        {
+            id: '2',
+            email: 'john.doe@example.com',
+            name: 'John Snow',
+        },
+    ],
+    sessions: [
+        {
+            levelDetails: [
+                {
+                    id: 'd5e66a68-ce39-4091-bf5a-e2803782d69e',
+                    name: 'l1',
+                    duration_in_days: 0,
+                    subjects: [],
+                },
+                {
+                    id: 'd5e66a68-ce39-4091-bf5a-e2803782d68e',
+                    name: 'l2',
+                    duration_in_days: 0,
+                    subjects: [],
+                },
+            ],
+            sessionDetails: {
+                id: 'c5e5c465-778f-4e1d-9440-2f9d89646708',
+                session_name: 's1',
+                status: 'ACTIVE',
+                start_date: '2025-06-02',
+            },
+        },
+        {
+            levelDetails: [
+                {
+                    id: 'd5e66a68-ce39-4091-bf5a-e2803782d69e2',
+                    name: 'l1',
+                    duration_in_days: 0,
+                    subjects: [],
+                },
+                {
+                    id: 'd5e66a68-ce39-4091-bf5a-e2803782d68e1',
+                    name: 'l2',
+                    duration_in_days: 0,
+                    subjects: [],
+                },
+            ],
+            sessionDetails: {
+                id: 'c5e5c465-778f-4e1d-9440-2f9d89646709',
+                session_name: 's2',
+                status: 'ACTIVE',
+                start_date: '2025-06-02',
+            },
+        },
+    ],
+};
+
 export const CourseDetailsPage = () => {
     const router = useRouter();
     const searchParams = router.state.location.search;
 
+    const form = useForm<CourseDetailsFormValues>({
+        resolver: zodResolver(courseDetailsSchema),
+        defaultValues: { courseData: courseData, mockCourses: mockCourses },
+        mode: 'onChange',
+    });
+
     const getInitials = (email: string) => {
         const name = email.split('@')[0];
         return name?.slice(0, 2).toUpperCase();
-    };
-
-    // Mock data for static display
-    const courseData = {
-        title: 'Advanced Web Development Bootcamp',
-        description:
-            'Master modern web development with this comprehensive course covering React, Node.js, and more.',
-        tags: ['Web Development', 'React', 'Node.js', 'Full Stack'],
-        imageUrl: 'https://example.com/course-banner.jpg',
-        stats: {
-            students: 1234,
-            rating: 4.8,
-            reviews: 256,
-            lastUpdated: 'December 2023',
-        },
-        courseStructure: 2, // Set to 4 for testing
-        whatYoullLearn: [
-            'Build full-stack web applications using React and Node.js',
-            'Master modern JavaScript ES6+ features',
-            'Implement authentication and authorization',
-            'Deploy applications to production',
-        ],
-        instructors: [
-            {
-                id: '1',
-                email: 'john.doe@example.com',
-                name: 'John Doe',
-            },
-            {
-                id: '2',
-                email: 'john.doe@example.com',
-                name: 'John Snow',
-            },
-        ],
-        sessions: [
-            {
-                levelDetails: [
-                    {
-                        id: 'd5e66a68-ce39-4091-bf5a-e2803782d69e',
-                        name: 'l1',
-                        duration_in_days: 0,
-                        subjects: [],
-                    },
-                    {
-                        id: 'd5e66a68-ce39-4091-bf5a-e2803782d68e',
-                        name: 'l2',
-                        duration_in_days: 0,
-                        subjects: [],
-                    },
-                ],
-                sessionDetails: {
-                    id: 'c5e5c465-778f-4e1d-9440-2f9d89646708',
-                    session_name: 's1',
-                    status: 'ACTIVE',
-                    start_date: '2025-06-02',
-                },
-            },
-            {
-                levelDetails: [
-                    {
-                        id: 'd5e66a68-ce39-4091-bf5a-e2803782d69e2',
-                        name: 'l1',
-                        duration_in_days: 0,
-                        subjects: [],
-                    },
-                    {
-                        id: 'd5e66a68-ce39-4091-bf5a-e2803782d68e1',
-                        name: 'l2',
-                        duration_in_days: 0,
-                        subjects: [],
-                    },
-                ],
-                sessionDetails: {
-                    id: 'c5e5c465-778f-4e1d-9440-2f9d89646709',
-                    session_name: 's2',
-                    status: 'ACTIVE',
-                    start_date: '2025-06-02',
-                },
-            },
-        ],
     };
 
     const [selectedSession, setSelectedSession] = useState<string>('');
@@ -209,7 +218,7 @@ export const CourseDetailsPage = () => {
     >([]);
 
     // Convert sessions to select options format
-    const sessionOptions = courseData.sessions.map((session) => ({
+    const sessionOptions = form.getValues('courseData').sessions.map((session) => ({
         _id: session.sessionDetails.id,
         value: session.sessionDetails.id,
         label: session.sessionDetails.session_name,
@@ -218,9 +227,9 @@ export const CourseDetailsPage = () => {
     // Update level options when session changes
     const handleSessionChange = (sessionId: string) => {
         setSelectedSession(sessionId);
-        const selectedSessionData = courseData.sessions.find(
-            (session) => session.sessionDetails.id === sessionId
-        );
+        const selectedSessionData = form
+            .getValues('courseData')
+            .sessions.find((session) => session.sessionDetails.id === sessionId);
 
         if (selectedSessionData) {
             const newLevelOptions = selectedSessionData.levelDetails.map((level) => ({
@@ -261,19 +270,22 @@ export const CourseDetailsPage = () => {
             return newState;
         });
     };
-
-    const [selectedCourse, setSelectedCourse] = useState<Course | undefined>(
-        mockCourses.find((course) => course.level === courseData.courseStructure)
-    );
+    const [selectedCourse, setSelectedCourse] = useState<Course | undefined>(() => {
+        const mockCourses = form.getValues('mockCourses');
+        const courseStructure = form.getValues('courseData').courseStructure;
+        return mockCourses.find((course) => course.level === courseStructure) as Course | undefined;
+    });
     const [dialogType, setDialogType] = useState<DialogType>(null);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [newItemName, setNewItemName] = useState('');
     const [selectedParentId, setSelectedParentId] = useState<string>('');
 
     useEffect(() => {
-        const course = mockCourses.find((course) => course.level === courseData.courseStructure);
-        setSelectedCourse(course);
-    }, [courseData.courseStructure]);
+        const mockCourses = form.getValues('mockCourses');
+        const courseStructure = form.getValues('courseData').courseStructure;
+        const course = mockCourses.find((course) => course.level === courseStructure) as Course;
+        setSelectedCourse(course || undefined);
+    }, [form.watch('courseData.courseStructure')]);
 
     const handleAddClick = (type: DialogType, parentId?: string) => {
         setDialogType(type);
@@ -281,10 +293,8 @@ export const CourseDetailsPage = () => {
         setDialogOpen(true);
         setNewItemName('');
     };
-    console.log('selectedCourse', selectedCourse);
 
     const addModuleToSubject = (subjectId: string, moduleName: string) => {
-        console.log('addModuleToSubject called with:', { subjectId, moduleName });
         if (!selectedCourse) return;
 
         const newModuleId = crypto.randomUUID();
@@ -937,7 +947,7 @@ export const CourseDetailsPage = () => {
                         {/* Left side - Title and Description */}
                         <div className="max-w-2xl">
                             <div className="mb-4 flex gap-2">
-                                {courseData.tags.map((tag, index) => (
+                                {form.getValues('courseData').tags.map((tag, index) => (
                                     <span
                                         key={index}
                                         className="rounded-full bg-blue-600 px-3 py-1 text-sm"
@@ -946,8 +956,12 @@ export const CourseDetailsPage = () => {
                                     </span>
                                 ))}
                             </div>
-                            <h1 className="mb-4 text-4xl font-bold">{courseData.title}</h1>
-                            <p className="text-lg opacity-90">{courseData.description}</p>
+                            <h1 className="mb-4 text-4xl font-bold">
+                                {form.getValues('courseData').title}
+                            </h1>
+                            <p className="text-lg opacity-90">
+                                {form.getValues('courseData').description}
+                            </p>
                         </div>
 
                         {/* Right side - Video Player */}
@@ -1065,7 +1079,7 @@ export const CourseDetailsPage = () => {
                         {/* Instructors Section */}
                         <div className="mb-8">
                             <h2 className="mb-4 text-2xl font-bold">Instructors</h2>
-                            {courseData.instructors.map((instructor, index) => (
+                            {form.getValues('courseData').instructors.map((instructor, index) => (
                                 <div key={index} className="flex gap-4 rounded-lg bg-gray-50 p-4">
                                     <Avatar className="h-8 w-8">
                                         <AvatarImage src="" alt={instructor.email} />
