@@ -19,14 +19,23 @@ export function JupyterNotebook({
   const [contentBranch, setContentBranch] = useState(element?.props?.contentBranch || "main");
   const [notebookLocation, setNotebookLocation] = useState(element?.props?.notebookLocation || "root");
   const [isDeploying, setIsDeploying] = useState(false);
-  const [activeTab, setActiveTab] = useState<"preview" | "settings">("settings");
+  const [activeTab, setActiveTab] = useState<"preview" | "settings">(element?.props?.activeTab || "settings");
 
-  // Sync with Yoopta block state
+  // Sync with Yoopta block state - save complete editor state
   useEffect(() => {
     if (updateElementProps) {
-      updateElementProps({ projectName, contentUrl, contentBranch, notebookLocation });
+      updateElementProps({
+        projectName,
+        contentUrl,
+        contentBranch,
+        notebookLocation,
+        activeTab,
+        // Add metadata to identify this as a full jupyter editor
+        editorType: "jupyterEditor",
+        timestamp: Date.now()
+      });
     }
-  }, [projectName, contentUrl, contentBranch, notebookLocation, updateElementProps]);
+  }, [projectName, contentUrl, contentBranch, notebookLocation, activeTab, updateElementProps]);
 
   const handleDeploy = () => {
     if (!projectName || !contentUrl) {
@@ -362,5 +371,89 @@ export const JupyterNotebookPlugin = new YooptaPlugin<{ jupyterNotebook: any }>(
       icon: <JupyterIcon />,
     },
     shortcuts: ["jupyter", "notebook", "ipynb"],
+  },
+  parsers: {
+    html: {
+      deserialize: {
+        nodeNames: ['JUPYTER_NOTEBOOK'],
+      },
+      serialize: (element, children) => {
+        const props = element.props || {};
+        const projectName = props.projectName || '';
+        const contentUrl = props.contentUrl || '';
+        const contentBranch = props.contentBranch || 'main';
+        const notebookLocation = props.notebookLocation || 'root';
+        const activeTab = props.activeTab || 'settings';
+
+        if (!projectName || !contentUrl) {
+          return `<div
+            data-yoopta-type="jupyterNotebook"
+            data-editor-type="jupyterEditor"
+            data-project-name="${projectName}"
+            data-content-url="${contentUrl}"
+            data-content-branch="${contentBranch}"
+            data-notebook-location="${notebookLocation}"
+            data-active-tab="${activeTab}"
+            style="border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; margin: 16px 0; background-color: #fafafa;"
+          >
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+              <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: #333;">📓 Jupyter Notebook Configuration</h3>
+              <div style="padding: 4px 8px; background: #007acc; color: white; border-radius: 4px; font-size: 12px; font-weight: bold;">
+                ${activeTab.toUpperCase()} MODE
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; color: #666;">
+              <span style="font-size: 48px; margin-right: 16px;">📓</span>
+              <div>
+                <p style="font-size: 16px; margin: 0 0 8px 0;">No notebook configured</p>
+                <p style="font-size: 14px; color: #999; margin: 0;">Project name and content URL needed to display Jupyter notebook</p>
+              </div>
+            </div>
+          </div>`;
+        }
+
+        const binderUrl = `https://mybinder.org/v2/gh/${contentUrl.replace('https://github.com/', '')}/${contentBranch}?labpath=${notebookLocation}`;
+
+        return `<div
+          data-yoopta-type="jupyterNotebook"
+          data-editor-type="jupyterEditor"
+          data-project-name="${projectName}"
+          data-content-url="${contentUrl}"
+          data-content-branch="${contentBranch}"
+          data-notebook-location="${notebookLocation}"
+          data-active-tab="${activeTab}"
+          style="border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; margin: 16px 0; background-color: #fafafa;"
+        >
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: #333;">📓 Jupyter Notebook: ${projectName}</h3>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <div style="padding: 4px 8px; background: #007acc; color: white; border-radius: 4px; font-size: 12px; font-weight: bold;">
+                JUPYTER EDITOR
+              </div>
+              <div style="padding: 4px 8px; background: ${activeTab === 'preview' ? '#28a745' : '#6c757d'}; color: white; border-radius: 4px; font-size: 12px;">
+                ${activeTab.toUpperCase()} MODE
+              </div>
+            </div>
+          </div>
+          <div style="margin-bottom: 16px; padding: 12px; background: #e8f5e8; border-radius: 4px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 14px; color: #2d5a2d;">
+              <div><strong>Repository:</strong> ${contentUrl}</div>
+              <div><strong>Branch:</strong> ${contentBranch}</div>
+              <div><strong>Location:</strong> ${notebookLocation}</div>
+              <div><strong>Status:</strong> Ready to deploy</div>
+            </div>
+          </div>
+          ${activeTab === 'preview' ?
+            `<div style="width: 100%; height: 500px; border: 1px solid #ddd; border-radius: 6px; overflow: hidden;">
+              <iframe src="${binderUrl}" width="100%" height="100%" style="border: none;" title="Jupyter Notebook Preview"></iframe>
+            </div>` :
+            `<div style="padding: 16px; background: #f9f9f9; border-radius: 6px; border: 1px solid #ddd; text-align: center;">
+              <div style="font-size: 24px; margin-bottom: 8px;">⚙️</div>
+              <p style="margin: 0; color: #666;">Settings mode - Configure Jupyter notebook</p>
+            </div>`
+          }
+        </div>`;
+      },
+    },
   },
 });
