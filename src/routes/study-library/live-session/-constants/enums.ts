@@ -28,6 +28,6 @@ export enum SessionType {
     PRE_RECORDED = 'pre-recorded',
 }
 export enum SessionPlatform {
-    EMBED_IN_APP = 'embed-in-app',
-    REDIRECT_TO_OTHER_PLATFORM = 'redirect-to-other-platform',
+    EMBED_IN_APP = 'embed',
+    REDIRECT_TO_OTHER_PLATFORM = 'redirect',
 }
