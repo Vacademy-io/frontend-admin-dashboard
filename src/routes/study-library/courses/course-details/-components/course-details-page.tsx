@@ -114,8 +114,8 @@ const mockCourses: Course[] = [
 ];
 
 export const CourseDetailsPage = () => {
-  const router = useRouter();
-  const searchParams = router.state.location.search;
+    const router = useRouter();
+    const searchParams = router.state.location.search;
 
     const getInitials = (email: string) => {
         const name = email.split('@')[0];
@@ -135,7 +135,7 @@ export const CourseDetailsPage = () => {
             reviews: 256,
             lastUpdated: 'December 2023',
         },
-        courseStructure: 4,
+        courseStructure: 2, // Set to 4 for testing
         whatYoullLearn: [
             'Build full-stack web applications using React and Node.js',
             'Master modern JavaScript ES6+ features',
@@ -234,7 +234,7 @@ export const CourseDetailsPage = () => {
     };
 
     // Set initial session and its levels
-  useEffect(() => {
+    useEffect(() => {
         if (sessionOptions.length > 0 && !selectedSession) {
             const initialSessionId = sessionOptions[0]?.value || '';
             handleSessionChange(initialSessionId);
@@ -270,7 +270,7 @@ export const CourseDetailsPage = () => {
     const [newItemName, setNewItemName] = useState('');
     const [selectedParentId, setSelectedParentId] = useState<string>('');
 
-  useEffect(() => {
+    useEffect(() => {
         const course = mockCourses.find((course) => course.level === courseData.courseStructure);
         setSelectedCourse(course);
     }, [courseData.courseStructure]);
@@ -281,7 +281,7 @@ export const CourseDetailsPage = () => {
         setDialogOpen(true);
         setNewItemName('');
     };
-    console.log("selectedCourse", selectedCourse);
+    console.log('selectedCourse', selectedCourse);
 
     const addModuleToSubject = (subjectId: string, moduleName: string) => {
         console.log('addModuleToSubject called with:', { subjectId, moduleName });
@@ -306,20 +306,20 @@ export const CourseDetailsPage = () => {
                                         id: newModuleId,
                                         name: moduleName,
                                         chapters: [],
-                                        isOpen: false
-                                    }
-                                ]
+                                        isOpen: false,
+                                    },
+                                ],
                             };
                             return updatedSubject;
                         }
                         return subject;
-                    })
-                }
+                    }),
+                },
             };
 
             return newCourse;
-    });
-  };
+        });
+    };
 
     const handleAddItem = () => {
         if (!newItemName.trim() || !selectedCourse) return;
@@ -351,7 +351,27 @@ export const CourseDetailsPage = () => {
             }
 
             case 'module': {
-                if (selectedParentId) {
+                if (selectedCourse.level === 4) {
+                    setSelectedCourse((prevCourse) => {
+                        if (!prevCourse) return prevCourse;
+                        const newCourse = {
+                            ...prevCourse,
+                            structure: {
+                                ...prevCourse.structure,
+                                items: [
+                                    ...(prevCourse.structure.items as Module[]),
+                                    {
+                                        id: newId,
+                                        name: newItemName,
+                                        chapters: [],
+                                        isOpen: false,
+                                    },
+                                ],
+                            },
+                        };
+                        return newCourse;
+                    });
+                } else if (selectedParentId) {
                     addModuleToSubject(selectedParentId, newItemName);
                 }
                 break;
@@ -359,7 +379,6 @@ export const CourseDetailsPage = () => {
 
             case 'chapter': {
                 if (selectedParentId) {
-                    const [subjectId, moduleId] = selectedParentId.split('|');
                     setSelectedCourse((prevCourse) => {
                         if (!prevCourse) return prevCourse;
 
@@ -367,34 +386,82 @@ export const CourseDetailsPage = () => {
                             ...prevCourse,
                             structure: {
                                 ...prevCourse.structure,
-                                items: (prevCourse.structure.items as Subject[]).map((subject) => {
-                                    if (subject.id === subjectId) {
-                                        return {
-                                            ...subject,
-                                            modules: subject.modules.map((module) => {
-                                                if (module.id === moduleId) {
-                                                    return {
-                                                        ...module,
-                                                        chapters: [
-                                                            ...(module.chapters || []),
-                                                            {
-                                                                id: newId,
-                                                                name: newItemName,
-                                                                slides: [],
-                                                                isOpen: false
-                                                            }
-                                                        ]
-                                                    };
-                                                }
-                                                return module;
-                                            })
-                                        };
+                                // Cast to appropriate type based on level
+                                items: (
+                                    prevCourse.structure.items as (Subject | Module | Chapter)[]
+                                ).map((item) => {
+                                    if (prevCourse.level === 5) {
+                                        const [subjectId, moduleId] = selectedParentId.split('|');
+                                        if ((item as Subject).id === subjectId) {
+                                            const subject = item as Subject;
+                                            return {
+                                                ...subject,
+                                                modules: subject.modules.map((module) => {
+                                                    if (module.id === moduleId) {
+                                                        return {
+                                                            ...module,
+                                                            chapters: [
+                                                                ...(module.chapters || []),
+                                                                {
+                                                                    id: newId,
+                                                                    name: newItemName,
+                                                                    slides: [],
+                                                                    isOpen: false,
+                                                                },
+                                                            ],
+                                                        };
+                                                    }
+                                                    return module;
+                                                }),
+                                            };
+                                        }
+                                    } else if (prevCourse.level === 4) {
+                                        // For 4-level structure, selectedParentId is just the moduleId
+                                        const moduleId = selectedParentId;
+                                        if ((item as Module).id === moduleId) {
+                                            const module = item as Module;
+                                            return {
+                                                ...module,
+                                                chapters: [
+                                                    ...(module.chapters || []),
+                                                    {
+                                                        id: newId,
+                                                        name: newItemName,
+                                                        slides: [],
+                                                        isOpen: false,
+                                                    },
+                                                ],
+                                            };
+                                        }
+                                    } else if (prevCourse.level === 3) {
+                                        // For 3-level structure, parentId is not applicable as chapters are top-level
+                                        // This case should not be hit via 'add chapter' button with parentId
                                     }
-                                    return subject;
-                                })
-                            }
+                                    return item;
+                                }),
+                            },
                         };
-
+                        return newCourse;
+                    });
+                } else if (selectedCourse.level === 3) {
+                    // Directly add chapter for 3-level structure
+                    setSelectedCourse((prevCourse) => {
+                        if (!prevCourse) return prevCourse;
+                        const newCourse = {
+                            ...prevCourse,
+                            structure: {
+                                ...prevCourse.structure,
+                                items: [
+                                    ...(prevCourse.structure.items as Chapter[]),
+                                    {
+                                        id: newId,
+                                        name: newItemName,
+                                        slides: [],
+                                        isOpen: false,
+                                    },
+                                ],
+                            },
+                        };
                         return newCourse;
                     });
                 }
@@ -403,7 +470,17 @@ export const CourseDetailsPage = () => {
 
             case 'slide': {
                 if (selectedParentId) {
-                    const [subjectId, moduleId, chapterId] = selectedParentId.split('|');
+                    const parts = selectedParentId.split('|');
+                    let subjectId, moduleId, chapterId;
+
+                    if (selectedCourse.level === 5) {
+                        [subjectId, moduleId, chapterId] = parts;
+                    } else if (selectedCourse.level === 4) {
+                        [moduleId, chapterId] = parts;
+                    } else if (selectedCourse.level === 3) {
+                        [chapterId] = parts;
+                    }
+
                     setSelectedCourse((prevCourse) => {
                         if (!prevCourse) return prevCourse;
 
@@ -411,41 +488,108 @@ export const CourseDetailsPage = () => {
                             ...prevCourse,
                             structure: {
                                 ...prevCourse.structure,
-                                items: (prevCourse.structure.items as Subject[]).map((subject) => {
-                                    if (subject.id === subjectId) {
+                                items: (
+                                    prevCourse.structure.items as (Subject | Module | Chapter)[]
+                                ).map((item) => {
+                                    if (
+                                        prevCourse.level === 5 &&
+                                        (item as Subject).id === subjectId
+                                    ) {
+                                        const subject = item as Subject;
                                         return {
                                             ...subject,
                                             modules: subject.modules.map((module) => {
                                                 if (module.id === moduleId) {
                                                     return {
                                                         ...module,
-                                                        chapters: module.chapters?.map((chapter) => {
-                                                            if (chapter.id === chapterId) {
-                                                                return {
-                                                                    ...chapter,
-                                                                    slides: [
-                                                                        ...chapter.slides,
-                                                                        {
-                                                                            id: newId,
-                                                                            name: newItemName,
-                                                                            type: 'video'
-                                                                        }
-                                                                    ]
-                                                                };
-                                                            }
-                                                            return chapter;
-                                                        }) || []
+                                                        chapters:
+                                                            module.chapters?.map((chapter) => {
+                                                                if (chapter.id === chapterId) {
+                                                                    return {
+                                                                        ...chapter,
+                                                                        slides: [
+                                                                            ...chapter.slides,
+                                                                            {
+                                                                                id: newId,
+                                                                                name: newItemName,
+                                                                                type: 'video',
+                                                                            },
+                                                                        ],
+                                                                    };
+                                                                }
+                                                                return chapter;
+                                                            }) || [],
                                                     };
                                                 }
                                                 return module;
-                                            })
+                                            }),
+                                        };
+                                    } else if (
+                                        prevCourse.level === 4 &&
+                                        (item as Module).id === moduleId
+                                    ) {
+                                        const module = item as Module;
+                                        return {
+                                            ...module,
+                                            chapters:
+                                                module.chapters?.map((chapter) => {
+                                                    if (chapter.id === chapterId) {
+                                                        return {
+                                                            ...chapter,
+                                                            slides: [
+                                                                ...chapter.slides,
+                                                                {
+                                                                    id: newId,
+                                                                    name: newItemName,
+                                                                    type: 'video',
+                                                                },
+                                                            ],
+                                                        };
+                                                    }
+                                                    return chapter;
+                                                }) || [],
+                                        };
+                                    } else if (
+                                        prevCourse.level === 3 &&
+                                        (item as Chapter).id === chapterId
+                                    ) {
+                                        const chapter = item as Chapter;
+                                        return {
+                                            ...chapter,
+                                            slides: [
+                                                ...chapter.slides,
+                                                {
+                                                    id: newId,
+                                                    name: newItemName,
+                                                    type: 'video',
+                                                },
+                                            ],
                                         };
                                     }
-                                    return subject;
-                                })
-                            }
+                                    return item;
+                                }),
+                            },
                         };
-
+                        return newCourse;
+                    });
+                } else if (selectedCourse.level === 2) {
+                    // Directly add slide for 2-level structure
+                    setSelectedCourse((prevCourse) => {
+                        if (!prevCourse) return prevCourse;
+                        const newCourse = {
+                            ...prevCourse,
+                            structure: {
+                                ...prevCourse.structure,
+                                items: [
+                                    ...(prevCourse.structure.items as Slide[]),
+                                    {
+                                        id: newId,
+                                        name: newItemName,
+                                        type: 'video', // Default type
+                                    },
+                                ],
+                            },
+                        };
                         return newCourse;
                     });
                 }
@@ -468,15 +612,15 @@ export const CourseDetailsPage = () => {
                 break;
             case 'module':
                 title = 'Add New Module';
-                description = 'Create a new module within the subject.';
+                description = 'Create a new module within the course.';
                 break;
             case 'chapter':
                 title = 'Add New Chapter';
-                description = 'Create a new chapter within the module.';
+                description = 'Create a new chapter.'; // More generic
                 break;
             case 'slide':
                 title = 'Add New Slide';
-                description = 'Create a new slide within the chapter.';
+                description = 'Create a new slide.'; // More generic
                 break;
             default:
                 return null;
@@ -537,16 +681,35 @@ export const CourseDetailsPage = () => {
                     variant="ghost"
                     className="h-8 gap-2 p-2 text-sm"
                     onClick={() => {
-                        // Use a different delimiter that won't appear in UUIDs
-                        const parts = id.split('|');
+                        const parts = id.split('|'); // Split the ID string
                         if (parts[1] === 'subject') {
                             handleAddClick('subject');
                         } else if (parts[1] === 'module') {
-                            handleAddClick('module', parts[2]);
+                            if (selectedCourse?.level === 4) {
+                                handleAddClick('module'); // No parentId needed for top-level modules in 4-level
+                            } else if (selectedCourse?.level === 5) {
+                                handleAddClick('module', parts[2]); // subjectId for 5-level
+                            }
                         } else if (parts[1] === 'chapter') {
-                            handleAddClick('chapter', `${parts[2]}|${parts[3]}`);
+                            if (selectedCourse?.level === 4) {
+                                // For 4-level, parentId is the module ID
+                                handleAddClick('chapter', parts[2]);
+                            } else if (selectedCourse?.level === 5) {
+                                // For 5-level, parentId is subjectId|moduleId
+                                handleAddClick('chapter', `${parts[2]}|${parts[3]}`);
+                            } else if (selectedCourse?.level === 3) {
+                                handleAddClick('chapter'); // No parentId needed for top-level chapters in 3-level
+                            }
                         } else if (parts[1] === 'slide') {
-                            handleAddClick('slide', `${parts[2]}|${parts[3]}|${parts[4]}`);
+                            if (selectedCourse?.level === 2) {
+                                handleAddClick('slide'); // No parentId needed for top-level slides in 2-level
+                            } else if (selectedCourse?.level === 3) {
+                                handleAddClick('slide', parts[2]); // chapterId for 3-level
+                            } else if (selectedCourse?.level === 4) {
+                                handleAddClick('slide', `${parts[2]}|${parts[3]}`); // moduleId|chapterId for 4-level
+                            } else if (selectedCourse?.level === 5) {
+                                handleAddClick('slide', `${parts[2]}|${parts[3]}|${parts[4]}`); // subjectId|moduleId|chapterId for 5-level
+                            }
                         }
                     }}
                 >
@@ -570,7 +733,7 @@ export const CourseDetailsPage = () => {
                 // Only slides, flat structure
                 return (
                     <div className="rounded-lg border p-4">
-                        {renderTreeItem('Add Slide', 'add-slide', false, 0, true)}
+                        {renderTreeItem('Add Slide', 'add|slide', false, 0, true)}
                         {(selectedCourse.structure.items as Slide[]).map((slide) => (
                             <div key={slide.id}>
                                 {renderTreeItem(slide.name, slide.id, false, 0)}
@@ -583,15 +746,22 @@ export const CourseDetailsPage = () => {
                 // Chapters with slides
                 return (
                     <div className="rounded-lg border p-4">
-                        {renderTreeItem('Add Chapter', 'add-chapter', false, 0, true)}
+                        {renderTreeItem('Add Chapter', 'add|chapter', false, 0, true)}
                         {(selectedCourse.structure.items as Chapter[]).map((chapter) => (
                             <div key={chapter.id}>
-                                {renderTreeItem(chapter.name, chapter.id, true, 0, false, 'chapter')}
+                                {renderTreeItem(
+                                    chapter.name,
+                                    chapter.id,
+                                    true,
+                                    0,
+                                    false,
+                                    'chapter'
+                                )}
                                 {expandedItems[chapter.id] && (
                                     <>
                                         {renderTreeItem(
                                             'Add Slide',
-                                            `add-slide-${chapter.id}`,
+                                            `add|slide|${chapter.id}`,
                                             false,
                                             1,
                                             true
@@ -612,7 +782,7 @@ export const CourseDetailsPage = () => {
                 // Modules with chapters and slides
                 return (
                     <div className="rounded-lg border p-4">
-                        {renderTreeItem('Add Module', 'add-module', false, 0, true)}
+                        {renderTreeItem('Add Module', 'add|module', false, 0, true)}
                         {(selectedCourse.structure.items as Module[]).map((module) => (
                             <div key={module.id}>
                                 {renderTreeItem(module.name, module.id, true, 0, false, 'module')}
@@ -620,7 +790,7 @@ export const CourseDetailsPage = () => {
                                     <>
                                         {renderTreeItem(
                                             'Add Chapter',
-                                            `add-chapter-${module.id}`,
+                                            `add|chapter|${module.id}`, // Pass module.id directly for 4-level
                                             false,
                                             1,
                                             true
@@ -629,17 +799,17 @@ export const CourseDetailsPage = () => {
                                             <div key={chapter.id}>
                                                 {renderTreeItem(
                                                     chapter.name,
-                                                    `${module.id}-${chapter.id}`,
+                                                    `${module.id}|${chapter.id}`, // Use module.id|chapter.id for expansion key
                                                     true,
                                                     1,
                                                     false,
                                                     'chapter'
                                                 )}
-                                                {expandedItems[`${module.id}-${chapter.id}`] && (
+                                                {expandedItems[`${module.id}|${chapter.id}`] && (
                                                     <>
                                                         {renderTreeItem(
                                                             'Add Slide',
-                                                            `add-slide-${module.id}-${chapter.id}`,
+                                                            `add|slide|${module.id}|${chapter.id}`, // Pass moduleId|chapterId for slide
                                                             false,
                                                             2,
                                                             true
@@ -672,7 +842,14 @@ export const CourseDetailsPage = () => {
                         {renderTreeItem('Add Subject', 'add|subject', false, 0, true)}
                         {(selectedCourse.structure.items as Subject[]).map((subject) => (
                             <div key={subject.id}>
-                                {renderTreeItem(subject.name, subject.id, true, 0, false, 'subject')}
+                                {renderTreeItem(
+                                    subject.name,
+                                    subject.id,
+                                    true,
+                                    0,
+                                    false,
+                                    'subject'
+                                )}
                                 {expandedItems[subject.id] && (
                                     <>
                                         {renderTreeItem(
@@ -870,8 +1047,8 @@ export const CourseDetailsPage = () => {
                                     the exciting world of coding through simple, visual programming.
                                     Using Scratch's drag-and-drop interface, learners can easily
                                 </p>
-          </div>
-        </div>
+                            </div>
+                        </div>
 
                         {/* Who Should Join Section */}
                         <div className="mb-8">
@@ -883,7 +1060,7 @@ export const CourseDetailsPage = () => {
                                     Using Scratch's drag-and-drop interface, learners can easily
                                 </p>
                             </div>
-          </div>
+                        </div>
 
                         {/* Instructors Section */}
                         <div className="mb-8">
@@ -897,9 +1074,9 @@ export const CourseDetailsPage = () => {
                                         </AvatarFallback>
                                     </Avatar>
                                     <h3 className="text-lg">{instructor.name}</h3>
-              </div>
-            ))}
-          </div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
 
                     {/* Right Column - 1/3 width */}
@@ -950,6 +1127,6 @@ export const CourseDetailsPage = () => {
                 </div>
             </div>
             {getDialogContent()}
-    </div>
-  );
+        </div>
+    );
 };
