@@ -11,7 +11,7 @@ import { DoubtList } from './doubtList';
 import { get30DaysAgo, getTomorrow } from '@/utils/dateUtils';
 
 const TabsTriggerClass =
-    'w-full data-[state=active]:shadow-none rounded-none rounded-tl-md rounded-tr-md border-white border-l-[1px] border-r-[1px] border-t-[1px] data-[state=active]:border-primary-200 data-[state=active]:text-primary-500 pt-2';
+    'flex-1 rounded-md px-3 py-1.5 text-sm font-medium text-neutral-600 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-primary-50 data-[state=active]:text-primary-600 data-[state=active]:shadow-sm';
 
 const DoubtResolutionSidebar = () => {
     const { open, setOpen } = useSidebar();
@@ -43,11 +43,11 @@ const DoubtResolutionSidebar = () => {
         useGetDoubts(filter);
 
     const [allDoubts, setAllDoubts] = useState<DoubtType[]>(
-        data?.pages.flatMap((page) => page.content) || []
+        (data as any)?.pages?.flatMap((page: { content: DoubtType[] }) => page.content) || []
     );
 
     useEffect(() => {
-        setAllDoubts(data?.pages.flatMap((page) => page.content) || []);
+        setAllDoubts((data as any)?.pages?.flatMap((page: { content: DoubtType[] }) => page.content) || []);
     }, [data]);
 
     useEffect(() => {
@@ -134,19 +134,23 @@ const DoubtResolutionSidebar = () => {
         <Sidebar
             ref={sidebarRef}
             side="right"
-            className={`${open ? 'w-[35vw]' : 'w-0'} flex flex-col gap-6 overflow-y-hidden bg-white p-4`}
+            className={`${open ? 'w-[35vw] min-w-[450px]' : 'w-0'} flex flex-col overflow-y-hidden border-l border-neutral-200 bg-white shadow-lg transition-all duration-300 ease-in-out`}
         >
-            <SidebarHeader className="flex w-full items-center justify-between overflow-y-hidden bg-white">
-                <div className="flex w-full items-center justify-between bg-white">
-                    <h1 className="text-lg font-semibold text-primary-500 sm:text-2xl">
+            <SidebarHeader className="flex w-full items-center justify-between border-b border-neutral-200 p-4">
+                <div className="flex w-full items-center justify-between">
+                    <h1 className="text-lg font-semibold text-neutral-800">
                         Doubt Resolution
                     </h1>
-                    <X className="hover:cursor-pointer" onClick={() => setOpen(false)} />
+                    <X
+                        size={20}
+                        className="cursor-pointer text-neutral-500 hover:text-neutral-700"
+                        onClick={() => setOpen(false)}
+                    />
                 </div>
             </SidebarHeader>
-            <SidebarContent className="no-scrollbar flex flex-col gap-4 overflow-y-scroll bg-white pt-6">
-                <Tabs value={activeTab} onValueChange={handleTabChange}>
-                    <TabsList className="flex w-full rounded-none border-b border-neutral-300 bg-white p-0">
+            <SidebarContent className="no-scrollbar flex flex-1 flex-col gap-4 overflow-y-auto p-4">
+                <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+                    <TabsList className="grid w-full grid-cols-3 gap-2 rounded-lg bg-neutral-100 p-1">
                         <TabsTrigger value="ALL" className={TabsTriggerClass}>
                             All
                         </TabsTrigger>
@@ -159,11 +163,11 @@ const DoubtResolutionSidebar = () => {
                     </TabsList>
                     <TabsContent
                         value="ALL"
-                        className="flex flex-col gap-4 data-[state=inactive]:hidden"
+                        className="mt-4 flex flex-col data-[state=inactive]:hidden"
                     >
                         <DoubtList
                             allDoubts={allDoubts}
-                            isLoading={isLoading}
+                            isLoading={isLoading && (!(data as any)?.pages || (data as any).pages.length === 0)}
                             lastDoubtElementRef={lastDoubtElementRef}
                             refetch={refetch}
                             isFetchingNextPage={isFetchingNextPage}
@@ -172,11 +176,11 @@ const DoubtResolutionSidebar = () => {
                     </TabsContent>
                     <TabsContent
                         value="RESOLVED"
-                        className="flex flex-col gap-4 data-[state=inactive]:hidden"
+                        className="mt-4 flex flex-col data-[state=inactive]:hidden"
                     >
                         <DoubtList
                             allDoubts={allDoubts}
-                            isLoading={isLoading}
+                            isLoading={isLoading && (!(data as any)?.pages || (data as any).pages.length === 0)}
                             lastDoubtElementRef={lastDoubtElementRef}
                             refetch={refetch}
                             isFetchingNextPage={isFetchingNextPage}
@@ -185,11 +189,11 @@ const DoubtResolutionSidebar = () => {
                     </TabsContent>
                     <TabsContent
                         value="UNRESOLVED"
-                        className="flex flex-col gap-4 data-[state=inactive]:hidden"
+                        className="mt-4 flex flex-col data-[state=inactive]:hidden"
                     >
                         <DoubtList
                             allDoubts={allDoubts}
-                            isLoading={isLoading}
+                            isLoading={isLoading && (!(data as any)?.pages || (data as any).pages.length === 0)}
                             lastDoubtElementRef={lastDoubtElementRef}
                             refetch={refetch}
                             isFetchingNextPage={isFetchingNextPage}

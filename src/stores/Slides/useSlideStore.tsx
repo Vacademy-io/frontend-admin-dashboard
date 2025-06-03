@@ -133,6 +133,7 @@ interface SlideStore {
     deleteSlide: (id: string) => void;
     moveSlide: (dragIndex: number, hoverIndex: number) => void;
     updateQuizFeedbackSlide: (id: string, formData: QuestionFormData) => void;
+    initializeNewPresentationState: () => void;
 }
 
 export const useSlideStore = create<SlideStore>((set, get) => {
@@ -160,6 +161,21 @@ export const useSlideStore = create<SlideStore>((set, get) => {
         slides: initialSlides,
         currentSlideId: initialSlides[0]?.id,
         editMode: true,
+
+        initializeNewPresentationState: () => {
+            const newInitialSlides = initialDefaultSlides.map(deserializeSlideFromStorage);
+            set({
+                slides: newInitialSlides,
+                currentSlideId: newInitialSlides[0]?.id,
+            });
+            if (typeof window !== 'undefined') {
+                localStorage.removeItem('slides'); // Clear out old presentation
+                localStorage.setItem(
+                    'slides',
+                    JSON.stringify(newInitialSlides.map(serializeSlideForStorage))
+                );
+            }
+        },
 
         setSlides: (newSlides, skipSave = false) => {
             if (!skipSave && typeof window !== 'undefined') {
@@ -190,18 +206,17 @@ export const useSlideStore = create<SlideStore>((set, get) => {
                 }
 
                 const oldSlide = state.slides[slideIndex];
-                // Ensure it's an Excalidraw-type slide before proceeding
-                if (
-                    oldSlide.type !== SlideTypeEnum.Excalidraw &&
-                    oldSlide.type !== SlideTypeEnum.Blank &&
-                    oldSlide.type !== SlideTypeEnum.Title &&
-                    oldSlide.type !== SlideTypeEnum.Text
-                ) {
+
+                // Guard: Only allow updates for slides meant to be handled by Excalidraw logic.
+                // Quiz and Feedback slides have their own update mechanism (updateQuizFeedbackSlide).
+                if (oldSlide.type === SlideTypeEnum.Quiz || oldSlide.type === SlideTypeEnum.Feedback) {
                     console.warn(
-                        `updateSlide called for non-Excalidraw slide type: ${oldSlide.type}`
+                        `updateSlide called for Quiz/Feedback slide type: ${oldSlide.type}. These should be updated via updateQuizFeedbackSlide.`
                     );
-                    return state;
+                    return state; // Do not proceed for Quiz/Feedback types here
                 }
+
+                // Cast to ExcalidrawSlideData for all other types, assuming they conform or will conform.
                 const oldExcalidrawSlide = oldSlide as ExcalidrawSlideData;
 
                 let hasMeaningfulChange = false;

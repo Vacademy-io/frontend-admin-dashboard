@@ -17,6 +17,7 @@ export interface SessionOptions {
     allow_learner_hand_raise: boolean;
     default_seconds_for_question: number;
     student_attempts: number;
+    record_audio: boolean;
 }
 
 interface SessionOptionsModalProps {
@@ -38,6 +39,7 @@ export const SessionOptionsModal: React.FC<SessionOptionsModalProps> = ({
         allow_learner_hand_raise: true,
         default_seconds_for_question: 60,
         student_attempts: 1,
+        record_audio: false,
     });
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -134,6 +136,24 @@ export const SessionOptionsModal: React.FC<SessionOptionsModalProps> = ({
                                     handleSwitchChange('allow_learner_hand_raise', checked)
                                 }
                                 className="data-[state=checked]:bg-orange-500"
+                            />
+                        </div>
+
+                        <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50/50 p-3 transition-colors hover:border-orange-300/70">
+                            <Label
+                                htmlFor="record_audio"
+                                className="flex-1 cursor-pointer text-sm font-medium text-slate-700"
+                            >
+                                Record Presentation Audio
+                            </Label>
+                            <Switch
+                                id="record_audio"
+                                name="record_audio"
+                                checked={options.record_audio}
+                                onCheckedChange={(checked) =>
+                                    handleSwitchChange('record_audio', checked)
+                                }
+                                className="data-[state=checked]:bg-green-500"
                             />
                         </div>
                     </div>

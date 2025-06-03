@@ -67,4 +67,13 @@ export default defineConfig({
         setupFiles: '.vitest/setup',
         include: ['**/test.{ts,tsx}'],
     },
+    server: {
+        headers: {
+            'Cross-Origin-Embedder-Policy': 'require-corp',
+            'Cross-Origin-Opener-Policy': 'same-origin',
+        },
+    },
+    optimizeDeps: {
+        exclude: ['@ffmpeg/ffmpeg', '@ffmpeg/util']
+    }
 });

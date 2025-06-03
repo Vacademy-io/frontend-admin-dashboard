@@ -35,14 +35,15 @@ const customFieldSchema = z.object({
     oldKey: z.boolean(),
     isRequired: z.boolean(),
     options: z
-        .array(
-            z.object({
-                id: z.number(),
-                value: z.string(),
+    .array(
+        z.object({
+            id: z.number(),
+            value: z.string(),
                 disabled: z.boolean(),
             })
         )
         .optional(),
+    _id: z.string().optional(),
 });
 
 // Create schema for form validation

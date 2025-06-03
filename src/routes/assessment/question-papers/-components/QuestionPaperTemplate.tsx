@@ -215,10 +215,6 @@ export function QuestionPaperTemplate({
         setIsQuestionPaperTemplateDialog(false);
     };
 
-    useEffect(() => {
-        setCurrentQuestionIndex(questions.length - 1);
-    }, [form.watch(`questions.${currentQuestionIndex}.questionType`)]);
-
     return (
         <Dialog
             open={isQuestionPaperTemplateDialog}
@@ -370,9 +366,6 @@ export function QuestionPaperTemplate({
                                                                     ? 'border-primary-500 bg-none'
                                                                     : 'bg-none'
                                                             }`}
-                                                            // onMouseEnter={() =>
-                                                            //     handlePageClick(index)
-                                                            // }
                                                         >
                                                             <TooltipProvider>
                                                                 <Tooltip

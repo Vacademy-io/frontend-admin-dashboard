@@ -37,6 +37,7 @@ export const SlideEditor = memo(({ slide, editMode, onSlideChange }: Props) => {
                 position: 'relative',
                 width: '100%',
                 height: '100%',
+                transform: 'translateZ(0)',
             }}
         >
             <ExcalidrawWrapper

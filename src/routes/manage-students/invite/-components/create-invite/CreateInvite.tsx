@@ -103,15 +103,7 @@ export const CreateInvite = () => {
                 heading="Invitation Link"
                 open={openInvitationLinkDialog}
                 onOpenChange={setOpenInvitationLinkDialog}
-                footer={
-                    <div className="flex w-full items-center justify-between">
-                        {/* <MyButton buttonType="secondary">Review Invitation</MyButton> */}
-                        <MyButton onClick={() => setOpenInvitationLinkDialog(false)}>
-                            Close
-                        </MyButton>
-                    </div>
-                }
-                dialogWidth="w-[50vw] overflow-x-hidden"
+                dialogWidth="w-[35vw] overflow-x-hidden"
             >
                 <div className="flex w-fit items-center gap-4 overflow-x-hidden">
                     <p className="w-[50%] truncate rounded-lg border border-neutral-300 p-2 text-neutral-500">
