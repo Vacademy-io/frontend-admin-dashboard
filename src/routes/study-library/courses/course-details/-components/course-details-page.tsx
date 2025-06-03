@@ -10,10 +10,24 @@ import {
     PlayCircle,
     Question,
 } from 'phosphor-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { useState, useEffect } from 'react';
 
 export const CourseDetailsPage = () => {
     const router = useRouter();
     const searchParams = router.state.location.search;
+
+    const getInitials = (email: string) => {
+        const name = email.split('@')[0];
+        return name?.slice(0, 2).toUpperCase();
+    };
 
     // Mock data for static display
     const courseData = {
@@ -36,12 +50,102 @@ export const CourseDetailsPage = () => {
         ],
         instructors: [
             {
+                id: '1',
+                email: 'john.doe@example.com',
                 name: 'John Doe',
-                role: 'Senior Web Developer',
-                bio: '10+ years of experience in web development',
+            },
+            {
+                id: '2',
+                email: 'john.doe@example.com',
+                name: 'John Snow',
+            },
+        ],
+        sessions: [
+            {
+                levelDetails: [
+                    {
+                        id: 'd5e66a68-ce39-4091-bf5a-e2803782d69e',
+                        name: 'l1',
+                        duration_in_days: 0,
+                        subjects: [],
+                    },
+                    {
+                        id: 'd5e66a68-ce39-4091-bf5a-e2803782d68e',
+                        name: 'l2',
+                        duration_in_days: 0,
+                        subjects: [],
+                    },
+                ],
+                sessionDetails: {
+                    id: 'c5e5c465-778f-4e1d-9440-2f9d89646708',
+                    session_name: 's1',
+                    status: 'ACTIVE',
+                    start_date: '2025-06-02',
+                },
+            },
+            {
+                levelDetails: [
+                    {
+                        id: 'd5e66a68-ce39-4091-bf5a-e2803782d69e2',
+                        name: 'l1',
+                        duration_in_days: 0,
+                        subjects: [],
+                    },
+                    {
+                        id: 'd5e66a68-ce39-4091-bf5a-e2803782d68e1',
+                        name: 'l2',
+                        duration_in_days: 0,
+                        subjects: [],
+                    },
+                ],
+                sessionDetails: {
+                    id: 'c5e5c465-778f-4e1d-9440-2f9d89646709',
+                    session_name: 's2',
+                    status: 'ACTIVE',
+                    start_date: '2025-06-02',
+                },
             },
         ],
     };
+
+    const [selectedSession, setSelectedSession] = useState<string>('');
+    const [selectedLevel, setSelectedLevel] = useState<string>('');
+    const [levelOptions, setLevelOptions] = useState<
+        { _id: string; value: string; label: string }[]
+    >([]);
+
+    // Convert sessions to select options format
+    const sessionOptions = courseData.sessions.map((session) => ({
+        _id: session.sessionDetails.id,
+        value: session.sessionDetails.id,
+        label: session.sessionDetails.session_name,
+    }));
+
+    // Update level options when session changes
+    const handleSessionChange = (sessionId: string) => {
+        setSelectedSession(sessionId);
+        const selectedSessionData = courseData.sessions.find(
+            (session) => session.sessionDetails.id === sessionId
+        );
+
+        if (selectedSessionData) {
+            const newLevelOptions = selectedSessionData.levelDetails.map((level) => ({
+                _id: level.id,
+                value: level.id,
+                label: level.name,
+            }));
+            setLevelOptions(newLevelOptions);
+            setSelectedLevel(''); // Reset level selection when session changes
+        }
+    };
+
+    // Set initial session and its levels
+    useEffect(() => {
+        if (sessionOptions.length > 0 && !selectedSession) {
+            const initialSessionId = sessionOptions[0]?.value || '';
+            handleSessionChange(initialSessionId);
+        }
+    }, []);
 
     return (
         <div className="flex min-h-screen flex-col bg-white">
@@ -91,44 +195,82 @@ export const CourseDetailsPage = () => {
                 <div className="flex gap-8">
                     {/* Left Column - 2/3 width */}
                     <div className="w-2/3 flex-grow">
+                        {/* Session and Level Selectors */}
+                        <div className="container mx-auto px-0 pb-6">
+                            <div className="flex items-center gap-6">
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-sm font-medium">Session</label>
+                                    <Select
+                                        value={selectedSession}
+                                        onValueChange={handleSessionChange}
+                                    >
+                                        <SelectTrigger className="w-48">
+                                            <SelectValue placeholder="Select Session" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {sessionOptions.map((option) => (
+                                                <SelectItem key={option._id} value={option.value}>
+                                                    {option.label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-sm font-medium">Level</label>
+                                    <Select
+                                        value={selectedLevel}
+                                        onValueChange={setSelectedLevel}
+                                        disabled={!selectedSession}
+                                    >
+                                        <SelectTrigger className="w-48">
+                                            <SelectValue placeholder="Select Level" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {levelOptions.map((option) => (
+                                                <SelectItem key={option._id} value={option.value}>
+                                                    {option.label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+                        </div>
                         {/* What You'll Learn Section */}
-                        <div className="mb-8 rounded-lg bg-gray-50 p-6">
-                            <h2 className="mb-4 text-2xl font-bold">What You'll Learn</h2>
-                            <div className="grid grid-cols-2 gap-4">
-                                {courseData.whatYoullLearn.map((item, index) => (
-                                    <div key={index} className="flex items-start gap-2">
-                                        <svg
-                                            className="h-6 w-6 flex-shrink-0 text-green-500"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                        >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M5 13l4 4L19 7"
-                                            />
-                                        </svg>
-                                        <span>{item}</span>
-                                    </div>
-                                ))}
+                        <div className="mb-8">
+                            <h2 className="mb-4 text-2xl font-bold">What you’ll learn?</h2>
+                            <div className="rounded-lg">
+                                <p>
+                                    The Scratch Basics course is designed to introduce beginners to
+                                    the exciting world of coding through simple, visual programming.
+                                    Using Scratch’s drag-and-drop interface, learners can easily
+                                </p>
                             </div>
                         </div>
 
-                        {/* Course Content Section */}
+                        {/* About Content Section */}
                         <div className="mb-8">
-                            <h2 className="mb-4 text-2xl font-bold">Course Content</h2>
-                            <div className="rounded-lg border">
-                                <div className="border-b p-4">
-                                    <h3 className="font-semibold">Section 1: Introduction</h3>
-                                    <p className="text-sm text-gray-600">4 lectures • 45 min</p>
-                                </div>
-                                <div className="border-b p-4">
-                                    <h3 className="font-semibold">Section 2: Getting Started</h3>
-                                    <p className="text-sm text-gray-600">6 lectures • 1h 15min</p>
-                                </div>
-                                {/* Add more sections as needed */}
+                            <h2 className="mb-4 text-2xl font-bold">About this course</h2>
+                            <div className="rounded-lg">
+                                <p>
+                                    The Scratch Basics course is designed to introduce beginners to
+                                    the exciting world of coding through simple, visual programming.
+                                    Using Scratch’s drag-and-drop interface, learners can easily
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Who Should Join Section */}
+                        <div className="mb-8">
+                            <h2 className="mb-4 text-2xl font-bold">Who should join?</h2>
+                            <div className="rounded-lg">
+                                <p>
+                                    The Scratch Basics course is designed to introduce beginners to
+                                    the exciting world of coding through simple, visual programming.
+                                    Using Scratch’s drag-and-drop interface, learners can easily
+                                </p>
                             </div>
                         </div>
 
@@ -137,12 +279,13 @@ export const CourseDetailsPage = () => {
                             <h2 className="mb-4 text-2xl font-bold">Instructors</h2>
                             {courseData.instructors.map((instructor, index) => (
                                 <div key={index} className="flex gap-4 rounded-lg bg-gray-50 p-4">
-                                    <div className="h-16 w-16 rounded-full bg-gray-300"></div>
-                                    <div>
-                                        <h3 className="text-lg font-bold">{instructor.name}</h3>
-                                        <p className="text-gray-600">{instructor.role}</p>
-                                        <p className="mt-2">{instructor.bio}</p>
-                                    </div>
+                                    <Avatar className="h-8 w-8">
+                                        <AvatarImage src="" alt={instructor.email} />
+                                        <AvatarFallback className="bg-[#3B82F6] text-xs font-medium text-white">
+                                            {getInitials(instructor.email)}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <h3 className="text-lg">{instructor.name}</h3>
                                 </div>
                             ))}
                         </div>
@@ -152,9 +295,7 @@ export const CourseDetailsPage = () => {
                     <div className="w-1/3">
                         <div className="sticky top-4 rounded-lg border bg-white p-6 shadow-lg">
                             {/* Course Stats */}
-                            <h2 className="mb-4 text-lg font-bold">
-                                Scratch Programming Language
-                            </h2>
+                            <h2 className="mb-4 text-lg font-bold">Scratch Programming Language</h2>
                             <div className="space-y-4">
                                 <div className="flex items-center gap-2">
                                     <Steps size={18} />
