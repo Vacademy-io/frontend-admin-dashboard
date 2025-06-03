@@ -1,5 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-
 import { useMutation, UseMutationOptions } from '@tanstack/react-query';
 import {
     CSVFormatConfig,
@@ -63,6 +61,7 @@ export const useBulkUploadMutation = (
             if (options?.onSuccess) {
                 options.onSuccess(data, {} as SubmitBulkUploadParams, {});
             }
+            return data;
         },
         onError: (error: Error) => {
             if (axios.isAxiosError(error)) {
