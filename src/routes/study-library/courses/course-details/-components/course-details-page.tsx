@@ -23,6 +23,16 @@ import {
 } from '@/components/ui/select';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 // Mock data for the course structure
 const mockStructureData = {
@@ -48,6 +58,31 @@ const mockStructureData = {
             ],
         },
     ],
+};
+
+type DialogType = 'subject' | 'module' | 'chapter' | 'slide' | null;
+
+type Subject = {
+    id: string;
+    name: string;
+    modules: Module[];
+};
+
+type Module = {
+    id: string;
+    name: string;
+    chapters: Chapter[];
+};
+
+type Chapter = {
+    id: string;
+    name: string;
+    slides: Slide[];
+};
+
+type Slide = {
+    id: string;
+    name: string;
 };
 
 export const CourseDetailsPage = () => {
@@ -182,13 +217,13 @@ export const CourseDetailsPage = () => {
 
     // Modified toggle function to handle hierarchical closing
     const toggleExpand = (id: string, type: 'subject' | 'module' | 'chapter') => {
-        setExpandedItems(prev => {
+        setExpandedItems((prev) => {
             const newState = { ...prev };
             const isExpanding = !prev[id];
 
             if (!isExpanding) {
                 // When closing, only close children of the current item
-                Object.keys(prev).forEach(key => {
+                Object.keys(prev).forEach((key) => {
                     if (key.startsWith(`${id}-`)) {
                         newState[key] = false;
                     }
@@ -197,6 +232,152 @@ export const CourseDetailsPage = () => {
             newState[id] = !prev[id];
             return newState;
         });
+    };
+
+    const [dialogType, setDialogType] = useState<DialogType>(null);
+    const [dialogOpen, setDialogOpen] = useState(false);
+    const [newItemName, setNewItemName] = useState('');
+    const [parentIds, setParentIds] = useState<{ subjectId?: string; moduleId?: string; chapterId?: string }>({});
+
+    const handleAddClick = (type: DialogType, subjectId?: string, moduleId?: string, chapterId?: string) => {
+        console.log('handleAddClick:', { type, subjectId, moduleId, chapterId });
+        setDialogType(type);
+        setParentIds({ subjectId, moduleId, chapterId });
+        setDialogOpen(true);
+        setNewItemName('');
+    };
+
+    const handleAddItem = () => {
+        if (!newItemName.trim()) return;
+
+        const newId = crypto.randomUUID();
+
+        console.log('handleAddItem:', { dialogType, parentIds, newItemName });
+
+        // Update mockStructureData based on dialog type
+        switch (dialogType) {
+            case 'subject': {
+                const newSubject: Subject = {
+                    id: newId,
+                    name: newItemName,
+                    modules: []
+                };
+                mockStructureData.subjects.push(newSubject);
+                break;
+            }
+
+            case 'module': {
+                if (parentIds.subjectId) {
+                    const subject = mockStructureData.subjects.find(s => s.id === parentIds.subjectId);
+                    if (subject) {
+                        const newModule: Module = {
+                            id: newId,
+                            name: newItemName,
+                            chapters: []
+                        };
+                        subject.modules.push(newModule);
+                    }
+                }
+                break;
+            }
+
+            case 'chapter': {
+                if (parentIds.subjectId && parentIds.moduleId) {
+                    const subject = mockStructureData.subjects.find(s => s.id === parentIds.subjectId);
+                    if (subject) {
+                        const module = subject.modules.find(m => m.id === parentIds.moduleId);
+                        if (module) {
+                            const newChapter: Chapter = {
+                                id: newId,
+                                name: newItemName,
+                                slides: []
+                            };
+                            module.chapters.push(newChapter);
+                        }
+                    }
+                }
+                break;
+            }
+
+            case 'slide': {
+                if (parentIds.subjectId && parentIds.moduleId && parentIds.chapterId) {
+                    const subject = mockStructureData.subjects.find(s => s.id === parentIds.subjectId);
+                    if (subject) {
+                        const module = subject.modules.find(m => m.id === parentIds.moduleId);
+                        if (module) {
+                            const chapter = module.chapters.find(c => c.id === parentIds.chapterId);
+                            if (chapter) {
+                                const newSlide: Slide = {
+                                    id: newId,
+                                    name: newItemName
+                                };
+                                chapter.slides.push(newSlide);
+                            }
+                        }
+                    }
+                }
+                break;
+            }
+        }
+
+        setDialogOpen(false);
+        setNewItemName('');
+        // Force a re-render by creating a new reference
+        mockStructureData.subjects = [...mockStructureData.subjects];
+    };
+
+    const getDialogContent = () => {
+        let title = '';
+        let description = '';
+
+        switch (dialogType) {
+            case 'subject':
+                title = 'Add New Subject';
+                description = 'Create a new subject for your course.';
+                break;
+            case 'module':
+                title = 'Add New Module';
+                description = 'Create a new module within the subject.';
+                break;
+            case 'chapter':
+                title = 'Add New Chapter';
+                description = 'Create a new chapter within the module.';
+                break;
+            case 'slide':
+                title = 'Add New Slide';
+                description = 'Create a new slide within the chapter.';
+                break;
+            default:
+                return null;
+        }
+
+        return (
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>{title}</DialogTitle>
+                        <DialogDescription>{description}</DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="name">Name</Label>
+                            <Input
+                                id="name"
+                                value={newItemName}
+                                onChange={(e) => setNewItemName(e.target.value)}
+                                placeholder={`Enter ${dialogType} name`}
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setDialogOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button onClick={handleAddItem}>Add {dialogType}</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        );
     };
 
     const renderTreeItem = (
@@ -212,10 +393,7 @@ export const CourseDetailsPage = () => {
             style={{ paddingLeft: `${level * 20}px` }}
         >
             {!isAddButton && hasChildren && (
-                <button
-                    onClick={() => toggleExpand(id, type || 'chapter')}
-                    className="p-1"
-                >
+                <button onClick={() => toggleExpand(id, type || 'chapter')} className="p-1">
                     {expandedItems[id] ? (
                         <CaretDown className="h-4 w-4" />
                     ) : (
@@ -224,7 +402,22 @@ export const CourseDetailsPage = () => {
                 </button>
             )}
             {isAddButton ? (
-                <Button variant="ghost" className="h-8 gap-2 p-2 text-sm">
+                <Button
+                    variant="ghost"
+                    className="h-8 gap-2 p-2 text-sm"
+                    onClick={() => {
+                        const parts = id.split('-');
+                        if (parts[1] === 'subject') {
+                            handleAddClick('subject');
+                        } else if (parts[1] === 'module') {
+                            handleAddClick('module', parts[2]); // parts[2] is subjectId
+                        } else if (parts[1] === 'chapter') {
+                            handleAddClick('chapter', parts[2], parts[3]); // parts[2] is subjectId, parts[3] is moduleId
+                        } else if (parts[1] === 'slide') {
+                            handleAddClick('slide', parts[2], parts[3], parts[4]); // parts[2] is subjectId, parts[3] is moduleId, parts[4] is chapterId
+                        }
+                    }}
+                >
                     <Plus className="h-4 w-4" />
                     {label}
                 </Button>
@@ -243,24 +436,39 @@ export const CourseDetailsPage = () => {
                 return (
                     <div className="rounded-lg border p-4">
                         {renderTreeItem('Add Slide', 'add-slide', false, 0, true)}
-                        {mockStructureData.subjects[0]?.modules[0]?.chapters[0]?.slides?.map(slide => (
-                            <div key={slide.id}>
-                                {renderTreeItem(slide.name, slide.id, false, 0)}
-                            </div>
-                        )) || null}
+                        {mockStructureData.subjects[0]?.modules[0]?.chapters[0]?.slides?.map(
+                            (slide) => (
+                                <div key={slide.id}>
+                                    {renderTreeItem(slide.name, slide.id, false, 0)}
+                                </div>
+                            )
+                        ) || null}
                     </div>
                 );
             case 3:
                 return (
                     <div className="rounded-lg border p-4">
                         {renderTreeItem('Add Chapter', 'add-chapter', false, 0, true)}
-                        {mockStructureData.subjects[0]?.modules[0]?.chapters?.map(chapter => (
+                        {mockStructureData.subjects[0]?.modules[0]?.chapters?.map((chapter) => (
                             <div key={chapter.id}>
-                                {renderTreeItem(chapter.name, chapter.id, true, 0, false, 'chapter')}
+                                {renderTreeItem(
+                                    chapter.name,
+                                    chapter.id,
+                                    true,
+                                    0,
+                                    false,
+                                    'chapter'
+                                )}
                                 {expandedItems[chapter.id] && (
                                     <>
-                                        {renderTreeItem('Add Slide', `add-slide-${chapter.id}`, false, 1, true)}
-                                        {chapter.slides?.map(slide => (
+                                        {renderTreeItem(
+                                            'Add Slide',
+                                            `add-slide-${chapter.id}`,
+                                            false,
+                                            1,
+                                            true
+                                        )}
+                                        {chapter.slides?.map((slide) => (
                                             <div key={slide.id}>
                                                 {renderTreeItem(slide.name, slide.id, false, 1)}
                                             </div>
@@ -275,21 +483,45 @@ export const CourseDetailsPage = () => {
                 return (
                     <div className="rounded-lg border p-4">
                         {renderTreeItem('Add Module', 'add-module', false, 0, true)}
-                        {mockStructureData.subjects[0]?.modules?.map(module => (
+                        {mockStructureData.subjects[0]?.modules?.map((module) => (
                             <div key={module.id}>
                                 {renderTreeItem(module.name, module.id, true, 0, false, 'module')}
                                 {expandedItems[module.id] && (
                                     <>
-                                        {renderTreeItem('Add Chapter', `add-chapter-${module.id}`, false, 1, true)}
-                                        {module.chapters?.map(chapter => (
+                                        {renderTreeItem(
+                                            'Add Chapter',
+                                            `add-chapter-${module.id}`,
+                                            false,
+                                            1,
+                                            true
+                                        )}
+                                        {module.chapters?.map((chapter) => (
                                             <div key={chapter.id}>
-                                                {renderTreeItem(chapter.name, `${module.id}-${chapter.id}`, true, 1, false, 'chapter')}
+                                                {renderTreeItem(
+                                                    chapter.name,
+                                                    `${module.id}-${chapter.id}`,
+                                                    true,
+                                                    1,
+                                                    false,
+                                                    'chapter'
+                                                )}
                                                 {expandedItems[`${module.id}-${chapter.id}`] && (
                                                     <>
-                                                        {renderTreeItem('Add Slide', `add-slide-${module.id}-${chapter.id}`, false, 2, true)}
-                                                        {chapter.slides?.map(slide => (
+                                                        {renderTreeItem(
+                                                            'Add Slide',
+                                                            `add-slide-${module.id}-${chapter.id}`,
+                                                            false,
+                                                            2,
+                                                            true
+                                                        )}
+                                                        {chapter.slides?.map((slide) => (
                                                             <div key={slide.id}>
-                                                                {renderTreeItem(slide.name, slide.id, false, 2)}
+                                                                {renderTreeItem(
+                                                                    slide.name,
+                                                                    slide.id,
+                                                                    false,
+                                                                    2
+                                                                )}
                                                             </div>
                                                         ))}
                                                     </>
@@ -306,19 +538,45 @@ export const CourseDetailsPage = () => {
                 return (
                     <div className="rounded-lg border p-4">
                         {renderTreeItem('Add Subject', 'add-subject', false, 0, true)}
-                        {mockStructureData.subjects?.map(subject => (
+                        {mockStructureData.subjects?.map((subject) => (
                             <div key={subject.id}>
-                                {renderTreeItem(subject.name, subject.id, true, 0, false, 'subject')}
+                                {renderTreeItem(
+                                    subject.name,
+                                    subject.id,
+                                    true,
+                                    0,
+                                    false,
+                                    'subject'
+                                )}
                                 {expandedItems[subject.id] && (
                                     <>
-                                        {renderTreeItem('Add Module', `add-module-${subject.id}`, false, 1, true)}
-                                        {subject.modules?.map(module => (
+                                        {renderTreeItem(
+                                            'Add Module',
+                                            `add-module-${subject.id}`,
+                                            false,
+                                            1,
+                                            true
+                                        )}
+                                        {subject.modules?.map((module) => (
                                             <div key={module.id}>
-                                                {renderTreeItem(module.name, `${subject.id}-${module.id}`, true, 1, false, 'module')}
+                                                {renderTreeItem(
+                                                    module.name,
+                                                    `${subject.id}-${module.id}`,
+                                                    true,
+                                                    1,
+                                                    false,
+                                                    'module'
+                                                )}
                                                 {expandedItems[`${subject.id}-${module.id}`] && (
                                                     <>
-                                                        {renderTreeItem('Add Chapter', `add-chapter-${subject.id}-${module.id}`, false, 2, true)}
-                                                        {module.chapters?.map(chapter => (
+                                                        {renderTreeItem(
+                                                            'Add Chapter',
+                                                            `add-chapter-${subject.id}-${module.id}`,
+                                                            false,
+                                                            2,
+                                                            true
+                                                        )}
+                                                        {module.chapters?.map((chapter) => (
                                                             <div key={chapter.id}>
                                                                 {renderTreeItem(
                                                                     chapter.name,
@@ -328,14 +586,29 @@ export const CourseDetailsPage = () => {
                                                                     false,
                                                                     'chapter'
                                                                 )}
-                                                                {expandedItems[`${subject.id}-${module.id}-${chapter.id}`] && (
+                                                                {expandedItems[
+                                                                    `${subject.id}-${module.id}-${chapter.id}`
+                                                                ] && (
                                                                     <>
-                                                                        {renderTreeItem('Add Slide', `add-slide-${subject.id}-${module.id}-${chapter.id}`, false, 3, true)}
-                                                                        {chapter.slides?.map(slide => (
-                                                                            <div key={slide.id}>
-                                                                                {renderTreeItem(slide.name, slide.id, false, 3)}
-                                                                            </div>
-                                                                        ))}
+                                                                        {renderTreeItem(
+                                                                            'Add Slide',
+                                                                            `add-slide-${subject.id}-${module.id}-${chapter.id}`,
+                                                                            false,
+                                                                            3,
+                                                                            true
+                                                                        )}
+                                                                        {chapter.slides?.map(
+                                                                            (slide) => (
+                                                                                <div key={slide.id}>
+                                                                                    {renderTreeItem(
+                                                                                        slide.name,
+                                                                                        slide.id,
+                                                                                        false,
+                                                                                        3
+                                                                                    )}
+                                                                                </div>
+                                                                            )
+                                                                        )}
                                                                     </>
                                                                 )}
                                                             </div>
@@ -553,6 +826,7 @@ export const CourseDetailsPage = () => {
                     </div>
                 </div>
             </div>
+            {getDialogContent()}
         </div>
     );
 };
