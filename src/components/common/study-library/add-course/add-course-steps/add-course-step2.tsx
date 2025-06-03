@@ -44,18 +44,18 @@ export const step2Schema = z.object({
     hasSessions: z.string(),
     sessions: z
         .array(
-            z.object({
-                id: z.string(),
-                name: z.string(),
-                startDate: z.string(),
-                levels: z.array(
-                    z.object({
-                        id: z.string(),
-                        name: z.string(),
+        z.object({
+            id: z.string(),
+            name: z.string(),
+            startDate: z.string(),
+            levels: z.array(
+                z.object({
+                    id: z.string(),
+                    name: z.string(),
                         userIds: z.array(z.string()).default([]),
-                    })
-                ),
-            })
+                })
+            ),
+        })
         )
         .default([]),
     selectedInstructors: z
@@ -519,38 +519,38 @@ export const AddCourseStep2 = ({
 
     return (
         <>
-            <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleSubmit)} className="flex h-full flex-col">
-                    <div className="flex-1 overflow-y-auto pb-24">
-                        <Card className="w-full rounded-none border-none bg-white shadow-sm">
-                            <div className="flex items-center justify-between border-b border-gray-100 p-5">
-                                <div>
-                                    <div className="mt-1 flex items-center gap-2">
-                                        <span className="text-sm text-gray-600">Step 2</span>
-                                        <span className="text-sm font-medium text-gray-900">
-                                            Course Structure
-                                        </span>
-                                    </div>
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="flex h-full flex-col">
+                <div className="flex-1 overflow-y-auto pb-24">
+                    <Card className="w-full rounded-none border-none bg-white shadow-sm">
+                        <div className="flex items-center justify-between border-b border-gray-100 p-5">
+                            <div>
+                                <div className="mt-1 flex items-center gap-2">
+                                    <span className="text-sm text-gray-600">Step 2</span>
+                                    <span className="text-sm font-medium text-gray-900">
+                                        Course Structure
+                                    </span>
                                 </div>
                             </div>
+                        </div>
 
-                            <CardContent className="space-y-6 p-5">
-                                {/* Warning Note */}
-                                <div className="rounded-lg border border-red-200 bg-red-50 p-3">
-                                    <p className="text-sm text-red-700">
-                                        <strong>Note:</strong> Once you create the course, its
+                        <CardContent className="space-y-6 p-5">
+                            {/* Warning Note */}
+                            <div className="rounded-lg border border-red-200 bg-red-50 p-3">
+                                <p className="text-sm text-red-700">
+                                    <strong>Note:</strong> Once you create the course, its
                                         structure—including sessions and levels—cannot be changed.
                                         Please review carefully before proceeding.
-                                    </p>
-                                </div>
+                                </p>
+                            </div>
 
-                                {/* Structure Selection */}
-                                <div>
-                                    <h3 className="mb-3 text-base font-medium text-gray-900">
-                                        Select course structure that is suitable for your institute
-                                    </h3>
-                                    <AddCourseStep2StructureTypes form={form} />
-                                </div>
+                            {/* Structure Selection */}
+                            <div>
+                                <h3 className="mb-3 text-base font-medium text-gray-900">
+                                    Select course structure that is suitable for your institute
+                                </h3>
+                                <AddCourseStep2StructureTypes form={form} />
+                            </div>
 
                                 <Separator className="bg-gray-200" />
 
@@ -593,57 +593,57 @@ export const AddCourseStep2 = ({
                                             </Label>
                                         </div>
                                     </RadioGroup>
-                                </div>
+                            </div>
 
-                                <Separator className="bg-gray-200" />
+                            <Separator className="bg-gray-200" />
 
-                                {/* Contains Levels Radio */}
-                                <div className="space-y-2">
-                                    <Label className="block text-base font-medium text-gray-900">
-                                        Contains Levels?
-                                    </Label>
-                                    <p className="text-sm text-gray-600">
-                                        Levels organize a course into structured learning stages.
-                                        These stages may represent increasing difficulty, different
-                                        modules, or key milestones within the course. For eg: Basic,
-                                        Advanced
-                                    </p>
-                                    <RadioGroup
-                                        value={hasLevels}
-                                        onValueChange={(value) => {
-                                            setHasLevels(value);
+                            {/* Contains Levels Radio */}
+                            <div className="space-y-2">
+                                <Label className="block text-base font-medium text-gray-900">
+                                    Contains Levels?
+                                </Label>
+                                <p className="text-sm text-gray-600">
+                                    Levels organize a course into structured learning stages.
+                                    These stages may represent increasing difficulty, different
+                                    modules, or key milestones within the course. For eg: Basic,
+                                    Advanced
+                                </p>
+                                <RadioGroup
+                                    value={hasLevels}
+                                    onValueChange={(value) => {
+                                        setHasLevels(value);
                                             // Clear levels when switching to 'no'
-                                            if (value === 'no') {
+                                        if (value === 'no') {
                                                 setSessions(
                                                     sessions.map((session) => ({
-                                                        ...session,
+                                                ...session,
                                                         levels: [],
                                                     }))
                                                 );
-                                            }
-                                        }}
-                                        className="flex gap-6"
-                                    >
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="yes" id="levels-yes" />
+                                        }
+                                    }}
+                                    className="flex gap-6"
+                                >
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="yes" id="levels-yes" />
                                             <Label
                                                 htmlFor="levels-yes"
                                                 className="text-sm font-normal"
                                             >
-                                                Yes
-                                            </Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="no" id="levels-no" />
+                                            Yes
+                                        </Label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="no" id="levels-no" />
                                             <Label
                                                 htmlFor="levels-no"
                                                 className="text-sm font-normal"
                                             >
-                                                No
-                                            </Label>
-                                        </div>
-                                    </RadioGroup>
-                                </div>
+                                            No
+                                        </Label>
+                                    </div>
+                                </RadioGroup>
+                            </div>
 
                                 {/* Info message when both are No */}
                                 {hasSessions === 'no' && hasLevels === 'no' && (
@@ -655,138 +655,138 @@ export const AddCourseStep2 = ({
                                     </div>
                                 )}
 
-                                {/* Sessions Management */}
+                            {/* Sessions Management */}
                                 {hasSessions === 'yes' && (
-                                    <div className="space-y-3">
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                <Label className="text-base font-medium text-gray-900">
-                                                    Course Sessions
-                                                </Label>
-                                                <p className="text-sm text-gray-600">
-                                                    {hasLevels === 'yes'
-                                                        ? 'Create sessions and add levels within each session'
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <Label className="text-base font-medium text-gray-900">
+                                            Course Sessions
+                                        </Label>
+                                        <p className="text-sm text-gray-600">
+                                            {hasLevels === 'yes'
+                                                ? 'Create sessions and add levels within each session'
                                                         : 'Create sessions for your course'}
-                                                </p>
-                                            </div>
-                                            <MyButton
-                                                type="button"
-                                                buttonType="secondary"
-                                                scale="medium"
-                                                layoutVariant="default"
-                                                onClick={() => setShowAddSession(true)}
-                                                className="font-light"
-                                            >
-                                                <Plus />
-                                                Add Session
-                                            </MyButton>
-                                        </div>
+                                        </p>
+                                    </div>
+                                    <MyButton
+                                        type="button"
+                                        buttonType="secondary"
+                                        scale="medium"
+                                        layoutVariant="default"
+                                        onClick={() => setShowAddSession(true)}
+                                        className="font-light"
+                                    >
+                                        <Plus />
+                                        Add Session
+                                    </MyButton>
+                                </div>
 
-                                        {showAddSession && (
-                                            <Card className="border-gray-200">
-                                                <CardContent className="p-3">
-                                                    <div className="grid grid-cols-2 gap-2">
-                                                        <div>
-                                                            <Label className="mb-1 block text-sm font-medium text-gray-700">
-                                                                Session Name
-                                                            </Label>
-                                                            <Input
-                                                                placeholder="e.g., January 2025 Batch"
-                                                                value={newSessionName}
+                                {showAddSession && (
+                                    <Card className="border-gray-200">
+                                        <CardContent className="p-3">
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <div>
+                                                    <Label className="mb-1 block text-sm font-medium text-gray-700">
+                                                        Session Name
+                                                    </Label>
+                                                    <Input
+                                                        placeholder="e.g., January 2025 Batch"
+                                                        value={newSessionName}
                                                                 onChange={(e) =>
                                                                     setNewSessionName(
                                                                         e.target.value
                                                                     )
                                                                 }
-                                                                className="h-8 border-gray-300"
-                                                            />
-                                                        </div>
-                                                        <div>
-                                                            <Label className="mb-1 block text-sm font-medium text-gray-700">
-                                                                Start Date
-                                                            </Label>
-                                                            <Input
-                                                                type="date"
-                                                                value={newSessionStartDate}
+                                                        className="h-8 border-gray-300"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <Label className="mb-1 block text-sm font-medium text-gray-700">
+                                                        Start Date
+                                                    </Label>
+                                                    <Input
+                                                        type="date"
+                                                        value={newSessionStartDate}
                                                                 onChange={(e) =>
                                                                     setNewSessionStartDate(
                                                                         e.target.value
                                                                     )
                                                                 }
-                                                                className="h-8 border-gray-300"
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                    <div className="mt-3 flex gap-2">
-                                                        <MyButton
-                                                            type="button"
-                                                            buttonType="primary"
-                                                            scale="medium"
-                                                            layoutVariant="default"
-                                                            onClick={addSession}
+                                                        className="h-8 border-gray-300"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="mt-3 flex gap-2">
+                                                <MyButton
+                                                    type="button"
+                                                    buttonType="primary"
+                                                    scale="medium"
+                                                    layoutVariant="default"
+                                                    onClick={addSession}
                                                             disable={
                                                                 !newSessionName.trim() ||
                                                                 !newSessionStartDate
                                                             }
-                                                        >
-                                                            Add Session
-                                                        </MyButton>
-                                                        <MyButton
-                                                            type="button"
-                                                            buttonType="secondary"
-                                                            scale="medium"
-                                                            layoutVariant="default"
-                                                            onClick={() => {
-                                                                setShowAddSession(false);
-                                                                setNewSessionName('');
-                                                                setNewSessionStartDate('');
-                                                            }}
-                                                        >
-                                                            Cancel
-                                                        </MyButton>
-                                                    </div>
-                                                </CardContent>
-                                            </Card>
-                                        )}
+                                                >
+                                                    Add Session
+                                                </MyButton>
+                                                <MyButton
+                                                    type="button"
+                                                    buttonType="secondary"
+                                                    scale="medium"
+                                                    layoutVariant="default"
+                                                    onClick={() => {
+                                                        setShowAddSession(false);
+                                                        setNewSessionName('');
+                                                        setNewSessionStartDate('');
+                                                    }}
+                                                >
+                                                    Cancel
+                                                </MyButton>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                )}
 
-                                        {/* Session Cards */}
-                                        {sessions.map((session) => (
-                                            <SessionCard
-                                                key={session.id}
-                                                session={session}
-                                                hasLevels={hasLevels === 'yes'}
-                                                onRemoveSession={removeSession}
-                                                onAddLevel={addLevel}
-                                                onRemoveLevel={removeLevel}
-                                            />
-                                        ))}
-                                    </div>
+                                {/* Session Cards */}
+                                {sessions.map((session) => (
+                                    <SessionCard
+                                        key={session.id}
+                                        session={session}
+                                        hasLevels={hasLevels === 'yes'}
+                                        onRemoveSession={removeSession}
+                                        onAddLevel={addLevel}
+                                        onRemoveLevel={removeLevel}
+                                    />
+                                ))}
+                            </div>
                                 )}
 
                                 {/* Standalone Levels (when sessions are disabled) */}
                                 {hasSessions === 'no' && hasLevels === 'yes' && (
-                                    <div className="space-y-3">
-                                        <div className="flex items-center justify-between">
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between">
                                             <div>
-                                                <Label className="text-base font-medium text-gray-900">
+                                    <Label className="text-base font-medium text-gray-900">
                                                     Course Levels
-                                                </Label>
+                                    </Label>
                                                 <p className="text-sm text-gray-600">
                                                     Create levels for your course
                                                 </p>
                                             </div>
-                                            <MyButton
-                                                type="button"
-                                                buttonType="secondary"
-                                                scale="medium"
-                                                layoutVariant="default"
+                                    <MyButton
+                                        type="button"
+                                        buttonType="secondary"
+                                        scale="medium"
+                                        layoutVariant="default"
                                                 onClick={() => setShowAddLevel(true)}
                                                 className="font-light"
-                                            >
-                                                <Plus />
+                                    >
+                                        <Plus />
                                                 Add Level
-                                            </MyButton>
-                                        </div>
+                                    </MyButton>
+                                </div>
 
                                         {showAddLevel && (
                                             <Card className="border-gray-200">
@@ -795,15 +795,15 @@ export const AddCourseStep2 = ({
                                                         <Label className="mb-1 block text-sm font-medium text-gray-700">
                                                             Level Name
                                                         </Label>
-                                                        <Input
+                                    <Input
                                                             placeholder="Enter level name (e.g., Basic)"
                                                             value={newLevelName}
                                                             onChange={(e) =>
                                                                 setNewLevelName(e.target.value)
                                                             }
                                                             className="h-8 border-gray-300"
-                                                        />
-                                                    </div>
+                                    />
+                                </div>
                                                     <div className="mt-3 flex gap-2">
                                                         <MyButton
                                                             type="button"
@@ -838,8 +838,8 @@ export const AddCourseStep2 = ({
                                             ?.levels.map((level) => (
                                                 <div
                                                     key={level.id}
-                                                    className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-2"
-                                                >
+                                                className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-2"
+                                            >
                                                     <span className="text-sm font-medium text-gray-900">
                                                         {level.name}
                                                     </span>
@@ -942,22 +942,22 @@ export const AddCourseStep2 = ({
                                                                 className={`p-3 ${isAssigning ? 'pb-3' : 'pb-2'}`}
                                                             >
                                                                 <div className="flex items-center justify-between">
-                                                                    <div className="flex items-center gap-3">
-                                                                        <Avatar className="h-8 w-8">
+                                                <div className="flex items-center gap-3">
+                                                    <Avatar className="h-8 w-8">
                                                                             <AvatarImage
                                                                                 src=""
                                                                                 alt={
                                                                                     instructor.email
                                                                                 }
                                                                             />
-                                                                            <AvatarFallback className="bg-[#3B82F6] text-xs font-medium text-white">
+                                                        <AvatarFallback className="bg-[#3B82F6] text-xs font-medium text-white">
                                                                                 {getInitials(
                                                                                     instructor.email
                                                                                 )}
-                                                                            </AvatarFallback>
-                                                                        </Avatar>
+                                                        </AvatarFallback>
+                                                    </Avatar>
                                                                         <div className="flex flex-col">
-                                                                            <span className="text-sm font-medium text-gray-900">
+                                                    <span className="text-sm font-medium text-gray-900">
                                                                                 {instructor.email}
                                                                             </span>
                                                                             <span className="text-xs text-gray-500">
@@ -969,8 +969,8 @@ export const AddCourseStep2 = ({
                                                                                     .length ||
                                                                                     0}{' '}
                                                                                 batches assigned
-                                                                            </span>
-                                                                        </div>
+                                                    </span>
+                                                </div>
                                                                     </div>
                                                                     <div className="flex gap-2">
                                                                         {(hasSessions === 'yes' ||
@@ -1012,11 +1012,11 @@ export const AddCourseStep2 = ({
                                                                                     : 'Assign'}
                                                                             </MyButton>
                                                                         )}
-                                                                        <MyButton
-                                                                            type="button"
-                                                                            buttonType="text"
-                                                                            scale="medium"
-                                                                            layoutVariant="icon"
+                                                <MyButton
+                                                    type="button"
+                                                    buttonType="text"
+                                                    scale="medium"
+                                                    layoutVariant="icon"
                                                                             onClick={() => {
                                                                                 setSelectedInstructors(
                                                                                     (prev) =>
@@ -1036,11 +1036,11 @@ export const AddCourseStep2 = ({
                                                                                 );
                                                                             }}
                                                                             className="!size-6 text-red-600 hover:text-red-700"
-                                                                        >
-                                                                            <Trash2 className="h-3 w-3" />
-                                                                        </MyButton>
-                                                                    </div>
-                                                                </div>
+                                                >
+                                                    <Trash2 className="h-3 w-3" />
+                                                </MyButton>
+                                            </div>
+                                    </div>
 
                                                                 {isAssigning && (
                                                                     <>
@@ -1263,66 +1263,66 @@ export const AddCourseStep2 = ({
                                             </div>
                                         )}
                                     </div>
+                            </div>
+
+                            <Separator className="bg-gray-200" />
+
+                            {/* Course Catalogue Section */}
+                            <div className="space-y-2">
+                                <div className="flex items-center space-x-3">
+                                    <Checkbox
+                                        id="publish-catalogue"
+                                        checked={publishToCatalogue}
+                                        onCheckedChange={handlePublishChange}
+                                        className="data-[state=checked]:border-[#3B82F6] data-[state=checked]:bg-[#3B82F6]"
+                                    />
+                                    <Label
+                                        htmlFor="publish-catalogue"
+                                        className="text-base font-medium text-gray-900"
+                                    >
+                                        Publish to Course Catalogue
+                                    </Label>
                                 </div>
-
-                                <Separator className="bg-gray-200" />
-
-                                {/* Course Catalogue Section */}
-                                <div className="space-y-2">
-                                    <div className="flex items-center space-x-3">
-                                        <Checkbox
-                                            id="publish-catalogue"
-                                            checked={publishToCatalogue}
-                                            onCheckedChange={handlePublishChange}
-                                            className="data-[state=checked]:border-[#3B82F6] data-[state=checked]:bg-[#3B82F6]"
-                                        />
-                                        <Label
-                                            htmlFor="publish-catalogue"
-                                            className="text-base font-medium text-gray-900"
-                                        >
-                                            Publish to Course Catalogue
-                                        </Label>
-                                    </div>
-                                    <p className="ml-7 text-sm text-gray-600">
+                                <p className="ml-7 text-sm text-gray-600">
                                         The course will be added to the course catalogue which will
                                         be viewed by the learners.
-                                    </p>
-                                </div>
+                                </p>
+                            </div>
 
-                                <Separator className="bg-gray-200" />
-                            </CardContent>
-                        </Card>
-                    </div>
+                            <Separator className="bg-gray-200" />
+                        </CardContent>
+                    </Card>
+                </div>
 
-                    {/* Fixed Footer */}
-                    <div className="fixed bottom-0 left-0 right-0 border-t bg-white px-8 py-4">
-                        <div className="flex justify-between">
-                            <MyButton
-                                type="button"
-                                buttonType="secondary"
-                                scale="large"
-                                layoutVariant="default"
-                                onClick={onBack}
-                            >
-                                Back
-                            </MyButton>
-                            <MyButton
-                                type="button"
-                                buttonType="primary"
-                                scale="large"
-                                layoutVariant="default"
+                {/* Fixed Footer */}
+                <div className="fixed bottom-0 left-0 right-0 border-t bg-white px-8 py-4">
+                    <div className="flex justify-between">
+                        <MyButton
+                            type="button"
+                            buttonType="secondary"
+                            scale="large"
+                            layoutVariant="default"
+                            onClick={onBack}
+                        >
+                            Back
+                        </MyButton>
+                        <MyButton
+                            type="button"
+                            buttonType="primary"
+                            scale="large"
+                            layoutVariant="default"
                                 onClick={(e) => {
                                     e.preventDefault();
                                     handleSubmit(form.getValues());
                                 }}
-                            >
-                                <Plus />
-                                Create
-                            </MyButton>
-                        </div>
+                        >
+                            <Plus />
+                            Create
+                        </MyButton>
                     </div>
-                </form>
-            </Form>
+                </div>
+            </form>
+        </Form>
 
             {/* Move dialogs outside the Form component */}
             <SessionLevelMappingDialog
