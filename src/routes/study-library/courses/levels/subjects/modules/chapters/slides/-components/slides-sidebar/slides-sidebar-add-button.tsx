@@ -30,6 +30,7 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import { formatHTMLString } from '../slide-operations/formatHtmlString';
 import AddAssignmentDialog from './add-assignment-dialog';
+import { createPresentationSlidePayload } from '../create-presentation-slide';
 
 export const ChapterSidebarAddButton = () => {
     const form = useForm<AssignmentFormType>({
@@ -49,7 +50,6 @@ export const ChapterSidebarAddButton = () => {
     const route = useRouter();
     const { chapterId } = route.state.location.search;
     const { addUpdateDocumentSlide } = useSlides(chapterId || '');
-    // const { setActiveItem, getSlideById, setItems, items } = useContentStore();
     const { setActiveItem, getSlideById } = useContentStore();
 
     // Use the Zustand store instead of useState
@@ -170,10 +170,48 @@ export const ChapterSidebarAddButton = () => {
             case 'assignment':
                 openAssignmentDialog();
                 break;
-            case 'presentation':
-                // Redirect to the Excalidraw presentation slide
-                window.location.href = `/presentation/excalidraw?chapterId=${chapterId}`;
+            case 'presentation': {
+                console.log('presentation payload text');
+                try {
+                    // Create a new presentation slide payload
+                    const slideTypeObj = {
+                        id: crypto.randomUUID(),
+                        name: 'Text',
+                        slides: null,
+                    };
+                    const payload = createPresentationSlidePayload(slideTypeObj);
+                    console.log('payload', payload);
+                    const response = await addUpdateDocumentSlide(payload);
+
+                    if (response) {
+                        // Initialize empty Excalidraw data in localStorage
+                        const excalidrawData = {
+                            isExcalidraw: true,
+                            elements: [],
+                            files: {},
+                            appState: {
+                                viewBackgroundColor: '#ffffff',
+                                gridSize: null,
+                            },
+                            lastModified: Date.now(),
+                        };
+                        localStorage.setItem(
+                            `excalidraw_${payload.id}`,
+                            JSON.stringify(excalidrawData)
+                        );
+
+                        // Set the active item after a short delay to ensure the slide is created
+                        setTimeout(() => {
+                            if (payload.id) {
+                                setActiveItem(getSlideById(payload.id));
+                            }
+                        }, 500);
+                    }
+                } catch (err) {
+                    console.error('Error creating new presentation:', err);
+                }
                 break;
+            }
         }
     };
 
