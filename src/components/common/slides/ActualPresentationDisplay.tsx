@@ -21,8 +21,8 @@ interface MinimalSessionDetails {
     // other fields from SlideEditorComponent's sessionDetails state if needed
 }
 
-const MOVE_SLIDE_API_URL = 'http://localhost:8073/community-service/engage/admin/move';
-const RESPONSES_API_BASE_URL = 'http://localhost:8073/community-service/engage/admin/'; // As per user
+const MOVE_SLIDE_API_URL = 'https://backend-stage.vacademy.io/community-service/engage/admin/move';
+const RESPONSES_API_BASE_URL = 'https://backend-stage.vacademy.io/community-service/engage/admin/'; // As per user
 
 // Define API response types
 interface ResponseDataItem {

@@ -54,7 +54,7 @@ const qrCodeInstance = new QRCodeStyling({
 });
 
 const ADMIN_SSE_URL_BASE_WAITING =
-    'http://localhost:8073/community-service/engage/admin/';
+    'https://backend-stage.vacademy.io/community-service/engage/admin/';
 
 export const WaitingRoom: React.FC<WaitingRoomProps> = ({
     sessionDetails,

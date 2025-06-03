@@ -23,7 +23,7 @@ interface ParticipantsSidePanelProps {
 }
 
 const ADMIN_SSE_URL_BASE_PARTICIPANTS =
-    'http://localhost:8073/community-service/engage/admin/';
+    'https://backend-stage.vacademy.io/community-service/engage/admin/';
 
 // Helper to format date/time
 const formatDateTime = (isoString?: string) => {
