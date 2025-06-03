@@ -135,7 +135,7 @@ export const CourseDetailsPage = () => {
             reviews: 256,
             lastUpdated: 'December 2023',
         },
-        courseStructure: 5,
+        courseStructure: 4,
         whatYoullLearn: [
             'Build full-stack web applications using React and Node.js',
             'Master modern JavaScript ES6+ features',
