@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+
 import { useMutation, UseMutationOptions } from '@tanstack/react-query';
 import {
     CSVFormatConfig,
