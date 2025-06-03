@@ -1,4 +1,4 @@
-/* eslint-disable prettier/prettier */
+import type React from 'react';
 import YooptaEditor, { createYooptaEditor } from '@yoopta/editor';
 import { useEffect, useMemo, useRef } from 'react';
 import { MyButton } from '@/components/design-system/button';
@@ -11,15 +11,15 @@ import { html } from '@yoopta/exports';
 import { SlidesMenuOption } from './slides-menu-options/slides-menu-option';
 import { plugins, TOOLS, MARKS } from '@/constants/study-library/yoopta-editor-plugins-tools';
 import { useRouter } from '@tanstack/react-router';
-import { getPublicUrl } from '@/services/upload_file';
+import { getPublicUrl, UploadFileInS3 } from '@/services/upload_file';
 import { PublishDialog } from './publish-slide-dialog';
 import { UnpublishDialog } from './unpublish-slide-dialog';
 import {
-    Slide,
+    type Slide,
     useSlides,
 } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides';
 import { toast } from 'sonner';
-import { ChatText, Check, DownloadSimple, PencilSimpleLine } from 'phosphor-react';
+import { Check, DownloadSimple, PencilSimpleLine } from 'phosphor-react';
 import {
     converDataToAssignmentFormat,
     converDataToVideoFormat,
@@ -34,36 +34,11 @@ import { handleUnpublishSlide } from './slide-operations/handleUnpublishSlide';
 import { updateHeading } from './slide-operations/updateSlideHeading';
 import { formatHTMLString } from './slide-operations/formatHtmlString';
 import { handleConvertAndUpload } from './slide-operations/handleConvertUpload';
-import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
-import DoubtResolutionSidebar from './doubt-resolution/doubtResolutionSidebar';
+import SlideEditor from './SlideEditor';
+import type { JSX } from 'react/jsx-runtime';
 
-export function fixCodeBlocksInHtml(html: string) {
-    // Use DOMParser (browser) or JSDOM (Node.js) for robust parsing
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-
-    // Find all <p><code>...</code></p>
-    const paragraphs = doc.querySelectorAll('p > code:only-child');
-
-    paragraphs.forEach((codeElem) => {
-        const pElem = codeElem.parentElement;
-        const codeText = codeElem.textContent;
-
-        // Create new <pre><code>...</code></pre>
-        const pre = doc.createElement('pre');
-        const code = doc.createElement('code');
-        code.textContent = codeText;
-        pre.appendChild(code);
-
-        // Replace <p> with <pre>
-        if (pElem && pElem.parentNode) {
-            pElem.parentNode.replaceChild(pre, pElem);
-        }
-    });
-
-    // Return the fixed HTML as a string
-    return doc.body.innerHTML;
-}
+// Declare INSTITUTE_ID here or import it from a config file
+const INSTITUTE_ID = 'your-institute-id'; // Replace with your actual institute ID
 
 export const SlideMaterial = ({
     setGetCurrentEditorHTMLContent,
@@ -89,8 +64,6 @@ export const SlideMaterial = ({
     const { addUpdateVideoSlide } = useSlides(chapterId || '');
     const { updateQuestionOrder } = useSlides(chapterId || '');
     const { updateAssignmentOrder } = useSlides(chapterId || '');
-    const editingContainerRef = useRef<HTMLDivElement>(null);
-    const { toggleSidebar, open } = useSidebar();
 
     const handleHeadingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setHeading(e.target.value);
@@ -119,7 +92,6 @@ export const SlideMaterial = ({
                 />
             </div>
         );
-        // editor.insertBlock('Paragraph',{ at: 1, focus: true });
         editor.focus();
     };
 
@@ -127,8 +99,55 @@ export const SlideMaterial = ({
         const data = editor.getEditorValue();
         const htmlString = html.serialize(editor, data);
         const formattedHtmlString = formatHTMLString(htmlString);
-        const codeBlockFormattedHTML = fixCodeBlocksInHtml(formattedHtmlString);
-        return codeBlockFormattedHTML;
+        return formattedHtmlString;
+    };
+
+    // Convert Excalidraw data to HTML for publishing
+    const convertExcalidrawToHTML = async (excalidrawData: any): Promise<string> => {
+        const htmlContent = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Excalidraw Presentation</title>
+                <script src="https://unpkg.com/@excalidraw/excalidraw/dist/excalidraw.production.min.js"></script>
+                <style>
+                    body { margin: 0; padding: 0; }
+                    #excalidraw-container { width: 100vw; height: 100vh; }
+                </style>
+            </head>
+            <body>
+                <div id="excalidraw-container"></div>
+                <script>
+                    const excalidrawData = ${JSON.stringify(excalidrawData)};
+                    const container = document.getElementById('excalidraw-container');
+                    ExcalidrawLib.Excalidraw({
+                        container,
+                        initialData: excalidrawData,
+                        viewModeEnabled: true
+                    });
+                </script>
+            </body>
+            </html>
+        `;
+        return htmlContent;
+    };
+
+    // Get Excalidraw data from localStorage
+    const getExcalidrawDataFromLocalStorage = (slideId: string) => {
+        try {
+            const savedData = localStorage.getItem(`excalidraw_${slideId}`);
+            if (savedData) {
+                return JSON.parse(savedData);
+            }
+        } catch (error) {
+            console.error('Error loading from localStorage:', error);
+        }
+        return {
+            isExcalidraw: true,
+            elements: [],
+            files: {},
+            appState: {},
+        };
     };
 
     const loadContent = async () => {
@@ -140,49 +159,102 @@ export const SlideMaterial = ({
                 </div>
             );
             return;
-        } else if (activeItem.source_type == 'VIDEO') {
+        }
+
+        if (activeItem.source_type === 'VIDEO') {
             setContent(<VideoSlidePreview activeItem={activeItem} />);
             return;
-        } else if (
-            activeItem.source_type == 'DOCUMENT' &&
-            activeItem.document_slide?.type == 'PDF'
-        ) {
-            const url = await getPublicUrl(
-                (activeItem.status == 'PUBLISHED'
-                    ? activeItem.document_slide?.published_data || null
-                    : activeItem?.document_slide?.data) || ''
-            );
-            setContent(<PDFViewer pdfUrl={url} />);
-            return;
-        } else if (
-            activeItem.source_type == 'DOCUMENT' &&
-            activeItem.document_slide?.type == 'DOC'
-        ) {
-            try {
-                setTimeout(() => {
-                    setEditorContent();
-                }, 300);
-                setEditorContent();
-            } catch (error) {
-                console.error('Error preparing document content:', error);
-                setContent(<div>Error loading document content</div>);
+        }
+
+        if (activeItem.source_type === 'DOCUMENT') {
+            const documentType = activeItem.document_slide?.type;
+
+            if (documentType === 'PRESENTATION') {
+                // For published presentations, use the published_url to get the HTML file
+                if (
+                    activeItem.status === 'PUBLISHED' &&
+                    activeItem.document_slide?.published_data
+                ) {
+                    try {
+                        const publishedUrl = await getPublicUrl(
+                            activeItem.document_slide.published_data
+                        );
+                        setContent(
+                            <div className="size-full">
+                                <iframe
+                                    src={publishedUrl}
+                                    className="size-full border-0"
+                                    title="Published Excalidraw Presentation"
+                                />
+                            </div>
+                        );
+                        return;
+                    } catch (error) {
+                        console.error('Error loading published presentation:', error);
+                    }
+                }
+
+                // For draft presentations, load from localStorage
+                const excalidrawData = getExcalidrawDataFromLocalStorage(activeItem.id);
+
+                setContent(
+                    <div className="size-full">
+                        <SlideEditor
+                            slideId={activeItem.id}
+                            initialData={{
+                                elements: excalidrawData.elements || [],
+                                files: excalidrawData.files || {},
+                                appState: excalidrawData.appState || {},
+                            }}
+                            editable={activeItem.status !== 'PUBLISHED'}
+                        />
+                    </div>
+                );
+                return;
             }
-            return;
-        } else if (activeItem.source_type == 'QUESTION') {
+
+            if (documentType === 'PDF') {
+                const data =
+                    activeItem.status === 'PUBLISHED'
+                        ? activeItem.document_slide?.published_data || null
+                        : activeItem.document_slide?.data || '';
+
+                const url = await getPublicUrl(data || '');
+                setContent(<PDFViewer pdfUrl={url} />);
+                return;
+            }
+
+            if (documentType === 'DOC') {
+                try {
+                    setTimeout(() => {
+                        setEditorContent();
+                    }, 300);
+                    setEditorContent();
+                } catch (error) {
+                    console.error('Error preparing document content:', error);
+                    setContent(<div>Error loading document content</div>);
+                }
+                return;
+            }
+        }
+
+        if (activeItem.source_type === 'QUESTION') {
             setContent(<StudyLibraryQuestionsPreview activeItem={activeItem} />);
             return;
-        } else if (activeItem.source_type == 'ASSIGNMENT') {
+        }
+
+        if (activeItem.source_type === 'ASSIGNMENT') {
             setContent(<StudyLibraryAssignmentPreview activeItem={activeItem} />);
             return;
-        } else {
-            setContent(
-                <div className="flex h-[500px] flex-col items-center justify-center rounded-lg py-10">
-                    <EmptySlideMaterial />
-                    <p className="mt-4 text-neutral-500">No study material has been added yet</p>
-                </div>
-            );
         }
-        return;
+
+        // Fallback
+        setContent(
+            <div className="flex h-[500px] flex-col items-center justify-center rounded-lg py-10">
+                <EmptySlideMaterial />
+                <p className="mt-4 text-neutral-500">No study material has been added yet</p>
+            </div>
+        );
     };
 
     const SaveDraft = async (slideToSave?: Slide | null) => {
@@ -245,11 +317,14 @@ export const SlideMaterial = ({
             return;
         }
 
-        if (activeItem?.source_type == 'DOCUMENT' && activeItem?.document_slide?.type == 'DOC') {
-            const currentHtml = getCurrentEditorHTMLContent();
-            const { totalPages } = await convertHtmlToPdf(currentHtml);
-
+        // Handle Excalidraw presentations
+        if (
+            activeItem?.source_type === 'DOCUMENT' &&
+            activeItem?.document_slide?.type === 'PRESENTATION'
+        ) {
             try {
+                // For presentations, we don't save to backend during draft - only localStorage
+                // Just update the slide metadata
                 await addUpdateDocumentSlide({
                     id: slide?.id || '',
                     title: slide?.title || '',
@@ -258,22 +333,111 @@ export const SlideMaterial = ({
                     slide_order: null,
                     document_slide: {
                         id: slide?.document_slide?.id || '',
-                        type: 'DOC',
-                        data: currentHtml,
+                        type: 'PRESENTATION',
+                        data: null, // No data field for presentations
                         title: slide?.document_slide?.title || '',
                         cover_file_id: '',
-                        total_pages: totalPages,
+                        total_pages: 1,
                         published_data: null,
-                        published_document_total_pages:
-                            slide?.document_slide?.published_document_total_pages || 0,
+                        published_document_total_pages: 0,
                     },
                     status: status,
                     new_slide: false,
                     notify: false,
                 });
+                toast.success(`Presentation saved successfully!`);
             } catch {
-                toast.error('error updating slide');
+                toast.error('Error saving presentation');
             }
+            return;
+        }
+
+        // Handle regular documents
+        const currentHtml = getCurrentEditorHTMLContent();
+        const { totalPages } = await convertHtmlToPdf(currentHtml);
+
+        try {
+            await addUpdateDocumentSlide({
+                id: slide?.id || '',
+                title: slide?.title || '',
+                image_file_id: '',
+                description: slide?.description || '',
+                slide_order: null,
+                document_slide: {
+                    id: slide?.document_slide?.id || '',
+                    type: 'DOC',
+                    data: currentHtml,
+                    title: slide?.document_slide?.title || '',
+                    cover_file_id: '',
+                    total_pages: totalPages,
+                    published_data: null,
+                    published_document_total_pages:
+                        slide?.document_slide?.published_document_total_pages || 0,
+                },
+                status: status,
+                new_slide: false,
+                notify: false,
+            });
+        } catch {
+            toast.error('error updating slide');
+        }
+    };
+
+    // Custom publish function for Excalidraw presentations
+    const publishExcalidrawPresentation = async () => {
+        if (!activeItem || activeItem.document_slide?.type !== 'PRESENTATION') return;
+
+        try {
+            // Get Excalidraw data from localStorage
+            const excalidrawData = getExcalidrawDataFromLocalStorage(activeItem.id);
+
+            // Convert to HTML
+            const htmlContent = await convertExcalidrawToHTML(excalidrawData);
+
+            // Create HTML file and upload to S3
+            const htmlBlob = new Blob([htmlContent], { type: 'text/html' });
+            const htmlFile = new File([htmlBlob], `${activeItem.title || 'presentation'}.html`, {
+                type: 'text/html',
+            });
+
+            const publishedFileId = await UploadFileInS3(
+                htmlFile,
+                (progress) => {
+                    console.log(`Upload progress: ${progress}%`);
+                },
+                'your-user-id',
+                INSTITUTE_ID,
+                'ADMIN',
+                true
+            );
+
+            // Update slide with published_url
+            await addUpdateDocumentSlide({
+                id: activeItem.id,
+                title: activeItem.title || '',
+                image_file_id: '',
+                description: activeItem.description || '',
+                slide_order: null,
+                document_slide: {
+                    id: activeItem.document_slide?.id || '',
+                    type: 'PRESENTATION',
+                    data: null, // No data field
+                    title: activeItem.document_slide?.title || '',
+                    cover_file_id: '',
+                    total_pages: 1,
+                    published_data: publishedFileId || '',
+                    published_document_total_pages: 0,
+                    // published_url: publishedFileId, // Store HTML file ID here
+                },
+                status: 'PUBLISHED',
+                new_slide: false,
+                notify: false,
+            });
+
+            toast.success('Presentation published successfully!');
+        } catch (error) {
+            console.error('Error publishing presentation:', error);
+            toast.error('Failed to publish presentation');
         }
     };
 
@@ -287,7 +451,6 @@ export const SlideMaterial = ({
     };
 
     useEffect(() => {
-        if (open) toggleSidebar();
         setSlideTitle(
             (activeItem?.source_type === 'DOCUMENT' && activeItem?.document_slide?.title) ||
                 (activeItem?.source_type === 'VIDEO' && activeItem?.video_slide?.title) ||
@@ -317,10 +480,10 @@ export const SlideMaterial = ({
                 const data = editor.getEditorValue();
                 const htmlString = html.serialize(editor, data);
                 const formattedHtmlString = formatHTMLString(htmlString);
-                const codeBlockFormattedHTML = fixCodeBlocksInHtml(formattedHtmlString);
+
                 // Only save if the content has changed
-                if (codeBlockFormattedHTML !== previousHtmlString) {
-                    previousHtmlString = codeBlockFormattedHTML;
+                if (formattedHtmlString !== previousHtmlString) {
+                    previousHtmlString = formattedHtmlString;
                     SaveDraft(activeItem);
                 }
             }, 60000);
@@ -332,23 +495,6 @@ export const SlideMaterial = ({
             }
         };
     }, [activeItem?.document_slide?.type, editor]);
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (
-                isEditing &&
-                editingContainerRef.current &&
-                !editingContainerRef.current.contains(event.target as Node)
-            ) {
-                setIsEditing(false);
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [isEditing]);
 
     // Update the refs whenever these functions change
     useEffect(() => {
@@ -362,21 +508,15 @@ export const SlideMaterial = ({
                 <div className="-m-8 flex items-center justify-between gap-6 border-b border-neutral-300 px-8 py-4">
                     <div className="flex items-center gap-4">
                         {isEditing ? (
-                            <div
-                                ref={editingContainerRef}
-                                className="flex items-center justify-center gap-2"
-                            >
+                            <div className="flex items-center justify-center gap-2">
                                 <input
                                     type="text"
                                     value={heading}
                                     onChange={handleHeadingChange}
-                                    className="w-fit rounded-md border border-neutral-300 p-2 text-h3 font-semibold text-neutral-600 focus:outline-none"
+                                    className="w-fit text-h3 font-semibold text-neutral-600 focus:outline-none"
                                     autoFocus
                                 />
-                                <MyButton
-                                    layoutVariant="icon"
-                                    className="rounded-full p-0 hover:text-primary-500"
-                                    buttonType="secondary"
+                                <Check
                                     onClick={() =>
                                         updateHeading(
                                             activeItem,
@@ -387,9 +527,8 @@ export const SlideMaterial = ({
                                             addUpdateDocumentSlide
                                         )
                                     }
-                                >
-                                    <Check className="size-6 cursor-pointer font-semibold hover:text-primary-500" />
-                                </MyButton>
+                                    className="cursor-pointer hover:text-primary-500"
+                                />
                             </div>
                         ) : (
                             <div className="flex items-center justify-center gap-2">
@@ -397,16 +536,11 @@ export const SlideMaterial = ({
                                     {heading || 'No content selected'}
                                 </h3>
                                 <PencilSimpleLine
-                                    className="size-5 cursor-pointer hover:text-primary-500"
+                                    className="cursor-pointer hover:text-primary-500"
                                     onClick={() => setIsEditing(true)}
                                 />
                             </div>
                         )}
-                        {/* {activeItem.last_sync_date != null && (
-                            <p className="text-neutral-500">
-                                Last synced at: {formatReadableDate(activeItem.last_sync_date)}
-                            </p>
-                        )} */}
                     </div>
                     <div className="flex items-center gap-6">
                         <div className="flex items-center gap-6">
@@ -433,6 +567,7 @@ export const SlideMaterial = ({
                                 )}
                             <ActivityStatsSidebar />
                             {(activeItem?.document_slide?.type == 'DOC' ||
+                                activeItem?.document_slide?.type == 'PRESENTATION' ||
                                 activeItem?.source_type == 'QUESTION' ||
                                 activeItem?.source_type == 'ASSIGNMENT') && (
                                 <MyButton
@@ -463,27 +598,26 @@ export const SlideMaterial = ({
                             <PublishDialog
                                 isOpen={isPublishDialogOpen}
                                 setIsOpen={setIsPublishDialogOpen}
-                                handlePublishUnpublishSlide={() =>
-                                    handlePublishSlide(
-                                        setIsPublishDialogOpen,
-                                        false,
-                                        activeItem,
-                                        addUpdateDocumentSlide,
-                                        addUpdateVideoSlide,
-                                        updateQuestionOrder,
-                                        updateAssignmentOrder,
-                                        SaveDraft
-                                    )
-                                }
+                                handlePublishUnpublishSlide={() => {
+                                    // Custom publish logic for Excalidraw presentations
+                                    if (activeItem?.document_slide?.type === 'PRESENTATION') {
+                                        publishExcalidrawPresentation();
+                                        setIsPublishDialogOpen(false);
+                                    } else {
+                                        handlePublishSlide(
+                                            setIsPublishDialogOpen,
+                                            false,
+                                            activeItem,
+                                            addUpdateDocumentSlide,
+                                            addUpdateVideoSlide,
+                                            updateQuestionOrder,
+                                            updateAssignmentOrder,
+                                            SaveDraft
+                                        );
+                                    }
+                                }}
                             />
                         </div>
-
-                        <MyButton layoutVariant="icon" buttonType="secondary">
-                            <SidebarTrigger className="[&_svg]:size-5">
-                                <ChatText className="text-neutral-500" />
-                            </SidebarTrigger>
-                        </MyButton>
-
                         <SlidesMenuOption />
                     </div>
                 </div>
@@ -495,7 +629,6 @@ export const SlideMaterial = ({
             >
                 {content}
             </div>
-            <DoubtResolutionSidebar />
         </div>
     );
 };

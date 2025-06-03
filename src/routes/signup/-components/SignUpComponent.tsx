@@ -19,7 +19,6 @@ import { useEffect } from 'react';
 import { handleOAuthLogin, type OAuthProvider } from '@/hooks/login/oauth-login';
 import { FcGoogle } from 'react-icons/fc';
 import { GitHubLogoIcon } from '@radix-ui/react-icons';
-import { Fragment } from 'react';
 
 const items = [
     {
@@ -100,17 +99,13 @@ export function SignUpComponent() {
 
                             <div className="flex w-full flex-col gap-4">
                                 <button
-                                    className="flex w-full items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 shadow-sm transition-colors hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
-                                    onClick={() => handleOAuthSignup('google')}
                                     type="button"
-                                    disabled={
-                                        !form.getValues('items.assess') ||
-                                        form.getValues('items.lms')
-                                    }
+                                    className="flex w-full items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                                    onClick={() => {
+                                        handleOAuthLogin('google');
+                                    }}
                                 >
-                                    <Fragment>
-                                        <FcGoogle className="size-5" />
-                                    </Fragment>
+                                    {FcGoogle({ size: 20 })}
                                     Continue with Google
                                 </button>
                                 <button

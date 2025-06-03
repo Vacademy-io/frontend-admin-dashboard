@@ -1,3 +1,44 @@
+// import type { ExcalidrawElement } from '@excalidraw/excalidraw';
+import { ExcalidrawElement } from '@excalidraw/excalidraw/element/types';
+import type { AppState, BinaryFiles } from '@excalidraw/excalidraw/types';
+
+export enum SlideType {
+    Title = 'TITLE',
+    Text = 'TEXT',
+    Blank = 'BLANK',
+    Image = 'IMAGE',
+    Quiz = 'QUIZ',
+    Feedback = 'FEEDBACK',
+    Excalidraw = 'EXCALIDRAW',
+}
+
+export interface ExcalidrawWrapperInitialData {
+    id: string;
+    elements: readonly ExcalidrawElement[];
+    appState?: Partial<AppState>;
+    files?: BinaryFiles;
+}
+
+export interface SlideData {
+    id: string;
+    type: SlideType;
+    elements: readonly ExcalidrawElement[];
+    appState: Partial<AppState>;
+    files: BinaryFiles;
+}
+
+export interface SlideMetadata {
+    id: string;
+    title: string;
+    type: SlideType;
+    order: number;
+}
+
+export interface PresentationSlide {
+    metadata: SlideMetadata;
+    data: SlideData;
+}
+
 export interface Slide {
     id: string;
     elements: unknown;
@@ -15,7 +56,7 @@ export interface Presentation {
 }
 
 // Slide types: can be a visual slide or a question-based slide
-interface SlideData {
+export interface DetailedSlideData {
     id: string;
     presentation_id: string | null;
     title: string;
