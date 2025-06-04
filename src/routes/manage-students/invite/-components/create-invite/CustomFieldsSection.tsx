@@ -1,11 +1,9 @@
 import { MyButton } from '@/components/design-system/button';
 import { Switch } from '@/components/ui/switch';
-import { Sortable, SortableDragHandle, SortableItem } from '@/components/ui/sortable';
-import { DotsSixVertical, Plus, TrashSimple } from 'phosphor-react';
+import { Plus, TrashSimple } from 'phosphor-react';
 import { AddCustomFieldDialog, DropdownOption } from './AddCustomFieldDialog';
-import { useFormContext, useFieldArray } from 'react-hook-form';
+import { useFormContext } from 'react-hook-form';
 import { InviteForm } from '../../-schema/InviteFormSchema';
-import { useEffect } from 'react';
 
 interface CustomFieldsSectionProps {
     toggleIsRequired: (id: number) => void;
@@ -23,25 +21,8 @@ export const CustomFieldsSection = ({
     handleAddOpenFieldValues,
     handleDeleteOpenField,
 }: CustomFieldsSectionProps) => {
-    const { watch, control, setValue } = useFormContext<InviteForm>();
+    const { watch } = useFormContext<InviteForm>();
     const customFields = watch('custom_fields');
-
-    const { move } = useFieldArray({
-        control,
-        name: 'custom_fields',
-    });
-
-    const handleMove = ({ activeIndex, overIndex }: { activeIndex: number; overIndex: number }) => {
-        move(activeIndex, overIndex);
-
-        // Update the field order after moving without triggering form submission
-        const updatedFields = watch('custom_fields');
-        setValue('custom_fields', updatedFields, {
-            shouldValidate: false,
-            shouldDirty: false,
-            shouldTouch: false
-        });
-    };
 
     const handleAddCustomField = (
         type: string,
@@ -55,58 +36,45 @@ export const CustomFieldsSection = ({
     return (
         <div className="flex flex-col gap-4">
             <p className="text-title font-semibold">Invite input field</p>
-            <Sortable value={customFields || []} onMove={handleMove} fast={false}>
-                <div className="flex flex-col gap-4">
-                    {customFields?.map((field, index) => (
-                        <SortableItem key={field.id || index} value={field.id || index} asChild>
-                            <div className="flex items-center gap-4">
-                                <div className="flex w-3/4 items-center justify-between rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-2">
-                                    <h1 className="text-sm">
-                                        {field.name}
-                                        {field.oldKey && (
-                                            <span className="text-subtitle text-danger-600">*</span>
-                                        )}
-                                        {!field.oldKey && field.isRequired && (
-                                            <span className="text-subtitle text-danger-600">*</span>
-                                        )}
-                                    </h1>
-                                    <div className="flex items-center gap-6">
-                                        {!field.oldKey && (
-                                            <MyButton
-                                                type="button"
-                                                scale="small"
-                                                buttonType="secondary"
-                                                className="min-w-6 !rounded-sm !p-0"
-                                                onClick={() => handleDeleteOpenField(field.id)}
-                                            >
-                                                <TrashSimple className="!size-4 text-danger-500" />
-                                            </MyButton>
-                                        )}
-                                        <div className="drag-handle-container">
-                                            <SortableDragHandle
-                                                variant="ghost"
-                                                size="icon"
-                                                className="cursor-grab hover:bg-neutral-100 active:cursor-grabbing !p-0"
-                                            >
-                                                <DotsSixVertical size={20} className="shrink-0" />
-                                            </SortableDragHandle>
-                                        </div>
-                                    </div>
-                                </div>
+            <div className="flex flex-col gap-4">
+                {customFields?.map((field, index) => (
+                    <div key={field.id || index} className="flex items-center gap-4">
+                        <div className="flex w-3/4 items-center justify-between rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-2">
+                            <h1 className="text-sm">
+                                {field.name}
+                                {field.oldKey && (
+                                    <span className="text-subtitle text-danger-600">*</span>
+                                )}
+                                {!field.oldKey && field.isRequired && (
+                                    <span className="text-subtitle text-danger-600">*</span>
+                                )}
+                            </h1>
+                            <div className="flex items-center gap-6">
                                 {!field.oldKey && (
-                                    <>
-                                        <h1 className="text-sm">Required</h1>
-                                        <Switch
-                                            checked={field.isRequired}
-                                            onCheckedChange={() => toggleIsRequired(field.id)}
-                                        />
-                                    </>
+                                    <MyButton
+                                        type="button"
+                                        scale="small"
+                                        buttonType="secondary"
+                                        className="min-w-6 !rounded-sm !p-0"
+                                        onClick={() => handleDeleteOpenField(field.id)}
+                                    >
+                                        <TrashSimple className="!size-4 text-danger-500" />
+                                    </MyButton>
                                 )}
                             </div>
-                        </SortableItem>
-                    ))}
-                </div>
-            </Sortable>
+                        </div>
+                        {!field.oldKey && (
+                            <>
+                                <h1 className="text-sm">Required</h1>
+                                <Switch
+                                    checked={field.isRequired}
+                                    onCheckedChange={() => toggleIsRequired(field.id)}
+                                />
+                            </>
+                        )}
+                    </div>
+                ))}
+            </div>
             <div className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-3">
                 {!customFields?.some((field) => field.name === 'Gender') && (
                     <MyButton
