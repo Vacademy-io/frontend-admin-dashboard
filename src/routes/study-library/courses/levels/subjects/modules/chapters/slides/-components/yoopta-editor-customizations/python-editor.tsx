@@ -369,45 +369,45 @@ export const MultiLangCodePlugin = new YooptaPlugin<{ codeBlock: any }>({
     },
     shortcuts: ["code", "python", "js", "html", "css"],
   },
-  parsers: {
-    html: {
-      deserialize: {
-        nodeNames: ['DIV'],
-      },
-      serialize: (element, children) => {
-        const props = element.props || {};
-        const language = props.language || 'python';
-        const code = props.code || '';
-        const mode = props.mode || 'edit';
-        const output = props.output || '';
-        const hasRun = props.hasRun || false;
+//   parsers: {
+//     html: {
+//       deserialize: {
+//         nodeNames: ['DIV'],
+//       },
+//       serialize: (element, children) => {
+//         const props = element.props || {};
+//         const language = props.language || 'python';
+//         const code = props.code || '';
+//         const mode = props.mode || 'edit';
+//         const output = props.output || '';
+//         const hasRun = props.hasRun || false;
 
-        // Encode the code and output for safe HTML attribute storage
-        const encodedCode = encodeURIComponent(code);
-        const encodedOutput = encodeURIComponent(output);
+//         // Encode the code and output for safe HTML attribute storage
+//         const encodedCode = encodeURIComponent(code);
+//         const encodedOutput = encodeURIComponent(output);
 
-        return `<div
-          data-yoopta-type="codeBlock"
-          data-editor-type="multiLangCodeEditor"
-          data-language="${language}"
-          data-code="${encodedCode}"
-          data-mode="${mode}"
-          data-output="${encodedOutput}"
-          data-has-run="${hasRun}"
-          style="border: 1px solid #eee; border-radius: 8px; padding: 16px; margin: 8px 0; background: #f9f9f9;"
-        >
-          <div style="display: flex; gap: 8px; margin-bottom: 8px; align-items: center;">
-            ${hasRun ? '<div style="padding: 4px 8px; background: #17a2b8; color: white; border-radius: 4px; font-size: 12px;">EXECUTED</div>' : ''}
-          </div>
-          <pre style="background: #f6f8fa; padding: 12px; border-radius: 4px; font-size: 14px; overflow-x: auto; border: 1px solid #e1e4e8; margin: 8px 0;"><code>${code}</code></pre>
-          ${output && language !== 'html' && language !== 'css' ?
-            `<div style="margin-top: 8px;">
-              <div style="font-size: 12px; color: #666; margin-bottom: 4px; font-weight: bold;">Output:</div>
-              <pre style="background: #f6f8fa; padding: 8px; border-radius: 4px; font-size: 12px; border: 1px solid #e1e4e8; white-space: pre-wrap; max-height: 200px; overflow-y: auto;">${output}</pre>
-            </div>` : ''
-          }
-        </div>`;
-      },
-    },
-  },
+//         return `<div
+//           data-yoopta-type="codeBlock"
+//           data-editor-type="multiLangCodeEditor"
+//           data-language="${language}"
+//           data-code="${encodedCode}"
+//           data-mode="${mode}"
+//           data-output="${encodedOutput}"
+//           data-has-run="${hasRun}"
+//           style="border: 1px solid #eee; border-radius: 8px; padding: 16px; margin: 8px 0; background: #f9f9f9;"
+//         >
+//           <div style="display: flex; gap: 8px; margin-bottom: 8px; align-items: center;">
+//             ${hasRun ? '<div style="padding: 4px 8px; background: #17a2b8; color: white; border-radius: 4px; font-size: 12px;">EXECUTED</div>' : ''}
+//           </div>
+//           <pre style="background: #f6f8fa; padding: 12px; border-radius: 4px; font-size: 14px; overflow-x: auto; border: 1px solid #e1e4e8; margin: 8px 0;"><code>${code}</code></pre>
+//           ${output && language !== 'html' && language !== 'css' ?
+//             `<div style="margin-top: 8px;">
+//               <div style="font-size: 12px; color: #666; margin-bottom: 4px; font-weight: bold;">Output:</div>
+//               <pre style="background: #f6f8fa; padding: 8px; border-radius: 4px; font-size: 12px; border: 1px solid #e1e4e8; white-space: pre-wrap; max-height: 200px; overflow-y: auto;">${output}</pre>
+//             </div>` : ''
+//           }
+//         </div>`;
+//       },
+//     },
+//   },
 });
