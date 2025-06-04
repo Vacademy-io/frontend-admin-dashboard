@@ -29,6 +29,7 @@ import { getInstituteId } from '@/constants/helper';
 import { handleGetIndividualStudentList } from '@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-services/assessment-details-services';
 import { FilterConfig } from '@/routes/manage-students/students-list/-types/students-list-types';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { useBatchAccess } from '@/hooks/use-batch-access';
 
 type TestAccessFormType = z.infer<typeof testAccessSchema>;
 
@@ -45,6 +46,7 @@ export const StudentListTab = ({ form }: { form: UseFormReturn<TestAccessFormTyp
     const { data: studentList } = useSuspenseQuery(
         handleGetIndividualStudentList({ instituteId, assessmentId })
     );
+    const { accessibleBatches, isFaculty } = useBatchAccess();
     const preExistingStudentIds = useMemo(() => {
         if (assessmentId !== 'defaultId')
             return studentList
@@ -65,7 +67,12 @@ export const StudentListTab = ({ form }: { form: UseFormReturn<TestAccessFormTyp
             id: session.id,
             name: session.session_name,
         })) || [];
-    const filters: FilterConfig[] = GetFilterData(instituteDetails, getCurrentSession());
+    const filters: FilterConfig[] = GetFilterData(
+        instituteDetails,
+        getCurrentSession(),
+        accessibleBatches,
+        isFaculty
+    );
     const [isAssessment] = useState(true);
     const { setValue } = form;
 

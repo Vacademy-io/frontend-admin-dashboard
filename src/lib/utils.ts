@@ -64,3 +64,8 @@ export function extractUserRoles(): string[] {
     });
     return [...new Set(allRoles)];
 }
+
+export const isLimitedBatches = (batches: string[], isFaculty: boolean) => {
+    if (isFaculty && batches.length > 0) return true;
+    return false;
+};

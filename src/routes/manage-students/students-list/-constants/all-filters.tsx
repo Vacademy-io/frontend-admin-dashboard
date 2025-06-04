@@ -1,7 +1,13 @@
+import { isLimitedBatches } from '@/lib/utils';
 import { FilterConfig } from '@/routes/manage-students/students-list/-types/students-list-types';
 import { InstituteDetailsType } from '@/schemas/student/student-list/institute-schema';
 
-export const GetFilterData = (instituteDetails: InstituteDetailsType, currentSession: string) => {
+export const GetFilterData = (
+    instituteDetails: InstituteDetailsType,
+    currentSession: string,
+    accessibleBatches: string[],
+    isFaculty: boolean
+) => {
     const batches = instituteDetails?.batches_for_sessions.filter(
         (batch) => batch.session.id === currentSession
     );
@@ -9,7 +15,9 @@ export const GetFilterData = (instituteDetails: InstituteDetailsType, currentSes
         id: batch.id,
         label: batch.level.level_name + ' ' + batch.package_dto.package_name,
     }));
-
+    if (isLimitedBatches(accessibleBatches, isFaculty)) {
+        batchFilterList?.filter((batch) => accessibleBatches.includes(batch.id));
+    }
     const statuses = instituteDetails?.student_statuses.map((status, index) => ({
         id: index.toString(),
         label: status,

@@ -16,12 +16,28 @@ import useIntroJsTour from '@/hooks/use-intro';
 import { StudyLibraryIntroKey } from '@/constants/storage/introKey';
 import { studyLibrarySteps } from '@/constants/intro/steps';
 import { EmptyCoursePage } from '@/svgs';
+import { useBatchAccess } from '@/hooks/use-batch-access';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { isLimitedBatches } from '@/lib/utils';
 
 export const CourseMaterial = () => {
     const { setNavHeading } = useNavHeadingStore();
     const { open } = useSidebar();
     const { studyLibraryData } = useStudyLibraryStore();
     const [courses, setCourses] = useState(getCourses());
+    const { accessibleBatches, isFaculty } = useBatchAccess();
+    const { getDetailsFromPackageSessionId } = useInstituteDetailsStore();
+
+    const getCoursesOfBatches = () => {
+        const courseIds = accessibleBatches.map(
+            (batch) => getDetailsFromPackageSessionId({ packageSessionId: batch })?.package_dto.id
+        );
+        setCourses((prev) => {
+            const newCourses = prev.filter((course) => courseIds.includes(course.id));
+            console.log('Filtered Courses:', newCourses);
+            return newCourses;
+        });
+    };
 
     const addCourseMutation = useAddCourse();
     const deleteCourseMutation = useDeleteCourse();
@@ -80,7 +96,8 @@ export const CourseMaterial = () => {
 
     useEffect(() => {
         setCourses(getCourses());
-    }, [studyLibraryData]);
+        if (isLimitedBatches(accessibleBatches, isFaculty)) getCoursesOfBatches();
+    }, [studyLibraryData, accessibleBatches, isFaculty]);
 
     useEffect(() => {
         setNavHeading('Learning Center');

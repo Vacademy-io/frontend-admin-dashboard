@@ -1,9 +1,9 @@
 // services/study-library/getStudyLibraryDetails.ts
-import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
-import { INIT_STUDY_LIBRARY } from "@/constants/urls";
-import { useStudyLibraryStore } from "@/stores/study-library/use-study-library-store";
-import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
-import { TokenKey } from "@/constants/auth/tokens";
+import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
+import { INIT_STUDY_LIBRARY } from '@/constants/urls';
+import { useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
+import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
 
 export const fetchStudyLibraryDetails = async () => {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
@@ -21,9 +21,10 @@ export const useStudyLibraryQuery = () => {
     const setStudyLibraryData = useStudyLibraryStore((state) => state.setStudyLibraryData);
 
     return {
-        queryKey: ["GET_INIT_STUDY_LIBRARY"],
+        queryKey: ['GET_INIT_STUDY_LIBRARY'],
         queryFn: async () => {
             const data = await fetchStudyLibraryDetails();
+            console.log('Fetched Study Library Data:', data);
             setStudyLibraryData(data);
             return data;
         },

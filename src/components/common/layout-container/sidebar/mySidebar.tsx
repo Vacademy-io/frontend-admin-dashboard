@@ -61,7 +61,6 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
         const roles = extractUserRoles();
         if (roles.includes('TEACHER')) {
             const isAccess = hasTabAccess('TEACHER', tabId);
-            console.log(isAccess, tabId);
             return isAccess;
         } else return true;
     };

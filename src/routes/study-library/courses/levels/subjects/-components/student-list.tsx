@@ -19,6 +19,7 @@ import { DropdownItemType } from '@/components/common/students/enroll-manually/d
 import { StudentFilters } from '@/routes/manage-students/students-list/-components/students-list/student-list-section/student-filters';
 import { GetFilterData } from '@/routes/manage-students/students-list/-constants/all-filters';
 import { BulkActions } from '@/routes/manage-students/students-list/-components/students-list/student-list-section/bulk-actions/bulk-actions';
+import { useBatchAccess } from '@/hooks/use-batch-access';
 
 const Students = ({
     packageSessionId,
@@ -29,6 +30,8 @@ const Students = ({
 }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const { instituteDetails } = useInstituteDetailsStore();
+    const { accessibleBatches, isFaculty } = useBatchAccess();
+
     const [rowSelections, setRowSelections] = useState<Record<number, Record<string, boolean>>>({});
     const tableRef = useRef<HTMLDivElement>(null);
     const [allPagesData, setAllPagesData] = useState<Record<number, StudentTable[]>>({});
@@ -65,9 +68,12 @@ const Students = ({
         handlePageChange,
     } = useStudentTable(appliedFilters, setAppliedFilters, [packageSessionId]);
 
-    const filters = GetFilterData(instituteDetails, currentSession?.id).filter(
-        (filter) => filter.id !== 'batch'
-    );
+    const filters = GetFilterData(
+        instituteDetails,
+        currentSession?.id,
+        accessibleBatches,
+        isFaculty
+    ).filter((filter) => filter.id !== 'batch');
     const currentPageSelection = rowSelections[page] || {};
 
     useEffect(() => {

@@ -29,6 +29,8 @@ import { useRefetchStoreAssessment } from '../-global-store/refetch-store';
 import { Route } from '..';
 import { useNavigate } from '@tanstack/react-router';
 import { getCourseSubjects } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSubjects';
+import { useBatchAccess } from '@/hooks/use-batch-access';
+import { isLimitedBatches } from '@/lib/utils';
 
 export interface SelectedQuestionPaperFilters {
     name: string | { id: string; name: string }[];
@@ -80,6 +82,7 @@ export const ScheduleTestMainComponent = ({
     const { data: initData } = useSuspenseQuery(useInstituteQuery());
     const { data: initAssessmentData } = useSuspenseQuery(getInitAssessmentDetails(initData?.id));
     const { BatchesFilterData, SubjectFilterData } = useFilterDataForAssesment(initData);
+    const { accessibleBatches, isFaculty } = useBatchAccess();
     const { AssessmentTypeData, ModeData, EvaluationTypeData } =
         useFilterDataForAssesmentInitData(initAssessmentData);
     const { getCourseFromPackage, getDetailsFromPackageSessionId } = useInstituteDetailsStore();
@@ -91,7 +94,12 @@ export const ScheduleTestMainComponent = ({
         useState<SelectedQuestionPaperFilters>({
             name: '',
             // If in course outline mode and batchId is provided, pre-select it
-            batch_ids: isCourseOutline && batchId ? [{ id: batchId, name: '' }] : [],
+            batch_ids:
+                isCourseOutline && batchId
+                    ? [{ id: batchId, name: '' }]
+                    : isLimitedBatches(accessibleBatches, isFaculty)
+                      ? accessibleBatches.map((batch: string) => ({ id: batch, name: '' }))
+                      : [],
             subjects_ids: [],
             tag_ids: [],
             get_live_assessments: false,
