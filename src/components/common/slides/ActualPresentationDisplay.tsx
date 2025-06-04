@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Maximize, Minimize } from 'lucide-react';
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance'; // For API calls
 import { toast } from 'sonner'; // For notifications
+import { SessionExcalidrawOverlay } from './components/SessionExcalidrawOverlay';
+import { SlideTypeEnum } from './utils/types'; // Import SlideTypeEnum
 
 interface MinimalSessionDetails {
     session_id: string;
@@ -20,6 +22,22 @@ interface MinimalSessionDetails {
 }
 
 const MOVE_SLIDE_API_URL = 'https://backend-stage.vacademy.io/community-service/engage/admin/move';
+const RESPONSES_API_BASE_URL = 'https://backend-stage.vacademy.io/community-service/engage/admin/'; // As per user
+
+// Define API response types
+interface ResponseDataItem {
+  type: "ONE_WORD" | "MCQS" | "MCQM" | "LONG_ANSWER" | "NUMERICAL";
+  selected_option_ids?: string[] | null;
+  text_answer?: string | null;
+}
+
+export interface LiveSlideResponse { // Exporting for potential use in QuizSlide
+  username: string;
+  time_to_response_millis: number;
+  submitted_at: number;
+  response_data: ResponseDataItem;
+  is_correct?: boolean;
+}
 
 interface ActualPresentationDisplayProps {
     slides: AppSlide[];
@@ -55,6 +73,10 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
     const [isFullscreen, setIsFullscreen] = useState(false);
     const presentationContainerRef = useRef<HTMLDivElement>(null);
 
+    const [liveResponses, setLiveResponses] = useState<LiveSlideResponse[] | null>(null);
+    const [isLoadingResponses, setIsLoadingResponses] = useState<boolean>(false);
+    const responseFetchIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
     useEffect(() => {
         if (slides.length > 0 && !initialSlideId) {
             setCurrentSlideId(slides[0].id);
@@ -65,6 +87,65 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
 
     const currentSlideIndex = slides.findIndex((s) => s.id === currentSlideId);
     const currentSlideData = slides[currentSlideIndex];
+
+    // Effect for fetching live responses
+    useEffect(() => {
+        // Function to clear the existing interval
+        const clearIntervalRef = () => {
+            if (responseFetchIntervalRef.current) {
+                clearInterval(responseFetchIntervalRef.current);
+                responseFetchIntervalRef.current = null;
+            }
+        };
+
+        if (
+            liveSessionData?.session_id &&
+            currentSlideData?.id &&
+            (currentSlideData.type === SlideTypeEnum.Quiz || currentSlideData.type === SlideTypeEnum.Feedback)
+        ) {
+            const sessionId = liveSessionData.session_id;
+            const slideId = currentSlideData.id;
+
+            const fetchResponses = async () => {
+                console.log(`[ActualPresentationDisplay] Fetching responses for session ${sessionId}, slide ${slideId}`);
+                setIsLoadingResponses(true);
+                try {
+                    const response = await authenticatedAxiosInstance.get(
+                        `${RESPONSES_API_BASE_URL}${sessionId}/slide/${slideId}/responses`
+                    );
+                    if (response.data && Array.isArray(response.data)) {
+                        setLiveResponses(response.data);
+                    } else {
+                        console.warn('[ActualPresentationDisplay] Invalid response data:', response.data);
+                        setLiveResponses([]); // Set to empty array if data is not as expected
+                    }
+                } catch (error) {
+                    console.error('[ActualPresentationDisplay] Error fetching responses:', error);
+                    // toast.error('Failed to fetch live responses.'); // Potentially noisy
+                    setLiveResponses(null); // Or keep previous state, depending on desired behavior on error
+                } finally {
+                    setIsLoadingResponses(false);
+                }
+            };
+
+            fetchResponses(); // Initial fetch
+            responseFetchIntervalRef.current = setInterval(fetchResponses, 5000); // Poll every 5 seconds
+
+            // Cleanup on unmount or when dependencies change
+            return () => {
+                clearIntervalRef();
+                setLiveResponses(null); // Clear responses when slide/session changes
+                setIsLoadingResponses(false);
+            };
+        } else {
+            // If conditions are not met, clear any existing interval and responses
+            clearIntervalRef();
+            setLiveResponses(null);
+            setIsLoadingResponses(false);
+        }
+
+        // Dependency array for the effect
+    }, [currentSlideData, liveSessionData]); // Simplified dependency array
 
     const goToNextSlide = async () => {
         if (currentSlideIndex < slides.length - 1) {
@@ -178,7 +259,13 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
             {/* Main content area for the slide */}
             <div className="flex-grow overflow-hidden" style={{ paddingTop: '3.5rem' }}> {/* Adjust padding to be below action bar */}
                  {currentSlideId && (
-                    <SlideRenderer currentSlideId={currentSlideId} editMode={false} />
+                    <SlideRenderer
+                        currentSlideId={currentSlideId}
+                        editMode={false}
+                        liveResponses={liveResponses}
+                        isLoadingLiveResponses={isLoadingResponses}
+                        liveSessionId={liveSessionData?.session_id} // Pass session ID
+                    />
                 )}
             </div>
 
@@ -216,6 +303,13 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
 
             {/* ParticipantsSidePanel and SessionExcalidrawOverlay would be conditionally rendered here if used */}
             {/* e.g., isParticipantsPanelOpen && <ParticipantsSidePanel ... /> */}
+            {isWhiteboardOpen && liveSessionData?.session_id && (
+                <SessionExcalidrawOverlay
+                    isOpen={isWhiteboardOpen}
+                    onClose={() => setIsWhiteboardOpen(false)}
+                    sessionId={liveSessionData.session_id}
+                />
+            )}
         </div>
     );
 }; 
