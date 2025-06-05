@@ -27,7 +27,7 @@ export const AddCustomFieldDialog = ({ trigger, onAddField }: AddCustomFieldDial
     const handleAddDropdownOptions = () => {
         setDropdownOptions((prevOptions) => [
             ...prevOptions,
-            { id: prevOptions.length, value: `option ${prevOptions.length + 1}`, disabled: true },
+            { id: prevOptions.length, value: `option ${prevOptions.length + 1}`, disabled: false },
         ]);
     };
 
@@ -51,9 +51,7 @@ export const AddCustomFieldDialog = ({ trigger, onAddField }: AddCustomFieldDial
         );
     };
 
-    // Function to close the dialog and add the new field
     const handleCloseDialog = () => {
-        // Create the new field and pass to parent component
         onAddField(
             selectedOptionValue,
             textFieldValue,
@@ -61,7 +59,6 @@ export const AddCustomFieldDialog = ({ trigger, onAddField }: AddCustomFieldDial
             selectedOptionValue === 'dropdown' ? dropdownOptions : undefined
         );
 
-        // Reset dialog and temporary values
         setIsDialogOpen(false);
         setTextFieldValue('');
         setDropdownOptions([]);
@@ -121,7 +118,7 @@ export const AddCustomFieldDialog = ({ trigger, onAddField }: AddCustomFieldDial
                             <div className="flex flex-col gap-4">
                                 {dropdownOptions.map((option) => (
                                     <div
-                                        className="flex w-full items-center justify-between rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-1"
+                                        className="flex items-center justify-between rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-1 w-[3/4]"
                                         key={option.id}
                                     >
                                         <MyInput
@@ -131,9 +128,8 @@ export const AddCustomFieldDialog = ({ trigger, onAddField }: AddCustomFieldDial
                                             onChangeFunction={(e) =>
                                                 handleValueChange(option.id, e.target.value)
                                             }
-                                            size="large"
                                             disabled={option.disabled}
-                                            className="border-none pl-0"
+                                            className="border-none pl-0 size-fit"
                                         />
                                         <div className="flex items-center gap-6">
                                             <MyButton
