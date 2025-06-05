@@ -61,7 +61,6 @@ export const useBulkUploadMutation = (
             if (options?.onSuccess) {
                 options.onSuccess(data, {} as SubmitBulkUploadParams, {});
             }
-            return data;
         },
         onError: (error: Error) => {
             if (axios.isAxiosError(error)) {
