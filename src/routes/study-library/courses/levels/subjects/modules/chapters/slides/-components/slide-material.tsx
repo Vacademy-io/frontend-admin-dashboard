@@ -69,8 +69,6 @@ export const SlideMaterial = ({
         setHeading(e.target.value);
     };
 
-
-
     const setEditorContent = () => {
         const docData =
             activeItem?.status == 'PUBLISHED'
@@ -99,6 +97,7 @@ export const SlideMaterial = ({
 
     const getCurrentEditorHTMLContent: () => string = () => {
         const data = editor.getEditorValue();
+        console.log('Editor data:', data);
         const htmlString = html.serialize(editor, data);
         const formattedHtmlString = formatHTMLString(htmlString);
         return formattedHtmlString;
@@ -452,12 +451,12 @@ export const SlideMaterial = ({
         }
     };
 
-    useEffect(()=>{
-        setInterval(()=>{
-            console.log("edtitor content: ", editor.getEditorValue())
-            console.log("html content: ", getCurrentEditorHTMLContent())
-        }, 3000)
-    }, [])
+    useEffect(() => {
+        setInterval(() => {
+            console.log('edtitor content: ', editor.getEditorValue());
+            console.log('html content: ', getCurrentEditorHTMLContent());
+        }, 3000);
+    }, []);
 
     useEffect(() => {
         setSlideTitle(
