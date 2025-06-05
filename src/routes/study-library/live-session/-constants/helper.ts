@@ -209,11 +209,10 @@ type FormData = z.infer<typeof addParticipantsSchema>;
 
 export function transformFormToDTOStep2(
     formData: FormData,
-    sessionId: string
+    sessionId: string,
+    packageSessionIds: string[]
 ): LiveSessionStep2RequestDTO {
-    const { accessType, selectedLevels, joinLink, notifyBy, notifySettings, fields } = formData;
-
-    const packageSessionIds = selectedLevels.map((level) => level.sessionId);
+    const { accessType, joinLink, notifyBy, notifySettings, fields } = formData;
 
     const addedNotificationActions: NotificationActionDTO[] = [];
 
