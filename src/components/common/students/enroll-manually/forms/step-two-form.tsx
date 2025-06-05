@@ -501,7 +501,7 @@ export const StepTwoForm = ({
                                                     required={true}
                                                     showAddSessionButton={true}
                                                     onAddSession={handleAddSession}
-                                                    disable={!form.getValues('course')?.id}
+                                                    disable={!courseValue?.id}
                                                 />
                                             </div>
                                         </FormControl>
@@ -534,11 +534,11 @@ export const StepTwoForm = ({
                                                     required={true}
                                                     showAddLevelButton={true}
                                                     onAddLevel={handleAddLevel}
-                                                    packageId={form.getValues('course')?.id ?? ''}
+                                                    packageId={courseValue?.id ?? ''}
                                                     disableAddLevelButton={
-                                                        form.getValues('course')?.id === ''
+                                                        courseValue?.id === ''
                                                     }
-                                                    disable={!form.getValues('session')?.id}
+                                                    disable={!sessionValue?.id}
                                                 />
                                             </div>
                                         </FormControl>

@@ -20,7 +20,7 @@ export interface LiveSessionStep1RequestDTO {
     session_id?: string;
     title: string;
     subject: string;
-    description_html: string;
+    description_html: string | null;
     default_meet_link?: string;
     start_time: string;
     last_entry_time: string;
@@ -129,9 +129,18 @@ export function transformFormToDTOStep1(
     // Convert hours and minutes to total duration in hours
     const totalDuration = Number(durationHours) + Number(durationMinutes) / 60;
     const duration = String(Math.round(totalDuration));
+    console.log('startTime ', startTime);
 
-    const startTimeDate = new Date(startTime);
+    // Fix timezone handling by creating an ISO string that preserves the local time
+    const [datePart, timePart] = startTime.split('T');
+    const startTimeDate = new Date(`${datePart}T${timePart}`);
+    const startTimeISO = new Date(
+        startTimeDate.getTime() - startTimeDate.getTimezoneOffset() * 60000
+    ).toISOString();
     const lastEntryTime = new Date(startTimeDate.getTime() + totalDuration * 60 * 60 * 1000);
+    const lastEntryTimeISO = new Date(
+        lastEntryTime.getTime() - lastEntryTime.getTimezoneOffset() * 60000
+    ).toISOString();
 
     const added_schedules: ScheduleDTO[] = [];
     const updated_schedules: ScheduleDTO[] = [];
@@ -143,6 +152,9 @@ export function transformFormToDTOStep1(
     originalSchedules.forEach((s) => {
         if (s.id) originalScheduleMap.set(s.id, s);
     });
+
+    console.log('startTimeISO ', startTimeISO);
+    console.log('lastEntryTimeISO ', lastEntryTimeISO);
 
     recurringSchedule.forEach((dayBlock) => {
         if (!dayBlock.isSelect) return;
@@ -174,10 +186,10 @@ export function transformFormToDTOStep1(
         session_id: sessionId,
         title,
         subject: subject,
-        description_html: description,
+        description_html: description || null,
         default_meet_link: defaultLink || '',
-        start_time: startTimeDate.toISOString(),
-        last_entry_time: lastEntryTime.toISOString(),
+        start_time: startTimeISO,
+        last_entry_time: lastEntryTimeISO,
         session_end_date: endDate || null,
         recurrence_type: meetingType,
         added_schedules,
@@ -197,11 +209,10 @@ type FormData = z.infer<typeof addParticipantsSchema>;
 
 export function transformFormToDTOStep2(
     formData: FormData,
-    sessionId: string
+    sessionId: string,
+    packageSessionIds: string[]
 ): LiveSessionStep2RequestDTO {
-    const { accessType, selectedLevels, joinLink, notifyBy, notifySettings, fields } = formData;
-
-    const packageSessionIds = selectedLevels.map((level) => level.sessionId);
+    const { accessType, joinLink, notifyBy, notifySettings, fields } = formData;
 
     const addedNotificationActions: NotificationActionDTO[] = [];
 

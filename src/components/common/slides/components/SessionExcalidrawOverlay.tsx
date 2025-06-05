@@ -73,65 +73,14 @@ export const SessionExcalidrawOverlay: React.FC<SessionExcalidrawOverlayProps> =
     }, []); // No dependencies, it's a stable reset function
 
     useEffect(() => {
-        if (isOpen && sessionId) {
-            setIsLoading(true);
-            console.log(`[SessionExcalidrawOverlay] Opening for session: ${sessionId}`);
-            const savedDataKey = `whiteboard_session_${sessionId}`;
-            try {
-                const savedDataString = localStorage.getItem(savedDataKey);
-                if (savedDataString) {
-                    console.log("[SessionExcalidrawOverlay] Found saved data in localStorage.");
-                    const loadedData = JSON.parse(savedDataString);
-                    
-                    // Ensure loaded collaborators is a Map
-                    let collaboratorsMap = DEFAULT_APP_STATE.collaborators;
-                    if (loadedData.appState && loadedData.appState.collaborators) {
-                        // Check if it's an array of [key, value] pairs (from JSON.stringify(Map))
-                        if (Array.isArray(loadedData.appState.collaborators)) {
-                            try {
-                                collaboratorsMap = new Map(loadedData.appState.collaborators as [SocketId, Collaborator][]);
-                            } catch (mapError) {
-                                console.warn("[SessionExcalidrawOverlay] Error converting loaded collaborators to Map, using default:", mapError);
-                                collaboratorsMap = new Map<SocketId, Collaborator>(); // Default to empty map on error
-                            }
-                        } else if (loadedData.appState.collaborators instanceof Map) { // Should not happen from JSON.parse
-                            collaboratorsMap = loadedData.appState.collaborators;
-                        } else {
-                            console.warn("[SessionExcalidrawOverlay] Loaded collaborators is not in expected format, using default.");
-                            collaboratorsMap = new Map<SocketId, Collaborator>();
-                        }
-                    }
-
-                    const loadedAppState: PartialAppState = {
-                        ...DEFAULT_APP_STATE, // Start with defaults
-                        ...(loadedData.appState || {}), // Spread loaded appState
-                        collaborators: collaboratorsMap, // Apply the reconstructed or default Map
-                    };
-
-                    setElements(loadedData.elements || []);
-                    setAppState(loadedAppState);
-                    setFiles(loadedData.files || {});
-
-                    // Update refs immediately after setting state from loaded data
-                    elementsRef.current = loadedData.elements || [];
-                    appStateRef.current = loadedAppState;
-                    filesRef.current = loadedData.files || {};
-                    console.log("[SessionExcalidrawOverlay] Loaded state from localStorage.");
-                } else {
-                    console.log("[SessionExcalidrawOverlay] No saved data in localStorage, initializing fresh whiteboard.");
-                    initializeFreshWhiteboard();
-                }
-            } catch (error) {
-                console.error("[SessionExcalidrawOverlay] Error loading from localStorage or parsing data:", error);
-                initializeFreshWhiteboard(); // Fallback to fresh whiteboard on error
-            }
-            // Short delay for UI to catch up, then hide loader
-            setTimeout(() => setIsLoading(false), 100); // Slightly longer delay for potential parsing
-        } else if (!isOpen) {
-            // When closing, ensure loading is true for next open, and current state is in refs
-            setIsLoading(true);
+        if (isOpen) {
+            initializeFreshWhiteboard();
+        } else {
+            // Optionally clear state when closed if it shouldn't persist across openings
+            // initializeFreshWhiteboard(); // Or set isLoading to true until next open
+            setIsLoading(true); // Set loading for next time it opens
         }
-    }, [isOpen, sessionId, initializeFreshWhiteboard]);
+    }, [isOpen, initializeFreshWhiteboard]);
 
     const handleSlideChange = useCallback(
         (
@@ -184,28 +133,20 @@ export const SessionExcalidrawOverlay: React.FC<SessionExcalidrawOverlayProps> =
         if (!sessionId) return;
         setIsSaving(true);
 
-        // Convert Map to array for JSON serialization
-        const collaboratorsArray = appStateRef.current.collaborators instanceof Map
-            ? Array.from(appStateRef.current.collaborators.entries())
-            : [];
-
-        const dataToSave = {
-            elements: elementsRef.current,
-            appState: {
-                ...appStateRef.current,
-                collaborators: collaboratorsArray, // Save collaborators as an array
-            },
-            files: filesRef.current,
+        const finalAppStateToSave: PartialAppState = {
+            ...appStateRef.current, // Use ref for freshest state before async op
+            collaborators:
+                appStateRef.current.collaborators instanceof Map
+                    ? appStateRef.current.collaborators
+                    : new Map<SocketId, Collaborator>(),
         };
 
-        const savedDataKey = `whiteboard_session_${sessionId}`;
+        // console.log("Simulating save for whiteboard:", { elements: elementsRef.current, appState: finalAppStateToSave, files: filesRef.current });
+        await new Promise((resolve) => setTimeout(resolve, 700));
         try {
-            localStorage.setItem(savedDataKey, JSON.stringify(dataToSave));
-            console.log("[SessionExcalidrawOverlay] Whiteboard data saved to localStorage:", dataToSave);
-            toast.success('Whiteboard changes saved locally for this session!');
+            toast.success('Whiteboard changes saved (simulated)!');
         } catch (error: any) {
-            console.error("[SessionExcalidrawOverlay] Error saving to localStorage:", error);
-            toast.error(error.message || 'Error saving whiteboard to local storage.');
+            toast.error(error.message || 'Error saving whiteboard (simulated).');
         } finally {
             setIsSaving(false);
         }
@@ -213,21 +154,10 @@ export const SessionExcalidrawOverlay: React.FC<SessionExcalidrawOverlayProps> =
 
     const handleClear = () => {
         // This will also update the refs via their useEffects
-        initializeFreshWhiteboard(); // Resets state and refs to default/empty
-
-        if (sessionId) {
-            const savedDataKey = `whiteboard_session_${sessionId}`;
-            try {
-                localStorage.removeItem(savedDataKey);
-                console.log(`[SessionExcalidrawOverlay] Cleared whiteboard data from localStorage for session: ${sessionId}`);
-                toast.info('Whiteboard cleared and local save removed.');
-            } catch (error) {
-                console.error("[SessionExcalidrawOverlay] Error clearing localStorage:", error);
-                toast.error('Could not clear local save. Please clear site data if issues persist.');
-            }
-        } else {
-            toast.info('Whiteboard cleared (no session ID to clear from local storage).');
-        }
+        setElements([]);
+        setAppState(DEFAULT_APP_STATE);
+        setFiles({});
+        toast.info('Whiteboard cleared. Save to persist changes (simulated).');
     };
 
     const slideForEditor = useMemo((): ExcalidrawSlideData => {

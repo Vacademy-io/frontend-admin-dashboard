@@ -206,7 +206,6 @@
         "react-simple-code-editor": "^0.14.1",
         "react-spinners": "^0.15.0",
         "react-to-pdf": "^1.0.1",
-        "react-wordcloud": "^1.2.7",
         "recharts": "^2.15.0",
         "rehype-raw": "^7.0.0",
         "reveal.js": "^5.2.1",

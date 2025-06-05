@@ -48,8 +48,6 @@ const CREATE_SESSION_API_URL =
     'https://backend-stage.vacademy.io/community-service/engage/admin/create';
 const START_SESSION_API_URL =
     'https://backend-stage.vacademy.io/community-service/engage/admin/start';
-const FINISH_SESSION_API_URL =
-    'https://backend-stage.vacademy.io/community-service/engage/admin/finish';
 
 interface SlideRendererProps {
     currentSlideId: string;
@@ -117,22 +115,12 @@ export default function SlidesEditorComponent({
         console.log("SlideEditorComponent useEffect fired");
         const loadFFmpeg = async () => {
             console.log("loadFFmpeg called");
-            // Check internal 'loaded' state if available, or rely on isFFmpegLoaded state
-            if (isFFmpegLoaded || (ffmpegRef.current && ffmpegRef.current.loaded)) {
+            if (isFFmpegLoaded) {
                 console.log("FFmpeg already considered loaded, skipping load attempt.");
-                if(!isFFmpegLoaded && ffmpegRef.current && ffmpegRef.current.loaded) setIsFFmpegLoaded(true); // Sync state
                 return;
             }
             try {
                 console.log("Attempting to call ffmpegRef.current.load()");
-
-                // Setup logger for FFmpeg
-                ffmpegRef.current.on('log', ({ type, message }) => {
-                    console.log(`FFMPEG LOG (${type}):`, message);
-                    // Optionally, you could toast critical errors (e.g., type === 'fferr')
-                    // but be mindful of flooding the user with toasts.
-                });
-                
                 await ffmpegRef.current.load()
                     .then(() => {
                         console.log("ffmpegRef.current.load() promise resolved.");
@@ -142,7 +130,7 @@ export default function SlidesEditorComponent({
                     .catch(loadError => {
                         console.error("ffmpegRef.current.load() promise rejected:", loadError);
                         toast.error("MP3 converter failed to initialize during load. Details in console.");
-                        setIsFFmpegLoaded(false); // Ensure state is false on error
+                        setIsFFmpegLoaded(false);
                     });
                 console.log("After ffmpegRef.current.load() attempt");
             } catch (error) {
@@ -152,7 +140,7 @@ export default function SlidesEditorComponent({
             }
         };
         loadFFmpeg();
-    }, []); // Keep dependency array empty for one-time load
+    }, []); // Empty dependency array ensures this runs once on mount
 
     // Effect to auto-open session options modal if autoStartLive is true
     useEffect(() => {
@@ -181,67 +169,22 @@ export default function SlidesEditorComponent({
                     toast.info('Preparing MP3 converter...');
                     if (!isFFmpegLoaded) {
                         toast.error("MP3 converter is not ready. Please try again shortly or ensure FFmpeg is loaded.");
-                        console.error("MP3 Conversion skipped: FFmpeg not loaded.")
                         return;
                     }
-                    const ffmpeg = ffmpegRef.current; 
-                    
-                    // MOVED CRITICAL FS CHECKS AND LOGS HERE
-                    console.log("[FFMPEG_DIRECT_API_CHECK] Preparing to interact with FFmpeg File System using direct API.");
-                    console.log("[FFMPEG_DIRECT_API_CHECK] ffmpeg instance:", ffmpeg);
-                    console.log("[FFMPEG_DIRECT_API_CHECK] Is ffmpeg an FFmpeg class instance?", ffmpeg instanceof FFmpeg);
-                    // console.log("[FFMPEG_DIRECT_API_CHECK] ffmpeg.FS property:", ffmpeg.FS); // FS is undefined, this is expected now
-                    // console.log("[FFMPEG_DIRECT_API_CHECK] typeof ffmpeg.FS right before check:", typeof ffmpeg.FS); // undefined
-                    try {
-                        console.log("[FFMPEG_DIRECT_API_CHECK] Keys on ffmpeg instance:", Object.keys(ffmpeg));
-                    } catch (e) {
-                        console.error("[FFMPEG_DIRECT_API_CHECK] Could not get keys from ffmpeg instance", e);
-                    }
-
-                    // The previous check for `typeof ffmpeg.FS !== 'function'` is removed as FS is not used this way anymore.
-                    // We will now rely on the direct methods like ffmpeg.listDir, ffmpeg.deleteFile, etc.
-                    // If these methods don't exist, the calls will fail, and we'll catch those errors.
-                    console.log("[FFMPEG_DIRECT_API_CHECK] Proceeding with direct FS method calls.");
-                    
-                    toast.info('Converting to MP3... This may take a moment. Check console for FFMPEG logs.');
+                    const ffmpeg = ffmpegRef.current; // Directly use the initialized ref
+                    toast.info('Converting to MP3... This may take a moment.');
 
                     const inputName = 'input.webm';
                     const outputName = 'output.mp3';
 
-                    // Clean up previous files if they exist to prevent errors
-                    try {
-                        // Use direct FS methods
-                        const currentFiles = await ffmpeg.listDir('/'); // listDir is async now
-                        if (currentFiles.includes(inputName)) {
-                            await ffmpeg.deleteFile(inputName); // deleteFile is async
-                        }
-                        if (currentFiles.includes(outputName)) {
-                            await ffmpeg.deleteFile(outputName); // deleteFile is async
-                        }
-                    } catch (fsError) {
-                        console.warn("Error during FFmpeg FS cleanup (using direct methods):", fsError);
-                        // Log more details about the error during cleanup
-                        if (fsError instanceof Error) {
-                            console.error("FFMPEG Cleanup Error Message:", fsError.message);
-                            if (fsError.stack) {
-                                console.error("FFMPEG Cleanup Error Stack:", fsError.stack);
-                            }
-                        }
-                        toast.error("Error during audio file cleanup. Conversion may proceed with old files if present.");
-                        // Decide if this error is critical enough to stop the conversion
-                        // For now, we'll let it proceed, but you might want to return here in a production scenario
-                        // return;
-                    }
-
-                    await ffmpeg.writeFile(inputName, await fetchFile(currentWebMBlob)); // writeFile is async
+                    ffmpeg.FS('writeFile', inputName, await fetchFile(currentWebMBlob));
                     
-                    console.log('Starting FFmpeg conversion to MP3...');
-                    await ffmpeg.exec(['-i', inputName, '-vn', '-acodec', 'libmp3lame', '-b:a', '192k', outputName]);
-                    console.log('FFmpeg conversion to MP3 finished.');
+                    // Run FFmpeg command. Options can be added e.g. -b:a 128k for bitrate
+                    await ffmpeg.run('-i', inputName, outputName);
                     
-                    const outputData = await ffmpeg.readFile(outputName); // readFile is async
-                    await ffmpeg.deleteFile(inputName); // Clean up input file
-                    await ffmpeg.deleteFile(outputName); // Clean up output file
+                    const outputData = ffmpeg.FS('readFile', outputName);
+                    ffmpeg.FS('unlink', inputName); // Clean up input file
+                    ffmpeg.FS('unlink', outputName); // Clean up output file
 
                     processedBlob = new Blob([outputData.buffer], { type: 'audio/mpeg' });
                     fileExtension = 'mp3';
@@ -261,14 +204,7 @@ export default function SlidesEditorComponent({
                 }
             } catch (error) {
                 console.error(`Error during audio processing or download for ${format}:`, error);
-                // Log more details from the error object if available
-                if (error instanceof Error) {
-                    console.error("FFMPEG Conversion Error Message:", error.message);
-                    if (error.stack) {
-                        console.error("FFMPEG Conversion Error Stack:", error.stack);
-                    }
-                }
-                toast.error(`Failed to process audio as ${format.toUpperCase()}. Downloading as WebM instead. Check console for details.`);
+                toast.error(`Failed to process audio as ${format.toUpperCase()}. Downloading as WebM instead.`);
                 if (format !== 'webm') { // Fallback for failed MP3 conversion
                     const fallbackUrl = URL.createObjectURL(currentWebMBlob);
                     const fallbackAnchor = document.createElement('a');
@@ -462,32 +398,16 @@ export default function SlidesEditorComponent({
         }
     };
 
-    const handleExitSessionFlow = async () => {
+    const handleExitSessionFlow = () => {
         // Stop recording if active
         if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
             mediaRecorderRef.current.stop(); // This will trigger onstop where audioBlobUrl is set
         }
         stopDurationTracker(); // Stop and reset duration tracker
-        audioChunksRef.current = [];
-        setShouldRecordAudio(false);
-        setAudioBlobUrl(null);
-
-        if (sessionDetails && sessionDetails.session_id) {
-            toast.info('Attempting to end live session...');
-            try {
-                await authenticatedAxiosInstance.post(FINISH_SESSION_API_URL, {
-                    session_id: sessionDetails.session_id,
-                });
-                toast.success('Live session ended successfully on the server.');
-            } catch (error: any) {
-                console.error('Error ending session on server:', error);
-                toast.error(
-                    error.response?.data?.message ||
-                        'Failed to end the session on the server. Please check server logs.'
-                );
-                // Optionally, decide if you still want to clear local session details if server call fails
-            }
-        }
+        // Stream tracks are stopped in onstop handler
+        audioChunksRef.current = []; // Clear chunks after stopping/processing
+        setShouldRecordAudio(false); // Reset for next session
+        setAudioBlobUrl(null); // Clear previous recording URL
 
         setEditMode(true);
         setShowSessionOptionsModal(false);
@@ -570,48 +490,6 @@ export default function SlidesEditorComponent({
                 };
 
                 if (isQuestionSlide) {
-                    let correctOptionIds = [];
-                    let autoEvalQuestionType = 'MCQS'; // Default for Quiz
-                    let questionTypeForPayload = 'LONG_ANSWER'; // Default for feedback or non-MCQ quiz
-
-                    if (slide.type === SlideTypeEnum.Quiz ) {
-                        if (slide.elements?.singleChoiceOptions) {
-                            console.log("[SAVE_DEBUG] Original singleChoiceOptions for correctOptionId generation:", JSON.parse(JSON.stringify(slide.elements.singleChoiceOptions)));
-                            
-                            correctOptionIds = slide.elements.singleChoiceOptions
-                                .map((opt, index) => { // Use map with index
-                                    if (opt.isSelected) {
-                                        // Check if it's an existing option with a valid, non-'new_' ID
-                                        if (opt && typeof opt.id === 'string' && !opt.id.startsWith('new_')) {
-                                            // console.log(`[SAVE_DEBUG] EXISTING selected option (id: ${opt.id}) -> using id: ${opt.id}`);
-                                            return opt.id;
-                                        } 
-                                        // Otherwise, assume it's a new option or an existing option whose ID was lost/malformed.
-                                        // For these, rely on index + 1 as the preview_id for auto_evaluation.
-                                        // This is a broader catch-all if opt.id is not a string or is missing for a selected item.
-                                        // console.log(`[SAVE_DEBUG] NEW or MALFORMED ID selected option (original id: ${opt.id}, index: ${index}) -> using preview_id: ${String(index + 1)}`);
-                                        if (opt && opt.name !== undefined) { // Basic check to see if it's a somewhat valid option object
-                                            return String(index + 1);
-                                        } else {
-                                            console.warn('[SlideEditorComponent] Selected option is malformed or lacks basic properties, skipping:', opt);
-                                            return null;
-                                        }
-                                    }
-                                    return null; // Not selected, map to null
-                                })
-                                .filter(id => id !== null); // Filter out nulls (non-selected or invalid options)
-
-                            console.log("[SAVE_DEBUG] Resulting correctOptionIds for auto_evaluation_json:", JSON.parse(JSON.stringify(correctOptionIds)));
-                        }
-                        
-                        if (slide.elements?.isMcqmMsq) {
-                            autoEvalQuestionType = 'MCQM'; 
-                        } else {
-                            autoEvalQuestionType = 'MCQS'; 
-                        }
-                        questionTypeForPayload = autoEvalQuestionType; // For Quiz, type is MCQS or MCQM
-                    }
-
                     const question = {
                         preview_id: '1',
                         section_id: null,
@@ -623,15 +501,15 @@ export default function SlidesEditorComponent({
                         },
                         media_id: '',
                         question_response_type: slide.type === SlideTypeEnum.Quiz ? 'AUTO' : 'MANUAL',
-                        question_type: questionTypeForPayload,
+                        question_type: slide.type === SlideTypeEnum.Quiz ? 'MCQS' : 'LONG_ANSWER',
                         access_level: 'public',
                         auto_evaluation_json: slide.type === SlideTypeEnum.Quiz ? JSON.stringify({
-                            type: autoEvalQuestionType, 
-                            data: { correctOptionIds: correctOptionIds }, 
+                            type: 'MCQS',
+                            data: { correctOptionIds: slide?.elements?.correctOptions || [] },
                         }) : null,
-                        options_json: null, 
+                        options_json: null,
                         parsed_evaluation_object: slide.type === SlideTypeEnum.Quiz ? {
-                            correct_options: slide.elements?.isMcqmMsq ? correctOptionIds : (correctOptionIds.length > 0 ? correctOptionIds[0] : null),
+                            correct_option: slide?.elements?.correctOptions?.[0] || 1,
                         } : null,
                         evaluation_type: slide.type === SlideTypeEnum.Quiz ? 'auto' : 'manual',
                         explanation_text: {
@@ -648,9 +526,9 @@ export default function SlidesEditorComponent({
                         default_question_time_mins: slide?.elements?.timeLimit || 1,
                         options: (slide?.elements?.singleChoiceOptions || []).map(
                             (option, optIndex) => ({
-                                id: isEdit && option.id && !option.id.startsWith('new_') ? option.id : '', 
+                                id: isEdit ? option.id || '' : '',
                                 preview_id: `${optIndex + 1}`,
-                                question_id: isEdit && slide.questionId ? slide.questionId : '', // Ensure questionId is used if available in edit mode
+                                question_id: isEdit ? slide.questionId || '' : '',
                                 text: {
                                     id: null,
                                     type: 'HTML',
