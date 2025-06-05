@@ -15,14 +15,20 @@ export function ScratchEditor({
   updateElementProps,
 }: ScratchEditorProps) {
   const [scratchId, setScratchId] = useState(element?.props?.scratchId || "");
-  const [activeTab, setActiveTab] = useState<"preview" | "settings">("settings");
+  const [activeTab, setActiveTab] = useState<"preview" | "settings">(element?.props?.activeTab || "settings");
 
-  // Sync with Yoopta block state
+  // Sync with Yoopta block state - save complete editor state
   useEffect(() => {
     if (updateElementProps) {
-      updateElementProps({ scratchId });
+      updateElementProps({
+        scratchId,
+        activeTab,
+        // Add metadata to identify this as a full scratch editor
+        editorType: "scratchEditor",
+        timestamp: Date.now()
+      });
     }
-  }, [scratchId, updateElementProps]);
+  }, [scratchId, activeTab, updateElementProps]);
 
   // Handle backspace prevention for input fields
   const handleInputKeyDown = (e: React.KeyboardEvent) => {
@@ -230,5 +236,73 @@ export const ScratchPlugin = new YooptaPlugin<{ scratchProject: any }>({
       icon: <ScratchIcon />,
     },
     shortcuts: ["scratch", "cat", "project"],
+  },
+  parsers: {
+    html: {
+      deserialize: {
+        nodeNames: ['SCRATCH_PROJECT'],
+      },
+      serialize: (element, children) => {
+        const props = element.props || {};
+        const scratchId = props.scratchId || '';
+        const activeTab = props.activeTab || 'settings';
+
+        if (!scratchId) {
+          return `<div
+            data-yoopta-type="scratchProject"
+            data-editor-type="scratchEditor"
+            data-scratch-id="${scratchId}"
+            data-active-tab="${activeTab}"
+            style="border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; margin: 16px 0; background-color: #fafafa;"
+          >
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+              <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: #333;">🐱 Scratch Project</h3>
+              <div style="padding: 4px 8px; background: #ff6b35; color: white; border-radius: 4px; font-size: 12px; font-weight: bold;">
+                ${activeTab.toUpperCase()} MODE
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; color: #666;">
+              <span style="font-size: 48px; margin-right: 16px;">🐱</span>
+              <div>
+                <p style="font-size: 16px; margin: 0 0 8px 0;">No Scratch project configured</p>
+                <p style="font-size: 14px; color: #999; margin: 0;">Project ID needed to display Scratch project</p>
+              </div>
+            </div>
+          </div>`;
+        }
+
+        return `<div
+          data-yoopta-type="scratchProject"
+          data-editor-type="scratchEditor"
+          data-scratch-id="${scratchId}"
+          data-active-tab="${activeTab}"
+          style="border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; margin: 16px 0; background-color: #fafafa;"
+        >
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: #333;">🐱 Scratch Project</h3>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <div style="padding: 4px 8px; background: #ff6b35; color: white; border-radius: 4px; font-size: 12px; font-weight: bold;">
+                SCRATCH EDITOR
+              </div>
+              <div style="padding: 4px 8px; background: ${activeTab === 'preview' ? '#28a745' : '#6c757d'}; color: white; border-radius: 4px; font-size: 12px;">
+                ${activeTab.toUpperCase()} MODE
+              </div>
+            </div>
+          </div>
+          <div style="margin-bottom: 16px; padding: 12px; background: #fff3e0; border-radius: 6px; border: 1px solid #ffcc80;">
+            <strong style="color: #e65100;">Project ID:</strong> <span style="color: #bf360c; font-family: monospace;">${scratchId}</span>
+          </div>
+          ${activeTab === 'preview' ?
+            `<div style="width: 100%; height: 500px; border: 1px solid #ddd; border-radius: 6px; overflow: hidden; background-color: white;">
+              <iframe src="https://scratch.mit.edu/projects/${scratchId}/embed" width="100%" height="100%" style="border: none;" title="Scratch Project ${scratchId}" allowfullscreen></iframe>
+            </div>` :
+            `<div style="padding: 16px; background: #f9f9f9; border-radius: 6px; border: 1px solid #ddd; text-align: center;">
+              <div style="font-size: 24px; margin-bottom: 8px;">⚙️</div>
+              <p style="margin: 0; color: #666;">Settings mode - Configure Scratch project</p>
+            </div>`
+          }
+        </div>`;
+      },
+    },
   },
 });

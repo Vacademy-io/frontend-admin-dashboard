@@ -7,7 +7,7 @@ import { MyRadioButton } from '@/components/design-system/radio';
 import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { AccessType, InputType } from '../../-constants/enums';
 import { useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { MyDropdown } from '@/components/common/students/enroll-manually/dropdownForPackageItems';
 import { DropdownValueType } from '@/components/common/students/enroll-manually/dropdownTypesForPackageItems';
 import { DropdownItemType } from '@/components/common/students/enroll-manually/dropdownTypesForPackageItems';
@@ -23,6 +23,10 @@ import { Switch } from '@/components/ui/switch';
 import { MyDialog } from '@/components/design-system/dialog';
 import SelectField from '@/components/design-system/select-field';
 import { FieldErrors } from 'react-hook-form';
+import { transformFormToDTOStep2 } from '../../-constants/helper';
+import { createLiveSessionStep2 } from '../-services/utils';
+import { useLiveSessionStore } from '../-store/sessionIdstore';
+import { useNavigate } from '@tanstack/react-router';
 
 const TimeOptions = [
     { label: '5 minutes before', value: '5m' },
@@ -87,13 +91,7 @@ export default function ScheduleStep2() {
                 beforeLiveTime: [],
                 onLive: true,
             },
-            fields: [
-                { label: 'Full Name', required: true, isDefault: true, type: InputType.TEXT },
-                { label: 'Email', required: true, isDefault: true, type: InputType.TEXT },
-                { label: 'Mobile Number', required: false, isDefault: false, type: InputType.TEXT },
-                { label: 'State', required: true, isDefault: false, type: InputType.TEXT },
-                { label: 'City/Village', required: true, isDefault: false, type: InputType.TEXT },
-            ],
+            fields: [],
         },
     });
     const addCustomFieldform = useForm<z.infer<typeof addCustomFiledSchema>>({
@@ -126,7 +124,21 @@ export default function ScheduleStep2() {
         control,
         name: 'fields',
     });
+
     const accessType = watch('accessType');
+    useEffect(() => {
+        if (accessType === AccessType.PUBLIC) {
+            form.setValue('fields', [
+                { label: 'Full Name', required: true, isDefault: true, type: InputType.TEXT },
+                { label: 'Email', required: true, isDefault: true, type: InputType.TEXT },
+                { label: 'Mobile Number', required: false, isDefault: false, type: InputType.TEXT },
+                { label: 'State', required: true, isDefault: false, type: InputType.TEXT },
+                { label: 'City/Village', required: true, isDefault: false, type: InputType.TEXT },
+            ]);
+        } else {
+            form.setValue('fields', []);
+        }
+    }, [accessType]);
     const {
         fields: beforeLiveFields,
         append: beforeLiveAppend,
@@ -142,8 +154,27 @@ export default function ScheduleStep2() {
         }
     };
 
-    const onSubmitClick = (data: z.infer<typeof addParticipantsSchema>) => {
+    const navigate = useNavigate();
+    const sessionId = useLiveSessionStore((state) => state.sessionId);
+    useEffect(() => {
+        if (!sessionId) {
+            navigate({ to: '/study-library/live-session/schedule/step1' });
+        }
+    }, [sessionId]);
+
+    const onSubmitClick = async (data: z.infer<typeof addParticipantsSchema>) => {
         console.log('Submitted:', data);
+        const body = transformFormToDTOStep2(data, sessionId);
+        console.log('body ', body);
+
+        try {
+            const response = await createLiveSessionStep2(body);
+            console.log('API Response:', response);
+            navigate({ to: '/study-library/live-session' });
+        } catch (error) {
+            console.error('Error submitting form:', error);
+            // Handle error appropriately
+        }
     };
 
     const onCustomSubmit = (data: z.infer<typeof addCustomFiledSchema>) => {
@@ -302,151 +333,88 @@ export default function ScheduleStep2() {
                         </>
                     )}
 
-                    <div className="w-full max-w-[260px]">
-                        <MyDropdown
-                            currentValue={currentSession ?? undefined}
-                            dropdownList={sessionList}
-                            placeholder="Select Session"
-                            handleChange={handleSessionChange}
-                        />
-                    </div>
-                    <div className="flex flex-row gap-10">
-                        {courses
-                            ?.filter((course) => course.sessionId === currentSession?.id)
-                            .map((course) => {
-                                const fieldName = 'selectedLevels' as const;
+                    {accessType === AccessType.PRIVATE && (
+                        <>
+                            <div className="w-full max-w-[260px]">
+                                <MyDropdown
+                                    currentValue={currentSession ?? undefined}
+                                    dropdownList={sessionList}
+                                    placeholder="Select Session"
+                                    handleChange={handleSessionChange}
+                                />
+                            </div>
+                            <div className="flex flex-row gap-10">
+                                {courses
+                                    ?.filter((course) => course.sessionId === currentSession?.id)
+                                    .map((course) => {
+                                        const fieldName = 'selectedLevels' as const;
 
-                                // All level IDs for this course
-                                const courseLevels = course.levels.map((level) => ({
-                                    courseId: course.courseId,
-                                    sessionId: course.sessionId,
-                                    levelId: level.id,
-                                }));
+                                        // All level IDs for this course
+                                        const courseLevels = course.levels.map((level) => ({
+                                            courseId: course.courseId,
+                                            sessionId: course.sessionId,
+                                            levelId: level.id,
+                                        }));
 
-                                // Is every level in this course selected?
-                                const allSelected = courseLevels.every((levelItem) =>
-                                    watch(fieldName)?.some(
-                                        (selected) =>
-                                            selected.courseId === levelItem.courseId &&
-                                            selected.sessionId === levelItem.sessionId &&
-                                            selected.levelId === levelItem.levelId
-                                    )
-                                );
+                                        // Is every level in this course selected?
+                                        const allSelected = courseLevels.every((levelItem) =>
+                                            watch(fieldName)?.some(
+                                                (selected) =>
+                                                    selected.courseId === levelItem.courseId &&
+                                                    selected.sessionId === levelItem.sessionId &&
+                                                    selected.levelId === levelItem.levelId
+                                            )
+                                        );
 
-                                return (
-                                    <div key={course.courseId} className="mb-6">
-                                        <FormField
-                                            control={control}
-                                            name={fieldName}
-                                            render={({ field }) => (
-                                                <FormItem className="mb-2 flex flex-row items-center gap-2">
-                                                    <FormControl>
-                                                        <Checkbox
-                                                            checked={allSelected}
-                                                            onCheckedChange={(checked) => {
-                                                                const updated = [
-                                                                    ...(field.value || []),
-                                                                ];
+                                        return (
+                                            <div key={course.courseId} className="mb-6">
+                                                <FormField
+                                                    control={control}
+                                                    name={fieldName}
+                                                    render={({ field }) => (
+                                                        <FormItem className="mb-2 flex flex-row items-center gap-2">
+                                                            <FormControl>
+                                                                <Checkbox
+                                                                    checked={allSelected}
+                                                                    onCheckedChange={(checked) => {
+                                                                        const updated = [
+                                                                            ...(field.value || []),
+                                                                        ];
 
-                                                                if (checked) {
-                                                                    // Add all missing levels for this course
-                                                                    courseLevels.forEach(
-                                                                        (levelItem) => {
-                                                                            const exists =
-                                                                                updated.some(
-                                                                                    (item) =>
-                                                                                        item.courseId ===
-                                                                                            levelItem.courseId &&
-                                                                                        item.sessionId ===
-                                                                                            levelItem.sessionId &&
-                                                                                        item.levelId ===
-                                                                                            levelItem.levelId
-                                                                                );
-                                                                            if (!exists)
-                                                                                updated.push(
-                                                                                    levelItem
-                                                                                );
-                                                                        }
-                                                                    );
-                                                                } else {
-                                                                    // Remove all levels for this course
-                                                                    for (const levelItem of courseLevels) {
-                                                                        const index =
-                                                                            updated.findIndex(
-                                                                                (item) =>
-                                                                                    item.courseId ===
-                                                                                        levelItem.courseId &&
-                                                                                    item.sessionId ===
-                                                                                        levelItem.sessionId &&
-                                                                                    item.levelId ===
-                                                                                        levelItem.levelId
+                                                                        if (checked) {
+                                                                            // Add all missing levels for this course
+                                                                            courseLevels.forEach(
+                                                                                (levelItem) => {
+                                                                                    const exists =
+                                                                                        updated.some(
+                                                                                            (
+                                                                                                item
+                                                                                            ) =>
+                                                                                                item.courseId ===
+                                                                                                    levelItem.courseId &&
+                                                                                                item.sessionId ===
+                                                                                                    levelItem.sessionId &&
+                                                                                                item.levelId ===
+                                                                                                    levelItem.levelId
+                                                                                        );
+                                                                                    if (!exists)
+                                                                                        updated.push(
+                                                                                            levelItem
+                                                                                        );
+                                                                                }
                                                                             );
-                                                                        if (index > -1)
-                                                                            updated.splice(
-                                                                                index,
-                                                                                1
-                                                                            );
-                                                                    }
-                                                                }
-
-                                                                field.onChange(updated);
-                                                            }}
-                                                        />
-                                                    </FormControl>
-                                                    <FormLabel className="font-semibold">
-                                                        {course.courseName}
-                                                    </FormLabel>
-                                                </FormItem>
-                                            )}
-                                        />
-
-                                        <div className="ml-4 space-y-2">
-                                            {course.levels.map((level) => {
-                                                const levelData = {
-                                                    courseId: course.courseId,
-                                                    sessionId: course.sessionId,
-                                                    levelId: level.id,
-                                                };
-
-                                                const isChecked = watch(fieldName)?.some(
-                                                    (item) =>
-                                                        item.courseId === levelData.courseId &&
-                                                        item.sessionId === levelData.sessionId &&
-                                                        item.levelId === levelData.levelId
-                                                );
-
-                                                return (
-                                                    <FormField
-                                                        key={`${course.courseId}-${level.id}`}
-                                                        control={control}
-                                                        name={fieldName}
-                                                        render={({ field }) => (
-                                                            <FormItem className="flex items-center gap-2">
-                                                                <FormControl>
-                                                                    <Checkbox
-                                                                        checked={isChecked}
-                                                                        onCheckedChange={(
-                                                                            checked
-                                                                        ) => {
-                                                                            const updated = [
-                                                                                ...(field.value ||
-                                                                                    []),
-                                                                            ];
-
-                                                                            if (checked) {
-                                                                                updated.push(
-                                                                                    levelData
-                                                                                );
-                                                                            } else {
+                                                                        } else {
+                                                                            // Remove all levels for this course
+                                                                            for (const levelItem of courseLevels) {
                                                                                 const index =
                                                                                     updated.findIndex(
                                                                                         (item) =>
                                                                                             item.courseId ===
-                                                                                                levelData.courseId &&
+                                                                                                levelItem.courseId &&
                                                                                             item.sessionId ===
-                                                                                                levelData.sessionId &&
+                                                                                                levelItem.sessionId &&
                                                                                             item.levelId ===
-                                                                                                levelData.levelId
+                                                                                                levelItem.levelId
                                                                                     );
                                                                                 if (index > -1)
                                                                                     updated.splice(
@@ -454,24 +422,103 @@ export default function ScheduleStep2() {
                                                                                         1
                                                                                     );
                                                                             }
+                                                                        }
 
-                                                                            field.onChange(updated);
-                                                                        }}
-                                                                    />
-                                                                </FormControl>
-                                                                <FormLabel className="font-normal">
-                                                                    {level.name}
-                                                                </FormLabel>
-                                                            </FormItem>
-                                                        )}
-                                                    />
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                    </div>
+                                                                        field.onChange(updated);
+                                                                    }}
+                                                                />
+                                                            </FormControl>
+                                                            <FormLabel className="font-semibold">
+                                                                {course.courseName}
+                                                            </FormLabel>
+                                                        </FormItem>
+                                                    )}
+                                                />
+
+                                                <div className="ml-4 space-y-2">
+                                                    {course.levels.map((level) => {
+                                                        const levelData = {
+                                                            courseId: course.courseId,
+                                                            sessionId: course.sessionId,
+                                                            levelId: level.id,
+                                                        };
+
+                                                        const isChecked = watch(fieldName)?.some(
+                                                            (item) =>
+                                                                item.courseId ===
+                                                                    levelData.courseId &&
+                                                                item.sessionId ===
+                                                                    levelData.sessionId &&
+                                                                item.levelId === levelData.levelId
+                                                        );
+
+                                                        return (
+                                                            <FormField
+                                                                key={`${course.courseId}-${level.id}`}
+                                                                control={control}
+                                                                name={fieldName}
+                                                                render={({ field }) => (
+                                                                    <FormItem className="flex items-center gap-2">
+                                                                        <FormControl>
+                                                                            <Checkbox
+                                                                                checked={isChecked}
+                                                                                onCheckedChange={(
+                                                                                    checked
+                                                                                ) => {
+                                                                                    const updated =
+                                                                                        [
+                                                                                            ...(field.value ||
+                                                                                                []),
+                                                                                        ];
+
+                                                                                    if (checked) {
+                                                                                        updated.push(
+                                                                                            levelData
+                                                                                        );
+                                                                                    } else {
+                                                                                        const index =
+                                                                                            updated.findIndex(
+                                                                                                (
+                                                                                                    item
+                                                                                                ) =>
+                                                                                                    item.courseId ===
+                                                                                                        levelData.courseId &&
+                                                                                                    item.sessionId ===
+                                                                                                        levelData.sessionId &&
+                                                                                                    item.levelId ===
+                                                                                                        levelData.levelId
+                                                                                            );
+                                                                                        if (
+                                                                                            index >
+                                                                                            -1
+                                                                                        )
+                                                                                            updated.splice(
+                                                                                                index,
+                                                                                                1
+                                                                                            );
+                                                                                    }
+
+                                                                                    field.onChange(
+                                                                                        updated
+                                                                                    );
+                                                                                }}
+                                                                            />
+                                                                        </FormControl>
+                                                                        <FormLabel className="font-normal">
+                                                                            {level.name}
+                                                                        </FormLabel>
+                                                                    </FormItem>
+                                                                )}
+                                                            />
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                            </div>
+                        </>
+                    )}
 
                     <Separator className="my-4" />
                     <div

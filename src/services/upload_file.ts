@@ -4,10 +4,10 @@ import {
     GET_PUBLIC_URL,
     GET_DETAILS,
     ACKNOWLEDGE_FOR_PUBLIC_URL,
-} from "@/constants/urls";
-import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
-import axios from "axios";
-import { isNullOrEmptyOrUndefined } from "@/lib/utils";
+} from '@/constants/urls';
+import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
+import axios from 'axios';
+import { isNullOrEmptyOrUndefined } from '@/lib/utils';
 
 interface SignedURLResponse {
     id: string;
@@ -24,27 +24,27 @@ export const UploadFileInS3 = async (
     user_id: string,
     source?: string,
     sourceId?: string,
-    publicUrl?: boolean,
+    publicUrl?: boolean
 ): Promise<string | undefined> => {
     setIsUploadingFile(true);
-    const effectiveSource = source || "FLOOR_DOCUMENTS";
-    const effectiveSourceId = sourceId || "STUDENTS";
+    const effectiveSource = source || 'FLOOR_DOCUMENTS';
+    const effectiveSourceId = sourceId || 'STUDENTS';
 
     try {
         if (isNullOrEmptyOrUndefined(file)) {
-            throw new Error("Invalid File");
+            throw new Error('Invalid File');
         }
 
         if (file) {
             const signedURLData: SignedURLResponse = await getSignedURL(
-                file.name.toLowerCase().replace(/\s+/g, "_"),
+                file.name.toLowerCase().replace(/\s+/g, '_'),
                 file.type,
                 effectiveSource,
-                effectiveSourceId,
+                effectiveSourceId
             );
 
             const uploadResponse = await axios({
-                method: "PUT",
+                method: 'PUT',
                 url: signedURLData.url,
                 data: file,
             });
@@ -68,7 +68,7 @@ const getSignedURL = async (
     file_name: string,
     file_type: string,
     source: string,
-    source_id: string,
+    source_id: string
 ) => {
     // });
     const requestBody = {
@@ -84,7 +84,7 @@ const getSignedURL = async (
 const acknowledgeUpload = async (
     file_id: string,
     user_id: string,
-    publicUrl?: boolean,
+    publicUrl?: boolean
 ): Promise<boolean> => {
     const requestBody = {
         file_id: file_id,
@@ -107,29 +107,29 @@ export const getPublicUrl = async (fileId: string | undefined | null): Promise<s
 
 export const getPublicUrls = async (fileIds: string | undefined | null) => {
     const response = await authenticatedAxiosInstance({
-        method: "GET",
+        method: 'GET',
         url: GET_DETAILS,
         params: { fileIds, expiryDays: 1 },
     });
     return response?.data;
 };
 
-
 export const UploadFileInS3V2 = async (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     file: any,
     setIsUploadingFile: React.Dispatch<React.SetStateAction<boolean>> = () => false,
     user_id: string,
     source?: string,
     sourceId?: string,
-    publicUrl?: boolean,
+    publicUrl?: boolean
 ): Promise<string | undefined> => {
     setIsUploadingFile(true);
-    const effectiveSource = source || "FLOOR_DOCUMENTS";
-    const effectiveSourceId = sourceId || "STUDENTS";
+    const effectiveSource = source || 'FLOOR_DOCUMENTS';
+    const effectiveSourceId = sourceId || 'STUDENTS';
 
     try {
         if (isNullOrEmptyOrUndefined(file)) {
-            throw new Error("Invalid File");
+            throw new Error('Invalid File');
         }
 
         if (file) {
@@ -137,11 +137,11 @@ export const UploadFileInS3V2 = async (
                 'json',
                 'json',
                 effectiveSource,
-                effectiveSourceId,
+                effectiveSourceId
             );
 
             const uploadResponse = await axios({
-                method: "PUT",
+                method: 'PUT',
                 url: signedURLData.url,
                 data: file,
             });

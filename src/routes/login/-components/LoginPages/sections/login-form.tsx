@@ -19,8 +19,8 @@ import { TokenKey } from '@/constants/auth/tokens';
 import { Link2Icon } from 'lucide-react';
 import { handleOAuthLogin } from '@/hooks/login/oauth-login';
 import { GitHubLogoIcon } from '@radix-ui/react-icons';
-import { GoogleLogo } from 'phosphor-react';
 import { fetchAndStoreFacultyBatches } from '@/services/faculty-service';
+import { FcGoogle } from 'react-icons/fc';
 
 type FormValues = z.infer<typeof loginSchema>;
 
@@ -112,8 +112,7 @@ export function LoginForm() {
                             onClick={() => handleOAuthLogin('google', { isSignup: false })}
                             type="button"
                         >
-                            {/* <FcGoogle className="size-5" /> */}
-                            <GoogleLogo className="size-5" />
+                            {FcGoogle({ size: 20 })}
                             Continue with Google
                         </button>
                         <button
