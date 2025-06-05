@@ -8,7 +8,7 @@ import { getPublicUrl, UploadFileInS3V2 } from '@/services/upload_file';
 import { filterSlidesByIdType } from './utils/util';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { Button } from '@/components/ui/button';
-import { ListStart, Save, Loader2, PlaySquare, Tv2, PlusCircle } from 'lucide-react';
+import { ListStart, Save, Loader2, PlaySquare, Tv2, PlusCircle, Share2, ChevronDown } from 'lucide-react';
 import SlideList from './PresentationView';
 import { QuizSlide } from './slidesTypes/QuizSlides'; // Ensure path is correct
 import { useSlideStore } from '@/stores/Slides/useSlideStore'; // Assumed path
@@ -25,6 +25,12 @@ import { ADD_PRESENTATION, EDIT_PRESENTATION } from '@/constants/urls';
 import { SlideRenderer } from './SlideRenderer'; // Import the extracted SlideRenderer
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile } from '@ffmpeg/util';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"; // Import Dropdown components
 
 import type {
     Slide as AppSlide,
@@ -54,10 +60,12 @@ export default function SlidesEditorComponent({
     metaData,
     presentationId,
     isEdit, 
+    autoStartLive,
 }: {
     metaData: { title: string; description: string };
     presentationId: string;
     isEdit: boolean;
+    autoStartLive?: string;
 }) {
     const {
         slides,
@@ -74,6 +82,13 @@ export default function SlidesEditorComponent({
     } = useSlideStore();
 
     const router = useRouter();
+    const searchParams = router.state.location.search;
+
+    const {
+        isLoading: isLoadingPresentation, 
+        isRefetching: isRefetchingPresentation, 
+    } = useGetSinglePresentation({ presentationId, setSlides, setCurrentSlideId, isEdit });
+
     const [isSaving, setIsSaving] = useState<boolean>(false);
 
     const [showSessionOptionsModal, setShowSessionOptionsModal] = useState<boolean>(false);
@@ -138,6 +153,22 @@ export default function SlidesEditorComponent({
         };
         loadFFmpeg();
     }, []); // Keep dependency array empty for one-time load
+
+    // Effect to auto-open session options modal if autoStartLive is true
+    useEffect(() => {
+        if (searchParams && typeof searchParams.autoStartLive === 'string' && searchParams.autoStartLive === 'true') {
+            // Ensure slides are loaded before opening the modal
+            // This check might need to be more robust based on your slide loading logic
+            if (slides && slides.length > 0) {
+                setShowSessionOptionsModal(true);
+                // Optional: Clean up the query parameter from URL if desired, though this can be complex
+                // router.history.replace({ search: '...' }); 
+            } else if (!isLoadingPresentation && !isRefetchingPresentation && slides && slides.length === 0){
+                toast.error("Cannot start a live session for an empty presentation. Please add slides.");
+            }
+            // If slides are still loading, the modal will open once they are loaded by other effects or user action.
+        }
+    }, [searchParams, slides, isLoadingPresentation, isRefetchingPresentation]);
 
     const downloadCurrentAudioSnapshot = async (format: 'webm' | 'mp3' = 'webm') => {
         if (audioChunksRef.current && audioChunksRef.current.length > 0) {
@@ -276,11 +307,6 @@ export default function SlidesEditorComponent({
             initializeNewPresentationState();
         }
     }, [isEdit, initializeNewPresentationState]);
-
-    const {
-        isLoading: isLoadingPresentation, 
-        isRefetching: isRefetchingPresentation, 
-    } = useGetSinglePresentation({ presentationId, setSlides, setCurrentSlideId, isEdit });
 
     useEffect(() => {
         if (
@@ -484,7 +510,7 @@ export default function SlidesEditorComponent({
         }
     };
 
-    const savePresentation = async () => {
+    const savePresentation = async (isAutoSave: boolean = false) => {
         setIsSaving(true);
         try {
             const accessToken = getTokenFromCookie(TokenKey.accessToken);
@@ -674,8 +700,14 @@ export default function SlidesEditorComponent({
                 }
             );
 
-            toast.success(`Presentation ${isEdit ? 'updated' : 'created'} successfully`);
-            router.navigate({ to: '/study-library/present' });
+            if (isAutoSave) {
+                toast.info("Presentation auto-saved.", { duration: 2000});
+            } else {
+                toast.success(`Presentation ${isEdit ? 'updated' : 'created'} successfully`);
+            }
+            if (!isAutoSave && !isEdit) { // Only navigate for explicit create action
+                router.navigate({ to: '/study-library/present' });
+            }
         } catch (error: any) {
             console.error('Save error:', error);
             toast.error(error.response?.data?.message || 'Failed to save presentation.');
@@ -686,6 +718,35 @@ export default function SlidesEditorComponent({
 
     const exportPresentationToFile = () => toast.info('Export function coming soon!');
     const importPresentationFromFile = () => toast.info('Import function coming soon!');
+
+    const handleSharePresentation = () => {
+        if (presentationId) {
+            const shareUrl = `https://engage.vacademy.io/presentation/public/${presentationId}`;
+            window.open(shareUrl, '_blank');
+            toast.success("Public presentation link opened!");
+        } else {
+            toast.error("Presentation ID is not available. Save the presentation first to enable sharing.");
+        }
+    };
+
+    // Auto-save useEffect
+    useEffect(() => {
+        if (!editMode || !isEdit) return; // Only auto-save in edit mode for an existing presentation
+
+        const intervalId = setInterval(async () => {
+            if (!isSaving && slides && slides.length > 0) {
+                console.log('Auto-saving presentation...');
+                // Create a new instance of savePresentation to avoid conflicts with user-triggered saves
+                // For simplicity, we'll call the existing savePresentation
+                // but ideally, this would be a silent save or have its own isAutoSaving state.
+                await savePresentation(true); // Pass a flag to indicate auto-save for potentially different behavior (e.g., different toast)
+            }
+        }, 60000); // 60000 ms = 1 minute
+
+        return () => {
+            clearInterval(intervalId);
+        };
+    }, [editMode, isEdit, slides, isSaving, savePresentation]);
 
     if (isLoadingPresentation || isRefetchingPresentation) {
         return (
@@ -835,21 +896,55 @@ export default function SlidesEditorComponent({
                     </span>
                 </div>
                 <div className="flex items-center gap-2 sm:gap-2.5">
-                    <Button
-                        onClick={savePresentation}
-                        disabled={isSaving}
-                        size="sm"
-                        className="gap-1.5 bg-orange-500 px-3 text-white hover:bg-orange-600 focus-visible:ring-orange-400 sm:gap-2 sm:px-4"
-                    >
-                        <Save className="size-4" />
-                        {isSaving ? (
-                            <Loader2 className="size-4 animate-spin" />
-                        ) : isEdit ? (
-                            'Save'
-                        ) : (
-                            'Create'
-                        )}
-                    </Button>
+                    {isEdit ? (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                    disabled={isSaving}
+                                    size="sm"
+                                    variant="default"
+                                    className="gap-1.5 bg-orange-500 px-3 text-white hover:bg-orange-600 focus-visible:ring-orange-400 sm:gap-2 sm:px-4"
+                                >
+                                    <Save className="size-4" />
+                                    {isSaving ? <Loader2 className="size-4 animate-spin" /> : 'Save'}
+                                    <ChevronDown className="size-4 opacity-80" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-40">
+                                <DropdownMenuItem
+                                    onClick={() => savePresentation()}
+                                    disabled={isSaving}
+                                >
+                                    <Save className="mr-2 size-4" /> Just Save
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    onClick={async () => {
+                                        await savePresentation();
+                                        if (!isSaving) { // Ensure save was successful (or not in progress) before navigating
+                                            router.navigate({ to: '/study-library/present' });
+                                        }
+                                    }}
+                                    disabled={isSaving}
+                                >
+                                    <Save className="mr-2 size-4" /> Save and Exit
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    ) : (
+                        <Button
+                            onClick={() => savePresentation()}
+                            disabled={isSaving}
+                            size="sm"
+                            className="gap-1.5 bg-orange-500 px-3 text-white hover:bg-orange-600 focus-visible:ring-orange-400 sm:gap-2 sm:px-4"
+                        >
+                            <Save className="size-4" />
+                            {isSaving ? (
+                                <Loader2 className="size-4 animate-spin" />
+                            ) : (
+                                'Create'
+                            )}
+                        </Button>
+                    )}
                     <Button
                         onClick={toggleDirectPresentationPreview}
                         disabled={!slides || slides.length === 0}
@@ -868,6 +963,17 @@ export default function SlidesEditorComponent({
                     >
                         <Tv2 className="size-4" />
                         Start Live
+                    </Button>
+                    <Button
+                        onClick={handleSharePresentation}
+                        disabled={!isEdit || !presentationId} // Can only share an existing, saved presentation
+                        variant="outline"
+                        size="sm"
+                        className="gap-1.5 border-purple-500 px-3 text-purple-600 hover:bg-purple-50 hover:text-purple-700 focus-visible:ring-purple-400 sm:px-4"
+                        title={!isEdit || !presentationId ? "Save the presentation to enable sharing" : "Share Presentation"}
+                    >
+                        <Share2 className="size-4" />
+                        Share
                     </Button>
                 </div>
             </div>

@@ -2,15 +2,15 @@
 // @ts-nocheck
 'use client';
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
-import React, { useEffect, useState, FormEvent } from 'react'; // Added React for FormEvent
-import { Button as ShadButton } from '@/components/ui/button'; // Aliased to avoid conflict if MyButton is also Button
+import React, { useEffect, useState, FormEvent } from 'react';
+import { Button as ShadButton } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Edit, FileText as FilePresentation, Loader2, Plus, Search, Trash2 } from 'lucide-react'; // Changed Icon
+import { Edit, FileText as FilePresentation, Loader2, Plus, Search, Trash2, Share2, Tv2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { useRouter } from '@tanstack/react-router'; // Or your specific router
+import { useRouter } from '@tanstack/react-router';
 import { cn } from '@/lib/utils';
-import { useGetPresntation } from './hooks/useGetPresntation'; // Ensure path is correct
+import { useGetPresntation } from './hooks/useGetPresntation';
 import {
     Dialog,
     DialogContent,
@@ -26,12 +26,11 @@ import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtili
 import { TokenKey } from '@/constants/auth/tokens';
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 import { toast } from 'sonner';
-import { EDIT_PRESENTATION } from '@/constants/urls'; // Ensure this is correct
+import { EDIT_PRESENTATION } from '@/constants/urls';
 import { useQueryClient } from '@tanstack/react-query';
-import { MyButton } from '@/components/design-system/button'; // Your custom button
+import { MyButton } from '@/components/design-system/button';
 
-// Assuming PresentationData is defined in your types.ts or similar
-import type { PresentationData } from './types'; // Adjust path as needed
+import type { PresentationData } from './types';
 
 export default function ManagePresentation() {
     const router = useRouter();
@@ -41,7 +40,6 @@ export default function ManagePresentation() {
     const { data: fetchedPresentations, isLoading } = useGetPresntation();
     const [presentations, setPresentations] = useState<PresentationData[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
-    // const [activeTab, setActiveTab] = useState('all'); // Tabs not implemented in provided JSX
 
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [newTitle, setNewTitle] = useState('');
@@ -55,12 +53,12 @@ export default function ManagePresentation() {
     const [isProcessingDelete, setIsProcessingDelete] = useState(false);
 
     useEffect(() => {
-        setNavHeading('Manage Presentations'); // Corrected heading
+        setNavHeading('Manage Presentations');
     }, [setNavHeading]);
 
     useEffect(() => {
         if (fetchedPresentations) {
-            setPresentations(fetchedPresentations as PresentationData[]); // Ensure fetched data matches PresentationData
+            setPresentations(fetchedPresentations as PresentationData[]);
         }
     }, [fetchedPresentations]);
 
@@ -70,14 +68,13 @@ export default function ManagePresentation() {
             toast.error('Title is required to create a presentation.');
             return;
         }
-        // Navigate to the editor with new presentation details
         router.navigate({
-            to: `/study-library/present/add`, // Your route for the editor
+            to: `/study-library/present/add`,
             search: {
                 title: newTitle,
                 description: newDescription,
-                id: '', // No ID for new presentation yet, editor should handle creation
-                isEdit: false, // Explicitly false
+                id: '',
+                isEdit: false,
             },
         });
         setIsCreateModalOpen(false);
@@ -87,14 +84,8 @@ export default function ManagePresentation() {
 
     const handleEditPresentationDetails = (presentation: PresentationData) => {
         setEditingPresentation(presentation);
-        // For now, directly navigate to editor. If modal was for title/desc only:
-        // setNewTitle(presentation.title);
-        // setNewDescription(presentation.description || '');
-        // setIsEditModalOpen(true);
-
-        // Navigate to editor to edit content and details
         router.navigate({
-            to: `/study-library/present/add`, // Your route for the editor
+            to: `/study-library/present/add`,
             search: {
                 title: presentation.title,
                 description: presentation.description,
@@ -103,24 +94,6 @@ export default function ManagePresentation() {
             },
         });
     };
-
-    // If you had a modal for just updating title/description:
-    /*
-    const handleUpdatePresentationDetails = async (e: FormEvent) => {
-        e.preventDefault();
-        if (!editingPresentation || !newTitle.trim()) {
-            toast.error("Title cannot be empty.");
-            return;
-        }
-        // API call to update title/description
-        // ...
-        // After success:
-        // queryClient.invalidateQueries({ queryKey: ['GET_PRESNTATIONS'] });
-        // setIsEditModalOpen(false);
-        // setEditingPresentation(null);
-        toast.info("Navigation to full editor for content changes.");
-    };
-    */
 
     const confirmDeletePresentation = (presentation: PresentationData) => {
         setPresentationToDelete(presentation);
@@ -144,10 +117,8 @@ export default function ManagePresentation() {
                 setIsProcessingDelete(false);
                 return;
             }
-
-            // Assuming API expects the full presentation object with status 'DELETED'
             await authenticatedAxiosInstance.post(
-                EDIT_PRESENTATION, // This URL might be for update; ensure backend handles delete correctly
+                EDIT_PRESENTATION,
                 {
                     ...presentationToDelete,
                     status: 'DELETED',
@@ -160,7 +131,6 @@ export default function ManagePresentation() {
                     headers: { 'Content-Type': 'application/json' },
                 }
             );
-
             await queryClient.refetchQueries({ queryKey: ['GET_PRESNTATIONS'] });
             toast.success(`Presentation "${presentationToDelete.title}" deleted successfully.`);
         } catch (error: any) {
@@ -175,15 +145,28 @@ export default function ManagePresentation() {
         }
     };
 
+    const handleDirectStartLive = (presentation: PresentationData) => {
+        if (presentation.added_slides_count === 0 && (!presentation.added_slides || presentation.added_slides.length === 0)) {
+            toast.error("This presentation has no slides. Add slides before starting a live session.");
+            return;
+        }
+        router.navigate({
+            to: `/study-library/present/add`,
+            search: {
+                id: presentation.id,
+                isEdit: 'true',
+                autoStartLive: 'true',
+            },
+        });
+    };
+
     const filteredPresentations = presentations.filter((p) => {
         const query = searchQuery.toLowerCase();
         return (
-            p.title?.toLowerCase().includes(query) || p.description?.toLowerCase().includes(query) // ||
-            // p.category?.toLowerCase().includes(query) // If category exists
+            p.title?.toLowerCase().includes(query) || p.description?.toLowerCase().includes(query)
         );
     });
 
-    // Card Status styling (example)
     const getStatusBadgeClass = (status: string = 'draft') => {
         switch (status.toLowerCase()) {
             case 'published':
@@ -274,7 +257,6 @@ export default function ManagePresentation() {
                 </Dialog>
             </div>
 
-            {/* Search Input */}
             <div className="mb-6">
                 <div className="relative w-full max-w-md">
                     <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-400" />
@@ -287,7 +269,6 @@ export default function ManagePresentation() {
                 </div>
             </div>
 
-            {/* Presentation Cards Grid */}
             {filteredPresentations.length > 0 ? (
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {filteredPresentations.map((p) => (
@@ -326,12 +307,34 @@ export default function ManagePresentation() {
                             </CardContent>
                             <CardFooter className="flex items-center justify-between border-t border-neutral-100 bg-neutral-50/50 px-4 py-2.5">
                                 <span className="text-xs text-neutral-500">
-                                    Updated:{' '}
+                                    Updated: {' '}
                                     {p.updated_at
                                         ? new Date(p.updated_at).toLocaleDateString()
                                         : 'N/A'}
                                 </span>
                                 <div className="flex gap-0.5">
+                                    <ShadButton
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8 rounded-md text-neutral-500 hover:bg-blue-100 hover:text-blue-600"
+                                        onClick={() => {
+                                            const shareUrl = `https://engage.vacademy.io/presentation/public/${p.id}`;
+                                            window.open(shareUrl, '_blank');
+                                            toast.info("Public presentation link opened!");
+                                        }}
+                                        title="Share Presentation"
+                                    >
+                                        <Share2 className="h-4 w-4" />
+                                    </ShadButton>
+                                    <ShadButton
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8 rounded-md text-neutral-500 hover:bg-green-100 hover:text-green-600"
+                                        onClick={() => handleDirectStartLive(p)}
+                                        title="Start Live Session"
+                                    >
+                                        <Tv2 className="h-4 w-4" />
+                                    </ShadButton>
                                     <ShadButton
                                         variant="ghost"
                                         size="icon"
@@ -378,7 +381,6 @@ export default function ManagePresentation() {
                 </div>
             )}
 
-            {/* Delete Confirmation Dialog */}
             <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
                 <DialogContent className="p-6 sm:max-w-md">
                     <DialogHeader>

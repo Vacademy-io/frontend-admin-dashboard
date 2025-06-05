@@ -71,6 +71,7 @@ const ExcalidrawWrapper: React.FC<ExcalidrawWrapperProps> = ({
         viewBackgroundColor: '#FFFFFF', // Default background
         ...(initialData.appState || {}),
         // Ensure collaborators is a Map for Excalidraw's initialData.
+        scrollToContent: true,
         collaborators:
             initialData.appState?.collaborators instanceof Map
                 ? initialData.appState.collaborators

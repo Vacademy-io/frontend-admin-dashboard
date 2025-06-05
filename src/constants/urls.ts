@@ -229,3 +229,10 @@ export const LOGIN_URL_GOOGLE_GITHUB = `${BASE_URL}/auth-service/v1/oauth`;
 export const ADD_DOUBT = `${BASE_URL}/admin-core-service/institute/v1/doubts/create`;
 export const GET_DOUBTS = `${BASE_URL}/admin-core-service/institute/v1/doubts/get-all`;
 export const GET_USER_BASIC_DETAILS = `${BASE_URL}/auth-service/v1/user-details/get-basic-details`;
+
+// Engage Session URLs (Presentation specific)
+export const CREATE_SESSION_API_URL = `${BASE_URL}/community-service/engage/admin/create`;
+export const START_SESSION_API_URL = `${BASE_URL}/community-service/engage/admin/start`;
+export const FINISH_SESSION_API_URL = `${BASE_URL}/community-service/engage/admin/finish`;
+// Note: GET_SINGLE_PRESENTATION_DATA for all slide details will reuse GET_PRESENTATION
+// Ensure GET_PRESENTATION endpoint returns all necessary slide data for live sessions.
