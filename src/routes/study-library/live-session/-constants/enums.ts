@@ -31,3 +31,8 @@ export enum SessionPlatform {
     EMBED_IN_APP = 'embed',
     REDIRECT_TO_OTHER_PLATFORM = 'redirect',
 }
+export enum StreamingPlatform {
+    YOUTUBE = 'youtube',
+    MEET = 'meet',
+    ZOOM = 'zoom',
+}

@@ -46,7 +46,7 @@ export const sessionFormSchema = z.object({
         .optional(),
     timeZone: z.string().min(1, 'Time zone is required'),
     events: z.string().regex(/^\d+$/, 'Must be a number'),
-    description: z.string().min(1, 'Enter some description'),
+    description: z.string().optional(),
     durationMinutes: z.string({
         required_error: 'Duration is required',
     }),

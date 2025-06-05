@@ -27,6 +27,7 @@ import { transformFormToDTOStep2 } from '../../-constants/helper';
 import { createLiveSessionStep2 } from '../-services/utils';
 import { useLiveSessionStore } from '../-store/sessionIdstore';
 import { useNavigate } from '@tanstack/react-router';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 const TimeOptions = [
     { label: '5 minutes before', value: '5m' },
@@ -39,6 +40,17 @@ export default function ScheduleStep2() {
     const { studyLibraryData } = useStudyLibraryStore();
     const [addCustomFieldDialog, setAddCustomFieldDialog] = useState<boolean>(false);
     const [previewDialog, setPreviewDialog] = useState<boolean>(false);
+    const sessionId = useLiveSessionStore((state) => state.sessionId);
+    const navigate = useNavigate();
+
+    // Get the institute details at component level
+    const { instituteDetails } = useInstituteDetailsStore();
+
+    useEffect(() => {
+        if (!sessionId) {
+            navigate({ to: '/study-library/live-session/schedule/step1' });
+        }
+    }, [sessionId, navigate]);
 
     const sessionList: DropdownItemType[] = Array.from(
         new Map(
@@ -154,17 +166,25 @@ export default function ScheduleStep2() {
         }
     };
 
-    const navigate = useNavigate();
-    const sessionId = useLiveSessionStore((state) => state.sessionId);
-    useEffect(() => {
-        if (!sessionId) {
-            navigate({ to: '/study-library/live-session/schedule/step1' });
-        }
-    }, [sessionId]);
-
     const onSubmitClick = async (data: z.infer<typeof addParticipantsSchema>) => {
         console.log('Submitted:', data);
-        const body = transformFormToDTOStep2(data, sessionId);
+        const packageSessionIds = data.selectedLevels.map((level) => {
+            if (!instituteDetails) return '';
+
+            console.log('level ', level);
+
+            const matchingBatch = instituteDetails.batches_for_sessions.find(
+                (batch) =>
+                    batch.package_dto.id === level.courseId &&
+                    batch.session.id === level.sessionId &&
+                    batch.level.id === level.levelId
+            );
+            console.log('matchingBatch ', matchingBatch);
+
+            return matchingBatch?.id || '';
+        });
+
+        const body = transformFormToDTOStep2(data, sessionId, packageSessionIds);
         console.log('body ', body);
 
         try {
@@ -262,19 +282,25 @@ export default function ScheduleStep2() {
                             >
                                 {fields.map((field, index) => (
                                     <SortableItem key={field.id} value={field.id} asChild>
-                                        <div className="flex items-center gap-6 rounded  p-3">
+                                        <div className="flex items-center gap-6 rounded p-3">
                                             <div className="flex w-3/4 items-center justify-between rounded-md border bg-neutral-50 p-2 shadow">
-                                                <Controller
-                                                    control={control}
-                                                    name={`fields.${index}.label`}
-                                                    render={({ field }) => (
-                                                        <input
-                                                            {...field}
-                                                            className="w-full border-none bg-transparent outline-none"
-                                                            placeholder="Enter label"
-                                                        />
-                                                    )}
-                                                />
+                                                {field.isDefault ? (
+                                                    <div className="w-full text-neutral-600">
+                                                        {field.label}
+                                                    </div>
+                                                ) : (
+                                                    <Controller
+                                                        control={control}
+                                                        name={`fields.${index}.label`}
+                                                        render={({ field }) => (
+                                                            <input
+                                                                {...field}
+                                                                className="w-full border-none bg-transparent outline-none"
+                                                                placeholder="Enter label"
+                                                            />
+                                                        )}
+                                                    />
+                                                )}
                                                 {!field.isDefault && (
                                                     <div
                                                         className="mr-2 cursor-pointer rounded border-2 p-1 text-red-300"

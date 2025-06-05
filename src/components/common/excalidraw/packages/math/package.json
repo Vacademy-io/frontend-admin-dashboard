@@ -55,5 +55,8 @@
   "scripts": {
     "gen:types": "rm -rf types && tsc",
     "build:esm": "rm -rf dist && node ../../scripts/buildMath.js && yarn gen:types"
+  },
+  "dependencies": {
+    "@excalidraw/math": "file:"
   }
 }
