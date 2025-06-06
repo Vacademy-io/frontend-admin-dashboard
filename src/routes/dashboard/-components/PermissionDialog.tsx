@@ -30,15 +30,27 @@ import {
     Edit,
     X,
 } from 'lucide-react';
-import { DEFAULT_ROLE_PERMISSIONS } from '@/constants/permission/permission-structure';
-import { createSimplePermissionPayload } from '@/utils/permission';
-import type { PermissionLevel } from '@/types/permission';
+import {
+    createPermissionUpdatePayload,
+    convertFeaturePermissionsToIds,
+} from '@/utils/permission/permission';
+import type { PermissionLevel, PermissionUpdatePayload } from '@/types/permission';
 import { UserRolesDataEntry } from '@/types/dashboard/user-roles';
+import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
+import { toast } from 'sonner';
+import { useMutation } from '@tanstack/react-query';
+import { handleUpdatePermission } from '../-services/dashboard-services';
+import axios from 'axios';
 
 type UserRole = 'ADMIN' | 'TEACHER' | 'COURSE_CREATOR' | 'ASSESSMENT_CREATOR' | 'EVALUATOR';
 
+interface User extends UserRolesDataEntry {
+    currentPermissions?: string[];
+}
+
 interface PermissionsDialogProps {
-    user: UserRolesDataEntry;
+    user: User;
     onClose: () => void;
     refetchData: () => void;
 }
@@ -161,31 +173,6 @@ const permissionColors = {
 
 export function PermissionsDialog({ user, onClose, refetchData }: PermissionsDialogProps) {
     const [features, setFeatures] = useState<FeatureConfig[]>(defaultFeatures);
-    const [selectedRole, setSelectedRole] = useState<UserRole>('TEACHER');
-
-    if (!user) return null;
-
-    // Load default permissions for selected role
-    const loadRoleDefaults = (role: UserRole) => {
-        const rolePermissions = DEFAULT_ROLE_PERMISSIONS[role];
-
-        setFeatures((prev) =>
-            prev.map((feature) => {
-                const mainPermission = rolePermissions[feature.id as keyof typeof rolePermissions];
-                const visible = mainPermission !== 'none';
-
-                return {
-                    ...feature,
-                    visible,
-                    subFeatures: feature.subFeatures?.map((sub) => ({
-                        ...sub,
-                        permission:
-                            rolePermissions[sub.id as keyof typeof rolePermissions] || 'none',
-                    })),
-                };
-            })
-        );
-    };
 
     const updateFeatureVisibility = (featureId: string, visible: boolean) => {
         setFeatures((prev) =>
@@ -212,30 +199,67 @@ export function PermissionsDialog({ user, onClose, refetchData }: PermissionsDia
         );
     };
 
-    const handleSave = () => {
-        // Create simple permission object
-        const permissions: Record<string, PermissionLevel> = {};
+    const handleUpdatePermissionMutation = useMutation({
+        mutationFn: ({ data }: { data: PermissionUpdatePayload }) => handleUpdatePermission(data),
+        onSuccess: () => {
+            toast.success('Permissions updated successfully');
+            refetchData();
+            onClose();
+        },
+        onError: (error: unknown) => {
+            if (axios.isAxiosError(error)) {
+                // Handle specific status codes
+                if (error.response?.status === 511) {
+                    toast.error(
+                        'Network authentication required. Please check your connection or login again.'
+                    );
+                    // You may want to redirect to login page here
+                } else {
+                    toast.error(
+                        `Failed to update permissions: ${error.response?.data?.message || error.message}`
+                    );
+                }
+            } else {
+                toast.error('Failed to update permissions');
+            }
+            console.error('Error updating permissions:', error);
+        },
+    });
 
+    const handleSave = async () => {
+        const featurePermissions: Record<string, PermissionLevel> = {};
         features.forEach((feature) => {
             // Main feature permission
-            permissions[feature.id] = feature.visible ? 'view' : 'none';
+            featurePermissions[feature.id] = feature.visible ? 'view' : 'none';
 
             // Sub-feature permissions
             feature.subFeatures?.forEach((sub) => {
-                permissions[sub.id] = sub.permission;
+                featurePermissions[sub.id] = sub.permission;
             });
         });
 
-        // Create API payload
-        const payload = createSimplePermissionPayload(
+        // Convert to permission IDs
+        const newPermissionIds = convertFeaturePermissionsToIds(featurePermissions);
+        const currentPermissionIds = user.currentPermissions || [];
+        const accessToken = getTokenFromCookie(TokenKey.accessToken);
+        const tokenData = getTokenDecodedData(accessToken);
+        const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
+
+        if (!INSTITUTE_ID) {
+            toast.error('Organization information missing');
+            return;
+        }
+
+        const payload = createPermissionUpdatePayload(
             user.id,
-            'institute_123', // Replace with actual institute ID
-            permissions
+            INSTITUTE_ID,
+            currentPermissionIds,
+            newPermissionIds
         );
-
         console.log('Permission Update Payload:', payload);
-
-        onClose();
+        handleUpdatePermissionMutation.mutate({
+            data: payload,
+        });
     };
 
     return (
@@ -260,7 +284,10 @@ export function PermissionsDialog({ user, onClose, refetchData }: PermissionsDia
                                     <Badge
                                         key={role.role_id}
                                         variant="outline"
-                                        className={roleColors[role.role_name]}
+                                        className={
+                                            roleColors[role.role_name as UserRole] ||
+                                            'border-gray-200 bg-gray-100 text-gray-800'
+                                        }
                                     >
                                         {role.role_name.replace('_', ' ')}
                                     </Badge>

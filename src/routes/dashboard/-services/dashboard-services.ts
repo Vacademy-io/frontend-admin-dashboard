@@ -11,6 +11,7 @@ import {
     UPDATE_DASHBOARD_URL,
     UPDATE_USER_INVITATION_URL,
     GET_ALL_FACULTY,
+    USER_PERMISSION_URL,
 } from '@/constants/urls';
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 import { RoleTypeSelectedFilter } from '../-components/RoleTypeComponent';
@@ -25,6 +26,7 @@ import { getInstituteId } from '@/constants/helper';
 import { getModifiedAdminRoles } from '../-utils/helper';
 import { UserRole } from '@/services/student-list-section/getAdminDetails';
 import { inviteTeacherSchema } from '../-components/AddTeachers';
+import { PermissionUpdatePayload } from '@/types/permission';
 
 export interface FacultyFilterParams {
     name?: string;
@@ -362,4 +364,13 @@ export const handleUpdateAdminDetails = async (
         },
     });
     return response?.data;
+};
+
+export const handleUpdatePermission = async (data: PermissionUpdatePayload) => {
+    const response = await authenticatedAxiosInstance({
+        method: 'PUT',
+        url: USER_PERMISSION_URL,
+        data,
+    });
+    return response.data;
 };
