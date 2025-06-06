@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { MyButton } from '@/components/design-system/button';
 import { MyInput } from '@/components/design-system/input';
 import { DotsSixVertical, PencilSimple, Plus, TrashSimple } from 'phosphor-react';
+import { CustomField } from '../../-schema/InviteFormSchema';
+import { duplicateKeyCheck } from '../../-utils/inviteLinkKeyChecks';
 
 // Define types for dropdown options
 export interface DropdownOption {
@@ -16,13 +18,16 @@ export interface DropdownOption {
 interface AddCustomFieldDialogProps {
     trigger: React.ReactNode;
     onAddField: (type: string, name: string, oldKey: boolean, options?: DropdownOption[]) => void;
+    customFields: CustomField[];
 }
 
-export const AddCustomFieldDialog = ({ trigger, onAddField }: AddCustomFieldDialogProps) => {
+export const AddCustomFieldDialog = ({ trigger, onAddField, customFields }: AddCustomFieldDialogProps) => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [selectedOptionValue, setSelectedOptionValue] = useState('textfield');
     const [textFieldValue, setTextFieldValue] = useState('');
+    const [validTextField, setValidTextField] = useState(false);
     const [dropdownOptions, setDropdownOptions] = useState<DropdownOption[]>([]);
+
 
     const handleAddDropdownOptions = () => {
         setDropdownOptions((prevOptions) => [
@@ -64,6 +69,14 @@ export const AddCustomFieldDialog = ({ trigger, onAddField }: AddCustomFieldDial
         setDropdownOptions([]);
     };
 
+    useEffect(() => {
+        if (textFieldValue.length > 0 && !duplicateKeyCheck(customFields, textFieldValue)) {
+            setValidTextField(true);
+        } else {
+            setValidTextField(false);
+        }
+    }, [textFieldValue]);
+
     return (
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>{trigger}</DialogTrigger>
@@ -99,6 +112,11 @@ export const AddCustomFieldDialog = ({ trigger, onAddField }: AddCustomFieldDial
                                 size="large"
                                 className="w-full"
                             />
+                            {!validTextField && (
+                                <p className="text-caption text-danger-600">
+                                    This field name is already taken
+                                </p>
+                            )}
                         </div>
                     ) : (
                         <div className="flex flex-col gap-1">
@@ -114,6 +132,11 @@ export const AddCustomFieldDialog = ({ trigger, onAddField }: AddCustomFieldDial
                                 size="large"
                                 className="w-full"
                             />
+                            {!validTextField && (
+                                <p className="text-caption text-danger-600">
+                                    This field name is already taken
+                                </p>
+                            )}
                             <h1 className="mt-4">Dropdown Options</h1>
                             <div className="flex flex-col gap-4">
                                 {dropdownOptions.map((option) => (
@@ -178,6 +201,7 @@ export const AddCustomFieldDialog = ({ trigger, onAddField }: AddCustomFieldDial
                             buttonType="primary"
                             className="mt-4 w-fit"
                             onClick={handleCloseDialog}
+                            disable={!validTextField}
                         >
                             Done
                         </MyButton>
