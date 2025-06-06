@@ -735,7 +735,6 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                         <Sortable
                                             value={customFieldsArray}
                                             onMove={({ activeIndex, overIndex }) => {
-                                                // Update the form with the new order
                                                 moveCustomField(activeIndex, overIndex);
                                                 updateFieldOrders();
                                             }}

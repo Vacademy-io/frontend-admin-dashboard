@@ -12,7 +12,12 @@ import { useSuspenseQuery } from '@tanstack/react-query';
 import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
 import { MyRadioButton } from '@/components/design-system/radio';
 import { useState, useRef } from 'react';
-import { RecurringType, SessionPlatform, SessionType } from '../../-constants/enums';
+import {
+    RecurringType,
+    SessionPlatform,
+    SessionType,
+    StreamingPlatform,
+} from '../../-constants/enums';
 import { WEEK_DAYS } from '../../-constants/type';
 import { sessionFormSchema } from '../-schema/schema';
 import { Trash, UploadSimple, X } from 'phosphor-react';
@@ -34,6 +39,12 @@ const WAITING_ROOM_OPTIONS = [
     { value: '45', label: '45 minutes', _id: 3 },
 ];
 
+const STREAMING_OPTIONS = [
+    { value: StreamingPlatform.YOUTUBE, label: 'Youtube', _id: 1 },
+    { value: StreamingPlatform.MEET, label: 'Meet', _id: 2 },
+    { value: StreamingPlatform.ZOOM, label: 'Zoom', _id: 3 },
+];
+
 export default function ScheduleStep1() {
     // Hooks and State
     const navigate = useNavigate();
@@ -51,7 +62,6 @@ export default function ScheduleStep1() {
         resolver: zodResolver(sessionFormSchema),
         defaultValues: {
             title: '',
-            description: '',
             meetingType: RecurringType.ONCE,
             recurringSchedule: WEEK_DAYS.map((day) => ({
                 day: day.label,
@@ -69,6 +79,10 @@ export default function ScheduleStep1() {
             openWaitingRoomBefore: '15',
             sessionType: SessionType.LIVE,
             streamingType: SessionPlatform.EMBED_IN_APP,
+            allowRewind: false,
+            enableWaitingRoom: false,
+            sessionPlatform: StreamingPlatform.YOUTUBE,
+            durationMinutes: '00',
         },
         mode: 'onChange',
     });
@@ -348,7 +362,8 @@ export default function ScheduleStep1() {
                         <div>minutes</div>
                     </div>
                 </div>
-                <FormField
+                {/* TODO: Add time zone selection */}
+                {/* <FormField
                     control={control}
                     name="timeZone"
                     render={({ field }) => (
@@ -363,7 +378,7 @@ export default function ScheduleStep1() {
                             </FormControl>
                         </FormItem>
                     )}
-                />
+                /> */}
             </div>
             {meetingType === RecurringType.WEEKLY && (
                 <div className="flex flex-row gap-6">
@@ -432,7 +447,7 @@ export default function ScheduleStep1() {
                 label="Live Stream Platform"
                 name="sessionPlatform"
                 labelStyle="font-thin"
-                options={WAITING_ROOM_OPTIONS}
+                options={STREAMING_OPTIONS}
                 control={form.control}
                 className="mt-[8px] w-56 font-thin"
             />
@@ -513,72 +528,77 @@ export default function ScheduleStep1() {
         </div>
     );
 
-    const renderWaitingRoomAndUpload = () => (
-        <div className="flex flex-row items-start gap-4">
-            <SelectField
-                label="Open Waiting Room Before"
-                name="openWaitingRoomBefore"
-                labelStyle="font-thin"
-                options={WAITING_ROOM_OPTIONS}
-                control={form.control}
-                className="mt-[8px] w-56 font-thin"
-            />
-            <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileSelect}
-                accept=".png, .jpg, .jpeg"
-                className="hidden"
-            />
-            <input
-                type="file"
-                ref={musicFileInputRef}
-                onChange={handleMusicFileSelect}
-                accept=".mp3, .wav, .ogg, .m4a, .aac, .flac, .wma, .aiff, .au, .mid, .midi, .mp2, .mp3, .m4a, .aac, .flac, .wma, .aiff, .au, .mid, .midi"
-                className="hidden"
-            />
-            <div className="flex flex-col items-start gap-2">
-                <div className="flex flex-col gap-2">
-                    <div>Thumbnail</div>
-                    <MyButton
-                        type="button"
-                        buttonType="secondary"
-                        onClick={handleUploadClick}
-                        className="flex items-center gap-2"
-                    >
-                        <UploadSimple size={20} />
-                        Upload
-                    </MyButton>
-                </div>
-                {selectedFile && (
-                    <div className="mt-2 flex flex-row items-center gap-2 rounded-md border border-primary-500 p-1 text-sm">
-                        {selectedFile.name}{' '}
-                        <X className="cursor-pointer" onClick={handleRemoveFile} />
+    const renderWaitingRoomAndUpload = () => {
+        if (form.watch('enableWaitingRoom')) {
+            return (
+                <div className="flex flex-row items-start gap-4">
+                    <SelectField
+                        label="Open Waiting Room Before"
+                        name="openWaitingRoomBefore"
+                        labelStyle="font-thin"
+                        options={WAITING_ROOM_OPTIONS}
+                        control={form.control}
+                        className="mt-[8px] w-56 font-thin"
+                    />
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileSelect}
+                        accept=".png, .jpg, .jpeg"
+                        className="hidden"
+                    />
+                    <input
+                        type="file"
+                        ref={musicFileInputRef}
+                        onChange={handleMusicFileSelect}
+                        accept=".mp3, .wav, .ogg, .m4a, .aac, .flac, .wma, .aiff, .au, .mid, .midi, .mp2, .mp3, .m4a, .aac, .flac, .wma, .aiff, .au, .mid, .midi"
+                        className="hidden"
+                    />
+                    <div className="flex flex-col items-start gap-2">
+                        <div className="flex flex-col gap-2">
+                            <div>Thumbnail</div>
+                            <MyButton
+                                type="button"
+                                buttonType="secondary"
+                                onClick={handleUploadClick}
+                                className="flex items-center gap-2"
+                            >
+                                <UploadSimple size={20} />
+                                Upload
+                            </MyButton>
+                        </div>
+                        {selectedFile && (
+                            <div className="mt-2 flex flex-row items-center gap-2 rounded-md border border-primary-500 p-1 text-sm">
+                                {selectedFile.name}{' '}
+                                <X className="cursor-pointer" onClick={handleRemoveFile} />
+                            </div>
+                        )}
                     </div>
-                )}
-            </div>
-            <div className="flex flex-col items-start gap-2">
-                <div className="flex flex-col gap-2">
-                    <div>Background Score</div>
-                    <MyButton
-                        type="button"
-                        buttonType="secondary"
-                        onClick={handleMusicUploadClick}
-                        className="flex items-center gap-2"
-                    >
-                        <UploadSimple size={20} />
-                        Upload
-                    </MyButton>
-                </div>
-                {selectedMusicFile && (
-                    <div className="mt-2 flex flex-row items-center gap-2 rounded-md border border-primary-500 p-1 text-sm">
-                        {selectedMusicFile.name}
-                        <X className="cursor-pointer" onClick={handleRemoveMusicFile} />
+                    <div className="flex flex-col items-start gap-2">
+                        <div className="flex flex-col gap-2">
+                            <div>Background Score</div>
+                            <MyButton
+                                type="button"
+                                buttonType="secondary"
+                                onClick={handleMusicUploadClick}
+                                className="flex items-center gap-2"
+                            >
+                                <UploadSimple size={20} />
+                                Upload
+                            </MyButton>
+                        </div>
+                        {selectedMusicFile && (
+                            <div className="mt-2 flex flex-row items-center gap-2 rounded-md border border-primary-500 p-1 text-sm">
+                                {selectedMusicFile.name}
+                                <X className="cursor-pointer" onClick={handleRemoveMusicFile} />
+                            </div>
+                        )}
                     </div>
-                )}
-            </div>
-        </div>
-    );
+                </div>
+            );
+        }
+        return <></>;
+    };
 
     const renderRecurringSchedule = () =>
         meetingType === RecurringType.WEEKLY && (

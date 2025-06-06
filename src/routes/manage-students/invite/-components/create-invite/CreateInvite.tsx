@@ -6,7 +6,7 @@ import { MyButton } from '@/components/design-system/button';
 import { Copy, Plus } from 'phosphor-react';
 import { InviteForm } from '../../-schema/InviteFormSchema';
 import formDataToRequestData from '../../-utils/formDataToRequestData';
-import { LearnerInvitationType } from '../../-types/create-invitation-types';
+import {  LearnerInvitationType} from '../../-types/create-invitation-types';
 import { toast } from 'sonner';
 import createInviteLink from '../../-utils/createInviteLink';
 import { useInviteFormContext } from '../../-context/useInviteFormContext';
@@ -106,7 +106,7 @@ export const CreateInvite = () => {
                 dialogWidth="w-[35vw] overflow-x-hidden"
             >
                 <div className="flex w-fit items-center gap-4 overflow-x-hidden">
-                    <p className="w-[50%] truncate rounded-lg border border-neutral-300 p-2 text-neutral-500">
+                    <p className="w-[30vw] truncate rounded-lg border border-neutral-300 p-2 text-neutral-500">
                         {inviteLink}
                     </p>
                     <div className="flex items-center gap-2">

@@ -15,23 +15,13 @@ import type {
     ExcalidrawBinaryFiles,
 } from './utils/types';
 import { SlideTypeEnum } from './utils/types';
-import type { LiveSlideResponse } from './ActualPresentationDisplay';
 
 interface SlideRendererProps {
     currentSlideId: string;
     editMode: boolean;
-    liveResponses?: LiveSlideResponse[] | null;
-    isLoadingLiveResponses?: boolean;
-    liveSessionId?: string | null;
 }
 
-export const SlideRenderer: React.FC<SlideRendererProps> = ({
-    currentSlideId,
-    editMode,
-    liveResponses,
-    isLoadingLiveResponses,
-    liveSessionId,
-}) => {
+export const SlideRenderer: React.FC<SlideRendererProps> = ({ currentSlideId, editMode }) => {
     const getSlide = useSlideStore((state) => state.getSlide);
     const rawUpdateSlide = useSlideStore((state) => state.updateSlide);
 
@@ -79,9 +69,6 @@ export const SlideRenderer: React.FC<SlideRendererProps> = ({
                     currentSlideId={currentSlideId}
                     key={quizSlideKey}
                     isPresentationMode={!editMode} // This prop controls if QuizSlide is in view or edit mode
-                    liveResponses={liveResponses}
-                    isLoadingLiveResponses={isLoadingLiveResponses}
-                    liveSessionId={liveSessionId}
                 />
             );
         default:
