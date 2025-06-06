@@ -21,12 +21,25 @@ const levelSchema = z.object({
     packageSessionId: z.string(),
 });
 
-const batchSchema = z.object({
-    maxCourses: z.number(),
-    courseSelectionMode: selectionModeSchema,
-    preSelectedCourses: z.array(BatchForSessionSchema),
-    learnerChoiceCourses: z.array(BatchForSessionSchema),
-});
+const batchSchema = z
+    .object({
+        maxCourses: z.number().or(z.nan()),
+        courseSelectionMode: selectionModeSchema,
+        preSelectedCourses: z.array(BatchForSessionSchema),
+        learnerChoiceCourses: z.array(BatchForSessionSchema),
+    })
+    .refine(
+        (data) => {
+            if (data.courseSelectionMode === 'student') {
+                return !isNaN(data.maxCourses);
+            }
+            return true;
+        },
+        {
+            message: 'This field is required',
+            path: ['maxCourses'],
+        }
+    );
 
 const customFieldSchema = z.object({
     id: z.number(),
