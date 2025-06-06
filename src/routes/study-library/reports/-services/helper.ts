@@ -1,6 +1,6 @@
-import { LearnersReportResponse, TransformedReport } from "../-types/types";
-import { ChartDataType } from "../-components/student/lineChart";
-import dayjs from "dayjs";
+import { LearnersReportResponse, TransformedReport } from '../-types/types';
+import { ChartDataType } from '../-components/student/lineChart';
+import dayjs from 'dayjs';
 
 export const transformLearnersReport = (report: LearnersReportResponse): TransformedReport[] => {
     const learnerData = report.learner_progress_report.daily_time_spent;
@@ -11,9 +11,9 @@ export const transformLearnersReport = (report: LearnersReportResponse): Transfo
     // Process learner data
     learnerData.forEach(({ activity_date, avg_daily_time_minutes }) => {
         reportMap.set(activity_date, {
-            date: dayjs(activity_date).format("DD/MM/YYYY"),
+            date: dayjs(activity_date).format('DD/MM/YYYY'),
             timeSpent: `${convertMinutesToTimeFormat(avg_daily_time_minutes)}`,
-            timeSpentBatch: "0 min", // Default, will update if batch data exists
+            timeSpentBatch: '0 min', // Default, will update if batch data exists
         });
     });
 
@@ -21,12 +21,12 @@ export const transformLearnersReport = (report: LearnersReportResponse): Transfo
     batchData.forEach(({ activity_date, avg_daily_time_minutes }) => {
         if (reportMap.has(activity_date)) {
             reportMap.get(activity_date)!.timeSpentBatch = `${convertMinutesToTimeFormat(
-                avg_daily_time_minutes,
+                avg_daily_time_minutes
             )}`;
         } else {
             reportMap.set(activity_date, {
                 date: activity_date,
-                timeSpent: "0 min", // Default, will update if learner data exists
+                timeSpent: '0 min', // Default, will update if learner data exists
                 timeSpentBatch: `${convertMinutesToTimeFormat(avg_daily_time_minutes)}`,
             });
         }
@@ -53,7 +53,8 @@ export const transformToChartData = (report: LearnersReportResponse): ChartDataT
     // Process batch data
     batchData.forEach(({ activity_date, avg_daily_time_minutes }) => {
         if (chartDataMap.has(activity_date)) {
-            chartDataMap.get(activity_date)!.avg_daily_time_minutes_batch = avg_daily_time_minutes;
+            chartDataMap.get(activity_date)!.avg_daily_time_minutes_batch =
+                avg_daily_time_minutes / 60;
         } else {
             chartDataMap.set(activity_date, {
                 activity_date,
@@ -67,12 +68,12 @@ export const transformToChartData = (report: LearnersReportResponse): ChartDataT
 };
 
 export const formatToTwoDecimalPlaces = (value: string | number | undefined | null): string => {
-    if (!value) return "0.00";
-    if (typeof value === "number") {
-        return isNaN(value) ? "0.00" : value.toFixed(2);
+    if (!value) return '0.00';
+    if (typeof value === 'number') {
+        return isNaN(value) ? '0.00' : value.toFixed(2);
     }
     const num = parseFloat(value);
-    return isNaN(num) ? "0.00" : num.toFixed(2);
+    return isNaN(num) ? '0.00' : num.toFixed(2);
 };
 export function convertMinutesToTimeFormat(totalMinutes: number): string {
     const totalSeconds: number = Math.floor(totalMinutes * 60);
@@ -89,11 +90,11 @@ export const convertCommaSeparatedToArray = (input: string | null | undefined): 
         return []; // Return an empty array if input is null, empty, or undefined
     }
     return input
-        .split(",")
+        .split(',')
         .map((item) => item.trim())
-        .filter((item) => item !== "");
+        .filter((item) => item !== '');
 };
 
 export const arrayToCommaSeparatedString = (arr: string[]): string | null => {
-    return arr.length === 0 ? null : arr.join(", ");
+    return arr.length === 0 ? null : arr.join(', ');
 };
