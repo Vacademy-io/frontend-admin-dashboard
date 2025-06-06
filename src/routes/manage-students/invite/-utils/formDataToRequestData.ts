@@ -152,6 +152,7 @@ export const fetchCustomFields = (data: InviteForm): CustomFieldType[] => {
             description: '',
             is_mandatory: field.isRequired,
             comma_separated_options: field.options?.map((option) => option.value).join(',') || '',
+            status: field.status
         })) || [];
     return customFields;
 };

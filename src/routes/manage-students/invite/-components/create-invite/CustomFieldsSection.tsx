@@ -4,6 +4,7 @@ import { Plus, TrashSimple } from 'phosphor-react';
 import { AddCustomFieldDialog, DropdownOption } from './AddCustomFieldDialog';
 import { useFormContext } from 'react-hook-form';
 import { InviteForm } from '../../-schema/InviteFormSchema';
+import { MandatoryKeys } from '../../-utils/inviteLinkKeyChecks';
 
 interface CustomFieldsSectionProps {
     toggleIsRequired: (id: number) => void;
@@ -37,7 +38,7 @@ export const CustomFieldsSection = ({
         <div className="flex flex-col gap-4">
             <p className="text-title font-semibold">Invite input field</p>
             <div className="flex flex-col gap-4">
-                {customFields?.map((field) => (
+                {customFields?.filter((field) => field.status === 'ACTIVE')?.map((field) => (
                     <div key={field.id} className="flex items-center gap-4">
                         <div className="flex w-3/4 items-center justify-between rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-2">
                             <h1 className="text-sm">
@@ -50,7 +51,7 @@ export const CustomFieldsSection = ({
                                 )}
                             </h1>
                             <div className="flex items-center gap-6">
-                                {!field.oldKey && (
+                                {(!field.oldKey && !MandatoryKeys(field.name)) && (
                                     <MyButton
                                         type="button"
                                         scale="small"
@@ -63,7 +64,7 @@ export const CustomFieldsSection = ({
                                 )}
                             </div>
                         </div>
-                        {!field.oldKey && (
+                        {(!field.oldKey && !MandatoryKeys(field.name)) && (
                             <>
                                 <h1 className="text-sm">Required</h1>
                                 <Switch
@@ -76,7 +77,7 @@ export const CustomFieldsSection = ({
                 ))}
             </div>
             <div className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-3">
-                {!customFields?.some((field) => field.name === 'Gender') && (
+                {!customFields.filter((field) => field.status === 'ACTIVE')?.some((field) => field.name === 'Gender') && (
                     <MyButton
                         type="button"
                         scale="medium"
@@ -90,7 +91,7 @@ export const CustomFieldsSection = ({
                         <Plus size={32} /> Add Gender
                     </MyButton>
                 )}
-                {!customFields?.some((field) => field.name === 'State') && (
+                {!customFields.filter((field) => field.status === 'ACTIVE')?.some((field) => field.name === 'State') && (
                     <MyButton
                         type="button"
                         scale="medium"
@@ -100,7 +101,7 @@ export const CustomFieldsSection = ({
                         <Plus size={32} /> Add State
                     </MyButton>
                 )}
-                {!customFields?.some((field) => field.name === 'City') && (
+                {!customFields.filter((field) => field.status === 'ACTIVE')?.some((field) => field.name === 'City') && (
                     <MyButton
                         type="button"
                         scale="medium"
@@ -110,7 +111,7 @@ export const CustomFieldsSection = ({
                         <Plus size={32} /> Add City
                     </MyButton>
                 )}
-                {!customFields?.some((field) => field.name === 'School/College') && (
+                {!customFields.filter((field) => field.status === 'ACTIVE')?.some((field) => field.name === 'School/College') && (
                     <MyButton
                         type="button"
                         scale="medium"
@@ -122,7 +123,7 @@ export const CustomFieldsSection = ({
                         <Plus size={32} /> Add School/College
                     </MyButton>
                 )}
-                {!customFields?.some((field) => field.name === 'Address') && (
+                {!customFields.filter((field) => field.status === 'ACTIVE')?.some((field) => field.name === 'Address') && (
                     <MyButton
                         type="button"
                         scale="medium"
@@ -132,7 +133,7 @@ export const CustomFieldsSection = ({
                         <Plus size={32} /> Add Address
                     </MyButton>
                 )}
-                {!customFields?.some((field) => field.name === 'Pincode') && (
+                {!customFields.filter((field) => field.status === 'ACTIVE')?.some((field) => field.name === 'Pincode') && (
                     <MyButton
                         type="button"
                         scale="medium"
@@ -142,7 +143,7 @@ export const CustomFieldsSection = ({
                         <Plus size={32} /> Pincode
                     </MyButton>
                 )}
-                {!customFields?.some((field) => field.name === 'Father Name') && (
+                {!customFields.filter((field) => field.status === 'ACTIVE')?.some((field) => field.name === 'Father Name') && (
                     <MyButton
                         type="button"
                         scale="medium"
@@ -152,7 +153,7 @@ export const CustomFieldsSection = ({
                         <Plus size={32} /> Father Name
                     </MyButton>
                 )}
-                {!customFields?.some((field) => field.name === 'Mother Name') && (
+                {!customFields.filter((field) => field.status === 'ACTIVE')?.some((field) => field.name === 'Mother Name') && (
                     <MyButton
                         type="button"
                         scale="medium"
@@ -162,7 +163,7 @@ export const CustomFieldsSection = ({
                         <Plus size={32} /> Mother Name
                     </MyButton>
                 )}
-                {!customFields?.some((field) => field.name === 'Parent Phone Number') && (
+                {!customFields.filter((field) => field.status === 'ACTIVE')?.some((field) => field.name === 'Parent Phone Number') && (
                     <MyButton
                         type="button"
                         scale="medium"
@@ -174,7 +175,7 @@ export const CustomFieldsSection = ({
                         <Plus size={32} /> Parent Phone Number
                     </MyButton>
                 )}
-                {!customFields?.some((field) => field.name === 'Parent Email') && (
+                {!customFields.filter((field) => field.status === 'ACTIVE')?.some((field) => field.name === 'Parent Email') && (
                     <MyButton
                         type="button"
                         scale="medium"
@@ -192,6 +193,7 @@ export const CustomFieldsSection = ({
                         </MyButton>
                     }
                     onAddField={handleAddCustomField}
+                    customFields={customFields?.filter((field) => field.status === 'ACTIVE')}
                 />
             </div>
         </div>

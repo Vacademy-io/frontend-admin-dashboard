@@ -6,7 +6,7 @@ export interface CustomFieldType {
     description: string;
     is_mandatory: boolean;
     comma_separated_options: string;
-    status?: string;
+    status: string;
 }
 
 export interface InviteLevelType {

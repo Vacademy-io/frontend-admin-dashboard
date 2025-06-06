@@ -72,6 +72,7 @@ const customFieldSchema = z.object({
         )
         .optional(),
     _id: z.string().optional(),
+    status: z.enum(['ACTIVE', 'DELETED']),
 });
 
 // Create schema for form validation
@@ -102,6 +103,7 @@ export const defaultFormValues: Partial<InviteForm> = {
             name: 'Full Name',
             oldKey: true,
             isRequired: true,
+            status: "ACTIVE"
         },
         {
             id: 1,
@@ -109,6 +111,7 @@ export const defaultFormValues: Partial<InviteForm> = {
             name: 'Email',
             oldKey: true,
             isRequired: true,
+            status: "ACTIVE"
         },
         {
             id: 2,
@@ -116,6 +119,7 @@ export const defaultFormValues: Partial<InviteForm> = {
             name: 'Phone Number',
             oldKey: true,
             isRequired: true,
+            status: "ACTIVE"
         },
     ],
     batches: {
