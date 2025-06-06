@@ -187,7 +187,7 @@ export default function formDataToRequestData(
             name: data.inviteLink,
             status: data.activeStatus ? 'ACTIVE' : 'INACTIVE',
             date_generated: null,
-            expiry_date: new Date(new Date().setDate(new Date().getDate() + 7)).toISOString(),
+            expiry_date: new Date(new Date().setDate(new Date().getDate() + data.studentExpiryDays)).toISOString(),
             institute_id: INSTITUTE_ID || '',
             invite_code: null,
             batch_options_json: JSON.stringify(batchOptionJson),

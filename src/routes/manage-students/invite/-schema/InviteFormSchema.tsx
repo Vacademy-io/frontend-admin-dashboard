@@ -28,18 +28,33 @@ const batchSchema = z
         preSelectedCourses: z.array(BatchForSessionSchema),
         learnerChoiceCourses: z.array(BatchForSessionSchema),
     })
-    .refine(
-        (data) => {
-            if (data.courseSelectionMode === 'student') {
-                return !isNaN(data.maxCourses);
+    .superRefine((data, ctx) => {
+        if (data.courseSelectionMode === 'student') {
+            if (isNaN(data.maxCourses)) {
+                ctx.addIssue({
+                    code: 'custom',
+                    message: 'This field is required',
+                    path: ['maxCourses'],
+                });
             }
-            return true;
-        },
-        {
-            message: 'This field is required',
-            path: ['maxCourses'],
+            if (data.learnerChoiceCourses.length === 1) {
+                ctx.addIssue({
+                    code: 'custom',
+                    message: 'invite link for this batch is already present',
+                    path: ['learnerChoiceCourses'],
+                });
+            }
         }
-    );
+        if (data.courseSelectionMode === 'institute') {
+            if (data.preSelectedCourses.length === 1) {
+                ctx.addIssue({
+                    code: 'custom',
+                    message: 'invite link for this batch is already present',
+                    path: ['preSelectedCourses'],
+                });
+            }
+        }
+    });
 
 const customFieldSchema = z.object({
     id: z.number(),
