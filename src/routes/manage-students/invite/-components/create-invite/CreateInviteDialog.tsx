@@ -332,6 +332,10 @@ export const CreateInviteDialog = ({
                                                                 'batches.preSelectedCourses',
                                                                 []
                                                             );
+                                                            form.setValue(
+                                                                'batches.maxCourses',
+                                                                NaN
+                                                            );
                                                         }
 
                                                         field.onChange(value);
@@ -395,7 +399,6 @@ export const CreateInviteDialog = ({
                                                                                                   b.id !==
                                                                                                   batch.id
                                                                                           );
-                                                                                // form.setValue("batches.preSelectedCourses", newValue);
                                                                                 field.onChange(
                                                                                     newValue
                                                                                 );
@@ -419,6 +422,11 @@ export const CreateInviteDialog = ({
                                                     }}
                                                 />
                                             ))}
+                                            {errors.batches?.preSelectedCourses?.message && (
+                                                    <p className="text-danger-600">
+                                                        {errors.batches?.preSelectedCourses?.message}
+                                                    </p>
+                                                )}
                                         </div>
                                     ) : (
                                         <div className="flex flex-col gap-2 text-caption">
@@ -484,8 +492,12 @@ export const CreateInviteDialog = ({
                                                                     </FormItem>
                                                                 );
                                                             }}
-                                                        />
-                                                    )
+                                                        />)
+                                                    )}
+                                                {errors.batches?.learnerChoiceCourses?.message && (
+                                                    <p className="text-danger-600">
+                                                        {errors.batches?.learnerChoiceCourses?.message}
+                                                    </p>
                                                 )}
                                             </div>
 
@@ -502,11 +514,11 @@ export const CreateInviteDialog = ({
                                                                         <label className="text-body">
                                                                             Enter max number of
                                                                             batches a student can
-                                                                            select
+                                                                            select <span className='text-danger-600'>*</span>
                                                                         </label>
                                                                         <input
                                                                             type="number"
-                                                                            value={field.value || 1}
+                                                                            value={field.value || ''}
                                                                             onChange={(e) => {
                                                                                 const learnerChoiceNumber =
                                                                                     getValues(
@@ -516,7 +528,7 @@ export const CreateInviteDialog = ({
                                                                                     parseInt(
                                                                                         e.target
                                                                                             .value
-                                                                                    ) || 1;
+                                                                                    );
                                                                                 const value =
                                                                                     numValue <= 0
                                                                                         ? 1
@@ -528,9 +540,17 @@ export const CreateInviteDialog = ({
                                                                                     value
                                                                                 );
                                                                             }}
-                                                                            onWheel={(e) => e.preventDefault()}
+                                                                            onWheel={(e) => {
+                                                                                e.preventDefault();
+                                                                                (e.target as HTMLInputElement).blur();
+                                                                            }}
                                                                             className="w-[50px] rounded-lg border border-neutral-300 px-2 py-1"
                                                                         />
+                                                                        { errors.batches?.maxCourses?.message &&
+                                                                            <p className="text-danger-600">
+                                                                                {errors.batches.maxCourses.message}
+                                                                            </p>
+                                                                        }
                                                                     </div>
                                                                 </FormControl>
                                                             </FormItem>
@@ -546,7 +566,7 @@ export const CreateInviteDialog = ({
 
                         {/* Student Expiry Date */}
                         <div className="flex items-center gap-6" id="student-access-duration">
-                            <p className="text-subtitle font-semibold">Link expiration date</p>
+                            <p className="text-subtitle font-semibold">Link expiration days</p>
                             <div className="flex items-center gap-2">
                                 <FormField
                                     control={control}
@@ -562,7 +582,10 @@ export const CreateInviteDialog = ({
                                                             parseInt(e.target.value) || 0
                                                         )
                                                     }
-                                                    onWheel={(e) => e.preventDefault()}
+                                                    onWheel={(e) => {
+                                                        e.preventDefault();
+                                                        (e.target as HTMLInputElement).blur(); // <- this line prevents scroll change
+                                                    }}
                                                     className="w-[70px]"
                                                 />
                                             </FormControl>
@@ -643,33 +666,6 @@ export const CreateInviteDialog = ({
                                 </div>
                             </div>
                         )}
-
-                        {/* {inviteLink && inviteLink != null && (
-                            <div className="flex flex-col gap-10">
-                                <Separator />
-                                <div className="flex w-fit items-center gap-4">
-                                    <p className="w-[50%] overflow-hidden text-ellipsis whitespace-nowrap rounded-lg border border-neutral-300 p-2 text-neutral-500">
-                                        {inviteLink}
-                                    </p>
-                                    <div className="flex items-center gap-2">
-                                        <MyButton
-                                            buttonType="secondary"
-                                            scale="medium"
-                                            layoutVariant="icon"
-                                            onClick={() => handleCopyClick(inviteLink)}
-                                            type="button"
-                                        >
-                                            <Copy />
-                                        </MyButton>
-                                        {copySuccess === inviteLink && (
-                                            <span className="text-caption text-primary-500">
-                                                Copied!
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        )} */}
                     </div>
                 </form>
             </FormProvider>

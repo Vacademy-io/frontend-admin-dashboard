@@ -35,6 +35,7 @@ export interface ActivityLogType {
         end_time_in_millis: number;
         page_number: number;
     }[];
+    concentrationScore: number;
 }
 
 const BatchCell = ({
@@ -370,6 +371,10 @@ export const activityLogColumns: ColumnDef<ActivityLogType>[] = [
     {
         accessorKey: 'concentrationScore',
         header: 'Concentration Score',
+        cell: ({ row }) => {
+            const concentrationScore = row.original.concentrationScore;
+            return <div>{concentrationScore.toFixed(2)}</div>;
+        },
     },
     {
         accessorKey: 'lastPageRead',
