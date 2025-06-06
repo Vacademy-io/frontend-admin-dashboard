@@ -36,9 +36,10 @@ export const CSVFormatDialog = ({
         studentStatus: 'ACTIVE',
         fatherName: false,
         motherName: false,
-        guardianName: false,
-        parentEmail: false,
-        parentMobile: false,
+        fatherEmail: false,
+        motherEmail: false,
+        fatherMobile: false,
+        motherMobile: false,
         collegeName: false,
         state: false,
         city: false,
@@ -238,11 +239,16 @@ export const CSVFormatDialog = ({
                                     { name: 'state', label: 'State' },
                                     { name: 'guardianName', label: "Guardian's Name" },
                                     { name: 'city', label: 'City' },
-                                    { name: 'parentEmail', label: "Parent/Guardian's Email" },
+                                    { name: 'fatherEmail', label: "Father/Male Guardian's Email" },
+                                    { name: 'motherEmail', label: "Mother/Female Guardian's Email" },
                                     { name: 'pincode', label: 'Pincode' },
                                     {
-                                        name: 'parentMobile',
-                                        label: "Parent/Guardian's Mobile Number",
+                                        name: 'fatherMobile',
+                                        label: "Father/Male Guardian's Mobile Number",
+                                    },
+                                    {
+                                        name: 'motherMobile',
+                                        label: "Mother/Female Guardian's Mobile Number",
                                     },
                                 ].map((field) => (
                                     <FormField
