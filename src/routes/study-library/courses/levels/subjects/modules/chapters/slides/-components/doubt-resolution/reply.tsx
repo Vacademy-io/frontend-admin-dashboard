@@ -6,6 +6,7 @@ import { getPublicUrl } from '@/services/upload_file';
 import { useEffect, useState } from 'react';
 import { EnrollFormUploadImage } from '@/assets/svgs';
 import { getUserId } from '@/utils/userDetails';
+import { Trash } from '@phosphor-icons/react';
 
 export const Reply = ({ reply, refetch }: { reply: Doubt; refetch: () => void }) => {
     const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -28,38 +29,41 @@ export const Reply = ({ reply, refetch }: { reply: Doubt; refetch: () => void })
     }, [userBasicDetails?.[0]?.face_file_id]);
 
     return (
-        <div className="text-regular flex flex-col max-sm:text-caption">
-            <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+        <div className="flex flex-col gap-2 rounded-md bg-neutral-50 p-3">
+            <div className="flex items-start justify-between">
                 <div className="flex items-center gap-2">
-                    <div className="size-8 rounded-full bg-neutral-300 object-contain sm:size-10">
-                        {/* add image here */}
+                    <div className="size-7 shrink-0 rounded-full bg-neutral-200">
                         {imageUrl ? (
                             <img
                                 src={imageUrl}
                                 alt={reply.name}
-                                className="size-full rounded-lg object-cover"
+                                className="size-full rounded-full object-cover"
                             />
                         ) : (
-                            <EnrollFormUploadImage className="size-10 object-contain" />
+                            <EnrollFormUploadImage className="size-7 rounded-full object-cover p-0.5 text-neutral-400" />
                         )}
                     </div>
-                    <p className="text-subtitle font-semibold text-neutral-700">
-                        {' '}
-                        {userBasicDetails?.[0]?.name}
-                    </p>
+                    <div>
+                        <p className="text-xs font-semibold text-neutral-700">
+                            {userBasicDetails?.[0]?.name || 'Anonymous User'}
+                        </p>
+                        <p className="text-xs text-neutral-500">
+                            {formatISODateTimeReadable(reply.raised_time)}
+                        </p>
+                    </div>
                 </div>
-                <div className="flex items-center gap-3 text-body text-neutral-500">
-                    <p>{formatISODateTimeReadable(reply.raised_time)}</p>
-                </div>
+                 {/* Render DeleteDoubt more subtly if the user is the author of the reply */}
+                 {reply.user_id === userId && (
+                    <DeleteDoubt doubt={reply} refetch={refetch} showText={false} />
+                )}
             </div>
-            {/* <p>{reply.reply_text}</p> */}
+
             <div
                 dangerouslySetInnerHTML={{
                     __html: reply.html_text || '',
                 }}
-                className="custom-html-content"
+                className="custom-html-content pl-[36px] text-sm text-neutral-700" // Indent reply content
             />
-            {reply.user_id == userId && <DeleteDoubt doubt={reply} refetch={refetch} />}
         </div>
     );
 };

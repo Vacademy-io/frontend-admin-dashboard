@@ -1,5 +1,5 @@
-import { useDoubtFilters } from "@/routes/engagement/doubt-management/-stores/filter-store";
-import { useGetDoubtList } from "@/routes/engagement/doubt-management/-services/get-doubt-list";
+import { useDoubtFilters } from "../-stores/filter-store";
+import { useGetDoubtList } from "../-services/get-doubt-list";
 import { useState } from "react";
 import { useGetUserBasicDetails, UserBasicDetails } from "@/services/get_user_basic_details";
 export const useDoubtTable = () => {

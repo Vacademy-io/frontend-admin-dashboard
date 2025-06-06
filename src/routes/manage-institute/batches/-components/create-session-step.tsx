@@ -5,7 +5,7 @@ import { RadioGroupItem, RadioGroup } from '@/components/ui/radio-group';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
-import { FormControl, FormField, FormItem } from '@/components/ui/form';
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import {
     convertToFormSession,
     Session,
@@ -21,7 +21,7 @@ export const CreateSessionStep = () => {
     const { watch } = form;
     const [sessionList, setSessionList] = useState<Session[]>([]);
     useEffect(() => {
-        setSessionList(getAllSessions().map((session) => convertToFormSession(session)));
+        setSessionList(getAllSessions().map((session: any) => convertToFormSession(session)));
     }, [instituteDetails]);
 
     const handleAddSession = (sessionName: string, startDate: string) => {
@@ -47,96 +47,106 @@ export const CreateSessionStep = () => {
 
     return (
         <div className="flex flex-col gap-6">
-            <div className="text-regular">
-                Step 2 <span className="font-semibold">Select Session</span>
-            </div>
-
             <FormField
                 control={form.control}
                 name="sessionCreationType"
-                render={({ field }) => (
-                    <FormItem>
+                render={({ field }: any) => (
+                    <FormItem className="space-y-3">
+                        <FormLabel className="text-base font-medium text-neutral-700">Session Selection</FormLabel>
                         <FormControl>
                             <RadioGroup
-                                className="flex gap-10"
-                                onValueChange={field.onChange}
+                                className="flex gap-6 pt-1"
+                                onValueChange={(value: any) => {
+                                    field.onChange(value);
+                                    form.setValue('selectedSession', null); // Reset dependent field
+                                    form.setValue('selectedStartDate', null);
+                                }}
                                 value={field.value}
                             >
-                                <div className="flex items-center gap-2">
-                                    <RadioGroupItem value="existing" id="existing" />
-                                    <label htmlFor="existing">Pre-existing session</label>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <RadioGroupItem value="new" id="new" />
-                                    <label htmlFor="new">Create new session</label>
-                                </div>
+                                <FormItem className="flex items-center space-x-2 space-y-0">
+                                    <FormControl>
+                                        <RadioGroupItem value="existing" id="existing-session" />
+                                    </FormControl>
+                                    <FormLabel htmlFor="existing-session" className="font-normal text-neutral-600 cursor-pointer">
+                                        Select existing session
+                                    </FormLabel>
+                                </FormItem>
+                                <FormItem className="flex items-center space-x-2 space-y-0">
+                                    <FormControl>
+                                        <RadioGroupItem value="new" id="new-session" />
+                                    </FormControl>
+                                    <FormLabel htmlFor="new-session" className="font-normal text-neutral-600 cursor-pointer">
+                                        Create new session
+                                    </FormLabel>
+                                </FormItem>
                             </RadioGroup>
                         </FormControl>
+                        <FormMessage />
                     </FormItem>
                 )}
             />
 
-            <div className="flex flex-col gap-1">
-                {sessionList.length > 0 && form.watch('sessionCreationType') === 'existing' && (
-                    <>
-                        <div>
-                            Session
-                            <span className="text-subtitle text-danger-600">*</span>
-                        </div>
+            {form.watch('sessionCreationType') === 'existing' && (
+                <FormField
+                    control={form.control}
+                    name="selectedSession"
+                    rules={{ required: 'Please select a session' }}
+                    render={({ field }: any) => (
+                        <FormItem className="flex flex-col gap-1.5">
+                            <FormLabel className="text-neutral-700">
+                                Session <span className="text-danger-500">*</span>
+                            </FormLabel>
+                            <FormControl>
+                                <MyDropdown
+                                    currentValue={field.value}
+                                    dropdownList={sessionList.map((session: any) => ({
+                                        id: session.id,
+                                        name: session.session_name,
+                                    }))}
+                                    handleChange={field.onChange}
+                                    placeholder="Select a session"
+                                    disable={sessionList.length === 0}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+            )}
 
-                        <FormField
-                            control={form.control}
-                            name="selectedSession"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormControl>
-                                        <MyDropdown
-                                            currentValue={field.value}
-                                            dropdownList={sessionList.map((session) => ({
-                                                id: session.id,
-                                                name: session.session_name,
-                                            }))}
-                                            handleChange={field.onChange}
-                                            placeholder="Select session"
-                                            required={true}
-                                        />
-                                    </FormControl>
-                                </FormItem>
-                            )}
-                        />
-                    </>
-                )}
-
-                {form.watch('sessionCreationType') === 'new' &&
-                    (newSessionName != '' && newSessionStartDate != '' ? (
-                        <div className="flex items-center gap-2">
-                            <div className="flex flex-col gap-1">
-                                <p className="text-body font-semibold">Session: {newSessionName}</p>
-                                <p className="text-caption text-neutral-500">
-                                    Start Date: {newSessionStartDate}
-                                </p>
-                            </div>
-                            <MyButton
-                                onClick={() => {
-                                    setNewSessionName('');
-                                    setNewSessionStartDate('');
-                                }}
-                                scale="small"
-                                layoutVariant="icon"
-                            >
-                                <X />
-                            </MyButton>
+            {form.watch('sessionCreationType') === 'new' &&
+                (newSessionName !== '' && newSessionStartDate !== '' ? (
+                    <div className="flex items-center gap-3 p-3 rounded-md border border-neutral-200 bg-neutral-50">
+                        <div className="flex flex-col flex-grow">
+                            <p className="text-sm font-medium text-neutral-700">{newSessionName}</p>
+                            <p className="text-xs text-neutral-500">
+                                Start Date: {newSessionStartDate}
+                            </p>
                         </div>
-                    ) : (
-                        <AddSessionInput
-                            newSessionName={newSessionName}
-                            setNewSessionName={setNewSessionName}
-                            newSessionStartDate={newSessionStartDate}
-                            setNewSessionStartDate={setNewSessionStartDate}
-                            handleAddSession={handleAddSession}
-                        />
-                    ))}
-            </div>
+                        <MyButton
+                            onClick={() => {
+                                setNewSessionName('');
+                                setNewSessionStartDate('');
+                                form.setValue('selectedSession', null);
+                                form.setValue('selectedStartDate', null);
+                            }}
+                            layoutVariant="icon"
+                            buttonType='text'
+                            className="text-neutral-500 hover:text-danger-600 hover:bg-danger-50 p-1"
+                            scale="small"
+                        >
+                            <X size={18} />
+                        </MyButton>
+                    </div>
+                ) : (
+                    <AddSessionInput
+                        newSessionName={newSessionName}
+                        setNewSessionName={setNewSessionName}
+                        newSessionStartDate={newSessionStartDate}
+                        setNewSessionStartDate={setNewSessionStartDate}
+                        handleAddSession={handleAddSession}
+                    />
+                ))}
         </div>
     );
 };

@@ -19,8 +19,10 @@ export const responseToFormCustomField = (responseCustomField: CustomFieldType):
         value: option,
         disabled: false,
     }));
+    console.log('responseCustomField.id: ', responseCustomField.id);
     const formCustomField: CustomField = {
-        id: Math.floor(Math.random() * 100000),
+        id:  Math.floor(Math.random() * 100000),
+        _id: responseCustomField.id || '',
         type: responseCustomField.field_type,
         name: responseCustomField.field_name,
         oldKey: true,

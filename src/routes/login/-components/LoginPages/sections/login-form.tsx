@@ -21,6 +21,7 @@ import { handleOAuthLogin } from '@/hooks/login/oauth-login';
 import { GitHubLogoIcon } from '@radix-ui/react-icons';
 import { FcGoogle } from 'react-icons/fc';
 
+
 type FormValues = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
@@ -111,6 +112,7 @@ export function LoginForm() {
                             type="button"
                         >
                             {FcGoogle({ size: 20 })}
+
                             Continue with Google
                         </button>
                         <button

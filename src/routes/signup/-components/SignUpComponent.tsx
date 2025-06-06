@@ -17,8 +17,8 @@ import { useNavigate } from '@tanstack/react-router';
 import useOrganizationStore from '../onboarding/-zustand-store/step1OrganizationZustand';
 import { useEffect } from 'react';
 import { handleOAuthLogin, type OAuthProvider } from '@/hooks/login/oauth-login';
-import { FcGoogle } from 'react-icons/fc';
 import { GitHubLogoIcon } from '@radix-ui/react-icons';
+import { FcGoogle } from 'react-icons/fc';
 
 const items = [
     {
@@ -110,6 +110,7 @@ export function SignUpComponent() {
                                     }
                                 >
                                     {FcGoogle({ size: 20 })}
+
                                     Continue with Google
                                 </button>
                                 <button

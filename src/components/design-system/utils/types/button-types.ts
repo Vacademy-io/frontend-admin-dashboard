@@ -1,3 +1,4 @@
+import React from 'react';
 import { ButtonProps } from '@/components/ui/button';
 
 export interface myButtonProps {
@@ -14,9 +15,11 @@ type ButtonLayoutVariant = 'default' | 'icon' | 'floating' | 'extendedFloating';
 // Extend from Shadcn ButtonProps instead of HTML button attributes
 export interface MyButtonProps extends Omit<ButtonProps, 'variant'> {
     className?: string;
-    buttonType?: ButtonVariantType; // renamed from 'type' to avoid confusion
+    buttonType?: ButtonVariantType;
     scale?: ButtonScale;
-    layoutVariant?: ButtonLayoutVariant; // renamed from 'variant' to avoid confusion with Shadcn's variant
+    layoutVariant?: ButtonLayoutVariant;
     children?: React.ReactNode;
     disable?: boolean;
+    onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
+    type?: 'button' | 'submit' | 'reset';
 }

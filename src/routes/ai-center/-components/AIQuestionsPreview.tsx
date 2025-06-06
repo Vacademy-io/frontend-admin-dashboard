@@ -141,6 +141,7 @@ const AIQuestionsPreview = ({
                 tags: response?.tags,
                 questions: transformQuestionsData,
             });
+            form.trigger();
         },
         onError: (error: unknown) => {
             console.log(error);
