@@ -1,10 +1,11 @@
 import { MyButton } from '@/components/design-system/button';
 import { Switch } from '@/components/ui/switch';
-import { Plus, TrashSimple } from 'phosphor-react';
+import { DotsSixVertical, Plus, TrashSimple } from 'phosphor-react';
 import { AddCustomFieldDialog, DropdownOption } from './AddCustomFieldDialog';
-import { useFormContext } from 'react-hook-form';
+import { useFieldArray, useFormContext } from 'react-hook-form';
 import { InviteForm } from '../../-schema/InviteFormSchema';
 import { MandatoryKeys } from '../../-utils/inviteLinkKeyChecks';
+import { Sortable, SortableDragHandle, SortableItem } from '@/components/ui/sortable';
 
 interface CustomFieldsSectionProps {
     toggleIsRequired: (id: number) => void;
@@ -22,8 +23,12 @@ export const CustomFieldsSection = ({
     handleAddOpenFieldValues,
     handleDeleteOpenField,
 }: CustomFieldsSectionProps) => {
-    const { watch, control, setValue } = useFormContext<InviteForm>();
+    const { watch, control } = useFormContext<InviteForm>();
     const customFields = watch('custom_fields');
+    const { fields, move } = useFieldArray({
+        control,
+        name: 'custom_fields',
+    });
 
     const handleAddCustomField = (
         type: string,
@@ -37,45 +42,70 @@ export const CustomFieldsSection = ({
     return (
         <div className="flex flex-col gap-4">
             <p className="text-title font-semibold">Invite input field</p>
-            <div className="flex flex-col gap-4">
-                {customFields?.filter((field) => field.status === 'ACTIVE')?.map((field) => (
-                    <div key={field.id} className="flex items-center gap-4">
-                        <div className="flex w-3/4 items-center justify-between rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-2">
-                            <h1 className="text-sm">
-                                {field.name}
-                                {field.oldKey && (
-                                    <span className="text-subtitle text-danger-600">*</span>
-                                )}
-                                {!field.oldKey && field.isRequired && (
-                                    <span className="text-subtitle text-danger-600">*</span>
-                                )}
-                            </h1>
-                            <div className="flex items-center gap-6">
-                                {(!field.oldKey && !MandatoryKeys(field.name)) && (
-                                    <MyButton
-                                        type="button"
-                                        scale="small"
-                                        buttonType="secondary"
-                                        className="min-w-6 !rounded-sm !p-0"
-                                        onClick={() => handleDeleteOpenField(field.id)}
-                                    >
-                                        <TrashSimple className="!size-4 text-danger-500" />
-                                    </MyButton>
+            <Sortable
+                value={fields}
+                onMove={({ activeIndex, overIndex }) => {
+                    move(activeIndex, overIndex);
+                }}
+                fast={false}
+            >
+                <div className="flex flex-col gap-4">
+                    {fields.map((field) => (
+                        <SortableItem key={field.id} value={field.id} asChild>
+                            <div
+                                className={`flex items-center gap-4 ${
+                                    field.status === 'DELETED' ? 'hidden' : ''
+                                }`}
+                            >
+                                <div className="flex w-3/4 items-center justify-between rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-2">
+                                    <h1 className="text-sm">
+                                        {field.name}
+                                        {field.oldKey && (
+                                            <span className="text-subtitle text-danger-600">
+                                                *
+                                            </span>
+                                        )}
+                                        {!field.oldKey && field.isRequired && (
+                                            <span className="text-subtitle text-danger-600">
+                                                *
+                                            </span>
+                                        )}
+                                    </h1>
+                                    <div className="flex items-center gap-6">
+                                        {!field.oldKey && !MandatoryKeys(field.name) && (
+                                            <MyButton
+                                                type="button"
+                                                scale="small"
+                                                buttonType="secondary"
+                                                className="min-w-6 !rounded-sm !p-0"
+                                                onClick={() => handleDeleteOpenField(field.id)}
+                                            >
+                                                <TrashSimple className="!size-4 text-danger-500" />
+                                            </MyButton>
+                                        )}
+                                        <SortableDragHandle
+                                            variant="ghost"
+                                            size="icon"
+                                            className="cursor-grab"
+                                        >
+                                            <DotsSixVertical size={20} />
+                                        </SortableDragHandle>
+                                    </div>
+                                </div>
+                                {!field.oldKey && !MandatoryKeys(field.name) && (
+                                    <>
+                                        <h1 className="text-sm">Required</h1>
+                                        <Switch
+                                            checked={field.isRequired}
+                                            onCheckedChange={() => toggleIsRequired(field.id)}
+                                        />
+                                    </>
                                 )}
                             </div>
-                        </div>
-                        {(!field.oldKey && !MandatoryKeys(field.name)) && (
-                            <>
-                                <h1 className="text-sm">Required</h1>
-                                <Switch
-                                    checked={field.isRequired}
-                                    onCheckedChange={() => toggleIsRequired(field.id)}
-                                />
-                            </>
-                        )}
-                    </div>
-                ))}
-            </div>
+                        </SortableItem>
+                    ))}
+                </div>
+            </Sortable>
             <div className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-3">
                 {!customFields.filter((field) => field.status === 'ACTIVE')?.some((field) => field.name === 'Gender') && (
                     <MyButton
@@ -193,7 +223,7 @@ export const CustomFieldsSection = ({
                         </MyButton>
                     }
                     onAddField={handleAddCustomField}
-                    customFields={customFields?.filter((field) => field.status === 'ACTIVE')}
+                    customFields={customFields}
                 />
             </div>
         </div>

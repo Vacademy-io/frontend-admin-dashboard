@@ -45,7 +45,7 @@ export const useInviteForm = (initialValues?: InviteForm) => {
         const updatedFields = [
             ...customFields,
             {
-                id: customFields.length,
+                id: customFields.length > 0 ? Math.max(...customFields.map((f) => f.id)) + 1 : 0,
                 type,
                 name,
                 oldKey,
