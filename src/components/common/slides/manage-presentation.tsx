@@ -274,7 +274,8 @@ export default function ManagePresentation() {
                     {filteredPresentations.map((p) => (
                         <Card
                             key={p.id}
-                            className="group flex flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm transition-all duration-300 hover:border-orange-300 hover:shadow-lg"
+                            className="group flex flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm transition-all duration-300 hover:border-orange-300 hover:shadow-lg cursor-pointer"
+                            onClick={() => handleEditPresentationDetails(p)}
                         >
                             <CardHeader className="px-4 pb-3 pt-4">
                                 <CardTitle className="line-clamp-2 text-lg font-semibold leading-tight text-neutral-800 transition-colors hover:text-orange-600">
@@ -317,7 +318,8 @@ export default function ManagePresentation() {
                                         variant="ghost"
                                         size="icon"
                                         className="h-8 w-8 rounded-md text-neutral-500 hover:bg-blue-100 hover:text-blue-600"
-                                        onClick={() => {
+                                        onClick={(e) => {
+                                            e.stopPropagation();
                                             const shareUrl = `https://engage.vacademy.io/presentation/public/${p.id}`;
                                             window.open(shareUrl, '_blank');
                                             toast.info("Public presentation link opened!");
@@ -330,7 +332,10 @@ export default function ManagePresentation() {
                                         variant="ghost"
                                         size="icon"
                                         className="h-8 w-8 rounded-md text-neutral-500 hover:bg-green-100 hover:text-green-600"
-                                        onClick={() => handleDirectStartLive(p)}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDirectStartLive(p)
+                                        }}
                                         title="Start Live Session"
                                     >
                                         <Tv2 className="h-4 w-4" />
@@ -339,7 +344,10 @@ export default function ManagePresentation() {
                                         variant="ghost"
                                         size="icon"
                                         className="h-8 w-8 rounded-md text-neutral-500 hover:bg-orange-100 hover:text-orange-600"
-                                        onClick={() => handleEditPresentationDetails(p)}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleEditPresentationDetails(p)
+                                        }}
                                         title="Edit Presentation"
                                     >
                                         <Edit className="h-4 w-4" />
@@ -348,7 +356,10 @@ export default function ManagePresentation() {
                                         variant="ghost"
                                         size="icon"
                                         className="h-8 w-8 rounded-md text-neutral-500 hover:bg-red-100 hover:text-red-600"
-                                        onClick={() => confirmDeletePresentation(p)}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            confirmDeletePresentation(p)
+                                        }}
                                         title="Delete Presentation"
                                     >
                                         <Trash2 className="h-4 w-4" />

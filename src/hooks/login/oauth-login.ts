@@ -12,7 +12,7 @@ interface OAuthLoginOptions {
 
 export const handleOAuthLogin = (provider: OAuthProvider, options: OAuthLoginOptions = {}) => {
     try {
-        const { isSignup = false, assess = false, lms = false } = options;
+        const { isSignup = true, assess = false, lms = false } = options;
 
         // Create state object with redirect information
         const stateObj = {

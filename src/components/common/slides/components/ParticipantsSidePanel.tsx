@@ -1,10 +1,12 @@
 // components/ParticipantsSidePanel.tsx
-import React, { useEffect, useState, useRef } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { X, Users, Loader2, WifiOff, Wifi, Clock } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-// import { toast } from 'sonner'; // Optional: for connection status toasts
 
+// Participant interface should ideally be imported from a shared types file if used elsewhere,
+// or defined in the parent component (ActualPresentationDisplay) that fetches the data.
+// For this refactor, assuming ActualPresentationDisplay will pass typed participants.
 interface Participant {
     username: string;
     user_id?: string | null;
@@ -16,20 +18,20 @@ interface Participant {
 }
 
 interface ParticipantsSidePanelProps {
-    sessionId: string;
+    sessionId: string; // Still needed for context, potentially for actions within the panel
     isOpen: boolean;
     onClose: () => void;
     topOffset?: string;
+    participants: Participant[]; // Received from parent
+    sseStatus: 'connecting' | 'connected' | 'disconnected'; // Received from parent
 }
 
-const ADMIN_SSE_URL_BASE_PARTICIPANTS =
-    'https://backend-stage.vacademy.io/community-service/engage/admin/';
+// const ADMIN_SSE_URL_BASE_PARTICIPANTS = ...; // Removed, SSE logic is now in parent
 
-// Helper to format date/time
+// Helper to format date/time (can remain if not duplicated elsewhere)
 const formatDateTime = (isoString?: string) => {
     if (!isoString) return 'N/A';
     try {
-        // More robust formatting, show date if not today
         const date = new Date(isoString);
         const today = new Date();
         if (
@@ -55,111 +57,21 @@ const formatDateTime = (isoString?: string) => {
 };
 
 export const ParticipantsSidePanel: React.FC<ParticipantsSidePanelProps> = ({
-    sessionId,
+    sessionId, // Retained for now, might be removed if no participant-specific actions need it directly
     isOpen,
     onClose,
     topOffset = '0px',
+    participants, // Now from props
+    sseStatus,    // Now from props
 }) => {
-    const [participants, setParticipants] = useState<Participant[]>([]);
-    const [sseStatus, setSseStatus] = useState<'connecting' | 'connected' | 'disconnected'>(
-        'connecting'
-    );
-    const eventSourceRef = useRef<EventSource | null>(null);
-
-    useEffect(() => {
-        if (!isOpen || !sessionId) {
-            if (eventSourceRef.current) {
-                eventSourceRef.current.close();
-                eventSourceRef.current = null;
-            }
-            setParticipants([]); // Clear participants when panel is closed or no session ID
-            setSseStatus('disconnected'); // Set status to disconnected
-            return;
-        }
-
-        // Close existing connection if any, before opening a new one
-        if (eventSourceRef.current) {
-            eventSourceRef.current.close();
-        }
-
-        setSseStatus('connecting');
-        setParticipants([]); // Clear participants while (re)connecting
-        console.log(`[ParticipantsPanel] SSE init. isOpen: ${isOpen}, sessionId: ${sessionId}`);
-        const sseUrl = `${ADMIN_SSE_URL_BASE_PARTICIPANTS}${sessionId}`;
-        console.log(`[ParticipantsPanel] SSE connecting to: ${sseUrl}`);
-        const newEventSource = new EventSource(sseUrl, { withCredentials: true });
-        eventSourceRef.current = newEventSource;
-
-        newEventSource.onopen = () => {
-            console.log('[ParticipantsPanel] SSE Connection Established.');
-            setSseStatus('connected');
-        };
-
-        // Listener for 'participants' event (primary for this panel)
-        const directParticipantsListener = (event: MessageEvent) => {
-            console.log("[ParticipantsPanel] Received 'participants' event data:", event.data);
-            try {
-                const parsedData = JSON.parse(event.data);
-                if (Array.isArray(parsedData)) {
-                    setParticipants(parsedData);
-                } else {
-                    console.warn(
-                        "[ParticipantsPanel] 'participants' data received is not an array:",
-                        parsedData
-                    );
-                }
-            } catch (error) {
-                console.error("[ParticipantsPanel] Error parsing 'participants' data:", error);
-            }
-        };
-        newEventSource.addEventListener('participants', directParticipantsListener);
-
-        // Listener for 'session_state_presenter' (e.g., on connect/reconnect to get full state)
-        const sessionStateListener = (event: MessageEvent) => {
-            try {
-                const data = JSON.parse(event.data);
-                console.log("[ParticipantsPanel] SSE: 'session_state_presenter' received", data);
-                if (data.participants && Array.isArray(data.participants)) {
-                    setParticipants(data.participants); // Update from full state if provided
-                }
-            } catch (e) {
-                console.warn(
-                    "[ParticipantsPanel] SSE: Error parsing 'session_state_presenter' data:",
-                    e
-                );
-            }
-        };
-        newEventSource.addEventListener('session_state_presenter', sessionStateListener);
-
-        // If your backend also sends 'participants_update' specifically for changes.
-        // For now, relying on 'participants' and 'session_state_presenter.participants'.
-        // newEventSource.addEventListener('participants_update', directParticipantsListener);
-
-        newEventSource.onerror = (error) => {
-            console.error(
-                '[ParticipantsPanel] SSE Error. Browser will attempt to reconnect.',
-                error
-            );
-            setSseStatus('disconnected');
-            // Do not call eventSource.close() here, allow browser to retry.
-        };
-
-        return () => {
-            if (newEventSource) {
-                console.log('[ParticipantsPanel] Closing SSE Connection and removing listeners.');
-                newEventSource.removeEventListener('participants', directParticipantsListener);
-                newEventSource.removeEventListener('session_state_presenter', sessionStateListener);
-                // newEventSource.removeEventListener('participants_update', directParticipantsListener);
-                newEventSource.close();
-                eventSourceRef.current = null;
-            }
-            setSseStatus('disconnected'); // Ensure status is updated on cleanup
-        };
-    }, [isOpen, sessionId]); // Effect reruns if isOpen or sessionId changes
+    // Removed local state for participants and sseStatus
+    // Removed eventSourceRef
+    // Removed SSE connection useEffect
 
     if (!isOpen) return null;
 
     const StatusIndicator = () => {
+        // Uses sseStatus from props
         if (sseStatus === 'connecting') {
             return (
                 <span title="Connecting for participant updates...">
@@ -186,13 +98,13 @@ export const ParticipantsSidePanel: React.FC<ParticipantsSidePanelProps> = ({
             className="fixed right-0 top-0 z-[1000] flex h-screen w-72 flex-col border-l border-slate-200 bg-slate-50 shadow-xl transition-transform duration-300 ease-in-out sm:w-80"
             style={{
                 transform: isOpen ? 'translateX(0)' : 'translateX(100%)',
-                height: `100vh`, // Full viewport height
+                height: `calc(100vh - ${topOffset})`, // Adjusted to use topOffset correctly if header is outside
+                top: topOffset, // Position panel below any fixed header
             }}
         >
-            {/* Panel Header: Uses flex to position content correctly, accounting for topOffset via padding */}
             <div
                 className="flex shrink-0 items-center justify-between border-b border-slate-200 bg-white p-3"
-                style={{ paddingTop: `calc(${topOffset} + 0.75rem)`, paddingBottom: '0.75rem' }}
+                // style={{ paddingTop: `calc(${topOffset} + 0.75rem)`, paddingBottom: '0.75rem' }} // Removed if topOffset handled by parent div style
             >
                 <h3 className="flex items-center text-sm font-semibold text-slate-700">
                     <Users size={18} className="mr-2 text-orange-500" /> Participants (
@@ -216,17 +128,17 @@ export const ParticipantsSidePanel: React.FC<ParticipantsSidePanelProps> = ({
                 </Button>
             </div>
 
-            {/* Participant List: ScrollArea takes remaining vertical space */}
             <ScrollArea className="grow">
                 <div className="space-y-2 p-3">
+                    {/* Render logic remains the same, using props participants and sseStatus */}
                     {sseStatus === 'connecting' && participants.length === 0 && (
                         <div className="flex flex-col items-center justify-center py-10 text-center">
                             <Loader2 className="mb-2 size-7 animate-spin text-orange-500" />
                             <p className="text-sm text-slate-500">Loading participants...</p>
                         </div>
                     )}
-                    {sseStatus === 'disconnected' &&
-                        participants.length === 0 && ( // Show only if no participants loaded yet
+                    {/* ... rest of the rendering logic for participants ... */}
+                     {sseStatus === 'disconnected' && participants.length === 0 && (
                             <div className="flex flex-col items-center justify-center rounded-md border border-red-200 bg-red-50 p-4 text-center text-red-500">
                                 <WifiOff size={28} className="mb-2" />
                                 <p className="text-sm font-medium">Connection lost</p>
@@ -235,7 +147,6 @@ export const ParticipantsSidePanel: React.FC<ParticipantsSidePanelProps> = ({
                                 </p>
                             </div>
                         )}
-                    {/* Show "No participants" only if connected and list is empty */}
                     {sseStatus === 'connected' && participants.length === 0 && (
                         <div className="px-4 py-10 text-center">
                             <Users size={36} className="mx-auto mb-3 text-slate-400" />
@@ -244,11 +155,10 @@ export const ParticipantsSidePanel: React.FC<ParticipantsSidePanelProps> = ({
                             </p>
                         </div>
                     )}
-                    {/* Always render participants if the array has items, regardless of sseStatus (to keep last known state visible during brief disconnects) */}
                     {participants.length > 0 &&
                         participants.map((p, index) => (
                             <div
-                                key={p.user_id || p.username + index} // Prefer user_id if available
+                                key={p.user_id || p.username + index}
                                 className="flex flex-col items-start justify-between rounded-md border border-slate-200 bg-white p-2.5 text-sm shadow-sm transition-colors hover:bg-slate-50"
                             >
                                 <div className="flex w-full items-center justify-between">
@@ -267,7 +177,7 @@ export const ParticipantsSidePanel: React.FC<ParticipantsSidePanelProps> = ({
                                                         p.status?.toLowerCase() ===
                                                             'inactive_disconnected'
                                                       ? 'border border-yellow-300 bg-yellow-100 text-yellow-700'
-                                                      : 'border border-slate-300 bg-slate-100 text-slate-600' // Default for 'INIT' or other statuses
+                                                      : 'border border-slate-300 bg-slate-100 text-slate-600'
                                             }`}
                                     >
                                         {p.status
@@ -275,7 +185,6 @@ export const ParticipantsSidePanel: React.FC<ParticipantsSidePanelProps> = ({
                                             : 'Unknown'}
                                     </span>
                                 </div>
-                                {/* Display last_active_at for inactive users */}
                                 {(p.status?.toLowerCase() === 'inactive' ||
                                     p.status?.toLowerCase() === 'inactive_disconnected') &&
                                     p.last_active_at && (
@@ -284,7 +193,6 @@ export const ParticipantsSidePanel: React.FC<ParticipantsSidePanelProps> = ({
                                             Last active: {formatDateTime(p.last_active_at)}
                                         </div>
                                     )}
-                                {/* Display joined_at for active users if available and different from last_active_at (or if last_active_at is not shown) */}
                                 {p.status?.toLowerCase() === 'active' && p.joined_at && (
                                     <div className="mt-1.5 flex items-center text-xs text-slate-400">
                                         Joined: {formatDateTime(p.joined_at)}
