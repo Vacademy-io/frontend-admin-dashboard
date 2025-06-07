@@ -12,6 +12,8 @@ import { useMutation } from '@tanstack/react-query';
 import { handleInviteUsers } from '../-services/dashboard-services';
 import { useState, useEffect, lazy, Suspense } from 'react'; // Added useEffect
 import { Loader2 } from 'lucide-react';
+import { hasPermission } from '@/utils/permission/permission';
+import { PERMISSION_IDS } from '@/types/permission';
 
 const LazyBatchSubjectForm = lazy(() => import('./BatchAndSubjectSelection'));
 
@@ -111,7 +113,12 @@ const InviteUsersComponent = ({ refetchData }: { refetchData: () => void }) => {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger>
-                <MyButton buttonType="primary" scale="large" layoutVariant="default">
+                <MyButton
+                    buttonType="primary"
+                    scale="large"
+                    layoutVariant="default"
+                    hidden={!hasPermission(PERMISSION_IDS.TEAMS_EDIT)}
+                >
                     Invite Users
                 </MyButton>
             </DialogTrigger>

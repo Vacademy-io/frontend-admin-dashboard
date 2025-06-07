@@ -1,6 +1,6 @@
 export enum TokenKey {
-    accessToken = "accessToken",
-    refreshToken = "refreshToken",
+    accessToken = 'accessToken',
+    refreshToken = 'refreshToken',
 }
 
 export interface Tokens {
@@ -26,6 +26,7 @@ interface Authority {
 }
 
 export interface IAccessToken {
+    permissions: string[];
     fullname: string;
     user: string;
     email: string;

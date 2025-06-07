@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/sidebar';
 import { SidebarStateType } from '../../../../types/layout-container/layout-container-types';
 import { SidebarItem } from './sidebar-item';
-import { SidebarItemsData } from './utils';
+import { filterSidebarData, SidebarItemsData } from './utils';
 import './scrollbarStyle.css';
 import React, { useEffect, useState } from 'react';
 import { useSuspenseQuery } from '@tanstack/react-query';
@@ -24,6 +24,7 @@ import { Command, CommandGroup, CommandItem, CommandList } from '@/components/ui
 import { WhatsappLogo, EnvelopeSimple } from '@phosphor-icons/react';
 import { useNavigate, useRouter } from '@tanstack/react-router';
 import useInstituteLogoStore from './institutelogo-global-zustand';
+import { useUserPermissions } from '@/hooks/useUserPermissions';
 
 export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.ReactNode }) => {
     const navigate = useNavigate();
@@ -35,6 +36,7 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
     const sideBarData = filterMenuList(subModules, SidebarItemsData);
     const sideBarItems = filterMenuItems(sideBarData, data?.id);
     const { getPublicUrl } = useFileUpload();
+    const userPermissions = useUserPermissions();
     const { instituteLogo, setInstituteLogo } = useInstituteLogoStore();
 
     useEffect(() => {
@@ -51,6 +53,8 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
 
         return () => clearTimeout(timer); // Cleanup the timeout on component unmount
     }, [data?.institute_logo_file_id]);
+
+    const filteredSidebarData = filterSidebarData(sideBarItems, userPermissions);
 
     if (isLoading) return <DashboardLoader />;
     return (
@@ -84,7 +88,7 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                 >
                     {sidebarComponent
                         ? sidebarComponent
-                        : sideBarItems.map((obj, key) => (
+                        : filteredSidebarData.map((obj, key) => (
                               <SidebarMenuItem key={key} id={obj.id}>
                                   <SidebarItem
                                       icon={obj.icon}

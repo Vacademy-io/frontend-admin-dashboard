@@ -230,6 +230,8 @@ export const ADD_DOUBT = `${BASE_URL}/admin-core-service/institute/v1/doubts/cre
 export const GET_DOUBTS = `${BASE_URL}/admin-core-service/institute/v1/doubts/get-all`;
 export const GET_USER_BASIC_DETAILS = `${BASE_URL}/auth-service/v1/user-details/get-basic-details`;
 
+// User Permission
+export const USER_PERMISSION_URL = `${BASE_URL}/auth-service/v1/user-permission`;
 // Engage Session URLs (Presentation specific)
 export const CREATE_SESSION_API_URL = `${BASE_URL}/community-service/engage/admin/create`;
 export const START_SESSION_API_URL = `${BASE_URL}/community-service/engage/admin/start`;

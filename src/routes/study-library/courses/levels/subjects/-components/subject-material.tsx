@@ -51,6 +51,8 @@ import { MyButton } from '@/components/design-system/button';
 import { useContentStore } from '../modules/chapters/slides/-stores/chapter-sidebar-store';
 import { TeachersList } from './teacher-list';
 import AddTeachers from '@/routes/dashboard/-components/AddTeachers';
+import { hasPermission } from '@/utils/permission/permission';
+import { PERMISSION_IDS } from '@/types/permission';
 
 // Interfaces (assuming these are unchanged)
 export interface Chapter {
@@ -712,7 +714,9 @@ export const SubjectMaterial = () => {
                             Explore, manage, and organize resources for the batch.
                         </p>
                     </div>
-                    <AddSubjectButton onAddSubject={handleAddSubject} />
+                    {hasPermission(PERMISSION_IDS.COURSES_EDIT) && (
+                        <AddSubjectButton onAddSubject={handleAddSubject} />
+                    )}
                 </div>
                 <div className="w-full max-w-[260px]">
                     <MyDropdown
@@ -750,7 +754,9 @@ export const SubjectMaterial = () => {
                             View and manage teachers assigned to this batch.
                         </p>
                     </div>
-                    <AddTeachers packageSessionId={packageSessionIds} />
+                    {hasPermission(PERMISSION_IDS.TEAMS_EDIT) && (
+                        <AddTeachers packageSessionId={packageSessionIds} />
+                    )}
                 </div>
                 <TeachersList packageSessionId={packageSessionIds ?? ''} />
             </div>

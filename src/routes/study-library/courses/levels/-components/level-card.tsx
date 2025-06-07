@@ -1,7 +1,9 @@
-import { LevelWithDetailsType } from "@/stores/study-library/use-study-library-store";
-import { useNavigate, useRouter } from "@tanstack/react-router";
-import { LevelMenuOptions } from "./level-menu-options";
-import { AddLevelData } from "./add-level-form";
+import { LevelWithDetailsType } from '@/stores/study-library/use-study-library-store';
+import { useNavigate, useRouter } from '@tanstack/react-router';
+import { LevelMenuOptions } from './level-menu-options';
+import { AddLevelData } from './add-level-form';
+import { hasPermission } from '@/utils/permission/permission';
+import { PERMISSION_IDS } from '@/types/permission';
 
 export const LevelCard = ({
     level,
@@ -21,8 +23,8 @@ export const LevelCard = ({
     const handleLevelCardClick = (e: React.MouseEvent) => {
         if (
             e.target instanceof Element &&
-            (e.target.closest(".menu-options-container") ||
-                e.target.closest(".drag-handle-container") ||
+            (e.target.closest('.menu-options-container') ||
+                e.target.closest('.drag-handle-container') ||
                 e.target.closest('[role="menu"]') ||
                 e.target.closest('[role="dialog"]'))
         ) {
@@ -50,12 +52,14 @@ export const LevelCard = ({
                         Duration: {level.duration_in_days} days
                     </p>
                 </div>
-                <LevelMenuOptions
-                    onDelete={onDelete}
-                    onEdit={onEdit}
-                    levelId={level.id}
-                    level={level}
-                />
+                {hasPermission(PERMISSION_IDS.COURSES_EDIT) && (
+                    <LevelMenuOptions
+                        onDelete={onDelete}
+                        onEdit={onEdit}
+                        levelId={level.id}
+                        level={level}
+                    />
+                )}
             </div>
         </div>
     );
