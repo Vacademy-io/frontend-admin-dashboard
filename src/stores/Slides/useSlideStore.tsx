@@ -134,6 +134,9 @@ interface SlideStore {
     moveSlide: (dragIndex: number, hoverIndex: number) => void;
     updateQuizFeedbackSlide: (id: string, formData: QuestionFormData) => void;
     initializeNewPresentationState: () => void;
+    updateSlideIds: (
+        idUpdates: { tempId: string; newId: string; newQuestionId?: string; newOptions?: { tempOptionId: string, newOptionId: string }[] }[]
+    ) => void;
 }
 
 export const useSlideStore = create<SlideStore>((set, get) => {
@@ -367,12 +370,13 @@ export const useSlideStore = create<SlideStore>((set, get) => {
             // }
         },
 
-        updateQuizFeedbackSlide: (id, formData) => {
+        updateQuizFeedbackSlide: (id: string, formData: QuestionFormData) =>
             set((state) => {
                 const slideIndex = state.slides.findIndex((s) => s.id === id);
                 if (slideIndex === -1) return state;
 
                 const oldSlide = state.slides[slideIndex];
+                // Ensure it's a quiz/feedback slide before updating
                 if (
                     oldSlide.type !== SlideTypeEnum.Quiz &&
                     oldSlide.type !== SlideTypeEnum.Feedback
@@ -401,7 +405,51 @@ export const useSlideStore = create<SlideStore>((set, get) => {
                     );
                 }
                 return { slides: newSlidesArray };
+            }),
+            
+        updateSlideIds: (idUpdates) => set((state) => {
+            console.log("Updating slide IDs in store:", idUpdates);
+            const newSlides = state.slides.map(slide => {
+                const update = idUpdates.find(u => u.tempId === slide.id);
+                if (update) {
+                    console.log(`Found match: tempId=${update.tempId}, newId=${update.newId}. Updating slide.`);
+                    const updatedSlide = { ...slide, id: update.newId };
+
+                    // If it's a quiz/feedback slide, we might need to update question and option IDs
+                    if ((updatedSlide.type === SlideTypeEnum.Quiz || updatedSlide.type === SlideTypeEnum.Feedback) && update.newQuestionId) {
+                        const quizSlide = updatedSlide as QuizSlideData;
+                        quizSlide.questionId = update.newQuestionId;
+
+                        if (quizSlide.elements?.singleChoiceOptions && update.newOptions) {
+                            quizSlide.elements.singleChoiceOptions = quizSlide.elements.singleChoiceOptions.map(option => {
+                                const optionUpdate = update.newOptions.find(o => o.tempOptionId === option.id);
+                                if (optionUpdate) {
+                                    return { ...option, id: optionUpdate.newOptionId };
+                                }
+                                return option;
+                            });
+                        }
+                    }
+                    return updatedSlide;
+                }
+                return slide;
             });
-        },
+
+            // Also check if the currentSlideId needs to be updated
+            let newCurrentSlideId = state.currentSlideId;
+            const currentSlideUpdate = idUpdates.find(u => u.tempId === state.currentSlideId);
+            if (currentSlideUpdate) {
+                newCurrentSlideId = currentSlideUpdate.newId;
+            }
+
+            if (typeof window !== 'undefined') {
+                localStorage.setItem(
+                    'slides',
+                    JSON.stringify(newSlides.map(serializeSlideForStorage))
+                );
+            }
+
+            return { slides: newSlides, currentSlideId: newCurrentSlideId };
+        }),
     };
 });

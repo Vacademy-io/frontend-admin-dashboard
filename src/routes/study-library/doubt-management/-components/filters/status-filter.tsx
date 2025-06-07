@@ -34,12 +34,15 @@ export const StatusFilter = () => {
     }, [selectedStatus]);
 
     return (
-        <SelectChips
-            options={statusFilterList}
-            selected={selectedStatus}
-            onChange={handleStatusChange}
-            hasClearFilter={false}
-            className="min-w-40"
-        />
+        <div className='flex items-center gap-2'>
+            <p>Status</p>
+            <SelectChips
+                options={statusFilterList}
+                selected={selectedStatus}
+                onChange={handleStatusChange}
+                hasClearFilter={false}
+                className="min-w-40"
+            />
+        </div>
     );
 };

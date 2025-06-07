@@ -32,53 +32,61 @@ export const fetchPresentation = async (presentationId: string, setSlides: any, 
 
         const slidesData = [];
 
-        // 2. Loop over slides and fetch each slide's content using S3
+        // 2. Loop over slides and fetch each slide's content
         for (const slide of sortedSlides) {
             try {
-                const fileId = slide.content;
-                const publicUrl = await getPublicUrl(fileId);
+                if (slide.source === 'question' && slide.added_question) {
+                    const questionData = slide.added_question;
+                    const slideType = (questionData.question_type === 'MCQS' || questionData.question_type === 'MCQM')
+                        ? SlideTypeEnum.Quiz
+                        : SlideTypeEnum.Feedback;
 
-                const s3Response = await axios.get(publicUrl, {
-                    responseType: "json",
-                    headers: { "Cache-Control": "no-cache" }
-                });
-
-                let slideDataFromS3 = s3Response.data;
-
-                // Ensure basic structure for Excalidraw-like slides
-                if (slide.source !== 'question') { // Assuming non-question slides are Excalidraw-like
-                    slideDataFromS3 = {
-                        elements: [], // Default empty elements
-                        appState: {}, // Default empty appState
-                        files: null, // Default null files
-                        ...slideDataFromS3, // Spread S3 data, potentially overriding defaults if present
+                    const slideContent = {
+                        id: slide.id,
+                        slide_order: slide.slide_order,
+                        type: slideType,
+                        questionId: questionData.id,
+                        elements: {
+                            questionName: questionData.text?.content || '',
+                            singleChoiceOptions: (questionData.options || []).map((opt: any) => ({
+                                id: opt.id, // Use the permanent DB ID for the option
+                                name: opt.text?.content || '',
+                                isSelected: false,
+                            })),
+                            feedbackAnswer: '',
+                            timeLimit: questionData.default_question_time_mins * 60 || 60,
+                        },
                     };
-                    // Ensure elements is always an array if it came from S3 but wasn't an array
-                    if (!Array.isArray(slideDataFromS3.elements)) {
-                        slideDataFromS3.elements = [];
-                    }
-                     // Ensure appState is always an object
-                    if (typeof slideDataFromS3.appState !== 'object' || slideDataFromS3.appState === null) {
-                        slideDataFromS3.appState = {};
-                    }
+                    slidesData.push(slideContent);
+                } else {
+                    // Fallback to S3 for Excalidraw or other slide types
+                    const fileId = slide.content;
+                    const publicUrl = await getPublicUrl(fileId);
+
+                    const s3Response = await axios.get(publicUrl, {
+                        responseType: 'json',
+                        headers: { 'Cache-Control': 'no-cache' },
+                    });
+
+                    let slideDataFromS3 = s3Response.data || {};
+
+                    const slideContent = {
+                        elements: [],
+                        appState: {},
+                        files: null,
+                        ...slideDataFromS3,
+                        id: slide.id,
+                        slide_order: slide.slide_order,
+                        type: slideDataFromS3.type || SlideTypeEnum.Excalidraw,
+                    };
+
+                    if (!Array.isArray(slideContent.elements)) slideContent.elements = [];
+                    if (typeof slideContent.appState !== 'object' || slideContent.appState === null) slideContent.appState = {};
+
+                    slidesData.push(slideContent);
                 }
-
-                const slideContent = {
-                    ...slideDataFromS3,
-                    id: slide.id, // Inject original slide ID
-                    slide_order: slide.slide_order, // Ensure slide_order is carried over
-                    type: slide.source === 'question' 
-                        ? (slide.added_question?.question_type === 'MCQS' || slide.added_question?.question_type === 'MCQM' 
-                            ? SlideTypeEnum.Quiz 
-                            : (slide.added_question?.question_type === 'LONG_ANSWER' 
-                                ? SlideTypeEnum.Feedback 
-                                : SlideTypeEnum.Feedback)) // Default to Feedback for unknown question types from 'question' source
-                        : (slideDataFromS3.type || SlideTypeEnum.Excalidraw)
-                };
-
-                slidesData.push(slideContent);
             } catch (innerErr) {
-                console.error(`Error fetching slide content for slide ID ${slide.id}:`, innerErr);
+                console.error(`Error processing slide content for slide ID ${slide.id}:`, innerErr);
             }
         }
 

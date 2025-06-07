@@ -232,3 +232,9 @@ export const GET_USER_BASIC_DETAILS = `${BASE_URL}/auth-service/v1/user-details/
 
 // User Permission
 export const USER_PERMISSION_URL = `${BASE_URL}/auth-service/v1/user-permission`;
+// Engage Session URLs (Presentation specific)
+export const CREATE_SESSION_API_URL = `${BASE_URL}/community-service/engage/admin/create`;
+export const START_SESSION_API_URL = `${BASE_URL}/community-service/engage/admin/start`;
+export const FINISH_SESSION_API_URL = `${BASE_URL}/community-service/engage/admin/finish`;
+// Note: GET_SINGLE_PRESENTATION_DATA for all slide details will reuse GET_PRESENTATION
+// Ensure GET_PRESENTATION endpoint returns all necessary slide data for live sessions.

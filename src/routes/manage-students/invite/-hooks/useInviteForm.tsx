@@ -42,16 +42,16 @@ export const useInviteForm = (initialValues?: InviteForm) => {
         options?: DropdownOption[]
     ) => {
         const customFields = getValues('custom_fields');
-        // Add the new field to the array
         const updatedFields = [
             ...customFields,
             {
-                id: customFields.length,
+                id: customFields.length > 0 ? Math.max(...customFields.map((f) => f.id)) + 1 : 0,
                 type,
                 name,
                 oldKey,
                 isRequired: true,
                 options,
+                status: 'ACTIVE' as const,
             },
         ];
 
@@ -61,7 +61,9 @@ export const useInviteForm = (initialValues?: InviteForm) => {
 
     const handleDeleteOpenField = (id: number) => {
         const customFields = getValues('custom_fields');
-        const updatedFields = customFields?.filter((field) => field.id !== id);
+        const updatedFields = customFields?.map((field) =>
+            field.id === id ? { ...field, status: 'DELETED' as const } : field
+        );
         setValue('custom_fields', updatedFields);
     };
 
