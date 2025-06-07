@@ -10,7 +10,9 @@ export function getPermissionIdsForFeature(feature: string, level: PermissionLev
     const featureMap = FEATURE_PERMISSION_MAP[feature as keyof typeof FEATURE_PERMISSION_MAP];
     if (!featureMap) return [];
 
-    return featureMap[level] ? Array.from(featureMap[level]) : [];
+    // The type assertion here is a good practice as well for consistency
+    const permissions = featureMap[level] as readonly string[] | undefined;
+    return permissions ? Array.from(permissions) : [];
 }
 
 // Create the exact payload format your backend expects
@@ -53,9 +55,13 @@ export function convertPermissionIdsToFeatures(
     const featurePermissions: Record<string, PermissionLevel> = {};
 
     Object.entries(FEATURE_PERMISSION_MAP).forEach(([feature, levels]) => {
-        if (levels.edit.every((id) => permissionIds.includes(id))) {
+        // **FIX APPLIED HERE:** Assert the type to readonly string[] before calling .every()
+        const editPermissions = levels.edit as readonly string[];
+        const viewPermissions = levels.view as readonly string[];
+
+        if (editPermissions.every((id) => permissionIds.includes(id))) {
             featurePermissions[feature] = 'edit';
-        } else if (levels.view.every((id) => permissionIds.includes(id))) {
+        } else if (viewPermissions.every((id) => permissionIds.includes(id))) {
             featurePermissions[feature] = 'view';
         } else {
             featurePermissions[feature] = 'none';
@@ -84,12 +90,16 @@ export const getPermissionLevelFromIds = (
         return 'none';
     }
 
-    const hasEdit = mapping.edit.every((id) => userPermissionIds.includes(id));
+    // **FIX APPLIED HERE:** Assert the type to readonly string[] before calling .every()
+    const editPermissions = mapping.edit as readonly string[];
+    const viewPermissions = mapping.view as readonly string[];
+
+    const hasEdit = editPermissions.every((id) => userPermissionIds.includes(id));
     if (hasEdit) {
         return 'edit';
     }
 
-    const hasView = mapping.view.every((id) => userPermissionIds.includes(id));
+    const hasView = viewPermissions.every((id) => userPermissionIds.includes(id));
     if (hasView) {
         return 'view';
     }
