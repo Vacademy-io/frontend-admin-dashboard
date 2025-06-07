@@ -6,23 +6,35 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { DotsThree, WarningCircle } from 'phosphor-react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { useEffect, useState } from 'react';
 import { MyButton } from '@/components/design-system/button';
 import { z } from 'zod';
 import { FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import MultiSelectDropdown from '@/components/design-system/multiple-select-field';
-import { RoleType } from '@/constants/dummy-data';
+import { RoleType } from '@/constants/dummy-data'; // Assuming RoleType might still be used or can be adapted
 import { UserRolesDataEntry } from '@/types/dashboard/user-roles';
 import { getInstituteId } from '@/constants/helper';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query'; // Added useQuery
 import {
     handleAddUserDashboardRoles,
     handleDeleteDisableDashboardUsers,
 } from '../-services/dashboard-services';
 import { toast } from 'sonner';
+import { useEffect, useState } from 'react';
+import { AssignBatchSubjectComponent } from './AssignBatchSubjectComponent';
+
+// Define schema for inviteUsers if it's still relevant or adapt as needed
 export const inviteUsersSchema = z.object({
     roleType: z.array(z.string()).min(1, 'At least one role type is required'),
+    // Add batch_subject_mappings if needed for the new component, similar to BatchAndSubjectSelection
+    batch_subject_mappings: z
+        .array(
+            z.object({
+                batchId: z.string(),
+                subjectIds: z.array(z.string()),
+            })
+        )
+        .optional(),
 });
 type FormValues = z.infer<typeof inviteUsersSchema>;
 
@@ -32,22 +44,24 @@ interface ChangeRoleTypeComponentProps {
     refetchData: () => void;
 }
 
+// ChangeRoleTypeComponent remains largely the same
 const ChangeRoleTypeComponent: React.FC<ChangeRoleTypeComponentProps> = ({
     student,
     onClose,
     refetchData,
 }) => {
     const instituteId = getInstituteId();
-    //need to previous already assigned roles
     const form = useForm<FormValues>({
-        resolver: zodResolver(inviteUsersSchema),
+        resolver: zodResolver(inviteUsersSchema.pick({ roleType: true })), // Ensure schema matches
         defaultValues: {
-            roleType: [],
+            roleType: student.roles.map((role) => role.role_name) || [],
         },
         mode: 'onChange',
     });
-    const { getValues } = form;
-    const isValid = getValues('roleType').length > 0 ? true : false;
+    const { getValues, control, handleSubmit, reset } = form;
+    const roleTypeValue = getValues('roleType');
+    const isValid = Array.isArray(roleTypeValue) && roleTypeValue.length > 0;
+
     form.watch('roleType');
 
     const getDashboardUsersData = useMutation({
@@ -69,11 +83,13 @@ const ChangeRoleTypeComponent: React.FC<ChangeRoleTypeComponentProps> = ({
             });
         },
         onError: (error: unknown) => {
-            throw error;
+            toast.error('Failed to change user roles.');
+            console.error(error);
         },
     });
 
-    function onSubmit(values: FormValues) {
+    function onSubmit(values: Pick<FormValues, 'roleType'>) {
+        // Ensure correct type for values
         getDashboardUsersData.mutate({
             roles: values.roleType,
             userId: student.id,
@@ -82,40 +98,43 @@ const ChangeRoleTypeComponent: React.FC<ChangeRoleTypeComponentProps> = ({
     }
 
     useEffect(() => {
-        form.reset({
+        reset({
             roleType: student.roles.map((role) => role.role_name) || [],
         });
-    }, []);
+    }, [student, reset]);
 
     return (
         <DialogContent className="flex w-[420px] flex-col p-0">
             <h1 className="rounded-md bg-primary-50 p-4 text-primary-500">Change Roles</h1>
             <FormProvider {...form}>
-                <form className="flex flex-col items-start justify-center gap-4 px-4">
+                <form
+                    className="flex flex-col items-start justify-center gap-4 px-4"
+                    onSubmit={handleSubmit(onSubmit)}
+                >
                     <MultiSelectDropdown
                         form={form}
                         label="Role Type"
                         name="roleType"
                         options={RoleType.map((option, index) => ({
+                            // Make sure RoleType has correct structure or adapt
                             value: option.name,
                             label: option.name,
-                            _id: index,
+                            _id: String(index), // Ensure _id is a string if your component expects it
                         }))}
-                        control={form.control}
+                        control={control}
                         className="w-96"
                         required
                     />
                     <div className="flex w-96 items-center justify-center text-center">
                         <MyButton
-                            type="button"
+                            type="submit"
                             scale="large"
                             buttonType="primary"
                             layoutVariant="default"
                             className="mb-6"
-                            disable={!isValid}
-                            onClick={form.handleSubmit(onSubmit)}
+                            disable={!isValid || getDashboardUsersData.isPending}
                         >
-                            Submit
+                            {getDashboardUsersData.isPending ? 'Submitting...' : 'Submit'}
                         </MyButton>
                     </div>
                 </form>
@@ -155,7 +174,8 @@ const DisableUserComponent: React.FC<DisableUserComponentProps> = ({
             });
         },
         onError: (error: unknown) => {
-            throw error;
+            toast.error('Failed to disable user.');
+            console.error(error);
         },
     });
 
@@ -167,18 +187,21 @@ const DisableUserComponent: React.FC<DisableUserComponentProps> = ({
         });
     };
     return (
-        <DialogContent className="flex flex-col p-0">
+        <DialogContent className="flex w-fit flex-col p-0">
             <h1 className="rounded-md bg-primary-50 p-4 text-primary-500">Disable User</h1>
             <div className="flex flex-col gap-2 p-4">
                 <div className="flex items-center text-danger-600">
-                    <p>Attention</p>
+                    <p className="mr-1">Attention</p>
                     <WarningCircle size={18} />
                 </div>
                 <h1>
                     Are you sure you want to disable{' '}
-                    <span className="text-primary-500">{student.full_name}</span>?
+                    <span className="font-semibold text-primary-500">{student.full_name}</span>?
                 </h1>
-                <div className="flex justify-end">
+                <div className="mt-4 flex justify-end gap-2">
+                    <MyButton type="button" scale="medium" buttonType="secondary" onClick={onClose}>
+                        Cancel
+                    </MyButton>
                     <MyButton
                         type="button"
                         scale="large"
@@ -186,7 +209,7 @@ const DisableUserComponent: React.FC<DisableUserComponentProps> = ({
                         className="mt-4 font-medium"
                         onClick={handlDisableUser} // Close the dialog when clicked
                     >
-                        Yes
+                        {handleDisableUserMutation.isPending ? 'Disabling...' : 'Yes, Disable'}
                     </MyButton>
                 </div>
             </div>
@@ -225,7 +248,8 @@ const EnableUserComponent: React.FC<EnableUserComponentProps> = ({
             });
         },
         onError: (error: unknown) => {
-            throw error;
+            toast.error('Failed to enable user.');
+            console.error(error);
         },
     });
 
@@ -241,22 +265,25 @@ const EnableUserComponent: React.FC<EnableUserComponentProps> = ({
             <h1 className="rounded-md bg-primary-50 p-4 text-primary-500">Disable User</h1>
             <div className="flex flex-col gap-2 p-4">
                 <div className="flex items-center text-danger-600">
-                    <p>Attention</p>
+                    <p className="mr-1">Attention</p>
                     <WarningCircle size={18} />
                 </div>
                 <h1>
-                    Are you sure you want to disable{' '}
-                    <span className="text-primary-500">{student.full_name}</span>?
+                    Are you sure you want to enable{' '}
+                    <span className="font-semibold text-primary-500">{student.full_name}</span>?
                 </h1>
-                <div className="flex justify-end">
+                <div className="mt-4 flex justify-end gap-2">
+                    <MyButton type="button" scale="medium" buttonType="secondary" onClick={onClose}>
+                        Cancel
+                    </MyButton>
                     <MyButton
                         type="button"
-                        scale="large"
+                        scale="medium"
                         buttonType="primary"
-                        className="mt-4 font-medium"
-                        onClick={handlEnableUser} // Close the dialog when clicked
+                        onClick={handlEnableUser}
+                        disable={handleEnableUserMutation.isPending}
                     >
-                        Yes
+                        {handleEnableUserMutation.isPending ? 'Enabling...' : 'Yes, Enable'}
                     </MyButton>
                 </div>
             </div>
@@ -295,7 +322,8 @@ const DeleteUserComponent: React.FC<DeleteUserComponentProps> = ({
             });
         },
         onError: (error: unknown) => {
-            throw error;
+            toast.error('Failed to delete user.');
+            console.error(error);
         },
     });
 
@@ -349,11 +377,13 @@ const InstituteUsersOptions = ({
         setSelectedOption(value);
     };
 
+    const isTeacher = user.roles.some((role) => role.role_name === 'TEACHER');
+
     return (
         <>
             <DropdownMenu>
                 <DropdownMenuTrigger>
-                    <p className="cursor-pointer rounded-md border p-[2px]">
+                    <p className="cursor-pointer rounded-md border p-[2px] hover:bg-muted">
                         <DotsThree size={20} />
                     </p>
                 </DropdownMenuTrigger>
@@ -361,6 +391,11 @@ const InstituteUsersOptions = ({
                     <DropdownMenuItem onClick={() => handleDropdownMenuClick('Change Role Type')}>
                         Change Role Type
                     </DropdownMenuItem>
+                    {isTeacher && (
+                        <DropdownMenuItem onClick={() => handleDropdownMenuClick('Change Batch')}>
+                            Change Batch
+                        </DropdownMenuItem>
+                    )}
                     {user.status === 'ACTIVE' && (
                         <DropdownMenuItem onClick={() => handleDropdownMenuClick('Disable user')}>
                             Disable user
@@ -401,6 +436,13 @@ const InstituteUsersOptions = ({
                 {selectedOption === 'Delete user' && (
                     <DeleteUserComponent
                         student={user}
+                        onClose={() => setOpenDialog(false)}
+                        refetchData={refetchData}
+                    />
+                )}
+                {selectedOption === 'Change Batch' && isTeacher && (
+                    <AssignBatchSubjectComponent
+                        teacher={user}
                         onClose={() => setOpenDialog(false)}
                         refetchData={refetchData}
                     />

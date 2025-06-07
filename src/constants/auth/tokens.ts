@@ -1,6 +1,6 @@
 export enum TokenKey {
-    accessToken = "accessToken",
-    refreshToken = "refreshToken",
+    accessToken = 'accessToken',
+    refreshToken = 'refreshToken',
 }
 
 export interface Tokens {
@@ -20,7 +20,7 @@ export interface Role {
     isEnabled: boolean;
 }
 
-interface Authority {
+export interface Authority {
     permissions: string[];
     roles: string[];
 }

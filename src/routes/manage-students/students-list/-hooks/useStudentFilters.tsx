@@ -8,6 +8,8 @@ import {
     DropdownItemType,
     DropdownValueType,
 } from '@/components/common/students/enroll-manually/dropdownTypesForPackageItems';
+import { useBatchAccess } from '@/hooks/use-batch-access';
+import { isLimitedBatches } from '@/lib/utils';
 
 export const useStudentFilters = () => {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
@@ -15,6 +17,7 @@ export const useStudentFilters = () => {
     const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
     const { getAllSessions, instituteDetails } = useInstituteDetailsStore();
     const { selectedSession, setSelectedSession } = useSelectedSessionStore();
+    const { accessibleBatches, isFaculty } = useBatchAccess();
     const [columnFilters, setColumnFilters] = useState<
         { id: string; value: { id: string; label: string }[] }[]
     >([]);
@@ -73,13 +76,14 @@ export const useStudentFilters = () => {
     });
 
     useEffect(() => {
-        const pksIds =
-            columnFilters
-                .find((filter) => filter.id === 'batch')
-                ?.value.map((option) => option.id) ||
-            (instituteDetails?.batches_for_sessions || [])
-                .filter((batch) => batch.session.id === currentSession.id)
-                .map((batch) => batch.id);
+        const pksIds = isLimitedBatches(accessibleBatches, isFaculty)
+            ? accessibleBatches
+            : columnFilters
+                  .find((filter) => filter.id === 'batch')
+                  ?.value.map((option) => option.id) ||
+              (instituteDetails?.batches_for_sessions || [])
+                  .filter((batch) => batch.session.id === currentSession.id)
+                  .map((batch) => batch.id);
 
         setAllPackageSessionIds(pksIds);
 

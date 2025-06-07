@@ -11,8 +11,6 @@ import {
 } from '@/components/common/students/enroll-manually/dropdownTypesForPackageItems';
 import { MyDropdown } from '@/components/common/students/enroll-manually/dropdownForPackageItems';
 import { EmptyBatchImage } from '@/assets/svgs';
-import { MyButton } from '@/components/design-system/button';
-import { Plus } from 'phosphor-react';
 
 export const ManageBatches = () => {
     const { setNavHeading } = useNavHeadingStore();
@@ -66,14 +64,21 @@ export const ManageBatches = () => {
 
     if (isLoading) return <DashboardLoader />;
 
-    if (isError) return <div className="flex flex-col items-center justify-center h-full text-neutral-500"><p>Unable to fetch batches. Please try again later.</p></div>;
+    if (isError)
+        return (
+            <div className="flex h-full flex-col items-center justify-center text-neutral-500">
+                <p>Unable to fetch batches. Please try again later.</p>
+            </div>
+        );
 
     return (
         <div className="flex flex-col gap-8 p-2 text-neutral-700">
             <div className="flex items-center justify-between">
                 <div>
                     <p className="text-xl font-semibold">Student Batches</p>
-                    <p className="text-sm text-neutral-500">Manage and organize your student batches by session.</p>
+                    <p className="text-sm text-neutral-500">
+                        Manage and organize your student batches by session.
+                    </p>
                 </div>
                 <div className="flex items-center gap-4">
                     {sessionList.length > 0 && currentSession !== undefined && (
@@ -90,15 +95,23 @@ export const ManageBatches = () => {
 
             {data && data.length > 0 ? (
                 <div className="flex flex-col gap-8">
-                    {data.map((batch, index) => <BatchSection key={index} batch={batch} currentSessionId={currentSession?.id} />)}
+                    {data.map((batch, index) => (
+                        <BatchSection
+                            key={index}
+                            batch={batch}
+                            currentSessionId={currentSession?.id}
+                        />
+                    ))}
                 </div>
             ) : (
-                <div className="flex flex-col items-center justify-center gap-5 text-center py-16 rounded-lg border border-dashed border-neutral-300 bg-neutral-50">
-                    <EmptyBatchImage className="w-32 h-32 text-neutral-400" />
+                <div className="flex flex-col items-center justify-center gap-5 rounded-lg border border-dashed border-neutral-300 bg-neutral-50 py-16 text-center">
+                    <EmptyBatchImage className="size-32 text-neutral-400" />
                     <p className="text-lg font-medium text-neutral-600">
-                        {currentSession ? `No batches found for ${currentSession.name}` : 'No sessions available'}
+                        {currentSession
+                            ? `No batches found for ${currentSession.name}`
+                            : 'No sessions available'}
                     </p>
-                    <p className="text-sm text-neutral-500 max-w-md">
+                    <p className="max-w-md text-sm text-neutral-500">
                         {currentSession
                             ? 'Create a new batch in this session to get started.'
                             : 'Please create a session first before adding batches.'}

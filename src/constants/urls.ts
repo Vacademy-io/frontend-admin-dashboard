@@ -223,6 +223,8 @@ export const GET_UPCOMING_SESSIONS = `${BASE_URL}/admin-core-service/get-session
 export const GET_PAST_SESSIONS = `${BASE_URL}/admin-core-service/get-sessions/past`;
 
 export const GET_ALL_FACULTY = `${BASE_URL}/admin-core-service/institute/v1/faculty/faculty/get-all`;
+export const GET_FACULTY_BATCHES_URL = `${BASE_URL}/admin-core-service/institute/v1/faculty/batch-subject-assignments`;
+export const UPDATE_FACULTY_BATCHES_URL = `${BASE_URL}/admin-core-service/institute/v1/faculty/update-assign-subjects-and-batches`;
 
 export const LOGIN_URL_GOOGLE_GITHUB = `${BASE_URL}/auth-service/v1/oauth`;
 

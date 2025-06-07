@@ -32,12 +32,15 @@ import { DropdownItemType } from '@/components/common/students/enroll-manually/d
 import { ShareCredentialsDialog } from './bulk-actions/share-credentials-dialog';
 import { IndividualShareCredentialsDialog } from './bulk-actions/individual-share-credentials-dialog';
 import { InviteFormProvider } from '@/routes/manage-students/invite/-context/useInviteFormContext';
+import { useBatchAccess } from '@/hooks/use-batch-access';
+import { isLimitedBatches } from '@/lib/utils';
 
 export const StudentsListSection = () => {
     const { setNavHeading } = useNavHeadingStore();
     const { isError, isLoading } = useSuspenseQuery(useInstituteQuery());
     const [isOpen, setIsOpen] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const { accessibleBatches, isFaculty } = useBatchAccess();
     const { getCourseFromPackage, instituteDetails, getDetailsFromPackageSessionId } =
         useInstituteDetailsStore();
     const tableRef = useRef<HTMLDivElement>(null);
@@ -95,8 +98,21 @@ export const StudentsListSection = () => {
         setColumnFilters,
     } = useStudentFilters();
 
-    const filters = GetFilterData(instituteDetails, currentSession.id);
-
+    const filters = GetFilterData(
+        instituteDetails,
+        currentSession.id,
+        accessibleBatches,
+        isFaculty
+    );
+    if (isLimitedBatches(accessibleBatches, isFaculty)) {
+        filters.forEach((filter) => {
+            if (filter.id === 'batch') {
+                filter.filterList = filter.filterList.filter((item) =>
+                    accessibleBatches.includes(item.id)
+                );
+            }
+        });
+    }
     const search = useSearch({ from: Route.id });
 
     const {
