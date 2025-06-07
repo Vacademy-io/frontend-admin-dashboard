@@ -3,6 +3,8 @@ import { MyDialog } from '@/components/design-system/dialog';
 import { Plus } from '@phosphor-icons/react';
 import { useState } from 'react';
 import { AddChapterForm } from './add-chapter-form';
+import { PERMISSION_IDS } from '@/types/permission';
+import { hasPermission } from '@/utils/permission/permission';
 
 interface AddChapterButtonProps {
     isTextButton?: boolean;
@@ -25,11 +27,16 @@ export const AddChapterButton = ({
             buttonType="text"
             className="!m-0 flex w-fit cursor-pointer flex-row items-center justify-start gap-2 px-0 pl-2 text-primary-500"
             id="add-chapters"
+            hidden={!hasPermission(PERMISSION_IDS.COURSES_EDIT)}
         >
             <Plus /> Add Chapter
         </MyButton>
     ) : (
-        <MyButton scale="large" id="add-chapters">
+        <MyButton
+            scale="large"
+            id="add-chapters"
+            hidden={!hasPermission(PERMISSION_IDS.COURSES_EDIT)}
+        >
             <Plus /> Add Chapter
         </MyButton>
     );

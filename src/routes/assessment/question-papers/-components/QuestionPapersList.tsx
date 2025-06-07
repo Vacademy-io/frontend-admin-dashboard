@@ -31,6 +31,8 @@ import { TokenKey } from '@/constants/auth/tokens';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import ExportQuestionPaper from './export-question-paper/ExportQuestionPaper';
 import { AssignmentFormType } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-form-schemas/assignmentFormSchema';
+import { hasPermission } from '@/utils/permission/permission';
+import { PERMISSION_IDS } from '@/types/permission';
 export type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 export const QuestionPapersList = ({
     questionPaperList,
@@ -223,14 +225,16 @@ export const QuestionPapersList = ({
                                             currentQuestionIndex={currentQuestionIndex}
                                             setCurrentQuestionIndex={setCurrentQuestionIndex}
                                         />
-                                        <DropdownMenuItem
-                                            onClick={() =>
-                                                handleDeleteQuestionPaper(questionsData.id)
-                                            }
-                                            className="cursor-pointer"
-                                        >
-                                            Delete Question Paper
-                                        </DropdownMenuItem>
+                                        {hasPermission(PERMISSION_IDS.QUESTION_PAPER_EDIT) && (
+                                            <DropdownMenuItem
+                                                onClick={() =>
+                                                    handleDeleteQuestionPaper(questionsData.id)
+                                                }
+                                                className="cursor-pointer"
+                                            >
+                                                Delete Question Paper
+                                            </DropdownMenuItem>
+                                        )}
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                                 <ExportQuestionPaper questionPaperId={questionsData.id} />

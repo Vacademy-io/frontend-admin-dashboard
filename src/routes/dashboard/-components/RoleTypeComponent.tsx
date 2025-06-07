@@ -18,6 +18,8 @@ import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { useMutation } from '@tanstack/react-query';
 import { useRefetchUsersStore } from '../-global-states/refetch-store-users';
 import { countAdminRoles } from '../-utils/helper';
+import { hasPermission } from '@/utils/permission/permission';
+import { PERMISSION_IDS } from '@/types/permission';
 
 export interface RoleTypeSelectedFilter {
     roles: { id: string; name: string }[];
@@ -265,6 +267,7 @@ const RoleTypeComponent = ({ setRoleTypeCount }: RoleTypeProps) => {
                     buttonType="secondary"
                     layoutVariant="default"
                     className="text-sm"
+                    hidden={!hasPermission(PERMISSION_IDS.TEAMS_EDIT)}
                 >
                     <Plus size={32} />
                     Manage Users

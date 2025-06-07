@@ -20,6 +20,8 @@ import {
 } from '@/components/common/students/enroll-manually/dropdownTypesForPackageItems';
 import { useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
 import { MyDropdown } from '@/components/common/students/enroll-manually/dropdownForPackageItems';
+import { PERMISSION_IDS } from '@/types/permission';
+import { hasPermission } from '@/utils/permission/permission';
 
 export const ModuleMaterial = () => {
     const router = useRouter();
@@ -132,7 +134,9 @@ export const ModuleMaterial = () => {
                         to expand your study materials.
                     </div>
                 </div>
-                <AddModulesButton onAddModule={handleAddModule} />
+                {hasPermission(PERMISSION_IDS.COURSES_EDIT) && (
+                    <AddModulesButton onAddModule={handleAddModule} />
+                )}
             </div>
             <div className="flex items-center gap-6">
                 <MyDropdown

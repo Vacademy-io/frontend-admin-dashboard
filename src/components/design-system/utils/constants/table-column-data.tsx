@@ -13,6 +13,8 @@ import { useContentStore } from '@/routes/study-library/courses/levels/subjects/
 import { useState, useRef } from 'react';
 import { LogDetailsDialog } from '@/components/common/student-slide-tracking/log-details-dialog';
 import { useStudentSidebar } from '@/routes/manage-students/students-list/-context/selected-student-sidebar-context';
+import { hasPermission } from '@/utils/permission/permission';
+import { PERMISSION_IDS } from '@/types/permission';
 
 interface CustomTableMeta {
     onSort?: (columnId: string, direction: string) => void;
@@ -205,6 +207,7 @@ export const myColumns: ColumnDef<StudentTable>[] = [
                 checked={table.getIsAllRowsSelected()}
                 onCheckedChange={(value) => table.toggleAllRowsSelected(!!value)}
                 className="border-neutral-400 bg-white text-neutral-600 data-[state=checked]:bg-primary-500 data-[state=checked]:text-white"
+                disabled={!hasPermission(PERMISSION_IDS.LEARNER_LIST_EDIT)}
             />
         ),
         cell: ({ row }) => (
@@ -212,6 +215,7 @@ export const myColumns: ColumnDef<StudentTable>[] = [
                 checked={row.getIsSelected()}
                 onCheckedChange={(value) => row.toggleSelected(!!value)}
                 className="flex size-4 items-center justify-center border-neutral-400 text-neutral-600 shadow-none data-[state=checked]:bg-primary-500 data-[state=checked]:text-white"
+                disabled={!hasPermission(PERMISSION_IDS.LEARNER_LIST_EDIT)}
             />
         ),
     },

@@ -1,8 +1,7 @@
 'use client';
 
 import type React from 'react';
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react'; // Import useEffect
 import { DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -17,45 +16,25 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import {
-    Settings,
-    Users,
-    GraduationCap,
-    BookOpen,
-    FileText,
-    ClipboardCheck,
-    MessageSquare,
-    Brain,
-    Eye,
-    Edit,
-    X,
-} from 'lucide-react';
+import { Eye, Edit, X } from 'lucide-react';
+import { toast } from 'sonner';
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
+import axios from 'axios';
+
 import {
     createPermissionUpdatePayload,
     convertFeaturePermissionsToIds,
+    mapPermissionsToFeatures,
 } from '@/utils/permission/permission';
 import type { PermissionLevel, PermissionUpdatePayload } from '@/types/permission';
-import { UserRolesDataEntry } from '@/types/dashboard/user-roles';
+import type { UserRolesDataEntry } from '@/types/dashboard/user-roles';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
-import { toast } from 'sonner';
-import { useMutation } from '@tanstack/react-query';
-import { handleUpdatePermission } from '../-services/dashboard-services';
-import axios from 'axios';
+import { getUserPermissions, handleUpdatePermission } from '../-services/dashboard-services';
+import { defaultFeatures, roleColors } from '@/constants/permission/default-feature';
 
-type UserRole = 'ADMIN' | 'TEACHER' | 'COURSE_CREATOR' | 'ASSESSMENT_CREATOR' | 'EVALUATOR';
-
-interface User extends UserRolesDataEntry {
-    currentPermissions?: string[];
-}
-
-interface PermissionsDialogProps {
-    user: User;
-    onClose: () => void;
-    refetchData: () => void;
-}
-
-interface FeatureConfig {
+// Define types within the component file or import from a shared types file
+export interface FeatureConfig {
     id: string;
     name: string;
     icon: React.ComponentType<{ className?: string }>;
@@ -69,110 +48,67 @@ interface SubFeatureConfig {
     permission: PermissionLevel;
 }
 
-const defaultFeatures: FeatureConfig[] = [
-    {
-        id: 'dashboard',
-        name: 'Dashboard',
-        icon: Settings,
-        visible: true,
-    },
-    {
-        id: 'manage_institute',
-        name: 'Manage Institute',
-        icon: Users,
-        visible: false,
-        subFeatures: [
-            { id: 'batches', name: 'Batches', permission: 'none' },
-            { id: 'sessions', name: 'Sessions', permission: 'none' },
-            { id: 'teams', name: 'Teams', permission: 'none' },
-        ],
-    },
-    {
-        id: 'manage_learners',
-        name: 'Manage Learners',
-        icon: GraduationCap,
-        visible: false,
-        subFeatures: [
-            { id: 'learner_list', name: 'Learner List', permission: 'none' },
-            { id: 'enroll_request', name: 'Enroll Request', permission: 'none' },
-            { id: 'invite', name: 'Invite', permission: 'none' },
-        ],
-    },
-    {
-        id: 'learning_centre',
-        name: 'Learning Centre',
-        icon: BookOpen,
-        visible: false,
-        subFeatures: [
-            { id: 'courses', name: 'Courses', permission: 'none' },
-            { id: 'live_session', name: 'Live Session', permission: 'none' },
-            { id: 'doubt_management', name: 'Doubt Management', permission: 'none' },
-            { id: 'reports', name: 'Reports', permission: 'none' },
-            { id: 'presentation', name: 'Presentation', permission: 'none' },
-        ],
-    },
-    {
-        id: 'homework',
-        name: 'Homework',
-        icon: FileText,
-        visible: false,
-    },
-    {
-        id: 'assessment_centre',
-        name: 'Assessment Centre',
-        icon: ClipboardCheck,
-        visible: false,
-        subFeatures: [
-            { id: 'assessment_list', name: 'Assessment List', permission: 'none' },
-            { id: 'question_paper', name: 'Question Paper', permission: 'none' },
-        ],
-    },
-    {
-        id: 'evaluation_centre',
-        name: 'Evaluation Centre',
-        icon: ClipboardCheck,
-        visible: false,
-        subFeatures: [
-            { id: 'evaluation', name: 'Evaluation', permission: 'none' },
-            { id: 'evaluation_tool', name: 'Evaluation Tool', permission: 'none' },
-        ],
-    },
-    {
-        id: 'community_centre',
-        name: 'Community Centre',
-        icon: MessageSquare,
-        visible: false,
-    },
-    {
-        id: 'vsmart_ai_tools',
-        name: 'Vsmart AI Tools',
-        icon: Brain,
-        visible: false,
-    },
-];
+type UserRole = 'ADMIN' | 'TEACHER' | 'COURSE_CREATOR' | 'ASSESSMENT_CREATOR' | 'EVALUATOR';
 
-const roleColors: Record<UserRole, string> = {
-    ADMIN: 'bg-red-100 text-red-800 border-red-200',
-    TEACHER: 'bg-blue-100 text-blue-800 border-blue-200',
-    COURSE_CREATOR: 'bg-green-100 text-green-800 border-green-200',
-    ASSESSMENT_CREATOR: 'bg-purple-100 text-purple-800 border-purple-200',
-    EVALUATOR: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-};
+interface User extends UserRolesDataEntry {
+    currentPermissions?: string[];
+}
 
-const permissionIcons = {
-    none: X,
-    view: Eye,
-    edit: Edit,
-};
+interface PermissionsDialogProps {
+    user: User;
+    onClose: () => void;
+    refetchData: () => void;
+}
 
-const permissionColors = {
-    none: 'text-gray-400',
-    view: 'text-blue-500',
-    edit: 'text-green-500',
-};
+const permissionIcons = { none: X, view: Eye, edit: Edit };
+const permissionColors = { none: 'text-gray-400', view: 'text-blue-500', edit: 'text-green-500' };
 
 export function PermissionsDialog({ user, onClose, refetchData }: PermissionsDialogProps) {
+    const { data: currentPermissions, isLoading } = useSuspenseQuery(getUserPermissions(user.id));
     const [features, setFeatures] = useState<FeatureConfig[]>(defaultFeatures);
+    const [fullAccess, setFullAccess] = useState(false);
+    const [saving, setSaving] = useState(false);
+
+    // Check if all features have full access when component mounts or permissions change
+    useEffect(() => {
+        if (features.length > 0) {
+            const hasFullAccess = features.every((feature) => {
+                const isFeatureEnabled = feature.visible;
+                const areSubFeaturesFullAccess =
+                    !feature.subFeatures ||
+                    feature.subFeatures.every((subFeature) => subFeature.permission === 'edit');
+                return isFeatureEnabled && areSubFeaturesFullAccess;
+            });
+            setFullAccess(hasFullAccess);
+        }
+    }, [features]);
+
+    // Update all features when fullAccess changes
+    const handleFullAccessToggle = (checked: boolean) => {
+        setFullAccess(checked);
+        if (checked) {
+            // Enable all features and set all permissions to edit
+            setFeatures(
+                features.map((feature) => ({
+                    ...feature,
+                    visible: true,
+                    subFeatures: feature.subFeatures
+                        ? feature.subFeatures.map((subFeature) => ({
+                              ...subFeature,
+                              permission: 'edit',
+                          }))
+                        : undefined,
+                }))
+            );
+        }
+    };
+
+    useEffect(() => {
+        if (currentPermissions && !isLoading) {
+            const initialFeatures = mapPermissionsToFeatures(defaultFeatures, currentPermissions);
+            setFeatures(initialFeatures);
+        }
+    }, [currentPermissions, isLoading]);
 
     const updateFeatureVisibility = (featureId: string, visible: boolean) => {
         setFeatures((prev) =>
@@ -204,43 +140,35 @@ export function PermissionsDialog({ user, onClose, refetchData }: PermissionsDia
         onSuccess: () => {
             toast.success('Permissions updated successfully');
             refetchData();
+            setSaving(false);
             onClose();
         },
         onError: (error: unknown) => {
-            if (axios.isAxiosError(error)) {
-                // Handle specific status codes
-                if (error.response?.status === 511) {
-                    toast.error(
-                        'Network authentication required. Please check your connection or login again.'
-                    );
-                    // You may want to redirect to login page here
-                } else {
-                    toast.error(
-                        `Failed to update permissions: ${error.response?.data?.message || error.message}`
-                    );
-                }
+            if (axios.isAxiosError(error) && error.response?.status === 511) {
+                toast.error(
+                    'Network authentication required. Please check your connection or login again.'
+                );
             } else {
                 toast.error('Failed to update permissions');
             }
             console.error('Error updating permissions:', error);
+            setSaving(false);
         },
     });
 
-    const handleSave = async () => {
+    const handleSave = () => {
+        setSaving(true);
         const featurePermissions: Record<string, PermissionLevel> = {};
         features.forEach((feature) => {
-            // Main feature permission
-            featurePermissions[feature.id] = feature.visible ? 'view' : 'none';
-
-            // Sub-feature permissions
+            featurePermissions[feature.id] = feature.visible
+                ? getHighestPermissionForFeature(feature)
+                : 'none';
             feature.subFeatures?.forEach((sub) => {
                 featurePermissions[sub.id] = sub.permission;
             });
         });
 
-        // Convert to permission IDs
         const newPermissionIds = convertFeaturePermissionsToIds(featurePermissions);
-        const currentPermissionIds = user.currentPermissions || [];
         const accessToken = getTokenFromCookie(TokenKey.accessToken);
         const tokenData = getTokenDecodedData(accessToken);
         const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
@@ -253,25 +181,38 @@ export function PermissionsDialog({ user, onClose, refetchData }: PermissionsDia
         const payload = createPermissionUpdatePayload(
             user.id,
             INSTITUTE_ID,
-            currentPermissionIds,
+            currentPermissions || [],
             newPermissionIds
         );
-        console.log('Permission Update Payload:', payload);
-        handleUpdatePermissionMutation.mutate({
-            data: payload,
-        });
+        handleUpdatePermissionMutation.mutate({ data: payload });
     };
+
+    const getHighestPermissionForFeature = (feature: FeatureConfig): PermissionLevel => {
+        if (!feature.subFeatures) return 'view';
+        const hasEdit = feature.subFeatures.some((sf) => sf.permission === 'edit');
+        if (hasEdit) return 'edit';
+        const hasView = feature.subFeatures.some((sf) => sf.permission === 'view');
+        if (hasView) return 'view';
+        return 'none';
+    };
+
+    if (isLoading) {
+        return (
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Loading Permissions...</DialogTitle>
+                </DialogHeader>
+                <div>Loading...</div>
+            </DialogContent>
+        );
+    }
 
     return (
         <DialogContent className="max-h-[90vh] w-[800px] overflow-y-auto">
             <DialogHeader>
-                <DialogTitle className="text-xl font-semibold">
-                    Manage User Permissions (Simplified)
-                </DialogTitle>
+                <DialogTitle className="text-xl font-semibold">Manage User Permissions</DialogTitle>
             </DialogHeader>
-
             <div className="space-y-6">
-                {/* User Info */}
                 <Card>
                     <CardHeader className="pb-4">
                         <div className="flex items-center justify-between">
@@ -284,10 +225,7 @@ export function PermissionsDialog({ user, onClose, refetchData }: PermissionsDia
                                     <Badge
                                         key={role.role_id}
                                         variant="outline"
-                                        className={
-                                            roleColors[role.role_name as UserRole] ||
-                                            'border-gray-200 bg-gray-100 text-gray-800'
-                                        }
+                                        className={roleColors[role.role_name as UserRole] || ''}
                                     >
                                         {role.role_name.replace('_', ' ')}
                                     </Badge>
@@ -297,108 +235,128 @@ export function PermissionsDialog({ user, onClose, refetchData }: PermissionsDia
                     </CardHeader>
                 </Card>
 
-                {/* Feature Permissions */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="text-lg">Feature Permissions</CardTitle>
-                        <p className="text-sm text-gray-600">
-                            Toggle visibility and set permission levels for each feature
-                        </p>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
-                            {features.map((feature) => {
-                                const IconComponent = feature.icon;
-                                return (
-                                    <div key={feature.id} className="rounded-lg border p-4">
-                                        <div className="mb-3 flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <IconComponent className="size-5 text-gray-600" />
-                                                <span className="font-medium">{feature.name}</span>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <Label
-                                                    htmlFor={`${feature.id}-visible`}
-                                                    className="text-sm"
-                                                >
-                                                    Visible
-                                                </Label>
-                                                <Switch
-                                                    id={`${feature.id}-visible`}
-                                                    checked={feature.visible}
-                                                    onCheckedChange={(checked) =>
-                                                        updateFeatureVisibility(feature.id, checked)
-                                                    }
-                                                />
-                                            </div>
-                                        </div>
-
-                                        {feature.subFeatures && feature.visible && (
-                                            <div className="ml-8 space-y-2">
-                                                <Separator />
-                                                <div className="mt-3 grid gap-2">
-                                                    {feature.subFeatures.map((subFeature) => {
-                                                        const PermissionIcon =
-                                                            permissionIcons[subFeature.permission];
-                                                        return (
-                                                            <div
-                                                                key={subFeature.id}
-                                                                className="flex items-center justify-between py-2"
-                                                            >
-                                                                <div className="flex items-center gap-2">
-                                                                    <PermissionIcon
-                                                                        className={`size-4 ${permissionColors[subFeature.permission]}`}
-                                                                    />
-                                                                    <span className="text-sm">
-                                                                        {subFeature.name}
-                                                                    </span>
-                                                                </div>
-                                                                <Select
-                                                                    value={subFeature.permission}
-                                                                    onValueChange={(value) =>
-                                                                        updateSubFeaturePermission(
-                                                                            feature.id,
-                                                                            subFeature.id,
-                                                                            value as PermissionLevel
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    <SelectTrigger className="w-32">
-                                                                        <SelectValue />
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>
-                                                                        <SelectItem value="none">
-                                                                            No Access
-                                                                        </SelectItem>
-                                                                        <SelectItem value="view">
-                                                                            View Only
-                                                                        </SelectItem>
-                                                                        <SelectItem value="edit">
-                                                                            View & Edit
-                                                                        </SelectItem>
-                                                                    </SelectContent>
-                                                                </Select>
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                );
-                            })}
+                {/* Add Full Access Switch */}
+                <Card className="border-amber-200 bg-amber-50">
+                    <CardContent className="pt-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h3 className="font-medium text-amber-900">Full Access Mode</h3>
+                                <p className="text-sm text-amber-700">
+                                    Enable full access to grant this user complete edit permissions
+                                    for all features
+                                </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Label htmlFor="full-access" className="text-amber-900">
+                                    {fullAccess ? 'Full Access Enabled' : 'Limited Access'}
+                                </Label>
+                                <Switch
+                                    id="full-access"
+                                    checked={fullAccess}
+                                    onCheckedChange={handleFullAccessToggle}
+                                />
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
 
-                {/* Action Buttons */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-lg">Feature Permissions</CardTitle>
+                        <p className="text-sm text-gray-600">
+                            Toggle visibility and set permission levels for each feature.
+                        </p>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-4">
+                            {features.map((feature) => (
+                                <div key={feature.id} className="rounded-lg border p-4">
+                                    <div className="mb-3 flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <feature.icon className="size-5 text-gray-600" />
+                                            <span className="font-medium">{feature.name}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <Label
+                                                htmlFor={`${feature.id}-visible`}
+                                                className="text-sm"
+                                            >
+                                                Visible
+                                            </Label>
+                                            <Switch
+                                                id={`${feature.id}-visible`}
+                                                checked={feature.visible}
+                                                onCheckedChange={(checked) =>
+                                                    updateFeatureVisibility(feature.id, checked)
+                                                }
+                                            />
+                                        </div>
+                                    </div>
+                                    {feature.subFeatures && feature.visible && (
+                                        <div className="ml-8 space-y-2">
+                                            <Separator />
+                                            <div className="mt-3 grid gap-2">
+                                                {feature.subFeatures.map((subFeature) => {
+                                                    const PermissionIcon =
+                                                        permissionIcons[subFeature.permission];
+                                                    return (
+                                                        <div
+                                                            key={subFeature.id}
+                                                            className="flex items-center justify-between py-2"
+                                                        >
+                                                            <div className="flex items-center gap-2">
+                                                                <PermissionIcon
+                                                                    className={`size-4 ${permissionColors[subFeature.permission]}`}
+                                                                />
+                                                                <span className="text-sm">
+                                                                    {subFeature.name}
+                                                                </span>
+                                                            </div>
+                                                            <Select
+                                                                value={subFeature.permission}
+                                                                onValueChange={(value) =>
+                                                                    updateSubFeaturePermission(
+                                                                        feature.id,
+                                                                        subFeature.id,
+                                                                        value as PermissionLevel
+                                                                    )
+                                                                }
+                                                            >
+                                                                <SelectTrigger className="w-32">
+                                                                    <SelectValue />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    <SelectItem value="none">
+                                                                        No Access
+                                                                    </SelectItem>
+                                                                    <SelectItem value="view">
+                                                                        View Only
+                                                                    </SelectItem>
+                                                                    <SelectItem value="edit">
+                                                                        View & Edit
+                                                                    </SelectItem>
+                                                                </SelectContent>
+                                                            </Select>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+
                 <div className="flex justify-end gap-3 border-t pt-4">
-                    <Button variant="outline" onClick={() => onClose()}>
+                    <Button variant="outline" onClick={onClose}>
                         Cancel
                     </Button>
                     <Button
                         onClick={handleSave}
                         className="bg-orange-500 text-white hover:bg-orange-600"
+                        disabled={saving}
                     >
                         Save Permissions
                     </Button>

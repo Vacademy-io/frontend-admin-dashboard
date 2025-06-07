@@ -374,3 +374,25 @@ export const handleUpdatePermission = async (data: PermissionUpdatePayload) => {
     });
     return response.data;
 };
+
+export const fetchUserPermissions = async (userId: string) => {
+    const response = await authenticatedAxiosInstance({
+        method: 'GET',
+        url: USER_PERMISSION_URL,
+        params: {
+            userId,
+        },
+    });
+    return response.data;
+};
+
+export const getUserPermissions = (userId: string) => {
+    return {
+        queryKey: ['GET_USER_PERMISSIONS', userId],
+        queryFn: async () => {
+            const data = await fetchUserPermissions(userId);
+            return data;
+        },
+        staleTime: 3600000,
+    };
+};

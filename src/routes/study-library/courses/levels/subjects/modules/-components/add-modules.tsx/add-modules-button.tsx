@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { AddModulesForm } from './add-modules-form';
 import { Module } from '@/stores/study-library/use-modules-with-chapters-store';
 import { Plus } from 'phosphor-react';
+import { hasPermission } from '@/utils/permission/permission';
+import { PERMISSION_IDS } from '@/types/permission';
 
 interface AddModuleButtonProps {
     onAddModule?: (module: Module) => void;
@@ -26,6 +28,7 @@ export const AddModulesButton = ({
             buttonType="text"
             className="!m-0 flex w-fit cursor-pointer flex-row items-center justify-start gap-2 px-0 pl-2 text-primary-500"
             id="add-chapters"
+            hidden={!hasPermission(PERMISSION_IDS.COURSES_EDIT)}
         >
             <Plus /> Add Module
         </MyButton>

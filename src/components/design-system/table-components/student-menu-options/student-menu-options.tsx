@@ -6,6 +6,8 @@ import { useDialogStore } from '../../../../routes/manage-students/students-list
 import { StudentTable } from '@/types/student-table-types';
 import { useState } from 'react';
 import { EnrollManuallyButton } from '@/components/common/students/enroll-manually/enroll-manually-button';
+import { hasPermission } from '@/utils/permission/permission';
+import { PERMISSION_IDS } from '@/types/permission';
 
 const getMenuOptions = (status?: string) => {
     if (status === 'INACTIVE') {
@@ -71,6 +73,7 @@ export const StudentMenuOptions = ({ student }: { student: StudentTable }) => {
                     scale="small"
                     layoutVariant="icon"
                     className="flex items-center justify-center"
+                    hidden={!hasPermission(PERMISSION_IDS.LEARNER_LIST_EDIT)}
                 >
                     <DotsThree />
                 </MyButton>

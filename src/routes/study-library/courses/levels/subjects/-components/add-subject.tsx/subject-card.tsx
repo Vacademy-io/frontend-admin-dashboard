@@ -1,19 +1,21 @@
 // subject-card.tsx
-import { DotsSixVertical } from "@phosphor-icons/react";
-import { useState, useEffect } from "react";
-import { AddSubjectForm } from "./add-subject-form";
-import { MyDialog } from "@/components/design-system/dialog";
-import { useRouter } from "@tanstack/react-router";
-import { MenuOptions } from "./subject-menu-options";
-import { SubjectDefaultImage } from "@/assets/svgs";
-import { useFileUpload } from "@/hooks/use-file-upload";
-import { useSidebar } from "@/components/ui/sidebar";
-import { SortableDragHandle } from "@/components/ui/sortable";
-import { SubjectType } from "@/stores/study-library/use-study-library-store";
-import { getModuleFlags } from "@/components/common/layout-container/sidebar/helper";
-import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { DropdownItemType } from "@/components/common/students/enroll-manually/dropdownTypesForPackageItems";
+import { DotsSixVertical } from '@phosphor-icons/react';
+import { useState, useEffect } from 'react';
+import { AddSubjectForm } from './add-subject-form';
+import { MyDialog } from '@/components/design-system/dialog';
+import { useRouter } from '@tanstack/react-router';
+import { MenuOptions } from './subject-menu-options';
+import { SubjectDefaultImage } from '@/assets/svgs';
+import { useFileUpload } from '@/hooks/use-file-upload';
+import { useSidebar } from '@/components/ui/sidebar';
+import { SortableDragHandle } from '@/components/ui/sortable';
+import { SubjectType } from '@/stores/study-library/use-study-library-store';
+import { getModuleFlags } from '@/components/common/layout-container/sidebar/helper';
+import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { DropdownItemType } from '@/components/common/students/enroll-manually/dropdownTypesForPackageItems';
+import { hasPermission } from '@/utils/permission/permission';
+import { PERMISSION_IDS } from '@/types/permission';
 
 interface SubjectCardProps {
     subject: SubjectType;
@@ -33,8 +35,8 @@ export const SubjectCard = ({ subject, onDelete, onEdit, currentSession }: Subje
     const handleCardClick = (e: React.MouseEvent) => {
         if (
             e.target instanceof Element &&
-            (e.target.closest(".menu-options-container") ||
-                e.target.closest(".drag-handle-container") ||
+            (e.target.closest('.menu-options-container') ||
+                e.target.closest('.drag-handle-container') ||
                 e.target.closest('[role="menu"]') ||
                 e.target.closest('[role="dialog"]'))
         ) {
@@ -66,7 +68,7 @@ export const SubjectCard = ({ subject, onDelete, onEdit, currentSession }: Subje
                     const url = await getPublicUrl(subject.thumbnail_id);
                     setImageUrl(url);
                 } catch (error) {
-                    console.error("Failed to fetch image URL:", error);
+                    console.error('Failed to fetch image URL:', error);
                 }
             }
         };
@@ -79,7 +81,7 @@ export const SubjectCard = ({ subject, onDelete, onEdit, currentSession }: Subje
             <div
                 onClick={handleCardClick}
                 className={`relative flex w-full ${
-                    open ? "h-[260px]" : "h-[300px]"
+                    open ? 'h-[260px]' : 'h-[300px]'
                 } cursor-pointer flex-col items-center justify-center gap-4 rounded-lg border border-neutral-100 p-4 shadow-md`}
             >
                 <div className="drag-handle-container absolute right-0 top-2 z-10 rounded-lg bg-white">
@@ -103,9 +105,14 @@ export const SubjectCard = ({ subject, onDelete, onEdit, currentSession }: Subje
                 )}
                 <div className="flex items-center justify-between gap-5">
                     <div className="text-h2 font-semibold">{subject.subject_name}</div>
-                    <div onClick={handleMenuOptionClick} className="menu-options-container">
-                        <MenuOptions onDelete={onDelete} onEdit={() => setIsEditDialogOpen(true)} />
-                    </div>
+                    {hasPermission(PERMISSION_IDS.COURSES_EDIT) && (
+                        <div onClick={handleMenuOptionClick} className="menu-options-container">
+                            <MenuOptions
+                                onDelete={onDelete}
+                                onEdit={() => setIsEditDialogOpen(true)}
+                            />
+                        </div>
+                    )}
                 </div>
             </div>
 

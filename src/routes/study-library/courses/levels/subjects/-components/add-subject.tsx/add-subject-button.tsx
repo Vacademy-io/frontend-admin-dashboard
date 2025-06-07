@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { AddSubjectForm } from './add-subject-form';
 import { SubjectType } from '@/stores/study-library/use-study-library-store';
 import { Plus } from 'phosphor-react';
+import { hasPermission } from '@/utils/permission/permission';
+import { PERMISSION_IDS } from '@/types/permission';
 
 interface AddSubjectButtonProps {
     onAddSubject: (subject: SubjectType) => void;
@@ -18,6 +20,7 @@ export const AddSubjectButton = ({ onAddSubject, isTextButton = false }: AddSubj
             buttonType="text"
             className="!m-0 flex w-fit cursor-pointer flex-row items-center justify-start gap-2 px-0 pl-2 text-primary-500"
             id="add-chapters"
+            hidden={!hasPermission(PERMISSION_IDS.COURSES_EDIT)}
         >
             <Plus /> Add Subject
         </MyButton>

@@ -1,15 +1,17 @@
-import { Button } from "@/components/ui/button";
-import { Plus, X } from "phosphor-react";
+import { Button } from '@/components/ui/button';
+import { Plus, X } from 'phosphor-react';
 import {
     AlertDialog,
     AlertDialogCancel,
     AlertDialogContent,
     AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { QuestionPaperUpload } from "./QuestionPaperUpload";
-import { useIsMobile } from "@/hooks/use-mobile";
-import useDialogStore from "../-global-states/question-paper-dialogue-close";
-import { Dispatch, SetStateAction } from "react";
+} from '@/components/ui/alert-dialog';
+import { QuestionPaperUpload } from './QuestionPaperUpload';
+import { useIsMobile } from '@/hooks/use-mobile';
+import useDialogStore from '../-global-states/question-paper-dialogue-close';
+import { Dispatch, SetStateAction } from 'react';
+import { hasPermission } from '@/utils/permission/permission';
+import { PERMISSION_IDS } from '@/types/permission';
 
 interface QuestionPaperHeadingInterface {
     currentQuestionIndex: number;
@@ -33,7 +35,7 @@ export const QuestionPapersHeading = ({
     return (
         <div
             className={`flex items-center justify-between gap-10 ${
-                isMobile ? "flex-wrap gap-4" : ""
+                isMobile ? 'flex-wrap gap-4' : ''
             }`}
         >
             <div className="flex flex-col">
@@ -49,7 +51,7 @@ export const QuestionPapersHeading = ({
                 open={isMainQuestionPaperAddDialogOpen}
                 onOpenChange={setIsMainQuestionPaperAddDialogOpen}
             >
-                <AlertDialogTrigger>
+                <AlertDialogTrigger hidden={!hasPermission(PERMISSION_IDS.QUESTION_PAPER_EDIT)}>
                     <Button className="bg-primary-500 text-white">
                         <Plus />
                         Add Question Paper

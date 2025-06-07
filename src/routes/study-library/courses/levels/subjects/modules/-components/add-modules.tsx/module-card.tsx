@@ -1,13 +1,15 @@
-import { useRouter } from "@tanstack/react-router";
-import { DotsSixVertical } from "phosphor-react";
-import { useEffect, useState } from "react";
-import { MenuOptions } from "./module-menu-options";
-import { MyDialog } from "@/components/design-system/dialog";
-import { AddModulesForm } from "./add-modules-form";
-import { SortableDragHandle } from "@/components/ui/sortable";
-import { Module } from "@/stores/study-library/use-modules-with-chapters-store";
-import { getPublicUrl } from "@/services/upload_file";
-import { ModulesWithChapters } from "../../../../../../../../stores/study-library/use-modules-with-chapters-store";
+import { useRouter } from '@tanstack/react-router';
+import { DotsSixVertical } from 'phosphor-react';
+import { useEffect, useState } from 'react';
+import { MenuOptions } from './module-menu-options';
+import { MyDialog } from '@/components/design-system/dialog';
+import { AddModulesForm } from './add-modules-form';
+import { SortableDragHandle } from '@/components/ui/sortable';
+import { Module } from '@/stores/study-library/use-modules-with-chapters-store';
+import { getPublicUrl } from '@/services/upload_file';
+import { ModulesWithChapters } from '../../../../../../../../stores/study-library/use-modules-with-chapters-store';
+import { hasPermission } from '@/utils/permission/permission';
+import { PERMISSION_IDS } from '@/types/permission';
 
 interface ModuleCardProps {
     module: ModulesWithChapters;
@@ -24,7 +26,7 @@ export const ModuleCard = ({ module, onDelete, onEdit }: ModuleCardProps) => {
     const handleCardClick = (e: React.MouseEvent) => {
         if (
             e.target instanceof Element &&
-            (e.target.closest(".drag-handle-container") ||
+            (e.target.closest('.drag-handle-container') ||
                 e.target.closest('[role="menu"]') ||
                 e.target.closest('[role="dialog"]'))
         ) {
@@ -52,7 +54,7 @@ export const ModuleCard = ({ module, onDelete, onEdit }: ModuleCardProps) => {
                     const url = await getPublicUrl(module.module.thumbnail_id);
                     setImageUrl(url);
                 } catch (error) {
-                    console.error("Failed to fetch image URL:", error);
+                    console.error('Failed to fetch image URL:', error);
                 }
             }
         };
@@ -100,7 +102,9 @@ export const ModuleCard = ({ module, onDelete, onEdit }: ModuleCardProps) => {
                     <div className="text-wrap text-body text-neutral-500">
                         {module.module.description}
                     </div>
-                    <MenuOptions onDelete={onDelete} onEdit={() => setIsEditDialogOpen(true)} />
+                    {hasPermission(PERMISSION_IDS.COURSES_EDIT) && (
+                        <MenuOptions onDelete={onDelete} onEdit={() => setIsEditDialogOpen(true)} />
+                    )}
                 </div>
             </div>
 

@@ -1,5 +1,6 @@
 import { FEATURE_PERMISSION_MAP } from '@/constants/permission/permission-mapping';
 import { getUserPermissions } from '@/hooks/useUserPermissions';
+import { FeatureConfig } from '@/routes/dashboard/-components/PermissionDialog';
 import type { PermissionLevel, PermissionUpdatePayload } from '@/types/permission';
 
 // Convert UI permission levels to permission IDs
@@ -68,8 +69,54 @@ export const hasPermission = (requiredPermission: string): boolean => {
     const userPermissions = getUserPermissions();
 
     if (userPermissions.length === 0) {
-        return false;
+        return true; // If no permissions are set, assume access is allowed
     }
 
     return userPermissions.includes(requiredPermission);
+};
+
+export const getPermissionLevelFromIds = (
+    featureId: keyof typeof FEATURE_PERMISSION_MAP,
+    userPermissionIds: string[]
+): PermissionLevel => {
+    const mapping = FEATURE_PERMISSION_MAP[featureId];
+    if (!mapping) {
+        return 'none';
+    }
+
+    const hasEdit = mapping.edit.every((id) => userPermissionIds.includes(id));
+    if (hasEdit) {
+        return 'edit';
+    }
+
+    const hasView = mapping.view.every((id) => userPermissionIds.includes(id));
+    if (hasView) {
+        return 'view';
+    }
+
+    return 'none';
+};
+
+export const mapPermissionsToFeatures = (
+    defaultFeatures: FeatureConfig[],
+    userPermissionIds: string[]
+): FeatureConfig[] => {
+    return defaultFeatures.map((feature) => {
+        const featureKey = feature.id as keyof typeof FEATURE_PERMISSION_MAP;
+        const mainPermissionLevel = getPermissionLevelFromIds(featureKey, userPermissionIds);
+
+        const updatedSubFeatures = feature.subFeatures?.map((subFeature) => ({
+            ...subFeature,
+            permission: getPermissionLevelFromIds(
+                subFeature.id as keyof typeof FEATURE_PERMISSION_MAP,
+                userPermissionIds
+            ),
+        }));
+
+        return {
+            ...feature,
+            visible: mainPermissionLevel !== 'none',
+            subFeatures: updatedSubFeatures,
+        };
+    });
 };

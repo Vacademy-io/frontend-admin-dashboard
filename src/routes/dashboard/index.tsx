@@ -26,6 +26,8 @@ import RoleTypeComponent from './-components/RoleTypeComponent';
 import useLocalStorage from '@/hooks/use-local-storage';
 import EditDashboardProfileComponent from './-components/EditDashboardProfileComponent';
 import { handleGetAdminDetails } from '@/services/student-list-section/getAdminDetails';
+import { hasPermission } from '@/utils/permission/permission';
+import { PERMISSION_IDS } from '@/types/permission';
 
 export const Route = createFileRoute('/dashboard/')({
     component: () => (
@@ -287,9 +289,9 @@ export function DashboardComponent() {
                                             {
                                                 label: 'Teacher',
                                                 count: roleTypeCount['TEACHER'],
-                                                bg: 'bg-[#FCE6E7]',
-                                                textCol: 'text-red-700',
-                                                borderCol: 'border-red-200',
+                                                bg: 'bg-yellow-100',
+                                                textCol: 'text-yellow-800',
+                                                borderCol: 'border-yellow-200',
                                             }, // Example color, adjust as needed
                                             {
                                                 label: 'Evaluator',
@@ -331,6 +333,7 @@ export function DashboardComponent() {
                                         layoutVariant="default"
                                         className="w-full px-3 py-1.5 text-xs sm:w-auto" // Custom class for finer control
                                         onClick={handleEnrollButtonClick}
+                                        hidden={!hasPermission(PERMISSION_IDS.LEARNER_LIST_EDIT)}
                                     >
                                         Enroll
                                     </MyButton>
@@ -394,6 +397,7 @@ export function DashboardComponent() {
                                             buttonType="secondary"
                                             layoutVariant="default"
                                             className="w-full px-3 py-1.5 text-xs sm:w-auto" // Custom class
+                                            hidden={!hasPermission(PERMISSION_IDS.COURSES_EDIT)}
                                         >
                                             <Plus size={16} /> {/* Smaller icon */}
                                             Create Course
@@ -405,6 +409,7 @@ export function DashboardComponent() {
                                             buttonType="secondary"
                                             layoutVariant="default"
                                             className="w-full px-3 py-1.5 text-xs sm:w-auto" // Custom class
+                                            hidden={!hasPermission(PERMISSION_IDS.COURSES_EDIT)}
                                         >
                                             <Plus size={16} /> {/* Smaller icon */}
                                             Add Study Slides
@@ -468,6 +473,11 @@ export function DashboardComponent() {
                                                     buttonType="secondary"
                                                     layoutVariant="default"
                                                     className="w-full px-3 py-1.5 text-xs sm:w-auto" // Custom class
+                                                    hidden={
+                                                        !hasPermission(
+                                                            PERMISSION_IDS.ASSESSMENT_LIST_EDIT
+                                                        )
+                                                    }
                                                 >
                                                     <Plus size={16} /> {/* Smaller icon */}
                                                     Create

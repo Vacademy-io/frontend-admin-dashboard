@@ -13,6 +13,8 @@ import { CreateInvite } from '@/routes/manage-students/invite/-components/create
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { NoCourseDialog } from '@/components/common/students/no-course-dialog';
 import { cn } from '@/lib/utils';
+import { hasPermission } from '@/utils/permission/permission';
+import { PERMISSION_IDS } from '@/types/permission';
 
 const InviteLinksDialog = ({
     currentSession,
@@ -101,6 +103,7 @@ export const StudentListHeader = ({
                     }}
                     scale="large"
                     buttonType="secondary"
+                    hidden={!hasPermission(PERMISSION_IDS.LEARNER_LIST_EDIT)}
                 >
                     Invite Learner
                 </MyButton>

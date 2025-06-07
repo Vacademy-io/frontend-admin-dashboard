@@ -16,6 +16,9 @@ import useIntroJsTour from '@/hooks/use-intro';
 import { StudyLibraryIntroKey } from '@/constants/storage/introKey';
 import { studyLibrarySteps } from '@/constants/intro/steps';
 import { EmptyCoursePage } from '@/svgs';
+import { cn } from '@/lib/utils';
+import { hasPermission } from '@/utils/permission/permission';
+import { PERMISSION_IDS } from '@/types/permission';
 
 export const CourseMaterial = () => {
     const { setNavHeading } = useNavHeadingStore();
@@ -97,7 +100,12 @@ export const CourseMaterial = () => {
                         ensuring a seamless learning experience.
                     </div>
                 </div>
-                <div className="flex flex-col items-center gap-4">
+                <div
+                    className={cn(
+                        'flex flex-col items-center gap-4',
+                        !hasPermission(PERMISSION_IDS.COURSES_EDIT) && 'hidden'
+                    )}
+                >
                     <CreateStudyDocButton />
                     <UploadStudyMaterialButton />
                     <AddCourseButton onSubmit={handleAddCourse} />

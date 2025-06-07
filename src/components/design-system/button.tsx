@@ -49,6 +49,7 @@ export const MyButton = ({
     layoutVariant = 'default',
     children,
     disable,
+    hidden = false,
     ...props
 }: MyButtonProps) => {
     const getButtonClasses = () => {
@@ -68,7 +69,11 @@ export const MyButton = ({
     };
 
     return (
-        <Button className={cn(getButtonClasses(), className)} {...props} disabled={disable}>
+        <Button
+            className={cn(getButtonClasses(), className, hidden && 'hidden')}
+            {...props}
+            disabled={disable}
+        >
             {children}
         </Button>
     );
