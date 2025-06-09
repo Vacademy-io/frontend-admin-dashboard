@@ -113,6 +113,7 @@ export const handlePublishSlide = async (
             notify,
             newSlide: false,
         });
+        console.log("convertedData: ",convertedData);
         try {
             await addUpdateVideoSlide(convertedData);
             toast.success(`slide published successfully!`);
