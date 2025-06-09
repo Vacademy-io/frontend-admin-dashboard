@@ -19,6 +19,8 @@ import { toast } from 'sonner';
 import { AxiosError } from 'axios';
 import { getInstituteId } from '@/constants/helper';
 import { handleDeleteAssessment } from '../-services/assessment-services';
+import { hasPermission } from '@/utils/permission/permission';
+import { PERMISSION_IDS } from '@/types/permission';
 
 export function ScheduleTestDetailsDropdownLive({
     scheduleTestContent,
@@ -166,15 +168,17 @@ export function ScheduleTestDetailsDropdownLive({
                     >
                         Duplicate Assessment
                     </DropdownMenuItem> */}
-                    <DropdownMenuItem
-                        className="cursor-pointer"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteAssessmentClick(scheduleTestContent.assessment_id);
-                        }}
-                    >
-                        Delete Assessment
-                    </DropdownMenuItem>
+                    {hasPermission(PERMISSION_IDS.ASSESSMENT_LIST_EDIT) && (
+                        <DropdownMenuItem
+                            className="cursor-pointer"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteAssessmentClick(scheduleTestContent.assessment_id);
+                            }}
+                        >
+                            Delete Assessment
+                        </DropdownMenuItem>
+                    )}
                 </DropdownMenuContent>
             </DropdownMenu>
             {isRemiderAlertDialogOpen && (
@@ -267,15 +271,17 @@ export function ScheduleTestDetailsDropdownUpcoming({
                     >
                         Duplicate Assessment
                     </DropdownMenuItem> */}
-                    <DropdownMenuItem
-                        className="cursor-pointer"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteAssessmentClick(scheduleTestContent.assessment_id);
-                        }}
-                    >
-                        Delete Assessment
-                    </DropdownMenuItem>
+                    {hasPermission(PERMISSION_IDS.ASSESSMENT_LIST_EDIT) && (
+                        <DropdownMenuItem
+                            className="cursor-pointer"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteAssessmentClick(scheduleTestContent.assessment_id);
+                            }}
+                        >
+                            Delete Assessment
+                        </DropdownMenuItem>
+                    )}
                 </DropdownMenuContent>
             </DropdownMenu>
             {isDeleteAssessmentDialog && (
@@ -371,15 +377,17 @@ export function ScheduleTestDetailsDropdownPrevious({
                     >
                         Reopen Assessment
                     </DropdownMenuItem> */}
-                    <DropdownMenuItem
-                        className="cursor-pointer"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteAssessmentClick(scheduleTestContent.assessment_id);
-                        }}
-                    >
-                        Delete Assessment
-                    </DropdownMenuItem>
+                    {hasPermission(PERMISSION_IDS.ASSESSMENT_LIST_EDIT) && (
+                        <DropdownMenuItem
+                            className="cursor-pointer"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteAssessmentClick(scheduleTestContent.assessment_id);
+                            }}
+                        >
+                            Delete Assessment
+                        </DropdownMenuItem>
+                    )}
                 </DropdownMenuContent>
             </DropdownMenu>
             {isDeleteAssessmentDialog && (
@@ -442,15 +450,17 @@ export function ScheduleTestDetailsDropdowDrafts({
                     >
                         View Assessment Details
                     </DropdownMenuItem>
-                    <DropdownMenuItem
-                        className="cursor-pointer"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteAssessmentClick(scheduleTestContent.assessment_id);
-                        }}
-                    >
-                        Delete Assessment
-                    </DropdownMenuItem>
+                    {hasPermission(PERMISSION_IDS.ASSESSMENT_LIST_EDIT) && (
+                        <DropdownMenuItem
+                            className="cursor-pointer"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteAssessmentClick(scheduleTestContent.assessment_id);
+                            }}
+                        >
+                            Delete Assessment
+                        </DropdownMenuItem>
+                    )}
                 </DropdownMenuContent>
             </DropdownMenu>
             {isDeleteAssessmentDialog && (

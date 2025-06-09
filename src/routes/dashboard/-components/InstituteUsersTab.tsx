@@ -1,9 +1,11 @@
-import { Badge } from "@/components/ui/badge";
-import { TabsContent } from "@/components/ui/tabs";
-import { RoleTypeEmptyScreen, RoleTypeUserIcon } from "@/svgs";
-import { CheckCircle, XCircle } from "phosphor-react";
-import InstituteUsersOptions from "./InstituteUsersOptions";
-import { RolesDummyDataType, UserRolesDataEntry } from "@/types/dashboard/user-roles";
+import { Badge } from '@/components/ui/badge';
+import { TabsContent } from '@/components/ui/tabs';
+import { RoleTypeEmptyScreen, RoleTypeUserIcon } from '@/svgs';
+import { CheckCircle, XCircle } from 'phosphor-react';
+import InstituteUsersOptions from './InstituteUsersOptions';
+import { RolesDummyDataType, UserRolesDataEntry } from '@/types/dashboard/user-roles';
+import { hasPermission } from '@/utils/permission/permission';
+import { PERMISSION_IDS } from '@/types/permission';
 
 interface InviteUsersTabProps {
     selectedTab: keyof RolesDummyDataType;
@@ -18,7 +20,7 @@ const InstituteUsersComponent: React.FC<InviteUsersTabProps> = ({
 }) => {
     return (
         <>
-            {selectedTab === "instituteUsers" && selectedTabData.length === 0 ? (
+            {selectedTab === 'instituteUsers' && selectedTabData.length === 0 ? (
                 <div className="flex h-[60vh] w-screen flex-col items-center justify-center">
                     <RoleTypeEmptyScreen />
                     <p>No institute users exists.</p>
@@ -42,15 +44,15 @@ const InstituteUsersComponent: React.FC<InviteUsersTabProps> = ({
                                                     <Badge
                                                         key={index}
                                                         className={`whitespace-nowrap rounded-lg border border-neutral-300 py-1.5 font-thin shadow-none ${
-                                                            role.role_name === "ADMIN"
-                                                                ? "bg-[#F4F9FF]"
+                                                            role.role_name === 'ADMIN'
+                                                                ? 'bg-[#F4F9FF]'
                                                                 : role.role_name ===
-                                                                    "COURSE CREATOR"
-                                                                  ? "bg-[#F4FFF9]"
+                                                                    'COURSE CREATOR'
+                                                                  ? 'bg-[#F4FFF9]'
                                                                   : role.role_name ===
-                                                                      "ASSESSMENT CREATOR"
-                                                                    ? "bg-[#FFF4F5]"
-                                                                    : "bg-[#F5F0FF]"
+                                                                      'ASSESSMENT CREATOR'
+                                                                    ? 'bg-[#FFF4F5]'
+                                                                    : 'bg-[#F5F0FF]'
                                                         }`}
                                                     >
                                                         {role.role_name}
@@ -65,12 +67,12 @@ const InstituteUsersComponent: React.FC<InviteUsersTabProps> = ({
                                     <Badge
                                         key={idx}
                                         className={`flex items-center gap-1 whitespace-nowrap rounded-lg border border-neutral-300 py-1.5 font-thin shadow-none ${
-                                            item.status === "ACTIVE"
-                                                ? "bg-success-50"
-                                                : "bg-neutral-50"
+                                            item.status === 'ACTIVE'
+                                                ? 'bg-success-50'
+                                                : 'bg-neutral-50'
                                         }`}
                                     >
-                                        {item.status === "ACTIVE" ? (
+                                        {item.status === 'ACTIVE' ? (
                                             <CheckCircle
                                                 size={20}
                                                 weight="fill"
@@ -85,7 +87,12 @@ const InstituteUsersComponent: React.FC<InviteUsersTabProps> = ({
                                         )}
                                         {item.status}
                                     </Badge>
-                                    <InstituteUsersOptions user={item} refetchData={refetchData} />
+                                    {hasPermission(PERMISSION_IDS.TEAMS_EDIT) && (
+                                        <InstituteUsersOptions
+                                            user={item}
+                                            refetchData={refetchData}
+                                        />
+                                    )}
                                 </div>
                             </div>
                         );

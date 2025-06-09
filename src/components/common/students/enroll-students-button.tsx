@@ -8,6 +8,8 @@ import { cn } from '@/lib/utils';
 import { useBulkDialog } from '@/routes/manage-students/students-list/-context/bulk-dialog-context';
 import { useRouter } from '@tanstack/react-router';
 import { ButtonScale } from '@/components/design-system/utils/types/button-types';
+import { PERMISSION_IDS } from '@/types/permission';
+import { hasPermission } from '@/utils/permission/permission';
 export const EnrollStudentsButton = ({ scale = 'large' }: { scale?: ButtonScale }) => {
     const { getCourseFromPackage } = useInstituteDetailsStore();
     const { enrollStudentDialogOpen, setEnrollStudentDialogOpen } = useBulkDialog();
@@ -26,6 +28,7 @@ export const EnrollStudentsButton = ({ scale = 'large' }: { scale?: ButtonScale 
                     scale={scale}
                     layoutVariant="default"
                     id="enroll-students"
+                    hidden={!hasPermission(PERMISSION_IDS.LEARNER_LIST_EDIT)}
                 >
                     Enroll Learner
                 </MyButton>

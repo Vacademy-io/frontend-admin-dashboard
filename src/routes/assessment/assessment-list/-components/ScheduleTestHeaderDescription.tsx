@@ -9,6 +9,8 @@ import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Examination, Mock, Practice, Survey } from '@/svgs';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { cn } from '@/lib/utils';
+import { hasPermission } from '@/utils/permission/permission';
+import { PERMISSION_IDS } from '@/types/permission';
 
 export const ScheduleTestHeaderDescription = ({
     isCourseOutline = false,
@@ -71,6 +73,7 @@ export const ScheduleTestHeaderDescription = ({
                         buttonType="primary"
                         layoutVariant="default"
                         id="create-assessment"
+                        hidden={!hasPermission(PERMISSION_IDS.ASSESSMENT_LIST_EDIT)}
                     >
                         <CalendarBlank size={32} />
                         Create Assessment

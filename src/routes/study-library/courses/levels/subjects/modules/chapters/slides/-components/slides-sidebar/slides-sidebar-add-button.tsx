@@ -31,6 +31,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { formatHTMLString } from '../slide-operations/formatHtmlString';
 import AddAssignmentDialog from './add-assignment-dialog';
 import { createPresentationSlidePayload } from '../create-presentation-slide';
+import { PERMISSION_IDS } from '@/types/permission';
+import { hasPermission } from '@/utils/permission/permission';
 
 export const ChapterSidebarAddButton = () => {
     const form = useForm<AssignmentFormType>({
@@ -223,6 +225,7 @@ export const ChapterSidebarAddButton = () => {
                     scale="large"
                     className={`${open ? '' : ''}`}
                     id="add-slides"
+                    hidden={!hasPermission(PERMISSION_IDS.COURSES_EDIT)}
                 >
                     <Plus />
                     <p>Add</p>
