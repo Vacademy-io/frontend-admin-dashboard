@@ -29,6 +29,16 @@ import { toast } from 'sonner';
 import { EDIT_PRESENTATION } from '@/constants/urls';
 import { useQueryClient } from '@tanstack/react-query';
 import { MyButton } from '@/components/design-system/button';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { ChevronDown } from 'lucide-react';
+import { useSlideStore } from '@/stores/Slides/useSlideStore';
+import { createNewSlide } from './utils/util';
+import { SlideTypeEnum } from './utils/types';
 
 import type { PresentationData } from './types';
 
@@ -44,6 +54,10 @@ export default function ManagePresentation() {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [newTitle, setNewTitle] = useState('');
     const [newDescription, setNewDescription] = useState('');
+    const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+    const [aiTopic, setAiTopic] = useState('');
+    const [aiLanguage, setAiLanguage] = useState('English');
+    const [isGenerating, setIsGenerating] = useState(false);
 
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editingPresentation, setEditingPresentation] = useState<PresentationData | null>(null);
@@ -61,6 +75,112 @@ export default function ManagePresentation() {
             setPresentations(fetchedPresentations as PresentationData[]);
         }
     }, [fetchedPresentations]);
+
+    const handleAiGenerate = async (e: FormEvent) => {
+        e.preventDefault();
+        if (!aiTopic.trim()) {
+            toast.error('Topic is required for AI generation.');
+            return;
+        }
+        setIsGenerating(true);
+        console.log(`[AI Gen] Starting generation for topic: "${aiTopic}"`);
+
+        try {
+            const response = await authenticatedAxiosInstance.post(
+                'https://backend-stage.vacademy.io/media-service/ai/presentation/generateFromData',
+                {
+                    language: aiLanguage,
+                    text: aiTopic,
+                },
+                { headers: { 'Content-Type': 'application/json' } }
+            );
+
+            const data = response.data;
+            console.log('[AI Gen] Received data:', data);
+
+            if (!data.slides || !data.assessment) {
+                throw new Error('Invalid response structure from AI service.');
+            }
+
+            const { setSlides, setCurrentSlideId, initializeNewPresentationState } =
+                useSlideStore.getState();
+
+            initializeNewPresentationState(); // Clear out any old state
+
+            const allNewSlides = [];
+
+            // Process Excalidraw slides
+            data.slides.forEach((slideData) => {
+                const newSlide = createNewSlide(SlideTypeEnum.Excalidraw);
+                const excalidrawSlide = {
+                    ...newSlide,
+                    elements: slideData.elements,
+                    appState: {
+                        ...newSlide.appState,
+                        ...slideData.appState,
+                    },
+                };
+                allNewSlides.push(excalidrawSlide);
+            });
+
+            // Process Questions
+            data.assessment.questions.forEach((questionData) => {
+                const isMcq = questionData.question_type === 'MCQS';
+                const type = isMcq ? SlideTypeEnum.Quiz : SlideTypeEnum.Feedback;
+                const newSlide = createNewSlide(type);
+
+                const questionElements: any = {
+                    questionName: questionData.question.content,
+                };
+
+                if (isMcq) {
+                    questionElements.singleChoiceOptions = questionData.options.map((opt) => ({
+                        id: `option_${Math.random()}`, // temp id
+                        name: opt.content,
+                        isSelected: (questionData.correct_options || []).includes(opt.preview_id),
+                    }));
+                } else {
+                    questionElements.feedbackAnswer = '';
+                }
+
+                const questionSlide = {
+                    ...newSlide,
+                    elements: questionElements,
+                };
+                allNewSlides.push(questionSlide);
+            });
+
+            const finalSlides = allNewSlides.map((slide, index) => ({
+                ...slide,
+                slide_order: index,
+            }));
+
+            console.log('[AI Gen] Processed slides for store:', finalSlides);
+            setSlides(finalSlides);
+            setCurrentSlideId(finalSlides.length > 0 ? finalSlides[0].id : undefined);
+
+            toast.success('AI Presentation generated successfully! Opening editor...');
+            setIsAiModalOpen(false);
+
+            router.navigate({
+                to: '/study-library/present/add',
+                search: {
+                    title: data.title || 'AI Generated Presentation',
+                    description: `Generated from topic: ${aiTopic}`,
+                    id: '',
+                    isEdit: false,
+                    source: 'ai',
+                },
+            });
+        } catch (error: any) {
+            console.error('[AI Gen] Error:', error);
+            toast.error(
+                error.response?.data?.message || 'Failed to generate presentation from AI.'
+            );
+        } finally {
+            setIsGenerating(false);
+        }
+    };
 
     const handleCreatePresentation = (e: FormEvent) => {
         e.preventDefault();
@@ -197,64 +317,24 @@ export default function ManagePresentation() {
                         Manage, create, and organize your presentation materials.
                     </p>
                 </div>
-                <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-                    <DialogTrigger asChild>
-                        <MyButton size="lg" className="gap-2 px-5 py-2.5">
-                            <Plus className="h-5 w-5" /> New Presentation
-                        </MyButton>
-                    </DialogTrigger>
-                    <DialogContent className="p-6 sm:max-w-lg">
-                        <DialogHeader className="mb-4">
-                            <DialogTitle className="text-xl font-semibold">
-                                Create New Presentation
-                            </DialogTitle>
-                            <DialogDescription className="text-sm text-neutral-500">
-                                Provide a title and description. You'll add slides in the next step.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <form onSubmit={handleCreatePresentation} className="space-y-5">
-                            <div>
-                                <Label htmlFor="new-title" className="text-sm font-medium">
-                                    Title
-                                </Label>
-                                <Input
-                                    id="new-title"
-                                    value={newTitle}
-                                    onChange={(e) => setNewTitle(e.target.value)}
-                                    className="mt-1.5 w-full"
-                                    placeholder="e.g., Quarterly Business Review"
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <Label htmlFor="new-description" className="text-sm font-medium">
-                                    Description (Optional)
-                                </Label>
-                                <Textarea
-                                    id="new-description"
-                                    value={newDescription}
-                                    onChange={(e) => setNewDescription(e.target.value)}
-                                    className="mt-1.5 min-h-[80px] w-full"
-                                    placeholder="A brief summary of your presentation"
-                                    rows={3}
-                                />
-                            </div>
-                            <DialogFooter className="mt-6 !justify-stretch space-y-2 sm:flex sm:flex-row sm:space-x-3 sm:space-y-0">
-                                <MyButton
-                                    type="button"
-                                    buttonType="secondary"
-                                    onClick={() => setIsCreateModalOpen(false)}
-                                    className="w-full sm:w-auto"
-                                >
-                                    Cancel
-                                </MyButton>
-                                <MyButton type="submit" className="w-full sm:w-auto">
-                                    Create & Add Slides
-                                </MyButton>
-                            </DialogFooter>
-                        </form>
-                    </DialogContent>
-                </Dialog>
+                <div className="flex items-center gap-2">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <MyButton size="lg" className="gap-2 px-5 py-2.5">
+                                <Plus className="h-5 w-5" /> New Presentation
+                                <ChevronDown className="h-4 w-4" />
+                            </MyButton>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            <DropdownMenuItem onSelect={() => setIsCreateModalOpen(true)}>
+                                From Scratch
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => setIsAiModalOpen(true)}>
+                                Generate with AI
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
             </div>
 
             <div className="mb-6">
@@ -430,6 +510,126 @@ export default function ManagePresentation() {
                             )}
                         </MyButton>
                     </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+                <DialogContent className="p-6 sm:max-w-lg">
+                    <DialogHeader className="mb-4">
+                        <DialogTitle className="text-xl font-semibold">
+                            Create New Presentation
+                        </DialogTitle>
+                        <DialogDescription className="text-sm text-neutral-500">
+                            Provide a title and description. You'll add slides in the next step.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleCreatePresentation} className="space-y-5">
+                        <div>
+                            <Label htmlFor="new-title" className="text-sm font-medium">
+                                Title
+                            </Label>
+                            <Input
+                                id="new-title"
+                                value={newTitle}
+                                onChange={(e) => setNewTitle(e.target.value)}
+                                className="mt-1.5 w-full"
+                                placeholder="e.g., Quarterly Business Review"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <Label htmlFor="new-description" className="text-sm font-medium">
+                                Description (Optional)
+                            </Label>
+                            <Textarea
+                                id="new-description"
+                                value={newDescription}
+                                onChange={(e) => setNewDescription(e.target.value)}
+                                className="mt-1.5 min-h-[80px] w-full"
+                                placeholder="A brief summary of your presentation"
+                                rows={3}
+                            />
+                        </div>
+                        <DialogFooter className="mt-6 !justify-stretch space-y-2 sm:flex sm:flex-row sm:space-x-3 sm:space-y-0">
+                            <MyButton
+                                type="button"
+                                buttonType="secondary"
+                                onClick={() => setIsCreateModalOpen(false)}
+                                className="w-full sm:w-auto"
+                            >
+                                Cancel
+                            </MyButton>
+                            <MyButton type="submit" className="w-full sm:w-auto">
+                                Create & Add Slides
+                            </MyButton>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={isAiModalOpen} onOpenChange={setIsAiModalOpen}>
+                <DialogContent className="p-6 sm:max-w-lg">
+                    <DialogHeader className="mb-4">
+                        <DialogTitle className="text-xl font-semibold">
+                            Generate Presentation with AI
+                        </DialogTitle>
+                        <DialogDescription className="text-sm text-neutral-500">
+                            Provide a topic and language to generate slides and questions.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleAiGenerate} className="space-y-5">
+                        <div>
+                            <Label htmlFor="ai-topic" className="text-sm font-medium">
+                                Topic
+                            </Label>
+                            <Textarea
+                                id="ai-topic"
+                                value={aiTopic}
+                                onChange={(e) => setAiTopic(e.target.value)}
+                                className="mt-1.5 min-h-[100px] w-full"
+                                placeholder="e.g., An overview of the thermite reaction, its chemical properties, applications, and safety precautions."
+                                required
+                                rows={4}
+                            />
+                        </div>
+                        <div>
+                            <Label htmlFor="ai-language" className="text-sm font-medium">
+                                Language
+                            </Label>
+                            <Input
+                                id="ai-language"
+                                value={aiLanguage}
+                                onChange={(e) => setAiLanguage(e.target.value)}
+                                className="mt-1.5 w-full"
+                                placeholder="e.g., English"
+                                required
+                            />
+                        </div>
+                        <DialogFooter className="mt-6 !justify-stretch space-y-2 sm:flex sm:flex-row sm:space-x-3 sm:space-y-0">
+                            <MyButton
+                                type="button"
+                                buttonType="secondary"
+                                onClick={() => setIsAiModalOpen(false)}
+                                className="w-full sm:w-auto"
+                                disabled={isGenerating}
+                            >
+                                Cancel
+                            </MyButton>
+                            <MyButton
+                                type="submit"
+                                className="w-full sm:w-auto"
+                                disabled={isGenerating}
+                            >
+                                {isGenerating ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating...
+                                    </>
+                                ) : (
+                                    'Generate & Create'
+                                )}
+                            </MyButton>
+                        </DialogFooter>
+                    </form>
                 </DialogContent>
             </Dialog>
         </div>

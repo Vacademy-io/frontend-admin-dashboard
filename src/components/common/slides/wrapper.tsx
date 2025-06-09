@@ -34,6 +34,15 @@ const ExcalidrawWrapper: React.FC<ExcalidrawWrapperProps> = ({
 }) => {
     const excalidrawRef = useRef<ExcalidrawAPIRefValue>(null);
 
+    const onReady = useCallback(() => {
+        if (excalidrawRef.current) {
+            // This ensures that whenever a new slide is displayed (keyed by initialData.id),
+            // the canvas will center on its content.
+            console.log(`[ExcalidrawWrapper] onReady: Centering content for slide ${initialData.id}`);
+            excalidrawRef.current.scrollToContent();
+        }
+    }, [initialData.id]); // The callback depends on the slide ID to have the correct context in logs.
+
     const handleExcalidrawChange = useCallback(
         (
             elements: readonly ExcalidrawElement[],
@@ -71,7 +80,7 @@ const ExcalidrawWrapper: React.FC<ExcalidrawWrapperProps> = ({
         viewBackgroundColor: '#FFFFFF', // Default background
         ...(initialData.appState || {}),
         // Ensure collaborators is a Map for Excalidraw's initialData.
-        scrollToContent: true,
+        // The scrollToContent is now handled by the useEffect hook.
         collaborators:
             initialData.appState?.collaborators instanceof Map
                 ? initialData.appState.collaborators
@@ -100,6 +109,7 @@ const ExcalidrawWrapper: React.FC<ExcalidrawWrapperProps> = ({
                     libraryItems: initialData.libraryItems || undefined, // Can be undefined
                 }}
                 onChange={handleExcalidrawChange}
+                onReady={onReady}
                 viewModeEnabled={!editMode}
                 UIOptions={uiOptionsConfig}
             />

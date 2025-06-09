@@ -39,3 +39,6 @@ yarn-error.log*
 .capgo
 
 *storybook.log
+
+# API Keys
+src/config/assemblyai.ts

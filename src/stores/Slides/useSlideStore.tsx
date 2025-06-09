@@ -36,6 +36,11 @@ const CONTROLLED_APPSTATE_PROPS: (keyof PartialAppState)[] = [
     'gridSize',
     'zenModeEnabled',
 
+    // Add scroll and zoom to persist view adjustments
+    'scrollX',
+    'scrollY',
+    'zoom',
+
     // Current item styling (tool options for next shape)
     'currentItemStrokeColor',
     'currentItemBackgroundColor', // Relevant for shapes with fill
@@ -200,7 +205,14 @@ export const useSlideStore = create<SlideStore>((set, get) => {
             incomingAppState: ExcalidrawAppState, // Full AppState from Excalidraw
             incomingFiles: ExcalidrawBinaryFiles
         ) => {
-            console.log('new');
+            console.log(
+                `[useSlideStore] updateSlide called for id: ${id}. incomingAppState scroll:`,
+                {
+                    scrollX: incomingAppState.scrollX,
+                    scrollY: incomingAppState.scrollY,
+                    zoom: incomingAppState.zoom,
+                }
+            );
             set((state) => {
                 const slideIndex = state.slides.findIndex((s) => s.id === id);
                 if (slideIndex === -1) {
@@ -259,6 +271,12 @@ export const useSlideStore = create<SlideStore>((set, get) => {
 
                 for (const key of CONTROLLED_APPSTATE_PROPS) {
                     if (!isEqual(oldStoredAppState[key], newAppStateForStore[key])) {
+                        console.log(
+                            `[useSlideStore] AppState change detected on key: "${key}". Old:`,
+                            oldStoredAppState[key],
+                            'New:',
+                            newAppStateForStore[key]
+                        );
                         appStateActuallyChanged = true;
                         break;
                     }
@@ -283,6 +301,7 @@ export const useSlideStore = create<SlideStore>((set, get) => {
 
                 // If nothing meaningful changed, return the original state to avoid unnecessary re-renders/saves
                 if (!hasMeaningfulChange) {
+                    console.log('[useSlideStore] No meaningful changes detected. Skipping update.');
                     return state;
                 }
 
@@ -303,6 +322,9 @@ export const useSlideStore = create<SlideStore>((set, get) => {
                         JSON.stringify(newSlidesArray.map(serializeSlideForStorage)) // Ensure serializeSlideForStorage handles the new appState structure
                     );
                 }
+                console.log(
+                    '[useSlideStore] State updated successfully with new view/content state.'
+                );
                 return { slides: newSlidesArray };
             });
         },

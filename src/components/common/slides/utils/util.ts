@@ -4,7 +4,7 @@ import { titleSlide, textSlide, webEmbedSlide, videoSlide, textMediaSlide, fullM
 
 export const createNewSlide = (type: SlideTypeEnum): AppSlide => {
     const baseSlide = {
-        id: `temp-${Date.now()}`,
+        id: `temp-${Date.now()}-${Math.random()}`,
         type: type,
         slide_order: 0, // Placeholder, will be updated by useSlideStore
         elements: [],
@@ -26,8 +26,10 @@ export const createNewSlide = (type: SlideTypeEnum): AppSlide => {
                 elements:  {
                     questionName: "",
                     singleChoiceOptions: [
-                        { id: `temp-opt-${Date.now()}-0`, name: "", isSelected: false },
-                        { id: `temp-opt-${Date.now()}-1`, name: "", isSelected: false },
+                        { id: `temp-opt-${Date.now()}-0-${Math.random()}`, name: "", isSelected: false },
+                        { id: `temp-opt-${Date.now()}-1-${Math.random()}`, name: "", isSelected: false },
+                        { id: `temp-opt-${Date.now()}-2-${Math.random()}`, name: "", isSelected: false },
+                        { id: `temp-opt-${Date.now()}-3-${Math.random()}`, name: "", isSelected: false },
                     ],
                     timeLimit: 60,
                 }

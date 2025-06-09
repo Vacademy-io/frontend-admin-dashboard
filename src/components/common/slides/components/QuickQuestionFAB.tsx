@@ -21,7 +21,7 @@ interface QuickQuestionFABProps {
 export const QuickQuestionFAB: React.FC<QuickQuestionFABProps> = ({ onAddQuickQuestion, disabled }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [questionText, setQuestionText] = useState('');
-    const [options, setOptions] = useState(['', '']);
+    const [options, setOptions] = useState(['', '', '', '']);
     const [insertionBehavior, setInsertionBehavior] = useState<InsertionBehavior>('next');
     const formId = useId();
 
@@ -51,7 +51,7 @@ export const QuickQuestionFAB: React.FC<QuickQuestionFABProps> = ({ onAddQuickQu
 
     const resetForm = () => {
         setQuestionText('');
-        setOptions(['', '']);
+        setOptions(['', '', '', '']);
         setInsertionBehavior('next');
     }
 

@@ -54,7 +54,7 @@ export const SlideRenderer: React.FC<SlideRendererProps> = ({ currentSlideId, ed
     console.log('[SlideRenderer] Current slide object (for Quiz/Feedback check):', JSON.parse(JSON.stringify(slide)));
 
     const slideEditorKey = `${slide.id}-${(slide as ExcalidrawSlideData).elements?.length}-${(slide as ExcalidrawSlideData).appState?.zenModeEnabled}`;
-    const quizSlideKey = `${slide.id}-${(slide as QuizSlideData).elements?.questionName}`;
+    const quizSlideKey = `${slide.id}-${(slide as QuizSlideData).elements?.questionName?.substring(0, 255)}`;
 
     switch (slide.type) {
         case SlideTypeEnum.Quiz:

@@ -1,7 +1,7 @@
 // components/LiveSessionActionBar.tsx
 import React, { useState, useEffect, useRef } from 'react'; // Added useEffect, useRef
 import { Button } from '@/components/ui/button';
-import { Users, Tv2, X, Edit3, Copy, Loader2, Wifi, WifiOff, Mic, MicOff, PauseCircle, PlayCircle as PlayIcon, Download, Settings2, ChevronDown, QrCodeIcon } from 'lucide-react'; // Added QrCodeIcon
+import { Users, Tv2, X, Edit3, Copy, Loader2, Wifi, WifiOff, Mic, MicOff, PauseCircle, PlayCircle as PlayIcon, Download, Settings2, ChevronDown, QrCodeIcon, MessageSquareText, FileText } from 'lucide-react'; // Added QrCodeIcon
 import { toast } from 'sonner';
 import {
     DropdownMenu,
@@ -28,6 +28,8 @@ const qrCodeInstance = new QRCodeStyling({
     cornersDotOptions: { type: 'dot', color: '#EA580C' },
 });
 
+
+
 interface LiveSessionActionBarProps {
     inviteCode: string;
     currentSlideIndex: number;
@@ -36,6 +38,9 @@ interface LiveSessionActionBarProps {
     onToggleParticipantsView: () => void;
     isParticipantsPanelOpen: boolean;
     onToggleWhiteboard: () => void;
+    onGenerateTranscript?: () => void; // Add this line
+    isTranscribing?: boolean; // Add this
+    hasTranscript?: boolean; // Add this
     isWhiteboardOpen: boolean;
     onEndSession: () => void;
     isEndingSession?: boolean;
@@ -69,7 +74,9 @@ export const LiveSessionActionBar: React.FC<LiveSessionActionBarProps> = ({
     onEndSession,
     isEndingSession,
     sseStatus,
-    // Audio Recording Props
+    onGenerateTranscript, 
+    isTranscribing,
+    hasTranscript,
     isAudioRecording,
     isAudioPaused,
     onPauseAudio,
@@ -224,6 +231,18 @@ export const LiveSessionActionBar: React.FC<LiveSessionActionBarProps> = ({
                                     </DropdownMenuItem>
                                 </>    
                             )}
+                            {isAudioRecording && onGenerateTranscript && (
+                                <DropdownMenuItem onClick={onGenerateTranscript} disabled={isTranscribing} className="hover:!bg-slate-600 focus:!bg-slate-600 cursor-pointer">
+                                {isTranscribing ? (
+                                    <Loader2 size={16} className="mr-2 animate-spin" />
+                                ) : hasTranscript ? (
+                                    <FileText size={16} className="mr-2 text-green-400" />
+                                ) : (
+                                    <MessageSquareText size={16} className="mr-2 text-teal-400" />
+                                )}
+                                {isTranscribing ? 'Transcribing...' : hasTranscript ? 'View Transcript' : 'Generate Transcript'}
+                            </DropdownMenuItem>
+                            )}
                         </DropdownMenuContent>
                     </DropdownMenu>
                 )}
@@ -249,6 +268,27 @@ export const LiveSessionActionBar: React.FC<LiveSessionActionBarProps> = ({
                     <Edit3 size={16} className="mr-0 sm:mr-1.5" />
                     <span className="hidden sm:inline">Whiteboard</span>
                 </Button>
+                {onGenerateTranscript && (
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={onGenerateTranscript}
+                        disabled={isTranscribing}
+                        className="text-slate-200 hover:bg-slate-700 hover:text-white"
+                        title={isTranscribing ? "Transcribing..." : hasTranscript ? "View Transcript" : "Generate Transcript"}
+                    >
+                        {isTranscribing ? (
+                            <Loader2 size={16} className="mr-0 sm:mr-1.5 animate-spin" />
+                        ) : hasTranscript ? (
+                            <FileText size={16} className="mr-0 sm:mr-1.5 text-green-400" />
+                        ) : (
+                            <MessageSquareText size={16} className="mr-0 sm:mr-1.5 text-teal-400" />
+                        )}
+                        <span className="hidden sm:inline">
+                            {isTranscribing ? "Transcribing..." : hasTranscript ? "View Transcript" : "Generate Transcript"}
+                        </span>
+                    </Button>
+                )}
                 <Button
                     variant="destructive"
                     size="sm"

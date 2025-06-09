@@ -51,12 +51,14 @@ interface ActualPresentationDisplayProps {
     onResumeAudio?: () => void;
     onDownloadAudio?: (format?: 'webm' | 'mp3') => void;
     recordingDuration?: number;
+   
 
     // Props that will be passed to ParticipantsSidePanel if it's rendered as a child
     // and needs to be controlled from here regarding its visibility.
     isParticipantsPanelOpen?: boolean;
     onToggleParticipantsPanel?: () => void;
     onAddQuickQuestion?: (slideData: AppSlide, insertionBehavior: InsertionBehavior) => void;
+    onGenerateTranscript?: () => void;
 }
 
 export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps> = ({
@@ -75,7 +77,9 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
     isParticipantsPanelOpen = false, 
     onToggleParticipantsPanel,
     onAddQuickQuestion,
+    onGenerateTranscript,
 }) => {
+    const { setCurrentSlideId: setGlobalCurrentSlideId } = useSlideStore();
     const [currentSlideId, setCurrentSlideId] = useState<string | undefined>(initialSlideId);
     // const [participantsCount, setParticipantsCount] = useState(0); // Replaced by participantsList.length
     const [isWhiteboardOpen, setIsWhiteboardOpen] = useState(false);
@@ -87,6 +91,13 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
     const [sseStatus, setSseStatus] = useState<'connecting' | 'connected' | 'disconnected'>('disconnected');
     const eventSourceRef = useRef<EventSource | null>(null);
     const previousParticipantsRef = useRef<Participant[]>([]); // Ref to store previous participants
+
+    // New useEffect to keep the global state in sync with the presentation view's active slide.
+    useEffect(() => {
+        if (currentSlideId) {
+            setGlobalCurrentSlideId(currentSlideId);
+        }
+    }, [currentSlideId, setGlobalCurrentSlideId]);
 
     // SSE Connection useEffect (adapted from ParticipantsSidePanel)
     useEffect(() => {
@@ -220,16 +231,27 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
     }, [participantsList]);
 
     useEffect(() => {
-        if (slides.length > 0 && !initialSlideId) {
-            setCurrentSlideId(slides[0].id);
-        } else {
-            setCurrentSlideId(initialSlideId);
+        const isCurrentSlideValid = slides.some(s => s.id === currentSlideId);
+
+        if (!isCurrentSlideValid) {
+            // If the current slide ID is no longer in the list (e.g., it was deleted),
+            // fall back to the initialSlideId or the first slide.
+            if (initialSlideId && slides.some(s => s.id === initialSlideId)) {
+                setCurrentSlideId(initialSlideId);
+            } else if (slides.length > 0) {
+                setCurrentSlideId(slides[0].id);
+            } else {
+                setCurrentSlideId(undefined);
+            }
         }
-    }, [slides, initialSlideId]);
+        // If the current slide is still valid, we do nothing, preserving the user's position.
+    }, [slides, initialSlideId, currentSlideId]);
 
     const currentSlideIndex = slides.findIndex((s) => s.id === currentSlideId);
     const currentSlideData = slides[currentSlideIndex];
-    const isQuestionSlideForResponses = currentSlideData?.type === SlideTypeEnum.Quiz;
+    const isQuestionSlideForResponses = 
+        currentSlideData?.type === SlideTypeEnum.Quiz || 
+        currentSlideData?.type === SlideTypeEnum.Feedback;
 
     const goToNextSlide = async () => {
         if (currentSlideIndex < slides.length - 1) {
@@ -338,6 +360,7 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
                 onDownloadAudio={handleDownloadAudio}
                 recordingDuration={recordingDuration}
                 sseStatus={sseStatus} // Pass the new sseStatus state
+                onGenerateTranscript={onGenerateTranscript}
             />
 
             {/* Main content area for the slide */}

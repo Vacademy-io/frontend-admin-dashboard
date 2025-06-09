@@ -15,6 +15,9 @@ import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useSlideStore } from '@/stores/Slides/useSlideStore'; // Adjust path
 import debounce from 'lodash.debounce'; // Import debounce
+import { Button } from '@/components/ui/button';
+import { Plus, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 // Assuming QuestionFormData and SlideTypeEnum are from your types file
 import type { QuestionFormData } from '@/components/common/slides/utils/types'; // Import QuestionFormData as type
@@ -96,6 +99,36 @@ export const QuizSlide: React.FC<QuizSlideProps> = ({
             isSelected: index === optionIndex ? !isCurrentlySelected : false,
         }));
 
+        setValue('singleChoiceOptions', updatedOptions, {
+            shouldDirty: true,
+            shouldValidate: true,
+        });
+    };
+
+    const handleAddOption = () => {
+        const currentOptions = getValues('singleChoiceOptions') || [];
+        if (currentOptions.length >= 5) {
+            toast.info('You can add a maximum of 5 options.');
+            return;
+        }
+        const newOption = {
+            id: `temp-opt-${Date.now()}`,
+            name: '',
+            isSelected: false,
+        };
+        setValue('singleChoiceOptions', [...currentOptions, newOption], {
+            shouldDirty: true,
+            shouldValidate: true,
+        });
+    };
+
+    const handleRemoveOption = (indexToRemove: number) => {
+        const currentOptions = getValues('singleChoiceOptions') || [];
+        if (currentOptions.length <= 2) {
+            toast.info('You need at least 2 options for a quiz.');
+            return;
+        }
+        const updatedOptions = currentOptions.filter((_, index) => index !== indexToRemove);
         setValue('singleChoiceOptions', updatedOptions, {
             shouldDirty: true,
             shouldValidate: true,
@@ -262,9 +295,27 @@ export const QuizSlide: React.FC<QuizSlideProps> = ({
                                                 </FormItem>
                                             )}
                                         />
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="icon"
+                                            className="ml-2 mt-1 shrink-0 text-slate-400 hover:bg-red-100 hover:text-red-500"
+                                            onClick={() => handleRemoveOption(idx)}
+                                            title="Remove Option"
+                                        >
+                                            <Trash2 size={16} />
+                                        </Button>
                                     </div>
                                 ))}
-                            {/* Consider adding a button here to "Add Option" if not handled elsewhere */}
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="w-full border-dashed"
+                                onClick={handleAddOption}
+                            >
+                                <Plus size={14} className="mr-1" /> Add Option
+                            </Button>
                         </div>
                     )}
 
