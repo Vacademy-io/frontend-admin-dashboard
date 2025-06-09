@@ -31,7 +31,7 @@ export const DateFilter = () => {
         },
     ];
 
-    const [selectedDate, setSelectedDate] = useState<FilterType[]>([dateFilterList[0]!]);
+    const [selectedDate, setSelectedDate] = useState<FilterType[]>([dateFilterList[1]!]);
 
     const handleDateChange = (date: FilterType[]) => {
         setSelectedDate(date);
@@ -45,12 +45,15 @@ export const DateFilter = () => {
     }, [selectedDate]);
 
     return (
-        <SelectChips
-            options={dateFilterList}
-            selected={selectedDate}
-            onChange={handleDateChange}
-            hasClearFilter={false}
-            className="min-w-40"
-        />
+        <div className='flex items-center gap-2'>
+            <p>Status</p>
+            <SelectChips
+                options={dateFilterList}
+                selected={selectedDate}
+                onChange={handleDateChange}
+                hasClearFilter={false}
+                className="min-w-40"
+            />
+        </div>
     );
 };

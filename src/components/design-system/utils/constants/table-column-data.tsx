@@ -297,13 +297,23 @@ export const myColumns: ColumnDef<StudentTable>[] = [
     },
     {
         accessorKey: 'parents_mobile_number',
-        header: "Parent/Guardian's Mobile Number",
+        header: "Father/Male Guardian's Mobile Number",
         cell: ({ row }) => <CreateClickableCell row={row} columnId="parents_mobile_number" />,
     },
     {
         accessorKey: 'parents_email',
-        header: "Parent/Guardian's Email ID",
+        header: "Father/Male Guardian's Email ID",
         cell: ({ row }) => <CreateClickableCell row={row} columnId="parents_email" />,
+    },
+    {
+        accessorKey: 'parents_to_mother_mobile_number',
+        header: "Mother/Female Guardian's Mobile Number",
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="parents_to_mother_mobile_number" />,
+    },
+    {
+        accessorKey: 'parents_to_mother_email',
+        header: "Mother/Female Guardian's Email ID",
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="parents_to_mother_email" />,
     },
     {
         accessorKey: 'city',

@@ -1,7 +1,6 @@
 // class-study-material.tsx
 import { useRouter } from '@tanstack/react-router';
 import { useMutation } from '@tanstack/react-query';
-// Assuming AddSubjectButton, Subjects are correctly handling their own styling including roundness
 import { AddSubjectButton } from './add-subject.tsx/add-subject-button';
 import { Subjects } from './add-subject.tsx/subjects';
 import { useEffect, useState } from 'react';
