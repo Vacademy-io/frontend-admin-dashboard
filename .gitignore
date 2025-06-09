@@ -40,8 +40,6 @@ yarn-error.log*
 
 *storybook.log
 
-# API Keys
-src/config/assemblyai.ts
 
 # Environment
 .env
