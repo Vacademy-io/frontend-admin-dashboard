@@ -9,6 +9,7 @@ import { useLiveSessions, useUpcomingSessions, usePastSessions } from '../-hooks
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
 import { LiveSession, SessionsByDate } from '../-services/utils';
+import PreviousSessionCard from './previous-session-card';
 
 export default function SessionListPage() {
     const { setNavHeading } = useNavHeadingStore();
@@ -76,6 +77,28 @@ export default function SessionListPage() {
         ));
     };
 
+    const renderPreviousSessions = (
+        sessions: SessionsByDate[] | undefined,
+        isLoading: boolean,
+        error: Error | null,
+        emptyMessage: string
+    ) => {
+        if (isLoading) return <div>Loading...</div>;
+        if (error) return <div>Error loading sessions: {error.message}</div>;
+        if (!sessions?.length) return <div>{emptyMessage}</div>;
+
+        return sessions.map((day) => (
+            <div key={day.date} className="mb-4">
+                <h2 className="mb-2 text-lg font-semibold">{day.date}</h2>
+                {day.sessions.map((session) => (
+                    <PreviousSessionCard
+                        key={`${session.session_id}-${session.schedule_id}`}
+                        session={session}
+                    />
+                ))}
+            </div>
+        ));
+    };
     return (
         <div>
             <Tabs value={selectedTab} onValueChange={handleTabChange}>
@@ -115,8 +138,8 @@ export default function SessionListPage() {
                     )}
                 </TabsContent>
                 <TabsContent value={SessionStatus.PAST} className="space-y-4">
-                    {renderSessionsByDate(
-                        pastSessions,
+                    {renderPreviousSessions(
+                        upcomingSessions,
                         isPastLoading,
                         pastError,
                         'No past sessions found'
@@ -125,6 +148,12 @@ export default function SessionListPage() {
                 <TabsContent value={SessionStatus.DRAFTS} className="space-y-4">
                     {/* TODO: Add draft sessions component */}
                     <div>Draft sessions will be shown here</div>
+                    {renderPreviousSessions(
+                        pastSessions,
+                        isPastLoading,
+                        pastError,
+                        'No past sessions found'
+                    )}
                 </TabsContent>
             </Tabs>
         </div>
