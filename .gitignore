@@ -42,3 +42,10 @@ yarn-error.log*
 
 # API Keys
 src/config/assemblyai.ts
+
+# Environment
+.env
+.env*.local
+
+# Logs
+npm-debug.log*
