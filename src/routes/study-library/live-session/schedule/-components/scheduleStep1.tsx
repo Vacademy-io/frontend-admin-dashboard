@@ -74,6 +74,7 @@ export default function ScheduleStep1() {
                     },
                 ],
             })),
+            subject: '',
             timeZone: '(GMT 5:30) India Standard Time (Asia/Kolkata)',
             events: '1',
             openWaitingRoomBefore: '15',
