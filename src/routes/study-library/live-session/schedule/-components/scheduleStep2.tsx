@@ -147,8 +147,13 @@ export default function ScheduleStep2() {
                 { label: 'State', required: true, isDefault: false, type: InputType.TEXT },
                 { label: 'City/Village', required: true, isDefault: false, type: InputType.TEXT },
             ]);
+            form.setValue(
+                'joinLink',
+                `https://learner.vacademy.io/register/live-class?sessionId=${sessionId}`
+            );
         } else {
             form.setValue('fields', []);
+            form.setValue('joinLink', 'https://learner.vacademy.io/study-library/live-class');
         }
     }, [accessType]);
     const {
@@ -569,6 +574,7 @@ export default function ScheduleStep2() {
                                                         error={
                                                             form.formState.errors.joinLink?.message
                                                         }
+                                                        readOnly
                                                         size="large"
                                                         {...field}
                                                     />
