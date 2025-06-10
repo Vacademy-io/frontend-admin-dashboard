@@ -346,6 +346,7 @@ export default function ScheduleStep2() {
                             <div className="flex flex-row gap-4 p-3">
                                 <MyButton
                                     buttonType="secondary"
+                                    type="button"
                                     onClick={() => {
                                         setAddCustomFieldDialog(!addCustomFieldDialog);
                                     }}
@@ -354,6 +355,7 @@ export default function ScheduleStep2() {
                                 </MyButton>
                                 <MyButton
                                     buttonType="secondary"
+                                    type="button"
                                     onClick={() => {
                                         setPreviewDialog(true);
                                     }}
@@ -919,6 +921,7 @@ export default function ScheduleStep2() {
                                         <MyButton
                                             buttonType="text"
                                             className="m-0 p-0 text-primary-500"
+                                            type="button"
                                             onClick={() => customAppend({ optionField: '' })}
                                         >
                                             <Plus></Plus> Add
@@ -928,7 +931,7 @@ export default function ScheduleStep2() {
                             )}
                         </div>
                         <div className="mt-2 flex w-full items-center justify-center">
-                            <MyButton buttonType="primary" className="m-auto">
+                            <MyButton buttonType="primary" className="m-auto" type="button">
                                 Done
                             </MyButton>
                         </div>
