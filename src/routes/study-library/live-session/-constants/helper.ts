@@ -19,7 +19,7 @@ type WeeklyClass = z.infer<typeof weeklyClassSchema>;
 export interface LiveSessionStep1RequestDTO {
     session_id?: string;
     title: string;
-    subject: string | undefined;
+    subject: string | null;
     description_html: string | null;
     default_meet_link?: string;
     start_time: string;
@@ -185,7 +185,7 @@ export function transformFormToDTOStep1(
     return {
         session_id: sessionId,
         title,
-        subject: subject,
+        subject: subject === undefined || subject === '' ? null : subject,
         description_html: description || null,
         default_meet_link: defaultLink || '',
         start_time: startTimeISO,
