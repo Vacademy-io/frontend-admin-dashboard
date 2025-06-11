@@ -13,8 +13,9 @@ import {
 } from '../-hooks/useLiveSessions';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
-import { LiveSession, SessionsByDate } from '../-services/utils';
+import { DraftSessionDay, LiveSession, SessionsByDate } from '../-services/utils';
 import PreviousSessionCard from './previous-session-card';
+import DraftSessionCard from './draft-session-card';
 
 export default function SessionListPage() {
     const { setNavHeading } = useNavHeadingStore();
@@ -87,7 +88,7 @@ export default function SessionListPage() {
         ));
     };
     const renderDraftSessions = (
-        sessions: SessionsByDate[] | undefined,
+        sessions: DraftSessionDay[] | undefined,
         isLoading: boolean,
         error: Error | null,
         emptyMessage: string
@@ -96,17 +97,7 @@ export default function SessionListPage() {
         if (error) return <div>Error loading sessions: {error.message}</div>;
         if (!sessions?.length) return <div>{emptyMessage}</div>;
 
-        return sessions.map((day) => (
-            <div key={day.date} className="mb-4">
-                <h2 className="mb-2 text-lg font-semibold">{day.date}</h2>
-                {day.sessions.map((session) => (
-                    <LiveSessionCard
-                        key={`${session.session_id}-${session.schedule_id}`}
-                        session={session}
-                    />
-                ))}
-            </div>
-        ));
+        return sessions.map((day) => <DraftSessionCard key={day.session_id} session={day} />);
     };
 
     const renderPreviousSessions = (
