@@ -128,7 +128,6 @@ export function transformFormToDTOStep1(
 
     // Convert hours and minutes to total duration in hours
     const totalDuration = Number(durationHours) + Number(durationMinutes) / 60;
-    const duration = String(Math.round(totalDuration));
     console.log('startTime ', startTime);
 
     // Fix timezone handling by creating an ISO string that preserves the local time
@@ -160,11 +159,12 @@ export function transformFormToDTOStep1(
         if (!dayBlock.isSelect) return;
 
         dayBlock.sessions.forEach((session) => {
+            const duration = Number(session.durationHours) * 60 + Number(session.durationMinutes);
             const baseSchedule: ScheduleDTO = {
                 id: dayBlock.id,
                 day: dayBlock.day,
                 start_time: session.startTime ? `${session.startTime}:00` : '',
-                duration: session.durationHours ?? duration,
+                duration: String(duration),
                 link: session.link || '',
             };
 

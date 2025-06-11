@@ -1,4 +1,9 @@
-import { GET_LIVE_SESSIONS, GET_PAST_SESSIONS, GET_UPCOMING_SESSIONS } from '@/constants/urls';
+import {
+    GET_LIVE_SESSIONS,
+    GET_PAST_SESSIONS,
+    GET_UPCOMING_SESSIONS,
+    GET_DRAFT_SESSIONS,
+} from '@/constants/urls';
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 
 export interface LiveSession {
@@ -11,6 +16,7 @@ export interface LiveSession {
     title: string;
     subject: string;
     meeting_link: string;
+    registration_form_link_for_public_sessions: string;
 }
 
 export interface SessionsByDate {
@@ -26,11 +32,13 @@ export interface SessionsByDate {
         title: string;
         subject: string;
         meeting_link: string;
+        registration_form_link_for_public_sessions: string;
     }>;
 }
 
 export type UpcomingSessionDay = SessionsByDate;
 export type PastSessionDay = SessionsByDate;
+export type DraftSessionDay = SessionsByDate;
 
 export const getLiveSessions = async (instituteId: string) => {
     const response = await authenticatedAxiosInstance.get(GET_LIVE_SESSIONS, {
@@ -69,4 +77,17 @@ export const getPastSessions = async (instituteId: string) => {
         },
     });
     return response.data as PastSessionDay[];
+};
+
+export const getDraftSessions = async (instituteId: string) => {
+    const response = await authenticatedAxiosInstance.get(GET_DRAFT_SESSIONS, {
+        headers: {
+            Accept: '*/*',
+            'Content-Type': 'application/json',
+        },
+        params: {
+            instituteId,
+        },
+    });
+    return response.data as DraftSessionDay[];
 };

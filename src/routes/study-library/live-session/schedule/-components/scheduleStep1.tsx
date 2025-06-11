@@ -824,7 +824,6 @@ export default function ScheduleStep1() {
                         Next
                     </MyButton>
                 </div>
-                <Separator className="my-4" />
 
                 <div className="flex flex-col gap-8">
                     {renderBasicInformation()}

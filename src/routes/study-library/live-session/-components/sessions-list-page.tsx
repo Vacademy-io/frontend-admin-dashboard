@@ -5,7 +5,12 @@ import { MyButton } from '@/components/design-system/button';
 import { SessionStatus, sessionStatusLabels } from '../-constants/enums';
 import LiveSessionCard from './live-session-card';
 import { useNavigate } from '@tanstack/react-router';
-import { useLiveSessions, useUpcomingSessions, usePastSessions } from '../-hooks/useLiveSessions';
+import {
+    useLiveSessions,
+    useUpcomingSessions,
+    usePastSessions,
+    useDraftSessions,
+} from '../-hooks/useLiveSessions';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
 import { LiveSession, SessionsByDate } from '../-services/utils';
@@ -36,6 +41,11 @@ export default function SessionListPage() {
         isLoading: isPastLoading,
         error: pastError,
     } = usePastSessions(INSTITUTE_ID);
+    const {
+        data: draftSessions,
+        isLoading: isDraftLoading,
+        error: draftError,
+    } = useDraftSessions(INSTITUTE_ID);
 
     const handleTabChange = (value: string) => {
         setSelectedTab(value as SessionStatus);
@@ -55,6 +65,28 @@ export default function SessionListPage() {
     };
 
     const renderSessionsByDate = (
+        sessions: SessionsByDate[] | undefined,
+        isLoading: boolean,
+        error: Error | null,
+        emptyMessage: string
+    ) => {
+        if (isLoading) return <div>Loading...</div>;
+        if (error) return <div>Error loading sessions: {error.message}</div>;
+        if (!sessions?.length) return <div>{emptyMessage}</div>;
+
+        return sessions.map((day) => (
+            <div key={day.date} className="mb-4">
+                <h2 className="mb-2 text-lg font-semibold">{day.date}</h2>
+                {day.sessions.map((session) => (
+                    <LiveSessionCard
+                        key={`${session.session_id}-${session.schedule_id}`}
+                        session={session}
+                    />
+                ))}
+            </div>
+        ));
+    };
+    const renderDraftSessions = (
         sessions: SessionsByDate[] | undefined,
         isLoading: boolean,
         error: Error | null,
@@ -99,6 +131,7 @@ export default function SessionListPage() {
             </div>
         ));
     };
+
     return (
         <div>
             <Tabs value={selectedTab} onValueChange={handleTabChange}>
@@ -139,7 +172,7 @@ export default function SessionListPage() {
                 </TabsContent>
                 <TabsContent value={SessionStatus.PAST} className="space-y-4">
                     {renderPreviousSessions(
-                        upcomingSessions,
+                        pastSessions,
                         isPastLoading,
                         pastError,
                         'No past sessions found'
@@ -147,12 +180,11 @@ export default function SessionListPage() {
                 </TabsContent>
                 <TabsContent value={SessionStatus.DRAFTS} className="space-y-4">
                     {/* TODO: Add draft sessions component */}
-                    <div>Draft sessions will be shown here</div>
-                    {renderPreviousSessions(
-                        pastSessions,
-                        isPastLoading,
-                        pastError,
-                        'No past sessions found'
+                    {renderDraftSessions(
+                        draftSessions,
+                        isDraftLoading,
+                        draftError,
+                        'No draft sessions found'
                     )}
                 </TabsContent>
             </Tabs>
