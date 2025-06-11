@@ -4,10 +4,12 @@ import {
     getUpcomingSessions,
     getPastSessions,
     getDraftSessions,
+    getSessionBySessionId,
     LiveSession,
     UpcomingSessionDay,
     PastSessionDay,
     DraftSessionDay,
+    SessionBySessionIdResponse,
 } from '../-services/utils';
 
 export function useLiveSessions(instituteId: string) {
@@ -39,5 +41,14 @@ export function useDraftSessions(instituteId: string) {
         queryKey: ['draftSessions', instituteId],
         queryFn: () => getDraftSessions(instituteId),
         staleTime: 5 * 60 * 1000, // Consider data stale after 5 minutes
+    });
+}
+
+export function useSessionBySessionId(sessionId: string) {
+    return useQuery<SessionBySessionIdResponse, Error>({
+        queryKey: ['sessionBySessionId', sessionId],
+        queryFn: () => getSessionBySessionId(sessionId),
+        enabled: !!sessionId,
+        staleTime: 5 * 60 * 1000,
     });
 }
