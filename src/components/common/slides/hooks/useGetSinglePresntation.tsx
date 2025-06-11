@@ -60,13 +60,13 @@ export const fetchPresentation = async (presentationId: string, setSlides: any, 
                     slidesData.push(slideContent);
                 } else {
                     // Fallback to S3 for Excalidraw or other slide types
-                    const fileId = slide.content;
-                    const publicUrl = await getPublicUrl(fileId);
+                const fileId = slide.content;
+                const publicUrl = await getPublicUrl(fileId);
 
-                    const s3Response = await axios.get(publicUrl, {
+                const s3Response = await axios.get(publicUrl, {
                         responseType: 'json',
                         headers: { 'Cache-Control': 'no-cache' },
-                    });
+                });
 
                     let slideDataFromS3 = s3Response.data || {};
 
@@ -83,7 +83,7 @@ export const fetchPresentation = async (presentationId: string, setSlides: any, 
                     if (!Array.isArray(slideContent.elements)) slideContent.elements = [];
                     if (typeof slideContent.appState !== 'object' || slideContent.appState === null) slideContent.appState = {};
 
-                    slidesData.push(slideContent);
+                slidesData.push(slideContent);
                 }
             } catch (innerErr) {
                 console.error(`Error processing slide content for slide ID ${slide.id}:`, innerErr);

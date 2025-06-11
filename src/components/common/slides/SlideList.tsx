@@ -9,7 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { exportToSvg } from '@excalidraw/excalidraw'; // Ensure correct import
-import { GripVertical, Presentation, Trash2, ImageOff, AlertTriangle } from 'lucide-react'; // Added ImageOff, AlertTriangle
+import { GripVertical, Presentation, Trash2, ImageOff, AlertTriangle, FileUp } from 'lucide-react'; // Added ImageOff, AlertTriangle, FileUp
 import { ExportIcon, ImportIcon } from './Icons'; // Assuming these are well-styled
 import { SlideTypeSheet } from './slideTypeSheet';
 import type {
@@ -32,6 +32,8 @@ interface SlideListProps {
     onExport: () => void;
     onImport: (event: React.ChangeEvent<HTMLInputElement>) => void;
     onReorderSlides: (newSlides: AppSlide[]) => void;
+    onAiGenerateClick: () => void;
+    onPptImportClick: () => void;
     // onMoveSlideUp and onMoveSlideDown are not directly used if DND is primary
 }
 
@@ -208,6 +210,8 @@ const SlideList = ({
     onExport,
     onImport,
     onReorderSlides,
+    onAiGenerateClick,
+    onPptImportClick,
 }: SlideListProps) => {
     const [isTypeSheetOpen, setIsTypeSheetOpen] = useState(false);
 
@@ -236,6 +240,15 @@ const SlideList = ({
                         <span className="mr-0.5 text-lg font-semibold leading-none">+</span> Add
                         Slide
                     </Button>
+                    <div className="mt-2 grid grid-cols-2 gap-2">
+                        <Button variant="outline" size="sm" onClick={onAiGenerateClick} className="w-full text-xs">
+                            Generate with AI
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={onPptImportClick} className="w-full text-xs gap-1">
+                            <FileUp className="h-3 w-3" />
+                            Import PPT
+                        </Button>
+                    </div>
                 </div>
                 <Separator className="my-3 bg-gray-200" />
                 <div className="mb-2 flex items-center justify-between px-1">

@@ -159,8 +159,8 @@ export const LiveSessionActionBar: React.FC<LiveSessionActionBarProps> = ({
                             className="flex items-center rounded-full bg-slate-700 px-2 py-1 text-xs text-slate-200 hover:bg-slate-600 hover:text-orange-400 h-auto group"
                             title="Show Invite QR Code / Copy Link"
                         >
-                            <span className="mr-1 hidden sm:inline">Code:</span>
-                            <span className="font-mono tracking-wider">{inviteCode}</span>
+                    <span className="mr-1 hidden sm:inline">Code:</span>
+                    <span className="font-mono tracking-wider">{inviteCode}</span>
                             <QrCodeIcon size={14} className="ml-1.5 text-slate-400 group-hover:text-orange-300 transition-colors" />
                         </Button>
                     </PopoverTrigger>
@@ -174,14 +174,14 @@ export const LiveSessionActionBar: React.FC<LiveSessionActionBarProps> = ({
                                 height: `${qrCodeInstance._options.height}px` 
                             }}
                         />
-                        <Button 
+                    <Button
                             variant="outline"
                             size="sm"
                             className="w-full mt-3 border-slate-300 text-slate-600 hover:bg-slate-200 hover:text-slate-800"
-                            onClick={handleCopyInvite}
-                        >
+                        onClick={handleCopyInvite}
+                    >
                             <Copy size={14} className="mr-1.5" /> Copy Invite Link
-                        </Button>
+                    </Button>
                     </PopoverContent>
                 </Popover>
             </div>

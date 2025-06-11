@@ -366,7 +366,7 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
             {/* Main content area for the slide */}
             <div className="flex-grow overflow-hidden relative" style={{ paddingTop: '3.5rem' }}> {/* Adjust padding to be below action bar */}
                  {currentSlideId && (
-                    <SlideRenderer currentSlideId={currentSlideId} editMode={false} />
+                    <SlideRenderer currentSlideId={currentSlideId} editModeExcalidraw={true} editModeQuiz={false} />
                 )}
                 {isQuestionSlideForResponses && liveSessionData && currentSlideData && (
                     <ResponseOverlay sessionId={liveSessionData.session_id} slideData={currentSlideData} />

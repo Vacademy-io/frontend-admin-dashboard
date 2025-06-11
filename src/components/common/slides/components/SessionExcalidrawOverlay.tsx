@@ -99,7 +99,7 @@ export const SessionExcalidrawOverlay: React.FC<SessionExcalidrawOverlayProps> =
             } catch (error) {
                 console.error("Failed to load whiteboard from localStorage:", error);
                 toast.error("Could not load saved whiteboard. Starting fresh.");
-                initializeFreshWhiteboard();
+            initializeFreshWhiteboard();
             } finally {
                 setTimeout(() => setIsLoading(false), 100);
             }

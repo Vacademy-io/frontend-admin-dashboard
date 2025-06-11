@@ -18,10 +18,12 @@ import { SlideTypeEnum } from './utils/types';
 
 interface SlideRendererProps {
     currentSlideId: string;
-    editMode: boolean;
+    editModeExcalidraw: boolean;
+    editModeQuiz: boolean;
+    onRegenerate: (slideId: string) => void;
 }
 
-export const SlideRenderer: React.FC<SlideRendererProps> = ({ currentSlideId, editMode }) => {
+export const SlideRenderer: React.FC<SlideRendererProps> = ({ currentSlideId, editModeExcalidraw: editMode,  editModeQuiz, onRegenerate}) => {
     const getSlide = useSlideStore((state) => state.getSlide);
     const rawUpdateSlide = useSlideStore((state) => state.updateSlide);
 
@@ -38,7 +40,7 @@ export const SlideRenderer: React.FC<SlideRendererProps> = ({ currentSlideId, ed
                         rawUpdateSlide(id, elements, appState, files);
                     }
                 },
-                2000
+                1000
             ),
         [rawUpdateSlide]
     );
@@ -68,7 +70,7 @@ export const SlideRenderer: React.FC<SlideRendererProps> = ({ currentSlideId, ed
                     questionType={slide.type as SlideTypeEnum.Quiz | SlideTypeEnum.Feedback}
                     currentSlideId={currentSlideId}
                     key={quizSlideKey}
-                    isPresentationMode={!editMode} // This prop controls if QuizSlide is in view or edit mode
+                    isPresentationMode={!editModeQuiz} // This prop controls if QuizSlide is in view or edit mode
                 />
             );
         default:
@@ -86,6 +88,7 @@ export const SlideRenderer: React.FC<SlideRendererProps> = ({ currentSlideId, ed
                             debouncedUpdateSlide(currentSlideId, elements, appState, files);
                         }
                     }}
+                    onRegenerate={onRegenerate}
                     key={slideEditorKey}
                 />
             );

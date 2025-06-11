@@ -8,7 +8,7 @@ import { getPublicUrl, UploadFileInS3V2 } from '@/services/upload_file';
 import { filterSlidesByIdType } from './utils/util';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { Button } from '@/components/ui/button';
-import { ListStart, Save, Loader2, PlaySquare, Tv2, PlusCircle, Share2, ChevronDown, Check, Edit2 } from 'lucide-react';
+import { ListStart, Save, Loader2, PlaySquare, Tv2, PlusCircle, Share2, ChevronDown, Check, Edit2, UploadCloud } from 'lucide-react';
 import SlideList from './PresentationView';
 import { QuizSlide } from './slidesTypes/QuizSlides'; // Ensure path is correct
 import { useSlideStore } from '@/stores/Slides/useSlideStore'; // Assumed path
@@ -61,10 +61,14 @@ import { AssemblyAI } from 'assemblyai';
 import { ASSEMBLYAI_API_KEY } from '@/config/assemblyai';
 import { TranscriptModal } from './components/TranscriptModal';
 import { createNewSlide } from './utils/util';
+import { AiGeneratingLoader, aiSteps, pptSteps } from './AiGeneratingLoader';
+import { SlideRegenerateModal } from './components/SlideRegenerateModal';
 
 const START_SESSION_API_URL =
     'https://backend-stage.vacademy.io/community-service/engage/admin/start';
 const ADD_SLIDE_IN_SESSION_API_URL = 'https://backend-stage.vacademy.io/community-service/engage/admin/add-slide-in-session';
+const IMPORT_PPT_API_URL = 'https://backend-stage.vacademy.io/media-service/convert-presentations/import-ppt';
+const REGENERATE_SLIDE_API_URL = 'https://backend-stage.vacademy.io/media-service/ai/presentation/regenerateASlide';
 
 interface SlideRendererProps {
     currentSlideId: string;
@@ -154,6 +158,17 @@ export default function SlidesEditorComponent({
     const [aiTopic, setAiTopic] = useState('');
     const [aiLanguage, setAiLanguage] = useState('English');
     const [isGenerating, setIsGenerating] = useState(false);
+
+    // State for PPT Import Modal
+    const [isPptModalOpen, setIsPptModalOpen] = useState(false);
+    const [pptFile, setPptFile] = useState<File | null>(null);
+    const [isImporting, setIsImporting] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // State for AI Slide Regeneration
+    const [isRegenerateModalOpen, setIsRegenerateModalOpen] = useState(false);
+    const [isRegenerating, setIsRegenerating] = useState(false);
+    const [regenerateSlideId, setRegenerateSlideId] = useState<string | null>(null);
 
     useEffect(() => {
         // Populate originalSlideIds when editing an existing presentation and slides are loaded
@@ -1327,6 +1342,148 @@ export default function SlidesEditorComponent({
         }
     };
 
+    const handlePptImportInEditor = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!pptFile) {
+            toast.error('Please select a PPT/PPTX file to import.');
+            return;
+        }
+        setIsImporting(true);
+        console.log(`[PPT Import Editor] Starting import for file: "${pptFile.name}"`);
+
+        const formData = new FormData();
+        formData.append('file', pptFile);
+
+        try {
+            const response = await authenticatedAxiosInstance.post(IMPORT_PPT_API_URL, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+            
+            const newSlidesFromPpt = response.data;
+            console.log('[PPT Import Editor] Received slides:', newSlidesFromPpt);
+
+            if (!Array.isArray(newSlidesFromPpt) || newSlidesFromPpt.length === 0) {
+                throw new Error('No slides were generated from the PPT file.');
+            }
+
+            const { slides: currentSlides, setSlides: setStoreSlides } = useSlideStore.getState();
+
+            const combinedSlides = [...currentSlides, ...newSlidesFromPpt];
+            const finalSlides = combinedSlides.map((slide, index) => ({
+                ...slide,
+                slide_order: index,
+            }));
+
+            console.log('[PPT Import Editor] Appending new slides. Final list:', finalSlides);
+            setStoreSlides(finalSlides);
+
+            toast.success(`${newSlidesFromPpt.length} new slides imported from PPT!`);
+            setPptFile(null);
+            setIsPptModalOpen(false);
+        } catch (error: any) {
+            console.error('[PPT Import Editor] Error:', error);
+            toast.error(
+                error.response?.data?.message || 'Failed to import slides from PPT.'
+            );
+        } finally {
+            setIsImporting(false);
+        }
+    };
+
+    const handleOpenRegenerateModal = (slideId: string) => {
+        setRegenerateSlideId(slideId);
+        setIsRegenerateModalOpen(true);
+    };
+
+    const handleRegenerateSlide = async (prompt: string) => {
+        if (!regenerateSlideId) {
+            toast.error('No slide selected for regeneration.');
+            return;
+        }
+
+        const { getSlide, updateSlide } = useSlideStore.getState();
+
+        const slideToRegenerate = getSlide(regenerateSlideId);
+        console.log(
+            '[Regen] Slide from store before regeneration:',
+            JSON.parse(JSON.stringify(slideToRegenerate))
+        );
+
+        if (!slideToRegenerate) {
+            toast.error('Could not find the slide to regenerate.');
+            return;
+        }
+
+        const isQuestionSlide = [SlideTypeEnum.Quiz, SlideTypeEnum.Feedback].includes(
+            slideToRegenerate.type
+        );
+
+        if (isQuestionSlide) {
+            toast.error('This slide type cannot be regenerated with AI.');
+            return;
+        }
+
+        const excalidrawSlideToRegenerate = slideToRegenerate as ExcalidrawSlideData;
+
+        setIsRegenerating(true);
+        try {
+            const payload = {
+                language: 'English',
+                text: prompt,
+                initial_data: JSON.stringify({
+                    type: 'excalidraw',
+                    version: 2,
+                    source: 'https://excalidraw.com',
+                    elements: excalidrawSlideToRegenerate.elements || [],
+                    appState: excalidrawSlideToRegenerate.appState || {},
+                    files: excalidrawSlideToRegenerate.files || {},
+                }),
+            };
+
+            const response = await authenticatedAxiosInstance.post(REGENERATE_SLIDE_API_URL, payload);
+            const regeneratedData = response.data;
+            console.log('[Regen] API response received:', JSON.parse(JSON.stringify(regeneratedData)));
+
+
+            if (!regeneratedData.elements || !regeneratedData.appState) {
+                throw new Error('Invalid response from AI regeneration service.');
+            }
+            
+            const newElements = regeneratedData.elements;
+            const newAppState = {
+                ...(excalidrawSlideToRegenerate.appState || {}),
+                ...regeneratedData.appState,
+            };
+
+            // CRITICAL FIX: The `collaborators` property, after JSON serialization/deserialization,
+            // becomes a plain object. The store expects it to be a Map.
+            if (newAppState.collaborators) {
+                newAppState.collaborators = new Map(Object.entries(newAppState.collaborators));
+            } else {
+                newAppState.collaborators = new Map();
+            }
+
+            const existingFilesMap = new Map(Object.entries(excalidrawSlideToRegenerate.files || {}));
+
+            updateSlide(
+                regenerateSlideId,
+                newElements,
+                newAppState,
+                existingFilesMap
+            );
+            
+            toast.success('Slide has been regenerated!');
+            
+            setIsRegenerateModalOpen(false);
+            setRegenerateSlideId(null);
+        } catch (error: any) {
+            console.error('Error regenerating slide:', error);
+            toast.error(error.response?.data?.message || 'Failed to regenerate slide.');
+        } finally {
+            setIsRegenerating(false);
+        }
+    };
+
     if (isLoadingPresentation || isRefetchingPresentation) {
         return (
             <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm">
@@ -1630,6 +1787,7 @@ export default function SlidesEditorComponent({
                     onImport={importPresentationFromFile}
                     onReorderSlides={(reorderedSlides) => setSlides(reorderedSlides)}
                     onAiGenerateClick={() => setIsAiModalOpen(true)}
+                    onPptImportClick={() => setIsPptModalOpen(true)}
                 />
 
                 <main className={`flex flex-1 flex-col bg-slate-200 p-2 sm:p-3`}>
@@ -1639,7 +1797,9 @@ export default function SlidesEditorComponent({
                         {currentSlideId && currentSlideData ? (
                             <SlideRenderer
                                 currentSlideId={currentSlideId}
-                                editMode={true}
+                                editModeExcalidraw={true}
+                                editModeQuiz={true}
+                                onRegenerate={handleOpenRegenerateModal}
                             />
                         ) : (
                             <div className="flex h-full flex-col items-center justify-center p-5 text-slate-500">
@@ -1659,70 +1819,160 @@ export default function SlidesEditorComponent({
                     </div>
                 </main>
             </div>
+            <SlideRegenerateModal
+                isOpen={isRegenerateModalOpen}
+                onClose={() => {
+                    setIsRegenerateModalOpen(false);
+                    setRegenerateSlideId(null);
+                }}
+                onSubmit={handleRegenerateSlide}
+                isRegenerating={isRegenerating}
+            />
             <Dialog open={isAiModalOpen} onOpenChange={setIsAiModalOpen}>
                 <DialogContent className="p-6 sm:max-w-lg">
-                    <DialogHeader className="mb-4">
-                        <DialogTitle className="text-xl font-semibold">
-                            Generate Slides with AI
-                        </DialogTitle>
-                        <DialogDescription className="text-sm text-neutral-500">
-                            Provide a topic and language. New slides will be added to the end of
-                            your presentation.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <form onSubmit={handleAiGenerateInEditor} className="space-y-5">
-                        <div>
-                            <Label htmlFor="ai-topic-editor" className="text-sm font-medium">
-                                Topic
-                            </Label>
-                            <Textarea
-                                id="ai-topic-editor"
-                                value={aiTopic}
-                                onChange={(e) => setAiTopic(e.target.value)}
-                                className="mt-1.5 min-h-[100px] w-full"
-                                placeholder="e.g., An overview of the thermite reaction, its chemical properties, applications, and safety precautions."
-                                required
-                                rows={4}
-                            />
-                        </div>
-                        <div>
-                            <Label htmlFor="ai-language-editor" className="text-sm font-medium">
-                                Language
-                            </Label>
-                            <Input
-                                id="ai-language-editor"
-                                value={aiLanguage}
-                                onChange={(e) => setAiLanguage(e.target.value)}
-                                className="mt-1.5 w-full"
-                                placeholder="e.g., English"
-                                required
-                            />
-                        </div>
-                        <DialogFooter className="mt-6 !justify-stretch space-y-2 sm:flex sm:flex-row sm:space-x-3 sm:space-y-0">
-                            <MyButton
-                                type="button"
-                                buttonType="secondary"
-                                onClick={() => setIsAiModalOpen(false)}
-                                className="w-full sm:w-auto"
-                                disabled={isGenerating}
-                            >
-                                Cancel
-                            </MyButton>
-                            <MyButton
-                                type="submit"
-                                className="w-full sm:w-auto"
-                                disabled={isGenerating}
-                            >
-                                {isGenerating ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating...
-                                    </>
-                                ) : (
-                                    'Generate & Add Slides'
-                                )}
-                            </MyButton>
-                        </DialogFooter>
-                    </form>
+                    {isGenerating ? (
+                        <AiGeneratingLoader
+                            title="Generating your presentation"
+                            description="Our AI is crafting your content. This may take a moment."
+                            steps={aiSteps}
+                        />
+                    ) : (
+                        <>
+                            <DialogHeader className="mb-4">
+                                <DialogTitle className="text-xl font-semibold">
+                                    Generate Slides with AI
+                                </DialogTitle>
+                                <DialogDescription className="text-sm text-neutral-500">
+                                    Provide a topic and language. New slides will be added to the end
+                                    of your presentation.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <form onSubmit={handleAiGenerateInEditor} className="space-y-5">
+                                <div>
+                                    <Label
+                                        htmlFor="ai-topic-editor"
+                                        className="text-sm font-medium"
+                                    >
+                                        Topic
+                                    </Label>
+                                    <Textarea
+                                        id="ai-topic-editor"
+                                        value={aiTopic}
+                                        onChange={(e) => setAiTopic(e.target.value)}
+                                        className="mt-1.5 min-h-[100px] w-full"
+                                        placeholder="e.g., An overview of the thermite reaction, its chemical properties, applications, and safety precautions."
+                                        required
+                                        rows={4}
+                                    />
+                                </div>
+                                <div>
+                                    <Label
+                                        htmlFor="ai-language-editor"
+                                        className="text-sm font-medium"
+                                    >
+                                        Language
+                                    </Label>
+                                    <Input
+                                        id="ai-language-editor"
+                                        value={aiLanguage}
+                                        onChange={(e) => setAiLanguage(e.target.value)}
+                                        className="mt-1.5 w-full"
+                                        placeholder="e.g., English"
+                                        required
+                                    />
+                                </div>
+                                <DialogFooter className="mt-6 !justify-stretch space-y-2 sm:flex sm:flex-row sm:space-x-3 sm:space-y-0">
+                                    <MyButton
+                                        type="button"
+                                        buttonType="secondary"
+                                        onClick={() => setIsAiModalOpen(false)}
+                                        className="w-full sm:w-auto"
+                                    >
+                                        Cancel
+                                    </MyButton>
+                                    <MyButton type="submit" className="w-full sm:w-auto">
+                                        Generate & Add Slides
+                                    </MyButton>
+                                </DialogFooter>
+                            </form>
+                        </>
+                    )}
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={isPptModalOpen} onOpenChange={setIsPptModalOpen}>
+                <DialogContent className="p-6 sm:max-w-lg">
+                    {isImporting ? (
+                        <AiGeneratingLoader
+                            title="Importing Presentation"
+                            description="We're converting your file and adding slides to your presentation."
+                            steps={pptSteps}
+                        />
+                    ) : (
+                        <>
+                            <DialogHeader className="mb-4">
+                                <DialogTitle className="text-xl font-semibold">
+                                    Import from PPT/PPTX
+                                </DialogTitle>
+                                <DialogDescription className="text-sm text-neutral-500">
+                                    New slides will be added to the end of your presentation.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <form onSubmit={handlePptImportInEditor} className="space-y-5">
+                                <div>
+                                    <Label htmlFor="ppt-file-editor" className="text-sm font-medium">
+                                        Presentation File
+                                    </Label>
+                                    <div
+                                        className="mt-1.5 flex justify-center w-full px-6 pt-5 pb-6 border-2 border-neutral-300 border-dashed rounded-md cursor-pointer hover:border-orange-400"
+                                        onClick={() => fileInputRef.current?.click()}
+                                    >
+                                        <div className="space-y-1 text-center">
+                                            <UploadCloud className="mx-auto h-12 w-12 text-neutral-400" />
+                                            <div className="flex text-sm text-neutral-600">
+                                                <span className="relative font-medium text-orange-600 hover:text-orange-500">
+                                                    {pptFile ? 'Replace file' : 'Upload a file'}
+                                                </span>
+                                                <input
+                                                    ref={fileInputRef}
+                                                    id="ppt-file-editor-input"
+                                                    name="ppt-file"
+                                                    type="file"
+                                                    className="sr-only"
+                                                    accept=".ppt,.pptx,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                                                    onChange={(e) => setPptFile(e.target.files?.[0] || null)}
+                                                />
+                                                {!pptFile && <p className="pl-1">or drag and drop</p>}
+                                            </div>
+                                            <p className="text-xs text-neutral-500">
+                                                {pptFile ? pptFile.name : 'PPT, PPTX up to 50MB'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <DialogFooter className="mt-6 !justify-stretch space-y-2 sm:flex sm:flex-row sm:space-x-3 sm:space-y-0">
+                                    <MyButton
+                                        type="button"
+                                        buttonType="secondary"
+                                        onClick={() => {
+                                            setIsPptModalOpen(false);
+                                            setPptFile(null);
+                                        }}
+                                        className="w-full sm:w-auto"
+                                    >
+                                        Cancel
+                                    </MyButton>
+                                    <MyButton
+                                        type="submit"
+                                        className="w-full sm:w-auto"
+                                        disabled={!pptFile}
+                                    >
+                                       Import & Add Slides
+                                    </MyButton>
+                                </DialogFooter>
+                            </form>
+                        </>
+                    )}
                 </DialogContent>
             </Dialog>
         </div>
