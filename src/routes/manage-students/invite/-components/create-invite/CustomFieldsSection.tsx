@@ -1,11 +1,11 @@
 import { MyButton } from '@/components/design-system/button';
 import { Switch } from '@/components/ui/switch';
-import { Sortable, SortableDragHandle, SortableItem } from '@/components/ui/sortable';
 import { DotsSixVertical, Plus, TrashSimple } from 'phosphor-react';
 import { AddCustomFieldDialog, DropdownOption } from './AddCustomFieldDialog';
-import { useFormContext, useFieldArray } from 'react-hook-form';
+import { useFieldArray, useFormContext } from 'react-hook-form';
 import { InviteForm } from '../../-schema/InviteFormSchema';
-import { useEffect } from 'react';
+import { MandatoryKeys } from '../../-utils/inviteLinkKeyChecks';
+import { Sortable, SortableDragHandle, SortableItem } from '@/components/ui/sortable';
 
 interface CustomFieldsSectionProps {
     toggleIsRequired: (id: number) => void;
@@ -23,25 +23,12 @@ export const CustomFieldsSection = ({
     handleAddOpenFieldValues,
     handleDeleteOpenField,
 }: CustomFieldsSectionProps) => {
-    const { watch, control, setValue } = useFormContext<InviteForm>();
+    const { watch, control } = useFormContext<InviteForm>();
     const customFields = watch('custom_fields');
-
-    const { move } = useFieldArray({
+    const { fields, move } = useFieldArray({
         control,
         name: 'custom_fields',
     });
-
-    const handleMove = ({ activeIndex, overIndex }: { activeIndex: number; overIndex: number }) => {
-        move(activeIndex, overIndex);
-
-        // Update the field order after moving without triggering form submission
-        const updatedFields = watch('custom_fields');
-        setValue('custom_fields', updatedFields, {
-            shouldValidate: false,
-            shouldDirty: false,
-            shouldTouch: false
-        });
-    };
 
     const handleAddCustomField = (
         type: string,
@@ -55,23 +42,37 @@ export const CustomFieldsSection = ({
     return (
         <div className="flex flex-col gap-4">
             <p className="text-title font-semibold">Invite input field</p>
-            <Sortable value={customFields || []} onMove={handleMove} fast={false}>
+            <Sortable
+                value={fields}
+                onMove={({ activeIndex, overIndex }) => {
+                    move(activeIndex, overIndex);
+                }}
+                fast={false}
+            >
                 <div className="flex flex-col gap-4">
-                    {customFields?.map((field, index) => (
-                        <SortableItem key={field.id || index} value={field.id || index} asChild>
-                            <div className="flex items-center gap-4">
+                    {fields.map((field) => (
+                        <SortableItem key={field.id} value={field.id} asChild>
+                            <div
+                                className={`flex items-center gap-4 ${
+                                    field.status === 'DELETED' ? 'hidden' : ''
+                                }`}
+                            >
                                 <div className="flex w-3/4 items-center justify-between rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-2">
                                     <h1 className="text-sm">
                                         {field.name}
                                         {field.oldKey && (
-                                            <span className="text-subtitle text-danger-600">*</span>
+                                            <span className="text-subtitle text-danger-600">
+                                                *
+                                            </span>
                                         )}
                                         {!field.oldKey && field.isRequired && (
-                                            <span className="text-subtitle text-danger-600">*</span>
+                                            <span className="text-subtitle text-danger-600">
+                                                *
+                                            </span>
                                         )}
                                     </h1>
                                     <div className="flex items-center gap-6">
-                                        {!field.oldKey && (
+                                        {!field.oldKey && !MandatoryKeys(field.name) && (
                                             <MyButton
                                                 type="button"
                                                 scale="small"
@@ -82,18 +83,17 @@ export const CustomFieldsSection = ({
                                                 <TrashSimple className="!size-4 text-danger-500" />
                                             </MyButton>
                                         )}
-                                        <div className="drag-handle-container">
-                                            <SortableDragHandle
-                                                variant="ghost"
-                                                size="icon"
-                                                className="cursor-grab hover:bg-neutral-100 active:cursor-grabbing !p-0"
-                                            >
-                                                <DotsSixVertical size={20} className="shrink-0" />
-                                            </SortableDragHandle>
-                                        </div>
+                                        <SortableDragHandle
+                                            variant="ghost"
+                                            size="icon"
+                                            className="cursor-grab"
+                                            type="button"
+                                        >
+                                            <DotsSixVertical size={20} />
+                                        </SortableDragHandle>
                                     </div>
                                 </div>
-                                {!field.oldKey && (
+                                {!field.oldKey && !MandatoryKeys(field.name) && (
                                     <>
                                         <h1 className="text-sm">Required</h1>
                                         <Switch
@@ -108,17 +108,21 @@ export const CustomFieldsSection = ({
                 </div>
             </Sortable>
             <div className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-3">
-                {!customFields?.some((field) => field.name === 'Gender') && (
+                {!customFields.filter((field) => field.status === 'ACTIVE')?.some((field) => field.name === 'Gender') && (
                     <MyButton
                         type="button"
                         scale="medium"
                         buttonType="secondary"
-                        onClick={() => handleAddOpenFieldValues('textfield', 'Gender', false)}
+                        onClick={() => handleAddOpenFieldValues('dropdown', 'Gender', false, [
+                            { id: 0, value: 'MALE', disabled: false },
+                            { id: 1, value: 'FEMALE', disabled: false },
+                            { id: 2, value: 'OTHER', disabled: false },
+                        ])}
                     >
                         <Plus size={32} /> Add Gender
                     </MyButton>
                 )}
-                {!customFields?.some((field) => field.name === 'State') && (
+                {!customFields.filter((field) => field.status === 'ACTIVE')?.some((field) => field.name === 'State') && (
                     <MyButton
                         type="button"
                         scale="medium"
@@ -128,7 +132,7 @@ export const CustomFieldsSection = ({
                         <Plus size={32} /> Add State
                     </MyButton>
                 )}
-                {!customFields?.some((field) => field.name === 'City') && (
+                {!customFields.filter((field) => field.status === 'ACTIVE')?.some((field) => field.name === 'City') && (
                     <MyButton
                         type="button"
                         scale="medium"
@@ -138,7 +142,7 @@ export const CustomFieldsSection = ({
                         <Plus size={32} /> Add City
                     </MyButton>
                 )}
-                {!customFields?.some((field) => field.name === 'School/College') && (
+                {!customFields.filter((field) => field.status === 'ACTIVE')?.some((field) => field.name === 'School/College') && (
                     <MyButton
                         type="button"
                         scale="medium"
@@ -150,7 +154,7 @@ export const CustomFieldsSection = ({
                         <Plus size={32} /> Add School/College
                     </MyButton>
                 )}
-                {!customFields?.some((field) => field.name === 'Address') && (
+                {!customFields.filter((field) => field.status === 'ACTIVE')?.some((field) => field.name === 'Address') && (
                     <MyButton
                         type="button"
                         scale="medium"
@@ -160,7 +164,7 @@ export const CustomFieldsSection = ({
                         <Plus size={32} /> Add Address
                     </MyButton>
                 )}
-                {!customFields?.some((field) => field.name === 'Pincode') && (
+                {!customFields.filter((field) => field.status === 'ACTIVE')?.some((field) => field.name === 'Pincode') && (
                     <MyButton
                         type="button"
                         scale="medium"
@@ -170,7 +174,7 @@ export const CustomFieldsSection = ({
                         <Plus size={32} /> Pincode
                     </MyButton>
                 )}
-                {!customFields?.some((field) => field.name === 'Father Name') && (
+                {!customFields.filter((field) => field.status === 'ACTIVE')?.some((field) => field.name === 'Father Name') && (
                     <MyButton
                         type="button"
                         scale="medium"
@@ -180,7 +184,7 @@ export const CustomFieldsSection = ({
                         <Plus size={32} /> Father Name
                     </MyButton>
                 )}
-                {!customFields?.some((field) => field.name === 'Mother Name') && (
+                {!customFields.filter((field) => field.status === 'ACTIVE')?.some((field) => field.name === 'Mother Name') && (
                     <MyButton
                         type="button"
                         scale="medium"
@@ -190,7 +194,7 @@ export const CustomFieldsSection = ({
                         <Plus size={32} /> Mother Name
                     </MyButton>
                 )}
-                {!customFields?.some((field) => field.name === 'Parent Phone Number') && (
+                {!customFields.filter((field) => field.status === 'ACTIVE')?.some((field) => field.name === 'Parent Phone Number') && (
                     <MyButton
                         type="button"
                         scale="medium"
@@ -202,7 +206,7 @@ export const CustomFieldsSection = ({
                         <Plus size={32} /> Parent Phone Number
                     </MyButton>
                 )}
-                {!customFields?.some((field) => field.name === 'Parent Email') && (
+                {!customFields.filter((field) => field.status === 'ACTIVE')?.some((field) => field.name === 'Parent Email') && (
                     <MyButton
                         type="button"
                         scale="medium"
@@ -220,6 +224,7 @@ export const CustomFieldsSection = ({
                         </MyButton>
                     }
                     onAddField={handleAddCustomField}
+                    customFields={customFields}
                 />
             </div>
         </div>

@@ -5,6 +5,8 @@ export interface Doubt extends DoubtType {
     source_name: string;
     batch_id: string;
     subject_id: string;
+    chapter_id: string;
+    module_id: string;
     replies: Doubt[]; // Recursive structure for nested replies
 }
 

@@ -35,6 +35,7 @@ export interface ActivityLogType {
         end_time_in_millis: number;
         page_number: number;
     }[];
+    concentrationScore: number;
 }
 
 const BatchCell = ({
@@ -296,13 +297,23 @@ export const myColumns: ColumnDef<StudentTable>[] = [
     },
     {
         accessorKey: 'parents_mobile_number',
-        header: "Parent/Guardian's Mobile Number",
+        header: "Father/Male Guardian's Mobile Number",
         cell: ({ row }) => <CreateClickableCell row={row} columnId="parents_mobile_number" />,
     },
     {
         accessorKey: 'parents_email',
-        header: "Parent/Guardian's Email ID",
+        header: "Father/Male Guardian's Email ID",
         cell: ({ row }) => <CreateClickableCell row={row} columnId="parents_email" />,
+    },
+    {
+        accessorKey: 'parents_to_mother_mobile_number',
+        header: "Mother/Female Guardian's Mobile Number",
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="parents_to_mother_mobile_number" />,
+    },
+    {
+        accessorKey: 'parents_to_mother_email',
+        header: "Mother/Female Guardian's Email ID",
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="parents_to_mother_email" />,
     },
     {
         accessorKey: 'city',
@@ -370,6 +381,10 @@ export const activityLogColumns: ColumnDef<ActivityLogType>[] = [
     {
         accessorKey: 'concentrationScore',
         header: 'Concentration Score',
+        cell: ({ row }) => {
+            const concentrationScore = row.original.concentrationScore;
+            return <div>{concentrationScore.toFixed(2)}</div>;
+        },
     },
     {
         accessorKey: 'lastPageRead',

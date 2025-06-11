@@ -2,15 +2,15 @@
 // @ts-nocheck
 'use client';
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
-import React, { useEffect, useState, FormEvent } from 'react'; // Added React for FormEvent
-import { Button as ShadButton } from '@/components/ui/button'; // Aliased to avoid conflict if MyButton is also Button
+import React, { useEffect, useState, FormEvent } from 'react';
+import { Button as ShadButton } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Edit, FileText as FilePresentation, Loader2, Plus, Search, Trash2 } from 'lucide-react'; // Changed Icon
+import { Edit, FileText as FilePresentation, Loader2, Plus, Search, Trash2, Share2, Tv2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { useRouter } from '@tanstack/react-router'; // Or your specific router
+import { useRouter } from '@tanstack/react-router';
 import { cn } from '@/lib/utils';
-import { useGetPresntation } from './hooks/useGetPresntation'; // Ensure path is correct
+import { useGetPresntation } from './hooks/useGetPresntation';
 import {
     Dialog,
     DialogContent,
@@ -26,12 +26,21 @@ import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtili
 import { TokenKey } from '@/constants/auth/tokens';
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 import { toast } from 'sonner';
-import { EDIT_PRESENTATION } from '@/constants/urls'; // Ensure this is correct
+import { EDIT_PRESENTATION } from '@/constants/urls';
 import { useQueryClient } from '@tanstack/react-query';
-import { MyButton } from '@/components/design-system/button'; // Your custom button
+import { MyButton } from '@/components/design-system/button';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { ChevronDown } from 'lucide-react';
+import { useSlideStore } from '@/stores/Slides/useSlideStore';
+import { createNewSlide } from './utils/util';
+import { SlideTypeEnum } from './utils/types';
 
-// Assuming PresentationData is defined in your types.ts or similar
-import type { PresentationData } from './types'; // Adjust path as needed
+import type { PresentationData } from './types';
 
 export default function ManagePresentation() {
     const router = useRouter();
@@ -41,11 +50,14 @@ export default function ManagePresentation() {
     const { data: fetchedPresentations, isLoading } = useGetPresntation();
     const [presentations, setPresentations] = useState<PresentationData[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
-    // const [activeTab, setActiveTab] = useState('all'); // Tabs not implemented in provided JSX
 
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [newTitle, setNewTitle] = useState('');
     const [newDescription, setNewDescription] = useState('');
+    const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+    const [aiTopic, setAiTopic] = useState('');
+    const [aiLanguage, setAiLanguage] = useState('English');
+    const [isGenerating, setIsGenerating] = useState(false);
 
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editingPresentation, setEditingPresentation] = useState<PresentationData | null>(null);
@@ -55,14 +67,120 @@ export default function ManagePresentation() {
     const [isProcessingDelete, setIsProcessingDelete] = useState(false);
 
     useEffect(() => {
-        setNavHeading('Manage Presentations'); // Corrected heading
+        setNavHeading('Manage Presentations');
     }, [setNavHeading]);
 
     useEffect(() => {
         if (fetchedPresentations) {
-            setPresentations(fetchedPresentations as PresentationData[]); // Ensure fetched data matches PresentationData
+            setPresentations(fetchedPresentations as PresentationData[]);
         }
     }, [fetchedPresentations]);
+
+    const handleAiGenerate = async (e: FormEvent) => {
+        e.preventDefault();
+        if (!aiTopic.trim()) {
+            toast.error('Topic is required for AI generation.');
+            return;
+        }
+        setIsGenerating(true);
+        console.log(`[AI Gen] Starting generation for topic: "${aiTopic}"`);
+
+        try {
+            const response = await authenticatedAxiosInstance.post(
+                'https://backend-stage.vacademy.io/media-service/ai/presentation/generateFromData',
+                {
+                    language: aiLanguage,
+                    text: aiTopic,
+                },
+                { headers: { 'Content-Type': 'application/json' } }
+            );
+
+            const data = response.data;
+            console.log('[AI Gen] Received data:', data);
+
+            if (!data.slides || !data.assessment) {
+                throw new Error('Invalid response structure from AI service.');
+            }
+
+            const { setSlides, setCurrentSlideId, initializeNewPresentationState } =
+                useSlideStore.getState();
+
+            initializeNewPresentationState(); // Clear out any old state
+
+            const allNewSlides = [];
+
+            // Process Excalidraw slides
+            data.slides.forEach((slideData) => {
+                const newSlide = createNewSlide(SlideTypeEnum.Excalidraw);
+                const excalidrawSlide = {
+                    ...newSlide,
+                    elements: slideData.elements,
+                    appState: {
+                        ...newSlide.appState,
+                        ...slideData.appState,
+                    },
+                };
+                allNewSlides.push(excalidrawSlide);
+            });
+
+            // Process Questions
+            data.assessment.questions.forEach((questionData) => {
+                const isMcq = questionData.question_type === 'MCQS';
+                const type = isMcq ? SlideTypeEnum.Quiz : SlideTypeEnum.Feedback;
+                const newSlide = createNewSlide(type);
+
+                const questionElements: any = {
+                    questionName: questionData.question.content,
+                };
+
+                if (isMcq) {
+                    questionElements.singleChoiceOptions = questionData.options.map((opt) => ({
+                        id: `option_${Math.random()}`, // temp id
+                        name: opt.content,
+                        isSelected: (questionData.correct_options || []).includes(opt.preview_id),
+                    }));
+                } else {
+                    questionElements.feedbackAnswer = '';
+                }
+
+                const questionSlide = {
+                    ...newSlide,
+                    elements: questionElements,
+                };
+                allNewSlides.push(questionSlide);
+            });
+
+            const finalSlides = allNewSlides.map((slide, index) => ({
+                ...slide,
+                slide_order: index,
+            }));
+
+            console.log('[AI Gen] Processed slides for store:', finalSlides);
+            setSlides(finalSlides);
+            setCurrentSlideId(finalSlides.length > 0 ? finalSlides[0].id : undefined);
+
+            toast.success('AI Presentation generated successfully! Opening editor...');
+            setIsAiModalOpen(false);
+
+            router.navigate({
+                to: '/study-library/present/add',
+                search: {
+                    title: data.title || 'AI Generated Presentation',
+                    description: `Generated from topic: ${aiTopic}`,
+                    id: '',
+                    isEdit: false,
+                    source: 'ai',
+                },
+            });
+        } catch (error: any) {
+            console.error('[AI Gen] Error:', error);
+            toast.error(
+                error.response?.data?.message || 'Failed to generate presentation from AI.'
+            );
+        } finally {
+            setIsGenerating(false);
+        }
+    };
 
     const handleCreatePresentation = (e: FormEvent) => {
         e.preventDefault();
@@ -70,14 +188,13 @@ export default function ManagePresentation() {
             toast.error('Title is required to create a presentation.');
             return;
         }
-        // Navigate to the editor with new presentation details
         router.navigate({
-            to: `/study-library/present/add`, // Your route for the editor
+            to: `/study-library/present/add`,
             search: {
                 title: newTitle,
                 description: newDescription,
-                id: '', // No ID for new presentation yet, editor should handle creation
-                isEdit: false, // Explicitly false
+                id: '',
+                isEdit: false,
             },
         });
         setIsCreateModalOpen(false);
@@ -87,14 +204,8 @@ export default function ManagePresentation() {
 
     const handleEditPresentationDetails = (presentation: PresentationData) => {
         setEditingPresentation(presentation);
-        // For now, directly navigate to editor. If modal was for title/desc only:
-        // setNewTitle(presentation.title);
-        // setNewDescription(presentation.description || '');
-        // setIsEditModalOpen(true);
-
-        // Navigate to editor to edit content and details
         router.navigate({
-            to: `/study-library/present/add`, // Your route for the editor
+            to: `/study-library/present/add`,
             search: {
                 title: presentation.title,
                 description: presentation.description,
@@ -103,24 +214,6 @@ export default function ManagePresentation() {
             },
         });
     };
-
-    // If you had a modal for just updating title/description:
-    /*
-    const handleUpdatePresentationDetails = async (e: FormEvent) => {
-        e.preventDefault();
-        if (!editingPresentation || !newTitle.trim()) {
-            toast.error("Title cannot be empty.");
-            return;
-        }
-        // API call to update title/description
-        // ...
-        // After success:
-        // queryClient.invalidateQueries({ queryKey: ['GET_PRESNTATIONS'] });
-        // setIsEditModalOpen(false);
-        // setEditingPresentation(null);
-        toast.info("Navigation to full editor for content changes.");
-    };
-    */
 
     const confirmDeletePresentation = (presentation: PresentationData) => {
         setPresentationToDelete(presentation);
@@ -144,10 +237,8 @@ export default function ManagePresentation() {
                 setIsProcessingDelete(false);
                 return;
             }
-
-            // Assuming API expects the full presentation object with status 'DELETED'
             await authenticatedAxiosInstance.post(
-                EDIT_PRESENTATION, // This URL might be for update; ensure backend handles delete correctly
+                EDIT_PRESENTATION,
                 {
                     ...presentationToDelete,
                     status: 'DELETED',
@@ -160,7 +251,6 @@ export default function ManagePresentation() {
                     headers: { 'Content-Type': 'application/json' },
                 }
             );
-
             await queryClient.refetchQueries({ queryKey: ['GET_PRESNTATIONS'] });
             toast.success(`Presentation "${presentationToDelete.title}" deleted successfully.`);
         } catch (error: any) {
@@ -175,15 +265,28 @@ export default function ManagePresentation() {
         }
     };
 
+    const handleDirectStartLive = (presentation: PresentationData) => {
+        if (presentation.added_slides_count === 0 && (!presentation.added_slides || presentation.added_slides.length === 0)) {
+            toast.error("This presentation has no slides. Add slides before starting a live session.");
+            return;
+        }
+        router.navigate({
+            to: `/study-library/present/add`,
+            search: {
+                id: presentation.id,
+                isEdit: 'true',
+                autoStartLive: 'true',
+            },
+        });
+    };
+
     const filteredPresentations = presentations.filter((p) => {
         const query = searchQuery.toLowerCase();
         return (
-            p.title?.toLowerCase().includes(query) || p.description?.toLowerCase().includes(query) // ||
-            // p.category?.toLowerCase().includes(query) // If category exists
+            p.title?.toLowerCase().includes(query) || p.description?.toLowerCase().includes(query)
         );
     });
 
-    // Card Status styling (example)
     const getStatusBadgeClass = (status: string = 'draft') => {
         switch (status.toLowerCase()) {
             case 'published':
@@ -214,67 +317,26 @@ export default function ManagePresentation() {
                         Manage, create, and organize your presentation materials.
                     </p>
                 </div>
-                <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-                    <DialogTrigger asChild>
-                        <MyButton size="lg" className="gap-2 px-5 py-2.5">
-                            <Plus className="h-5 w-5" /> New Presentation
-                        </MyButton>
-                    </DialogTrigger>
-                    <DialogContent className="p-6 sm:max-w-lg">
-                        <DialogHeader className="mb-4">
-                            <DialogTitle className="text-xl font-semibold">
-                                Create New Presentation
-                            </DialogTitle>
-                            <DialogDescription className="text-sm text-neutral-500">
-                                Provide a title and description. You'll add slides in the next step.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <form onSubmit={handleCreatePresentation} className="space-y-5">
-                            <div>
-                                <Label htmlFor="new-title" className="text-sm font-medium">
-                                    Title
-                                </Label>
-                                <Input
-                                    id="new-title"
-                                    value={newTitle}
-                                    onChange={(e) => setNewTitle(e.target.value)}
-                                    className="mt-1.5 w-full"
-                                    placeholder="e.g., Quarterly Business Review"
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <Label htmlFor="new-description" className="text-sm font-medium">
-                                    Description (Optional)
-                                </Label>
-                                <Textarea
-                                    id="new-description"
-                                    value={newDescription}
-                                    onChange={(e) => setNewDescription(e.target.value)}
-                                    className="mt-1.5 min-h-[80px] w-full"
-                                    placeholder="A brief summary of your presentation"
-                                    rows={3}
-                                />
-                            </div>
-                            <DialogFooter className="mt-6 !justify-stretch space-y-2 sm:flex sm:flex-row sm:space-x-3 sm:space-y-0">
-                                <MyButton
-                                    type="button"
-                                    buttonType="secondary"
-                                    onClick={() => setIsCreateModalOpen(false)}
-                                    className="w-full sm:w-auto"
-                                >
-                                    Cancel
-                                </MyButton>
-                                <MyButton type="submit" className="w-full sm:w-auto">
-                                    Create & Add Slides
-                                </MyButton>
-                            </DialogFooter>
-                        </form>
-                    </DialogContent>
-                </Dialog>
+                <div className="flex items-center gap-2">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <MyButton size="lg" className="gap-2 px-5 py-2.5">
+                                <Plus className="h-5 w-5" /> New Presentation
+                                <ChevronDown className="h-4 w-4" />
+                            </MyButton>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            <DropdownMenuItem onSelect={() => setIsCreateModalOpen(true)}>
+                                From Scratch
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => setIsAiModalOpen(true)}>
+                                Generate with AI
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
             </div>
 
-            {/* Search Input */}
             <div className="mb-6">
                 <div className="relative w-full max-w-md">
                     <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-400" />
@@ -287,13 +349,13 @@ export default function ManagePresentation() {
                 </div>
             </div>
 
-            {/* Presentation Cards Grid */}
             {filteredPresentations.length > 0 ? (
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {filteredPresentations.map((p) => (
                         <Card
                             key={p.id}
-                            className="group flex flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm transition-all duration-300 hover:border-orange-300 hover:shadow-lg"
+                            className="group flex flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm transition-all duration-300 hover:border-orange-300 hover:shadow-lg cursor-pointer"
+                            onClick={() => handleEditPresentationDetails(p)}
                         >
                             <CardHeader className="px-4 pb-3 pt-4">
                                 <CardTitle className="line-clamp-2 text-lg font-semibold leading-tight text-neutral-800 transition-colors hover:text-orange-600">
@@ -326,7 +388,7 @@ export default function ManagePresentation() {
                             </CardContent>
                             <CardFooter className="flex items-center justify-between border-t border-neutral-100 bg-neutral-50/50 px-4 py-2.5">
                                 <span className="text-xs text-neutral-500">
-                                    Updated:{' '}
+                                    Updated: {' '}
                                     {p.updated_at
                                         ? new Date(p.updated_at).toLocaleDateString()
                                         : 'N/A'}
@@ -335,8 +397,37 @@ export default function ManagePresentation() {
                                     <ShadButton
                                         variant="ghost"
                                         size="icon"
+                                        className="h-8 w-8 rounded-md text-neutral-500 hover:bg-blue-100 hover:text-blue-600"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            const shareUrl = `https://engage.vacademy.io/presentation/public/${p.id}`;
+                                            window.open(shareUrl, '_blank');
+                                            toast.info("Public presentation link opened!");
+                                        }}
+                                        title="Share Presentation"
+                                    >
+                                        <Share2 className="h-4 w-4" />
+                                    </ShadButton>
+                                    <ShadButton
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8 rounded-md text-neutral-500 hover:bg-green-100 hover:text-green-600"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDirectStartLive(p)
+                                        }}
+                                        title="Start Live Session"
+                                    >
+                                        <Tv2 className="h-4 w-4" />
+                                    </ShadButton>
+                                    <ShadButton
+                                        variant="ghost"
+                                        size="icon"
                                         className="h-8 w-8 rounded-md text-neutral-500 hover:bg-orange-100 hover:text-orange-600"
-                                        onClick={() => handleEditPresentationDetails(p)}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleEditPresentationDetails(p)
+                                        }}
                                         title="Edit Presentation"
                                     >
                                         <Edit className="h-4 w-4" />
@@ -345,7 +436,10 @@ export default function ManagePresentation() {
                                         variant="ghost"
                                         size="icon"
                                         className="h-8 w-8 rounded-md text-neutral-500 hover:bg-red-100 hover:text-red-600"
-                                        onClick={() => confirmDeletePresentation(p)}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            confirmDeletePresentation(p)
+                                        }}
                                         title="Delete Presentation"
                                     >
                                         <Trash2 className="h-4 w-4" />
@@ -378,7 +472,6 @@ export default function ManagePresentation() {
                 </div>
             )}
 
-            {/* Delete Confirmation Dialog */}
             <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
                 <DialogContent className="p-6 sm:max-w-md">
                     <DialogHeader>
@@ -417,6 +510,126 @@ export default function ManagePresentation() {
                             )}
                         </MyButton>
                     </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+                <DialogContent className="p-6 sm:max-w-lg">
+                    <DialogHeader className="mb-4">
+                        <DialogTitle className="text-xl font-semibold">
+                            Create New Presentation
+                        </DialogTitle>
+                        <DialogDescription className="text-sm text-neutral-500">
+                            Provide a title and description. You'll add slides in the next step.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleCreatePresentation} className="space-y-5">
+                        <div>
+                            <Label htmlFor="new-title" className="text-sm font-medium">
+                                Title
+                            </Label>
+                            <Input
+                                id="new-title"
+                                value={newTitle}
+                                onChange={(e) => setNewTitle(e.target.value)}
+                                className="mt-1.5 w-full"
+                                placeholder="e.g., Quarterly Business Review"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <Label htmlFor="new-description" className="text-sm font-medium">
+                                Description (Optional)
+                            </Label>
+                            <Textarea
+                                id="new-description"
+                                value={newDescription}
+                                onChange={(e) => setNewDescription(e.target.value)}
+                                className="mt-1.5 min-h-[80px] w-full"
+                                placeholder="A brief summary of your presentation"
+                                rows={3}
+                            />
+                        </div>
+                        <DialogFooter className="mt-6 !justify-stretch space-y-2 sm:flex sm:flex-row sm:space-x-3 sm:space-y-0">
+                            <MyButton
+                                type="button"
+                                buttonType="secondary"
+                                onClick={() => setIsCreateModalOpen(false)}
+                                className="w-full sm:w-auto"
+                            >
+                                Cancel
+                            </MyButton>
+                            <MyButton type="submit" className="w-full sm:w-auto">
+                                Create & Add Slides
+                            </MyButton>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={isAiModalOpen} onOpenChange={setIsAiModalOpen}>
+                <DialogContent className="p-6 sm:max-w-lg">
+                    <DialogHeader className="mb-4">
+                        <DialogTitle className="text-xl font-semibold">
+                            Generate Presentation with AI
+                        </DialogTitle>
+                        <DialogDescription className="text-sm text-neutral-500">
+                            Provide a topic and language to generate slides and questions.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleAiGenerate} className="space-y-5">
+                        <div>
+                            <Label htmlFor="ai-topic" className="text-sm font-medium">
+                                Topic
+                            </Label>
+                            <Textarea
+                                id="ai-topic"
+                                value={aiTopic}
+                                onChange={(e) => setAiTopic(e.target.value)}
+                                className="mt-1.5 min-h-[100px] w-full"
+                                placeholder="e.g., An overview of the thermite reaction, its chemical properties, applications, and safety precautions."
+                                required
+                                rows={4}
+                            />
+                        </div>
+                        <div>
+                            <Label htmlFor="ai-language" className="text-sm font-medium">
+                                Language
+                            </Label>
+                            <Input
+                                id="ai-language"
+                                value={aiLanguage}
+                                onChange={(e) => setAiLanguage(e.target.value)}
+                                className="mt-1.5 w-full"
+                                placeholder="e.g., English"
+                                required
+                            />
+                        </div>
+                        <DialogFooter className="mt-6 !justify-stretch space-y-2 sm:flex sm:flex-row sm:space-x-3 sm:space-y-0">
+                            <MyButton
+                                type="button"
+                                buttonType="secondary"
+                                onClick={() => setIsAiModalOpen(false)}
+                                className="w-full sm:w-auto"
+                                disabled={isGenerating}
+                            >
+                                Cancel
+                            </MyButton>
+                            <MyButton
+                                type="submit"
+                                className="w-full sm:w-auto"
+                                disabled={isGenerating}
+                            >
+                                {isGenerating ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating...
+                                    </>
+                                ) : (
+                                    'Generate & Create'
+                                )}
+                            </MyButton>
+                        </DialogFooter>
+                    </form>
                 </DialogContent>
             </Dialog>
         </div>

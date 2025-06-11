@@ -69,6 +69,7 @@ export const AddVideoDialog = ({
     }, []);
 
     const handleSubmit = async (data: FormValues) => {
+        console.log("data: ",data);
         try {
             const videoId = extractVideoId(data.videoUrl);
             if (!videoId) {

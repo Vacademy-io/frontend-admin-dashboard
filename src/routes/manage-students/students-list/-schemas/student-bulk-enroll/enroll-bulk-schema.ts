@@ -28,9 +28,10 @@ export const csvFormatSchema = z.object({
     // Optional CSV columns
     fatherName: z.boolean().default(true),
     motherName: z.boolean().default(true),
-    guardianName: z.boolean().default(true),
-    parentEmail: z.boolean().default(true),
-    parentMobile: z.boolean().default(true),
+    fatherEmail: z.boolean().default(true),
+    motherEmail: z.boolean().default(true),
+    fatherMobile: z.boolean().default(true),
+    motherMobile: z.boolean().default(true),
     collegeName: z.boolean().default(true),
     state: z.boolean().default(true),
     city: z.boolean().default(true),

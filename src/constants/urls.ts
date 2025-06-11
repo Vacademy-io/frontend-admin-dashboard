@@ -224,6 +224,9 @@ export const GET_PAST_SESSIONS = `${BASE_URL}/admin-core-service/get-sessions/pa
 export const GET_DRAFT_SESSIONS = `${BASE_URL}/admin-core-service/get-sessions/draft`;
 // export const GET_DRAFT_SESSIONS = `http://localhost:8072/admin-core-service/get-sessions/draft`;
 
+// export const GET_SESSION_BY_SESSION_ID = `http://localhost:8072/admin-core-service/get-sessions/by-session-id`;
+export const GET_SESSION_BY_SESSION_ID = `${BASE_URL}/admin-core-service/get-sessions/by-session-id`;
+
 export const GET_ALL_FACULTY = `${BASE_URL}/admin-core-service/institute/v1/faculty/faculty/get-all`;
 
 export const LOGIN_URL_GOOGLE_GITHUB = `${BASE_URL}/auth-service/v1/oauth`;
@@ -232,5 +235,9 @@ export const ADD_DOUBT = `${BASE_URL}/admin-core-service/institute/v1/doubts/cre
 export const GET_DOUBTS = `${BASE_URL}/admin-core-service/institute/v1/doubts/get-all`;
 export const GET_USER_BASIC_DETAILS = `${BASE_URL}/auth-service/v1/user-details/get-basic-details`;
 
-// export const GET_SESSION_BY_SESSION_ID = `http://localhost:8072/admin-core-service/get-sessions/by-session-id`;
-export const GET_SESSION_BY_SESSION_ID = `${BASE_URL}/admin-core-service/get-sessions/by-session-id`;
+// Engage Session URLs (Presentation specific)
+export const CREATE_SESSION_API_URL = `${BASE_URL}/community-service/engage/admin/create`;
+export const START_SESSION_API_URL = `${BASE_URL}/community-service/engage/admin/start`;
+export const FINISH_SESSION_API_URL = `${BASE_URL}/community-service/engage/admin/finish`;
+// Note: GET_SINGLE_PRESENTATION_DATA for all slide details will reuse GET_PRESENTATION
+// Ensure GET_PRESENTATION endpoint returns all necessary slide data for live sessions.

@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 import { exportToSvg } from '@excalidraw/excalidraw';
 import { GripVertical, Presentation, Trash2, ImageOff, AlertTriangle } from 'lucide-react';
 import { ExportIcon, ImportIcon } from './Icons';
-import { SlideTypeSheet } from './slideTypeSheet';
+import { SlideTypeSheet } from '../slides/slideTypeSheet';
 import type {
     Slide as AppSlide,
     ExcalidrawSlideData,
@@ -31,6 +31,7 @@ interface SlideListProps {
     onExport: () => void;
     onImport: (event: React.ChangeEvent<HTMLInputElement>) => void;
     onReorderSlides: (newSlides: AppSlide[]) => void;
+    onAiGenerateClick: () => void;
 }
 
 interface PreviewProps {
@@ -205,6 +206,7 @@ const SlideList = ({
     onExport,
     onImport,
     onReorderSlides,
+    onAiGenerateClick,
 }: SlideListProps) => {
     const [isTypeSheetOpen, setIsTypeSheetOpen] = useState(false);
 
@@ -225,13 +227,33 @@ const SlideList = ({
     return (
         <>
             <div className="flex h-full w-72 flex-col bg-white p-3 shadow-sm">
-                <div className="pb-2 pt-1">
+                <div className="flex flex-col gap-y-2 pb-2 pt-1">
                     <Button
                         onClick={() => setIsTypeSheetOpen(true)}
                         className="w-full gap-2 bg-orange-500 py-2.5 text-sm font-medium text-white hover:bg-orange-600 focus-visible:ring-orange-400"
                     >
                         <span className="mr-0.5 text-lg font-semibold leading-none">+</span> Add
                         Slide
+                    </Button>
+                    <Button
+                        onClick={onAiGenerateClick}
+                        variant="outline"
+                        className="w-full gap-2 border-blue-500 py-2.5 text-sm font-medium text-blue-600 hover:bg-blue-50 hover:text-blue-700 focus-visible:ring-blue-400"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                            className="h-5 w-5"
+                        >
+                            <path
+                                fillRule="evenodd"
+                                d="M9 4.5a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5A.75.75 0 019 4.5zm5.707 2.293a.75.75 0 01.043 1.06l-1.72 1.965a.75.75 0 01-1.102-.043l-1.72-1.965a.75.75 0 111.102-1.017l1.168 1.335 1.168-1.335a.75.75 0 011.06-.043zM3 10.5a.75.75 0 01.75-.75h1.5a.75.75 0 010 1.5h-1.5a.75.75 0 01-.75-.75zm17.25.75a.75.75 0 00-.75-.75h-1.5a.75.75 0 000 1.5h1.5a.75.75 0 00.75-.75zM14.25 15a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5a.75.75 0 01.75-.75zm-5.25.75a.75.75 0 00-.75-.75v-1.5a.75.75 0 00-1.5 0v1.5a.75.75 0 00.75.75z"
+                                clipRule="evenodd"
+                            />
+                            <path d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3a3 3 0 00-3 3v6.75a3 3 0 003 3h10.5a3 3 0 003-3v-6.75a3 3 0 00-3-3v-3A5.25 5.25 0 0012 1.5zm-3.75 8.25v-.012a.75.75 0 01.75-.75h6a.75.75 0 01.75.75v.012a.75.75 0 01-.75.75h-6a.75.75 0 01-.75-.75z" />
+                        </svg>
+                        Generate with AI
                     </Button>
                 </div>
                 <Separator className="my-3 bg-gray-200" />

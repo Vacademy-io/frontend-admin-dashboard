@@ -19,7 +19,7 @@ import {
     useSlides,
 } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides';
 import { toast } from 'sonner';
-import { Check, DownloadSimple, PencilSimpleLine } from 'phosphor-react';
+import { Check, DownloadSimple, PencilSimpleLine, ChatText } from 'phosphor-react';
 import {
     converDataToAssignmentFormat,
     converDataToVideoFormat,
@@ -36,6 +36,7 @@ import { formatHTMLString } from './slide-operations/formatHtmlString';
 import { handleConvertAndUpload } from './slide-operations/handleConvertUpload';
 import SlideEditor from './SlideEditor';
 import type { JSX } from 'react/jsx-runtime';
+import { useSidebar } from '@/components/ui/sidebar';
 
 // Declare INSTITUTE_ID here or import it from a config file
 const INSTITUTE_ID = 'your-institute-id'; // Replace with your actual institute ID
@@ -64,6 +65,7 @@ export const SlideMaterial = ({
     const { addUpdateVideoSlide } = useSlides(chapterId || '');
     const { updateQuestionOrder } = useSlides(chapterId || '');
     const { updateAssignmentOrder } = useSlides(chapterId || '');
+    const { open, setOpen } = useSidebar();
 
     const handleHeadingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setHeading(e.target.value);

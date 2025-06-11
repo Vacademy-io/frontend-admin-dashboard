@@ -12,6 +12,22 @@ import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Maximize, Minimize } from 'lucide-react';
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance'; // For API calls
 import { toast } from 'sonner'; // For notifications
+import { ParticipantsSidePanel } from '../slides/components/ParticipantsSidePanel'; // Implied import for ParticipantsSidePanel component
+import { QuickQuestionFAB, type InsertionBehavior } from './components/QuickQuestionFAB';
+import { ResponseOverlay } from './components/ResponseOverlay';
+import { SlideTypeEnum } from './utils/types';
+import { SessionExcalidrawOverlay } from './components/SessionExcalidrawOverlay';
+
+// Define Participant interface (copied from ParticipantsSidePanel)
+interface Participant {
+    username: string;
+    user_id?: string | null;
+    name?: string | null;
+    email?: string | null;
+    status: string;
+    joined_at?: string; // ISO string
+    last_active_at?: string; // ISO string, for INACTIVE participants
+}
 
 interface MinimalSessionDetails {
     session_id: string;
@@ -20,19 +36,29 @@ interface MinimalSessionDetails {
 }
 
 const MOVE_SLIDE_API_URL = 'https://backend-stage.vacademy.io/community-service/engage/admin/move';
+// Define ADMIN_SSE_URL_BASE (copied from ParticipantsSidePanel)
+const ADMIN_SSE_URL_BASE = 'https://backend-stage.vacademy.io/community-service/engage/admin/';
 
 interface ActualPresentationDisplayProps {
     slides: AppSlide[];
     initialSlideId?: string;
-    liveSessionData: MinimalSessionDetails | null; // Using MinimalSessionDetails
+    liveSessionData: MinimalSessionDetails | null;
     onExit: () => void;
     isAudioRecording?: boolean;
     isAudioPaused?: boolean;
     audioBlobUrl?: string | null;
     onPauseAudio?: () => void;
     onResumeAudio?: () => void;
-    onDownloadAudio?: (format?: 'webm' | 'mp3') => void; // Modified to accept format
-    recordingDuration?: number; // New prop for duration
+    onDownloadAudio?: (format?: 'webm' | 'mp3') => void;
+    recordingDuration?: number;
+   
+
+    // Props that will be passed to ParticipantsSidePanel if it's rendered as a child
+    // and needs to be controlled from here regarding its visibility.
+    isParticipantsPanelOpen?: boolean;
+    onToggleParticipantsPanel?: () => void;
+    onAddQuickQuestion?: (slideData: AppSlide, insertionBehavior: InsertionBehavior) => void;
+    onGenerateTranscript?: () => void;
 }
 
 export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps> = ({
@@ -45,26 +71,187 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
     audioBlobUrl,
     onPauseAudio,
     onResumeAudio,
-    onDownloadAudio, // Prop from SlideEditorComponent (which is downloadCurrentAudioSnapshot)
-    recordingDuration, // Destructure new prop
+    onDownloadAudio,
+    recordingDuration,
+    // Defaulting these if not provided, though they might be controlled by a parent of ActualPresentationDisplay
+    isParticipantsPanelOpen = false, 
+    onToggleParticipantsPanel,
+    onAddQuickQuestion,
+    onGenerateTranscript,
 }) => {
+    const { setCurrentSlideId: setGlobalCurrentSlideId } = useSlideStore();
     const [currentSlideId, setCurrentSlideId] = useState<string | undefined>(initialSlideId);
-    const [participantsCount, setParticipantsCount] = useState(0); // Placeholder, SSE would update this
-    const [isParticipantsPanelOpen, setIsParticipantsPanelOpen] = useState(false);
+    // const [participantsCount, setParticipantsCount] = useState(0); // Replaced by participantsList.length
     const [isWhiteboardOpen, setIsWhiteboardOpen] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const presentationContainerRef = useRef<HTMLDivElement>(null);
 
+    // State for SSE managed participants and connection status
+    const [participantsList, setParticipantsList] = useState<Participant[]>([]);
+    const [sseStatus, setSseStatus] = useState<'connecting' | 'connected' | 'disconnected'>('disconnected');
+    const eventSourceRef = useRef<EventSource | null>(null);
+    const previousParticipantsRef = useRef<Participant[]>([]); // Ref to store previous participants
+
+    // New useEffect to keep the global state in sync with the presentation view's active slide.
     useEffect(() => {
-        if (slides.length > 0 && !initialSlideId) {
-            setCurrentSlideId(slides[0].id);
-        } else {
-            setCurrentSlideId(initialSlideId);
+        if (currentSlideId) {
+            setGlobalCurrentSlideId(currentSlideId);
         }
-    }, [slides, initialSlideId]);
+    }, [currentSlideId, setGlobalCurrentSlideId]);
+
+    // SSE Connection useEffect (adapted from ParticipantsSidePanel)
+    useEffect(() => {
+        if (!liveSessionData?.session_id) {
+            if (eventSourceRef.current) {
+                console.log('[ActualPresentationDisplay] Closing SSE: No session_id.');
+                eventSourceRef.current.close();
+                eventSourceRef.current = null;
+            }
+            setParticipantsList([]);
+            setSseStatus('disconnected');
+            return;
+        }
+
+        const sessionId = liveSessionData.session_id;
+
+        if (eventSourceRef.current) { // Close existing connection if sessionId changes or on re-connect logic
+            console.log('[ActualPresentationDisplay] Closing existing SSE before new one.');
+            eventSourceRef.current.close();
+        }
+
+        setSseStatus('connecting');
+        setParticipantsList([]); 
+        console.log(`[ActualPresentationDisplay] SSE init. Session ID: ${sessionId}`);
+        const sseUrl = `${ADMIN_SSE_URL_BASE}${sessionId}`;
+        console.log(`[ActualPresentationDisplay] SSE connecting to: ${sseUrl}`);
+        const newEventSource = new EventSource(sseUrl, { withCredentials: true });
+        eventSourceRef.current = newEventSource;
+
+        newEventSource.onopen = () => {
+            console.log('[ActualPresentationDisplay] SSE Connection Established.');
+            setSseStatus('connected');
+        };
+
+        const directParticipantsListener = (event: MessageEvent) => {
+            console.log("[ActualPresentationDisplay] Received 'participants' event data:", event.data);
+            try {
+                const newParticipants = JSON.parse(event.data) as Participant[];
+                if (Array.isArray(newParticipants)) {
+                    // Compare with previous participants to detect joins/leaves
+                    if (previousParticipantsRef.current && previousParticipantsRef.current.length > 0) {
+                        const currentIds = new Set(newParticipants.map(p => p.user_id || p.username));
+                        const previousIds = new Set(previousParticipantsRef.current.map(p => p.user_id || p.username));
+
+                        // Detect joins
+                        newParticipants.forEach(p => {
+                            const participantKey = p.user_id || p.username;
+                            if (!previousIds.has(participantKey)) {
+                                toast.success(`${p.name || p.username} joined the session.`);
+                            }
+                        });
+
+                        // Detect leaves
+                        previousParticipantsRef.current.forEach(p => {
+                            const participantKey = p.user_id || p.username;
+                            if (!currentIds.has(participantKey)) {
+                                toast.error(`${p.name || p.username} left the session.`);
+                            }
+                        });
+                    }
+                    setParticipantsList(newParticipants);
+                    previousParticipantsRef.current = newParticipants; // Update ref after processing
+                } else {
+                    console.warn("[ActualPresentationDisplay] 'participants' data received is not an array:", newParticipants);
+                     // Still update refs even if data is not an array to prevent stale comparisons on next valid array
+                    previousParticipantsRef.current = Array.isArray(newParticipants) ? newParticipants : []; 
+                }
+            } catch (error) {
+                console.error("[ActualPresentationDisplay] Error parsing 'participants' data:", error);
+            }
+        };
+        newEventSource.addEventListener('participants', directParticipantsListener);
+
+        const sessionStateListener = (event: MessageEvent) => {
+            try {
+                const data = JSON.parse(event.data);
+                console.log("[ActualPresentationDisplay] SSE: 'session_state_presenter' received", data);
+                if (data.participants && Array.isArray(data.participants)) {
+                    // Similar join/leave detection for session_state_presenter if it can also change participant list
+                    const newParticipants = data.participants as Participant[];
+                     if (previousParticipantsRef.current && previousParticipantsRef.current.length > 0) {
+                        const currentIds = new Set(newParticipants.map(p => p.user_id || p.username));
+                        const previousIds = new Set(previousParticipantsRef.current.map(p => p.user_id || p.username));
+
+                        newParticipants.forEach(p => {
+                            const participantKey = p.user_id || p.username;
+                            if (!previousIds.has(participantKey)) {
+                                toast.success(`${p.name || p.username} joined the session.`);
+                            }
+                        });
+                        previousParticipantsRef.current.forEach(p => {
+                            const participantKey = p.user_id || p.username;
+                            if (!currentIds.has(participantKey)) {
+                                toast.error(`${p.name || p.username} left the session.`);
+                            }
+                        });
+                    }
+                    setParticipantsList(newParticipants);
+                    previousParticipantsRef.current = newParticipants; // Update ref
+                }
+                // Potentially handle other session state updates here if needed
+            } catch (e) {
+                console.warn("[ActualPresentationDisplay] SSE: Error parsing 'session_state_presenter' data:", e);
+            }
+        };
+        newEventSource.addEventListener('session_state_presenter', sessionStateListener);
+
+        newEventSource.onerror = (error) => {
+            console.error('[ActualPresentationDisplay] SSE Error. Browser will attempt to reconnect.', error);
+            setSseStatus('disconnected');
+            previousParticipantsRef.current = []; // Clear ref on disconnect
+        };
+
+        return () => {
+            if (newEventSource) {
+                console.log('[ActualPresentationDisplay] Closing SSE Connection and removing listeners.');
+                newEventSource.removeEventListener('participants', directParticipantsListener);
+                newEventSource.removeEventListener('session_state_presenter', sessionStateListener);
+                newEventSource.close();
+                eventSourceRef.current = null;
+            }
+            setSseStatus('disconnected');
+        };
+    }, [liveSessionData?.session_id]); // Effect reruns if session_id changes
+
+    // Effect to initialize previousParticipantsRef on first load to avoid false join notifications
+    useEffect(() => {
+        if (participantsList.length > 0 && previousParticipantsRef.current.length === 0) {
+            previousParticipantsRef.current = participantsList;
+        }
+    }, [participantsList]);
+
+    useEffect(() => {
+        const isCurrentSlideValid = slides.some(s => s.id === currentSlideId);
+
+        if (!isCurrentSlideValid) {
+            // If the current slide ID is no longer in the list (e.g., it was deleted),
+            // fall back to the initialSlideId or the first slide.
+            if (initialSlideId && slides.some(s => s.id === initialSlideId)) {
+                setCurrentSlideId(initialSlideId);
+            } else if (slides.length > 0) {
+                setCurrentSlideId(slides[0].id);
+            } else {
+                setCurrentSlideId(undefined);
+            }
+        }
+        // If the current slide is still valid, we do nothing, preserving the user's position.
+    }, [slides, initialSlideId, currentSlideId]);
 
     const currentSlideIndex = slides.findIndex((s) => s.id === currentSlideId);
     const currentSlideData = slides[currentSlideIndex];
+    const isQuestionSlideForResponses = 
+        currentSlideData?.type === SlideTypeEnum.Quiz || 
+        currentSlideData?.type === SlideTypeEnum.Feedback;
 
     const goToNextSlide = async () => {
         if (currentSlideIndex < slides.length - 1) {
@@ -159,26 +346,30 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
                 inviteCode={liveSessionData?.invite_code || 'N/A'}
                 currentSlideIndex={currentSlideIndex}
                 totalSlides={slides.length}
-                participantsCount={participantsCount} // Replace with actual data if available
-                onToggleParticipantsView={() => setIsParticipantsPanelOpen(!isParticipantsPanelOpen)}
+                participantsCount={participantsList.length} // Use length of the new state
+                onToggleParticipantsView={() => onToggleParticipantsPanel && onToggleParticipantsPanel()}
                 isParticipantsPanelOpen={isParticipantsPanelOpen}
-                onToggleWhiteboard={() => setIsWhiteboardOpen(!isWhiteboardOpen)} // Placeholder
-                isWhiteboardOpen={isWhiteboardOpen} // Placeholder
-                onEndSession={onExit} // onEndSession can just be onExit for now
+                onToggleWhiteboard={() => setIsWhiteboardOpen(!isWhiteboardOpen)} 
+                isWhiteboardOpen={isWhiteboardOpen} 
+                onEndSession={onExit} 
                 isAudioRecording={isAudioRecording}
                 isAudioPaused={isAudioPaused}
                 onPauseAudio={onPauseAudio}
                 onResumeAudio={onResumeAudio}
                 audioBlobUrl={audioBlobUrl}
                 onDownloadAudio={handleDownloadAudio}
-                recordingDuration={recordingDuration} // Pass duration to action bar
-                // sseStatus will need to be plumbed if needed
+                recordingDuration={recordingDuration}
+                sseStatus={sseStatus} // Pass the new sseStatus state
+                onGenerateTranscript={onGenerateTranscript}
             />
 
             {/* Main content area for the slide */}
-            <div className="flex-grow overflow-hidden" style={{ paddingTop: '3.5rem' }}> {/* Adjust padding to be below action bar */}
+            <div className="flex-grow overflow-hidden relative" style={{ paddingTop: '3.5rem' }}> {/* Adjust padding to be below action bar */}
                  {currentSlideId && (
                     <SlideRenderer currentSlideId={currentSlideId} editMode={false} />
+                )}
+                {isQuestionSlideForResponses && liveSessionData && currentSlideData && (
+                    <ResponseOverlay sessionId={liveSessionData.session_id} slideData={currentSlideData} />
                 )}
             </div>
 
@@ -214,8 +405,31 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
                 </Button>
             </div>
 
-            {/* ParticipantsSidePanel and SessionExcalidrawOverlay would be conditionally rendered here if used */}
-            {/* e.g., isParticipantsPanelOpen && <ParticipantsSidePanel ... /> */}
+            {/* Floating Action Button for Quick Questions */}
+            {liveSessionData?.session_id && onAddQuickQuestion && (
+                <QuickQuestionFAB onAddQuickQuestion={onAddQuickQuestion} />
+            )}
+
+            {/* Conditionally render ParticipantsSidePanel */}
+            {liveSessionData?.session_id && (
+                <ParticipantsSidePanel
+                    sessionId={liveSessionData.session_id}
+                    isOpen={isParticipantsPanelOpen} // Prop from parent (SlideEditorComponent)
+                    onClose={() => onToggleParticipantsPanel && onToggleParticipantsPanel()} // Prop from parent
+                    participants={participantsList} // From ActualPresentationDisplay's state
+                    sseStatus={sseStatus} // From ActualPresentationDisplay's state
+                    topOffset="3.5rem" // Height of the LiveSessionActionBar (h-14)
+                />
+            )}
+
+            {/* SessionExcalidrawOverlay would be conditionally rendered here if used */}
+            {isWhiteboardOpen && liveSessionData?.session_id && (
+                <SessionExcalidrawOverlay
+                    sessionId={liveSessionData.session_id}
+                    isOpen={isWhiteboardOpen}
+                    onClose={() => setIsWhiteboardOpen(false)}
+                />
+            )}
         </div>
     );
 }; 

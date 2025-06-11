@@ -59,7 +59,7 @@ export const InviteCardMenuOptions = ({ invite }: InviteCardMenuOptionsProps) =>
         </div>
     );
 
-    const handleOpenEditDialog = () => {
+    function handleOpenEditDialog() {
         if (openEditDialog == true) {
             resetContext();
         }

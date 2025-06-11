@@ -95,12 +95,25 @@ export const handlePublishSlide = async (
     }
 
     if (activeItem?.source_type == 'VIDEO') {
+        if (!activeItem.video_slide) {
+            toast.error('Video slide data is missing.');
+            return;
+        }
         const convertedData = converDataToVideoFormat({
-            activeItem,
+            activeItem: {
+                ...activeItem,
+                video_slide: {
+                    ...activeItem.video_slide,
+                    video_length_in_millis: 0,
+                    published_video_length_in_millis:
+                        activeItem.video_slide.video_length_in_millis || 0,
+                },
+            },
             status,
             notify,
             newSlide: false,
         });
+        console.log("convertedData: ",convertedData);
         try {
             await addUpdateVideoSlide(convertedData);
             toast.success(`slide published successfully!`);
