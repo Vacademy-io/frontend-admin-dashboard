@@ -110,7 +110,8 @@ export default function ScheduleStep2() {
         resolver: zodResolver(addCustomFiledSchema),
         defaultValues: {
             fieldType: 'text',
-            options: [{ optionField: 'Option 1' }, { optionField: 'Option 2' }],
+            options: [],
+            // options: [{ optionField: 'Option 1' }, { optionField: 'Option 2' }],
         },
     });
 
@@ -209,10 +210,13 @@ export default function ScheduleStep2() {
             isDefault: false,
             required: true,
             type: data.options.length > 0 ? InputType.DROPDOWN : InputType.TEXT,
-            options: data.options.map((option) => ({
-                name: option.optionField,
-                label: option.optionField,
-            })),
+            options:
+                data.fieldType === 'dropdown'
+                    ? data.options.map((option) => ({
+                          name: option.optionField,
+                          label: option.optionField,
+                      }))
+                    : [],
         });
         setAddCustomFieldDialog(false);
     };
@@ -769,6 +773,7 @@ export default function ScheduleStep2() {
                         </div>
                     </div>
                 </form>
+                {/* Preview Registration Form */}
                 <MyDialog
                     heading="Preview Registration Form"
                     onOpenChange={setPreviewDialog}
@@ -831,6 +836,7 @@ export default function ScheduleStep2() {
                     </div>
                 </MyDialog>
             </FormProvider>
+            {/* Add Custom Field Dialog */}
             <MyDialog
                 open={addCustomFieldDialog}
                 onOpenChange={setAddCustomFieldDialog}
@@ -931,7 +937,7 @@ export default function ScheduleStep2() {
                             )}
                         </div>
                         <div className="mt-2 flex w-full items-center justify-center">
-                            <MyButton buttonType="primary" className="m-auto" type="button">
+                            <MyButton buttonType="primary" className="m-auto" type="submit">
                                 Done
                             </MyButton>
                         </div>

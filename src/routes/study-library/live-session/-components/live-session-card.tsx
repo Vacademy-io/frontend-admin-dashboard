@@ -19,7 +19,8 @@ interface LiveSessionCardProps {
 
 export default function LiveSessionCard({ session }: LiveSessionCardProps) {
     const joinLink =
-        session.meeting_link || `${BASE_URL_LEARNER_DASHBOARD}/register?code=${session.session_id}`;
+        session.registration_form_link_for_public_sessions ||
+        `${BASE_URL_LEARNER_DASHBOARD}/register?sessionId=${session.session_id}`;
     const formattedDateTime = `${session.meeting_date} ${session.start_time}`;
 
     return (

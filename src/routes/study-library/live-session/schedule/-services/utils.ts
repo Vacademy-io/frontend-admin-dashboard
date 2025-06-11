@@ -37,6 +37,7 @@ export interface LiveSession {
     title: string;
     subject: string;
     meeting_link: string;
+    registration_form_link_for_public_sessions: string;
 }
 
 export const createLiveSessionStep1 = async (data: LiveSessionStep1RequestDTO) => {
