@@ -21,8 +21,8 @@ import {
 import { WEEK_DAYS } from '../../-constants/type';
 import { sessionFormSchema } from '../-schema/schema';
 import { Trash, UploadSimple, X } from 'phosphor-react';
-import { MyDialog } from '@/components/design-system/dialog';
-import { MeetLogo, YoutubeLogo, ZoomLogo } from '@/svgs';
+// import { MyDialog } from '@/components/design-system/dialog';
+// import { MeetLogo, YoutubeLogo, ZoomLogo } from '@/svgs';
 import { transformFormToDTOStep1, timeOptions } from '../../-constants/helper';
 import { createLiveSessionStep1 } from '../-services/utils';
 import { useNavigate } from '@tanstack/react-router';
@@ -31,6 +31,13 @@ import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtili
 import { TokenKey } from '@/constants/auth/tokens';
 import { UploadFileInS3 } from '@/services/upload_file';
 import { Switch } from '@/components/ui/switch';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 
 // Constants
 const WAITING_ROOM_OPTIONS = [
@@ -48,11 +55,11 @@ const STREAMING_OPTIONS = [
 export default function ScheduleStep1() {
     // Hooks and State
     const navigate = useNavigate();
-    const [createLinkDialog, setCreateLinkDialog] = useState<boolean>(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [selectedMusicFile, setSelectedMusicFile] = useState<File | null>(null);
     const musicFileInputRef = useRef<HTMLInputElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [scheduleType, setScheduleType] = useState<'everyday' | 'weekday' | null>(null);
 
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
     const { SubjectFilterData } = useFilterDataForAssesment(instituteDetails);
@@ -69,11 +76,13 @@ export default function ScheduleStep1() {
                 sessions: [
                     {
                         startTime: '00:00',
-                        duration: '',
+                        durationHours: '',
+                        durationMinutes: '',
                         link: '',
                     },
                 ],
             })),
+            subject: 'none',
             timeZone: '(GMT 5:30) India Standard Time (Asia/Kolkata)',
             events: '1',
             openWaitingRoomBefore: '15',
@@ -163,7 +172,12 @@ export default function ScheduleStep1() {
 
         const updatedSessions = [
             ...daySchedule.sessions,
-            { startTime: '', duration: '', link: '' },
+            {
+                startTime: '',
+                durationHours: '',
+                durationMinutes: '',
+                link: '',
+            },
         ];
 
         form.setValue(`recurringSchedule.${dayIndex}.sessions`, updatedSessions, {
@@ -186,15 +200,45 @@ export default function ScheduleStep1() {
 
     const toggleEveryDay = () => {
         const currentSchedule = form.getValues('recurringSchedule');
-        const allSelected = currentSchedule?.every((day) => day.isSelect);
+        if (!currentSchedule) return;
 
-        currentSchedule?.forEach((day, index) => {
+        const allSelected = currentSchedule.every((day) => day.isSelect);
+        currentSchedule.forEach((day, index) => {
             const isSelecting = !allSelected;
             form.setValue(`recurringSchedule.${index}.isSelect`, isSelecting);
 
             if (isSelecting && (!day.sessions || day.sessions.length === 0)) {
                 form.setValue(`recurringSchedule.${index}.sessions`, [
-                    { startTime: '', duration: '', link: '' },
+                    {
+                        startTime: '',
+                        durationHours: '',
+                        durationMinutes: '',
+                        link: '',
+                    },
+                ]);
+            }
+        });
+    };
+
+    const toggleMonToFri = () => {
+        const currentSchedule = form.getValues('recurringSchedule');
+        if (!currentSchedule) return;
+
+        currentSchedule.forEach((day, index) => {
+            const weekDay = WEEK_DAYS.find((d) => d.label === day.day);
+            const isWeekday = weekDay?.value
+                ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].includes(weekDay.value)
+                : false;
+            form.setValue(`recurringSchedule.${index}.isSelect`, isWeekday);
+
+            if (isWeekday && (!day.sessions || day.sessions.length === 0)) {
+                form.setValue(`recurringSchedule.${index}.sessions`, [
+                    {
+                        startTime: '',
+                        durationHours: '',
+                        durationMinutes: '',
+                        link: '',
+                    },
                 ]);
             }
         });
@@ -230,11 +274,14 @@ export default function ScheduleStep1() {
                     label="Subject"
                     name="subject"
                     labelStyle="font-thin"
-                    options={SubjectFilterData.map((option, index) => ({
-                        value: option.name,
-                        label: option.name,
-                        _id: index,
-                    }))}
+                    options={[
+                        { value: 'none', label: 'Select Subject', _id: -1 },
+                        ...SubjectFilterData.map((option, index) => ({
+                            value: option.name,
+                            label: option.name,
+                            _id: index,
+                        })),
+                    ]}
                     control={form.control}
                     className="mt-[8px] w-56 font-thin"
                 />
@@ -282,7 +329,7 @@ export default function ScheduleStep1() {
 
     const renderSessionTiming = () => (
         <div className="flex flex-col gap-4">
-            <div className="flex flex-row gap-6">
+            <div className="flex flex-row items-center gap-8">
                 <FormField
                     control={control}
                     name="startTime"
@@ -301,7 +348,7 @@ export default function ScheduleStep1() {
                 />
                 <div>
                     <div>duration</div>
-                    <div className="flex flex-row items-center gap-2">
+                    <div className="mt-2 flex flex-row items-center gap-2">
                         <FormField
                             control={control}
                             name="durationHours"
@@ -318,10 +365,14 @@ export default function ScheduleStep1() {
                                                 }
                                             }}
                                             onChangeFunction={(e) => {
-                                                const inputValue = e.target.value.replace(
+                                                let inputValue = e.target.value.replace(
                                                     /[^0-9]/g,
                                                     ''
                                                 );
+                                                const numValue = parseInt(inputValue);
+                                                if (numValue > 24) {
+                                                    inputValue = '24';
+                                                }
                                                 field.onChange(inputValue);
                                             }}
                                             className="w-11 p-2"
@@ -347,10 +398,14 @@ export default function ScheduleStep1() {
                                                 }
                                             }}
                                             onChangeFunction={(e) => {
-                                                const inputValue = e.target.value.replace(
+                                                let inputValue = e.target.value.replace(
                                                     /[^0-9]/g,
                                                     ''
                                                 );
+                                                const numValue = parseInt(inputValue);
+                                                if (numValue > 59) {
+                                                    inputValue = '59';
+                                                }
                                                 field.onChange(inputValue);
                                             }}
                                             className="w-11 p-2"
@@ -359,26 +414,9 @@ export default function ScheduleStep1() {
                                 </FormItem>
                             )}
                         />
-                        <div>minutes</div>
+                        <div>mins</div>
                     </div>
                 </div>
-                {/* TODO: Add time zone selection */}
-                {/* <FormField
-                    control={control}
-                    name="timeZone"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Time Zone</FormLabel>
-                            <FormControl>
-                                <MyInput
-                                    inputType="text"
-                                    input={field.value}
-                                    onChangeFunction={field.onChange}
-                                />
-                            </FormControl>
-                        </FormItem>
-                    )}
-                /> */}
             </div>
             {meetingType === RecurringType.WEEKLY && (
                 <div className="flex flex-row gap-6">
@@ -398,29 +436,13 @@ export default function ScheduleStep1() {
                             </FormItem>
                         )}
                     />
-                    <FormField
-                        control={control}
-                        name="events"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Events</FormLabel>
-                                <FormControl>
-                                    <MyInput
-                                        inputType="number"
-                                        input={field.value}
-                                        onChangeFunction={field.onChange}
-                                    />
-                                </FormControl>
-                            </FormItem>
-                        )}
-                    />
                 </div>
             )}
         </div>
     );
 
     const renderLiveClassLink = () => (
-        <div className="flex flex-row items-end gap-4">
+        <div className="flex flex-row items-end gap-8">
             <FormField
                 control={control}
                 name="defaultLink"
@@ -462,8 +484,8 @@ export default function ScheduleStep1() {
                             value={field.value}
                             onChange={field.onChange}
                             options={[
-                                { label: 'Pre Recorded', value: SessionType.PRE_RECORDED },
                                 { label: 'Live', value: SessionType.LIVE },
+                                { label: 'Pre Recorded', value: SessionType.PRE_RECORDED },
                             ]}
                             className="flex flex-row gap-4"
                         />
@@ -605,15 +627,25 @@ export default function ScheduleStep1() {
             <>
                 <div className="flex w-fit flex-col items-start justify-start gap-4">
                     <div className="flex flex-row items-center gap-2">
-                        <MyButton
-                            type="button"
-                            buttonType="secondary"
-                            scale="small"
-                            onClick={toggleEveryDay}
-                            className="p-4"
+                        <Select
+                            value={scheduleType || ''}
+                            onValueChange={(value: 'everyday' | 'weekday') => {
+                                setScheduleType(value);
+                                if (value === 'everyday') {
+                                    toggleEveryDay();
+                                } else if (value === 'weekday') {
+                                    toggleMonToFri();
+                                }
+                            }}
                         >
-                            Every day
-                        </MyButton>
+                            <SelectTrigger className="w-[120px]">
+                                <SelectValue placeholder="Select days" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="everyday">Every day</SelectItem>
+                                <SelectItem value="weekday">Mon-Fri</SelectItem>
+                            </SelectContent>
+                        </Select>
                         <div className="w-[100px]">Start Time</div>
                         <div className="w-[200px]">Duration</div>
                         <div>Live Class link</div>
@@ -624,7 +656,7 @@ export default function ScheduleStep1() {
                     const isSelect = watch(`recurringSchedule.${dayIndex}.isSelect`);
                     return (
                         <div key={dayField.day} className="flex flex-col">
-                            <div className="flex flex-row gap-2">
+                            <div className="flex flex-row gap-4">
                                 <button
                                     type="button"
                                     className={`flex h-9 w-24 cursor-pointer items-center justify-center rounded-lg border px-2 py-1 text-center ${
@@ -642,7 +674,7 @@ export default function ScheduleStep1() {
                                     {WEEK_DAYS.find((d) => d.label === dayField.day)?.value ??
                                         dayField.day}
                                 </button>
-                                <div className="flex flex-col gap-2">
+                                <div className="flex flex-col gap-4 ">
                                     {isSelect &&
                                         dayField.sessions.map((session, sessionIndex) => (
                                             <div
@@ -661,19 +693,90 @@ export default function ScheduleStep1() {
                                                     control={form.control}
                                                     className="w-[100px] -translate-y-1 font-thin"
                                                 />
-                                                <FormField
-                                                    control={control}
-                                                    name={`recurringSchedule.${dayIndex}.sessions.${sessionIndex}.duration`}
-                                                    render={({ field }) => (
-                                                        <MyInput
-                                                            inputType="text"
-                                                            input={field.value}
-                                                            placeholder="Duration (in Mins)"
-                                                            onChangeFunction={field.onChange}
-                                                            className="w-[100px]"
-                                                        />
-                                                    )}
-                                                />
+                                                <div className="flex flex-row items-center gap-2">
+                                                    <FormField
+                                                        control={control}
+                                                        name={`recurringSchedule.${dayIndex}.sessions.${sessionIndex}.durationHours`}
+                                                        render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormControl>
+                                                                    <MyInput
+                                                                        inputType="text"
+                                                                        inputPlaceholder="00"
+                                                                        input={field.value}
+                                                                        onKeyPress={(e) => {
+                                                                            if (
+                                                                                !/[0-9]/.test(e.key)
+                                                                            ) {
+                                                                                e.preventDefault();
+                                                                            }
+                                                                        }}
+                                                                        onChangeFunction={(e) => {
+                                                                            let inputValue =
+                                                                                e.target.value.replace(
+                                                                                    /[^0-9]/g,
+                                                                                    ''
+                                                                                );
+                                                                            const numValue =
+                                                                                parseInt(
+                                                                                    inputValue
+                                                                                );
+                                                                            if (numValue > 24) {
+                                                                                inputValue = '24';
+                                                                            }
+                                                                            field.onChange(
+                                                                                inputValue
+                                                                            );
+                                                                        }}
+                                                                        className="w-11 p-2"
+                                                                    />
+                                                                </FormControl>
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                    <div>hrs :</div>
+                                                    <FormField
+                                                        control={control}
+                                                        name={`recurringSchedule.${dayIndex}.sessions.${sessionIndex}.durationMinutes`}
+                                                        render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormControl>
+                                                                    <MyInput
+                                                                        inputType="text"
+                                                                        inputPlaceholder="00"
+                                                                        input={field.value}
+                                                                        onKeyPress={(e) => {
+                                                                            if (
+                                                                                !/[0-9]/.test(e.key)
+                                                                            ) {
+                                                                                e.preventDefault();
+                                                                            }
+                                                                        }}
+                                                                        onChangeFunction={(e) => {
+                                                                            let inputValue =
+                                                                                e.target.value.replace(
+                                                                                    /[^0-9]/g,
+                                                                                    ''
+                                                                                );
+                                                                            const numValue =
+                                                                                parseInt(
+                                                                                    inputValue
+                                                                                );
+                                                                            if (numValue > 59) {
+                                                                                inputValue = '59';
+                                                                            }
+                                                                            field.onChange(
+                                                                                inputValue
+                                                                            );
+                                                                        }}
+                                                                        className="w-11 p-2"
+                                                                    />
+                                                                </FormControl>
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                    <div>mins</div>
+                                                </div>
                                                 <FormField
                                                     control={control}
                                                     name={`recurringSchedule.${dayIndex}.sessions.${sessionIndex}.link`}
@@ -692,32 +795,6 @@ export default function ScheduleStep1() {
                                                         removeSessionFromDay(dayIndex, sessionIndex)
                                                     }
                                                 />
-                                                <MyButton
-                                                    buttonType="secondary"
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setCreateLinkDialog(!createLinkDialog);
-                                                    }}
-                                                >
-                                                    Create Link
-                                                </MyButton>
-                                                <MyDialog
-                                                    open={createLinkDialog}
-                                                    onOpenChange={setCreateLinkDialog}
-                                                    heading="Create Live Class Link"
-                                                >
-                                                    <div className="flex w-full flex-col items-center justify-center gap-4 p-4">
-                                                        <div className="flex w-3/4 cursor-pointer items-center justify-center rounded-md border p-2 shadow-sm">
-                                                            <MeetLogo />
-                                                        </div>
-                                                        <div className="flex w-3/4 cursor-pointer items-center justify-center rounded-md border p-2 shadow-sm">
-                                                            <YoutubeLogo />
-                                                        </div>
-                                                        <div className="flex w-3/4 cursor-pointer items-center justify-center rounded-md border p-2 shadow-sm">
-                                                            <ZoomLogo />
-                                                        </div>
-                                                    </div>
-                                                </MyDialog>
                                             </div>
                                         ))}
                                 </div>
@@ -740,16 +817,15 @@ export default function ScheduleStep1() {
 
     return (
         <FormProvider {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit, onError)} className="flex flex-col gap-4">
+            <form onSubmit={form.handleSubmit(onSubmit, onError)} className="flex flex-col gap-8">
                 <div className="m-0 flex items-center justify-between p-0">
                     <h1>Live Session Information</h1>
                     <MyButton type="submit" scale="large" buttonType="primary">
                         Next
                     </MyButton>
                 </div>
-                <Separator className="my-4" />
 
-                <div className="flex flex-col gap-6">
+                <div className="flex flex-col gap-8">
                     {renderBasicInformation()}
                     {renderMeetingTypeSelection()}
                     {renderSessionTiming()}

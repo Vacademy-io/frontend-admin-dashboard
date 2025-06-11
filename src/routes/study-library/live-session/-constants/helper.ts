@@ -19,7 +19,7 @@ type WeeklyClass = z.infer<typeof weeklyClassSchema>;
 export interface LiveSessionStep1RequestDTO {
     session_id?: string;
     title: string;
-    subject: string;
+    subject: string | null;
     description_html: string | null;
     default_meet_link?: string;
     start_time: string;
@@ -128,7 +128,6 @@ export function transformFormToDTOStep1(
 
     // Convert hours and minutes to total duration in hours
     const totalDuration = Number(durationHours) + Number(durationMinutes) / 60;
-    const duration = String(Math.round(totalDuration));
     console.log('startTime ', startTime);
 
     // Fix timezone handling by creating an ISO string that preserves the local time
@@ -160,11 +159,12 @@ export function transformFormToDTOStep1(
         if (!dayBlock.isSelect) return;
 
         dayBlock.sessions.forEach((session) => {
+            const duration = Number(session.durationHours) * 60 + Number(session.durationMinutes);
             const baseSchedule: ScheduleDTO = {
                 id: dayBlock.id,
                 day: dayBlock.day,
                 start_time: session.startTime ? `${session.startTime}:00` : '',
-                duration: session.duration ?? duration,
+                duration: String(duration),
                 link: session.link || '',
             };
 
@@ -185,7 +185,7 @@ export function transformFormToDTOStep1(
     return {
         session_id: sessionId,
         title,
-        subject: subject,
+        subject: subject === undefined || subject === '' ? null : subject,
         description_html: description || null,
         default_meet_link: defaultLink || '',
         start_time: startTimeISO,

@@ -13,7 +13,26 @@ const weekDaysEnum = z.enum([
 
 const sessionDetailsSchema = z.object({
     startTime: z.string().optional(),
-    duration: z.string().optional(),
+    durationHours: z
+        .string()
+        .refine(
+            (val) => {
+                const num = parseInt(val);
+                return !val || (num >= 0 && num <= 24);
+            },
+            { message: 'Hours must be between 0 and 24' }
+        )
+        .optional(),
+    durationMinutes: z
+        .string()
+        .refine(
+            (val) => {
+                const num = parseInt(val);
+                return !val || (num >= 0 && num <= 59);
+            },
+            { message: 'Minutes must be between 0 and 59' }
+        )
+        .optional(),
     link: z.string().url('Invalid URL').optional().or(z.literal('')),
 });
 
@@ -27,7 +46,10 @@ export const weeklyClassSchema = z.object({
 export const sessionFormSchema = z.object({
     id: z.string().optional(),
     title: z.string().min(3, 'Title must be at least 3 characters'),
-    subject: z.string(),
+    subject: z
+        .string()
+        .transform((val) => (val === 'none' ? '' : val))
+        .optional(),
     openWaitingRoomBefore: z.string(),
     sessionType: z.string(),
     sessionPlatform: z.string(),

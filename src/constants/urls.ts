@@ -221,6 +221,11 @@ export const CREATE_LIVE_SESSION_STEP_2 = `${BASE_URL}/admin-core-service/live-s
 export const GET_LIVE_SESSIONS = `${BASE_URL}/admin-core-service/get-sessions/live`;
 export const GET_UPCOMING_SESSIONS = `${BASE_URL}/admin-core-service/get-sessions/upcoming`;
 export const GET_PAST_SESSIONS = `${BASE_URL}/admin-core-service/get-sessions/past`;
+export const GET_DRAFT_SESSIONS = `${BASE_URL}/admin-core-service/get-sessions/draft`;
+// export const GET_DRAFT_SESSIONS = `http://localhost:8072/admin-core-service/get-sessions/draft`;
+
+// export const GET_SESSION_BY_SESSION_ID = `http://localhost:8072/admin-core-service/get-sessions/by-session-id`;
+export const GET_SESSION_BY_SESSION_ID = `${BASE_URL}/admin-core-service/get-sessions/by-session-id`;
 
 export const GET_ALL_FACULTY = `${BASE_URL}/admin-core-service/institute/v1/faculty/faculty/get-all`;
 

@@ -87,6 +87,7 @@ export const CustomFieldsSection = ({
                                             variant="ghost"
                                             size="icon"
                                             className="cursor-grab"
+                                            type="button"
                                         >
                                             <DotsSixVertical size={20} />
                                         </SortableDragHandle>

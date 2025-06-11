@@ -1,6 +1,5 @@
 import QRCode from 'react-qr-code';
-import { Copy, DownloadSimple, LockSimple, DotsThree } from 'phosphor-react';
-import { Badge } from '@/components/ui/badge';
+import { Copy, DownloadSimple, DotsThree } from 'phosphor-react';
 import { MyButton } from '@/components/design-system/button';
 import { BASE_URL_LEARNER_DASHBOARD } from '@/constants/urls';
 import { copyToClipboard } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/helper';
@@ -10,14 +9,13 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LiveSession } from '../schedule/-services/utils';
+import { DraftSession } from '../-services/utils';
 
-interface LiveSessionCardProps {
-    session: LiveSession;
-    isDraft?: boolean;
+interface DraftSessionCardProps {
+    session: DraftSession;
 }
 
-export default function LiveSessionCard({ session, isDraft = false }: LiveSessionCardProps) {
+export default function DraftSessionCard({ session }: DraftSessionCardProps) {
     const joinLink =
         session.registration_form_link_for_public_sessions ||
         `${BASE_URL_LEARNER_DASHBOARD}/register/live-class?sessionId=${session.session_id}`;
@@ -28,10 +26,10 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <h1 className="font-semibold">{session.title}</h1>
-                    <Badge className="rounded-md border border-neutral-300 bg-primary-50 py-1.5 shadow-none">
+                    {/* <Badge className="rounded-md border border-neutral-300 bg-primary-50 py-1.5 shadow-none">
                         <LockSimple size={16} className="mr-2" />
                         {session.access_level}
-                    </Badge>
+                    </Badge> */}
                 </div>
 
                 <div className="flex items-center gap-4">
@@ -51,16 +49,14 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
                             </MyButton>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                            {isDraft && (
-                                <DropdownMenuItem
-                                    className="cursor-pointer"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                    }}
-                                >
-                                    Edit Live Session
-                                </DropdownMenuItem>
-                            )}
+                            <DropdownMenuItem
+                                className="cursor-pointer"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                }}
+                            >
+                                Edit Live Session
+                            </DropdownMenuItem>
                             <DropdownMenuItem
                                 className="cursor-pointer"
                                 onClick={(e) => {
