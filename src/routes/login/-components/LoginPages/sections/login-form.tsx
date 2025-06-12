@@ -19,8 +19,8 @@ import { TokenKey } from '@/constants/auth/tokens';
 import { Link2Icon } from 'lucide-react';
 import { handleOAuthLogin } from '@/hooks/login/oauth-login';
 import { GitHubLogoIcon } from '@radix-ui/react-icons';
+import { fetchAndStoreFacultyBatches } from '@/services/faculty-service';
 import { FcGoogle } from 'react-icons/fc';
-
 
 type FormValues = z.infer<typeof loginSchema>;
 
@@ -61,11 +61,12 @@ export function LoginForm() {
 
     const mutation = useMutation({
         mutationFn: (values: FormValues) => loginUser(values.username, values.password),
-        onSuccess: (response) => {
+        onSuccess: async (response) => {
             if (response) {
                 queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
                 setAuthorizationCookie(TokenKey.accessToken, response.accessToken);
                 setAuthorizationCookie(TokenKey.refreshToken, response.refreshToken);
+                await fetchAndStoreFacultyBatches();
                 navigate({ to: '/dashboard' });
             } else {
                 toast.error('Login Error', {
@@ -112,7 +113,6 @@ export function LoginForm() {
                             type="button"
                         >
                             {FcGoogle({ size: 20 })}
-
                             Continue with Google
                         </button>
                         <button
