@@ -37,7 +37,7 @@ interface SessionDetails {
 
 interface WaitingRoomProps {
     sessionDetails: SessionDetails;
-    onStartPresentation: () => void;
+    onStartVolt: () => void;
     onCancelSession: () => void;
     isStarting?: boolean;
 }
@@ -58,7 +58,7 @@ const ADMIN_SSE_URL_BASE_WAITING =
 
 export const WaitingRoom: React.FC<WaitingRoomProps> = ({
     sessionDetails,
-    onStartPresentation,
+    onStartVolt,
     onCancelSession,
     isStarting,
 }) => {
@@ -70,7 +70,7 @@ export const WaitingRoom: React.FC<WaitingRoomProps> = ({
     const eventSourceRef = useRef<EventSource | null>(null);
 
     const { session_id: sessionId, invite_code: inviteCode } = sessionDetails;
-    const presentationTitle =
+    const voltTitle =
         sessionDetails.title || sessionDetails.slides?.title || 'Live Session Starting Soon';
     const invitationLink = `https://engage.vacademy.io/${inviteCode}`;
 
@@ -82,7 +82,7 @@ export const WaitingRoom: React.FC<WaitingRoomProps> = ({
         }
     }, [invitationLink]);
 
-    useEffect(() => {``
+    useEffect(() => {
         if (!sessionId) {
             if (eventSourceRef.current) {
                 eventSourceRef.current.close();
@@ -224,7 +224,7 @@ export const WaitingRoom: React.FC<WaitingRoomProps> = ({
             <div className="w-full max-w-4xl rounded-xl border border-slate-200 bg-white p-5 shadow-2xl sm:p-8">
                 <header className="mb-6 text-center sm:mb-8">
                     <h1 className="mb-2 text-2xl font-bold text-orange-600 sm:text-3xl">
-                        {presentationTitle}
+                        {voltTitle}
                     </h1>
                     <p className="sm:text-md text-sm text-slate-500">
                         Waiting for participants to join...
@@ -338,7 +338,7 @@ export const WaitingRoom: React.FC<WaitingRoomProps> = ({
                             </div>
                         </ScrollArea>
                         <Button
-                            onClick={onStartPresentation}
+                            onClick={onStartVolt}
                             disabled={isStarting || sseStatus === 'connecting'}
                             size="lg"
                             className="flex w-full items-center justify-center rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-3 text-base font-semibold text-white shadow-md transition hover:scale-[1.02] hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-opacity-75"
@@ -348,7 +348,7 @@ export const WaitingRoom: React.FC<WaitingRoomProps> = ({
                             ) : (
                                 <PlayCircle size={20} className="mr-2" />
                             )}
-                            {isStarting ? 'Starting Session...' : 'Start Presentation'}
+                            {isStarting ? 'Starting Session...' : 'Start Volt'}
                         </Button>
                     </div>
                 </div>

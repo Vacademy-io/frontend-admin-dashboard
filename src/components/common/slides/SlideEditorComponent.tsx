@@ -9,7 +9,7 @@ import { filterSlidesByIdType } from './utils/util';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { Button } from '@/components/ui/button';
 import { ListStart, Save, Loader2, PlaySquare, Tv2, PlusCircle, Share2, ChevronDown, Check, Edit2, UploadCloud } from 'lucide-react';
-import SlideList from './PresentationView';
+import SlideList from './SlideList';
 import { QuizSlide } from './slidesTypes/QuizSlides'; // Ensure path is correct
 import { useSlideStore } from '@/stores/Slides/useSlideStore'; // Assumed path
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
@@ -63,12 +63,15 @@ import { TranscriptModal } from './components/TranscriptModal';
 import { createNewSlide } from './utils/util';
 import { AiGeneratingLoader, aiSteps, pptSteps } from './AiGeneratingLoader';
 import { SlideRegenerateModal } from './components/SlideRegenerateModal';
+import { RecommendationOverlay, RecommendationToast } from './components/RecommendationUI';
+import { PRODUCT_NAME } from '@/config/branding';
 
 const START_SESSION_API_URL =
     'https://backend-stage.vacademy.io/community-service/engage/admin/start';
 const ADD_SLIDE_IN_SESSION_API_URL = 'https://backend-stage.vacademy.io/community-service/engage/admin/add-slide-in-session';
 const IMPORT_PPT_API_URL = 'https://backend-stage.vacademy.io/media-service/convert-presentations/import-ppt';
 const REGENERATE_SLIDE_API_URL = 'https://backend-stage.vacademy.io/media-service/ai/presentation/regenerateASlide';
+const GENERATE_SLIDES_FROM_TEXT_API_URL = 'https://backend-stage.vacademy.io/media-service/ai/presentation/generateFromData';
 
 interface SlideRendererProps {
     currentSlideId: string;
@@ -99,6 +102,7 @@ export default function SlidesEditorComponent({
         updateSlide,
         initializeNewPresentationState,
         updateSlideIds,
+        clearRecommendations,
     } = useSlideStore();
 
     const router = useRouter();
@@ -170,6 +174,15 @@ export default function SlidesEditorComponent({
     const [isRegenerating, setIsRegenerating] = useState(false);
     const [regenerateSlideId, setRegenerateSlideId] = useState<string | null>(null);
 
+    // --- State for AI Slide Recommendations ---
+    const recommendationIntervalRef = useRef<NodeJS.Timeout | null>(null);
+    const recommendationMediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const recommendationAudioChunksRef = useRef<Blob[]>([]);
+    const [recommendationBatchCounter, setRecommendationBatchCounter] = useState(0);
+    const [isGeneratingRecommendation, setIsGeneratingRecommendation] = useState(false);
+    const [isRecommendationOverlayOpen, setIsRecommendationOverlayOpen] = useState(false);
+    // -----------------------------------------
+
     useEffect(() => {
         // Populate originalSlideIds when editing an existing presentation and slides are loaded
         if (isEdit && !justExitedSession && slides && slides.length > 0 && originalSlideIds.size === 0 && !isLoadingPresentation && !isRefetchingPresentation) {
@@ -239,7 +252,7 @@ export default function SlidesEditorComponent({
                 // Optional: Clean up the query parameter from URL if desired, though this can be complex
                 // router.history.replace({ search: '...' }); 
             } else if (!isLoadingPresentation && !isRefetchingPresentation && slides && slides.length === 0){
-                toast.error("Cannot start a live session for an empty presentation. Please add slides.");
+                toast.error(`Cannot start a live session for an empty ${PRODUCT_NAME.toLowerCase()}. Please add slides.`);
             }
             // If slides are still loading, the modal will open once they are loaded by other effects or user action.
         }
@@ -340,7 +353,7 @@ export default function SlidesEditorComponent({
                 const tempUrl = URL.createObjectURL(processedBlob);
                 const anchor = document.createElement('a');
                 anchor.href = tempUrl;
-                anchor.download = `presentation_audio_snapshot_${new Date().toISOString().replace(/[:.]/g, '-')}.${fileExtension}`;
+                anchor.download = `volt_audio_snapshot_${new Date().toISOString().replace(/[:.]/g, '-')}.${fileExtension}`;
                 document.body.appendChild(anchor);
                 anchor.click();
                 document.body.removeChild(anchor);
@@ -355,7 +368,7 @@ export default function SlidesEditorComponent({
                     const fallbackUrl = URL.createObjectURL(currentWebMBlob);
                     const fallbackAnchor = document.createElement('a');
                     fallbackAnchor.href = fallbackUrl;
-                    fallbackAnchor.download = `presentation_audio_snapshot_${new Date().toISOString().replace(/[:.]/g, '-')}.webm`;
+                    fallbackAnchor.download = `volt_audio_snapshot_${new Date().toISOString().replace(/[:.]/g, '-')}.webm`;
                     document.body.appendChild(fallbackAnchor);
                     fallbackAnchor.click();
                     document.body.removeChild(fallbackAnchor);
@@ -431,33 +444,39 @@ export default function SlidesEditorComponent({
     };
 
     const handleCreateSession = async (options: SessionOptions) => {
+        clearRecommendations(); // Clear out any old recommendations before creating a new session
         setIsCreatingSession(true);
         setShouldRecordAudio(options.record_audio); // Store if audio recording is requested
 
         if (options.record_audio) {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorderRef.current = new MediaRecorder(stream);
-                audioChunksRef.current = []; // Reset chunks for new recording session
+                // Setup for main recording
+                mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+                audioChunksRef.current = [];
 
                 mediaRecorderRef.current.ondataavailable = (event) => {
-                    if (event.data.size > 0) {
-                        audioChunksRef.current.push(event.data);
-                    }
+                    if (event.data.size > 0) audioChunksRef.current.push(event.data);
                 };
-
                 mediaRecorderRef.current.onstop = () => {
                     const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
                     const url = URL.createObjectURL(audioBlob);
                     setAudioBlobUrl(url);
-                    // TODO: Handle saving or uploading the audioBlob
                     toast.success('Audio recording finished. Ready for playback/download.');
                     setIsRecording(false);
                     setIsRecordingPaused(false);
-                    // Clean up the stream tracks
-                    stream.getTracks().forEach(track => track.stop());
+                    stream.getTracks().forEach(track => track.clone().stop()); // Stop cloned tracks
                 };
-                // Do not start recording here, wait for actual presentation start
+                
+                // Setup for recommendation interval recording (using a clone of the stream)
+                const recommendationStream = stream.clone();
+                recommendationMediaRecorderRef.current = new MediaRecorder(recommendationStream, { mimeType: 'audio/webm' });
+                recommendationAudioChunksRef.current = [];
+                
+                recommendationMediaRecorderRef.current.ondataavailable = (event) => {
+                    if (event.data.size > 0) recommendationAudioChunksRef.current.push(event.data);
+                };
+
                 toast.success("Microphone access granted for recording.")
             } catch (err) {
                 console.error('Error accessing microphone or setting up recorder:', err);
@@ -502,7 +521,7 @@ export default function SlidesEditorComponent({
 
     const handleStartActualPresentation = async () => {
         if (!sessionDetails || !slides || slides.length === 0) {
-            toast.error('Session details or slides are missing. Cannot start presentation.');
+            toast.error(`Session details or slides are missing. Cannot start ${PRODUCT_NAME.toLowerCase()}.`);
             return;
         }
         setIsStartingSessionInProgress(true);
@@ -518,7 +537,12 @@ export default function SlidesEditorComponent({
 
             // Start recording if permission was granted and it's a recording session
             if (shouldRecordAudio && mediaRecorderRef.current && mediaRecorderRef.current.state === 'inactive') {
-                mediaRecorderRef.current.start(1000);
+                mediaRecorderRef.current.start(1000); // Start main recording
+                
+                // Start the recommendation recorder and the 5-minute interval
+                recommendationMediaRecorderRef.current.start();
+                startRecommendationInterval();
+
                 setIsRecording(true);
                 setIsRecordingPaused(false);
                 startDurationTracker(); // Start duration tracker
@@ -528,13 +552,141 @@ export default function SlidesEditorComponent({
             setIsWaitingForParticipants(false);
             setEditMode(false);
             if (slides.length > 0) setCurrentSlideId(slides[0].id);
-            toast.success('Presentation started!');
+            toast.success(`${PRODUCT_NAME} started!`);
         } catch (error: any) {
-            console.error('Error starting presentation:', error);
-            toast.error(error.response?.data?.message || 'Failed to start the presentation.');
+            console.error(`Error starting ${PRODUCT_NAME.toLowerCase()}:`, error);
+            toast.error(error.response?.data?.message || `Failed to start the ${PRODUCT_NAME.toLowerCase()}.`);
         } finally {
             setIsStartingSessionInProgress(false);
         }
+    };
+
+    const handleProcessRecommendationChunk = async () => {
+        console.log('[Rec AI] Processing 5-minute audio chunk.');
+        if (!recommendationMediaRecorderRef.current || recommendationAudioChunksRef.current.length === 0) {
+            console.log('[Rec AI] No audio in chunk to process. Skipping.');
+            return;
+        }
+
+        setIsGeneratingRecommendation(true);
+        const audioBlob = new Blob(recommendationAudioChunksRef.current, { type: 'audio/webm' });
+        recommendationAudioChunksRef.current = []; // Clear chunks for the next interval
+
+        try {
+            // 1. Transcribe audio
+            const client = new AssemblyAI({ apiKey: ASSEMBLYAI_API_KEY });
+            toast.info(`Generating recommendations from audio (${recommendationBatchCounter * 5}-${(recommendationBatchCounter + 1) * 5} mins)...`);
+            const transcript = await client.transcripts.transcribe({ audio: audioBlob });
+
+            if (transcript.status !== 'completed' || !transcript.text) {
+                throw new Error(`Transcription failed or returned no text. Status: ${transcript.status}`);
+            }
+            console.log('[Rec AI] Transcript received:', transcript.text);
+
+            var promptText = transcript.text;
+            promptText = promptText + " When Generating Slides, Make one or two Excalidraw slides for Key Points Discussed Summary in an engaging way, one question for taking the feedback for learning"
+            // 2. Generate slides from transcript
+            const slideGenResponse = await authenticatedAxiosInstance.post(
+                GENERATE_SLIDES_FROM_TEXT_API_URL,
+                { language: 'English', text: transcript.text },
+                { headers: { 'Content-Type': 'application/json' } }
+            );
+
+            const data = slideGenResponse.data;
+            if (!data.slides || !data.assessment) {
+                throw new Error('Invalid response from slide generation service.');
+            }
+            console.log('[Rec AI] Received generated slide data:', data);
+
+            // 3. Process slides into frontend format
+            const recommendedSlides = [];
+             data.slides.forEach((slideData) => {
+                const newSlide = createNewSlide(SlideTypeEnum.Excalidraw);
+                recommendedSlides.push({
+                    ...newSlide,
+                    elements: slideData.elements,
+                    appState: { ...newSlide.appState, ...slideData.appState },
+                    name: slideData.name,
+                });
+            });
+            data.assessment.questions.forEach((q) => {
+                const type = q.question_type === 'MCQS' ? SlideTypeEnum.Quiz : SlideTypeEnum.Feedback;
+                const newSlide = createNewSlide(type);
+                (newSlide as QuizSlideData).elements = {
+                    questionName: q.question.content,
+                    singleChoiceOptions: (q.options || []).map(opt => ({ id: `rec-opt-${Math.random()}`, name: opt.content, isSelected: false })),
+                };
+                recommendedSlides.push(newSlide);
+            });
+            
+            const feedbackQuestionSlide = createNewSlide(SlideTypeEnum.Quiz);
+            (feedbackQuestionSlide as QuizSlideData).elements = {
+                questionName: "Are you able to understand the lecture",
+                singleChoiceOptions: [
+                    { id: `rec-opt-${Math.random()}`, name: 'Yes', isSelected: false },
+                    { id: `rec-opt-${Math.random()}`, name: 'No', isSelected: false },
+                    { id: `rec-opt-${Math.random()}`, name: 'Facing issues in few parts', isSelected: false },
+                ],
+            };
+            (feedbackQuestionSlide as ExcalidrawSlideData).name = "Quick Poll";
+            
+            recommendedSlides.unshift(feedbackQuestionSlide);
+            
+            if (recommendedSlides.length > 0) {
+                // 4. Add to store
+                const batchTimestamp = `${recommendationBatchCounter * 5}-${(recommendationBatchCounter + 1) * 5} mins`;
+                useSlideStore.getState().addRecommendationBatch({
+                    timestamp: batchTimestamp,
+                    slides: recommendedSlides,
+                });
+
+                toast.success(`New recommendations are ready!`);
+            } else {
+                toast.info("AI finished processing, but no new recommendations were generated in this interval.");
+            }
+
+        } catch (error) {
+            console.error('[Rec AI] Error processing recommendation chunk:', error);
+            toast.error('Could not generate slide recommendations from audio.');
+        } finally {
+            setIsGeneratingRecommendation(false);
+        }
+    };
+
+    const startRecommendationInterval = () => {
+        if (recommendationIntervalRef.current) clearInterval(recommendationIntervalRef.current);
+        
+        setRecommendationBatchCounter(0);
+
+        recommendationIntervalRef.current = setInterval(() => {
+            console.log('[Rec AI] 5-minute interval reached.');
+            // Stop the current recording to process the chunk
+            recommendationMediaRecorderRef.current?.stop();
+            // The ondataavailable handles pushing the blob, then we process it
+            // A short delay to ensure the blob is processed before starting the next recording
+            setTimeout(() => {
+                handleProcessRecommendationChunk();
+                // Restart recorder for the next chunk
+                if (recommendationMediaRecorderRef.current?.state === 'inactive') {
+                    recommendationMediaRecorderRef.current.start();
+                }
+            }, 500);
+            
+            setRecommendationBatchCounter(prev => prev + 1);
+        }, 300000); // 300000 ms = 5 minutes
+    };
+
+    const stopRecommendationInterval = () => {
+        if (recommendationIntervalRef.current) {
+            clearInterval(recommendationIntervalRef.current);
+            recommendationIntervalRef.current = null;
+        }
+        if (recommendationMediaRecorderRef.current?.state !== 'inactive') {
+            recommendationMediaRecorderRef.current.stop();
+        }
+        recommendationAudioChunksRef.current = [];
+        setRecommendationBatchCounter(0);
+        console.log('[Rec AI] Recommendation interval stopped and cleared.');
     };
 
     const handleExitSessionFlow = async () => {
@@ -543,6 +695,8 @@ export default function SlidesEditorComponent({
             mediaRecorderRef.current.stop(); // This will trigger onstop where audioBlobUrl is set
         }
         stopDurationTracker(); // Stop and reset duration tracker
+        stopRecommendationInterval(); // Stop the recommendation generator
+        clearRecommendations(); // Clear any existing recommendations
         // Stream tracks are stopped in onstop handler
         audioChunksRef.current = []; // Clear chunks after stopping/processing
         setShouldRecordAudio(false); // Reset for next session
@@ -581,7 +735,7 @@ export default function SlidesEditorComponent({
                 setCurrentSlideId(slides[0].id);
             }
         } else {
-            toast.info('Add some slides to preview the presentation.');
+            toast.info(`Add some slides to preview the ${PRODUCT_NAME.toLowerCase()}.`);
         }
     };
 
@@ -592,7 +746,7 @@ export default function SlidesEditorComponent({
         try {
             const accessToken = getTokenFromCookie(TokenKey.accessToken);
             if (!accessToken) {
-                toast.error('Please login to save presentations');
+                toast.error(`Please login to save ${PRODUCT_NAME.toLowerCase()}s`);
                 setIsSaving(false); // Reset saving state
                 return;
             }
@@ -717,7 +871,7 @@ export default function SlidesEditorComponent({
             if (slides.length === 0 && isEdit) { // Handle case where all slides are deleted from an existing presentation
             const payload = {
                     id: presentationId,
-                title: metaData?.title || 'New Presentation',
+                title: metaData?.title || `New ${PRODUCT_NAME}`,
                 description: metaData?.description || '',
                 cover_file_id: '',
                     added_slides: [],
@@ -730,15 +884,15 @@ export default function SlidesEditorComponent({
                     payload,
                     { /* headers and params */ }
                 );
-                toast.success('Presentation updated: All slides deleted.');
-                if (!isAutoSave) router.navigate({ to: '/study-library/present' });
+                toast.success(`${PRODUCT_NAME} updated: All slides deleted.`);
+                if (!isAutoSave) router.navigate({ to: '/study-library/volt' });
                 setIsSaving(false);
                 return;
             }
 
 
             if (slides.length === 0 && !isEdit) {
-                 toast.error('Cannot create an empty presentation. Please add slides.');
+                 toast.error(`Cannot create an empty ${PRODUCT_NAME.toLowerCase()}. Please add slides.`);
                  setIsSaving(false);
                  return;
             }
@@ -746,7 +900,7 @@ export default function SlidesEditorComponent({
 
             const finalPayload = {
                 id: isEdit ? presentationId : null, // Use null for new presentation ID
-                title: metaData?.title || 'New Presentation',
+                title: metaData?.title || `New ${PRODUCT_NAME}`,
                 description: metaData?.description || '',
                 cover_file_id: '',
                 status: 'PUBLISHED',
@@ -861,10 +1015,10 @@ export default function SlidesEditorComponent({
                     // This is the case for auto-create where the slide array might be empty in the response,
                     // but we got a new presentation ID. We should trigger a navigation or refetch.
                     const newPresentationId = response.data.id;
-                    console.log(`Auto-create successful. New Presentation ID: ${newPresentationId}. Navigating.`);
+                    console.log(`Auto-create successful. New ${PRODUCT_NAME} ID: ${newPresentationId}. Navigating.`);
                     
                     router.navigate({
-                        to: '/study-library/present/add',
+                        to: '/study-library/volt/add',
                         search: { id: newPresentationId, isEdit: 'true', title: metaData.title, description: metaData.description },
                         replace: true,
                     });
@@ -875,7 +1029,7 @@ export default function SlidesEditorComponent({
             // Handle auto-create success by updating URL and re-rendering
             if (isAutoSave && !isEdit && response.data && response.data.id) {
                 const newPresentationId = response.data.id;
-                console.log(`Auto-create successful. New Presentation ID: ${newPresentationId}. Navigating to edit mode.`);
+                console.log(`Auto-create successful. New ${PRODUCT_NAME} ID: ${newPresentationId}. Navigating to edit mode.`);
                 
                 // Preserve title and description from metaData for the new URL
                 // autoStartLive should be removed if present, as it's a one-time action
@@ -889,7 +1043,7 @@ export default function SlidesEditorComponent({
                 // For now, focusing on core params for the editor.
 
                 router.navigate({
-                    to: '/study-library/present/add', // Target route for the editor
+                    to: '/study-library/volt/add', // Target route for the editor
                     search: newSearchParams,
                     replace: true, // Replace history to avoid issues with back button
                 });
@@ -899,12 +1053,12 @@ export default function SlidesEditorComponent({
             }
 
             if (isAutoSave) {
-                toast.info("Presentation auto-saved.", { duration: 2000});
+                toast.info(`${PRODUCT_NAME} auto-saved.`, { duration: 2000});
             } else {
-            toast.success(`Presentation ${isEdit ? 'updated' : 'created'} successfully`);
+            toast.success(`${PRODUCT_NAME} ${isEdit ? 'updated' : 'created'} successfully`);
             }
             if (!isAutoSave && !isEdit) { // Only navigate for explicit create action
-            router.navigate({ to: '/study-library/present' });
+            router.navigate({ to: '/study-library/volt' });
             }
             // If we reach here and didn't auto-create-navigate, it's safe to set isSaving to false.
             if (!autoCreateNavigated) {
@@ -912,7 +1066,7 @@ export default function SlidesEditorComponent({
             }
         } catch (error: any) {
             console.error('Save error:', error);
-            toast.error(error.response?.data?.message || 'Failed to save presentation.');
+            toast.error(error.response?.data?.message || `Failed to save ${PRODUCT_NAME.toLowerCase()}.`);
             setIsSaving(false); // Ensure isSaving is reset on error
         }
     };
@@ -924,15 +1078,15 @@ export default function SlidesEditorComponent({
         if (presentationId) {
             const shareUrl = `https://engage.vacademy.io/presentation/public/${presentationId}`;
             window.open(shareUrl, '_blank');
-            toast.success("Public presentation link opened!");
+            toast.success(`Public ${PRODUCT_NAME.toLowerCase()} link opened!`);
         } else {
-            toast.error("Presentation ID is not available. Save the presentation first to enable sharing.");
+            toast.error(`${PRODUCT_NAME} ID is not available. Save the ${PRODUCT_NAME.toLowerCase()} first to enable sharing.`);
         }
     };
 
     const handleUpdateTitle = async () => {
         if (!isEdit || !presentationId) {
-            toast.error("Cannot update title: Presentation ID is missing or not in edit mode.");
+            toast.error(`Cannot update title: ${PRODUCT_NAME} ID is missing or not in edit mode.`);
             setIsEditingTitle(false);
             setCurrentTitle(metaData.title || ''); // Reset to original
             return;
@@ -957,7 +1111,7 @@ export default function SlidesEditorComponent({
         try {
             const accessToken = getTokenFromCookie(TokenKey.accessToken);
             if (!accessToken) {
-                toast.error('Please login to update the presentation title.');
+                toast.error(`Please login to update the ${PRODUCT_NAME.toLowerCase()} title.`);
                 setCurrentTitle(metaData.title); // Revert
                 setIsEditingTitle(false);
                 return;
@@ -990,7 +1144,7 @@ export default function SlidesEditorComponent({
                 },
             });
 
-            toast.success("Presentation title updated successfully!");
+            toast.success(`${PRODUCT_NAME} title updated successfully!`);
             setIsEditingTitle(false);
 
             // Update router search params to reflect the new title
@@ -1003,15 +1157,15 @@ export default function SlidesEditorComponent({
                 description: metaData.description, // keep current description
             };
             router.navigate({
-                to: '/study-library/present/add',
+                to: '/study-library/volt/add',
                 search: newSearchParams,
                 replace: true,
             });
             // The metaData.title prop will update on re-render due to router state change
 
         } catch (error: any) {
-            console.error('Error updating presentation title:', error);
-            toast.error(error.response?.data?.message || 'Failed to update presentation title.');
+            console.error(`Error updating ${PRODUCT_NAME.toLowerCase()} title:`, error);
+            toast.error(error.response?.data?.message || `Failed to update ${PRODUCT_NAME.toLowerCase()} title.`);
             setCurrentTitle(metaData.title); // Revert optimistic update on error
             setIsEditingTitle(false);
         }
@@ -1488,7 +1642,7 @@ export default function SlidesEditorComponent({
         return (
             <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm">
                 <Loader2 className="size-12 animate-spin text-orange-500" />
-                <p className="mt-3 text-lg text-slate-600">Loading Presentation...</p>
+                <p className="mt-3 text-lg text-slate-600">Loading {PRODUCT_NAME}...</p>
             </div>
         );
     }
@@ -1511,7 +1665,7 @@ export default function SlidesEditorComponent({
         return (
             <WaitingRoom
                 sessionDetails={{ ...sessionDetails, title: metaData.title }}
-                onStartPresentation={handleStartActualPresentation}
+                onStartVolt={handleStartActualPresentation}
                 onCancelSession={handleExitSessionFlow}
                 isStarting={isStartingSessionInProgress}
             />
@@ -1519,7 +1673,7 @@ export default function SlidesEditorComponent({
     }
 
     if (!editMode) {
-        const onPresentationExit = sessionDetails
+        const onVoltExit = sessionDetails
             ? handleExitSessionFlow
             : () => {
                   setEditMode(true);
@@ -1539,7 +1693,7 @@ export default function SlidesEditorComponent({
                     slides={slides}
                     initialSlideId={currentSlideId || (slides.length > 0 ? slides[0].id : undefined)}
                     liveSessionData={sessionDetails}
-                    onExit={onPresentationExit}
+                    onVoltExit={onVoltExit}
                     isAudioRecording={isRecording}
                     isAudioPaused={isRecordingPaused}
                     audioBlobUrl={audioBlobUrl}
@@ -1547,6 +1701,7 @@ export default function SlidesEditorComponent({
                     onPauseAudio={() => {
                         if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
                             mediaRecorderRef.current.pause();
+                            recommendationMediaRecorderRef.current?.pause(); // Pause recommendation recorder too
                             setIsRecordingPaused(true);
                             if (recordingIntervalRef.current) clearInterval(recordingIntervalRef.current); 
                             toast.info('Recording paused.');
@@ -1555,6 +1710,7 @@ export default function SlidesEditorComponent({
                     onResumeAudio={() => {
                         if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'paused') {
                             mediaRecorderRef.current.resume();
+                            recommendationMediaRecorderRef.current?.resume(); // Resume recommendation recorder too
                             setIsRecordingPaused(false);
                             if (recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
                             recordingIntervalRef.current = setInterval(() => {
@@ -1570,6 +1726,12 @@ export default function SlidesEditorComponent({
                     onGenerateTranscript={handleTranscriptAction}
                     isTranscribing={isTranscribing}
                     hasTranscript={!!transcriptResult}
+                />
+                <RecommendationToast onShowRecommendations={() => setIsRecommendationOverlayOpen(true)} />
+                <RecommendationOverlay
+                    isOpen={isRecommendationOverlayOpen}
+                    onClose={() => setIsRecommendationOverlayOpen(false)}
+                    onAddSlide={(slide) => handleAddQuickQuestion(slide, 'next')}
                 />
                 <TranscriptModal
                     isOpen={isTranscriptModalOpen}
@@ -1597,23 +1759,23 @@ export default function SlidesEditorComponent({
                     <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => router.navigate({ to: '/study-library/present' })}
+                        onClick={() => router.navigate({ to: '/study-library/volt' })}
                         className="text-slate-600 hover:bg-slate-100 hover:text-slate-800"
                     >
                         <IoArrowBackSharp size={22} />
                     </Button>
                     <span className="ml-3 text-lg font-semibold text-slate-700">
-                        {metaData.title || 'New Presentation'}
+                        {metaData.title || `New ${PRODUCT_NAME}`}
                     </span>
                 </div>
                 <div className="flex flex-1 flex-col items-center justify-center bg-slate-50 p-6 text-center">
                     <img
                         src="/placeholder-empty-slides.svg"
-                        alt="Empty Presentation"
+                        alt={`Empty ${PRODUCT_NAME}`}
                         className="mx-auto mb-8 h-52 w-52 opacity-70"
                     />
                     <h2 className="mb-3 text-2xl font-semibold text-slate-700">
-                        Your Presentation is Empty
+                        Your {PRODUCT_NAME} is Empty
                     </h2>
                     <p className="mb-8 max-w-md text-base text-slate-500">
                         Let's bring your ideas to life. Add your first slide to get started!
@@ -1645,7 +1807,7 @@ export default function SlidesEditorComponent({
                     <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => router.navigate({ to: '/study-library/present' })}
+                        onClick={() => router.navigate({ to: '/study-library/volt' })}
                         className="rounded-full text-slate-600 hover:bg-slate-100 hover:text-slate-800"
                     >
                         <IoArrowBackSharp size={20} />
@@ -1680,7 +1842,7 @@ export default function SlidesEditorComponent({
                                 title={currentTitle}
                                 onClick={() => { if(isEdit) setIsEditingTitle(true);}} // Allow click to edit only if isEdit is true
                             >
-                                {currentTitle || 'Untitled Presentation'}
+                                {currentTitle || `Untitled ${PRODUCT_NAME}`}
                     </span>
                             {isEdit && ( // Only show edit icon if isEdit is true
                                 <Button variant="ghost" size="icon" onClick={() => setIsEditingTitle(true)} className="h-7 w-7 opacity-0 group-hover:opacity-100 text-slate-500 hover:text-orange-500">
@@ -1716,7 +1878,7 @@ export default function SlidesEditorComponent({
                                     onClick={async () => {
                                         await savePresentation();
                                         if (!isSaving) { // Ensure save was successful (or not in progress) before navigating
-                                            router.navigate({ to: '/study-library/present' });
+                                            router.navigate({ to: '/study-library/volt' });
                                         }
                                     }}
                                     disabled={isSaving}
@@ -1768,7 +1930,7 @@ export default function SlidesEditorComponent({
                         variant="outline"
                         size="sm"
                         className="gap-1.5 border-purple-500 px-3 text-purple-600 hover:bg-purple-50 hover:text-purple-700 focus-visible:ring-purple-400 sm:px-4"
-                        title={!isEdit || !presentationId ? "Save the presentation to enable sharing" : "Share Presentation"}
+                        title={!isEdit || !presentationId ? `Save the ${PRODUCT_NAME.toLowerCase()} to enable sharing` : `Share ${PRODUCT_NAME}`}
                     >
                         <Share2 className="size-4" />
                         Share
@@ -1807,7 +1969,7 @@ export default function SlidesEditorComponent({
                                 <p className="text-lg font-medium">
                                     {slides && slides.length > 0
                                         ? 'Select a slide to edit'
-                                        : 'Your presentation is empty.'}
+                                        : `Your ${PRODUCT_NAME.toLowerCase()} is empty.`}
                                 </p>
                                 {slides && slides.length === 0 && (
                                     <p className="mt-1 text-sm">
@@ -1832,7 +1994,7 @@ export default function SlidesEditorComponent({
                 <DialogContent className="p-6 sm:max-w-lg">
                     {isGenerating ? (
                         <AiGeneratingLoader
-                            title="Generating your presentation"
+                            title={`Generating your ${PRODUCT_NAME.toLowerCase()}`}
                             description="Our AI is crafting your content. This may take a moment."
                             steps={aiSteps}
                         />
@@ -1844,7 +2006,7 @@ export default function SlidesEditorComponent({
                                 </DialogTitle>
                                 <DialogDescription className="text-sm text-neutral-500">
                                     Provide a topic and language. New slides will be added to the end
-                                    of your presentation.
+                                    of your {PRODUCT_NAME.toLowerCase()}.
                                 </DialogDescription>
                             </DialogHeader>
                             <form onSubmit={handleAiGenerateInEditor} className="space-y-5">
@@ -1904,8 +2066,8 @@ export default function SlidesEditorComponent({
                 <DialogContent className="p-6 sm:max-w-lg">
                     {isImporting ? (
                         <AiGeneratingLoader
-                            title="Importing Presentation"
-                            description="We're converting your file and adding slides to your presentation."
+                            title={`Importing ${PRODUCT_NAME}`}
+                            description={`We're converting your file and adding slides to your ${PRODUCT_NAME.toLowerCase()}.`}
                             steps={pptSteps}
                         />
                     ) : (
@@ -1915,13 +2077,13 @@ export default function SlidesEditorComponent({
                                     Import from PPT/PPTX
                                 </DialogTitle>
                                 <DialogDescription className="text-sm text-neutral-500">
-                                    New slides will be added to the end of your presentation.
+                                    New slides will be added to the end of your {PRODUCT_NAME.toLowerCase()}.
                                 </DialogDescription>
                             </DialogHeader>
                             <form onSubmit={handlePptImportInEditor} className="space-y-5">
                                 <div>
                                     <Label htmlFor="ppt-file-editor" className="text-sm font-medium">
-                                        Presentation File
+                                        {PRODUCT_NAME} File
                                     </Label>
                                     <div
                                         className="mt-1.5 flex justify-center w-full px-6 pt-5 pb-6 border-2 border-neutral-300 border-dashed rounded-md cursor-pointer hover:border-orange-400"

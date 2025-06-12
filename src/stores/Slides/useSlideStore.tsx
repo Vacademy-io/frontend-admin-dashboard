@@ -24,6 +24,11 @@ import { SlideTypeEnum } from '@/components/common/slides/utils/types';
 import { defaultSlides as initialDefaultSlides } from '@/components/common/slides/constant/defaultSlides';
 import { createNewSlide as createNewSlideUtil } from '@/components/common/slides/utils/util';
 
+export interface RecommendationBatch {
+    timestamp: string;
+    slides: Slide[];
+}
+
 // Props from AppState that are controlled by the Excalidraw component state
 // and should be persisted if they change.
 // Props from AppState that are controlled by Excalidraw and should be persisted
@@ -142,6 +147,11 @@ interface SlideStore {
     updateSlideIds: (
         idUpdates: { tempId: string; newId: string; newQuestionId?: string; newOptions?: { tempOptionId: string, newOptionId: string }[] }[]
     ) => void;
+    // --- State and actions for recommendations ---
+    recommendationBatches: RecommendationBatch[];
+    addRecommendationBatch: (batch: RecommendationBatch) => void;
+    removeRecommendation: (timestamp: string, slideId: string) => void;
+    clearRecommendations: () => void;
 }
 
 export const useSlideStore = create<SlideStore>((set, get) => {
@@ -169,12 +179,14 @@ export const useSlideStore = create<SlideStore>((set, get) => {
         slides: initialSlides,
         currentSlideId: initialSlides[0]?.id,
         editMode: true,
+        recommendationBatches: [],
 
         initializeNewPresentationState: () => {
             const newInitialSlides = initialDefaultSlides.map(deserializeSlideFromStorage);
             set({
                 slides: newInitialSlides,
                 currentSlideId: newInitialSlides[0]?.id,
+                recommendationBatches: [], // Also reset recommendations
             });
             if (typeof window !== 'undefined') {
                 localStorage.removeItem('slides'); // Clear out old presentation
@@ -473,5 +485,34 @@ export const useSlideStore = create<SlideStore>((set, get) => {
 
             return { slides: newSlides, currentSlideId: newCurrentSlideId };
         }),
+
+        addRecommendationBatch: (batch: RecommendationBatch) => {
+            set((state) => ({
+                recommendationBatches: [...state.recommendationBatches, batch]
+            }));
+            console.log('[useSlideStore] New recommendation batch added:', batch);
+        },
+
+        removeRecommendation: (timestamp: string, slideId: string) => {
+            set((state) => {
+                const newBatches = state.recommendationBatches.map(batch => {
+                    if (batch.timestamp === timestamp) {
+                        return {
+                            ...batch,
+                            slides: batch.slides.filter(slide => slide.id !== slideId)
+                        };
+                    }
+                    return batch;
+                }).filter(batch => batch.slides.length > 0); // Remove batch if it becomes empty
+
+                return { recommendationBatches: newBatches };
+            });
+             console.log(`[useSlideStore] Removed recommendation slide ${slideId} from batch ${timestamp}.`);
+        },
+        
+        clearRecommendations: () => {
+            set({ recommendationBatches: [] });
+            console.log('[useSlideStore] All recommendations cleared.');
+        },
     };
 });

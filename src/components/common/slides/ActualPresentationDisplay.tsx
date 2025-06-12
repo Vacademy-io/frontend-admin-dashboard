@@ -43,7 +43,7 @@ interface ActualPresentationDisplayProps {
     slides: AppSlide[];
     initialSlideId?: string;
     liveSessionData: MinimalSessionDetails | null;
-    onExit: () => void;
+    onVoltExit: () => void;
     isAudioRecording?: boolean;
     isAudioPaused?: boolean;
     audioBlobUrl?: string | null;
@@ -65,7 +65,7 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
     slides,
     initialSlideId,
     liveSessionData,
-    onExit,
+    onVoltExit,
     isAudioRecording,
     isAudioPaused,
     audioBlobUrl,
@@ -335,7 +335,7 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
         return (
             <div className="flex h-screen w-screen flex-col items-center justify-center bg-slate-900 text-white">
                 <p>No slide to display or slide not found.</p>
-                <Button onClick={onExit} className="mt-4">Exit Presentation</Button>
+                <Button onClick={onVoltExit} className="mt-4">Exit Volt</Button>
             </div>
         );
     }
@@ -351,7 +351,7 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
                 isParticipantsPanelOpen={isParticipantsPanelOpen}
                 onToggleWhiteboard={() => setIsWhiteboardOpen(!isWhiteboardOpen)} 
                 isWhiteboardOpen={isWhiteboardOpen} 
-                onEndSession={onExit} 
+                onEndSession={onVoltExit} 
                 isAudioRecording={isAudioRecording}
                 isAudioPaused={isAudioPaused}
                 onPauseAudio={onPauseAudio}

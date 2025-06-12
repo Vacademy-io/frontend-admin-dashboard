@@ -74,8 +74,8 @@ export const SidebarItemsData: SidebarItemsType[] = [
                 subItemLink: '/study-library/reports',
             },
             {
-                subItem: 'Presentation',
-                subItemLink: '/study-library/present',
+                subItem: 'Volt',
+                subItemLink: '/study-library/volt',
             },
             {
                 subItem: 'Doubt Management',

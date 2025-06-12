@@ -40,12 +40,13 @@ import { useSlideStore } from '@/stores/Slides/useSlideStore';
 import { createNewSlide } from './utils/util';
 import { SlideTypeEnum } from './utils/types';
 import { AiGeneratingLoader, aiSteps, pptSteps } from './AiGeneratingLoader';
+import { PRODUCT_NAME } from '@/config/branding';
 
 import type { PresentationData } from './types';
 
 const IMPORT_PPT_API_URL = 'https://backend-stage.vacademy.io/media-service/convert-presentations/import-ppt';
 
-export default function ManagePresentation() {
+export default function ManageVolt() {
     const router = useRouter();
     const { setNavHeading } = useNavHeadingStore();
     const queryClient = useQueryClient();
@@ -75,7 +76,7 @@ export default function ManagePresentation() {
     const [isProcessingDelete, setIsProcessingDelete] = useState(false);
 
     useEffect(() => {
-        setNavHeading('Manage Presentations');
+        setNavHeading(`Manage ${PRODUCT_NAME}s`);
     }, [setNavHeading]);
 
     useEffect(() => {
@@ -125,10 +126,10 @@ export default function ManagePresentation() {
             toast.success('PPT imported successfully! Opening editor...');
             setIsPptModalOpen(false);
 
-            const fileNameWithoutExt = pptFile.name.split('.').slice(0, -1).join('.') || 'Imported Presentation';
+            const fileNameWithoutExt = pptFile.name.split('.').slice(0, -1).join('.') || `Imported ${PRODUCT_NAME}s`;
 
             router.navigate({
-                to: '/study-library/present/add',
+                to: '/study-library/volt/add',
                 search: {
                     title: fileNameWithoutExt,
                     description: `Imported from ${pptFile.name}`,
@@ -141,7 +142,7 @@ export default function ManagePresentation() {
         } catch (error: any) {
             console.error('[PPT Import] Error:', error);
             toast.error(
-                error.response?.data?.message || 'Failed to import presentation from PPT.'
+                error.response?.data?.message || `Failed to import ${PRODUCT_NAME.toLowerCase()} from PPT.`
             );
         } finally {
             setIsImporting(false);
@@ -236,9 +237,9 @@ export default function ManagePresentation() {
             setIsAiModalOpen(false);
 
             router.navigate({
-                to: '/study-library/present/add',
+                to: '/study-library/volt/add',
                 search: {
-                    title: data.title || 'AI Generated Presentation',
+                    title: data.title || `AI Generated ${PRODUCT_NAME}`,
                     description: `Generated from topic: ${aiTopic}`,
                     id: '',
                     isEdit: false,
@@ -248,7 +249,7 @@ export default function ManagePresentation() {
         } catch (error: any) {
             console.error('[AI Gen] Error:', error);
             toast.error(
-                error.response?.data?.message || 'Failed to generate presentation from AI.'
+                error.response?.data?.message || `Failed to generate ${PRODUCT_NAME.toLowerCase()} from AI.`
             );
         } finally {
             setIsGenerating(false);
@@ -257,33 +258,31 @@ export default function ManagePresentation() {
 
     const handleCreatePresentation = (e: FormEvent) => {
         e.preventDefault();
-        if (!newTitle.trim()) {
-            toast.error('Title is required to create a presentation.');
+        const title = newTitle.trim();
+        if (!title) {
+            toast.error(`Title is required to create a ${PRODUCT_NAME.toLowerCase()}.`);
             return;
         }
+
         router.navigate({
-            to: `/study-library/present/add`,
-            search: {
-                title: newTitle,
-                description: newDescription,
-                id: '',
-                isEdit: false,
-            },
+            to: '/study-library/volt/add',
+            search: { isEdit: 'false', title: title, description: newDescription },
         });
-        setIsCreateModalOpen(false);
+
+        // Reset and close modal
         setNewTitle('');
         setNewDescription('');
+        setIsCreateModalOpen(false);
     };
 
     const handleEditPresentationDetails = (presentation: PresentationData) => {
-        setEditingPresentation(presentation);
         router.navigate({
-            to: `/study-library/present/add`,
+            to: '/study-library/volt/add',
             search: {
+                id: presentation.id,
+                isEdit: 'true',
                 title: presentation.title,
                 description: presentation.description,
-                id: presentation.id,
-                isEdit: true,
             },
         });
     };
@@ -340,14 +339,17 @@ export default function ManagePresentation() {
 
     const handleDirectStartLive = (presentation: PresentationData) => {
         if (presentation.added_slides_count === 0 && (!presentation.added_slides || presentation.added_slides.length === 0)) {
-            toast.error("This presentation has no slides. Add slides before starting a live session.");
+            toast.error(`This ${PRODUCT_NAME.toLowerCase()} has no slides. Add slides before starting a live session.`);
             return;
         }
+        // Navigate to the editor component with a query param to auto-start the session
         router.navigate({
-            to: `/study-library/present/add`,
+            to: '/study-library/volt/add',
             search: {
                 id: presentation.id,
                 isEdit: 'true',
+                title: presentation.title,
+                description: presentation.description,
                 autoStartLive: 'true',
             },
         });
@@ -385,16 +387,16 @@ export default function ManagePresentation() {
         <div className="container mx-auto p-4 text-neutral-800 sm:p-6 lg:p-8">
             <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-center">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Presentations</h1>
+                    <h1 className="text-3xl font-bold tracking-tight">My {PRODUCT_NAME}s</h1>
                     <p className="text-md mt-1.5 text-neutral-500">
-                        Manage, create, and organize your presentation materials.
+                        Manage, create, and organize your {PRODUCT_NAME.toLowerCase()}s.
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <MyButton size="lg" className="gap-2 px-5 py-2.5">
-                                <Plus className="h-5 w-5" /> New Presentation
+                                <Plus className="h-5 w-5" /> New {PRODUCT_NAME}
                                 <ChevronDown className="h-4 w-4" />
                             </MyButton>
                         </DropdownMenuTrigger>
@@ -417,7 +419,7 @@ export default function ManagePresentation() {
                 <div className="relative w-full max-w-md">
                     <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-400" />
                     <Input
-                        placeholder="Search presentations by title or description..."
+                        placeholder={`Search ${PRODUCT_NAME.toLowerCase()}s by title or description...`}
                         className="w-full rounded-lg bg-white py-2.5 pl-10 pr-4 text-base shadow-sm"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
@@ -476,11 +478,11 @@ export default function ManagePresentation() {
                                         className="h-8 w-8 rounded-md text-neutral-500 hover:bg-blue-100 hover:text-blue-600"
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            const shareUrl = `https://engage.vacademy.io/presentation/public/${p.id}`;
+                                            const shareUrl = `https://engage.vacademy.io/volt/public/${p.id}`;
                                             window.open(shareUrl, '_blank');
-                                            toast.info("Public presentation link opened!");
+                                            toast.info(`Public ${PRODUCT_NAME.toLowerCase()} link opened!`);
                                         }}
-                                        title="Share Presentation"
+                                        title={`Share ${PRODUCT_NAME}`}
                                     >
                                         <Share2 className="h-4 w-4" />
                                     </ShadButton>
@@ -593,7 +595,7 @@ export default function ManagePresentation() {
                 <DialogContent className="p-6 sm:max-w-lg">
                     <DialogHeader className="mb-4">
                         <DialogTitle className="text-xl font-semibold">
-                            Create New Presentation
+                            Create New {PRODUCT_NAME}
                         </DialogTitle>
                         <DialogDescription className="text-sm text-neutral-500">
                             Provide a title and description. You'll add slides in the next step.

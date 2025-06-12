@@ -15,6 +15,7 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover"; // Import Popover components
 import QRCodeStyling from 'qr-code-styling'; // Import QRCodeStyling
+import { PRODUCT_NAME } from '@/config/branding';
 
 // QR Code instance (similar to SessionWaitingRoom)
 const qrCodeInstance = new QRCodeStyling({
@@ -141,7 +142,7 @@ export const LiveSessionActionBar: React.FC<LiveSessionActionBarProps> = ({
             <div className="flex items-center gap-2 sm:gap-3">
                 <Tv2 size={20} className="shrink-0 text-orange-400" />
                 <span className="hidden text-xs font-medium sm:text-sm md:inline">
-                    Live Session
+                    Live {PRODUCT_NAME}
                 </span>
                 <div className="ml-1"> <SseStatusIndicator /></div>
                 {isAudioRecording && (

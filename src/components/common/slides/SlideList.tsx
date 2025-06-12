@@ -8,37 +8,34 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
-import { exportToSvg } from '@excalidraw/excalidraw'; // Ensure correct import
-import { GripVertical, Presentation, Trash2, ImageOff, AlertTriangle, FileUp } from 'lucide-react'; // Added ImageOff, AlertTriangle, FileUp
-import { ExportIcon, ImportIcon } from './Icons'; // Assuming these are well-styled
-import { SlideTypeSheet } from './slideTypeSheet';
+import { exportToSvg } from '@excalidraw/excalidraw';
+import { GripVertical, Presentation, Trash2, ImageOff, AlertTriangle } from 'lucide-react';
+import { ExportIcon, ImportIcon } from './Icons';
+import { SlideTypeSheet } from '../slides/slideTypeSheet';
 import type {
     Slide as AppSlide,
     ExcalidrawSlideData,
     QuizSlideData,
     FeedbackSlideData,
     PartialAppState,
-    ExcalidrawBinaryFiles,
-} from './types'; // Using refined Slide type
-import { SlideTypeEnum } from '././utils/types'; // Using enum from types.ts
-import { QuzizIcon, feedbackIcon } from '@/svgs'; // Assuming these are paths to SVGs/images
+} from './types';
+import { SlideTypeEnum } from '././utils/types';
+import { QuzizIcon, feedbackIcon } from '@/svgs';
 
 interface SlideListProps {
     slides: AppSlide[];
     currentSlideId: string | undefined;
     onSlideChange: (id: string) => void;
-    onAddSlide: (type: SlideTypeEnum) => void; // Use SlideTypeEnum
+    onAddSlide: (type: SlideTypeEnum) => void;
     onDeleteSlide: (id: string) => void;
     onExport: () => void;
     onImport: (event: React.ChangeEvent<HTMLInputElement>) => void;
     onReorderSlides: (newSlides: AppSlide[]) => void;
     onAiGenerateClick: () => void;
-    onPptImportClick: () => void;
-    // onMoveSlideUp and onMoveSlideDown are not directly used if DND is primary
 }
 
 interface PreviewProps {
-    slide: AppSlide; // Use the main Slide union type
+    slide: AppSlide;
 }
 
 function stripHtml(html: string): string {
@@ -51,7 +48,7 @@ function stripHtml(html: string): string {
 const SlideTypePreview = memo(({ slide }: PreviewProps) => {
     const [svg, setSvg] = useState<string | null>(null);
     const [previewError, setPreviewError] = useState(false);
-    let isMounted = true; 
+    let isMounted = true;
 
     useEffect(() => {
         isMounted = true;
@@ -60,7 +57,7 @@ const SlideTypePreview = memo(({ slide }: PreviewProps) => {
 
         const generateThumbnail = async () => {
             if (slide.type === SlideTypeEnum.Quiz || slide.type === SlideTypeEnum.Feedback) {
-                return; // No SVG generation for Quiz/Feedback
+                return; 
             }
             const excalidrawSlide = slide as ExcalidrawSlideData;
             if (!excalidrawSlide.elements || excalidrawSlide.elements.length === 0) {
@@ -159,7 +156,6 @@ const SlideTypePreview = memo(({ slide }: PreviewProps) => {
                 </div>
             );
         }
-        // Default handles Excalidraw-based slides
         default: {
             const excalidrawSlide = slide as ExcalidrawSlideData;
             if (svg) {
@@ -211,7 +207,6 @@ const SlideList = ({
     onImport,
     onReorderSlides,
     onAiGenerateClick,
-    onPptImportClick,
 }: SlideListProps) => {
     const [isTypeSheetOpen, setIsTypeSheetOpen] = useState(false);
 
@@ -232,7 +227,7 @@ const SlideList = ({
     return (
         <>
             <div className="flex h-full w-72 flex-col bg-white p-3 shadow-sm">
-                <div className="pb-2 pt-1">
+                <div className="flex flex-col gap-y-2 pb-2 pt-1">
                     <Button
                         onClick={() => setIsTypeSheetOpen(true)}
                         className="w-full gap-2 bg-orange-500 py-2.5 text-sm font-medium text-white hover:bg-orange-600 focus-visible:ring-orange-400"
@@ -240,15 +235,26 @@ const SlideList = ({
                         <span className="mr-0.5 text-lg font-semibold leading-none">+</span> Add
                         Slide
                     </Button>
-                    <div className="mt-2 grid grid-cols-2 gap-2">
-                        <Button variant="outline" size="sm" onClick={onAiGenerateClick} className="w-full text-xs">
-                            Generate with AI
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={onPptImportClick} className="w-full text-xs gap-1">
-                            <FileUp className="h-3 w-3" />
-                            Import PPT
-                        </Button>
-                    </div>
+                    <Button
+                        onClick={onAiGenerateClick}
+                        variant="outline"
+                        className="w-full gap-2 border-blue-500 py-2.5 text-sm font-medium text-blue-600 hover:bg-blue-50 hover:text-blue-700 focus-visible:ring-blue-400"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                            className="h-5 w-5"
+                        >
+                            <path
+                                fillRule="evenodd"
+                                d="M9 4.5a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5A.75.75 0 019 4.5zm5.707 2.293a.75.75 0 01.043 1.06l-1.72 1.965a.75.75 0 01-1.102-.043l-1.72-1.965a.75.75 0 111.102-1.017l1.168 1.335 1.168-1.335a.75.75 0 011.06-.043zM3 10.5a.75.75 0 01.75-.75h1.5a.75.75 0 010 1.5h-1.5a.75.75 0 01-.75-.75zm17.25.75a.75.75 0 00-.75-.75h-1.5a.75.75 0 000 1.5h1.5a.75.75 0 00.75-.75zM14.25 15a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5a.75.75 0 01.75-.75zm-5.25.75a.75.75 0 00-.75-.75v-1.5a.75.75 0 00-1.5 0v1.5a.75.75 0 00.75.75z"
+                                clipRule="evenodd"
+                            />
+                            <path d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3a3 3 0 00-3 3v6.75a3 3 0 003 3h10.5a3 3 0 003-3v-6.75a3 3 0 00-3-3v-3A5.25 5.25 0 0012 1.5zm-3.75 8.25v-.012a.75.75 0 01.75-.75h6a.75.75 0 01.75.75v.012a.75.75 0 01-.75.75h-6a.75.75 0 01-.75-.75z" />
+                        </svg>
+                        Generate with AI
+                    </Button>
                 </div>
                 <Separator className="my-3 bg-gray-200" />
                 <div className="mb-2 flex items-center justify-between px-1">
@@ -257,7 +263,7 @@ const SlideList = ({
                         <button
                             className="rounded p-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
                             onClick={onExport}
-                            title="Export Presentation"
+                            title="Export Volt"
                         >
                             <ExportIcon width={18} height={18} />
                         </button>
@@ -293,7 +299,7 @@ const SlideList = ({
                                                         ref={providedDraggable.innerRef}
                                                         {...providedDraggable.draggableProps}
                                                         className={cn(
-                                                            'group relative mb-2 flex flex-col cursor-pointer rounded-lg border bg-white p-1.5 shadow-sm transition-all duration-150 ease-in-out hover:border-orange-400 hover:bg-orange-50/30 hover:shadow-md h-28 overflow-visible',
+                                                            'group relative overflow-hidden mb-2 flex flex-col cursor-pointer rounded-lg border bg-white p-1.5 shadow-sm transition-all duration-150 ease-in-out hover:border-orange-400 hover:bg-orange-50/30 hover:shadow-md h-28',
                                                             {
                                                                 'border-orange-500 bg-orange-50 shadow-md ring-2 ring-orange-500 ring-offset-1':
                                                                     slide.id === currentSlideId,
@@ -302,9 +308,10 @@ const SlideList = ({
                                                         )}
                                                         onClick={() => onSlideChange(slide.id)}
                                                     >
-                                                        <div className="pointer-events-none flex-1">
+                                                        <div className="pointer-events-none flex-1"> {/* Ensure preview takes space */}
                                                             <SlideTypePreview slide={slide} />
                                                         </div>
+                                                        {/* CONTROLS BAR - Ensure classes are correct for hover visibility */}
                                                         <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between rounded-b-md border-t border-gray-200 bg-gray-50/80 px-1.5 py-1 transition-all duration-150 z-10 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto">
                                                             <div
                                                                 {...providedDraggable.dragHandleProps}
@@ -318,7 +325,7 @@ const SlideList = ({
                                                             <button
                                                                 className="rounded p-1 text-gray-400 transition-colors hover:bg-red-100 hover:text-red-600"
                                                                 onClick={(e) => {
-                                                                    e.stopPropagation();
+                                                                    e.stopPropagation(); // Prevent li's onClick
                                                                     onDeleteSlide(slide.id);
                                                                 }}
                                                                 title="Delete slide"
@@ -342,7 +349,7 @@ const SlideList = ({
             <SlideTypeSheet
                 open={isTypeSheetOpen}
                 onOpenChange={setIsTypeSheetOpen}
-                onSelectType={handleSelectSlideType} // Expects SlideTypeEnum
+                onSelectType={handleSelectSlideType}
             />
         </>
     );

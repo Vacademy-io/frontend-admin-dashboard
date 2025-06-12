@@ -11,7 +11,7 @@ interface AddPresentParams {
     isEdit: boolean;
 }
 
-export const Route = createFileRoute('/study-library/present/add/')({
+export const Route = createFileRoute('/study-library/volt/add/')({
     component: RouteComponent,
     validateSearch: (search: Record<string, unknown>): AddPresentParams => {
         return {

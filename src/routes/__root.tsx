@@ -20,7 +20,7 @@ const isAuthenticated = () => {
 };
 
 // List of public routes that don't require authentication
-const publicRoutes = ["/login", "/login/forgot-password", "/signup", "/evaluator-ai"];
+const publicRoutes = ["/login", "/login/forgot-password", "/signup", "/evaluator-ai", "/landing"];
 
 export const Route = createRootRouteWithContext<{
     queryClient: QueryClient;

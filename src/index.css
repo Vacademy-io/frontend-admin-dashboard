@@ -462,5 +462,23 @@ html {
 }
 
 .reveal .slide-background {
-    /* z-index: 0; /* Example: keep backgrounds behind slide content */
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* Landing page override to fix width and positioning issues from reveal.js styles */
+.landing-page-container .landing-page-content,
+.landing-page-container .landing-page-content main {
+    width: 100% !important;
+    height: auto !important;
+    position: static !important;
+    display: block !important;
+    left: auto !important;
+    top: auto !important;
+    z-index: auto !important;
+}
+
+.landing-page-container .landing-page-content section {
+    width: 100% !important;
 }
