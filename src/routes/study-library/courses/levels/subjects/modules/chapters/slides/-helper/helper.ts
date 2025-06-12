@@ -381,7 +381,7 @@ export const converDataToVideoFormat = ({
         source_id: activeItem?.video_slide?.id || '',
         source_type: activeItem?.source_type || '',
         status: status,
-        slide_order: null,
+        slide_order: 0,
         video_slide: {
             id: activeItem?.video_slide?.id || '',
             description: activeItem?.video_slide?.description || '',

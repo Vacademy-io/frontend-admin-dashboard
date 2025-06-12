@@ -121,7 +121,7 @@ export const AddVideoDialog = ({
                 title: data.videoName,
                 description: null,
                 image_file_id: null,
-                slide_order: null,
+                slide_order: 0,
                 video_slide: {
                     id: crypto.randomUUID(),
                     description: '',
