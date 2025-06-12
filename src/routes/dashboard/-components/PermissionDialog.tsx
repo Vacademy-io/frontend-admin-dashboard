@@ -32,6 +32,8 @@ import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtili
 import { TokenKey } from '@/constants/auth/tokens';
 import { getUserPermissions, handleUpdatePermission } from '../-services/dashboard-services';
 import { defaultFeatures, roleColors } from '@/constants/permission/default-feature';
+import { MyButton } from '@/components/design-system/button';
+import { AssignBatchSubjectComponent } from './AssignBatchSubjectComponent';
 
 // Define types within the component file or import from a shared types file
 export interface FeatureConfig {
@@ -68,6 +70,7 @@ export function PermissionsDialog({ user, onClose, refetchData }: PermissionsDia
     const [features, setFeatures] = useState<FeatureConfig[]>(defaultFeatures);
     const [fullAccess, setFullAccess] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [showAssignBatchDialog, setShowAssignBatchDialog] = useState(false); // State for dialog visibility
 
     // Check if all features have full access when component mounts or permissions change
     useEffect(() => {
@@ -207,12 +210,17 @@ export function PermissionsDialog({ user, onClose, refetchData }: PermissionsDia
         );
     }
 
+    // Check if the user is a teacher
+    const isTeacher = user.roles.some((role) => role.role_name === 'TEACHER');
+
     return (
-        <DialogContent className="max-h-[90vh] w-[800px] overflow-y-auto">
+        <DialogContent className="max-h-[90vh] w-[800px]">
             <DialogHeader>
-                <DialogTitle className="text-xl font-semibold">Manage User Permissions</DialogTitle>
+                <DialogTitle className="mb-6 text-xl font-semibold">
+                    Manage User Permissions
+                </DialogTitle>
             </DialogHeader>
-            <div className="space-y-6">
+            <div className="h-[80vh] space-y-6 overflow-y-scroll">
                 <Card>
                     <CardHeader className="pb-4">
                         <div className="flex items-center justify-between">
@@ -236,18 +244,18 @@ export function PermissionsDialog({ user, onClose, refetchData }: PermissionsDia
                 </Card>
 
                 {/* Add Full Access Switch */}
-                <Card className="border-amber-200 bg-amber-50">
+                <Card className="">
                     <CardContent className="pt-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <h3 className="font-medium text-amber-900">Full Access Mode</h3>
-                                <p className="text-sm text-amber-700">
+                                <h3 className="font-medium ">Full Access Mode</h3>
+                                <p className="text-sm text-gray-600">
                                     Enable full access to grant this user complete edit permissions
                                     for all features
                                 </p>
                             </div>
                             <div className="flex items-center gap-2">
-                                <Label htmlFor="full-access" className="text-amber-900">
+                                <Label htmlFor="full-access" className="">
                                     {fullAccess ? 'Full Access Enabled' : 'Limited Access'}
                                 </Label>
                                 <Switch
@@ -260,6 +268,43 @@ export function PermissionsDialog({ user, onClose, refetchData }: PermissionsDia
                     </CardContent>
                 </Card>
 
+                {/* Add Manage Resources Card */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Manage Resources</CardTitle>
+                        <p className="text-sm text-gray-600">
+                            Configure additional resource assignments for this user
+                        </p>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-4">
+                            {isTeacher && (
+                                <div className="flex items-center justify-between rounded-lg border  bg-white p-4">
+                                    <div>
+                                        <h4 className="font-medium">Batch & Subject Assignment</h4>
+                                        <p className="text-sm text-gray-600">
+                                            Assign specific batches and subjects to this teacher
+                                        </p>
+                                    </div>
+                                    <MyButton onClick={() => setShowAssignBatchDialog(true)}>
+                                        Manage Assignments
+                                    </MyButton>
+
+                                    {showAssignBatchDialog && (
+                                        <AssignBatchSubjectComponent
+                                            teacher={user}
+                                            onClose={() => setShowAssignBatchDialog(false)}
+                                            refetchData={refetchData}
+                                        />
+                                    )}
+                                </div>
+                            )}
+
+                            {/* You can add more resource management options here in the future */}
+                        </div>
+                    </CardContent>
+                </Card>
+
                 <Card>
                     <CardHeader>
                         <CardTitle className="text-lg">Feature Permissions</CardTitle>
@@ -268,7 +313,7 @@ export function PermissionsDialog({ user, onClose, refetchData }: PermissionsDia
                         </p>
                     </CardHeader>
                     <CardContent>
-                        <div className="space-y-4">
+                        <div className="mb-12 space-y-4">
                             {features.map((feature) => (
                                 <div key={feature.id} className="rounded-lg border p-4">
                                     <div className="mb-3 flex items-center justify-between">
@@ -348,19 +393,17 @@ export function PermissionsDialog({ user, onClose, refetchData }: PermissionsDia
                         </div>
                     </CardContent>
                 </Card>
-
-                <div className="flex justify-end gap-3 border-t pt-4">
-                    <Button variant="outline" onClick={onClose}>
-                        Cancel
-                    </Button>
-                    <Button
-                        onClick={handleSave}
-                        className="bg-orange-500 text-white hover:bg-orange-600"
-                        disabled={saving}
-                    >
-                        Save Permissions
-                    </Button>
-                </div>
+            </div>
+            <div
+                className="fixed bottom-0 left-0 z-10 flex w-full max-w-[800px] justify-end gap-3 border-t bg-white px-6 py-4 shadow-[0_-2px_8px_rgba(0,0,0,0.04)]"
+                style={{ marginLeft: 'auto', marginRight: 'auto', right: 0, left: 0 }}
+            >
+                <Button variant="outline" onClick={onClose}>
+                    Cancel
+                </Button>
+                <MyButton onClick={handleSave} className="" disabled={saving}>
+                    Save Permissions
+                </MyButton>
             </div>
         </DialogContent>
     );
