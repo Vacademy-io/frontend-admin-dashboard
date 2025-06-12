@@ -37,6 +37,7 @@ export interface LiveSessionStep1RequestDTO {
     allow_rewind?: boolean;
     is_live?: boolean;
     session_streaming_service_type?: string;
+    cover_file_id?: string | null;
 }
 
 interface ScheduleDTO {
@@ -105,7 +106,8 @@ export function transformFormToDTOStep1(
     instituteId: string,
     originalSchedules: WeeklyClass[] = [],
     musicFileId: string | undefined,
-    thumbnailFileId: string | undefined
+    thumbnailFileId: string | undefined,
+    coverFileId: string | undefined | null
 ): LiveSessionStep1RequestDTO {
     const {
         id: sessionId,
@@ -202,6 +204,7 @@ export function transformFormToDTOStep1(
         link_type: sessionPlatform,
         allow_rewind: allowRewind,
         session_streaming_service_type: streamingType,
+        cover_file_id: coverFileId,
     };
 }
 

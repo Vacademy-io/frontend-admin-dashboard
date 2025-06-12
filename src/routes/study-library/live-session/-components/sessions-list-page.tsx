@@ -16,9 +16,11 @@ import { TokenKey } from '@/constants/auth/tokens';
 import { DraftSessionDay, LiveSession, SessionsByDate } from '../-services/utils';
 import PreviousSessionCard from './previous-session-card';
 import DraftSessionCard from './draft-session-card';
+import { useSessionDetailsStore } from '../-store/useSessionDetailsStore';
 
 export default function SessionListPage() {
     const { setNavHeading } = useNavHeadingStore();
+    const { clearSessionDetails } = useSessionDetailsStore();
     const [selectedTab, setSelectedTab] = useState<SessionStatus>(SessionStatus.LIVE);
     const navigate = useNavigate();
 
@@ -54,6 +56,7 @@ export default function SessionListPage() {
 
     useEffect(() => {
         setNavHeading('Live Session');
+        clearSessionDetails();
     }, []);
 
     const renderLiveSessions = (sessions: LiveSession[] | undefined) => {

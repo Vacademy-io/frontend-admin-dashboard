@@ -9,7 +9,10 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { DraftSession } from '../-services/utils';
+import { DraftSession, getSessionBySessionId } from '../-services/utils';
+import { useLiveSessionStore } from '../schedule/-store/sessionIdstore';
+import { useNavigate } from '@tanstack/react-router';
+import { useSessionDetailsStore } from '../-store/useSessionDetailsStore';
 
 interface DraftSessionCardProps {
     session: DraftSession;
@@ -20,6 +23,21 @@ export default function DraftSessionCard({ session }: DraftSessionCardProps) {
         session.registration_form_link_for_public_sessions ||
         `${BASE_URL_LEARNER_DASHBOARD}/register/live-class?sessionId=${session.session_id}`;
     const formattedDateTime = `${session.meeting_date} ${session.start_time}`;
+    const navigate = useNavigate();
+    const { setSessionId } = useLiveSessionStore();
+    const { setSessionDetails } = useSessionDetailsStore();
+
+    const handleEditSession = async () => {
+        try {
+            const details = await getSessionBySessionId(session?.session_id || '');
+            setSessionId(details.sessionId);
+            setSessionDetails(details);
+            console.log('Session Details:', details);
+            navigate({ to: `/study-library/live-session/schedule/step1` });
+        } catch (error) {
+            console.error('Failed to fetch session details:', error);
+        }
+    };
 
     return (
         <div className="my-6 flex cursor-pointer flex-col gap-4 rounded-xl border bg-neutral-50 p-4">
@@ -53,6 +71,7 @@ export default function DraftSessionCard({ session }: DraftSessionCardProps) {
                                 className="cursor-pointer"
                                 onClick={(e) => {
                                     e.stopPropagation();
+                                    handleEditSession();
                                 }}
                             >
                                 Edit Live Session
