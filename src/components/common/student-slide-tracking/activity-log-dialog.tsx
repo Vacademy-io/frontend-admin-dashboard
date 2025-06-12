@@ -147,7 +147,9 @@ export const ActivityLogDialog = ({
                     1000 /
                     60
                 ).toFixed(2)} mins`,
-                response: item.question_slides[0]?.response_json,
+                response: JSON.parse(
+                    item.question_slides[0]?.response_json || ''
+                ).selectedOption.join(','),
                 responseStatus: item.question_slides[0]?.response_status,
             }));
         }
