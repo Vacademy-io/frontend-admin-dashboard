@@ -52,7 +52,7 @@ export function Header() {
                       Sign In
                   </Button>
                   <Button 
-                      onClick={() => router.navigate({ to: '/signup'})}
+                      onClick={() => router.navigate({ to: '/signup/onboarding', search: { assess: true, lms: true } })}
                       className="bg-slate-800 text-white hover:bg-slate-700"
                   >
                       Get Started
@@ -106,7 +106,7 @@ export function Header() {
                 <Button 
                   size="lg"
                   className="bg-slate-800 text-white hover:bg-slate-700"
-                  onClick={() => { router.navigate({ to: '/signup'}); setIsMenuOpen(false); }}
+                  onClick={() => { router.navigate({ to: '/signup/onboarding', search: { assess: true, lms: true } }); setIsMenuOpen(false); }}
                 >
                   Get Started for Free
                 </Button>

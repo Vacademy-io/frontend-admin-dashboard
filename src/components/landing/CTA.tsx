@@ -28,7 +28,7 @@ export function CTA() {
                     <div className="mt-8">
                         <Button
                             size="lg"
-                            onClick={() => router.navigate({ to: '/signup' })}
+                            onClick={() => router.navigate({ to: '/signup/onboarding', search: { assess: true, lms: true } })}
                             className="bg-orange-500 text-white hover:bg-orange-400 shadow-lg transition-transform hover:scale-105 px-8 py-3 text-base"
                         >
                             Sign Up for Free

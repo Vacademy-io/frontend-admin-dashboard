@@ -72,7 +72,7 @@ export function Hero() {
             >
               <Button
                 size="lg"
-                onClick={() => router.navigate({ to: '/signup' })}
+                onClick={() => router.navigate({ to: '/signup/onboarding', search: { assess: true, lms: true } })}
                 className="w-full sm:w-auto bg-slate-800 text-white hover:bg-slate-700 shadow-lg transition-transform hover:scale-105"
               >
                 Get Started for Free

@@ -5,7 +5,18 @@ import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore
 import React, { useEffect, useState, FormEvent, useRef } from 'react';
 import { Button as ShadButton } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Edit, FileText as FilePresentation, Loader2, Plus, Search, Trash2, Share2, Tv2, UploadCloud } from 'lucide-react';
+import {
+    Edit,
+    FileText as FilePresentation,
+    Loader2,
+    Plus,
+    Search,
+    Trash2,
+    Share2,
+    Tv2,
+    UploadCloud,
+    HelpCircle,
+} from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from '@tanstack/react-router';
@@ -41,10 +52,12 @@ import { createNewSlide } from './utils/util';
 import { SlideTypeEnum } from './utils/types';
 import { AiGeneratingLoader, aiSteps, pptSteps } from './AiGeneratingLoader';
 import { PRODUCT_NAME } from '@/config/branding';
+import { VoltFeaturesGrid } from '@/components/landing/VoltFeaturesGrid';
 
 import type { PresentationData } from './types';
 
 const IMPORT_PPT_API_URL = 'https://backend-stage.vacademy.io/media-service/convert-presentations/import-ppt';
+const VOLT_FIRST_VISIT_KEY = 'volt-has-visited';
 
 export default function ManageVolt() {
     const router = useRouter();
@@ -74,6 +87,19 @@ export default function ManageVolt() {
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [presentationToDelete, setPresentationToDelete] = useState<PresentationData | null>(null);
     const [isProcessingDelete, setIsProcessingDelete] = useState(false);
+    const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
+
+    useEffect(() => {
+        const hasVisited = localStorage.getItem(VOLT_FIRST_VISIT_KEY);
+        if (!hasVisited) {
+            setIsHelpModalOpen(true);
+        }
+    }, []);
+
+    const handleHelpModalClose = () => {
+        localStorage.setItem(VOLT_FIRST_VISIT_KEY, 'true');
+        setIsHelpModalOpen(false);
+    };
 
     useEffect(() => {
         setNavHeading(`Manage ${PRODUCT_NAME}s`);
@@ -249,7 +275,7 @@ export default function ManageVolt() {
         } catch (error: any) {
             console.error('[AI Gen] Error:', error);
             toast.error(
-                error.response?.data?.message || `Failed to generate ${PRODUCT_NAME.toLowerCase()} from AI.`
+                error.response?.data?.message || `Failed to generate ${PRODUCT_NAME.toLowerCase()} from topic.`
             );
         } finally {
             setIsGenerating(false);
@@ -305,7 +331,7 @@ export default function ManageVolt() {
             const tokenData = getTokenDecodedData(accessToken);
             const INSTITUTE_ID = tokenData?.authorities && Object.keys(tokenData.authorities)[0];
             if (!INSTITUTE_ID) {
-                toast.error('Institute ID not found. Cannot delete presentation.');
+                toast.error('Institute ID not found. Cannot delete volt.');
                 setIsProcessingDelete(false);
                 return;
             }
@@ -324,11 +350,11 @@ export default function ManageVolt() {
                 }
             );
             await queryClient.refetchQueries({ queryKey: ['GET_PRESNTATIONS'] });
-            toast.success(`Presentation "${presentationToDelete.title}" deleted successfully.`);
+            toast.success(`Volt "${presentationToDelete.title}" deleted successfully.`);
         } catch (error: any) {
             console.error('Delete error:', error);
             toast.error(
-                error.response?.data?.message || error.message || 'Failed to delete presentation.'
+                error.response?.data?.message || error.message || 'Failed to delete volt.'
             );
         } finally {
             setIsProcessingDelete(false);
@@ -365,9 +391,9 @@ export default function ManageVolt() {
     const getStatusBadgeClass = (status: string = 'draft') => {
         switch (status.toLowerCase()) {
             case 'published':
-                return 'bg-green-100 text-green-700 border-green-200';
+                return 'bg-green-100 text-green-800 border-green-300';
             case 'draft':
-                return 'bg-amber-100 text-amber-700 border-amber-200';
+                return 'bg-yellow-100 text-yellow-800 border-yellow-300';
             case 'archived':
                 return 'bg-gray-100 text-gray-700 border-gray-200';
             default:
@@ -393,6 +419,14 @@ export default function ManageVolt() {
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
+                    <ShadButton
+                        variant="outline"
+                        className="text-slate-600"
+                        onClick={() => setIsHelpModalOpen(true)}
+                    >
+                        <HelpCircle className="mr-2 h-4 w-4" />
+                        Help
+                    </ShadButton>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <MyButton size="lg" className="gap-2 px-5 py-2.5">
@@ -437,7 +471,7 @@ export default function ManageVolt() {
                         >
                             <CardHeader className="px-4 pb-3 pt-4">
                                 <CardTitle className="line-clamp-2 text-lg font-semibold leading-tight text-neutral-800 transition-colors hover:text-orange-600">
-                                    {p.title || 'Untitled Presentation'}
+                                    {p.title || 'Untitled Volt'}
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="flex-grow px-4 pb-3">
@@ -506,7 +540,7 @@ export default function ManageVolt() {
                                             e.stopPropagation();
                                             handleEditPresentationDetails(p)
                                         }}
-                                        title="Edit Presentation"
+                                        title="Edit Volt"
                                     >
                                         <Edit className="h-4 w-4" />
                                     </ShadButton>
@@ -518,7 +552,7 @@ export default function ManageVolt() {
                                             e.stopPropagation();
                                             confirmDeletePresentation(p)
                                         }}
-                                        title="Delete Presentation"
+                                        title="Delete Volt"
                                     >
                                         <Trash2 className="h-4 w-4" />
                                     </ShadButton>
@@ -531,12 +565,12 @@ export default function ManageVolt() {
                 <div className="flex min-h-[400px] flex-col items-center justify-center rounded-xl border-2 border-dashed border-neutral-200 bg-neutral-50/70 px-6 py-20 text-center">
                     <FilePresentation className="mb-5 h-16 w-16 text-neutral-300" />
                     <h3 className="text-xl font-semibold text-neutral-700">
-                        {searchQuery ? 'No Matching Presentations' : 'No Presentations Yet'}
+                        {searchQuery ? 'No Matching Volts' : 'No Volts Yet'}
                     </h3>
                     <p className="mt-2 max-w-sm text-neutral-500">
                         {searchQuery
                             ? `Your search for "${searchQuery}" did not return any results. Try a different term or clear the search.`
-                            : "It looks like you haven't created any presentations. Get started by clicking the 'New Presentation' button."}
+                            : "It looks like you haven't created any volts. Get started by clicking the 'New Volts' button."}
                     </p>
                     {searchQuery && (
                         <MyButton
@@ -584,7 +618,7 @@ export default function ManageVolt() {
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Deleting...
                                 </>
                             ) : (
-                                'Yes, Delete Presentation'
+                                'Yes, Delete Volt'
                             )}
                         </MyButton>
                     </DialogFooter>
@@ -624,7 +658,7 @@ export default function ManageVolt() {
                                 value={newDescription}
                                 onChange={(e) => setNewDescription(e.target.value)}
                                 className="mt-1.5 min-h-[80px] w-full"
-                                placeholder="A brief summary of your presentation"
+                                placeholder="A brief summary of your Volt"
                                 rows={3}
                             />
                         </div>
@@ -649,7 +683,7 @@ export default function ManageVolt() {
                 <DialogContent className="p-6 sm:max-w-lg">
                     {isGenerating ? (
                         <AiGeneratingLoader
-                            title="Generating your presentation"
+                            title="Generating your Volt"
                             description="Our AI is crafting your content. This may take a moment."
                             steps={aiSteps}
                         />
@@ -657,7 +691,7 @@ export default function ManageVolt() {
                         <>
                             <DialogHeader className="mb-4">
                                 <DialogTitle className="text-xl font-semibold">
-                                    Generate Presentation with AI
+                                    Generate Volt with AI
                                 </DialogTitle>
                                 <DialogDescription className="text-sm text-neutral-500">
                                     Provide a topic and language to generate slides and questions.
@@ -714,7 +748,7 @@ export default function ManageVolt() {
                 <DialogContent className="p-6 sm:max-w-lg">
                     {isImporting ? (
                         <AiGeneratingLoader
-                            title="Importing your presentation"
+                            title="Importing your Volt"
                             description="We're converting your file into editable slides. Please wait."
                             steps={pptSteps}
                         />
@@ -731,7 +765,7 @@ export default function ManageVolt() {
                             <form onSubmit={handlePptImport} className="space-y-5">
                                 <div>
                                     <Label htmlFor="ppt-file" className="text-sm font-medium">
-                                        Presentation File
+                                    Volts File
                                     </Label>
                                     <div
                                         className="mt-1.5 flex justify-center w-full px-6 pt-5 pb-6 border-2 border-neutral-300 border-dashed rounded-md cursor-pointer hover:border-orange-400"
@@ -783,6 +817,26 @@ export default function ManageVolt() {
                             </form>
                         </>
                     )}
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={isHelpModalOpen} onOpenChange={setIsHelpModalOpen}>
+                <DialogContent
+                    className="w-[75vw] max-w-7xl h-[90vh] overflow-y-auto"
+                    onCloseAutoFocus={handleHelpModalClose}
+                >
+                    <DialogHeader>
+                        <DialogTitle className="text-2xl font-bold text-center">
+                            Welcome to {PRODUCT_NAME}! Here's what you can do.
+                        </DialogTitle>
+                        <DialogDescription className="text-center">
+                            Explore the powerful features that make {PRODUCT_NAME} the best way to create and deliver
+                            interactive presentations.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4">
+                        <VoltFeaturesGrid />
+                    </div>
                 </DialogContent>
             </Dialog>
         </div>

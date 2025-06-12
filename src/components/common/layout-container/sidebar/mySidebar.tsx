@@ -21,9 +21,18 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn, goToMailSupport, goToWhatsappSupport } from '@/lib/utils';
 import { Question } from 'phosphor-react';
 import { Command, CommandGroup, CommandItem, CommandList } from '@/components/ui/command';
-import { WhatsappLogo, EnvelopeSimple } from '@phosphor-icons/react';
+import { WhatsappLogo, EnvelopeSimple, Lightning } from '@phosphor-icons/react';
 import { useNavigate, useRouter } from '@tanstack/react-router';
 import useInstituteLogoStore from './institutelogo-global-zustand';
+
+const voltSidebarData = [
+    {
+        icon: Lightning,
+        title: 'Volt',
+        id: 'volt',
+        to: '/study-library/volt',
+    },
+];
 
 export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.ReactNode }) => {
     const navigate = useNavigate();
@@ -32,8 +41,17 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
     const router = useRouter();
     const currentRoute = router.state.location.pathname;
     const subModules = getModuleFlags(data?.sub_modules);
-    const sideBarData = filterMenuList(subModules, SidebarItemsData);
-    const sideBarItems = filterMenuItems(sideBarData, data?.id);
+
+    const [isVoltSubdomain, setIsVoltSubdomain] = useState(false);
+
+    useEffect(() => {
+        setIsVoltSubdomain(typeof window !== 'undefined' && window.location.hostname.startsWith('volt.'));
+    }, []);
+
+    const finalSidebarItems = isVoltSubdomain
+        ? voltSidebarData
+        : filterMenuItems(filterMenuList(subModules, SidebarItemsData), data?.id);
+
     const { getPublicUrl } = useFileUpload();
     const { instituteLogo, setInstituteLogo } = useInstituteLogoStore();
 
@@ -84,14 +102,9 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                 >
                     {sidebarComponent
                         ? sidebarComponent
-                        : sideBarItems.map((obj, key) => (
+                        : finalSidebarItems.map((obj, key) => (
                               <SidebarMenuItem key={key} id={obj.id}>
-                                  <SidebarItem
-                                      icon={obj.icon}
-                                      subItems={obj.subItems}
-                                      title={obj.title}
-                                      to={obj.to}
-                                  />
+                                  <SidebarItem {...obj} />
                               </SidebarMenuItem>
                           ))}
                 </SidebarMenu>
