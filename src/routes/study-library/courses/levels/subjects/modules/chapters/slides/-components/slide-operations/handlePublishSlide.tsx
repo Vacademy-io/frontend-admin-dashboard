@@ -72,7 +72,7 @@ export const handlePublishSlide = async (
                 title: activeItem.title || '',
                 image_file_id: activeItem?.image_file_id || '',
                 description: activeItem?.description || '',
-                slide_order: null,
+                slide_order: 0,
                 document_slide: {
                     id: activeItem?.document_slide?.id || '',
                     type: activeItem?.document_slide?.type || '',

@@ -132,7 +132,7 @@ export const ChapterSidebarAddButton = () => {
                         title: 'New Doc',
                         image_file_id: '',
                         description: '',
-                        slide_order: null,
+                        slide_order: 0,
                         document_slide: {
                             id: crypto.randomUUID(),
                             type: 'DOC',
