@@ -29,6 +29,7 @@ export interface GetLiveSessionsRequest {
 
 export interface LiveSession {
     session_id: string;
+    schedule_id: string;
     meeting_date: string;
     start_time: string;
     last_entry_time: string;

@@ -222,10 +222,13 @@ export const GET_LIVE_SESSIONS = `${BASE_URL}/admin-core-service/get-sessions/li
 export const GET_UPCOMING_SESSIONS = `${BASE_URL}/admin-core-service/get-sessions/upcoming`;
 export const GET_PAST_SESSIONS = `${BASE_URL}/admin-core-service/get-sessions/past`;
 export const GET_DRAFT_SESSIONS = `${BASE_URL}/admin-core-service/get-sessions/draft`;
+export const LIVE_SESSION_GET_SESSION_BY_SCHEDULE_ID = `${BASE_URL}/admin-core-service/get-sessions/by-schedule-id`;
+
 // export const GET_DRAFT_SESSIONS = `http://localhost:8072/admin-core-service/get-sessions/draft`;
 
 // export const GET_SESSION_BY_SESSION_ID = `http://localhost:8072/admin-core-service/get-sessions/by-session-id`;
 export const GET_SESSION_BY_SESSION_ID = `${BASE_URL}/admin-core-service/get-sessions/by-session-id`;
+export const LIVE_SESSION_REPORT_BY_SESSION_ID = `http://localhost:8072/admin-core-service/live-session-report/by-session-id`;
 
 export const GET_ALL_FACULTY = `${BASE_URL}/admin-core-service/institute/v1/faculty/faculty/get-all`;
 

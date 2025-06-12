@@ -4,11 +4,13 @@ import {
     GET_UPCOMING_SESSIONS,
     GET_DRAFT_SESSIONS,
     GET_SESSION_BY_SESSION_ID,
+    LIVE_SESSION_REPORT_BY_SESSION_ID,
 } from '@/constants/urls';
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 
 export interface LiveSession {
     session_id: string;
+    schedule_id: string;
     meeting_date: string;
     start_time: string;
     last_entry_time: string;
@@ -107,6 +109,20 @@ export interface Notifications {
     addedFields: Field[];
 }
 
+export interface LiveSessionReport {
+    fullName: string;
+    attendanceDetails: string | null;
+    attendanceTimestamp: string | null;
+    attendanceStatus: string | null;
+    dateOfBirth: string | null;
+    mobileNumber: string;
+    email: string;
+    enrollmentStatus: string;
+    gender: string;
+    studentId: string;
+    instituteEnrollmentNumber: string;
+}
+
 export interface SessionBySessionIdResponse {
     schedule: Schedule;
     notifications: Notifications;
@@ -172,6 +188,21 @@ export const getSessionBySessionId = async (sessionId: string) => {
         },
         params: {
             sessionId,
+        },
+    });
+    return response.data;
+};
+
+export const getLiveSessionReport = async (
+    sessionId: string,
+    scheduleId: string,
+    accessType: string
+): Promise<LiveSessionReport[]> => {
+    const response = await authenticatedAxiosInstance.get(LIVE_SESSION_REPORT_BY_SESSION_ID, {
+        params: {
+            sessionId,
+            scheduleId,
+            accessType,
         },
     });
     return response.data;
