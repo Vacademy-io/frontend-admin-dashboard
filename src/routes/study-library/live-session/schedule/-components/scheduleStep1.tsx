@@ -11,7 +11,7 @@ import { useFilterDataForAssesment } from '@/routes/assessment/assessment-list/-
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
 import { MyRadioButton } from '@/components/design-system/radio';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
     RecurringType,
     SessionPlatform,
@@ -38,7 +38,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-
+import { useSessionDetailsStore } from '../../-store/useSessionDetailsStore';
 // Constants
 const WAITING_ROOM_OPTIONS = [
     { value: '15', label: '15 minutes', _id: 1 },
@@ -55,6 +55,7 @@ const STREAMING_OPTIONS = [
 export default function ScheduleStep1() {
     // Hooks and State
     const navigate = useNavigate();
+    const { sessionDetails } = useSessionDetailsStore();
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [selectedMusicFile, setSelectedMusicFile] = useState<File | null>(null);
     const musicFileInputRef = useRef<HTMLInputElement>(null);
@@ -95,6 +96,27 @@ export default function ScheduleStep1() {
         },
         mode: 'onChange',
     });
+
+    useEffect(() => {
+        if (sessionDetails) {
+            form.setValue('title', sessionDetails.schedule.title);
+            form.setValue('subject', sessionDetails.schedule.subject ?? 'none');
+            form.setValue('description', sessionDetails.schedule.description_html ?? '');
+            form.setValue('startTime', sessionDetails.schedule.start_time);
+
+            if (sessionDetails.schedule.start_time && sessionDetails.schedule.last_entry_time) {
+                const start = new Date(sessionDetails.schedule.start_time);
+                const end = new Date(sessionDetails.schedule.last_entry_time);
+                if (end > start) {
+                    const durationMs = end.getTime() - start.getTime();
+                    const hours = Math.floor(durationMs / 3600000);
+                    const minutes = Math.floor((durationMs % 3600000) / 60000);
+                    form.setValue('durationHours', String(hours));
+                    form.setValue('durationMinutes', String(minutes));
+                }
+            }
+        }
+    }, [sessionDetails]);
 
     const { control, watch } = form;
     const meetingType = useWatch({ control, name: 'meetingType' });
@@ -150,7 +172,14 @@ export default function ScheduleStep1() {
         if (selectedFile) {
             thumbnailFileId = await UploadFileInS3(selectedFile, () => {}, 'your-user-id');
         }
-        const body = transformFormToDTOStep1(data, INSTITUTE_ID, [], musicFileId, thumbnailFileId);
+        const body = transformFormToDTOStep1(
+            data,
+            INSTITUTE_ID,
+            [],
+            musicFileId,
+            thumbnailFileId,
+            instituteDetails?.institute_logo_file_id
+        );
         try {
             const response = await createLiveSessionStep1(body);
             useLiveSessionStore.getState().setSessionId(response.id);

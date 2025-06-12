@@ -11,6 +11,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { LiveSession } from '../schedule/-services/utils';
+import { handleDownloadQRCode } from '@/routes/homework-creation/create-assessment/$assessmentId/$examtype/-utils/helper';
 
 interface LiveSessionCardProps {
     session: LiveSession;
@@ -86,7 +87,7 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
                 </div>
 
                 <div className="flex items-center gap-2">
-                    <span className="text-black">Last Entry:</span>
+                    <span className="text-black">End Time:</span>
                     <span>{session.last_entry_time}</span>
                 </div>
 
@@ -125,10 +126,9 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
                         scale="small"
                         buttonType="secondary"
                         className="h-8 min-w-8"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            // TODO: implement download QR code
-                        }}
+                        onClick={() =>
+                            handleDownloadQRCode(`qr-code-svg-live-session-${session.session_id}`)
+                        }
                     >
                         <DownloadSimple size={32} />
                     </MyButton>
