@@ -26,11 +26,11 @@ export const Route = createRootRouteWithContext<{
     queryClient: QueryClient;
 }>()({
     beforeLoad: ({ location }) => {
-        // Redirect root to login
-        if (location.pathname === "/") {
-            throw redirect({
-                to: "/login",
-            });
+        // Redirect root based on subdomain
+        if (location.pathname === '/') {
+            const subdomain = typeof window !== 'undefined' ? window.location.hostname.split('.')[0] : '';
+            const isVoltSubdomain = subdomain === 'volt';
+            throw redirect({ to: isVoltSubdomain ? '/landing' : '/login' });
         }
 
         // Check if the route requires authentication
