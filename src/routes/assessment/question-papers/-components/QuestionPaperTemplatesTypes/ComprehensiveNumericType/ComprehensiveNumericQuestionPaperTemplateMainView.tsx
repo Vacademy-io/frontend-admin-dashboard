@@ -1,19 +1,19 @@
-import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
-import { Sliders, X, Plus } from "phosphor-react";
-import { Checkbox } from "@/components/ui/checkbox";
-import "react-quill/dist/quill.snow.css";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { PopoverClose } from "@radix-ui/react-popover";
-import SelectField from "@/components/design-system/select-field";
-import CustomInput from "@/components/design-system/custom-input";
-import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
-import { QuestionPaperTemplateFormProps } from "../../../-utils/question-paper-template-form";
-import { formatStructure } from "../../../-utils/helper";
-import { QUESTION_TYPES, NUMERIC_TYPES } from "@/constants/dummy-data";
-import { MyInput } from "@/components/design-system/input";
-import { useState, useEffect } from "react";
-import { Badge } from "@/components/ui/badge";
+import { FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
+import { Sliders, X, Plus } from 'phosphor-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import 'react-quill/dist/quill.snow.css';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { PopoverClose } from '@radix-ui/react-popover';
+import SelectField from '@/components/design-system/select-field';
+import CustomInput from '@/components/design-system/custom-input';
+import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
+import { QuestionPaperTemplateFormProps } from '../../../-utils/question-paper-template-form';
+import { formatStructure } from '../../../-utils/helper';
+import { QUESTION_TYPES, NUMERIC_TYPES } from '@/constants/dummy-data';
+import { MyInput } from '@/components/design-system/input';
+import { useState, useEffect } from 'react';
+import { Badge } from '@/components/ui/badge';
 
 export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
     form,
@@ -32,53 +32,53 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
         trigger(`questions.${currentQuestionIndex}.validAnswers`);
     }, [numericType, currentQuestionIndex, trigger]);
 
-    const answersType = getValues("answersType") || "Answer:";
-    const explanationsType = getValues("explanationsType") || "Explanation:";
-    const questionsType = getValues("questionsType") || "";
+    const answersType = getValues('answersType') || 'Answer:';
+    const explanationsType = getValues('explanationsType') || 'Explanation:';
+    const questionsType = getValues('questionsType') || '';
 
     // const imageDetails = getValues(`questions.${currentQuestionIndex}.imageDetails`);
-    const allQuestions = getValues("questions") || [];
+    const allQuestions = getValues('questions') || [];
     const tags = getValues(`questions.${currentQuestionIndex}.tags`) || [];
-    const level = getValues(`questions.${currentQuestionIndex}.level`) || "";
+    const level = getValues(`questions.${currentQuestionIndex}.level`) || '';
 
-    const [isExpanded, setIsExpanded] = useState<boolean>(false);
+    // const [isExpanded, setIsExpanded] = useState<boolean>(false);
 
-    interface CollapsibleQuillEditorProps {
-        value: string | null | undefined;
-        onChange: (content: string) => void;
-    }
+    // interface CollapsibleQuillEditorProps {
+    //     value: string | null | undefined;
+    //     onChange: (content: string) => void;
+    // }
 
-    const CollapsibleQuillEditor: React.FC<CollapsibleQuillEditorProps> = ({ value, onChange }) => {
-        return (
-            <div className="">
-                {!isExpanded ? (
-                    // Render only a single line preview
-                    <div className="flex cursor-pointer flex-row gap-1 border bg-primary-100 p-2">
-                        <div className="w-full max-w-[50vw] overflow-hidden text-ellipsis whitespace-nowrap text-body">
-                            {value && value.replace(/<[^>]+>/g, "")}
-                        </div>
-                        <button
-                            className="text-body text-blue-500"
-                            onClick={() => setIsExpanded(true)}
-                        >
-                            Show More
-                        </button>
-                    </div>
-                ) : (
-                    // Render full Quill Editor when expanded
-                    <div className="border bg-primary-100 p-2">
-                        <MainViewQuillEditor value={value} onChange={onChange} />
-                        <button
-                            className="mt-2 text-body text-blue-500"
-                            onClick={() => setIsExpanded(false)}
-                        >
-                            Show Less
-                        </button>
-                    </div>
-                )}
-            </div>
-        );
-    };
+    // const CollapsibleQuillEditor: React.FC<CollapsibleQuillEditorProps> = ({ value, onChange }) => {
+    //     return (
+    //         <div className="">
+    //             {!isExpanded ? (
+    //                 // Render only a single line preview
+    //                 <div className="flex cursor-pointer flex-row gap-1 border bg-primary-100 p-2">
+    //                     <div className="w-full max-w-[50vw] overflow-hidden text-ellipsis whitespace-nowrap text-body">
+    //                         {value && value.replace(/<[^>]+>/g, '')}
+    //                     </div>
+    //                     <button
+    //                         className="text-body text-blue-500"
+    //                         onClick={() => setIsExpanded(true)}
+    //                     >
+    //                         Show More
+    //                     </button>
+    //                 </div>
+    //             ) : (
+    //                 // Render full Quill Editor when expanded
+    //                 <div className="border bg-primary-100 p-2">
+    //                     <MainViewQuillEditor value={value} onChange={onChange} />
+    //                     <button
+    //                         className="mt-2 text-body text-blue-500"
+    //                         onClick={() => setIsExpanded(false)}
+    //                     >
+    //                         Show Less
+    //                     </button>
+    //                 </div>
+    //             )}
+    //         </div>
+    //     );
+    // };
 
     useEffect(() => {
         const validAnswrs = form.getValues(`questions.${currentQuestionIndex}.validAnswers`);
@@ -154,7 +154,7 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
                     render={({ field }) => (
                         <FormItem className="w-full">
                             <FormControl>
-                                <CollapsibleQuillEditor
+                                <MainViewQuillEditor
                                     value={field.value}
                                     onChange={field.onChange}
                                 />
@@ -218,7 +218,7 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
                                                     // If unchecked, keep only the first answer
                                                     form.setValue(
                                                         `questions.${currentQuestionIndex}.validAnswers`,
-                                                        field.value ? [field.value[0] || 0] : [0],
+                                                        field.value ? [field.value[0] || 0] : [0]
                                                     );
                                                 }
                                             }}
@@ -262,8 +262,8 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
                                                         onClick={() => {
                                                             field.onChange(
                                                                 field.value?.filter(
-                                                                    (_, i) => i !== index,
-                                                                ),
+                                                                    (_, i) => i !== index
+                                                                )
                                                             );
                                                         }}
                                                     >
