@@ -11,7 +11,6 @@ import {
     useStudyLibraryStore,
 } from '@/stores/study-library/use-study-library-store';
 import { getCourseSessions } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSessionsForLevels';
-import { getCourseNameById } from '@/utils/helpers/study-library-helpers.ts/get-name-by-id/getCourseNameById';
 import { getCourseLevels } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getLevelWithDetails';
 import { getCourses } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getCourses';
 import { CourseDetailsPage } from './-components/course-details-page';
@@ -43,8 +42,6 @@ function RouteComponent() {
     const initialLevelList = initialSession ? getCourseLevels(courseId!, initialSession.id) : [];
 
     const [levelList, setLevelList] = useState(initialLevelList);
-
-    const courseName = getCourseNameById(courseId);
 
     const [courses, setCourses] = useState(getCourses());
 
