@@ -56,13 +56,9 @@ function RouteComponent() {
 
     useEffect(() => {
         navigate({
-            to: '/study-library/courses/course-details/subjects/modules/chapters',
+            to: '/study-library/courses/course-details',
             search: {
                 courseId,
-                levelId,
-                subjectId,
-                moduleId: currentModuleId,
-                sessionId,
             },
             replace: true,
         });

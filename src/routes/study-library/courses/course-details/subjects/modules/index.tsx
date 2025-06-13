@@ -48,8 +48,8 @@ function RouteComponent() {
 
     const handleBackClick = () => {
         navigate({
-            to: '/study-library/courses/course-details/subjects',
-            search: { courseId, levelId },
+            to: '/study-library/courses/course-details',
+            search: { courseId },
         });
     };
 

@@ -73,7 +73,7 @@ function RouteComponent() {
     const heading = (
         <div className="flex items-center gap-4">
             <CaretLeft onClick={handleBackClick} className="cursor-pointer" />
-            <div>{courseName} Levels</div>
+            <div>Course Details</div>
         </div>
     );
 

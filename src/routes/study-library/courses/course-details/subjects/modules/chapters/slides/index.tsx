@@ -15,7 +15,6 @@ import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore
 import { useChapterName } from '@/utils/helpers/study-library-helpers.ts/get-name-by-id/getChapterNameById';
 import { getModuleName } from '@/utils/helpers/study-library-helpers.ts/get-name-by-id/getModuleNameById';
 import { getSubjectName } from '@/utils/helpers/study-library-helpers.ts/get-name-by-id/getSubjectNameById';
-import { ChevronRightIcon } from '@radix-ui/react-icons';
 import { useNavigate } from '@tanstack/react-router';
 import { createFileRoute } from '@tanstack/react-router';
 import { CaretLeft } from 'phosphor-react';
@@ -70,35 +69,6 @@ function RouteComponent() {
         steps: studyLibrarySteps.addSlidesStep,
     });
 
-    const handleSubjectRoute = () => {
-        navigate({
-            to: '/study-library/courses/course-details/subjects/modules',
-            params: {},
-            search: {
-                courseId: courseId,
-                levelId: levelId,
-                subjectId: subjectId,
-                sessionId: sessionId,
-            },
-            hash: '',
-        });
-    };
-
-    const handleModuleRoute = () => {
-        navigate({
-            to: '/study-library/courses/course-details/subjects/modules/chapters',
-            params: {},
-            search: {
-                courseId: courseId,
-                levelId: levelId,
-                subjectId: subjectId,
-                moduleId: moduleId,
-                sessionId: sessionId,
-            },
-            hash: '',
-        });
-    };
-
     const handleSlideOrderChange = async (slideOrderPayload: slideOrderPayloadType) => {
         try {
             await updateSlideOrder({
@@ -119,10 +89,8 @@ function RouteComponent() {
         <div className="flex w-full flex-col items-center">
             <div className={`flex w-full flex-col gap-6 px-3 pb-3 `}>
                 <div className="flex flex-wrap items-center gap-1 text-neutral-500">
-                    <p onClick={handleSubjectRoute}>{subjectName}</p>
-                    <ChevronRightIcon className={`size-4 `} />
-                    <p onClick={handleModuleRoute}>{moduleName}</p>
-                    <ChevronRightIcon className={`size-4 `} />
+                    <p>{subjectName}</p>
+                    <p>{moduleName}</p>
                     <p className="cursor-pointer text-primary-500">{chapterName}</p>
                 </div>
                 <div className="flex w-full flex-col items-center gap-6 pb-10">
@@ -155,13 +123,9 @@ function RouteComponent() {
 
     const handleBackClick = () => {
         navigate({
-            to: `/study-library/courses/course-details/subjects/modules/chapters`,
+            to: `/study-library/courses/course-details`,
             search: {
                 courseId,
-                levelId,
-                subjectId,
-                moduleId,
-                sessionId: sessionId,
             },
         });
     };
