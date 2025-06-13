@@ -1,4 +1,5 @@
 // courseSchema.ts
+import { getPublicUrl } from '@/services/upload_file';
 import { z } from 'zod';
 
 const SlideSchema = z.object({
@@ -172,41 +173,52 @@ interface CourseWithSessionsType {
     }>;
 }
 
-export const transformApiDataToCourseData = (apiData: CourseWithSessionsType) => {
+export const transformApiDataToCourseData = async (apiData: CourseWithSessionsType) => {
     if (!apiData) return null;
 
-    return {
-        id: apiData.course.id,
-        title: apiData.course.package_name,
-        description: apiData.course.course_html_description.replace(/<[^>]*>/g, ''), // Remove HTML tags
-        tags: apiData.course.tags.split(',').map((tag) => tag.trim()),
-        imageUrl: '', // This should be set based on your media handling logic
-        courseStructure: apiData.course.course_depth,
-        whatYoullLearn: apiData.course.why_learn.replace(/<[^>]*>/g, ''), // Remove HTML tags
-        whyLearn: apiData.course.why_learn,
-        whoShouldLearn: apiData.course.who_should_learn,
-        aboutTheCourse: apiData.course.about_the_course,
-        packageName: apiData.course.package_name,
-        status: apiData.course.status,
-        isCoursePublishedToCatalaouge: apiData.course.is_course_published_to_catalaouge,
-        coursePreviewImageMediaId: apiData.course.course_preview_image_media_id,
-        courseBannerMediaId: apiData.course.course_banner_media_id,
-        courseMediaId: apiData.course.course_media_id,
-        courseHtmlDescription: apiData.course.course_html_description,
-        instructors: [], // This should be populated from your API if available
-        sessions: apiData.sessions.map((session) => ({
-            levelDetails: session.level_with_details.map((level) => ({
-                id: level.id,
-                name: level.name,
-                duration_in_days: level.duration_in_days,
-                subjects: level.subjects,
+    try {
+        const coursePreviewImageMediaId = await getPublicUrl(
+            apiData.course.course_preview_image_media_id
+        );
+        const courseBannerMediaId = await getPublicUrl(apiData.course.course_banner_media_id);
+        const courseMediaId = await getPublicUrl(apiData.course.course_media_id);
+
+        return {
+            id: apiData.course.id,
+            title: apiData.course.package_name,
+            description: apiData.course.course_html_description.replace(/<[^>]*>/g, ''), // Remove HTML tags
+            tags: apiData.course.tags.split(',').map((tag) => tag.trim()),
+            imageUrl: coursePreviewImageMediaId || '', // Use the preview image as the main image
+            courseStructure: apiData.course.course_depth,
+            whatYoullLearn: apiData.course.why_learn,
+            whyLearn: apiData.course.why_learn,
+            whoShouldLearn: apiData.course.who_should_learn,
+            aboutTheCourse: apiData.course.about_the_course,
+            packageName: apiData.course.package_name,
+            status: apiData.course.status,
+            isCoursePublishedToCatalaouge: apiData.course.is_course_published_to_catalaouge,
+            coursePreviewImageMediaId,
+            courseBannerMediaId,
+            courseMediaId,
+            courseHtmlDescription: apiData.course.course_html_description,
+            instructors: [], // This should be populated from your API if available
+            sessions: apiData.sessions.map((session) => ({
+                levelDetails: session.level_with_details.map((level) => ({
+                    id: level.id,
+                    name: level.name,
+                    duration_in_days: level.duration_in_days,
+                    subjects: level.subjects,
+                })),
+                sessionDetails: {
+                    id: session.session_dto.id,
+                    session_name: session.session_dto.session_name,
+                    status: session.session_dto.status,
+                    start_date: session.session_dto.start_date,
+                },
             })),
-            sessionDetails: {
-                id: session.session_dto.id,
-                session_name: session.session_dto.session_name,
-                status: session.session_dto.status,
-                start_date: session.session_dto.start_date,
-            },
-        })),
-    };
+        };
+    } catch (error) {
+        console.error('Error getting public URLs:', error);
+        return null;
+    }
 };

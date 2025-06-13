@@ -969,58 +969,111 @@ export const CourseDetailsPage = () => {
     }, []);
 
     useEffect(() => {
-        if (courseDetailsData?.course) {
-            const transformedData = transformApiDataToCourseData(courseDetailsData);
-            if (transformedData) {
-                form.reset({
-                    courseData: transformedData,
-                    mockCourses: mockCourses,
-                });
+        const loadCourseData = async () => {
+            if (courseDetailsData?.course) {
+                try {
+                    const transformedData = await transformApiDataToCourseData(courseDetailsData);
+                    if (transformedData) {
+                        form.reset({
+                            courseData: transformedData,
+                            mockCourses: mockCourses,
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error transforming course data:', error);
+                }
             }
-        }
+        };
+
+        loadCourseData();
     }, [courseDetailsData]);
+
+    console.log(form.getValues());
 
     return (
         <div className="flex min-h-screen flex-col bg-white">
             {/* Top Banner */}
-            <div className="relative h-[300px] bg-gradient-to-r from-blue-900 to-blue-700 text-white">
-                <div className="container mx-auto px-4 py-12">
+            <div className="relative h-[300px]">
+                {!form.watch('courseData').courseBannerMediaId ? (
+                    <div className="absolute inset-0 bg-primary-500" />
+                ) : (
+                    <div className="absolute inset-0">
+                        <img
+                            src={form.watch('courseData').courseBannerMediaId}
+                            alt="Course Banner"
+                            className="size-full object-cover"
+                            onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                e.currentTarget.parentElement?.classList.add('bg-primary-500');
+                            }}
+                        />
+                    </div>
+                )}
+                <div className="absolute inset-0 bg-primary-500/70" />{' '}
+                {/* Primary color overlay with 70% opacity */}
+                <div className="container relative mx-auto px-4 py-12 text-white">
                     <div className="flex items-start justify-between gap-8">
                         {/* Left side - Title and Description */}
                         <div className="max-w-2xl">
-                            <div className="mb-4 flex gap-2">
-                                {form.getValues('courseData').tags.map((tag, index) => (
-                                    <span
-                                        key={index}
-                                        className="rounded-full bg-blue-600 px-3 py-1 text-sm"
-                                    >
-                                        {tag}
-                                    </span>
-                                ))}
-                            </div>
-                            <h1 className="mb-4 text-4xl font-bold">
-                                {form.getValues('courseData').title}
-                            </h1>
-                            <p className="text-lg opacity-90">
-                                {form.getValues('courseData').description}
-                            </p>
+                            {!form.watch('courseData').title ? (
+                                <div className="space-y-4">
+                                    <div className="h-8 w-32 animate-pulse rounded bg-white/20" />
+                                    <div className="h-12 w-3/4 animate-pulse rounded bg-white/20" />
+                                    <div className="h-4 w-full animate-pulse rounded bg-white/20" />
+                                    <div className="h-4 w-2/3 animate-pulse rounded bg-white/20" />
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="mb-4 flex gap-2">
+                                        {form.getValues('courseData').tags.map((tag, index) => (
+                                            <span
+                                                key={index}
+                                                className="rounded-full bg-blue-600 px-3 py-1 text-sm"
+                                            >
+                                                {tag}
+                                            </span>
+                                        ))}
+                                    </div>
+                                    <h1 className="mb-4 text-4xl font-bold">
+                                        {form.getValues('courseData').title}
+                                    </h1>
+                                    <p className="text-lg opacity-90">
+                                        {form.getValues('courseData').description}
+                                    </p>
+                                </>
+                            )}
                         </div>
 
                         {/* Right side - Video Player */}
                         <div className="w-[400px] overflow-hidden rounded-lg shadow-xl">
                             <div className="relative aspect-video bg-black">
-                                {/* Video placeholder - replace with actual video component */}
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                    <div className="flex size-16 items-center justify-center rounded-full bg-white/20">
-                                        <svg
-                                            className="size-8 text-white"
-                                            fill="currentColor"
-                                            viewBox="0 0 24 24"
-                                        >
-                                            <path d="M8 5v14l11-7z" />
-                                        </svg>
+                                {!form.watch('courseData').courseMediaId ? (
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <div className="flex size-16 items-center justify-center rounded-full bg-white/20">
+                                            <svg
+                                                className="size-8 text-white"
+                                                fill="currentColor"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <path d="M8 5v14l11-7z" />
+                                            </svg>
+                                        </div>
                                     </div>
-                                </div>
+                                ) : (
+                                    <video
+                                        src={form.watch('courseData').courseMediaId}
+                                        controls
+                                        className="size-full rounded-lg object-contain"
+                                        onError={(e) => {
+                                            e.currentTarget.style.display = 'none';
+                                            e.currentTarget.parentElement?.classList.add(
+                                                'bg-black'
+                                            );
+                                        }}
+                                    >
+                                        Your browser does not support the video tag.
+                                    </video>
+                                )}
                             </div>
                         </div>
                     </div>
