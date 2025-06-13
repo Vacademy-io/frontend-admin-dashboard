@@ -21,7 +21,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -35,7 +35,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { CourseDetailsFormValues, courseDetailsSchema } from './course-details-schema';
+import {
+    CourseDetailsFormValues,
+    courseDetailsSchema,
+    transformApiDataToCourseData,
+} from './course-details-schema';
+import { useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
 
 type DialogType = 'subject' | 'module' | 'chapter' | 'slide' | null;
 
@@ -123,12 +128,6 @@ const courseData = {
         'Master modern web development with this comprehensive course covering React, Node.js, and more.',
     tags: ['Web Development', 'React', 'Node.js', 'Full Stack'],
     imageUrl: 'https://example.com/course-banner.jpg',
-    stats: {
-        students: 1234,
-        rating: 4.8,
-        reviews: 256,
-        lastUpdated: 'December 2023',
-    },
     courseStructure: 5, // Set to 4 for testing
     whatYoullLearn: [
         'Build full-stack web applications using React and Node.js',
@@ -200,9 +199,38 @@ export const CourseDetailsPage = () => {
     const router = useRouter();
     const searchParams = router.state.location.search;
 
+    const { studyLibraryData } = useStudyLibraryStore();
+
+    const courseDetailsData = useMemo(() => {
+        return studyLibraryData?.find((item) => item.course.id === searchParams.courseId);
+    }, [studyLibraryData]);
+
     const form = useForm<CourseDetailsFormValues>({
         resolver: zodResolver(courseDetailsSchema),
-        defaultValues: { courseData: courseData, mockCourses: mockCourses },
+        defaultValues: {
+            courseData: {
+                id: '',
+                title: '',
+                description: '',
+                tags: [],
+                imageUrl: '',
+                courseStructure: 1,
+                whatYoullLearn: '',
+                whyLearn: '',
+                whoShouldLearn: '',
+                aboutTheCourse: '',
+                packageName: '',
+                status: '',
+                isCoursePublishedToCatalaouge: false,
+                coursePreviewImageMediaId: '',
+                courseBannerMediaId: '',
+                courseMediaId: '',
+                courseHtmlDescription: '',
+                instructors: [],
+                sessions: [],
+            },
+            mockCourses: [],
+        },
         mode: 'onChange',
     });
 
@@ -218,18 +246,22 @@ export const CourseDetailsPage = () => {
     >([]);
 
     // Convert sessions to select options format
-    const sessionOptions = form.getValues('courseData').sessions.map((session) => ({
-        _id: session.sessionDetails.id,
-        value: session.sessionDetails.id,
-        label: session.sessionDetails.session_name,
-    }));
+    const sessionOptions = useMemo(() => {
+        const sessions = form.getValues('courseData')?.sessions || [];
+        return sessions.map((session) => ({
+            _id: session.sessionDetails.id,
+            value: session.sessionDetails.id,
+            label: session.sessionDetails.session_name,
+        }));
+    }, [form.watch('courseData.sessions')]);
 
     // Update level options when session changes
     const handleSessionChange = (sessionId: string) => {
         setSelectedSession(sessionId);
-        const selectedSessionData = form
-            .getValues('courseData')
-            .sessions.find((session) => session.sessionDetails.id === sessionId);
+        const sessions = form.getValues('courseData')?.sessions || [];
+        const selectedSessionData = sessions.find(
+            (session) => session.sessionDetails.id === sessionId
+        );
 
         if (selectedSessionData) {
             const newLevelOptions = selectedSessionData.levelDetails.map((level) => ({
@@ -663,9 +695,9 @@ export const CourseDetailsPage = () => {
             {!isAddButton && hasChildren && type && (
                 <button onClick={() => toggleExpand(id, type)} className="p-1">
                     {expandedItems[id] ? (
-                        <CaretDown className="h-4 w-4" />
+                        <CaretDown className="size-4" />
                     ) : (
-                        <CaretRight className="h-4 w-4" />
+                        <CaretRight className="size-4" />
                     )}
                 </button>
             )}
@@ -706,12 +738,12 @@ export const CourseDetailsPage = () => {
                         }
                     }}
                 >
-                    <Plus className="h-4 w-4" />
+                    <Plus className="size-4" />
                     {label}
                 </Button>
             ) : (
                 <span className="flex items-center gap-2">
-                    {!hasChildren && <div className="h-4 w-4" />}
+                    {!hasChildren && <div className="size-4" />}
                     {label}
                 </span>
             )}
@@ -936,6 +968,18 @@ export const CourseDetailsPage = () => {
         }
     }, []);
 
+    useEffect(() => {
+        if (courseDetailsData?.course) {
+            const transformedData = transformApiDataToCourseData(courseDetailsData);
+            if (transformedData) {
+                form.reset({
+                    courseData: transformedData,
+                    mockCourses: mockCourses,
+                });
+            }
+        }
+    }, [courseDetailsData]);
+
     return (
         <div className="flex min-h-screen flex-col bg-white">
             {/* Top Banner */}
@@ -967,9 +1011,9 @@ export const CourseDetailsPage = () => {
                             <div className="relative aspect-video bg-black">
                                 {/* Video placeholder - replace with actual video component */}
                                 <div className="absolute inset-0 flex items-center justify-center">
-                                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/20">
+                                    <div className="flex size-16 items-center justify-center rounded-full bg-white/20">
                                         <svg
-                                            className="h-8 w-8 text-white"
+                                            className="size-8 text-white"
                                             fill="currentColor"
                                             viewBox="0 0 24 24"
                                         >
@@ -987,7 +1031,7 @@ export const CourseDetailsPage = () => {
             <div className="container mx-auto px-4 py-8">
                 <div className="flex gap-8">
                     {/* Left Column - 2/3 width */}
-                    <div className="w-2/3 flex-grow">
+                    <div className="w-2/3 grow">
                         {/* Session and Level Selectors */}
                         <div className="container mx-auto px-0 pb-6">
                             <div className="flex items-center gap-6">
@@ -1040,13 +1084,13 @@ export const CourseDetailsPage = () => {
 
                         {/* What You'll Learn Section */}
                         <div className="mb-8">
-                            <h2 className="mb-4 text-2xl font-bold">What you'll learn?</h2>
+                            <h2 className="mb-4 text-2xl font-bold">What you&apos;ll learn?</h2>
                             <div className="rounded-lg">
-                                <p>
-                                    The Scratch Basics course is designed to introduce beginners to
-                                    the exciting world of coding through simple, visual programming.
-                                    Using Scratch's drag-and-drop interface, learners can easily
-                                </p>
+                                <p
+                                    dangerouslySetInnerHTML={{
+                                        __html: form.getValues('courseData').whatYoullLearn || '',
+                                    }}
+                                />
                             </div>
                         </div>
 
@@ -1054,11 +1098,11 @@ export const CourseDetailsPage = () => {
                         <div className="mb-8">
                             <h2 className="mb-4 text-2xl font-bold">About this course</h2>
                             <div className="rounded-lg">
-                                <p>
-                                    The Scratch Basics course is designed to introduce beginners to
-                                    the exciting world of coding through simple, visual programming.
-                                    Using Scratch's drag-and-drop interface, learners can easily
-                                </p>
+                                <p
+                                    dangerouslySetInnerHTML={{
+                                        __html: form.getValues('courseData').aboutTheCourse || '',
+                                    }}
+                                />
                             </div>
                         </div>
 
@@ -1066,11 +1110,11 @@ export const CourseDetailsPage = () => {
                         <div className="mb-8">
                             <h2 className="mb-4 text-2xl font-bold">Who should join?</h2>
                             <div className="rounded-lg">
-                                <p>
-                                    The Scratch Basics course is designed to introduce beginners to
-                                    the exciting world of coding through simple, visual programming.
-                                    Using Scratch's drag-and-drop interface, learners can easily
-                                </p>
+                                <p
+                                    dangerouslySetInnerHTML={{
+                                        __html: form.getValues('courseData').whoShouldLearn || '',
+                                    }}
+                                />
                             </div>
                         </div>
 
@@ -1079,7 +1123,7 @@ export const CourseDetailsPage = () => {
                             <h2 className="mb-4 text-2xl font-bold">Instructors</h2>
                             {form.getValues('courseData').instructors.map((instructor, index) => (
                                 <div key={index} className="flex gap-4 rounded-lg bg-gray-50 p-4">
-                                    <Avatar className="h-8 w-8">
+                                    <Avatar className="size-8">
                                         <AvatarImage src="" alt={instructor.email} />
                                         <AvatarFallback className="bg-[#3B82F6] text-xs font-medium text-white">
                                             {getInitials(instructor.email)}

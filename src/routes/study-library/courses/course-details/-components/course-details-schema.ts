@@ -1,30 +1,24 @@
 // courseSchema.ts
 import { z } from 'zod';
 
-// Base schemas for nested items (assuming common properties like id and title)
-// You would expand these with actual properties based on your data needs
 const SlideSchema = z.object({
     id: z.string().uuid(),
     title: z.string().min(1),
-    // Add other properties specific to a Slide, e.g., content: z.string()
 });
 
 const ChapterSchema = z.object({
     id: z.string().uuid(),
     title: z.string().min(1),
-    // Add other properties specific to a Chapter, e.g., pages: z.number()
 });
 
 const ModuleSchema = z.object({
     id: z.string().uuid(),
     title: z.string().min(1),
-    // Add other properties specific to a Module, e.g., topics: z.array(z.string())
 });
 
 const SubjectSchema = z.object({
     id: z.string().uuid(),
     title: z.string().min(1),
-    // Add other properties specific to a Subject, e.g., instructor: z.string()
 });
 
 // Define the schema for a single instructor
@@ -93,40 +87,34 @@ const CourseStructureSchema = z.discriminatedUnion('level', [
             items: z.array(SubjectSchema),
         }),
     }),
-    // Add a default case if level 1 is possible, or if other levels have a simpler structure
-    // For example, if level 1 just has a courseName and no items:
     z.object({
         level: z.literal(1),
         structure: z.object({
             courseName: z.string().min(1),
-            items: z.array(z.any()).optional(), // Or z.array(z.never()) if no items
+            items: z.array(z.any()).optional(),
         }),
     }),
 ]);
 
 export const courseDetailsSchema = z.object({
     courseData: z.object({
-        // This would be the wrapper if 'courseData' is a nested object
+        id: z.string(),
         title: z.string().min(1, { message: 'Title is required.' }),
         description: z.string().min(10, { message: 'Description must be at least 10 characters.' }),
         tags: z.array(z.string()).min(1, { message: 'At least one tag is required.' }),
         imageUrl: z.string().url({ message: 'Must be a valid URL for the image.' }),
-        stats: z.object({
-            students: z
-                .number()
-                .int()
-                .min(0, { message: 'Number of students must be a non-negative integer.' }),
-            rating: z.number().min(0).max(5, { message: 'Rating must be between 0 and 5.' }),
-            reviews: z
-                .number()
-                .int()
-                .min(0, { message: 'Number of reviews must be a non-negative integer.' }),
-            lastUpdated: z.string().min(1, { message: 'Last updated date is required.' }),
-        }),
-        courseStructure: z.number().min(1, { message: 'Course structure level must be 1, 2, 3, 4, or 5.' }),
-        whatYoullLearn: z
-            .array(z.string())
-            .min(1, { message: 'At least one learning objective is required.' }),
+        courseStructure: z.number(),
+        whatYoullLearn: z.string(),
+        whyLearn: z.string(),
+        whoShouldLearn: z.string(),
+        aboutTheCourse: z.string(),
+        packageName: z.string(),
+        status: z.string(),
+        isCoursePublishedToCatalaouge: z.boolean(),
+        coursePreviewImageMediaId: z.string(),
+        courseBannerMediaId: z.string(),
+        courseMediaId: z.string(),
+        courseHtmlDescription: z.string(),
         instructors: z
             .array(instructorSchema)
             .min(1, { message: 'At least one instructor is required.' }),
@@ -150,3 +138,75 @@ export type Slide = z.infer<typeof SlideSchema>;
 export type Chapter = z.infer<typeof ChapterSchema>;
 export type Module = z.infer<typeof ModuleSchema>;
 export type Subject = z.infer<typeof SubjectSchema>;
+
+interface CourseWithSessionsType {
+    course: {
+        id: string;
+        package_name: string;
+        thumbnail_file_id: string;
+        status: string;
+        is_course_published_to_catalaouge: boolean;
+        course_preview_image_media_id: string;
+        course_banner_media_id: string;
+        course_media_id: string;
+        why_learn: string;
+        who_should_learn: string;
+        about_the_course: string;
+        tags: string;
+        course_depth: number;
+        course_html_description: string;
+    };
+    sessions: Array<{
+        level_with_details: Array<{
+            id: string;
+            name: string;
+            duration_in_days: number;
+            subjects: string[];
+        }>;
+        session_dto: {
+            id: string;
+            session_name: string;
+            status: string;
+            start_date: string;
+        };
+    }>;
+}
+
+export const transformApiDataToCourseData = (apiData: CourseWithSessionsType) => {
+    if (!apiData) return null;
+
+    return {
+        id: apiData.course.id,
+        title: apiData.course.package_name,
+        description: apiData.course.course_html_description.replace(/<[^>]*>/g, ''), // Remove HTML tags
+        tags: apiData.course.tags.split(',').map((tag) => tag.trim()),
+        imageUrl: '', // This should be set based on your media handling logic
+        courseStructure: apiData.course.course_depth,
+        whatYoullLearn: apiData.course.why_learn.replace(/<[^>]*>/g, ''), // Remove HTML tags
+        whyLearn: apiData.course.why_learn,
+        whoShouldLearn: apiData.course.who_should_learn,
+        aboutTheCourse: apiData.course.about_the_course,
+        packageName: apiData.course.package_name,
+        status: apiData.course.status,
+        isCoursePublishedToCatalaouge: apiData.course.is_course_published_to_catalaouge,
+        coursePreviewImageMediaId: apiData.course.course_preview_image_media_id,
+        courseBannerMediaId: apiData.course.course_banner_media_id,
+        courseMediaId: apiData.course.course_media_id,
+        courseHtmlDescription: apiData.course.course_html_description,
+        instructors: [], // This should be populated from your API if available
+        sessions: apiData.sessions.map((session) => ({
+            levelDetails: session.level_with_details.map((level) => ({
+                id: level.id,
+                name: level.name,
+                duration_in_days: level.duration_in_days,
+                subjects: level.subjects,
+            })),
+            sessionDetails: {
+                id: session.session_dto.id,
+                session_name: session.session_dto.session_name,
+                status: session.session_dto.status,
+                start_date: session.session_dto.start_date,
+            },
+        })),
+    };
+};
