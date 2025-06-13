@@ -43,6 +43,8 @@ import {
 import { SubjectType, useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
 import { useGetPackageSessionId } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionId';
 import { useAddSubject } from '../subjects/-services/addSubject';
+import { useAddModule } from '../subjects/modules/-services/add-module';
+import { useAddChapter } from '../subjects/modules/chapters/-services/add-chapter';
 
 type DialogType = 'subject' | 'module' | 'chapter' | 'slide' | null;
 
@@ -187,23 +189,8 @@ export const CourseDetailsPage = () => {
         ) || '';
 
     const addSubjectMutation = useAddSubject();
-
-    const handleAddSubject = async (subjectName: string) => {
-        if (!packageSessionIds) {
-            console.error('No package session IDs found');
-            return;
-        }
-        const newSubject: SubjectType = {
-            id: crypto.randomUUID(),
-            subject_name: subjectName,
-            subject_code: '',
-            credit: 0,
-            thumbnail_id: '',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-        };
-        addSubjectMutation.mutate({ subject: newSubject, packageSessionIds });
-    };
+    const addModuleMutation = useAddModule();
+    const addChapterMutation = useAddChapter();
 
     // Convert sessions to select options format
     const sessionOptions = useMemo(() => {
@@ -295,115 +282,212 @@ export const CourseDetailsPage = () => {
         [form]
     );
 
-    const addModuleToSubject = (subjectId: string, moduleName: string) => {
-        if (!selectedCourse) return;
-
-        const newModuleId = crypto.randomUUID();
-
-        const updatedCourse = {
-            ...selectedCourse,
-            structure: {
-                ...selectedCourse.structure,
-                items: (selectedCourse.structure.items as Subject[]).map((subject) => {
-                    if (subject.id === subjectId) {
-                        const updatedSubject = {
-                            ...subject,
-                            modules: [
-                                ...subject.modules,
-                                {
-                                    id: newModuleId,
-                                    name: moduleName,
-                                    chapters: [],
-                                    isOpen: false,
-                                },
-                            ],
-                        };
-                        return updatedSubject;
-                    }
-                    return subject;
-                }),
-            },
-        };
-
-        updateSelectedCourseAndForm(updatedCourse);
-    };
-
-    const handleAddItem = () => {
+    const handleAddItem = async () => {
         if (!newItemName.trim() || !selectedCourse) return;
 
         const newId = crypto.randomUUID();
 
         switch (dialogType) {
             case 'subject': {
-                const updatedCourse = {
-                    ...selectedCourse,
-                    structure: {
-                        ...selectedCourse.structure,
-                        items: [
-                            ...(selectedCourse.structure.items as Subject[]),
-                            {
-                                id: newId,
-                                name: newItemName,
-                                modules: [],
-                                isOpen: false,
-                            },
-                        ],
-                    },
-                };
+                try {
+                    const newSubject: SubjectType = {
+                        id: '', // Let backend assign ID
+                        subject_name: newItemName,
+                        subject_code: '',
+                        credit: 0,
+                        thumbnail_id: '',
+                        created_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString(),
+                    };
 
-                updateSelectedCourseAndForm(updatedCourse);
+                    const response = await addSubjectMutation.mutateAsync({
+                        subject: newSubject,
+                        packageSessionIds,
+                    });
+
+                    if (response) {
+                        const updatedCourse = {
+                            ...selectedCourse,
+                            structure: {
+                                ...selectedCourse.structure,
+                                items: [
+                                    ...(selectedCourse.structure.items as Subject[]),
+                                    {
+                                        id: response.data.id,
+                                        name: response.data.subject_name,
+                                        modules: [],
+                                        isOpen: false,
+                                    },
+                                ],
+                            },
+                        };
+
+                        updateSelectedCourseAndForm(updatedCourse);
+                    }
+                } catch (error) {
+                    console.error('Error adding subject:', error);
+                }
                 break;
             }
 
             case 'module': {
-                if (selectedCourse.level === 4) {
-                    const updatedCourse = {
-                        ...selectedCourse,
-                        structure: {
-                            ...selectedCourse.structure,
-                            items: [
-                                ...(selectedCourse.structure.items as Module[]),
-                                {
-                                    id: newId,
-                                    name: newItemName,
-                                    chapters: [],
-                                    isOpen: false,
-                                },
-                            ],
-                        },
+                try {
+                    const newModule = {
+                        id: '', // Let the backend assign the ID
+                        module_name: newItemName,
+                        description: '',
+                        status: '',
+                        thumbnail_id: '',
                     };
-                    updateSelectedCourseAndForm(updatedCourse);
-                } else if (selectedParentId) {
-                    addModuleToSubject(selectedParentId, newItemName);
+
+                    if (selectedCourse.level === 4) {
+                        const response = await addModuleMutation.mutateAsync({
+                            subjectId: selectedParentId,
+                            module: newModule,
+                        });
+
+                        if (response) {
+                            const updatedCourse = {
+                                ...selectedCourse,
+                                structure: {
+                                    ...selectedCourse.structure,
+                                    items: [
+                                        ...(selectedCourse.structure.items as Module[]),
+                                        {
+                                            id: response.id,
+                                            name: newItemName,
+                                            chapters: [],
+                                            isOpen: false,
+                                        },
+                                    ],
+                                },
+                            };
+                            updateSelectedCourseAndForm(updatedCourse);
+                        }
+                    } else if (selectedCourse.level === 5 && selectedParentId) {
+                        // For level 5, selectedParentId is the subject ID
+                        const response = await addModuleMutation.mutateAsync({
+                            subjectId: selectedParentId,
+                            module: newModule,
+                        });
+
+                        if (response) {
+                            const updatedCourse = {
+                                ...selectedCourse,
+                                structure: {
+                                    ...selectedCourse.structure,
+                                    items: (selectedCourse.structure.items as Subject[]).map(
+                                        (subject) => {
+                                            if (subject.id === selectedParentId) {
+                                                return {
+                                                    ...subject,
+                                                    modules: [
+                                                        ...subject.modules,
+                                                        {
+                                                            id: response.data.id,
+                                                            name: newItemName,
+                                                            chapters: [],
+                                                            isOpen: false,
+                                                        },
+                                                    ],
+                                                };
+                                            }
+                                            return subject;
+                                        }
+                                    ),
+                                },
+                            };
+                            updateSelectedCourseAndForm(updatedCourse);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error adding module:', error);
                 }
                 break;
             }
 
             case 'chapter': {
                 if (selectedParentId) {
-                    const updatedCourse = {
-                        ...selectedCourse,
-                        structure: {
-                            ...selectedCourse.structure,
-                            // Cast to appropriate type based on level
-                            items: (
-                                selectedCourse.structure.items as (Subject | Module | Chapter)[]
-                            ).map((item) => {
-                                if (selectedCourse.level === 5) {
-                                    const [subjectId, moduleId] = selectedParentId.split('|');
-                                    if ((item as Subject).id === subjectId) {
-                                        const subject = item as Subject;
-                                        return {
-                                            ...subject,
-                                            modules: subject.modules.map((module) => {
+                    try {
+                        const newChapter = {
+                            id: '', // Let backend assign ID
+                            chapter_name: newItemName,
+                            status: 'true',
+                            file_id: '',
+                            description:
+                                'Click to view and access eBooks and video lectures for this chapter.',
+                            chapter_order: 0,
+                        };
+                        console.log(selectedParentId);
+
+                        if (selectedCourse.level === 5) {
+                            const [subjectId, moduleId] = selectedParentId.split('|');
+                            const response = await addChapterMutation.mutateAsync({
+                                moduleId,
+                                commaSeparatedPackageSessionIds: packageSessionIds,
+                                chapter: newChapter,
+                            });
+                            console.log(response);
+
+                            if (response) {
+                                const updatedCourse = {
+                                    ...selectedCourse,
+                                    structure: {
+                                        ...selectedCourse.structure,
+                                        items: (selectedCourse.structure.items as Subject[]).map(
+                                            (subject) => {
+                                                if (subject.id === subjectId) {
+                                                    return {
+                                                        ...subject,
+                                                        modules: subject.modules.map((module) => {
+                                                            if (module.id === moduleId) {
+                                                                return {
+                                                                    ...module,
+                                                                    chapters: [
+                                                                        ...(module.chapters || []),
+                                                                        {
+                                                                            id: response.id,
+                                                                            name: response.chapter_name,
+                                                                            slides: [],
+                                                                            isOpen: false,
+                                                                        },
+                                                                    ],
+                                                                };
+                                                            }
+                                                            return module;
+                                                        }),
+                                                    };
+                                                }
+                                                return subject;
+                                            }
+                                        ),
+                                    },
+                                };
+                                updateSelectedCourseAndForm(updatedCourse);
+                            }
+                        } else if (selectedCourse.level === 4) {
+                            const moduleId = selectedParentId;
+                            const response = await addChapterMutation.mutateAsync({
+                                moduleId,
+                                commaSeparatedPackageSessionIds: packageSessionIds,
+                                chapter: newChapter,
+                            });
+
+                            if (response) {
+                                const updatedCourse = {
+                                    ...selectedCourse,
+                                    structure: {
+                                        ...selectedCourse.structure,
+                                        items: (selectedCourse.structure.items as Module[]).map(
+                                            (module) => {
                                                 if (module.id === moduleId) {
                                                     return {
                                                         ...module,
                                                         chapters: [
                                                             ...(module.chapters || []),
                                                             {
-                                                                id: newId,
-                                                                name: newItemName,
+                                                                id: response.data.id,
+                                                                name: response.data.chapter_name,
                                                                 slides: [],
                                                                 isOpen: false,
                                                             },
@@ -411,51 +495,41 @@ export const CourseDetailsPage = () => {
                                                     };
                                                 }
                                                 return module;
-                                            }),
-                                        };
-                                    }
-                                } else if (selectedCourse.level === 4) {
-                                    // For 4-level structure, selectedParentId is just the moduleId
-                                    const moduleId = selectedParentId;
-                                    if ((item as Module).id === moduleId) {
-                                        const module = item as Module;
-                                        return {
-                                            ...module,
-                                            chapters: [
-                                                ...(module.chapters || []),
-                                                {
-                                                    id: newId,
-                                                    name: newItemName,
-                                                    slides: [],
-                                                    isOpen: false,
-                                                },
-                                            ],
-                                        };
-                                    }
-                                }
-                                return item;
-                            }),
-                        },
-                    };
-                    updateSelectedCourseAndForm(updatedCourse);
-                } else if (selectedCourse.level === 3) {
-                    // Directly add chapter for 3-level structure
-                    const updatedCourse = {
-                        ...selectedCourse,
-                        structure: {
-                            ...selectedCourse.structure,
-                            items: [
-                                ...(selectedCourse.structure.items as Chapter[]),
-                                {
-                                    id: newId,
-                                    name: newItemName,
-                                    slides: [],
-                                    isOpen: false,
-                                },
-                            ],
-                        },
-                    };
-                    updateSelectedCourseAndForm(updatedCourse);
+                                            }
+                                        ),
+                                    },
+                                };
+                                updateSelectedCourseAndForm(updatedCourse);
+                            }
+                        } else if (selectedCourse.level === 3) {
+                            const response = await addChapterMutation.mutateAsync({
+                                moduleId: selectedParentId,
+                                commaSeparatedPackageSessionIds: packageSessionIds,
+                                chapter: newChapter,
+                            });
+
+                            if (response) {
+                                const updatedCourse = {
+                                    ...selectedCourse,
+                                    structure: {
+                                        ...selectedCourse.structure,
+                                        items: [
+                                            ...(selectedCourse.structure.items as Chapter[]),
+                                            {
+                                                id: response.data.id,
+                                                name: response.data.chapter_name,
+                                                slides: [],
+                                                isOpen: false,
+                                            },
+                                        ],
+                                    },
+                                };
+                                updateSelectedCourseAndForm(updatedCourse);
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error adding chapter:', error);
+                    }
                 }
                 break;
             }
