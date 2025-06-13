@@ -1,9 +1,9 @@
-import { Checkbox } from "@/components/ui/checkbox";
-import { MyButton } from "@/components/design-system/button";
-import { MyDialog } from "@/components/design-system/dialog";
-import { useState, useEffect } from "react";
-import { fetchLearnerSetting, updateLearnersReportSetting } from "../../-services/utils";
-import { convertCommaSeparatedToArray } from "../../-services/helper";
+import { Checkbox } from '@/components/ui/checkbox';
+import { MyButton } from '@/components/design-system/button';
+import { MyDialog } from '@/components/design-system/dialog';
+import { useState, useEffect } from 'react';
+import { fetchLearnerSetting, updateLearnersReportSetting } from '../../-services/utils';
+import { convertCommaSeparatedToArray } from '../../-services/helper';
 import {
     InstituteSettingResponse,
     RoleSetting,
@@ -12,13 +12,13 @@ import {
     ReportDurationEnum,
     ReportTypeEnum,
     commaSeperatedType,
-} from "../../-types/types";
-import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
-import { TokenKey } from "@/constants/auth/tokens";
-import { useMutation } from "@tanstack/react-query";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { toast } from "sonner";
-import { MultipleInput } from "./SettingReportHelperComponent";
+} from '../../-types/types';
+import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
+import { useMutation } from '@tanstack/react-query';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { toast } from 'sonner';
+import { MultipleInput } from './SettingReportHelperComponent';
 
 const reportTypes = [
     ReportDurationEnum.DAILY,
@@ -35,23 +35,23 @@ export default function ReportRecipientsDialogBox({ userId }: { userId: string }
 
     const isCommTypeEnabled = (
         setting: RoleSetting | undefined,
-        type: CommunicationTypeEnum.EMAIL | CommunicationTypeEnum.WHATSAPP,
+        type: CommunicationTypeEnum.EMAIL | CommunicationTypeEnum.WHATSAPP
     ) => {
         if (!setting) return false;
-        else return setting?.comma_separated_communication_types?.split(",").includes(type);
+        else return setting?.comma_separated_communication_types?.split(',').includes(type);
     };
 
     const toggleCommType = (
         role: RoleSettingEnum.LEARNER | RoleSettingEnum.PARENT,
         type: CommunicationTypeEnum.EMAIL | CommunicationTypeEnum.WHATSAPP,
-        checked: boolean,
+        checked: boolean
     ) => {
         setSettingDetails((prev) => {
             if (!prev) return prev;
             const updated = { ...prev };
             const setting = updated[role];
 
-            let commTypes = setting.comma_separated_communication_types?.split(",") || [];
+            let commTypes = setting.comma_separated_communication_types?.split(',') || [];
 
             if (checked) {
                 if (!commTypes.includes(type)) commTypes.push(type);
@@ -59,7 +59,7 @@ export default function ReportRecipientsDialogBox({ userId }: { userId: string }
                 commTypes = commTypes.filter((t) => t !== type);
             }
 
-            setting.comma_separated_communication_types = commTypes.join(",");
+            setting.comma_separated_communication_types = commTypes.join(',');
             return updated;
         });
     };
@@ -68,7 +68,7 @@ export default function ReportRecipientsDialogBox({ userId }: { userId: string }
         role: RoleSettingEnum.LEARNER | RoleSettingEnum.PARENT,
         reportType: ReportTypeEnum.LEARNER_PROGRESS | ReportTypeEnum.BATCH_PROGRESS,
         duration: ReportDurationEnum,
-        value: boolean,
+        value: boolean
     ) => {
         const currentSetting = settingDetails?.[role];
         if (!currentSetting) return;
@@ -89,11 +89,11 @@ export default function ReportRecipientsDialogBox({ userId }: { userId: string }
     const handleListChange = (
         role: RoleSettingEnum.LEARNER | RoleSettingEnum.PARENT,
         commaSeperatedType: commaSeperatedType,
-        updatedList: string[],
+        updatedList: string[]
     ) => {
         const currentSetting = settingDetails?.[role];
         if (!currentSetting) return;
-        const updatedEmails = updatedList.join(", ") || null;
+        const updatedEmails = updatedList.join(', ') || null;
         const updatedSetting = {
             ...currentSetting,
             [commaSeperatedType]: updatedEmails,
@@ -109,7 +109,7 @@ export default function ReportRecipientsDialogBox({ userId }: { userId: string }
     const renderProgressReportSection = (
         roleKey: RoleSettingEnum.LEARNER | RoleSettingEnum.PARENT,
         settingKey: ReportTypeEnum.LEARNER_PROGRESS | ReportTypeEnum.BATCH_PROGRESS,
-        title: string,
+        title: string
     ) => (
         <div className="flex flex-col items-start gap-4">
             <div className="text-subtitle font-[600]">{title}</div>
@@ -132,14 +132,14 @@ export default function ReportRecipientsDialogBox({ userId }: { userId: string }
     const handleSave = () => {
         if (!settingDetails) return;
 
-        console.log("Saving updated settings:", settingDetails);
+        console.log('Saving updated settings:', settingDetails);
 
         updateSettingsMutation.mutate(
             { userId, data: settingDetails },
             {
-                onSuccess: () => toast.success("Settings updated!"),
-                onError: () => toast.error("Failed to update"),
-            },
+                onSuccess: () => toast.success('Settings updated!'),
+                onError: () => toast.error('Failed to update'),
+            }
         );
     };
 
@@ -150,16 +150,16 @@ export default function ReportRecipientsDialogBox({ userId }: { userId: string }
             const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
 
             settingsMutation.mutate(
-                { userId: userId, instituteId: INSTITUTE_ID || "" },
+                { userId: userId, instituteId: INSTITUTE_ID || '' },
                 {
                     onSuccess: (data) => {
                         console.log(data);
                         setSettingDetails(data);
                     },
                     onError: (error) => {
-                        console.error("Error:", error);
+                        console.error('Error:', error);
                     },
-                },
+                }
             );
         }
     }, [reportRecipientsState]);
@@ -189,13 +189,13 @@ export default function ReportRecipientsDialogBox({ userId }: { userId: string }
                                         <Checkbox
                                             checked={isCommTypeEnabled(
                                                 settingDetails?.learner_setting,
-                                                CommunicationTypeEnum.EMAIL,
+                                                CommunicationTypeEnum.EMAIL
                                             )}
                                             onCheckedChange={(checked) =>
                                                 toggleCommType(
                                                     RoleSettingEnum.LEARNER,
                                                     CommunicationTypeEnum.EMAIL,
-                                                    !!checked,
+                                                    !!checked
                                                 )
                                             }
                                         />
@@ -208,7 +208,7 @@ export default function ReportRecipientsDialogBox({ userId }: { userId: string }
                                         <MultipleInput
                                             itemsList={convertCommaSeparatedToArray(
                                                 settingDetails?.learner_setting
-                                                    ?.comma_separated_email_ids,
+                                                    ?.comma_separated_email_ids
                                             )}
                                             onListChange={handleListChange}
                                             role={RoleSettingEnum.LEARNER}
@@ -221,13 +221,13 @@ export default function ReportRecipientsDialogBox({ userId }: { userId: string }
                                     <Checkbox
                                         checked={isCommTypeEnabled(
                                             settingDetails?.learner_setting,
-                                            CommunicationTypeEnum.WHATSAPP,
+                                            CommunicationTypeEnum.WHATSAPP
                                         )}
                                         onCheckedChange={(checked) =>
                                             toggleCommType(
                                                 RoleSettingEnum.LEARNER,
                                                 CommunicationTypeEnum.WHATSAPP,
-                                                !!checked,
+                                                !!checked
                                             )
                                         }
                                     />
@@ -240,7 +240,7 @@ export default function ReportRecipientsDialogBox({ userId }: { userId: string }
                                     <MultipleInput
                                         itemsList={convertCommaSeparatedToArray(
                                             settingDetails?.learner_setting
-                                                ?.comma_separated_mobile_number,
+                                                ?.comma_separated_mobile_number
                                         )}
                                         onListChange={handleListChange}
                                         role={RoleSettingEnum.LEARNER}
@@ -251,12 +251,12 @@ export default function ReportRecipientsDialogBox({ userId }: { userId: string }
                                 {renderProgressReportSection(
                                     RoleSettingEnum.LEARNER,
                                     ReportTypeEnum.LEARNER_PROGRESS,
-                                    "Student Learning Progress Report",
+                                    'Student Learning Progress Report'
                                 )}
                                 {renderProgressReportSection(
                                     RoleSettingEnum.LEARNER,
                                     ReportTypeEnum.BATCH_PROGRESS,
-                                    "Batch Learning Progress Report",
+                                    'Batch Learning Progress Report'
                                 )}
                             </div>
                             <div className="border"></div>
@@ -265,13 +265,13 @@ export default function ReportRecipientsDialogBox({ userId }: { userId: string }
                                     <Checkbox
                                         checked={isCommTypeEnabled(
                                             settingDetails?.parent_setting,
-                                            CommunicationTypeEnum.EMAIL,
+                                            CommunicationTypeEnum.EMAIL
                                         )}
                                         onCheckedChange={(checked) =>
                                             toggleCommType(
                                                 RoleSettingEnum.PARENT,
                                                 CommunicationTypeEnum.EMAIL,
-                                                !!checked,
+                                                !!checked
                                             )
                                         }
                                     />
@@ -284,7 +284,7 @@ export default function ReportRecipientsDialogBox({ userId }: { userId: string }
                                     <MultipleInput
                                         itemsList={convertCommaSeparatedToArray(
                                             settingDetails?.parent_setting
-                                                ?.comma_separated_email_ids,
+                                                ?.comma_separated_email_ids
                                         )}
                                         onListChange={handleListChange}
                                         role={RoleSettingEnum.PARENT}
@@ -296,13 +296,13 @@ export default function ReportRecipientsDialogBox({ userId }: { userId: string }
                                     <Checkbox
                                         checked={isCommTypeEnabled(
                                             settingDetails?.parent_setting,
-                                            CommunicationTypeEnum.WHATSAPP,
+                                            CommunicationTypeEnum.WHATSAPP
                                         )}
                                         onCheckedChange={(checked) =>
                                             toggleCommType(
                                                 RoleSettingEnum.PARENT,
                                                 CommunicationTypeEnum.WHATSAPP,
-                                                !!checked,
+                                                !!checked
                                             )
                                         }
                                     />
@@ -315,7 +315,7 @@ export default function ReportRecipientsDialogBox({ userId }: { userId: string }
                                     <MultipleInput
                                         itemsList={convertCommaSeparatedToArray(
                                             settingDetails?.parent_setting
-                                                ?.comma_separated_mobile_number,
+                                                ?.comma_separated_mobile_number
                                         )}
                                         onListChange={handleListChange}
                                         role={RoleSettingEnum.PARENT}
@@ -326,12 +326,12 @@ export default function ReportRecipientsDialogBox({ userId }: { userId: string }
                                 {renderProgressReportSection(
                                     RoleSettingEnum.PARENT,
                                     ReportTypeEnum.LEARNER_PROGRESS,
-                                    "Student Learning Progress Report",
+                                    'Student Learning Progress Report'
                                 )}
                                 {renderProgressReportSection(
                                     RoleSettingEnum.PARENT,
                                     ReportTypeEnum.BATCH_PROGRESS,
-                                    "Batch Learning Progress Report",
+                                    'Batch Learning Progress Report'
                                 )}
                             </div>
                         </div>
