@@ -40,7 +40,9 @@ import {
     courseDetailsSchema,
     transformApiDataToCourseData,
 } from './course-details-schema';
-import { useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
+import { SubjectType, useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
+import { useGetPackageSessionId } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionId';
+import { useAddSubject } from '../subjects/-services/addSubject';
 
 type DialogType = 'subject' | 'module' | 'chapter' | 'slide' | null;
 
@@ -121,80 +123,6 @@ const mockCourses: Course[] = [
     },
 ];
 
-// Mock data for static display
-const courseData = {
-    title: 'Advanced Web Development Bootcamp',
-    description:
-        'Master modern web development with this comprehensive course covering React, Node.js, and more.',
-    tags: ['Web Development', 'React', 'Node.js', 'Full Stack'],
-    imageUrl: 'https://example.com/course-banner.jpg',
-    courseStructure: 5, // Set to 4 for testing
-    whatYoullLearn: [
-        'Build full-stack web applications using React and Node.js',
-        'Master modern JavaScript ES6+ features',
-        'Implement authentication and authorization',
-        'Deploy applications to production',
-    ],
-    instructors: [
-        {
-            id: '1',
-            email: 'john.doe@example.com',
-            name: 'John Doe',
-        },
-        {
-            id: '2',
-            email: 'john.doe@example.com',
-            name: 'John Snow',
-        },
-    ],
-    sessions: [
-        {
-            levelDetails: [
-                {
-                    id: 'd5e66a68-ce39-4091-bf5a-e2803782d69e',
-                    name: 'l1',
-                    duration_in_days: 0,
-                    subjects: [],
-                },
-                {
-                    id: 'd5e66a68-ce39-4091-bf5a-e2803782d68e',
-                    name: 'l2',
-                    duration_in_days: 0,
-                    subjects: [],
-                },
-            ],
-            sessionDetails: {
-                id: 'c5e5c465-778f-4e1d-9440-2f9d89646708',
-                session_name: 's1',
-                status: 'ACTIVE',
-                start_date: '2025-06-02',
-            },
-        },
-        {
-            levelDetails: [
-                {
-                    id: 'd5e66a68-ce39-4091-bf5a-e2803782d69e2',
-                    name: 'l1',
-                    duration_in_days: 0,
-                    subjects: [],
-                },
-                {
-                    id: 'd5e66a68-ce39-4091-bf5a-e2803782d68e1',
-                    name: 'l2',
-                    duration_in_days: 0,
-                    subjects: [],
-                },
-            ],
-            sessionDetails: {
-                id: 'c5e5c465-778f-4e1d-9440-2f9d89646709',
-                session_name: 's2',
-                status: 'ACTIVE',
-                start_date: '2025-06-02',
-            },
-        },
-    ],
-};
-
 export const CourseDetailsPage = () => {
     const router = useRouter();
     const searchParams = router.state.location.search;
@@ -244,6 +172,38 @@ export const CourseDetailsPage = () => {
     const [levelOptions, setLevelOptions] = useState<
         { _id: string; value: string; label: string }[]
     >([]);
+
+    // Get current session and level IDs
+    const currentSession = form
+        .getValues('courseData')
+        .sessions.find((session) => session.sessionDetails.id === selectedSession);
+    const currentLevel = currentSession?.levelDetails.find((level) => level.id === selectedLevel);
+
+    const packageSessionIds =
+        useGetPackageSessionId(
+            searchParams.courseId,
+            currentSession?.sessionDetails.id ?? '',
+            currentLevel?.id ?? ''
+        ) || '';
+
+    const addSubjectMutation = useAddSubject();
+
+    const handleAddSubject = async (subjectName: string) => {
+        if (!packageSessionIds) {
+            console.error('No package session IDs found');
+            return;
+        }
+        const newSubject: SubjectType = {
+            id: crypto.randomUUID(),
+            subject_name: subjectName,
+            subject_code: '',
+            credit: 0,
+            thumbnail_id: '',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+        };
+        addSubjectMutation.mutate({ subject: newSubject, packageSessionIds });
+    };
 
     // Convert sessions to select options format
     const sessionOptions = useMemo(() => {
