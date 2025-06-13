@@ -378,32 +378,58 @@ export const CourseDetailsPage = () => {
                         });
 
                         if (response) {
-                            const updatedCourse = {
-                                ...selectedCourse,
-                                structure: {
-                                    ...selectedCourse.structure,
-                                    items: (selectedCourse.structure.items as Subject[]).map(
-                                        (subject) => {
-                                            if (subject.id === selectedParentId) {
-                                                return {
-                                                    ...subject,
-                                                    modules: [
-                                                        ...subject.modules,
-                                                        {
-                                                            id: response.data.id,
-                                                            name: newItemName,
-                                                            chapters: [],
-                                                            isOpen: false,
-                                                        },
-                                                    ],
-                                                };
-                                            }
-                                            return subject;
+                            // Update the current level's subjects
+                            const currentSession = form
+                                .getValues('courseData')
+                                .sessions.find(
+                                    (session) => session.sessionDetails.id === selectedSession
+                                );
+                            const currentLevel = currentSession?.levelDetails.find(
+                                (level) => level.id === selectedLevel
+                            );
+
+                            if (currentLevel) {
+                                const updatedSubjects = currentLevel.subjects.map((subject) => {
+                                    if (subject.id === selectedParentId) {
+                                        return {
+                                            ...subject,
+                                            modules: [
+                                                ...(subject.modules || []),
+                                                {
+                                                    id: response.data.id,
+                                                    name: newItemName,
+                                                    chapters: [],
+                                                    isOpen: false,
+                                                },
+                                            ],
+                                        };
+                                    }
+                                    return subject;
+                                });
+
+                                // Update the form with new subjects
+                                const updatedSessions = form
+                                    .getValues('courseData')
+                                    .sessions.map((session) => {
+                                        if (session.sessionDetails.id === selectedSession) {
+                                            return {
+                                                ...session,
+                                                levelDetails: session.levelDetails.map((level) => {
+                                                    if (level.id === selectedLevel) {
+                                                        return {
+                                                            ...level,
+                                                            subjects: updatedSubjects,
+                                                        };
+                                                    }
+                                                    return level;
+                                                }),
+                                            };
                                         }
-                                    ),
-                                },
-                            };
-                            updateSelectedCourseAndForm(updatedCourse);
+                                        return session;
+                                    });
+
+                                form.setValue('courseData.sessions', updatedSessions);
+                            }
                         }
                     }
                 } catch (error) {
@@ -821,6 +847,14 @@ export const CourseDetailsPage = () => {
     const renderCourseStructure = () => {
         if (!selectedCourse) return null;
 
+        // Get current session and level subjects
+        const currentSession = form
+            .getValues('courseData')
+            .sessions.find((session) => session.sessionDetails.id === selectedSession);
+        const currentLevel = currentSession?.levelDetails.find(
+            (level) => level.id === selectedLevel
+        );
+
         switch (selectedCourse.level) {
             case 2:
                 // Only slides, flat structure
@@ -883,7 +917,7 @@ export const CourseDetailsPage = () => {
                                     <>
                                         {renderTreeItem(
                                             'Add Chapter',
-                                            `add|chapter|${module.id}`, // Pass module.id directly for 4-level
+                                            `add|chapter|${module.id}`,
                                             false,
                                             1,
                                             true
@@ -892,7 +926,7 @@ export const CourseDetailsPage = () => {
                                             <div key={chapter.id}>
                                                 {renderTreeItem(
                                                     chapter.name,
-                                                    `${module.id}|${chapter.id}`, // Use module.id|chapter.id for expansion key
+                                                    `${module.id}|${chapter.id}`,
                                                     true,
                                                     1,
                                                     false,
@@ -902,7 +936,7 @@ export const CourseDetailsPage = () => {
                                                     <>
                                                         {renderTreeItem(
                                                             'Add Slide',
-                                                            `add|slide|${module.id}|${chapter.id}`, // Pass moduleId|chapterId for slide
+                                                            `add|slide|${module.id}|${chapter.id}`,
                                                             false,
                                                             2,
                                                             true
@@ -933,10 +967,10 @@ export const CourseDetailsPage = () => {
                 return (
                     <div className="rounded-lg border p-4">
                         {renderTreeItem('Add Subject', 'add|subject', false, 0, true)}
-                        {(selectedCourse.structure.items as Subject[]).map((subject) => (
+                        {currentLevel?.subjects?.map((subject) => (
                             <div key={subject.id}>
                                 {renderTreeItem(
-                                    subject.name,
+                                    subject.subject_name,
                                     subject.id,
                                     true,
                                     0,
@@ -952,7 +986,7 @@ export const CourseDetailsPage = () => {
                                             1,
                                             true
                                         )}
-                                        {subject.modules.map((module) => (
+                                        {subject.modules?.map((module) => (
                                             <div key={module.id}>
                                                 {renderTreeItem(
                                                     module.name,
