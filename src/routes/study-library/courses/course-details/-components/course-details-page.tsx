@@ -21,7 +21,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -242,14 +242,6 @@ export const CourseDetailsPage = () => {
         }
     };
 
-    // Set initial session and its levels
-    useEffect(() => {
-        if (sessionOptions.length > 0 && !selectedSession) {
-            const initialSessionId = sessionOptions[0]?.value || '';
-            handleSessionChange(initialSessionId);
-        }
-    }, []);
-
     const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
 
     // Modified toggle function to handle hierarchical closing
@@ -280,13 +272,6 @@ export const CourseDetailsPage = () => {
     const [newItemName, setNewItemName] = useState('');
     const [selectedParentId, setSelectedParentId] = useState<string>('');
 
-    useEffect(() => {
-        const mockCourses = form.getValues('mockCourses');
-        const courseStructure = form.getValues('courseData').courseStructure;
-        const course = mockCourses.find((course) => course.level === courseStructure) as Course;
-        setSelectedCourse(course || undefined);
-    }, [form.watch('courseData.courseStructure')]);
-
     const handleAddClick = (type: DialogType, parentId?: string) => {
         setDialogType(type);
         setSelectedParentId(parentId || '');
@@ -294,41 +279,61 @@ export const CourseDetailsPage = () => {
         setNewItemName('');
     };
 
+    const updateSelectedCourseAndForm = useCallback(
+        (newCourse: Course | undefined) => {
+            if (!newCourse) {
+                setSelectedCourse(undefined);
+                return;
+            }
+
+            // Update local state
+            setSelectedCourse(newCourse);
+
+            // Update form immediately
+            const currentMockCourses = form.getValues('mockCourses');
+            const updatedMockCourses = currentMockCourses.map((mockCourse) => {
+                if (mockCourse.level === newCourse.level) {
+                    return { ...newCourse };
+                }
+                return mockCourse;
+            });
+
+            form.setValue('mockCourses', updatedMockCourses);
+        },
+        [form]
+    );
+
     const addModuleToSubject = (subjectId: string, moduleName: string) => {
         if (!selectedCourse) return;
 
         const newModuleId = crypto.randomUUID();
 
-        setSelectedCourse((prevCourse) => {
-            if (!prevCourse) return prevCourse;
+        const updatedCourse = {
+            ...selectedCourse,
+            structure: {
+                ...selectedCourse.structure,
+                items: (selectedCourse.structure.items as Subject[]).map((subject) => {
+                    if (subject.id === subjectId) {
+                        const updatedSubject = {
+                            ...subject,
+                            modules: [
+                                ...subject.modules,
+                                {
+                                    id: newModuleId,
+                                    name: moduleName,
+                                    chapters: [],
+                                    isOpen: false,
+                                },
+                            ],
+                        };
+                        return updatedSubject;
+                    }
+                    return subject;
+                }),
+            },
+        };
 
-            const newCourse = {
-                ...prevCourse,
-                structure: {
-                    ...prevCourse.structure,
-                    items: (prevCourse.structure.items as Subject[]).map((subject) => {
-                        if (subject.id === subjectId) {
-                            const updatedSubject = {
-                                ...subject,
-                                modules: [
-                                    ...subject.modules,
-                                    {
-                                        id: newModuleId,
-                                        name: moduleName,
-                                        chapters: [],
-                                        isOpen: false,
-                                    },
-                                ],
-                            };
-                            return updatedSubject;
-                        }
-                        return subject;
-                    }),
-                },
-            };
-
-            return newCourse;
-        });
+        updateSelectedCourseAndForm(updatedCourse);
     };
 
     const handleAddItem = () => {
@@ -338,49 +343,44 @@ export const CourseDetailsPage = () => {
 
         switch (dialogType) {
             case 'subject': {
-                setSelectedCourse((prevCourse) => {
-                    if (!prevCourse) return prevCourse;
+                const updatedCourse = {
+                    ...selectedCourse,
+                    structure: {
+                        ...selectedCourse.structure,
+                        items: [
+                            ...(selectedCourse.structure.items as Subject[]),
+                            {
+                                id: newId,
+                                name: newItemName,
+                                modules: [],
+                                isOpen: false,
+                            },
+                        ],
+                    },
+                };
 
-                    const newCourse = { ...prevCourse };
-                    const items = [...(newCourse.structure.items as Subject[])];
-
-                    if (prevCourse.level === 5) {
-                        const newSubject: Subject = {
-                            id: newId,
-                            name: newItemName,
-                            modules: [],
-                            isOpen: false,
-                        };
-                        items.push(newSubject);
-                    }
-
-                    newCourse.structure.items = items;
-                    return newCourse;
-                });
+                updateSelectedCourseAndForm(updatedCourse);
                 break;
             }
 
             case 'module': {
                 if (selectedCourse.level === 4) {
-                    setSelectedCourse((prevCourse) => {
-                        if (!prevCourse) return prevCourse;
-                        const newCourse = {
-                            ...prevCourse,
-                            structure: {
-                                ...prevCourse.structure,
-                                items: [
-                                    ...(prevCourse.structure.items as Module[]),
-                                    {
-                                        id: newId,
-                                        name: newItemName,
-                                        chapters: [],
-                                        isOpen: false,
-                                    },
-                                ],
-                            },
-                        };
-                        return newCourse;
-                    });
+                    const updatedCourse = {
+                        ...selectedCourse,
+                        structure: {
+                            ...selectedCourse.structure,
+                            items: [
+                                ...(selectedCourse.structure.items as Module[]),
+                                {
+                                    id: newId,
+                                    name: newItemName,
+                                    chapters: [],
+                                    isOpen: false,
+                                },
+                            ],
+                        },
+                    };
+                    updateSelectedCourseAndForm(updatedCourse);
                 } else if (selectedParentId) {
                     addModuleToSubject(selectedParentId, newItemName);
                 }
@@ -389,91 +389,81 @@ export const CourseDetailsPage = () => {
 
             case 'chapter': {
                 if (selectedParentId) {
-                    setSelectedCourse((prevCourse) => {
-                        if (!prevCourse) return prevCourse;
-
-                        const newCourse = {
-                            ...prevCourse,
-                            structure: {
-                                ...prevCourse.structure,
-                                // Cast to appropriate type based on level
-                                items: (
-                                    prevCourse.structure.items as (Subject | Module | Chapter)[]
-                                ).map((item) => {
-                                    if (prevCourse.level === 5) {
-                                        const [subjectId, moduleId] = selectedParentId.split('|');
-                                        if ((item as Subject).id === subjectId) {
-                                            const subject = item as Subject;
-                                            return {
-                                                ...subject,
-                                                modules: subject.modules.map((module) => {
-                                                    if (module.id === moduleId) {
-                                                        return {
-                                                            ...module,
-                                                            chapters: [
-                                                                ...(module.chapters || []),
-                                                                {
-                                                                    id: newId,
-                                                                    name: newItemName,
-                                                                    slides: [],
-                                                                    isOpen: false,
-                                                                },
-                                                            ],
-                                                        };
-                                                    }
-                                                    return module;
-                                                }),
-                                            };
-                                        }
-                                    } else if (prevCourse.level === 4) {
-                                        // For 4-level structure, selectedParentId is just the moduleId
-                                        const moduleId = selectedParentId;
-                                        if ((item as Module).id === moduleId) {
-                                            const module = item as Module;
-                                            return {
-                                                ...module,
-                                                chapters: [
-                                                    ...(module.chapters || []),
-                                                    {
-                                                        id: newId,
-                                                        name: newItemName,
-                                                        slides: [],
-                                                        isOpen: false,
-                                                    },
-                                                ],
-                                            };
-                                        }
-                                    } else if (prevCourse.level === 3) {
-                                        // For 3-level structure, parentId is not applicable as chapters are top-level
-                                        // This case should not be hit via 'add chapter' button with parentId
+                    const updatedCourse = {
+                        ...selectedCourse,
+                        structure: {
+                            ...selectedCourse.structure,
+                            // Cast to appropriate type based on level
+                            items: (
+                                selectedCourse.structure.items as (Subject | Module | Chapter)[]
+                            ).map((item) => {
+                                if (selectedCourse.level === 5) {
+                                    const [subjectId, moduleId] = selectedParentId.split('|');
+                                    if ((item as Subject).id === subjectId) {
+                                        const subject = item as Subject;
+                                        return {
+                                            ...subject,
+                                            modules: subject.modules.map((module) => {
+                                                if (module.id === moduleId) {
+                                                    return {
+                                                        ...module,
+                                                        chapters: [
+                                                            ...(module.chapters || []),
+                                                            {
+                                                                id: newId,
+                                                                name: newItemName,
+                                                                slides: [],
+                                                                isOpen: false,
+                                                            },
+                                                        ],
+                                                    };
+                                                }
+                                                return module;
+                                            }),
+                                        };
                                     }
-                                    return item;
-                                }),
-                            },
-                        };
-                        return newCourse;
-                    });
+                                } else if (selectedCourse.level === 4) {
+                                    // For 4-level structure, selectedParentId is just the moduleId
+                                    const moduleId = selectedParentId;
+                                    if ((item as Module).id === moduleId) {
+                                        const module = item as Module;
+                                        return {
+                                            ...module,
+                                            chapters: [
+                                                ...(module.chapters || []),
+                                                {
+                                                    id: newId,
+                                                    name: newItemName,
+                                                    slides: [],
+                                                    isOpen: false,
+                                                },
+                                            ],
+                                        };
+                                    }
+                                }
+                                return item;
+                            }),
+                        },
+                    };
+                    updateSelectedCourseAndForm(updatedCourse);
                 } else if (selectedCourse.level === 3) {
                     // Directly add chapter for 3-level structure
-                    setSelectedCourse((prevCourse) => {
-                        if (!prevCourse) return prevCourse;
-                        const newCourse = {
-                            ...prevCourse,
-                            structure: {
-                                ...prevCourse.structure,
-                                items: [
-                                    ...(prevCourse.structure.items as Chapter[]),
-                                    {
-                                        id: newId,
-                                        name: newItemName,
-                                        slides: [],
-                                        isOpen: false,
-                                    },
-                                ],
-                            },
-                        };
-                        return newCourse;
-                    });
+                    const updatedCourse = {
+                        ...selectedCourse,
+                        structure: {
+                            ...selectedCourse.structure,
+                            items: [
+                                ...(selectedCourse.structure.items as Chapter[]),
+                                {
+                                    id: newId,
+                                    name: newItemName,
+                                    slides: [],
+                                    isOpen: false,
+                                },
+                            ],
+                        },
+                    };
+                    updateSelectedCourseAndForm(updatedCourse);
                 }
                 break;
             }
@@ -491,117 +481,110 @@ export const CourseDetailsPage = () => {
                         [chapterId] = parts;
                     }
 
-                    setSelectedCourse((prevCourse) => {
-                        if (!prevCourse) return prevCourse;
-
-                        const newCourse = {
-                            ...prevCourse,
-                            structure: {
-                                ...prevCourse.structure,
-                                items: (
-                                    prevCourse.structure.items as (Subject | Module | Chapter)[]
-                                ).map((item) => {
-                                    if (
-                                        prevCourse.level === 5 &&
-                                        (item as Subject).id === subjectId
-                                    ) {
-                                        const subject = item as Subject;
-                                        return {
-                                            ...subject,
-                                            modules: subject.modules.map((module) => {
-                                                if (module.id === moduleId) {
+                    const updatedCourse = {
+                        ...selectedCourse,
+                        structure: {
+                            ...selectedCourse.structure,
+                            items: (
+                                selectedCourse.structure.items as (Subject | Module | Chapter)[]
+                            ).map((item) => {
+                                if (
+                                    selectedCourse.level === 5 &&
+                                    (item as Subject).id === subjectId
+                                ) {
+                                    const subject = item as Subject;
+                                    return {
+                                        ...subject,
+                                        modules: subject.modules.map((module) => {
+                                            if (module.id === moduleId) {
+                                                return {
+                                                    ...module,
+                                                    chapters:
+                                                        module.chapters?.map((chapter) => {
+                                                            if (chapter.id === chapterId) {
+                                                                return {
+                                                                    ...chapter,
+                                                                    slides: [
+                                                                        ...chapter.slides,
+                                                                        {
+                                                                            id: newId,
+                                                                            name: newItemName,
+                                                                            type: 'video',
+                                                                        },
+                                                                    ],
+                                                                };
+                                                            }
+                                                            return chapter;
+                                                        }) || [],
+                                                };
+                                            }
+                                            return module;
+                                        }),
+                                    };
+                                } else if (
+                                    selectedCourse.level === 4 &&
+                                    (item as Module).id === moduleId
+                                ) {
+                                    const module = item as Module;
+                                    return {
+                                        ...module,
+                                        chapters:
+                                            module.chapters?.map((chapter) => {
+                                                if (chapter.id === chapterId) {
                                                     return {
-                                                        ...module,
-                                                        chapters:
-                                                            module.chapters?.map((chapter) => {
-                                                                if (chapter.id === chapterId) {
-                                                                    return {
-                                                                        ...chapter,
-                                                                        slides: [
-                                                                            ...chapter.slides,
-                                                                            {
-                                                                                id: newId,
-                                                                                name: newItemName,
-                                                                                type: 'video',
-                                                                            },
-                                                                        ],
-                                                                    };
-                                                                }
-                                                                return chapter;
-                                                            }) || [],
+                                                        ...chapter,
+                                                        slides: [
+                                                            ...chapter.slides,
+                                                            {
+                                                                id: newId,
+                                                                name: newItemName,
+                                                                type: 'video',
+                                                            },
+                                                        ],
                                                     };
                                                 }
-                                                return module;
-                                            }),
-                                        };
-                                    } else if (
-                                        prevCourse.level === 4 &&
-                                        (item as Module).id === moduleId
-                                    ) {
-                                        const module = item as Module;
-                                        return {
-                                            ...module,
-                                            chapters:
-                                                module.chapters?.map((chapter) => {
-                                                    if (chapter.id === chapterId) {
-                                                        return {
-                                                            ...chapter,
-                                                            slides: [
-                                                                ...chapter.slides,
-                                                                {
-                                                                    id: newId,
-                                                                    name: newItemName,
-                                                                    type: 'video',
-                                                                },
-                                                            ],
-                                                        };
-                                                    }
-                                                    return chapter;
-                                                }) || [],
-                                        };
-                                    } else if (
-                                        prevCourse.level === 3 &&
-                                        (item as Chapter).id === chapterId
-                                    ) {
-                                        const chapter = item as Chapter;
-                                        return {
-                                            ...chapter,
-                                            slides: [
-                                                ...chapter.slides,
-                                                {
-                                                    id: newId,
-                                                    name: newItemName,
-                                                    type: 'video',
-                                                },
-                                            ],
-                                        };
-                                    }
-                                    return item;
-                                }),
-                            },
-                        };
-                        return newCourse;
-                    });
+                                                return chapter;
+                                            }) || [],
+                                    };
+                                } else if (
+                                    selectedCourse.level === 3 &&
+                                    (item as Chapter).id === chapterId
+                                ) {
+                                    const chapter = item as Chapter;
+                                    return {
+                                        ...chapter,
+                                        slides: [
+                                            ...chapter.slides,
+                                            {
+                                                id: newId,
+                                                name: newItemName,
+                                                type: 'video',
+                                            },
+                                        ],
+                                    };
+                                }
+                                return item;
+                            }),
+                        },
+                    };
+                    updateSelectedCourseAndForm(updatedCourse);
                 } else if (selectedCourse.level === 2) {
                     // Directly add slide for 2-level structure
-                    setSelectedCourse((prevCourse) => {
-                        if (!prevCourse) return prevCourse;
-                        const newCourse = {
-                            ...prevCourse,
-                            structure: {
-                                ...prevCourse.structure,
-                                items: [
-                                    ...(prevCourse.structure.items as Slide[]),
-                                    {
-                                        id: newId,
-                                        name: newItemName,
-                                        type: 'video', // Default type
-                                    },
-                                ],
-                            },
-                        };
-                        return newCourse;
-                    });
+                    const updatedCourse = {
+                        ...selectedCourse,
+                        structure: {
+                            ...selectedCourse.structure,
+                            items: [
+                                ...(selectedCourse.structure.items as Slide[]),
+                                {
+                                    id: newId,
+                                    name: newItemName,
+                                    type: 'video', // Default type
+                                },
+                            ],
+                        },
+                    };
+                    updateSelectedCourseAndForm(updatedCourse);
                 }
                 break;
             }
@@ -937,6 +920,21 @@ export const CourseDetailsPage = () => {
                 );
         }
     };
+
+    useEffect(() => {
+        const mockCourses = form.getValues('mockCourses');
+        const courseStructure = form.getValues('courseData').courseStructure;
+        const course = mockCourses.find((course) => course.level === courseStructure) as Course;
+        setSelectedCourse(course || undefined);
+    }, [form.watch('courseData.courseStructure')]);
+
+    // Set initial session and its levels
+    useEffect(() => {
+        if (sessionOptions.length > 0 && !selectedSession) {
+            const initialSessionId = sessionOptions[0]?.value || '';
+            handleSessionChange(initialSessionId);
+        }
+    }, []);
 
     return (
         <div className="flex min-h-screen flex-col bg-white">
