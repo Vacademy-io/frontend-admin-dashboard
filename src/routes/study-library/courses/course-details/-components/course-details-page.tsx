@@ -288,8 +288,6 @@ export const CourseDetailsPage = () => {
         [form]
     );
 
-    console.log(packageSessionIds);
-
     const handleAddItem = async () => {
         if (!newItemName.trim() || !selectedCourse) return;
 
@@ -722,6 +720,42 @@ export const CourseDetailsPage = () => {
         );
     };
 
+    const handleAddSlide = (parentId: string) => {
+        const parts = parentId.split('|');
+        let subjectId = '',
+            moduleId = '',
+            chapterId = '';
+
+        if (selectedCourse?.level === 5) {
+            // For level 5, format is: add|slide|subjectId|moduleId|chapterId
+            subjectId = parts[2] || '';
+            moduleId = parts[3] || '';
+            chapterId = parts[4] || '';
+        } else if (selectedCourse?.level === 4) {
+            // For level 4, format is: add|slide|moduleId|chapterId
+            moduleId = parts[2] || '';
+            chapterId = parts[3] || '';
+        } else if (selectedCourse?.level === 3) {
+            // For level 3, format is: add|slide|chapterId
+            chapterId = parts[2] || '';
+        }
+
+        const navigationParams = {
+            courseId: router.state.location.search.courseId ?? '',
+            levelId: selectedLevel,
+            subjectId,
+            moduleId,
+            chapterId,
+            slideId: '', // Empty for new slide
+            sessionId: selectedSession,
+        };
+
+        router.navigate({
+            to: '/study-library/courses/course-details/subjects/modules/chapters/slides',
+            search: navigationParams,
+        });
+    };
+
     const renderTreeItem = (
         label: string,
         id: string,
@@ -748,35 +782,27 @@ export const CourseDetailsPage = () => {
                     variant="ghost"
                     className="h-8 gap-2 p-2 text-sm"
                     onClick={() => {
-                        const parts = id.split('|'); // Split the ID string
+                        console.log('Button clicked with id:', id); // Debug log
+                        const parts = id.split('|');
                         if (parts[1] === 'subject') {
                             handleAddClick('subject');
                         } else if (parts[1] === 'module') {
                             if (selectedCourse?.level === 4) {
-                                handleAddClick('module'); // No parentId needed for top-level modules in 4-level
+                                handleAddClick('module');
                             } else if (selectedCourse?.level === 5) {
-                                handleAddClick('module', parts[2]); // subjectId for 5-level
+                                handleAddClick('module', parts[2]);
                             }
                         } else if (parts[1] === 'chapter') {
                             if (selectedCourse?.level === 4) {
-                                // For 4-level, parentId is the module ID
                                 handleAddClick('chapter', parts[2]);
                             } else if (selectedCourse?.level === 5) {
-                                // For 5-level, parentId is subjectId|moduleId
                                 handleAddClick('chapter', `${parts[2]}|${parts[3]}`);
                             } else if (selectedCourse?.level === 3) {
-                                handleAddClick('chapter'); // No parentId needed for top-level chapters in 3-level
+                                handleAddClick('chapter');
                             }
                         } else if (parts[1] === 'slide') {
-                            if (selectedCourse?.level === 2) {
-                                handleAddClick('slide'); // No parentId needed for top-level slides in 2-level
-                            } else if (selectedCourse?.level === 3) {
-                                handleAddClick('slide', parts[2]); // chapterId for 3-level
-                            } else if (selectedCourse?.level === 4) {
-                                handleAddClick('slide', `${parts[2]}|${parts[3]}`); // moduleId|chapterId for 4-level
-                            } else if (selectedCourse?.level === 5) {
-                                handleAddClick('slide', `${parts[2]}|${parts[3]}|${parts[4]}`); // subjectId|moduleId|chapterId for 5-level
-                            }
+                            console.log('Handling slide add with id:', id); // Debug log
+                            handleAddSlide(id);
                         }
                     }}
                 >
