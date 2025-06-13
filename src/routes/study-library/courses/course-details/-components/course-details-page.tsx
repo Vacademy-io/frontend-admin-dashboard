@@ -183,7 +183,7 @@ export const CourseDetailsPage = () => {
 
     const packageSessionIds =
         useGetPackageSessionId(
-            searchParams.courseId,
+            searchParams.courseId ?? '',
             currentSession?.sessionDetails.id ?? '',
             currentLevel?.id ?? ''
         ) || '';
@@ -217,14 +217,20 @@ export const CourseDetailsPage = () => {
                 label: level.name,
             }));
             setLevelOptions(newLevelOptions);
-            setSelectedLevel(''); // Reset level selection when session changes
+
+            // Select the first level when session changes
+            if (newLevelOptions.length > 0) {
+                setSelectedLevel(newLevelOptions[0].value);
+            } else {
+                setSelectedLevel('');
+            }
         }
     };
 
     const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
 
     // Modified toggle function to handle hierarchical closing
-    const toggleExpand = (id: string, type: 'subject' | 'module' | 'chapter') => {
+    const toggleExpand = (id: string) => {
         setExpandedItems((prev) => {
             const newState = { ...prev };
             const isExpanding = !prev[id];
@@ -281,6 +287,8 @@ export const CourseDetailsPage = () => {
         },
         [form]
     );
+
+    console.log(packageSessionIds);
 
     const handleAddItem = async () => {
         if (!newItemName.trim() || !selectedCourse) return;
@@ -354,7 +362,7 @@ export const CourseDetailsPage = () => {
                                     items: [
                                         ...(selectedCourse.structure.items as Module[]),
                                         {
-                                            id: response.id,
+                                            id: response.data.id,
                                             name: newItemName,
                                             chapters: [],
                                             isOpen: false,
@@ -418,7 +426,6 @@ export const CourseDetailsPage = () => {
                                 'Click to view and access eBooks and video lectures for this chapter.',
                             chapter_order: 0,
                         };
-                        console.log(selectedParentId);
 
                         if (selectedCourse.level === 5) {
                             const [subjectId, moduleId] = selectedParentId.split('|');
@@ -427,7 +434,6 @@ export const CourseDetailsPage = () => {
                                 commaSeparatedPackageSessionIds: packageSessionIds,
                                 chapter: newChapter,
                             });
-                            console.log(response);
 
                             if (response) {
                                 const updatedCourse = {
@@ -537,14 +543,16 @@ export const CourseDetailsPage = () => {
             case 'slide': {
                 if (selectedParentId) {
                     const parts = selectedParentId.split('|');
-                    let subjectId, moduleId, chapterId;
+                    let subjectId = '',
+                        moduleId = '',
+                        chapterId = '';
 
                     if (selectedCourse.level === 5) {
-                        [subjectId, moduleId, chapterId] = parts;
+                        [subjectId = '', moduleId = '', chapterId = ''] = parts;
                     } else if (selectedCourse.level === 4) {
-                        [moduleId, chapterId] = parts;
+                        [moduleId = '', chapterId = ''] = parts;
                     } else if (selectedCourse.level === 3) {
-                        [chapterId] = parts;
+                        [chapterId = ''] = parts;
                     }
 
                     const updatedCourse = {
@@ -727,7 +735,7 @@ export const CourseDetailsPage = () => {
             style={{ paddingLeft: `${level * 20}px` }}
         >
             {!isAddButton && hasChildren && type && (
-                <button onClick={() => toggleExpand(id, type)} className="p-1">
+                <button onClick={() => toggleExpand(id)} className="p-1">
                     {expandedItems[id] ? (
                         <CaretDown className="size-4" />
                     ) : (
@@ -997,10 +1005,25 @@ export const CourseDetailsPage = () => {
     // Set initial session and its levels
     useEffect(() => {
         if (sessionOptions.length > 0 && !selectedSession) {
-            const initialSessionId = sessionOptions[0]?.value || '';
+            const initialSessionId = sessionOptions[0].value;
             handleSessionChange(initialSessionId);
         }
-    }, []);
+    }, [sessionOptions]);
+
+    // Update packageSessionIds when either session or level changes
+    useEffect(() => {
+        if (selectedSession && selectedLevel) {
+            const session = form
+                .getValues('courseData')
+                .sessions.find((s) => s.sessionDetails.id === selectedSession);
+            const level = session?.levelDetails.find((l) => l.id === selectedLevel);
+
+            if (session && level) {
+                // The packageSessionIds will automatically update due to the useGetPackageSessionId hook
+                // which depends on selectedSession and selectedLevel
+            }
+        }
+    }, [selectedSession, selectedLevel]);
 
     useEffect(() => {
         const loadCourseData = async () => {
