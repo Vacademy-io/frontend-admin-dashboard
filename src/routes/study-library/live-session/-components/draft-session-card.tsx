@@ -9,16 +9,19 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { deleteLiveSession } from '../schedule/-services/utils';
 import { DraftSession, getSessionBySessionId } from '../-services/utils';
 import { useLiveSessionStore } from '../schedule/-store/sessionIdstore';
 import { useNavigate } from '@tanstack/react-router';
 import { useSessionDetailsStore } from '../-store/useSessionDetailsStore';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface DraftSessionCardProps {
     session: DraftSession;
 }
 
 export default function DraftSessionCard({ session }: DraftSessionCardProps) {
+    const queryClient = useQueryClient();
     const joinLink =
         session.registration_form_link_for_public_sessions ||
         `${BASE_URL_LEARNER_DASHBOARD}/register/live-class?sessionId=${session.session_id}`;
@@ -36,6 +39,17 @@ export default function DraftSessionCard({ session }: DraftSessionCardProps) {
             navigate({ to: `/study-library/live-session/schedule/step1` });
         } catch (error) {
             console.error('Failed to fetch session details:', error);
+        }
+    };
+
+    const handleDelete = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        try {
+            await deleteLiveSession(session.session_id);
+            await queryClient.invalidateQueries({ queryKey: ['draftSessions'] });
+            await queryClient.invalidateQueries({ queryKey: ['upcomingSessions'] });
+        } catch (error) {
+            console.error('Error deleting session:', error);
         }
     };
 
@@ -76,12 +90,7 @@ export default function DraftSessionCard({ session }: DraftSessionCardProps) {
                             >
                                 Edit Live Session
                             </DropdownMenuItem>
-                            <DropdownMenuItem
-                                className="cursor-pointer"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                }}
-                            >
+                            <DropdownMenuItem className="cursor-pointer" onClick={handleDelete}>
                                 Delete Live Session
                             </DropdownMenuItem>
                         </DropdownMenuContent>

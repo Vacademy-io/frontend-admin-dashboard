@@ -10,8 +10,9 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LiveSession } from '../schedule/-services/utils';
+import { deleteLiveSession, LiveSession } from '../schedule/-services/utils';
 import { handleDownloadQRCode } from '@/routes/homework-creation/create-assessment/$assessmentId/$examtype/-utils/helper';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface LiveSessionCardProps {
     session: LiveSession;
@@ -19,10 +20,22 @@ interface LiveSessionCardProps {
 }
 
 export default function LiveSessionCard({ session, isDraft = false }: LiveSessionCardProps) {
+    const queryClient = useQueryClient();
     const joinLink =
         session.registration_form_link_for_public_sessions ||
         `${BASE_URL_LEARNER_DASHBOARD}/register/live-class?sessionId=${session.session_id}`;
     const formattedDateTime = `${session.meeting_date} ${session.start_time}`;
+
+    const handleDelete = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        try {
+            await deleteLiveSession(session.session_id);
+            await queryClient.invalidateQueries({ queryKey: ['liveSessions'] });
+            await queryClient.invalidateQueries({ queryKey: ['upcomingSessions'] });
+        } catch (error) {
+            console.error('Error deleting session:', error);
+        }
+    };
 
     return (
         <div className="my-6 flex cursor-pointer flex-col gap-4 rounded-xl border bg-neutral-50 p-4">
@@ -62,12 +75,7 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
                                     Edit Live Session
                                 </DropdownMenuItem>
                             )}
-                            <DropdownMenuItem
-                                className="cursor-pointer"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                }}
-                            >
+                            <DropdownMenuItem className="cursor-pointer" onClick={handleDelete}>
                                 Delete Live Session
                             </DropdownMenuItem>
                         </DropdownMenuContent>
