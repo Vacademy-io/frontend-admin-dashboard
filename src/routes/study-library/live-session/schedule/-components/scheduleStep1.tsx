@@ -99,6 +99,7 @@ export default function ScheduleStep1() {
 
     useEffect(() => {
         if (sessionDetails) {
+            console.log('sessionDetails', sessionDetails);
             form.setValue('title', sessionDetails.schedule.title);
             form.setValue('subject', sessionDetails.schedule.subject ?? 'none');
             form.setValue('description', sessionDetails.schedule.description_html ?? '');
