@@ -216,7 +216,6 @@ export const DUPLICATE_STUDY_MATERIAL_FROM_SESSION = `${BASE_URL}/admin-core-ser
 
 // Live sessions
 export const CREATE_LIVE_SESSION_STEP_1 = `${BASE_URL}/admin-core-service/live-sessions/v1/create/step1`;
-// export const CREATE_LIVE_SESSION_STEP_1 = `http://localhost:8072/admin-core-service/live-sessions/v1/create/step1`;
 export const CREATE_LIVE_SESSION_STEP_2 = `${BASE_URL}/admin-core-service/live-sessions/v1/create/step2`;
 export const GET_LIVE_SESSIONS = `${BASE_URL}/admin-core-service/get-sessions/live`;
 export const GET_UPCOMING_SESSIONS = `${BASE_URL}/admin-core-service/get-sessions/upcoming`;
@@ -224,11 +223,8 @@ export const GET_PAST_SESSIONS = `${BASE_URL}/admin-core-service/get-sessions/pa
 export const GET_DRAFT_SESSIONS = `${BASE_URL}/admin-core-service/get-sessions/draft`;
 export const LIVE_SESSION_GET_SESSION_BY_SCHEDULE_ID = `${BASE_URL}/admin-core-service/get-sessions/by-schedule-id`;
 
-// export const GET_DRAFT_SESSIONS = `http://localhost:8072/admin-core-service/get-sessions/draft`;
-
-// export const GET_SESSION_BY_SESSION_ID = `http://localhost:8072/admin-core-service/get-sessions/by-session-id`;
 export const GET_SESSION_BY_SESSION_ID = `${BASE_URL}/admin-core-service/get-sessions/by-session-id`;
-export const LIVE_SESSION_REPORT_BY_SESSION_ID = `http://localhost:8072/admin-core-service/live-session-report/by-session-id`;
+export const LIVE_SESSION_REPORT_BY_SESSION_ID = `${BASE_URL}/admin-core-service/live-session-report/by-session-id`;
 
 export const GET_ALL_FACULTY = `${BASE_URL}/admin-core-service/institute/v1/faculty/faculty/get-all`;
 
