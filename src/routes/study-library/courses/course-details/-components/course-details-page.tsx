@@ -164,6 +164,18 @@ export const CourseDetailsPage = () => {
         mode: 'onChange',
     });
 
+    const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
+
+    const [selectedCourse, setSelectedCourse] = useState<Course | undefined>(() => {
+        const mockCourses = form.getValues('mockCourses');
+        const courseStructure = form.getValues('courseData').courseStructure;
+        return mockCourses.find((course) => course.level === courseStructure) as Course | undefined;
+    });
+    const [dialogType, setDialogType] = useState<DialogType>(null);
+    const [dialogOpen, setDialogOpen] = useState(false);
+    const [newItemName, setNewItemName] = useState('');
+    const [selectedParentId, setSelectedParentId] = useState<string>('');
+
     const getInitials = (email: string) => {
         const name = email.split('@')[0];
         return name?.slice(0, 2).toUpperCase();
@@ -227,8 +239,6 @@ export const CourseDetailsPage = () => {
         }
     };
 
-    const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
-
     // Modified toggle function to handle hierarchical closing
     const toggleExpand = (id: string) => {
         setExpandedItems((prev) => {
@@ -247,15 +257,6 @@ export const CourseDetailsPage = () => {
             return newState;
         });
     };
-    const [selectedCourse, setSelectedCourse] = useState<Course | undefined>(() => {
-        const mockCourses = form.getValues('mockCourses');
-        const courseStructure = form.getValues('courseData').courseStructure;
-        return mockCourses.find((course) => course.level === courseStructure) as Course | undefined;
-    });
-    const [dialogType, setDialogType] = useState<DialogType>(null);
-    const [dialogOpen, setDialogOpen] = useState(false);
-    const [newItemName, setNewItemName] = useState('');
-    const [selectedParentId, setSelectedParentId] = useState<string>('');
 
     const handleAddClick = (type: DialogType, parentId?: string) => {
         setDialogType(type);
