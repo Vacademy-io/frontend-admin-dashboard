@@ -1106,37 +1106,6 @@ export const CourseDetailsPage = () => {
                                                                             3,
                                                                             true
                                                                         )}
-                                                                        {/* Display slide counts */}
-                                                                        <div className="ml-12 text-sm text-gray-500">
-                                                                            <div>
-                                                                                Videos:{' '}
-                                                                                {chapter
-                                                                                    .slides_count
-                                                                                    ?.video_count ||
-                                                                                    0}
-                                                                            </div>
-                                                                            <div>
-                                                                                PDFs:{' '}
-                                                                                {chapter
-                                                                                    .slides_count
-                                                                                    ?.pdf_count ||
-                                                                                    0}
-                                                                            </div>
-                                                                            <div>
-                                                                                Docs:{' '}
-                                                                                {chapter
-                                                                                    .slides_count
-                                                                                    ?.doc_count ||
-                                                                                    0}
-                                                                            </div>
-                                                                            <div>
-                                                                                Others:{' '}
-                                                                                {chapter
-                                                                                    .slides_count
-                                                                                    ?.unknown_count ||
-                                                                                    0}
-                                                                            </div>
-                                                                        </div>
                                                                     </>
                                                                 )}
                                                             </div>
