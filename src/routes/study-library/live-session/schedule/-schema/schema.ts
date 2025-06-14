@@ -12,6 +12,7 @@ const weekDaysEnum = z.enum([
 ]);
 
 const sessionDetailsSchema = z.object({
+    id: z.string().optional(),
     startTime: z.string().optional(),
     durationHours: z
         .string()

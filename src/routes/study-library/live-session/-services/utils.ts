@@ -75,6 +75,12 @@ export interface Schedule {
     recurrence_type: string | null;
     session_end_date: string;
     access_type: string;
+    waiting_room_time: number | null;
+    thumbnail_file_id: string | null;
+    background_score_file_id: string | null;
+    session_streaming_service_type: string | null;
+    schedule_id: string | null;
+    meeting_date: string | null;
     package_session_ids: string[];
     added_schedules: Array<{
         day: string;
