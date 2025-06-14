@@ -126,10 +126,6 @@ const mockCourses: Course[] = [
     },
 ];
 
-const useModulesWithChapters = (subjectId: string, packageSessionId?: string) => {
-    return useModulesWithChaptersQuery(subjectId, packageSessionId || '');
-};
-
 export const CourseDetailsPage = () => {
     const router = useRouter();
     const searchParams = router.state.location.search;
@@ -258,10 +254,12 @@ export const CourseDetailsPage = () => {
                             packageSessionIds
                         );
 
-                        if (response?.data) {
+                        console.log(response);
+
+                        if (response) {
                             return {
                                 ...subject,
-                                modules: response.data.map((item) => ({
+                                modules: response.map((item) => ({
                                     id: item.module.id,
                                     name: item.module.module_name,
                                     description: item.module.description,
