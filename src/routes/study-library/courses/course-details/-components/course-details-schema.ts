@@ -1,6 +1,7 @@
 // courseSchema.ts
 import { getPublicUrl } from '@/services/upload_file';
 import { z } from 'zod';
+import { SubjectType } from '@/stores/study-library/use-study-library-store';
 
 const SlideSchema = z.object({
     id: z.string().uuid(),
@@ -162,7 +163,7 @@ interface CourseWithSessionsType {
             id: string;
             name: string;
             duration_in_days: number;
-            subjects: string[];
+            subjects: SubjectType[];
         }>;
         session_dto: {
             id: string;
@@ -207,7 +208,16 @@ export const transformApiDataToCourseData = async (apiData: CourseWithSessionsTy
                     id: level.id,
                     name: level.name,
                     duration_in_days: level.duration_in_days,
-                    subjects: level.subjects,
+                    subjects: level.subjects.map((subject) => ({
+                        id: subject.id,
+                        subject_name: subject.subject_name,
+                        subject_code: subject.subject_code,
+                        credit: subject.credit,
+                        thumbnail_id: subject.thumbnail_id,
+                        created_at: subject.created_at,
+                        updated_at: subject.updated_at,
+                        modules: [],
+                    })),
                 })),
                 sessionDetails: {
                     id: session.session_dto.id,

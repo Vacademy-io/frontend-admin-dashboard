@@ -45,6 +45,7 @@ import { useGetPackageSessionId } from '@/utils/helpers/study-library-helpers.ts
 import { useAddSubject } from '../subjects/-services/addSubject';
 import { useAddModule } from '../subjects/modules/-services/add-module';
 import { useAddChapter } from '../subjects/modules/chapters/-services/add-chapter';
+import { fetchModulesWithChapters } from '../../-services/getModulesWithChapters';
 
 type DialogType = 'subject' | 'module' | 'chapter' | 'slide' | null;
 
@@ -125,6 +126,10 @@ const mockCourses: Course[] = [
     },
 ];
 
+const useModulesWithChapters = (subjectId: string, packageSessionId?: string) => {
+    return useModulesWithChaptersQuery(subjectId, packageSessionId || '');
+};
+
 export const CourseDetailsPage = () => {
     const router = useRouter();
     const searchParams = router.state.location.search;
@@ -186,6 +191,7 @@ export const CourseDetailsPage = () => {
     const [levelOptions, setLevelOptions] = useState<
         { _id: string; value: string; label: string }[]
     >([]);
+    const [isLoadingModules, setIsLoadingModules] = useState(false);
 
     // Get current session and level IDs
     const currentSession = form
@@ -238,6 +244,81 @@ export const CourseDetailsPage = () => {
             }
         }
     };
+
+    // Fetch modules and chapters for all subjects in current level
+    useEffect(() => {
+        const fetchModulesAndChapters = async () => {
+            if (currentLevel?.subjects && packageSessionIds && !isLoadingModules) {
+                setIsLoadingModules(true);
+                try {
+                    // Fetch data for each subject
+                    const subjectPromises = currentLevel.subjects.map(async (subject) => {
+                        const response = await fetchModulesWithChapters(
+                            subject.id,
+                            packageSessionIds
+                        );
+
+                        if (response?.data) {
+                            return {
+                                ...subject,
+                                modules: response.data.map((item) => ({
+                                    id: item.module.id,
+                                    name: item.module.module_name,
+                                    description: item.module.description,
+                                    status: item.module.status,
+                                    thumbnail_id: item.module.thumbnail_id,
+                                    chapters: item.chapters.map((chapterItem) => ({
+                                        id: chapterItem.chapter.id,
+                                        name: chapterItem.chapter.chapter_name,
+                                        status: chapterItem.chapter.status,
+                                        file_id: chapterItem.chapter.file_id,
+                                        description: chapterItem.chapter.description,
+                                        chapter_order: chapterItem.chapter.chapter_order,
+                                        slides_count: chapterItem.slides_count,
+                                        chapter_in_package_sessions:
+                                            chapterItem.chapter_in_package_sessions,
+                                        slides: [], // Initialize empty slides array
+                                        isOpen: false,
+                                    })),
+                                    isOpen: false,
+                                })),
+                            };
+                        }
+                        return subject;
+                    });
+
+                    const updatedSubjects = await Promise.all(subjectPromises);
+
+                    // Update the form with new subjects
+                    const updatedSessions = form.getValues('courseData').sessions.map((session) => {
+                        if (session.sessionDetails.id === selectedSession) {
+                            return {
+                                ...session,
+                                levelDetails: session.levelDetails.map((level) => {
+                                    if (level.id === selectedLevel) {
+                                        return {
+                                            ...level,
+                                            subjects: updatedSubjects,
+                                        };
+                                    }
+                                    return level;
+                                }),
+                            };
+                        }
+                        return session;
+                    });
+
+                    form.setValue('courseData.sessions', updatedSessions);
+                } catch (error) {
+                    console.error('Error fetching modules and chapters:', error);
+                } finally {
+                    setIsLoadingModules(false);
+                }
+            }
+        };
+
+        fetchModulesAndChapters();
+    }, [selectedSession, selectedLevel]); // Only depend on session and level changes
 
     // Modified toggle function to handle hierarchical closing
     const toggleExpand = (id: string) => {
@@ -1027,18 +1108,37 @@ export const CourseDetailsPage = () => {
                                                                             3,
                                                                             true
                                                                         )}
-                                                                        {chapter.slides.map(
-                                                                            (slide) => (
-                                                                                <div key={slide.id}>
-                                                                                    {renderTreeItem(
-                                                                                        slide.name,
-                                                                                        slide.id,
-                                                                                        false,
-                                                                                        3
-                                                                                    )}
-                                                                                </div>
-                                                                            )
-                                                                        )}
+                                                                        {/* Display slide counts */}
+                                                                        <div className="ml-12 text-sm text-gray-500">
+                                                                            <div>
+                                                                                Videos:{' '}
+                                                                                {chapter
+                                                                                    .slides_count
+                                                                                    ?.video_count ||
+                                                                                    0}
+                                                                            </div>
+                                                                            <div>
+                                                                                PDFs:{' '}
+                                                                                {chapter
+                                                                                    .slides_count
+                                                                                    ?.pdf_count ||
+                                                                                    0}
+                                                                            </div>
+                                                                            <div>
+                                                                                Docs:{' '}
+                                                                                {chapter
+                                                                                    .slides_count
+                                                                                    ?.doc_count ||
+                                                                                    0}
+                                                                            </div>
+                                                                            <div>
+                                                                                Others:{' '}
+                                                                                {chapter
+                                                                                    .slides_count
+                                                                                    ?.unknown_count ||
+                                                                                    0}
+                                                                            </div>
+                                                                        </div>
                                                                     </>
                                                                 )}
                                                             </div>
