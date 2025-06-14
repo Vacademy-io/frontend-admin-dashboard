@@ -12,6 +12,7 @@ import {
     Plus,
     CaretDown,
     CaretRight,
+    Export,
 } from 'phosphor-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -46,7 +47,14 @@ import { useAddSubject } from '../subjects/-services/addSubject';
 import { useAddModule } from '../subjects/modules/-services/add-module';
 import { useAddChapter } from '../subjects/modules/chapters/-services/add-chapter';
 import { fetchModulesWithChapters } from '../../-services/getModulesWithChapters';
-import { fetchChaptersWithSlides } from '../../-services/getAllSlides';
+import {
+    fetchChaptersWithSlides,
+    VideoSlide,
+    DocumentSlide,
+    QuestionSlide,
+    AssignmentSlide,
+    ChapterWithSlides,
+} from '../../-services/getAllSlides';
 
 type DialogType = 'subject' | 'module' | 'chapter' | 'slide' | null;
 
@@ -57,10 +65,10 @@ type SlideType = {
     description: string;
     status: string;
     order: number;
-    videoSlide?: any;
-    documentSlide?: any;
-    questionSlide?: any;
-    assignmentSlide?: any;
+    videoSlide?: VideoSlide;
+    documentSlide?: DocumentSlide;
+    questionSlide?: QuestionSlide;
+    assignmentSlide?: AssignmentSlide;
 };
 
 type ChapterType = {
@@ -95,14 +103,16 @@ type SubjectType = {
     modules: ModuleType[];
 };
 
+type CourseStructure = {
+    courseName: string;
+    items: SubjectType[] | ModuleType[] | SlideType[];
+};
+
 type Course = {
     id: string;
     title: string;
     level: 1 | 2 | 3 | 4 | 5;
-    structure: {
-        courseName: string;
-        items: SubjectType[] | ModuleType[] | SlideType[];
-    };
+    structure: CourseStructure;
 };
 
 type LevelType = {
@@ -118,6 +128,16 @@ type SessionType = {
         session_name: string;
     };
     levelDetails: LevelType[];
+};
+
+type ModuleResponse = {
+    module: {
+        id: string;
+        module_name: string;
+        description: string;
+        status: string;
+        thumbnail_id: string;
+    };
 };
 
 const mockCourses: Course[] = [
@@ -136,7 +156,7 @@ const mockCourses: Course[] = [
         level: 3,
         structure: {
             courseName: 'Frontend Fundamentals',
-            items: [] as ChapterType[],
+            items: [] as SlideType[],
         },
     },
     {
@@ -266,7 +286,7 @@ export const CourseDetailsPage = () => {
             setLevelOptions(newLevelOptions);
 
             // Select the first level when session changes
-            if (newLevelOptions.length > 0) {
+            if (newLevelOptions.length > 0 && newLevelOptions[0]?.value) {
                 setSelectedLevel(newLevelOptions[0].value);
             } else {
                 setSelectedLevel('');
@@ -281,7 +301,7 @@ export const CourseDetailsPage = () => {
                 setIsLoadingModules(true);
                 try {
                     // Fetch data for each subject
-                    const subjectPromises = (currentLevel.subjects as SubjectType[]).map(
+                    const subjectPromises = (currentLevel.subjects as unknown as SubjectType[]).map(
                         async (subject) => {
                             if (!subject.id) return subject;
 
@@ -293,7 +313,7 @@ export const CourseDetailsPage = () => {
                             if (response) {
                                 // For each module, fetch its chapters and slides
                                 const modulesWithChaptersAndSlides = await Promise.all(
-                                    response.map(async (item: any) => {
+                                    (response as ModuleResponse[]).map(async (item) => {
                                         const chaptersWithSlides = await fetchChaptersWithSlides(
                                             item.module.id,
                                             packageSessionIds
@@ -306,7 +326,7 @@ export const CourseDetailsPage = () => {
                                             status: item.module.status,
                                             thumbnail_id: item.module.thumbnail_id,
                                             chapters: chaptersWithSlides.map(
-                                                (chapterWithSlides: any) => ({
+                                                (chapterWithSlides: ChapterWithSlides) => ({
                                                     id: chapterWithSlides.chapter.id,
                                                     name: chapterWithSlides.chapter.chapter_name,
                                                     status: chapterWithSlides.chapter.status,
@@ -316,7 +336,7 @@ export const CourseDetailsPage = () => {
                                                     chapter_order:
                                                         chapterWithSlides.chapter.chapter_order,
                                                     slides: (chapterWithSlides.slides || []).map(
-                                                        (slide: any) => ({
+                                                        (slide) => ({
                                                             id: slide.id,
                                                             name: slide.title,
                                                             type: slide.source_type,
@@ -353,7 +373,7 @@ export const CourseDetailsPage = () => {
 
                     // Update the form with new subjects
                     const updatedSessions = (
-                        form.getValues('courseData').sessions as SessionType[]
+                        form.getValues('courseData').sessions as unknown as SessionType[]
                     ).map((session) => {
                         if (session.sessionDetails.id === selectedSession) {
                             return {
@@ -372,7 +392,7 @@ export const CourseDetailsPage = () => {
                         return session;
                     });
 
-                    form.setValue('courseData.sessions', updatedSessions);
+                    form.setValue('courseData.sessions', updatedSessions as any);
                 } catch (error) {
                     console.error('Error fetching modules and chapters:', error);
                 } finally {
@@ -450,6 +470,7 @@ export const CourseDetailsPage = () => {
                         thumbnail_id: '',
                         created_at: new Date().toISOString(),
                         updated_at: new Date().toISOString(),
+                        modules: [], // Add empty modules array
                     };
 
                     const response = await addSubjectMutation.mutateAsync({
@@ -458,7 +479,7 @@ export const CourseDetailsPage = () => {
                     });
 
                     if (response) {
-                        const updatedCourse = {
+                        const updatedCourse: Course = {
                             ...selectedCourse,
                             structure: {
                                 ...selectedCourse.structure,
@@ -466,9 +487,13 @@ export const CourseDetailsPage = () => {
                                     ...(selectedCourse.structure.items as SubjectType[]),
                                     {
                                         id: response.data.id,
-                                        name: response.data.subject_name,
+                                        subject_name: response.data.subject_name,
+                                        subject_code: '',
+                                        credit: 0,
+                                        thumbnail_id: '',
+                                        created_at: new Date().toISOString(),
+                                        updated_at: new Date().toISOString(),
                                         modules: [],
-                                        isOpen: false,
                                     },
                                 ],
                             },
@@ -938,59 +963,114 @@ export const CourseDetailsPage = () => {
         hasChildren: boolean,
         level: number,
         isAddButton = false,
-        type?: 'subject' | 'module' | 'chapter' | 'slide'
-    ) => (
-        <div
-            className={`flex items-center gap-2 py-1 ${isAddButton ? 'text-blue-600 hover:text-blue-700' : ''}`}
-            style={{ paddingLeft: `${level * 20}px` }}
-        >
-            {!isAddButton && hasChildren && type && (
-                <button onClick={() => toggleExpand(id)} className="p-1">
-                    {expandedItems[id] ? (
-                        <CaretDown className="size-4" />
-                    ) : (
-                        <CaretRight className="size-4" />
-                    )}
-                </button>
-            )}
-            {isAddButton ? (
-                <Button
-                    variant="ghost"
-                    className="h-8 gap-2 p-2 text-sm"
-                    onClick={() => {
-                        const parts = id.split('|');
-                        if (parts[1] === 'subject') {
-                            handleAddClick('subject');
-                        } else if (parts[1] === 'module') {
-                            if (selectedCourse?.level === 4) {
-                                handleAddClick('module');
-                            } else if (selectedCourse?.level === 5) {
-                                handleAddClick('module', parts[2]);
+        type?: 'subject' | 'module' | 'chapter' | 'slide',
+        parentIds?: { subjectId?: string; moduleId?: string; chapterId?: string }
+    ) => {
+        const handleSlideClick = (e: React.MouseEvent, slideId: string) => {
+            e.stopPropagation(); // Prevent event bubbling
+
+            const navigationParams = {
+                courseId: router.state.location.search.courseId ?? '',
+                levelId: selectedLevel,
+                subjectId: parentIds?.subjectId ?? '',
+                moduleId: parentIds?.moduleId ?? '',
+                chapterId: parentIds?.chapterId ?? '',
+                slideId,
+                sessionId: selectedSession,
+            };
+
+            router.navigate({
+                to: '/study-library/courses/course-details/subjects/modules/chapters/slides',
+                search: navigationParams,
+            });
+        };
+
+        const handleExportClick = (e: React.MouseEvent, slideId: string) => {
+            e.stopPropagation(); // Prevent event bubbling
+
+            const navigationParams = {
+                courseId: router.state.location.search.courseId ?? '',
+                levelId: selectedLevel,
+                subjectId: parentIds?.subjectId ?? '',
+                moduleId: parentIds?.moduleId ?? '',
+                chapterId: parentIds?.chapterId ?? '',
+                slideId,
+                sessionId: selectedSession,
+            };
+
+            router.navigate({
+                to: '/study-library/courses/course-details/subjects/modules/chapters/slides',
+                search: navigationParams,
+            });
+        };
+
+        return (
+            <div
+                className={`flex items-center gap-2 py-1 ${isAddButton ? 'text-blue-600 hover:text-blue-700' : ''} ${type === 'slide' ? 'cursor-pointer hover:text-blue-600' : ''}`}
+                style={{ paddingLeft: `${level * 20}px` }}
+            >
+                {!isAddButton && hasChildren && type && (
+                    <button onClick={() => toggleExpand(id)} className="p-1">
+                        {expandedItems[id] ? (
+                            <CaretDown className="size-4" />
+                        ) : (
+                            <CaretRight className="size-4" />
+                        )}
+                    </button>
+                )}
+                {isAddButton ? (
+                    <Button
+                        variant="ghost"
+                        className="h-8 gap-2 p-2 text-sm"
+                        onClick={() => {
+                            const parts = id.split('|');
+                            if (parts[1] === 'subject') {
+                                handleAddClick('subject');
+                            } else if (parts[1] === 'module') {
+                                if (selectedCourse?.level === 4) {
+                                    handleAddClick('module');
+                                } else if (selectedCourse?.level === 5) {
+                                    handleAddClick('module', parts[2]);
+                                }
+                            } else if (parts[1] === 'chapter') {
+                                if (selectedCourse?.level === 4) {
+                                    handleAddClick('chapter', parts[2]);
+                                } else if (selectedCourse?.level === 5) {
+                                    handleAddClick('chapter', `${parts[2]}|${parts[3]}`);
+                                } else if (selectedCourse?.level === 3) {
+                                    handleAddClick('chapter');
+                                }
+                            } else if (parts[1] === 'slide') {
+                                handleAddSlide(id);
                             }
-                        } else if (parts[1] === 'chapter') {
-                            if (selectedCourse?.level === 4) {
-                                handleAddClick('chapter', parts[2]);
-                            } else if (selectedCourse?.level === 5) {
-                                handleAddClick('chapter', `${parts[2]}|${parts[3]}`);
-                            } else if (selectedCourse?.level === 3) {
-                                handleAddClick('chapter');
-                            }
-                        } else if (parts[1] === 'slide') {
-                            handleAddSlide(id);
-                        }
-                    }}
-                >
-                    <Plus className="size-4" />
-                    {label}
-                </Button>
-            ) : (
-                <span className="flex items-center gap-2">
-                    {!hasChildren && <div className="size-4" />}
-                    {label}
-                </span>
-            )}
-        </div>
-    );
+                        }}
+                    >
+                        <Plus className="size-4" />
+                        {label}
+                    </Button>
+                ) : (
+                    <div className="flex w-full items-center justify-between">
+                        <span
+                            className="flex items-center gap-2"
+                            onClick={type === 'slide' ? (e) => handleSlideClick(e, id) : undefined}
+                        >
+                            {!hasChildren && <div className="size-4" />}
+                            {label}
+                        </span>
+                        {type === 'slide' && (
+                            <button
+                                onClick={(e) => handleExportClick(e, id)}
+                                className="ml-2 rounded-full p-1 hover:bg-gray-100"
+                                title="Export Slide"
+                            >
+                                <Export className="size-4 text-gray-600" />
+                            </button>
+                        )}
+                    </div>
+                )}
+            </div>
+        );
+    };
 
     const renderCourseStructure = () => {
         if (!selectedCourse) return null;
@@ -1011,7 +1091,7 @@ export const CourseDetailsPage = () => {
                         {renderTreeItem('Add Slide', 'add|slide', false, 0, true)}
                         {(selectedCourse.structure.items as SlideType[]).map((slide) => (
                             <div key={slide.id}>
-                                {renderTreeItem(slide.name, slide.id, false, 0)}
+                                {renderTreeItem(slide.name, slide.id, false, 0, false, 'slide')}
                             </div>
                         ))}
                     </div>
@@ -1043,7 +1123,15 @@ export const CourseDetailsPage = () => {
                                         )}
                                         {chapter.slides.map((slide) => (
                                             <div key={slide.id}>
-                                                {renderTreeItem(slide.name, slide.id, false, 1)}
+                                                {renderTreeItem(
+                                                    slide.name,
+                                                    slide.id,
+                                                    false,
+                                                    1,
+                                                    false,
+                                                    'slide',
+                                                    { chapterId: chapter.id }
+                                                )}
                                             </div>
                                         ))}
                                     </>
@@ -1095,7 +1183,13 @@ export const CourseDetailsPage = () => {
                                                                     slide.name,
                                                                     slide.id,
                                                                     false,
-                                                                    2
+                                                                    2,
+                                                                    false,
+                                                                    'slide',
+                                                                    {
+                                                                        moduleId: module.id,
+                                                                        chapterId: chapter.id,
+                                                                    }
                                                                 )}
                                                             </div>
                                                         ))}
@@ -1181,7 +1275,17 @@ export const CourseDetailsPage = () => {
                                                                                         slide.name,
                                                                                         slide.id,
                                                                                         false,
-                                                                                        3
+                                                                                        3,
+                                                                                        false,
+                                                                                        'slide',
+                                                                                        {
+                                                                                            subjectId:
+                                                                                                subject.id,
+                                                                                            moduleId:
+                                                                                                module.id,
+                                                                                            chapterId:
+                                                                                                chapter.id,
+                                                                                        }
                                                                                     )}
                                                                                 </div>
                                                                             )
@@ -1212,7 +1316,7 @@ export const CourseDetailsPage = () => {
 
     // Set initial session and its levels
     useEffect(() => {
-        if (sessionOptions.length > 0 && !selectedSession) {
+        if (sessionOptions.length > 0 && !selectedSession && sessionOptions[0]?.value) {
             const initialSessionId = sessionOptions[0].value;
             handleSessionChange(initialSessionId);
         }
