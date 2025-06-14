@@ -40,52 +40,85 @@ import {
     courseDetailsSchema,
     transformApiDataToCourseData,
 } from './course-details-schema';
-import { SubjectType, useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
+import { useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
 import { useGetPackageSessionId } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionId';
 import { useAddSubject } from '../subjects/-services/addSubject';
 import { useAddModule } from '../subjects/modules/-services/add-module';
 import { useAddChapter } from '../subjects/modules/chapters/-services/add-chapter';
 import { fetchModulesWithChapters } from '../../-services/getModulesWithChapters';
+import { fetchChaptersWithSlides } from '../../-services/getAllSlides';
 
 type DialogType = 'subject' | 'module' | 'chapter' | 'slide' | null;
 
-type Slide = {
+type SlideType = {
     id: string;
     name: string;
-    type: 'video' | 'pdf' | 'doc';
+    type: string;
+    description: string;
+    status: string;
+    order: number;
+    videoSlide?: any;
+    documentSlide?: any;
+    questionSlide?: any;
+    assignmentSlide?: any;
 };
 
-type Chapter = {
+type ChapterType = {
     id: string;
     name: string;
-    slides: Slide[];
+    status: string;
+    file_id: string;
+    description: string;
+    chapter_order: number;
+    slides: SlideType[];
     isOpen?: boolean;
 };
 
-type Module = {
+type ModuleType = {
     id: string;
     name: string;
-    chapters?: Chapter[];
-    slides?: Slide[];
+    description: string;
+    status: string;
+    thumbnail_id: string;
+    chapters: ChapterType[];
     isOpen?: boolean;
 };
 
-type Subject = {
+type SubjectType = {
     id: string;
-    name: string;
-    modules: Module[];
-    isOpen?: boolean;
+    subject_name: string;
+    subject_code: string;
+    credit: number;
+    thumbnail_id: string | null;
+    created_at: string | null;
+    updated_at: string | null;
+    modules: ModuleType[];
 };
 
-interface Course {
+type Course = {
     id: string;
     title: string;
     level: 1 | 2 | 3 | 4 | 5;
     structure: {
         courseName: string;
-        items: Subject[] | Module[] | Slide[];
+        items: SubjectType[] | ModuleType[] | SlideType[];
     };
-}
+};
+
+type LevelType = {
+    id: string;
+    name: string;
+    duration_in_days: number;
+    subjects: SubjectType[];
+};
+
+type SessionType = {
+    sessionDetails: {
+        id: string;
+        session_name: string;
+    };
+    levelDetails: LevelType[];
+};
 
 const mockCourses: Course[] = [
     {
@@ -94,7 +127,7 @@ const mockCourses: Course[] = [
         level: 2,
         structure: {
             courseName: 'Introduction to Web Development',
-            items: [] as Slide[],
+            items: [] as SlideType[],
         },
     },
     {
@@ -103,7 +136,7 @@ const mockCourses: Course[] = [
         level: 3,
         structure: {
             courseName: 'Frontend Fundamentals',
-            items: [] as Chapter[],
+            items: [] as ChapterType[],
         },
     },
     {
@@ -112,7 +145,7 @@ const mockCourses: Course[] = [
         level: 4,
         structure: {
             courseName: 'Full-Stack JavaScript Development Mastery',
-            items: [] as Module[],
+            items: [] as ModuleType[],
         },
     },
     {
@@ -121,7 +154,7 @@ const mockCourses: Course[] = [
         level: 5,
         structure: {
             courseName: 'Advanced Software Engineering Principles',
-            items: [] as Subject[],
+            items: [] as SubjectType[],
         },
     },
 ];
@@ -248,47 +281,80 @@ export const CourseDetailsPage = () => {
                 setIsLoadingModules(true);
                 try {
                     // Fetch data for each subject
-                    const subjectPromises = currentLevel.subjects.map(async (subject) => {
-                        const response = await fetchModulesWithChapters(
-                            subject.id,
-                            packageSessionIds
-                        );
+                    const subjectPromises = (currentLevel.subjects as SubjectType[]).map(
+                        async (subject) => {
+                            if (!subject.id) return subject;
 
-                        console.log(response);
+                            const response = await fetchModulesWithChapters(
+                                subject.id,
+                                packageSessionIds
+                            );
 
-                        if (response) {
-                            return {
-                                ...subject,
-                                modules: response.map((item) => ({
-                                    id: item.module.id,
-                                    name: item.module.module_name,
-                                    description: item.module.description,
-                                    status: item.module.status,
-                                    thumbnail_id: item.module.thumbnail_id,
-                                    chapters: item.chapters.map((chapterItem) => ({
-                                        id: chapterItem.chapter.id,
-                                        name: chapterItem.chapter.chapter_name,
-                                        status: chapterItem.chapter.status,
-                                        file_id: chapterItem.chapter.file_id,
-                                        description: chapterItem.chapter.description,
-                                        chapter_order: chapterItem.chapter.chapter_order,
-                                        slides_count: chapterItem.slides_count,
-                                        chapter_in_package_sessions:
-                                            chapterItem.chapter_in_package_sessions,
-                                        slides: [], // Initialize empty slides array
-                                        isOpen: false,
-                                    })),
-                                    isOpen: false,
-                                })),
-                            };
+                            if (response) {
+                                // For each module, fetch its chapters and slides
+                                const modulesWithChaptersAndSlides = await Promise.all(
+                                    response.map(async (item: any) => {
+                                        const chaptersWithSlides = await fetchChaptersWithSlides(
+                                            item.module.id,
+                                            packageSessionIds
+                                        );
+
+                                        return {
+                                            id: item.module.id,
+                                            name: item.module.module_name,
+                                            description: item.module.description,
+                                            status: item.module.status,
+                                            thumbnail_id: item.module.thumbnail_id,
+                                            chapters: chaptersWithSlides.map(
+                                                (chapterWithSlides: any) => ({
+                                                    id: chapterWithSlides.chapter.id,
+                                                    name: chapterWithSlides.chapter.chapter_name,
+                                                    status: chapterWithSlides.chapter.status,
+                                                    file_id: chapterWithSlides.chapter.file_id,
+                                                    description:
+                                                        chapterWithSlides.chapter.description,
+                                                    chapter_order:
+                                                        chapterWithSlides.chapter.chapter_order,
+                                                    slides: (chapterWithSlides.slides || []).map(
+                                                        (slide: any) => ({
+                                                            id: slide.id,
+                                                            name: slide.title,
+                                                            type: slide.source_type,
+                                                            description: slide.description || '',
+                                                            status: slide.status || '',
+                                                            order: slide.slide_order || 0,
+                                                            videoSlide: slide.video_slide || null,
+                                                            documentSlide:
+                                                                slide.document_slide || null,
+                                                            questionSlide:
+                                                                slide.question_slide || null,
+                                                            assignmentSlide:
+                                                                slide.assignment_slide || null,
+                                                        })
+                                                    ),
+                                                    isOpen: false,
+                                                })
+                                            ),
+                                            isOpen: false,
+                                        };
+                                    })
+                                );
+
+                                return {
+                                    ...subject,
+                                    modules: modulesWithChaptersAndSlides,
+                                };
+                            }
+                            return subject;
                         }
-                        return subject;
-                    });
+                    );
 
                     const updatedSubjects = await Promise.all(subjectPromises);
 
                     // Update the form with new subjects
-                    const updatedSessions = form.getValues('courseData').sessions.map((session) => {
+                    const updatedSessions = (
+                        form.getValues('courseData').sessions as SessionType[]
+                    ).map((session) => {
                         if (session.sessionDetails.id === selectedSession) {
                             return {
                                 ...session,
@@ -316,7 +382,7 @@ export const CourseDetailsPage = () => {
         };
 
         fetchModulesAndChapters();
-    }, [selectedSession, selectedLevel]); // Only depend on session and level changes
+    }, [selectedSession, selectedLevel]);
 
     // Modified toggle function to handle hierarchical closing
     const toggleExpand = (id: string) => {
@@ -397,7 +463,7 @@ export const CourseDetailsPage = () => {
                             structure: {
                                 ...selectedCourse.structure,
                                 items: [
-                                    ...(selectedCourse.structure.items as Subject[]),
+                                    ...(selectedCourse.structure.items as SubjectType[]),
                                     {
                                         id: response.data.id,
                                         name: response.data.subject_name,
@@ -438,7 +504,7 @@ export const CourseDetailsPage = () => {
                                 structure: {
                                     ...selectedCourse.structure,
                                     items: [
-                                        ...(selectedCourse.structure.items as Module[]),
+                                        ...(selectedCourse.structure.items as ModuleType[]),
                                         {
                                             id: response.data.id,
                                             name: newItemName,
@@ -544,33 +610,33 @@ export const CourseDetailsPage = () => {
                                     ...selectedCourse,
                                     structure: {
                                         ...selectedCourse.structure,
-                                        items: (selectedCourse.structure.items as Subject[]).map(
-                                            (subject) => {
-                                                if (subject.id === subjectId) {
-                                                    return {
-                                                        ...subject,
-                                                        modules: subject.modules.map((module) => {
-                                                            if (module.id === moduleId) {
-                                                                return {
-                                                                    ...module,
-                                                                    chapters: [
-                                                                        ...(module.chapters || []),
-                                                                        {
-                                                                            id: response.id,
-                                                                            name: response.chapter_name,
-                                                                            slides: [],
-                                                                            isOpen: false,
-                                                                        },
-                                                                    ],
-                                                                };
-                                                            }
-                                                            return module;
-                                                        }),
-                                                    };
-                                                }
-                                                return subject;
+                                        items: (
+                                            selectedCourse.structure.items as SubjectType[]
+                                        ).map((subject) => {
+                                            if (subject.id === subjectId) {
+                                                return {
+                                                    ...subject,
+                                                    modules: subject.modules.map((module) => {
+                                                        if (module.id === moduleId) {
+                                                            return {
+                                                                ...module,
+                                                                chapters: [
+                                                                    ...(module.chapters || []),
+                                                                    {
+                                                                        id: response.id,
+                                                                        name: response.chapter_name,
+                                                                        slides: [],
+                                                                        isOpen: false,
+                                                                    },
+                                                                ],
+                                                            };
+                                                        }
+                                                        return module;
+                                                    }),
+                                                };
                                             }
-                                        ),
+                                            return subject;
+                                        }),
                                     },
                                 };
                                 updateSelectedCourseAndForm(updatedCourse);
@@ -588,7 +654,7 @@ export const CourseDetailsPage = () => {
                                     ...selectedCourse,
                                     structure: {
                                         ...selectedCourse.structure,
-                                        items: (selectedCourse.structure.items as Module[]).map(
+                                        items: (selectedCourse.structure.items as ModuleType[]).map(
                                             (module) => {
                                                 if (module.id === moduleId) {
                                                     return {
@@ -624,7 +690,7 @@ export const CourseDetailsPage = () => {
                                     structure: {
                                         ...selectedCourse.structure,
                                         items: [
-                                            ...(selectedCourse.structure.items as Chapter[]),
+                                            ...(selectedCourse.structure.items as ChapterType[]),
                                             {
                                                 id: response.data.id,
                                                 name: response.data.chapter_name,
@@ -664,13 +730,17 @@ export const CourseDetailsPage = () => {
                         structure: {
                             ...selectedCourse.structure,
                             items: (
-                                selectedCourse.structure.items as (Subject | Module | Chapter)[]
+                                selectedCourse.structure.items as (
+                                    | SubjectType
+                                    | ModuleType
+                                    | ChapterType
+                                )[]
                             ).map((item) => {
                                 if (
                                     selectedCourse.level === 5 &&
-                                    (item as Subject).id === subjectId
+                                    (item as SubjectType).id === subjectId
                                 ) {
-                                    const subject = item as Subject;
+                                    const subject = item as SubjectType;
                                     return {
                                         ...subject,
                                         modules: subject.modules.map((module) => {
@@ -701,9 +771,9 @@ export const CourseDetailsPage = () => {
                                     };
                                 } else if (
                                     selectedCourse.level === 4 &&
-                                    (item as Module).id === moduleId
+                                    (item as ModuleType).id === moduleId
                                 ) {
-                                    const module = item as Module;
+                                    const module = item as ModuleType;
                                     return {
                                         ...module,
                                         chapters:
@@ -726,9 +796,9 @@ export const CourseDetailsPage = () => {
                                     };
                                 } else if (
                                     selectedCourse.level === 3 &&
-                                    (item as Chapter).id === chapterId
+                                    (item as ChapterType).id === chapterId
                                 ) {
-                                    const chapter = item as Chapter;
+                                    const chapter = item as ChapterType;
                                     return {
                                         ...chapter,
                                         slides: [
@@ -753,7 +823,7 @@ export const CourseDetailsPage = () => {
                         structure: {
                             ...selectedCourse.structure,
                             items: [
-                                ...(selectedCourse.structure.items as Slide[]),
+                                ...(selectedCourse.structure.items as SlideType[]),
                                 {
                                     id: newId,
                                     name: newItemName,
@@ -868,7 +938,7 @@ export const CourseDetailsPage = () => {
         hasChildren: boolean,
         level: number,
         isAddButton = false,
-        type?: 'subject' | 'module' | 'chapter'
+        type?: 'subject' | 'module' | 'chapter' | 'slide'
     ) => (
         <div
             className={`flex items-center gap-2 py-1 ${isAddButton ? 'text-blue-600 hover:text-blue-700' : ''}`}
@@ -888,7 +958,6 @@ export const CourseDetailsPage = () => {
                     variant="ghost"
                     className="h-8 gap-2 p-2 text-sm"
                     onClick={() => {
-                        console.log('Button clicked with id:', id); // Debug log
                         const parts = id.split('|');
                         if (parts[1] === 'subject') {
                             handleAddClick('subject');
@@ -907,7 +976,6 @@ export const CourseDetailsPage = () => {
                                 handleAddClick('chapter');
                             }
                         } else if (parts[1] === 'slide') {
-                            console.log('Handling slide add with id:', id); // Debug log
                             handleAddSlide(id);
                         }
                     }}
@@ -928,9 +996,9 @@ export const CourseDetailsPage = () => {
         if (!selectedCourse) return null;
 
         // Get current session and level subjects
-        const currentSession = form
-            .getValues('courseData')
-            .sessions.find((session) => session.sessionDetails.id === selectedSession);
+        const currentSession = (form.getValues('courseData').sessions as SessionType[]).find(
+            (session) => session.sessionDetails.id === selectedSession
+        );
         const currentLevel = currentSession?.levelDetails.find(
             (level) => level.id === selectedLevel
         );
@@ -941,7 +1009,7 @@ export const CourseDetailsPage = () => {
                 return (
                     <div className="rounded-lg border p-4">
                         {renderTreeItem('Add Slide', 'add|slide', false, 0, true)}
-                        {(selectedCourse.structure.items as Slide[]).map((slide) => (
+                        {(selectedCourse.structure.items as SlideType[]).map((slide) => (
                             <div key={slide.id}>
                                 {renderTreeItem(slide.name, slide.id, false, 0)}
                             </div>
@@ -954,7 +1022,7 @@ export const CourseDetailsPage = () => {
                 return (
                     <div className="rounded-lg border p-4">
                         {renderTreeItem('Add Chapter', 'add|chapter', false, 0, true)}
-                        {(selectedCourse.structure.items as Chapter[]).map((chapter) => (
+                        {(selectedCourse.structure.items as ChapterType[]).map((chapter) => (
                             <div key={chapter.id}>
                                 {renderTreeItem(
                                     chapter.name,
@@ -973,7 +1041,7 @@ export const CourseDetailsPage = () => {
                                             1,
                                             true
                                         )}
-                                        {chapter.slides.map((slide: Slide) => (
+                                        {chapter.slides.map((slide) => (
                                             <div key={slide.id}>
                                                 {renderTreeItem(slide.name, slide.id, false, 1)}
                                             </div>
@@ -990,7 +1058,7 @@ export const CourseDetailsPage = () => {
                 return (
                     <div className="rounded-lg border p-4">
                         {renderTreeItem('Add Module', 'add|module', false, 0, true)}
-                        {(selectedCourse.structure.items as Module[]).map((module) => (
+                        {(selectedCourse.structure.items as ModuleType[]).map((module) => (
                             <div key={module.id}>
                                 {renderTreeItem(module.name, module.id, true, 0, false, 'module')}
                                 {expandedItems[module.id] && (
@@ -1002,7 +1070,7 @@ export const CourseDetailsPage = () => {
                                             1,
                                             true
                                         )}
-                                        {module.chapters?.map((chapter: Chapter) => (
+                                        {module.chapters?.map((chapter) => (
                                             <div key={chapter.id}>
                                                 {renderTreeItem(
                                                     chapter.name,
@@ -1021,7 +1089,7 @@ export const CourseDetailsPage = () => {
                                                             2,
                                                             true
                                                         )}
-                                                        {chapter.slides.map((slide: Slide) => (
+                                                        {chapter.slides.map((slide) => (
                                                             <div key={slide.id}>
                                                                 {renderTreeItem(
                                                                     slide.name,
@@ -1105,6 +1173,18 @@ export const CourseDetailsPage = () => {
                                                                             false,
                                                                             3,
                                                                             true
+                                                                        )}
+                                                                        {chapter.slides.map(
+                                                                            (slide) => (
+                                                                                <div key={slide.id}>
+                                                                                    {renderTreeItem(
+                                                                                        slide.name,
+                                                                                        slide.id,
+                                                                                        false,
+                                                                                        3
+                                                                                    )}
+                                                                                </div>
+                                                                            )
                                                                         )}
                                                                     </>
                                                                 )}
