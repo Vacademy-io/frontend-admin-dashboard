@@ -14,6 +14,7 @@ import { getCourseSessions } from '@/utils/helpers/study-library-helpers.ts/get-
 import { getCourseLevels } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getLevelWithDetails';
 import { getCourses } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getCourses';
 import { CourseDetailsPage } from './-components/course-details-page';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
 
 interface CourseSearchParams {
     courseId: string;
@@ -32,6 +33,7 @@ function RouteComponent() {
     const { setNavHeading } = useNavHeadingStore();
     const navigate = useNavigate();
     const { courseId } = Route.useSearch();
+    const [isLoading, setIsLoading] = useState(false);
 
     const sessionList = courseId ? getCourseSessions(courseId) : [];
     const initialSession: StudyLibrarySessionType | undefined = sessionList[0] ?? undefined;
@@ -46,10 +48,16 @@ function RouteComponent() {
     const [courses, setCourses] = useState(getCourses());
 
     useEffect(() => {
+        setIsLoading(true);
         const newLevelList = initialSession ? getCourseLevels(courseId!, initialSession.id) : [];
         setLevelList(newLevelList);
         setCourses(getCourses());
-    }, [studyLibraryData]);
+        // Add a small delay to ensure smooth transition
+        const timer = setTimeout(() => {
+            setIsLoading(false);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [studyLibraryData, courseId]);
 
     if (levelList[0]?.id == 'DEFAULT') {
         navigate({
@@ -90,7 +98,15 @@ function RouteComponent() {
             sideBarData={{ title: 'Courses', listIconText: 'C', searchParam: 'courseId' }}
         >
             <InitStudyLibraryProvider>
-                <CourseDetailsPage />
+                {isLoading ? (
+                    <div className="flex min-h-screen items-center justify-center">
+                        <div className="flex flex-col items-center gap-4">
+                            <DashboardLoader size={32} />
+                        </div>
+                    </div>
+                ) : (
+                    <CourseDetailsPage />
+                )}
             </InitStudyLibraryProvider>
         </LayoutContainer>
     );
