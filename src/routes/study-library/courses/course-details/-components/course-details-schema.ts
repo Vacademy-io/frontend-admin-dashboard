@@ -178,11 +178,20 @@ export const transformApiDataToCourseData = async (apiData: CourseWithSessionsTy
     if (!apiData) return null;
 
     try {
-        const coursePreviewImageMediaId = await getPublicUrl(
-            apiData.course.course_preview_image_media_id
-        );
-        const courseBannerMediaId = await getPublicUrl(apiData.course.course_banner_media_id);
-        const courseMediaId = await getPublicUrl(apiData.course.course_media_id);
+        let coursePreviewImageMediaId = '';
+        let courseBannerMediaId = '';
+        let courseMediaId = '';
+
+        await new Promise((resolve) => {
+            setTimeout(async () => {
+                coursePreviewImageMediaId = await getPublicUrl(
+                    apiData.course.course_preview_image_media_id
+                );
+                courseBannerMediaId = await getPublicUrl(apiData.course.course_banner_media_id);
+                courseMediaId = await getPublicUrl(apiData.course.course_media_id);
+                resolve(true);
+            }, 0);
+        });
 
         return {
             id: apiData.course.id,

@@ -685,76 +685,107 @@ export const CourseDetailsPage = () => {
                                 );
 
                                 if (currentLevel && currentLevel.subjects) {
-                                    // Fetch fresh chapter data using the module ID
-                                    const chapterQuery = handleFetchChaptersWithSlides(
-                                        moduleId,
-                                        packageSessionIds
-                                    );
-                                    const chapterResponse = await chapterQuery.queryFn();
-
-                                    // Update only the specific module's chapters while preserving other modules
-                                    const updatedSubjects = currentLevel.subjects.map((subject) => {
-                                        if (subject.id === subjectId) {
+                                    // Fetch fresh module data for all subjects
+                                    const modulePromises = currentLevel.subjects.map(
+                                        async (subject) => {
+                                            const moduleQuery = handleFetchModulesWithChapters(
+                                                subject.id,
+                                                packageSessionIds
+                                            );
+                                            const moduleResponse = await moduleQuery.queryFn();
                                             return {
-                                                ...subject,
-                                                modules: subject.modules.map((module) => {
-                                                    if (module.id === moduleId) {
-                                                        return {
-                                                            ...module,
-                                                            chapters: chapterResponse.map(
-                                                                (
-                                                                    chapterWithSlides: ChapterWithSlides
-                                                                ) => ({
-                                                                    id: chapterWithSlides.chapter
-                                                                        .id,
-                                                                    name: chapterWithSlides.chapter
-                                                                        .chapter_name,
-                                                                    status: chapterWithSlides
-                                                                        .chapter.status,
-                                                                    file_id:
-                                                                        chapterWithSlides.chapter
-                                                                            .file_id,
-                                                                    description:
-                                                                        chapterWithSlides.chapter
-                                                                            .description,
-                                                                    chapter_order:
-                                                                        chapterWithSlides.chapter
-                                                                            .chapter_order,
-                                                                    slides: (
-                                                                        chapterWithSlides.slides ||
-                                                                        []
-                                                                    ).map((slide) => ({
-                                                                        id: slide.id,
-                                                                        name: slide.title,
-                                                                        type: slide.source_type,
-                                                                        description:
-                                                                            slide.description || '',
-                                                                        status: slide.status || '',
-                                                                        order:
-                                                                            slide.slide_order || 0,
-                                                                        videoSlide:
-                                                                            slide.video_slide ||
-                                                                            null,
-                                                                        documentSlide:
-                                                                            slide.document_slide ||
-                                                                            null,
-                                                                        questionSlide:
-                                                                            slide.question_slide ||
-                                                                            null,
-                                                                        assignmentSlide:
-                                                                            slide.assignment_slide ||
-                                                                            null,
-                                                                    })),
-                                                                    isOpen: false,
-                                                                })
-                                                            ),
-                                                        };
-                                                    }
-                                                    return module;
-                                                }),
+                                                subjectId: subject.id,
+                                                modules: moduleResponse,
                                             };
                                         }
-                                        return subject;
+                                    );
+
+                                    const moduleResults = await Promise.all(modulePromises);
+
+                                    // Fetch fresh chapter data for all modules
+                                    const chapterPromises = moduleResults.flatMap(
+                                        ({ subjectId, modules }) =>
+                                            modules.map(async (module) => {
+                                                const chapterQuery = handleFetchChaptersWithSlides(
+                                                    module.module.id,
+                                                    packageSessionIds
+                                                );
+                                                const chapterResponse =
+                                                    await chapterQuery.queryFn();
+                                                return {
+                                                    subjectId,
+                                                    moduleId: module.module.id,
+                                                    chapters: chapterResponse,
+                                                };
+                                            })
+                                    );
+
+                                    const chapterResults = await Promise.all(chapterPromises);
+
+                                    // Update subjects with fresh module and chapter data
+                                    const updatedSubjects = currentLevel.subjects.map((subject) => {
+                                        const subjectModules =
+                                            moduleResults.find(
+                                                (result) => result.subjectId === subject.id
+                                            )?.modules || [];
+
+                                        return {
+                                            ...subject,
+                                            modules: subjectModules.map((moduleData) => {
+                                                const moduleChapters =
+                                                    chapterResults.find(
+                                                        (result) =>
+                                                            result.subjectId === subject.id &&
+                                                            result.moduleId === moduleData.module.id
+                                                    )?.chapters || [];
+
+                                                return {
+                                                    id: moduleData.module.id,
+                                                    name: moduleData.module.module_name,
+                                                    description: moduleData.module.description,
+                                                    status: moduleData.module.status,
+                                                    thumbnail_id: moduleData.module.thumbnail_id,
+                                                    chapters: moduleChapters.map(
+                                                        (chapterWithSlides) => ({
+                                                            id: chapterWithSlides.chapter.id,
+                                                            name: chapterWithSlides.chapter
+                                                                .chapter_name,
+                                                            status: chapterWithSlides.chapter
+                                                                .status,
+                                                            file_id:
+                                                                chapterWithSlides.chapter.file_id,
+                                                            description:
+                                                                chapterWithSlides.chapter
+                                                                    .description,
+                                                            chapter_order:
+                                                                chapterWithSlides.chapter
+                                                                    .chapter_order,
+                                                            slides: (
+                                                                chapterWithSlides.slides || []
+                                                            ).map((slide) => ({
+                                                                id: slide.id,
+                                                                name: slide.title,
+                                                                type: slide.source_type,
+                                                                description:
+                                                                    slide.description || '',
+                                                                status: slide.status || '',
+                                                                order: slide.slide_order || 0,
+                                                                videoSlide:
+                                                                    slide.video_slide || null,
+                                                                documentSlide:
+                                                                    slide.document_slide || null,
+                                                                questionSlide:
+                                                                    slide.question_slide || null,
+                                                                assignmentSlide:
+                                                                    slide.assignment_slide || null,
+                                                            })),
+                                                            isOpen: false,
+                                                        })
+                                                    ),
+                                                    isOpen: false,
+                                                };
+                                            }),
+                                        };
                                     });
 
                                     // Update the form with the new subjects
@@ -930,92 +961,133 @@ export const CourseDetailsPage = () => {
                         [chapterId = ''] = parts;
                     }
 
-                    // After adding the slide, fetch fresh chapter data
                     try {
                         if (selectedCourse.level === 5) {
-                            const chapterQuery = handleFetchChaptersWithSlides(
-                                moduleId,
-                                packageSessionIds
+                            // Get current form data
+                            const formData = form.getValues('courseData');
+                            const currentSession = formData.sessions.find(
+                                (session) => session.sessionDetails.id === selectedSession
                             );
-                            const chapterResponse = await chapterQuery.queryFn();
+                            const currentLevel = currentSession?.levelDetails.find(
+                                (level) => level.id === selectedLevel
+                            );
 
-                            const updatedCourse = {
-                                ...selectedCourse,
-                                structure: {
-                                    ...selectedCourse.structure,
-                                    items: (selectedCourse.structure.items as SubjectType[]).map(
-                                        (subject) => {
-                                            if (subject.id === subjectId) {
-                                                return {
-                                                    ...subject,
-                                                    modules: subject.modules.map((module) => {
-                                                        if (module.id === moduleId) {
-                                                            return {
-                                                                ...module,
-                                                                chapters: chapterResponse.map(
-                                                                    (
-                                                                        chapterWithSlides: ChapterWithSlides
-                                                                    ) => ({
-                                                                        id: chapterWithSlides
-                                                                            .chapter.id,
-                                                                        name: chapterWithSlides
-                                                                            .chapter.chapter_name,
-                                                                        status: chapterWithSlides
-                                                                            .chapter.status,
-                                                                        file_id:
-                                                                            chapterWithSlides
-                                                                                .chapter.file_id,
-                                                                        description:
-                                                                            chapterWithSlides
-                                                                                .chapter
-                                                                                .description,
-                                                                        chapter_order:
-                                                                            chapterWithSlides
-                                                                                .chapter
-                                                                                .chapter_order,
-                                                                        slides: (
-                                                                            chapterWithSlides.slides ||
-                                                                            []
-                                                                        ).map((slide) => ({
-                                                                            id: slide.id,
-                                                                            name: slide.title,
-                                                                            type: slide.source_type,
-                                                                            description:
-                                                                                slide.description ||
-                                                                                '',
-                                                                            status:
-                                                                                slide.status || '',
-                                                                            order:
-                                                                                slide.slide_order ||
-                                                                                0,
-                                                                            videoSlide:
-                                                                                slide.video_slide ||
-                                                                                null,
-                                                                            documentSlide:
-                                                                                slide.document_slide ||
-                                                                                null,
-                                                                            questionSlide:
-                                                                                slide.question_slide ||
-                                                                                null,
-                                                                            assignmentSlide:
-                                                                                slide.assignment_slide ||
-                                                                                null,
-                                                                        })),
-                                                                        isOpen: false,
-                                                                    })
-                                                                ),
-                                                            };
-                                                        }
-                                                        return module;
-                                                    }),
-                                                };
-                                            }
-                                            return subject;
-                                        }
-                                    ),
-                                },
-                            };
-                            updateSelectedCourseAndForm(updatedCourse);
+                            if (currentLevel && currentLevel.subjects) {
+                                // Fetch fresh module data for all subjects
+                                const modulePromises = currentLevel.subjects.map(
+                                    async (subject) => {
+                                        const moduleQuery = handleFetchModulesWithChapters(
+                                            subject.id,
+                                            packageSessionIds
+                                        );
+                                        const moduleResponse = await moduleQuery.queryFn();
+                                        return { subjectId: subject.id, modules: moduleResponse };
+                                    }
+                                );
+
+                                const moduleResults = await Promise.all(modulePromises);
+
+                                // Fetch fresh chapter data for all modules
+                                const chapterPromises = moduleResults.flatMap(
+                                    ({ subjectId, modules }) =>
+                                        modules.map(async (module) => {
+                                            const chapterQuery = handleFetchChaptersWithSlides(
+                                                module.module.id,
+                                                packageSessionIds
+                                            );
+                                            const chapterResponse = await chapterQuery.queryFn();
+                                            return {
+                                                subjectId,
+                                                moduleId: module.module.id,
+                                                chapters: chapterResponse,
+                                            };
+                                        })
+                                );
+
+                                const chapterResults = await Promise.all(chapterPromises);
+
+                                // Update subjects with fresh module and chapter data
+                                const updatedSubjects = currentLevel.subjects.map((subject) => {
+                                    const subjectModules =
+                                        moduleResults.find(
+                                            (result) => result.subjectId === subject.id
+                                        )?.modules || [];
+
+                                    return {
+                                        ...subject,
+                                        modules: subjectModules.map((moduleData) => {
+                                            const moduleChapters =
+                                                chapterResults.find(
+                                                    (result) =>
+                                                        result.subjectId === subject.id &&
+                                                        result.moduleId === moduleData.module.id
+                                                )?.chapters || [];
+
+                                            return {
+                                                id: moduleData.module.id,
+                                                name: moduleData.module.module_name,
+                                                description: moduleData.module.description,
+                                                status: moduleData.module.status,
+                                                thumbnail_id: moduleData.module.thumbnail_id,
+                                                chapters: moduleChapters.map(
+                                                    (chapterWithSlides) => ({
+                                                        id: chapterWithSlides.chapter.id,
+                                                        name: chapterWithSlides.chapter
+                                                            .chapter_name,
+                                                        status: chapterWithSlides.chapter.status,
+                                                        file_id: chapterWithSlides.chapter.file_id,
+                                                        description:
+                                                            chapterWithSlides.chapter.description,
+                                                        chapter_order:
+                                                            chapterWithSlides.chapter.chapter_order,
+                                                        slides: (
+                                                            chapterWithSlides.slides || []
+                                                        ).map((slide) => ({
+                                                            id: slide.id,
+                                                            name: slide.title,
+                                                            type: slide.source_type,
+                                                            description: slide.description || '',
+                                                            status: slide.status || '',
+                                                            order: slide.slide_order || 0,
+                                                            videoSlide: slide.video_slide || null,
+                                                            documentSlide:
+                                                                slide.document_slide || null,
+                                                            questionSlide:
+                                                                slide.question_slide || null,
+                                                            assignmentSlide:
+                                                                slide.assignment_slide || null,
+                                                        })),
+                                                        isOpen: false,
+                                                    })
+                                                ),
+                                                isOpen: false,
+                                            };
+                                        }),
+                                    };
+                                });
+
+                                // Update the form with the new subjects
+                                const updatedSessions = formData.sessions.map((session) => {
+                                    if (session.sessionDetails.id === selectedSession) {
+                                        return {
+                                            ...session,
+                                            levelDetails: session.levelDetails.map((level) => {
+                                                if (level.id === selectedLevel) {
+                                                    return {
+                                                        ...level,
+                                                        subjects: updatedSubjects,
+                                                    };
+                                                }
+                                                return level;
+                                            }),
+                                        };
+                                    }
+                                    return session;
+                                });
+
+                                // Update the form with the new sessions
+                                form.setValue('courseData.sessions', updatedSessions);
+                            }
                         } else if (selectedCourse.level === 4) {
                             const chapterQuery = handleFetchChaptersWithSlides(
                                 moduleId,
