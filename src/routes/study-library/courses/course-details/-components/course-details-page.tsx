@@ -247,6 +247,7 @@ export const CourseDetailsPage = () => {
         { _id: string; value: string; label: string }[]
     >([]);
     const [isLoadingModules, setIsLoadingModules] = useState(false);
+    const [isAddingChapter, setIsAddingChapter] = useState(false);
 
     // Get current session and level IDs
     const currentSession = form
@@ -656,6 +657,7 @@ export const CourseDetailsPage = () => {
             case 'chapter': {
                 if (selectedParentId) {
                     try {
+                        setIsAddingChapter(true);
                         const newChapter = {
                             id: '', // Let backend assign ID
                             chapter_name: newItemName,
@@ -941,6 +943,8 @@ export const CourseDetailsPage = () => {
                         }
                     } catch (error) {
                         console.error('Error adding chapter:', error);
+                    } finally {
+                        setIsAddingChapter(false);
                     }
                 }
                 break;
@@ -1241,14 +1245,28 @@ export const CourseDetailsPage = () => {
                                 value={newItemName}
                                 onChange={(e) => setNewItemName(e.target.value)}
                                 placeholder={`Enter ${dialogType} name`}
+                                disabled={isAddingChapter}
                             />
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setDialogOpen(false)}>
+                        <Button
+                            variant="outline"
+                            onClick={() => setDialogOpen(false)}
+                            disabled={isAddingChapter}
+                        >
                             Cancel
                         </Button>
-                        <Button onClick={handleAddItem}>Add {dialogType}</Button>
+                        <Button onClick={handleAddItem} disabled={isAddingChapter}>
+                            {isAddingChapter ? (
+                                <div className="flex items-center gap-2">
+                                    <div className="size-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                                    Adding...
+                                </div>
+                            ) : (
+                                `Add ${dialogType}`
+                            )}
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
