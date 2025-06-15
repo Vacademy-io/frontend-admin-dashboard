@@ -46,15 +46,21 @@ import { useGetPackageSessionId } from '@/utils/helpers/study-library-helpers.ts
 import { useAddSubject } from '../subjects/-services/addSubject';
 import { useAddModule } from '../subjects/modules/-services/add-module';
 import { useAddChapter } from '../subjects/modules/chapters/-services/add-chapter';
-import { fetchModulesWithChapters } from '../../-services/getModulesWithChapters';
+import {
+    fetchModulesWithChapters,
+    handleFetchModulesWithChapters,
+} from '../../-services/getModulesWithChapters';
 import {
     fetchChaptersWithSlides,
+    handleFetchChaptersWithSlides,
     VideoSlide,
     DocumentSlide,
     QuestionSlide,
     AssignmentSlide,
     ChapterWithSlides,
 } from '../../-services/getAllSlides';
+import { useSuspenseQuery, useQueries } from '@tanstack/react-query';
+import { useModulesWithChaptersQuery } from '../../-services/getModulesWithChapters';
 
 type DialogType = 'subject' | 'module' | 'chapter' | 'slide' | null;
 
@@ -294,49 +300,88 @@ export const CourseDetailsPage = () => {
         }
     };
 
-    // Fetch modules and chapters for all subjects in current level
+    // Move query logic outside useEffect
+    const moduleQueries = useQueries({
+        queries: ((currentLevel?.subjects as unknown as SubjectType[]) || []).map((subject) => ({
+            ...handleFetchModulesWithChapters(subject.id, packageSessionIds),
+            enabled: !!subject.id && !!packageSessionIds,
+        })),
+    });
+
+    // Add chapter queries for each module
+    const chapterQueries = useQueries({
+        queries: moduleQueries.flatMap((moduleQuery) => {
+            const modules = (moduleQuery.data as ModuleResponse[]) || [];
+            return modules.map((module) => ({
+                ...handleFetchChaptersWithSlides(module.module.id, packageSessionIds),
+                enabled: !!module.module.id && !!packageSessionIds,
+            }));
+        }),
+    });
+
+    // Extract stable data from queries
+    const moduleData = useMemo(() => {
+        return moduleQueries.map((query) => query.data).filter(Boolean);
+    }, [moduleQueries.map((q) => q.data).join(',')]);
+
+    const chapterData = useMemo(() => {
+        return chapterQueries.map((query) => query.data).filter(Boolean);
+    }, [chapterQueries.map((q) => q.data).join(',')]);
+
+    // Memoize the loading state using stable references
+    const isLoading = useMemo(() => {
+        return (
+            moduleQueries.some((query) => query.isLoading) ||
+            chapterQueries.some((query) => query.isLoading)
+        );
+    }, [
+        moduleQueries.map((q) => q.isLoading).join(','),
+        chapterQueries.map((q) => q.isLoading).join(','),
+    ]);
+
     useEffect(() => {
         const fetchModulesAndChapters = async () => {
-            if (currentLevel?.subjects && packageSessionIds && !isLoadingModules) {
+            if (currentLevel?.subjects && packageSessionIds && !isLoadingModules && !isLoading) {
                 setIsLoadingModules(true);
                 try {
-                    // Fetch data for each subject
+                    // Process the results from moduleQueries
                     const subjectPromises = (currentLevel.subjects as unknown as SubjectType[]).map(
-                        async (subject) => {
+                        async (subject, subjectIndex) => {
                             if (!subject.id) return subject;
 
-                            const response = await fetchModulesWithChapters(
-                                subject.id,
-                                packageSessionIds
-                            );
+                            const response = moduleData[subjectIndex];
 
                             if (response) {
-                                // For each module, fetch its chapters and slides
+                                // For each module, get its chapters from chapterQueries
                                 const modulesWithChaptersAndSlides = await Promise.all(
-                                    (response as ModuleResponse[]).map(async (item) => {
-                                        const chaptersWithSlides = await fetchChaptersWithSlides(
-                                            item.module.id,
-                                            packageSessionIds
-                                        );
+                                    (response as ModuleResponse[]).map(
+                                        async (item, moduleIndex) => {
+                                            // Calculate the index in chapterQueries
+                                            const chapterQueryIndex =
+                                                subjectIndex * response.length + moduleIndex;
+                                            const chaptersWithSlides =
+                                                chapterData[chapterQueryIndex] || [];
 
-                                        return {
-                                            id: item.module.id,
-                                            name: item.module.module_name,
-                                            description: item.module.description,
-                                            status: item.module.status,
-                                            thumbnail_id: item.module.thumbnail_id,
-                                            chapters: chaptersWithSlides.map(
-                                                (chapterWithSlides: ChapterWithSlides) => ({
-                                                    id: chapterWithSlides.chapter.id,
-                                                    name: chapterWithSlides.chapter.chapter_name,
-                                                    status: chapterWithSlides.chapter.status,
-                                                    file_id: chapterWithSlides.chapter.file_id,
-                                                    description:
-                                                        chapterWithSlides.chapter.description,
-                                                    chapter_order:
-                                                        chapterWithSlides.chapter.chapter_order,
-                                                    slides: (chapterWithSlides.slides || []).map(
-                                                        (slide) => ({
+                                            return {
+                                                id: item.module.id,
+                                                name: item.module.module_name,
+                                                description: item.module.description,
+                                                status: item.module.status,
+                                                thumbnail_id: item.module.thumbnail_id,
+                                                chapters: chaptersWithSlides.map(
+                                                    (chapterWithSlides: ChapterWithSlides) => ({
+                                                        id: chapterWithSlides.chapter.id,
+                                                        name: chapterWithSlides.chapter
+                                                            .chapter_name,
+                                                        status: chapterWithSlides.chapter.status,
+                                                        file_id: chapterWithSlides.chapter.file_id,
+                                                        description:
+                                                            chapterWithSlides.chapter.description,
+                                                        chapter_order:
+                                                            chapterWithSlides.chapter.chapter_order,
+                                                        slides: (
+                                                            chapterWithSlides.slides || []
+                                                        ).map((slide) => ({
                                                             id: slide.id,
                                                             name: slide.title,
                                                             type: slide.source_type,
@@ -350,16 +395,17 @@ export const CourseDetailsPage = () => {
                                                                 slide.question_slide || null,
                                                             assignmentSlide:
                                                                 slide.assignment_slide || null,
-                                                        })
-                                                    ),
-                                                    isOpen: false,
-                                                })
-                                            ),
-                                            isOpen: false,
-                                        };
-                                    })
+                                                        })),
+                                                        isOpen: false,
+                                                    })
+                                                ),
+                                                isOpen: false,
+                                            };
+                                        }
+                                    )
                                 );
 
+                                // Update the subject with the modules
                                 return {
                                     ...subject,
                                     modules: modulesWithChaptersAndSlides,
@@ -372,9 +418,7 @@ export const CourseDetailsPage = () => {
                     const updatedSubjects = await Promise.all(subjectPromises);
 
                     // Update the form with new subjects
-                    const updatedSessions = (
-                        form.getValues('courseData').sessions as unknown as SessionType[]
-                    ).map((session) => {
+                    const updatedSessions = form.getValues('courseData').sessions.map((session) => {
                         if (session.sessionDetails.id === selectedSession) {
                             return {
                                 ...session,
@@ -392,7 +436,7 @@ export const CourseDetailsPage = () => {
                         return session;
                     });
 
-                    form.setValue('courseData.sessions', updatedSessions as any);
+                    form.setValue('courseData.sessions', updatedSessions);
                 } catch (error) {
                     console.error('Error fetching modules and chapters:', error);
                 } finally {
@@ -402,7 +446,7 @@ export const CourseDetailsPage = () => {
         };
 
         fetchModulesAndChapters();
-    }, [selectedSession, selectedLevel]);
+    }, [selectedSession, selectedLevel, moduleData, chapterData, packageSessionIds, isLoading]);
 
     // Modified toggle function to handle hierarchical closing
     const toggleExpand = (id: string) => {

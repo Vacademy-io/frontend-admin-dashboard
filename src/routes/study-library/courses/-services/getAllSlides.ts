@@ -11,6 +11,14 @@ export const fetchChaptersWithSlides = async (moduleId: string, packageSessionId
     return response.data;
 };
 
+export const handleFetchChaptersWithSlides = (moduleId: string, packageSessionId: string) => {
+    return {
+        queryKey: ['GET_CHAPTERS_WITH_SLIDES', moduleId, packageSessionId],
+        queryFn: () => fetchChaptersWithSlides(moduleId, packageSessionId),
+        staleTime: 60 * 60 * 1000,
+    };
+};
+
 export type RichTextData = {
     id: string;
     type: string;
