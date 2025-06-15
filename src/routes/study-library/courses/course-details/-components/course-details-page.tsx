@@ -1658,18 +1658,126 @@ export const CourseDetailsPage = () => {
 
     // Update packageSessionIds when either session or level changes
     useEffect(() => {
-        if (selectedSession && selectedLevel) {
-            const session = form
-                .getValues('courseData')
-                .sessions.find((s) => s.sessionDetails.id === selectedSession);
-            const level = session?.levelDetails.find((l) => l.id === selectedLevel);
+        const fetchModulesAndChapters = async () => {
+            if (selectedSession && selectedLevel) {
+                const session = form
+                    .getValues('courseData')
+                    .sessions.find((s) => s.sessionDetails.id === selectedSession);
+                const level = session?.levelDetails.find((l) => l.id === selectedLevel);
 
-            if (session && level) {
-                // The packageSessionIds will automatically update due to the useGetPackageSessionId hook
-                // which depends on selectedSession and selectedLevel
+                if (session && level && level.subjects) {
+                    try {
+                        // Fetch fresh module data for all subjects
+                        const modulePromises = level.subjects.map(async (subject) => {
+                            const moduleQuery = handleFetchModulesWithChapters(
+                                subject.id,
+                                packageSessionIds
+                            );
+                            const moduleResponse = await moduleQuery.queryFn();
+                            return { subjectId: subject.id, modules: moduleResponse };
+                        });
+
+                        const moduleResults = await Promise.all(modulePromises);
+
+                        // Fetch fresh chapter data for all modules
+                        const chapterPromises = moduleResults.flatMap(({ subjectId, modules }) =>
+                            modules.map(async (module) => {
+                                const chapterQuery = handleFetchChaptersWithSlides(
+                                    module.module.id,
+                                    packageSessionIds
+                                );
+                                const chapterResponse = await chapterQuery.queryFn();
+                                return {
+                                    subjectId,
+                                    moduleId: module.module.id,
+                                    chapters: chapterResponse,
+                                };
+                            })
+                        );
+
+                        const chapterResults = await Promise.all(chapterPromises);
+
+                        // Update subjects with fresh module and chapter data
+                        const updatedSubjects = level.subjects.map((subject) => {
+                            const subjectModules =
+                                moduleResults.find((result) => result.subjectId === subject.id)
+                                    ?.modules || [];
+
+                            return {
+                                ...subject,
+                                modules: subjectModules.map((moduleData) => {
+                                    const moduleChapters =
+                                        chapterResults.find(
+                                            (result) =>
+                                                result.subjectId === subject.id &&
+                                                result.moduleId === moduleData.module.id
+                                        )?.chapters || [];
+
+                                    return {
+                                        id: moduleData.module.id,
+                                        name: moduleData.module.module_name,
+                                        description: moduleData.module.description,
+                                        status: moduleData.module.status,
+                                        thumbnail_id: moduleData.module.thumbnail_id,
+                                        chapters: moduleChapters.map((chapterWithSlides) => ({
+                                            id: chapterWithSlides.chapter.id,
+                                            name: chapterWithSlides.chapter.chapter_name,
+                                            status: chapterWithSlides.chapter.status,
+                                            file_id: chapterWithSlides.chapter.file_id,
+                                            description: chapterWithSlides.chapter.description,
+                                            chapter_order: chapterWithSlides.chapter.chapter_order,
+                                            slides: (chapterWithSlides.slides || []).map(
+                                                (slide) => ({
+                                                    id: slide.id,
+                                                    name: slide.title,
+                                                    type: slide.source_type,
+                                                    description: slide.description || '',
+                                                    status: slide.status || '',
+                                                    order: slide.slide_order || 0,
+                                                    videoSlide: slide.video_slide || null,
+                                                    documentSlide: slide.document_slide || null,
+                                                    questionSlide: slide.question_slide || null,
+                                                    assignmentSlide: slide.assignment_slide || null,
+                                                })
+                                            ),
+                                            isOpen: false,
+                                        })),
+                                        isOpen: false,
+                                    };
+                                }),
+                            };
+                        });
+
+                        // Update the form with the new subjects
+                        const updatedSessions = form.getValues('courseData').sessions.map((s) => {
+                            if (s.sessionDetails.id === selectedSession) {
+                                return {
+                                    ...s,
+                                    levelDetails: s.levelDetails.map((l) => {
+                                        if (l.id === selectedLevel) {
+                                            return {
+                                                ...l,
+                                                subjects: updatedSubjects,
+                                            };
+                                        }
+                                        return l;
+                                    }),
+                                };
+                            }
+                            return s;
+                        });
+
+                        // Update the form with the new sessions
+                        form.setValue('courseData.sessions', updatedSessions);
+                    } catch (error) {
+                        console.error('Error fetching modules and chapters:', error);
+                    }
+                }
             }
-        }
-    }, [selectedSession, selectedLevel]);
+        };
+
+        fetchModulesAndChapters();
+    }, [selectedSession, selectedLevel, packageSessionIds]);
 
     useEffect(() => {
         const loadCourseData = async () => {
