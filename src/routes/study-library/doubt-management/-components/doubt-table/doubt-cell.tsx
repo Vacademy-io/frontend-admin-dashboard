@@ -39,7 +39,12 @@ export const TimestampCell = ({ doubt }: { doubt: Doubt }) => {
                 chapterId: doubt.chapter_id,
                 slideId: doubt.source_id,
                 sessionId: sessionId || '',
-                timestamp: Number(doubt.content_position) / 1000,
+                ...(doubt.content_type === 'VIDEO'
+                    ? { timestamp: Number(doubt.content_position) / 1000 }
+                    : {}),
+                ...(doubt.content_type === 'PDF'
+                    ? { currentPage: Number(doubt.content_position) }
+                    : {}),
             },
             hash: '',
         });

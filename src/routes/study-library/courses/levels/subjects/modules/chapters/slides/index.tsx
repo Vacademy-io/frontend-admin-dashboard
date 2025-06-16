@@ -36,6 +36,7 @@ interface ChapterSearchParams {
     slideId: string;
     sessionId: string;
     timestamp?: number;
+    currentPage?: number;
 }
 
 export const Route = createFileRoute(
@@ -52,12 +53,13 @@ export const Route = createFileRoute(
             slideId: search.slideId as string,
             sessionId: search.sessionId as string,
             ...(typeof search.timestamp === 'number' && { timestamp: search.timestamp }),
+            ...(typeof search.currentPage === 'number' && { currentPage: search.currentPage }),
         };
     },
 });
 
 function RouteComponent() {
-    const { courseId, subjectId, levelId, moduleId, chapterId, sessionId, timestamp } =
+    const { courseId, subjectId, levelId, moduleId, chapterId, sessionId, timestamp, currentPage } =
         Route.useSearch();
     const { studyLibraryData } = useStudyLibraryStore();
     const { modulesWithChaptersData } = useModulesWithChaptersStore();
@@ -156,6 +158,7 @@ function RouteComponent() {
                 slideId: activeItem?.id || '',
                 sessionId: sessionId,
                 timestamp: timestamp,
+                currentPage: currentPage,
             },
             replace: true,
         });
