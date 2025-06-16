@@ -91,8 +91,8 @@ export const SidebarItemsData: SidebarItemsType[] = [
                 permission: PERMISSION_IDS.REPORTS_VIEW,
             },
             {
-                subItem: 'Presentation',
-                subItemLink: '/study-library/present',
+                subItem: 'Volt',
+                subItemLink: '/study-library/volt',
                 permission: PERMISSION_IDS.PRESENTATION_VIEW,
             },
             {
@@ -163,10 +163,12 @@ export const SidebarItemsData: SidebarItemsType[] = [
             {
                 subItem: 'AI Tools',
                 subItemLink: '/ai-center/ai-tools',
+                permission: PERMISSION_IDS.VSMART_AI_TOOLS_VIEW,
             },
             {
                 subItem: 'My Resources',
                 subItemLink: '/ai-center/my-resources',
+                permission: PERMISSION_IDS.VSMART_AI_TOOLS_VIEW,
             },
         ],
     },

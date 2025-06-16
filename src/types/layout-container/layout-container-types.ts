@@ -12,7 +12,7 @@ export interface SidebarItemsType {
     to?: string;
     subItems?: subItemsType[];
     id: string;
-    permission?: string;
+    permission: string;
 }
 export interface SidebarItemProps {
     icon?: React.FC<IconProps>;
