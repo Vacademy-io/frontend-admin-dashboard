@@ -14,12 +14,13 @@ interface AddPresentParams {
 export const Route = createFileRoute('/study-library/volt/add/')({
     component: RouteComponent,
     validateSearch: (search: Record<string, unknown>): AddPresentParams => {
-        return {
-            title: search.title as string,
-            description: search.description as string,
-            id: search.id as string,
-            isEdit: search.isEdit as boolean,
+        const validatedParams = {
+            title: (search.title as string) || '',
+            description: (search.description as string) || '',
+            id: (search.id as string) || '',
+            isEdit: search.isEdit === 'true',
         };
+        return validatedParams;
     },
 });
 
@@ -37,7 +38,7 @@ function RouteComponent() {
             <SlidesEditorComponent
                 metaData={{ title, description }}
                 presentationId={id}
-                isEdit={isEdit}
+                isEdit={String(isEdit) === 'true'}
             />
         </Suspense>
     );

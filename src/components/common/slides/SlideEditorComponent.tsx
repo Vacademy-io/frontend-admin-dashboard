@@ -109,14 +109,21 @@ export default function SlidesEditorComponent({
     const searchParams = router.state.location.search;
     const [justExitedSession, setJustExitedSession] = useState(false);
 
+    useEffect(() => {
+        // On mount, ensure we are in edit mode unless auto-starting a live session.
+        if (!autoStartLive) {
+            setEditMode(true);
+        }
+    }, [setEditMode, autoStartLive]);
+
     const {
         isLoading: isLoadingPresentation, 
         isRefetching: isRefetchingPresentation, 
     } = useGetSinglePresentation({ presentationId, setSlides, setCurrentSlideId, isEdit: isEdit && !justExitedSession });
 
     useEffect(() => {
-        console.log(`[Debug] Render | isEdit: ${isEdit} | slides: ${slides.length} | isLoading: ${isLoadingPresentation} | isRefetching: ${isRefetchingPresentation}`);
-    }, [isEdit, slides, isLoadingPresentation, isRefetchingPresentation]);
+        console.log(`[Debug] Render | isEdit: ${isEdit} | editMode from store: ${editMode} | slides: ${slides.length} | isLoading: ${isLoadingPresentation} | isRefetching: ${isRefetchingPresentation}`);
+    }, [isEdit, slides, isLoadingPresentation, isRefetchingPresentation, editMode]);
 
     const [isSaving, setIsSaving] = useState<boolean>(false);
 
@@ -174,6 +181,10 @@ export default function SlidesEditorComponent({
     const [isRegenerating, setIsRegenerating] = useState(false);
     const [regenerateSlideId, setRegenerateSlideId] = useState<string | null>(null);
 
+    // State for session finish modal
+    const [isFinishModalOpen, setIsFinishModalOpen] = useState(false);
+    const [isTranscribingOnFinish, setIsTranscribingOnFinish] = useState(false);
+
     // --- State for AI Slide Recommendations ---
     const recommendationIntervalRef = useRef<NodeJS.Timeout | null>(null);
     const recommendationMediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -196,11 +207,11 @@ export default function SlidesEditorComponent({
     useEffect(() => {
         const source = searchParams?.source;
         console.log(`[SlidesEditorComponent] Mount check. isEdit: ${isEdit}, source: ${source}`);
-        if (isEdit === false && source !== 'ai') {
+        if (isEdit === false && source !== 'ai' && source !== 'ppt') {
             console.log('[SlidesEditorComponent] Initializing new presentation state for "From Scratch".');
             initializeNewPresentationState();
-        } else if (source === 'ai') {
-            console.log('[SlidesEditorComponent] Skipping state initialization for AI-generated presentation.');
+        } else if (source === 'ai' || source === 'ppt') {
+            console.log(`[SlidesEditorComponent] Skipping state initialization for ${source}-generated presentation.`);
         }
     }, [isEdit, initializeNewPresentationState, searchParams]);
 
@@ -446,9 +457,9 @@ export default function SlidesEditorComponent({
     const handleCreateSession = async (options: SessionOptions) => {
         clearRecommendations(); // Clear out any old recommendations before creating a new session
         setIsCreatingSession(true);
-        setShouldRecordAudio(options.record_audio); // Store if audio recording is requested
+        setShouldRecordAudio(options.is_session_recorded); // Store if audio recording is requested
 
-        if (options.record_audio) {
+        if (options.is_session_recorded) {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 // Setup for main recording
@@ -681,7 +692,7 @@ export default function SlidesEditorComponent({
             clearInterval(recommendationIntervalRef.current);
             recommendationIntervalRef.current = null;
         }
-        if (recommendationMediaRecorderRef.current?.state !== 'inactive') {
+        if (recommendationMediaRecorderRef.current && recommendationMediaRecorderRef.current.state !== 'inactive') {
             recommendationMediaRecorderRef.current.stop();
         }
         recommendationAudioChunksRef.current = [];
@@ -689,42 +700,113 @@ export default function SlidesEditorComponent({
         console.log('[Rec AI] Recommendation interval stopped and cleared.');
     };
 
-    const handleExitSessionFlow = async () => {
-        // Stop recording if active
-        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-            mediaRecorderRef.current.stop(); // This will trigger onstop where audioBlobUrl is set
+    const cleanupAndExitSession = async (callFinishApi: boolean = false) => {
+        if (callFinishApi && sessionDetails?.session_id) {
+            try {
+                await authenticatedAxiosInstance.post(FINISH_SESSION_API_URL, {
+                    session_id: sessionDetails.session_id,
+                    move_to: null, // move_to can be null for this API
+                });
+                toast.success("Session has been successfully ended on the server.");
+            } catch (error) {
+                console.error('Error ending session via API:', error);
+                toast.error("Failed to notify the server about the session ending. It may still be active.");
+            }
         }
-        stopDurationTracker(); // Stop and reset duration tracker
-        stopRecommendationInterval(); // Stop the recommendation generator
-        clearRecommendations(); // Clear any existing recommendations
-        // Stream tracks are stopped in onstop handler
-        audioChunksRef.current = []; // Clear chunks after stopping/processing
-        setShouldRecordAudio(false); // Reset for next session
-        setAudioBlobUrl(null); // Clear previous recording URL
-
-        const currentSlidesState = useSlideStore.getState().slides;
-        console.log(`[Debug] Exiting session. Slides in store (${currentSlidesState.length}):`, JSON.stringify(currentSlidesState.map(s => ({ id: s.id, order: s.slide_order, type: s.type }))));
-
-        setJustExitedSession(true); // Flag that we are returning from a session
+        // UI state resets
+        setJustExitedSession(true);
         setEditMode(true);
         setShowSessionOptionsModal(false);
         setIsWaitingForParticipants(false);
         setSessionDetails(null);
         setIsCreatingSession(false);
         setIsStartingSessionInProgress(false);
-
-        try {
-            await authenticatedAxiosInstance.post(FINISH_SESSION_API_URL, {
-                session_id: sessionDetails.session_id,
-                move_to: null, // move_to can be null for this API
-            });
-            toast.success("Session has been successfully ended on the server.");
-        } catch (error) {
-            console.error('Error ending session via API:', error);
-            toast.error("Failed to notify the server about the session ending. It may still be active.");
-            // We still continue to close the UI locally.
-        }
+        clearRecommendations();
+        // Clear audio data
+        audioChunksRef.current = [];
+        setShouldRecordAudio(false);
+        setAudioBlobUrl(null);
         toast.info('Exited live session flow.');
+    };
+
+    const processAndFinishSession = async (inBackground: boolean) => {
+        if (!sessionDetails?.session_id) return;
+
+        const localSessionId = sessionDetails.session_id;
+        const audioChunksToProcess = [...audioChunksRef.current];
+
+        if (inBackground) {
+            setIsFinishModalOpen(false);
+            // We call cleanupAndExitSession with callFinishApi: false because the API is called inside this function.
+            // This will reset the UI and let the user continue.
+            cleanupAndExitSession(false); 
+            toast.info("Generating session summary in the background. You'll be notified.", { duration: 5000 });
+        } else {
+            setIsTranscribingOnFinish(true);
+        }
+        
+        try {
+            // Step 1: Call the main finish API to end the session
+            await authenticatedAxiosInstance.post(FINISH_SESSION_API_URL, {
+                session_id: localSessionId,
+                move_to: null,
+            });
+
+            if (!inBackground) {
+                toast.success("Session ended. Now generating transcript...");
+            } else {
+                // For background tasks, a simple console log is better to avoid spamming toasts
+                console.log(`[Background] Session ${localSessionId} ended. Starting transcript generation.`);
+            }
+            
+            // Step 2: Transcribe audio
+            const audioBlob = new Blob(audioChunksToProcess, { type: 'audio/webm' });
+            if (audioBlob.size === 0) throw new Error("Audio recording is empty.");
+
+            const client = new AssemblyAI({ apiKey: ASSEMBLYAI_API_KEY });
+            const transcript = await client.transcripts.transcribe({ audio: audioBlob });
+
+            if (transcript.status !== 'completed' || !transcript.text) {
+                throw new Error(`Transcription failed or returned no text. Status: ${transcript.status}`);
+            }
+
+            // Step 3: Send the transcript to the notifications API
+            await authenticatedAxiosInstance.post(
+                'https://backend-stage.vacademy.io/community-service/engage/admin/finish-send-notifications',
+                { transcript: transcript.text, session_id: localSessionId }
+            );
+            
+            toast.success("Session summary sent successfully!");
+
+        } catch (error: any) {
+            console.error("Error during session finalization:", error);
+            toast.error(error.response?.data?.message || "Failed to finalize session and send summary.");
+        } finally {
+            if (!inBackground) {
+                setIsTranscribingOnFinish(false);
+                setIsFinishModalOpen(false);
+                // Final cleanup after foreground processing is complete
+                cleanupAndExitSession(false);
+            }
+            // In background mode, UI cleanup is already done. This async task just finishes.
+        }
+    };
+
+    const handleExitSessionFlow = async () => {
+        // Stop recording to finalize audio blob.
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+            mediaRecorderRef.current.stop();
+        }
+        stopDurationTracker();
+        stopRecommendationInterval();
+
+        // If audio was recorded, open the modal to decide on transcription.
+        if (shouldRecordAudio && audioChunksRef.current.length > 0 && sessionDetails?.session_id) {
+            setIsFinishModalOpen(true);
+        } else {
+            // No audio, or no session ID, so just exit cleanly.
+            await cleanupAndExitSession(true);
+        }
     };
 
     const toggleDirectPresentationPreview = () => {
@@ -1748,6 +1830,47 @@ export default function SlidesEditorComponent({
                         }, 100);
                     }}
                 />
+                <Dialog open={isFinishModalOpen} onOpenChange={(isOpen) => !isTranscribingOnFinish && setIsFinishModalOpen(isOpen)}>
+                    <DialogContent>
+                        {isTranscribingOnFinish ? (
+                            <AiGeneratingLoader
+                                title="Finalizing Session..."
+                                description="Generating full session transcript. This may take up to a minute, please don't close this window."
+                                steps={[{ text: 'Ending session on server...' }, { text: 'Transcribing audio...' }, { text: 'Sending summary...' }]}
+                            />
+                        ) : (
+                            <>
+                                <DialogHeader>
+                                    <DialogTitle className="text-xl font-semibold">Finish Session & Generate Summary</DialogTitle>
+                                    <DialogDescription className="mt-2 text-neutral-600">
+                                        This session has an audio recording. Would you like to generate a transcript and send a summary report to participants?
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <DialogFooter className="mt-6 !justify-stretch space-y-2 sm:flex sm:flex-row sm:space-x-3 sm:space-y-0">
+                                    <MyButton
+                                        type="button"
+                                        buttonType="secondary"
+                                        onClick={() => cleanupAndExitSession(true)}
+                                    >
+                                        Exit Without Summary
+                                    </MyButton>
+                                    <MyButton
+                                        type="button"
+                                        onClick={() => processAndFinishSession(true)}
+                                    >
+                                        Finish in Background
+                                    </MyButton>
+                                    <MyButton
+                                         type="submit"
+                                        onClick={() => processAndFinishSession(false)}
+                                    >
+                                        Finish and Generate
+                                    </MyButton>
+                                </DialogFooter>
+                            </>
+                        )}
+                    </DialogContent>
+                </Dialog>
             </>
         );
     }
