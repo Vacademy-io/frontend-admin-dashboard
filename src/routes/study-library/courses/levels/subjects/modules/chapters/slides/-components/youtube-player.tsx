@@ -223,6 +223,14 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
 
     const handleQuestionClick = (timestamp: number) => {
         if (!playerRef.current) return;
+
+        // Check if player is ready by checking if it has the seekTo method
+        if (typeof playerRef.current.seekTo !== 'function') {
+            // If not ready, try again after a short delay
+            setTimeout(() => handleQuestionClick(timestamp), 100);
+            return;
+        }
+
         playerRef.current.seekTo(timestamp, true);
         setCurrentTime(timestamp);
     };
