@@ -30,9 +30,10 @@ interface LeaderboardModalProps {
     onClose: () => void;
     responses: ResponseData[];
     slideData: QuizSlideData;
+    isMcq: boolean;
 }
 
-export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onClose, responses, slideData }) => {
+export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onClose, responses, slideData, isMcq }) => {
 
 
     useEffect(() => {
@@ -76,6 +77,14 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
     }
 
     const getResponseText = (response: ResponseData) => {
+        if (!isMcq) {
+            return (
+                <span className="text-slate-800 font-normal">
+                    {response.response_data?.text_answer || <span className="text-slate-500 italic">No answer submitted</span>}
+                </span>
+            );
+        }
+
         const selectedId = response.response_data?.selected_option_ids?.[0];
 
         if (!selectedId) {

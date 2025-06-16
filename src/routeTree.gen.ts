@@ -8,6 +8,8 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
+import { createFileRoute } from "@tanstack/react-router"
+
 // Import Routes
 
 import { Route as rootRoute } from "./routes/__root"
@@ -22,8 +24,8 @@ import { Route as DashboardIndexImport } from "./routes/dashboard/index"
 import { Route as CommunityIndexImport } from "./routes/community/index"
 import { Route as AssessmentIndexImport } from "./routes/assessment/index"
 import { Route as AiCenterIndexImport } from "./routes/ai-center/index"
+import { Route as StudyLibraryVoltIndexImport } from "./routes/study-library/volt/index"
 import { Route as StudyLibraryReportsIndexImport } from "./routes/study-library/reports/index"
-import { Route as StudyLibraryPresentIndexImport } from "./routes/study-library/present/index"
 import { Route as StudyLibraryLiveSessionIndexImport } from "./routes/study-library/live-session/index"
 import { Route as StudyLibraryDoubtManagementIndexImport } from "./routes/study-library/doubt-management/index"
 import { Route as StudyLibraryCoursesIndexImport } from "./routes/study-library/courses/index"
@@ -47,7 +49,7 @@ import { Route as AssessmentQuestionPapersIndexImport } from "./routes/assessmen
 import { Route as AssessmentAssessmentListIndexImport } from "./routes/assessment/assessment-list/index"
 import { Route as AiCenterMyResourcesIndexImport } from "./routes/ai-center/my-resources/index"
 import { Route as AiCenterAiToolsIndexImport } from "./routes/ai-center/ai-tools/index"
-import { Route as StudyLibraryPresentAddIndexImport } from "./routes/study-library/present/add/index"
+import { Route as StudyLibraryVoltAddIndexImport } from "./routes/study-library/volt/add/index"
 import { Route as StudyLibraryLiveSessionScheduleIndexImport } from "./routes/study-library/live-session/schedule/index"
 import { Route as StudyLibraryCoursesLevelsIndexImport } from "./routes/study-library/courses/levels/index"
 import { Route as EvaluatorAiEvaluationStudentSummaryIndexImport } from "./routes/evaluator-ai/evaluation/student-summary/index"
@@ -76,7 +78,24 @@ import { Route as StudyLibraryCoursesLevelsSubjectsModulesChaptersSlidesIndexImp
 import { Route as HomeworkCreationAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeAssessmentTabIndexImport } from "./routes/homework-creation/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/index"
 import { Route as AssessmentAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeAssessmentTabIndexImport } from "./routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/index"
 
+// Create Virtual Routes
+
+const PricingLazyImport = createFileRoute("/pricing")()
+const LandingLazyImport = createFileRoute("/landing")()
+
 // Create/Update Routes
+
+const PricingLazyRoute = PricingLazyImport.update({
+  id: "/pricing",
+  path: "/pricing",
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import("./routes/pricing.lazy").then((d) => d.Route))
+
+const LandingLazyRoute = LandingLazyImport.update({
+  id: "/landing",
+  path: "/landing",
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import("./routes/landing.lazy").then((d) => d.Route))
 
 const StudyLibraryIndexRoute = StudyLibraryIndexImport.update({
   id: "/study-library/",
@@ -144,15 +163,15 @@ const AiCenterIndexRoute = AiCenterIndexImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const StudyLibraryReportsIndexRoute = StudyLibraryReportsIndexImport.update({
-  id: "/study-library/reports/",
-  path: "/study-library/reports/",
+const StudyLibraryVoltIndexRoute = StudyLibraryVoltIndexImport.update({
+  id: "/study-library/volt/",
+  path: "/study-library/volt/",
   getParentRoute: () => rootRoute,
 } as any)
 
-const StudyLibraryPresentIndexRoute = StudyLibraryPresentIndexImport.update({
-  id: "/study-library/present/",
-  path: "/study-library/present/",
+const StudyLibraryReportsIndexRoute = StudyLibraryReportsIndexImport.update({
+  id: "/study-library/reports/",
+  path: "/study-library/reports/",
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -311,12 +330,11 @@ const AiCenterAiToolsIndexRoute = AiCenterAiToolsIndexImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const StudyLibraryPresentAddIndexRoute =
-  StudyLibraryPresentAddIndexImport.update({
-    id: "/study-library/present/add/",
-    path: "/study-library/present/add/",
-    getParentRoute: () => rootRoute,
-  } as any)
+const StudyLibraryVoltAddIndexRoute = StudyLibraryVoltAddIndexImport.update({
+  id: "/study-library/volt/add/",
+  path: "/study-library/volt/add/",
+  getParentRoute: () => rootRoute,
+} as any)
 
 const StudyLibraryLiveSessionScheduleIndexRoute =
   StudyLibraryLiveSessionScheduleIndexImport.update({
@@ -517,6 +535,20 @@ const AssessmentAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTy
 
 declare module "@tanstack/react-router" {
   interface FileRoutesByPath {
+    "/landing": {
+      id: "/landing"
+      path: "/landing"
+      fullPath: "/landing"
+      preLoaderRoute: typeof LandingLazyImport
+      parentRoute: typeof rootRoute
+    }
+    "/pricing": {
+      id: "/pricing"
+      path: "/pricing"
+      fullPath: "/pricing"
+      preLoaderRoute: typeof PricingLazyImport
+      parentRoute: typeof rootRoute
+    }
     "/ai-center/": {
       id: "/ai-center/"
       path: "/ai-center"
@@ -755,18 +787,18 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof StudyLibraryLiveSessionIndexImport
       parentRoute: typeof rootRoute
     }
-    "/study-library/present/": {
-      id: "/study-library/present/"
-      path: "/study-library/present"
-      fullPath: "/study-library/present"
-      preLoaderRoute: typeof StudyLibraryPresentIndexImport
-      parentRoute: typeof rootRoute
-    }
     "/study-library/reports/": {
       id: "/study-library/reports/"
       path: "/study-library/reports"
       fullPath: "/study-library/reports"
       preLoaderRoute: typeof StudyLibraryReportsIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/study-library/volt/": {
+      id: "/study-library/volt/"
+      path: "/study-library/volt"
+      fullPath: "/study-library/volt"
+      preLoaderRoute: typeof StudyLibraryVoltIndexImport
       parentRoute: typeof rootRoute
     }
     "/ai-center/ai-tools/vsmart-audio/": {
@@ -874,11 +906,11 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof StudyLibraryLiveSessionScheduleIndexImport
       parentRoute: typeof rootRoute
     }
-    "/study-library/present/add/": {
-      id: "/study-library/present/add/"
-      path: "/study-library/present/add"
-      fullPath: "/study-library/present/add"
-      preLoaderRoute: typeof StudyLibraryPresentAddIndexImport
+    "/study-library/volt/add/": {
+      id: "/study-library/volt/add/"
+      path: "/study-library/volt/add"
+      fullPath: "/study-library/volt/add"
+      preLoaderRoute: typeof StudyLibraryVoltAddIndexImport
       parentRoute: typeof rootRoute
     }
     "/assessment/create-assessment/$assessmentId/$examtype/": {
@@ -971,6 +1003,8 @@ declare module "@tanstack/react-router" {
 // Create and export the route tree
 
 export interface FileRoutesByFullPath {
+  "/landing": typeof LandingLazyRoute
+  "/pricing": typeof PricingLazyRoute
   "/ai-center": typeof AiCenterIndexRoute
   "/assessment": typeof AssessmentIndexRoute
   "/community": typeof CommunityIndexRoute
@@ -1005,8 +1039,8 @@ export interface FileRoutesByFullPath {
   "/study-library/courses": typeof StudyLibraryCoursesIndexRoute
   "/study-library/doubt-management": typeof StudyLibraryDoubtManagementIndexRoute
   "/study-library/live-session": typeof StudyLibraryLiveSessionIndexRoute
-  "/study-library/present": typeof StudyLibraryPresentIndexRoute
   "/study-library/reports": typeof StudyLibraryReportsIndexRoute
+  "/study-library/volt": typeof StudyLibraryVoltIndexRoute
   "/ai-center/ai-tools/vsmart-audio": typeof AiCenterAiToolsVsmartAudioIndexRoute
   "/ai-center/ai-tools/vsmart-chat": typeof AiCenterAiToolsVsmartChatIndexRoute
   "/ai-center/ai-tools/vsmart-extract": typeof AiCenterAiToolsVsmartExtractIndexRoute
@@ -1022,7 +1056,7 @@ export interface FileRoutesByFullPath {
   "/evaluator-ai/evaluation/student-summary": typeof EvaluatorAiEvaluationStudentSummaryIndexRoute
   "/study-library/courses/levels": typeof StudyLibraryCoursesLevelsIndexRoute
   "/study-library/live-session/schedule": typeof StudyLibraryLiveSessionScheduleIndexRoute
-  "/study-library/present/add": typeof StudyLibraryPresentAddIndexRoute
+  "/study-library/volt/add": typeof StudyLibraryVoltAddIndexRoute
   "/assessment/create-assessment/$assessmentId/$examtype": typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute
   "/homework-creation/create-assessment/$assessmentId/$examtype": typeof HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute
   "/study-library/courses/levels/subjects": typeof StudyLibraryCoursesLevelsSubjectsIndexRoute
@@ -1038,6 +1072,8 @@ export interface FileRoutesByFullPath {
 }
 
 export interface FileRoutesByTo {
+  "/landing": typeof LandingLazyRoute
+  "/pricing": typeof PricingLazyRoute
   "/ai-center": typeof AiCenterIndexRoute
   "/assessment": typeof AssessmentIndexRoute
   "/community": typeof CommunityIndexRoute
@@ -1072,8 +1108,8 @@ export interface FileRoutesByTo {
   "/study-library/courses": typeof StudyLibraryCoursesIndexRoute
   "/study-library/doubt-management": typeof StudyLibraryDoubtManagementIndexRoute
   "/study-library/live-session": typeof StudyLibraryLiveSessionIndexRoute
-  "/study-library/present": typeof StudyLibraryPresentIndexRoute
   "/study-library/reports": typeof StudyLibraryReportsIndexRoute
+  "/study-library/volt": typeof StudyLibraryVoltIndexRoute
   "/ai-center/ai-tools/vsmart-audio": typeof AiCenterAiToolsVsmartAudioIndexRoute
   "/ai-center/ai-tools/vsmart-chat": typeof AiCenterAiToolsVsmartChatIndexRoute
   "/ai-center/ai-tools/vsmart-extract": typeof AiCenterAiToolsVsmartExtractIndexRoute
@@ -1089,7 +1125,7 @@ export interface FileRoutesByTo {
   "/evaluator-ai/evaluation/student-summary": typeof EvaluatorAiEvaluationStudentSummaryIndexRoute
   "/study-library/courses/levels": typeof StudyLibraryCoursesLevelsIndexRoute
   "/study-library/live-session/schedule": typeof StudyLibraryLiveSessionScheduleIndexRoute
-  "/study-library/present/add": typeof StudyLibraryPresentAddIndexRoute
+  "/study-library/volt/add": typeof StudyLibraryVoltAddIndexRoute
   "/assessment/create-assessment/$assessmentId/$examtype": typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute
   "/homework-creation/create-assessment/$assessmentId/$examtype": typeof HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute
   "/study-library/courses/levels/subjects": typeof StudyLibraryCoursesLevelsSubjectsIndexRoute
@@ -1106,6 +1142,8 @@ export interface FileRoutesByTo {
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
+  "/landing": typeof LandingLazyRoute
+  "/pricing": typeof PricingLazyRoute
   "/ai-center/": typeof AiCenterIndexRoute
   "/assessment/": typeof AssessmentIndexRoute
   "/community/": typeof CommunityIndexRoute
@@ -1140,8 +1178,8 @@ export interface FileRoutesById {
   "/study-library/courses/": typeof StudyLibraryCoursesIndexRoute
   "/study-library/doubt-management/": typeof StudyLibraryDoubtManagementIndexRoute
   "/study-library/live-session/": typeof StudyLibraryLiveSessionIndexRoute
-  "/study-library/present/": typeof StudyLibraryPresentIndexRoute
   "/study-library/reports/": typeof StudyLibraryReportsIndexRoute
+  "/study-library/volt/": typeof StudyLibraryVoltIndexRoute
   "/ai-center/ai-tools/vsmart-audio/": typeof AiCenterAiToolsVsmartAudioIndexRoute
   "/ai-center/ai-tools/vsmart-chat/": typeof AiCenterAiToolsVsmartChatIndexRoute
   "/ai-center/ai-tools/vsmart-extract/": typeof AiCenterAiToolsVsmartExtractIndexRoute
@@ -1157,7 +1195,7 @@ export interface FileRoutesById {
   "/evaluator-ai/evaluation/student-summary/": typeof EvaluatorAiEvaluationStudentSummaryIndexRoute
   "/study-library/courses/levels/": typeof StudyLibraryCoursesLevelsIndexRoute
   "/study-library/live-session/schedule/": typeof StudyLibraryLiveSessionScheduleIndexRoute
-  "/study-library/present/add/": typeof StudyLibraryPresentAddIndexRoute
+  "/study-library/volt/add/": typeof StudyLibraryVoltAddIndexRoute
   "/assessment/create-assessment/$assessmentId/$examtype/": typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute
   "/homework-creation/create-assessment/$assessmentId/$examtype/": typeof HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute
   "/study-library/courses/levels/subjects/": typeof StudyLibraryCoursesLevelsSubjectsIndexRoute
@@ -1175,6 +1213,8 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | "/landing"
+    | "/pricing"
     | "/ai-center"
     | "/assessment"
     | "/community"
@@ -1209,8 +1249,8 @@ export interface FileRouteTypes {
     | "/study-library/courses"
     | "/study-library/doubt-management"
     | "/study-library/live-session"
-    | "/study-library/present"
     | "/study-library/reports"
+    | "/study-library/volt"
     | "/ai-center/ai-tools/vsmart-audio"
     | "/ai-center/ai-tools/vsmart-chat"
     | "/ai-center/ai-tools/vsmart-extract"
@@ -1226,7 +1266,7 @@ export interface FileRouteTypes {
     | "/evaluator-ai/evaluation/student-summary"
     | "/study-library/courses/levels"
     | "/study-library/live-session/schedule"
-    | "/study-library/present/add"
+    | "/study-library/volt/add"
     | "/assessment/create-assessment/$assessmentId/$examtype"
     | "/homework-creation/create-assessment/$assessmentId/$examtype"
     | "/study-library/courses/levels/subjects"
@@ -1241,6 +1281,8 @@ export interface FileRouteTypes {
     | "/study-library/courses/levels/subjects/modules/chapters/slides"
   fileRoutesByTo: FileRoutesByTo
   to:
+    | "/landing"
+    | "/pricing"
     | "/ai-center"
     | "/assessment"
     | "/community"
@@ -1275,8 +1317,8 @@ export interface FileRouteTypes {
     | "/study-library/courses"
     | "/study-library/doubt-management"
     | "/study-library/live-session"
-    | "/study-library/present"
     | "/study-library/reports"
+    | "/study-library/volt"
     | "/ai-center/ai-tools/vsmart-audio"
     | "/ai-center/ai-tools/vsmart-chat"
     | "/ai-center/ai-tools/vsmart-extract"
@@ -1292,7 +1334,7 @@ export interface FileRouteTypes {
     | "/evaluator-ai/evaluation/student-summary"
     | "/study-library/courses/levels"
     | "/study-library/live-session/schedule"
-    | "/study-library/present/add"
+    | "/study-library/volt/add"
     | "/assessment/create-assessment/$assessmentId/$examtype"
     | "/homework-creation/create-assessment/$assessmentId/$examtype"
     | "/study-library/courses/levels/subjects"
@@ -1307,6 +1349,8 @@ export interface FileRouteTypes {
     | "/study-library/courses/levels/subjects/modules/chapters/slides"
   id:
     | "__root__"
+    | "/landing"
+    | "/pricing"
     | "/ai-center/"
     | "/assessment/"
     | "/community/"
@@ -1341,8 +1385,8 @@ export interface FileRouteTypes {
     | "/study-library/courses/"
     | "/study-library/doubt-management/"
     | "/study-library/live-session/"
-    | "/study-library/present/"
     | "/study-library/reports/"
+    | "/study-library/volt/"
     | "/ai-center/ai-tools/vsmart-audio/"
     | "/ai-center/ai-tools/vsmart-chat/"
     | "/ai-center/ai-tools/vsmart-extract/"
@@ -1358,7 +1402,7 @@ export interface FileRouteTypes {
     | "/evaluator-ai/evaluation/student-summary/"
     | "/study-library/courses/levels/"
     | "/study-library/live-session/schedule/"
-    | "/study-library/present/add/"
+    | "/study-library/volt/add/"
     | "/assessment/create-assessment/$assessmentId/$examtype/"
     | "/homework-creation/create-assessment/$assessmentId/$examtype/"
     | "/study-library/courses/levels/subjects/"
@@ -1375,6 +1419,8 @@ export interface FileRouteTypes {
 }
 
 export interface RootRouteChildren {
+  LandingLazyRoute: typeof LandingLazyRoute
+  PricingLazyRoute: typeof PricingLazyRoute
   AiCenterIndexRoute: typeof AiCenterIndexRoute
   AssessmentIndexRoute: typeof AssessmentIndexRoute
   CommunityIndexRoute: typeof CommunityIndexRoute
@@ -1409,8 +1455,8 @@ export interface RootRouteChildren {
   StudyLibraryCoursesIndexRoute: typeof StudyLibraryCoursesIndexRoute
   StudyLibraryDoubtManagementIndexRoute: typeof StudyLibraryDoubtManagementIndexRoute
   StudyLibraryLiveSessionIndexRoute: typeof StudyLibraryLiveSessionIndexRoute
-  StudyLibraryPresentIndexRoute: typeof StudyLibraryPresentIndexRoute
   StudyLibraryReportsIndexRoute: typeof StudyLibraryReportsIndexRoute
+  StudyLibraryVoltIndexRoute: typeof StudyLibraryVoltIndexRoute
   AiCenterAiToolsVsmartAudioIndexRoute: typeof AiCenterAiToolsVsmartAudioIndexRoute
   AiCenterAiToolsVsmartChatIndexRoute: typeof AiCenterAiToolsVsmartChatIndexRoute
   AiCenterAiToolsVsmartExtractIndexRoute: typeof AiCenterAiToolsVsmartExtractIndexRoute
@@ -1426,7 +1472,7 @@ export interface RootRouteChildren {
   EvaluatorAiEvaluationStudentSummaryIndexRoute: typeof EvaluatorAiEvaluationStudentSummaryIndexRoute
   StudyLibraryCoursesLevelsIndexRoute: typeof StudyLibraryCoursesLevelsIndexRoute
   StudyLibraryLiveSessionScheduleIndexRoute: typeof StudyLibraryLiveSessionScheduleIndexRoute
-  StudyLibraryPresentAddIndexRoute: typeof StudyLibraryPresentAddIndexRoute
+  StudyLibraryVoltAddIndexRoute: typeof StudyLibraryVoltAddIndexRoute
   AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute: typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute
   HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute: typeof HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute
   StudyLibraryCoursesLevelsSubjectsIndexRoute: typeof StudyLibraryCoursesLevelsSubjectsIndexRoute
@@ -1442,6 +1488,8 @@ export interface RootRouteChildren {
 }
 
 const rootRouteChildren: RootRouteChildren = {
+  LandingLazyRoute: LandingLazyRoute,
+  PricingLazyRoute: PricingLazyRoute,
   AiCenterIndexRoute: AiCenterIndexRoute,
   AssessmentIndexRoute: AssessmentIndexRoute,
   CommunityIndexRoute: CommunityIndexRoute,
@@ -1478,8 +1526,8 @@ const rootRouteChildren: RootRouteChildren = {
   StudyLibraryCoursesIndexRoute: StudyLibraryCoursesIndexRoute,
   StudyLibraryDoubtManagementIndexRoute: StudyLibraryDoubtManagementIndexRoute,
   StudyLibraryLiveSessionIndexRoute: StudyLibraryLiveSessionIndexRoute,
-  StudyLibraryPresentIndexRoute: StudyLibraryPresentIndexRoute,
   StudyLibraryReportsIndexRoute: StudyLibraryReportsIndexRoute,
+  StudyLibraryVoltIndexRoute: StudyLibraryVoltIndexRoute,
   AiCenterAiToolsVsmartAudioIndexRoute: AiCenterAiToolsVsmartAudioIndexRoute,
   AiCenterAiToolsVsmartChatIndexRoute: AiCenterAiToolsVsmartChatIndexRoute,
   AiCenterAiToolsVsmartExtractIndexRoute:
@@ -1503,7 +1551,7 @@ const rootRouteChildren: RootRouteChildren = {
   StudyLibraryCoursesLevelsIndexRoute: StudyLibraryCoursesLevelsIndexRoute,
   StudyLibraryLiveSessionScheduleIndexRoute:
     StudyLibraryLiveSessionScheduleIndexRoute,
-  StudyLibraryPresentAddIndexRoute: StudyLibraryPresentAddIndexRoute,
+  StudyLibraryVoltAddIndexRoute: StudyLibraryVoltAddIndexRoute,
   AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute:
     AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute,
   HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute:
@@ -1540,6 +1588,8 @@ export const routeTree = rootRoute
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
+        "/landing",
+        "/pricing",
         "/ai-center/",
         "/assessment/",
         "/community/",
@@ -1574,8 +1624,8 @@ export const routeTree = rootRoute
         "/study-library/courses/",
         "/study-library/doubt-management/",
         "/study-library/live-session/",
-        "/study-library/present/",
         "/study-library/reports/",
+        "/study-library/volt/",
         "/ai-center/ai-tools/vsmart-audio/",
         "/ai-center/ai-tools/vsmart-chat/",
         "/ai-center/ai-tools/vsmart-extract/",
@@ -1591,7 +1641,7 @@ export const routeTree = rootRoute
         "/evaluator-ai/evaluation/student-summary/",
         "/study-library/courses/levels/",
         "/study-library/live-session/schedule/",
-        "/study-library/present/add/",
+        "/study-library/volt/add/",
         "/assessment/create-assessment/$assessmentId/$examtype/",
         "/homework-creation/create-assessment/$assessmentId/$examtype/",
         "/study-library/courses/levels/subjects/",
@@ -1605,6 +1655,12 @@ export const routeTree = rootRoute
         "/homework-creation/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/",
         "/study-library/courses/levels/subjects/modules/chapters/slides/"
       ]
+    },
+    "/landing": {
+      "filePath": "landing.lazy.tsx"
+    },
+    "/pricing": {
+      "filePath": "pricing.lazy.tsx"
     },
     "/ai-center/": {
       "filePath": "ai-center/index.tsx"
@@ -1708,11 +1764,11 @@ export const routeTree = rootRoute
     "/study-library/live-session/": {
       "filePath": "study-library/live-session/index.tsx"
     },
-    "/study-library/present/": {
-      "filePath": "study-library/present/index.tsx"
-    },
     "/study-library/reports/": {
       "filePath": "study-library/reports/index.tsx"
+    },
+    "/study-library/volt/": {
+      "filePath": "study-library/volt/index.tsx"
     },
     "/ai-center/ai-tools/vsmart-audio/": {
       "filePath": "ai-center/ai-tools/vsmart-audio/index.tsx"
@@ -1759,8 +1815,8 @@ export const routeTree = rootRoute
     "/study-library/live-session/schedule/": {
       "filePath": "study-library/live-session/schedule/index.tsx"
     },
-    "/study-library/present/add/": {
-      "filePath": "study-library/present/add/index.tsx"
+    "/study-library/volt/add/": {
+      "filePath": "study-library/volt/add/index.tsx"
     },
     "/assessment/create-assessment/$assessmentId/$examtype/": {
       "filePath": "assessment/create-assessment/$assessmentId/$examtype/index.tsx"

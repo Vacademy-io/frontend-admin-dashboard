@@ -67,7 +67,7 @@ export const handleUnpublishSlide = async (
                 title: activeItem?.title || '',
                 image_file_id: activeItem?.image_file_id || '',
                 description: activeItem?.description || '',
-                slide_order: null,
+                slide_order: 0,
                 document_slide: {
                     id: activeItem?.document_slide?.id || '',
                     type: activeItem?.document_slide?.type || '',
@@ -90,8 +90,20 @@ export const handleUnpublishSlide = async (
     }
 
     if (activeItem?.source_type == 'VIDEO') {
+        if (!activeItem.video_slide) {
+            toast.error('Video slide data is missing.');
+            return;
+        }
+        const currentStatus = activeItem.status;
         const convertedData = converDataToVideoFormat({
-            activeItem,
+            activeItem: {
+                ...activeItem,
+                video_slide: {
+                    ...activeItem.video_slide,
+                    video_length_in_millis: currentStatus == "UNSYNC" ? activeItem.video_slide.video_length_in_millis : activeItem.video_slide.published_video_length_in_millis,
+                    published_video_length_in_millis: 0,
+                },
+            },
             status,
             notify,
             newSlide: false,

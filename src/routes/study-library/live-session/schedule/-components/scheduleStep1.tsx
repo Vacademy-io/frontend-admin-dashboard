@@ -11,7 +11,7 @@ import { useFilterDataForAssesment } from '@/routes/assessment/assessment-list/-
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
 import { MyRadioButton } from '@/components/design-system/radio';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
     RecurringType,
     SessionPlatform,
@@ -21,8 +21,8 @@ import {
 import { WEEK_DAYS } from '../../-constants/type';
 import { sessionFormSchema } from '../-schema/schema';
 import { Trash, UploadSimple, X } from 'phosphor-react';
-import { MyDialog } from '@/components/design-system/dialog';
-import { MeetLogo, YoutubeLogo, ZoomLogo } from '@/svgs';
+// import { MyDialog } from '@/components/design-system/dialog';
+// import { MeetLogo, YoutubeLogo, ZoomLogo } from '@/svgs';
 import { transformFormToDTOStep1, timeOptions } from '../../-constants/helper';
 import { createLiveSessionStep1 } from '../-services/utils';
 import { useNavigate } from '@tanstack/react-router';
@@ -31,7 +31,14 @@ import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtili
 import { TokenKey } from '@/constants/auth/tokens';
 import { UploadFileInS3 } from '@/services/upload_file';
 import { Switch } from '@/components/ui/switch';
-
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { useSessionDetailsStore } from '../../-store/useSessionDetailsStore';
 // Constants
 const WAITING_ROOM_OPTIONS = [
     { value: '15', label: '15 minutes', _id: 1 },
@@ -48,11 +55,12 @@ const STREAMING_OPTIONS = [
 export default function ScheduleStep1() {
     // Hooks and State
     const navigate = useNavigate();
-    const [createLinkDialog, setCreateLinkDialog] = useState<boolean>(false);
+    const { sessionDetails } = useSessionDetailsStore();
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [selectedMusicFile, setSelectedMusicFile] = useState<File | null>(null);
     const musicFileInputRef = useRef<HTMLInputElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [scheduleType, setScheduleType] = useState<'everyday' | 'weekday' | null>(null);
 
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
     const { SubjectFilterData } = useFilterDataForAssesment(instituteDetails);
@@ -62,23 +70,31 @@ export default function ScheduleStep1() {
         resolver: zodResolver(sessionFormSchema),
         defaultValues: {
             title: '',
-            meetingType: RecurringType.ONCE,
+            meetingType:
+                sessionDetails?.schedule?.added_schedules &&
+                sessionDetails.schedule.added_schedules.length > 0
+                    ? RecurringType.WEEKLY
+                    : RecurringType.ONCE,
             recurringSchedule: WEEK_DAYS.map((day) => ({
                 day: day.label,
                 isSelect: false,
                 sessions: [
                     {
                         startTime: '00:00',
-                        duration: '',
+                        durationHours: '',
+                        durationMinutes: '',
                         link: '',
                     },
                 ],
             })),
+            subject: 'none',
             timeZone: '(GMT 5:30) India Standard Time (Asia/Kolkata)',
             events: '1',
             openWaitingRoomBefore: '15',
             sessionType: SessionType.LIVE,
-            streamingType: SessionPlatform.EMBED_IN_APP,
+            streamingType: sessionDetails?.schedule?.session_streaming_service_type
+                ? sessionDetails?.schedule?.session_streaming_service_type
+                : SessionPlatform.EMBED_IN_APP,
             allowRewind: false,
             enableWaitingRoom: false,
             sessionPlatform: StreamingPlatform.YOUTUBE,
@@ -86,6 +102,81 @@ export default function ScheduleStep1() {
         },
         mode: 'onChange',
     });
+
+    useEffect(() => {
+        if (sessionDetails) {
+            form.setValue('id', sessionDetails.schedule.session_id);
+            form.setValue('title', sessionDetails.schedule.title);
+            form.setValue('subject', sessionDetails.schedule.subject ?? 'none');
+            form.setValue('description', sessionDetails.schedule.description_html ?? '');
+            form.setValue('startTime', sessionDetails.schedule.start_time);
+            form.setValue('defaultLink', sessionDetails.schedule.default_meet_link ?? '');
+            form.setValue(
+                'sessionPlatform',
+                sessionDetails.schedule.link_type ?? StreamingPlatform.YOUTUBE
+            );
+            form.setValue(
+                'streamingType',
+                sessionDetails.schedule.session_streaming_service_type ?? 'embed'
+            );
+
+            if (sessionDetails.schedule.start_time && sessionDetails.schedule.last_entry_time) {
+                const start = new Date(sessionDetails.schedule.start_time);
+                const end = new Date(sessionDetails.schedule.last_entry_time);
+                if (end > start) {
+                    const durationMs = end.getTime() - start.getTime();
+                    const hours = Math.floor(durationMs / 3600000);
+                    const minutes = Math.floor((durationMs % 3600000) / 60000);
+                    form.setValue('durationHours', String(hours));
+                    form.setValue('durationMinutes', String(minutes));
+                }
+            }
+            if (sessionDetails.schedule.added_schedules.length > 0) {
+                form.setValue('meetingType', RecurringType.WEEKLY);
+                form.setValue('endDate', sessionDetails.schedule.session_end_date);
+                const transformedSchedules = WEEK_DAYS.map((day) => {
+                    const matchingSchedule = sessionDetails.schedule.added_schedules.find(
+                        (schedule) => schedule.day.toLowerCase() === day.label.toLowerCase()
+                    );
+                    return {
+                        day: day.label,
+                        isSelect: !!matchingSchedule,
+                        sessions: matchingSchedule
+                            ? [
+                                  {
+                                      id: matchingSchedule.id,
+                                      startTime: matchingSchedule.startTime,
+                                      durationHours: String(
+                                          Math.floor(parseInt(matchingSchedule.duration) / 60)
+                                      ),
+                                      durationMinutes: String(
+                                          parseInt(matchingSchedule.duration) % 60
+                                      ),
+                                      link: matchingSchedule.link || '',
+                                  },
+                              ]
+                            : [
+                                  {
+                                      startTime: '00:00',
+                                      durationHours: '',
+                                      durationMinutes: '',
+                                      link: '',
+                                  },
+                              ],
+                    };
+                });
+                console.log('transformedSchedules ', transformedSchedules);
+                form.setValue('recurringSchedule', transformedSchedules);
+            }
+            if (sessionDetails.schedule.waiting_room_time) {
+                form.setValue('enableWaitingRoom', true);
+                form.setValue(
+                    'openWaitingRoomBefore',
+                    String(sessionDetails.schedule.waiting_room_time)
+                );
+            }
+        }
+    }, [sessionDetails]);
 
     const { control, watch } = form;
     const meetingType = useWatch({ control, name: 'meetingType' });
@@ -141,7 +232,38 @@ export default function ScheduleStep1() {
         if (selectedFile) {
             thumbnailFileId = await UploadFileInS3(selectedFile, () => {}, 'your-user-id');
         }
-        const body = transformFormToDTOStep1(data, INSTITUTE_ID, [], musicFileId, thumbnailFileId);
+
+        const transformedSchedules =
+            sessionDetails?.schedule?.added_schedules?.map((schedule) => ({
+                id: schedule.id,
+                day: schedule.day.toLowerCase() as
+                    | 'monday'
+                    | 'tuesday'
+                    | 'wednesday'
+                    | 'thursday'
+                    | 'friday'
+                    | 'saturday'
+                    | 'sunday',
+                isSelect: true,
+                sessions: [
+                    {
+                        id: schedule.id,
+                        startTime: schedule.startTime,
+                        durationHours: String(Math.floor(parseInt(schedule.duration) / 60)),
+                        durationMinutes: String(parseInt(schedule.duration) % 60),
+                        link: schedule.link || '',
+                    },
+                ],
+            })) || [];
+
+        const body = transformFormToDTOStep1(
+            data,
+            INSTITUTE_ID,
+            transformedSchedules,
+            musicFileId,
+            thumbnailFileId,
+            instituteDetails?.institute_logo_file_id
+        );
         try {
             const response = await createLiveSessionStep1(body);
             useLiveSessionStore.getState().setSessionId(response.id);
@@ -163,7 +285,12 @@ export default function ScheduleStep1() {
 
         const updatedSessions = [
             ...daySchedule.sessions,
-            { startTime: '', duration: '', link: '' },
+            {
+                startTime: '',
+                durationHours: '',
+                durationMinutes: '',
+                link: '',
+            },
         ];
 
         form.setValue(`recurringSchedule.${dayIndex}.sessions`, updatedSessions, {
@@ -186,15 +313,45 @@ export default function ScheduleStep1() {
 
     const toggleEveryDay = () => {
         const currentSchedule = form.getValues('recurringSchedule');
-        const allSelected = currentSchedule?.every((day) => day.isSelect);
+        if (!currentSchedule) return;
 
-        currentSchedule?.forEach((day, index) => {
+        const allSelected = currentSchedule.every((day) => day.isSelect);
+        currentSchedule.forEach((day, index) => {
             const isSelecting = !allSelected;
             form.setValue(`recurringSchedule.${index}.isSelect`, isSelecting);
 
             if (isSelecting && (!day.sessions || day.sessions.length === 0)) {
                 form.setValue(`recurringSchedule.${index}.sessions`, [
-                    { startTime: '', duration: '', link: '' },
+                    {
+                        startTime: '',
+                        durationHours: '',
+                        durationMinutes: '',
+                        link: '',
+                    },
+                ]);
+            }
+        });
+    };
+
+    const toggleMonToFri = () => {
+        const currentSchedule = form.getValues('recurringSchedule');
+        if (!currentSchedule) return;
+
+        currentSchedule.forEach((day, index) => {
+            const weekDay = WEEK_DAYS.find((d) => d.label === day.day);
+            const isWeekday = weekDay?.value
+                ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].includes(weekDay.value)
+                : false;
+            form.setValue(`recurringSchedule.${index}.isSelect`, isWeekday);
+
+            if (isWeekday && (!day.sessions || day.sessions.length === 0)) {
+                form.setValue(`recurringSchedule.${index}.sessions`, [
+                    {
+                        startTime: '',
+                        durationHours: '',
+                        durationMinutes: '',
+                        link: '',
+                    },
                 ]);
             }
         });
@@ -230,11 +387,14 @@ export default function ScheduleStep1() {
                     label="Subject"
                     name="subject"
                     labelStyle="font-thin"
-                    options={SubjectFilterData.map((option, index) => ({
-                        value: option.name,
-                        label: option.name,
-                        _id: index,
-                    }))}
+                    options={[
+                        { value: 'none', label: 'Select Subject', _id: -1 },
+                        ...SubjectFilterData.map((option, index) => ({
+                            value: option.name,
+                            label: option.name,
+                            _id: index,
+                        })),
+                    ]}
                     control={form.control}
                     className="mt-[8px] w-56 font-thin"
                 />
@@ -282,7 +442,7 @@ export default function ScheduleStep1() {
 
     const renderSessionTiming = () => (
         <div className="flex flex-col gap-4">
-            <div className="flex flex-row gap-6">
+            <div className="flex flex-row items-center gap-8">
                 <FormField
                     control={control}
                     name="startTime"
@@ -301,7 +461,7 @@ export default function ScheduleStep1() {
                 />
                 <div>
                     <div>duration</div>
-                    <div className="flex flex-row items-center gap-2">
+                    <div className="mt-2 flex flex-row items-center gap-2">
                         <FormField
                             control={control}
                             name="durationHours"
@@ -318,10 +478,14 @@ export default function ScheduleStep1() {
                                                 }
                                             }}
                                             onChangeFunction={(e) => {
-                                                const inputValue = e.target.value.replace(
+                                                let inputValue = e.target.value.replace(
                                                     /[^0-9]/g,
                                                     ''
                                                 );
+                                                const numValue = parseInt(inputValue);
+                                                if (numValue > 24) {
+                                                    inputValue = '24';
+                                                }
                                                 field.onChange(inputValue);
                                             }}
                                             className="w-11 p-2"
@@ -347,10 +511,14 @@ export default function ScheduleStep1() {
                                                 }
                                             }}
                                             onChangeFunction={(e) => {
-                                                const inputValue = e.target.value.replace(
+                                                let inputValue = e.target.value.replace(
                                                     /[^0-9]/g,
                                                     ''
                                                 );
+                                                const numValue = parseInt(inputValue);
+                                                if (numValue > 59) {
+                                                    inputValue = '59';
+                                                }
                                                 field.onChange(inputValue);
                                             }}
                                             className="w-11 p-2"
@@ -359,26 +527,9 @@ export default function ScheduleStep1() {
                                 </FormItem>
                             )}
                         />
-                        <div>minutes</div>
+                        <div>mins</div>
                     </div>
                 </div>
-                {/* TODO: Add time zone selection */}
-                {/* <FormField
-                    control={control}
-                    name="timeZone"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Time Zone</FormLabel>
-                            <FormControl>
-                                <MyInput
-                                    inputType="text"
-                                    input={field.value}
-                                    onChangeFunction={field.onChange}
-                                />
-                            </FormControl>
-                        </FormItem>
-                    )}
-                /> */}
             </div>
             {meetingType === RecurringType.WEEKLY && (
                 <div className="flex flex-row gap-6">
@@ -398,29 +549,13 @@ export default function ScheduleStep1() {
                             </FormItem>
                         )}
                     />
-                    <FormField
-                        control={control}
-                        name="events"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Events</FormLabel>
-                                <FormControl>
-                                    <MyInput
-                                        inputType="number"
-                                        input={field.value}
-                                        onChangeFunction={field.onChange}
-                                    />
-                                </FormControl>
-                            </FormItem>
-                        )}
-                    />
                 </div>
             )}
         </div>
     );
 
     const renderLiveClassLink = () => (
-        <div className="flex flex-row items-end gap-4">
+        <div className="flex flex-row items-end gap-8">
             <FormField
                 control={control}
                 name="defaultLink"
@@ -462,8 +597,8 @@ export default function ScheduleStep1() {
                             value={field.value}
                             onChange={field.onChange}
                             options={[
-                                { label: 'Pre Recorded', value: SessionType.PRE_RECORDED },
                                 { label: 'Live', value: SessionType.LIVE },
+                                { label: 'Pre Recorded', value: SessionType.PRE_RECORDED },
                             ]}
                             className="flex flex-row gap-4"
                         />
@@ -605,15 +740,25 @@ export default function ScheduleStep1() {
             <>
                 <div className="flex w-fit flex-col items-start justify-start gap-4">
                     <div className="flex flex-row items-center gap-2">
-                        <MyButton
-                            type="button"
-                            buttonType="secondary"
-                            scale="small"
-                            onClick={toggleEveryDay}
-                            className="p-4"
+                        <Select
+                            value={scheduleType || ''}
+                            onValueChange={(value: 'everyday' | 'weekday') => {
+                                setScheduleType(value);
+                                if (value === 'everyday') {
+                                    toggleEveryDay();
+                                } else if (value === 'weekday') {
+                                    toggleMonToFri();
+                                }
+                            }}
                         >
-                            Every day
-                        </MyButton>
+                            <SelectTrigger className="w-[120px]">
+                                <SelectValue placeholder="Select days" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="everyday">Every day</SelectItem>
+                                <SelectItem value="weekday">Mon-Fri</SelectItem>
+                            </SelectContent>
+                        </Select>
                         <div className="w-[100px]">Start Time</div>
                         <div className="w-[200px]">Duration</div>
                         <div>Live Class link</div>
@@ -624,7 +769,7 @@ export default function ScheduleStep1() {
                     const isSelect = watch(`recurringSchedule.${dayIndex}.isSelect`);
                     return (
                         <div key={dayField.day} className="flex flex-col">
-                            <div className="flex flex-row gap-2">
+                            <div className="flex flex-row gap-4">
                                 <button
                                     type="button"
                                     className={`flex h-9 w-24 cursor-pointer items-center justify-center rounded-lg border px-2 py-1 text-center ${
@@ -642,7 +787,7 @@ export default function ScheduleStep1() {
                                     {WEEK_DAYS.find((d) => d.label === dayField.day)?.value ??
                                         dayField.day}
                                 </button>
-                                <div className="flex flex-col gap-2">
+                                <div className="flex flex-col gap-4 ">
                                     {isSelect &&
                                         dayField.sessions.map((session, sessionIndex) => (
                                             <div
@@ -661,19 +806,90 @@ export default function ScheduleStep1() {
                                                     control={form.control}
                                                     className="w-[100px] -translate-y-1 font-thin"
                                                 />
-                                                <FormField
-                                                    control={control}
-                                                    name={`recurringSchedule.${dayIndex}.sessions.${sessionIndex}.duration`}
-                                                    render={({ field }) => (
-                                                        <MyInput
-                                                            inputType="text"
-                                                            input={field.value}
-                                                            placeholder="Duration (in Mins)"
-                                                            onChangeFunction={field.onChange}
-                                                            className="w-[100px]"
-                                                        />
-                                                    )}
-                                                />
+                                                <div className="flex flex-row items-center gap-2">
+                                                    <FormField
+                                                        control={control}
+                                                        name={`recurringSchedule.${dayIndex}.sessions.${sessionIndex}.durationHours`}
+                                                        render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormControl>
+                                                                    <MyInput
+                                                                        inputType="text"
+                                                                        inputPlaceholder="00"
+                                                                        input={field.value}
+                                                                        onKeyPress={(e) => {
+                                                                            if (
+                                                                                !/[0-9]/.test(e.key)
+                                                                            ) {
+                                                                                e.preventDefault();
+                                                                            }
+                                                                        }}
+                                                                        onChangeFunction={(e) => {
+                                                                            let inputValue =
+                                                                                e.target.value.replace(
+                                                                                    /[^0-9]/g,
+                                                                                    ''
+                                                                                );
+                                                                            const numValue =
+                                                                                parseInt(
+                                                                                    inputValue
+                                                                                );
+                                                                            if (numValue > 24) {
+                                                                                inputValue = '24';
+                                                                            }
+                                                                            field.onChange(
+                                                                                inputValue
+                                                                            );
+                                                                        }}
+                                                                        className="w-11 p-2"
+                                                                    />
+                                                                </FormControl>
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                    <div>hrs :</div>
+                                                    <FormField
+                                                        control={control}
+                                                        name={`recurringSchedule.${dayIndex}.sessions.${sessionIndex}.durationMinutes`}
+                                                        render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormControl>
+                                                                    <MyInput
+                                                                        inputType="text"
+                                                                        inputPlaceholder="00"
+                                                                        input={field.value}
+                                                                        onKeyPress={(e) => {
+                                                                            if (
+                                                                                !/[0-9]/.test(e.key)
+                                                                            ) {
+                                                                                e.preventDefault();
+                                                                            }
+                                                                        }}
+                                                                        onChangeFunction={(e) => {
+                                                                            let inputValue =
+                                                                                e.target.value.replace(
+                                                                                    /[^0-9]/g,
+                                                                                    ''
+                                                                                );
+                                                                            const numValue =
+                                                                                parseInt(
+                                                                                    inputValue
+                                                                                );
+                                                                            if (numValue > 59) {
+                                                                                inputValue = '59';
+                                                                            }
+                                                                            field.onChange(
+                                                                                inputValue
+                                                                            );
+                                                                        }}
+                                                                        className="w-11 p-2"
+                                                                    />
+                                                                </FormControl>
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                    <div>mins</div>
+                                                </div>
                                                 <FormField
                                                     control={control}
                                                     name={`recurringSchedule.${dayIndex}.sessions.${sessionIndex}.link`}
@@ -692,32 +908,6 @@ export default function ScheduleStep1() {
                                                         removeSessionFromDay(dayIndex, sessionIndex)
                                                     }
                                                 />
-                                                <MyButton
-                                                    buttonType="secondary"
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setCreateLinkDialog(!createLinkDialog);
-                                                    }}
-                                                >
-                                                    Create Link
-                                                </MyButton>
-                                                <MyDialog
-                                                    open={createLinkDialog}
-                                                    onOpenChange={setCreateLinkDialog}
-                                                    heading="Create Live Class Link"
-                                                >
-                                                    <div className="flex w-full flex-col items-center justify-center gap-4 p-4">
-                                                        <div className="flex w-3/4 cursor-pointer items-center justify-center rounded-md border p-2 shadow-sm">
-                                                            <MeetLogo />
-                                                        </div>
-                                                        <div className="flex w-3/4 cursor-pointer items-center justify-center rounded-md border p-2 shadow-sm">
-                                                            <YoutubeLogo />
-                                                        </div>
-                                                        <div className="flex w-3/4 cursor-pointer items-center justify-center rounded-md border p-2 shadow-sm">
-                                                            <ZoomLogo />
-                                                        </div>
-                                                    </div>
-                                                </MyDialog>
                                             </div>
                                         ))}
                                 </div>
@@ -740,16 +930,15 @@ export default function ScheduleStep1() {
 
     return (
         <FormProvider {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit, onError)} className="flex flex-col gap-4">
+            <form onSubmit={form.handleSubmit(onSubmit, onError)} className="flex flex-col gap-8">
                 <div className="m-0 flex items-center justify-between p-0">
                     <h1>Live Session Information</h1>
                     <MyButton type="submit" scale="large" buttonType="primary">
                         Next
                     </MyButton>
                 </div>
-                <Separator className="my-4" />
 
-                <div className="flex flex-col gap-6">
+                <div className="flex flex-col gap-8">
                     {renderBasicInformation()}
                     {renderMeetingTypeSelection()}
                     {renderSessionTiming()}

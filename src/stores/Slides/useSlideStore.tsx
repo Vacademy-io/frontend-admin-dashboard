@@ -24,6 +24,11 @@ import { SlideTypeEnum } from '@/components/common/slides/utils/types';
 import { defaultSlides as initialDefaultSlides } from '@/components/common/slides/constant/defaultSlides';
 import { createNewSlide as createNewSlideUtil } from '@/components/common/slides/utils/util';
 
+export interface RecommendationBatch {
+    timestamp: string;
+    slides: Slide[];
+}
+
 // Props from AppState that are controlled by the Excalidraw component state
 // and should be persisted if they change.
 // Props from AppState that are controlled by Excalidraw and should be persisted
@@ -35,6 +40,11 @@ const CONTROLLED_APPSTATE_PROPS: (keyof PartialAppState)[] = [
     'theme', // 'light' | 'dark'
     'gridSize',
     'zenModeEnabled',
+
+    // Add scroll and zoom to persist view adjustments
+    'scrollX',
+    'scrollY',
+    'zoom',
 
     // Current item styling (tool options for next shape)
     'currentItemStrokeColor',
@@ -137,6 +147,11 @@ interface SlideStore {
     updateSlideIds: (
         idUpdates: { tempId: string; newId: string; newQuestionId?: string; newOptions?: { tempOptionId: string, newOptionId: string }[] }[]
     ) => void;
+    // --- State and actions for recommendations ---
+    recommendationBatches: RecommendationBatch[];
+    addRecommendationBatch: (batch: RecommendationBatch) => void;
+    removeRecommendation: (timestamp: string, slideId: string) => void;
+    clearRecommendations: () => void;
 }
 
 export const useSlideStore = create<SlideStore>((set, get) => {
@@ -164,12 +179,14 @@ export const useSlideStore = create<SlideStore>((set, get) => {
         slides: initialSlides,
         currentSlideId: initialSlides[0]?.id,
         editMode: true,
+        recommendationBatches: [],
 
         initializeNewPresentationState: () => {
             const newInitialSlides = initialDefaultSlides.map(deserializeSlideFromStorage);
             set({
                 slides: newInitialSlides,
                 currentSlideId: newInitialSlides[0]?.id,
+                recommendationBatches: [], // Also reset recommendations
             });
             if (typeof window !== 'undefined') {
                 localStorage.removeItem('slides'); // Clear out old presentation
@@ -200,7 +217,14 @@ export const useSlideStore = create<SlideStore>((set, get) => {
             incomingAppState: ExcalidrawAppState, // Full AppState from Excalidraw
             incomingFiles: ExcalidrawBinaryFiles
         ) => {
-            console.log('new');
+            console.log(
+                `[useSlideStore] updateSlide called for id: ${id}. incomingAppState scroll:`,
+                {
+                    scrollX: incomingAppState.scrollX,
+                    scrollY: incomingAppState.scrollY,
+                    zoom: incomingAppState.zoom,
+                }
+            );
             set((state) => {
                 const slideIndex = state.slides.findIndex((s) => s.id === id);
                 if (slideIndex === -1) {
@@ -259,6 +283,12 @@ export const useSlideStore = create<SlideStore>((set, get) => {
 
                 for (const key of CONTROLLED_APPSTATE_PROPS) {
                     if (!isEqual(oldStoredAppState[key], newAppStateForStore[key])) {
+                        console.log(
+                            `[useSlideStore] AppState change detected on key: "${key}". Old:`,
+                            oldStoredAppState[key],
+                            'New:',
+                            newAppStateForStore[key]
+                        );
                         appStateActuallyChanged = true;
                         break;
                     }
@@ -283,6 +313,7 @@ export const useSlideStore = create<SlideStore>((set, get) => {
 
                 // If nothing meaningful changed, return the original state to avoid unnecessary re-renders/saves
                 if (!hasMeaningfulChange) {
+                    console.log('[useSlideStore] No meaningful changes detected. Skipping update.');
                     return state;
                 }
 
@@ -303,6 +334,9 @@ export const useSlideStore = create<SlideStore>((set, get) => {
                         JSON.stringify(newSlidesArray.map(serializeSlideForStorage)) // Ensure serializeSlideForStorage handles the new appState structure
                     );
                 }
+                console.log(
+                    '[useSlideStore] State updated successfully with new view/content state.'
+                );
                 return { slides: newSlidesArray };
             });
         },
@@ -451,5 +485,34 @@ export const useSlideStore = create<SlideStore>((set, get) => {
 
             return { slides: newSlides, currentSlideId: newCurrentSlideId };
         }),
+
+        addRecommendationBatch: (batch: RecommendationBatch) => {
+            set((state) => ({
+                recommendationBatches: [...state.recommendationBatches, batch]
+            }));
+            console.log('[useSlideStore] New recommendation batch added:', batch);
+        },
+
+        removeRecommendation: (timestamp: string, slideId: string) => {
+            set((state) => {
+                const newBatches = state.recommendationBatches.map(batch => {
+                    if (batch.timestamp === timestamp) {
+                        return {
+                            ...batch,
+                            slides: batch.slides.filter(slide => slide.id !== slideId)
+                        };
+                    }
+                    return batch;
+                }).filter(batch => batch.slides.length > 0); // Remove batch if it becomes empty
+
+                return { recommendationBatches: newBatches };
+            });
+             console.log(`[useSlideStore] Removed recommendation slide ${slideId} from batch ${timestamp}.`);
+        },
+        
+        clearRecommendations: () => {
+            set({ recommendationBatches: [] });
+            console.log('[useSlideStore] All recommendations cleared.');
+        },
     };
 });

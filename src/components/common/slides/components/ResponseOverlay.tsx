@@ -1,11 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { BarChart, Trophy, Loader2, PieChart } from 'lucide-react';
+import { BarChart, Trophy, Loader2, PieChart, Cloud } from 'lucide-react';
 import { toast } from 'sonner';
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 import { LeaderboardModal } from './LeaderboardModal';
 import { ResponseDistributionModal } from './ResponseDistributionModal';
 import type { QuizSlideData } from '../utils/types';
+import { WordCloudModal } from './WordCloudModal';
 
 const RESPONSES_API_URL_BASE = 'https://backend-stage.vacademy.io/community-service/engage/admin/';
 
@@ -30,8 +31,13 @@ export const ResponseOverlay: React.FC<ResponseOverlayProps> = ({ sessionId, sli
     const [responses, setResponses] = useState<ResponseData[]>([]);
     const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
     const [isDistributionOpen, setIsDistributionOpen] = useState(false);
+    const [isWordCloudOpen, setIsWordCloudOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+    const isMcqQuestion = useMemo(() => {
+        return slideData?.elements?.singleChoiceOptions && slideData.elements.singleChoiceOptions.length > 0;
+    }, [slideData]);
 
     useEffect(() => {
         // Function to fetch responses
@@ -92,28 +98,49 @@ export const ResponseOverlay: React.FC<ResponseOverlayProps> = ({ sessionId, sli
                     <Trophy size={16} className="mr-2" />
                     Leaderboard
                 </Button>
-                <Button 
-                    variant="outline"
-                    size="sm" 
-                    className="bg-transparent border-sky-400 text-sky-400 hover:bg-sky-400 hover:text-white"
-                    onClick={() => setIsDistributionOpen(true)}
-                >
-                    <PieChart size={16} className="mr-2" />
-                    Distribution
-                </Button>
+                {isMcqQuestion ? (
+                    <Button 
+                        variant="outline"
+                        size="sm" 
+                        className="bg-transparent border-sky-400 text-sky-400 hover:bg-sky-400 hover:text-white"
+                        onClick={() => setIsDistributionOpen(true)}
+                    >
+                        <PieChart size={16} className="mr-2" />
+                        Distribution
+                    </Button>
+                ) : (
+                    <Button 
+                        variant="outline"
+                        size="sm" 
+                        className="bg-transparent border-teal-400 text-teal-400 hover:bg-teal-400 hover:text-white"
+                        onClick={() => setIsWordCloudOpen(true)}
+                    >
+                        <Cloud size={16} className="mr-2" />
+                        Word Cloud
+                    </Button>
+                )}
             </div>
             <LeaderboardModal 
                 isOpen={isLeaderboardOpen}
                 onClose={() => setIsLeaderboardOpen(false)}
                 responses={responses}
                 slideData={slideData}
+                isMcq={isMcqQuestion}
             />
-            <ResponseDistributionModal
-                isOpen={isDistributionOpen}
-                onClose={() => setIsDistributionOpen(false)}
-                responses={responses}
-                slideData={slideData}
-            />
+            {isMcqQuestion ? (
+                <ResponseDistributionModal
+                    isOpen={isDistributionOpen}
+                    onClose={() => setIsDistributionOpen(false)}
+                    responses={responses}
+                    slideData={slideData}
+                />
+            ) : (
+                <WordCloudModal
+                    isOpen={isWordCloudOpen}
+                    onClose={() => setIsWordCloudOpen(false)}
+                    responses={responses}
+                />
+            )}
         </>
     );
 }; 

@@ -2,6 +2,7 @@ import {
     CREATE_LIVE_SESSION_STEP_1,
     CREATE_LIVE_SESSION_STEP_2,
     GET_LIVE_SESSIONS,
+    DELETE_LIVE_SESSION,
     // GET_LIVE_SESSIONS,
 } from '@/constants/urls';
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
@@ -29,6 +30,7 @@ export interface GetLiveSessionsRequest {
 
 export interface LiveSession {
     session_id: string;
+    schedule_id: string;
     meeting_date: string;
     start_time: string;
     last_entry_time: string;
@@ -37,6 +39,7 @@ export interface LiveSession {
     title: string;
     subject: string;
     meeting_link: string;
+    registration_form_link_for_public_sessions: string;
 }
 
 export const createLiveSessionStep1 = async (data: LiveSessionStep1RequestDTO) => {
@@ -70,4 +73,18 @@ export const getLiveSessions = async (instituteId: string) => {
         },
     });
     return response.data;
+};
+
+export const deleteLiveSession = async (sessionId: string) => {
+    try {
+        const response = await authenticatedAxiosInstance.get(DELETE_LIVE_SESSION, {
+            params: {
+                sessionId,
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error deleting live session:', error);
+        throw error;
+    }
 };

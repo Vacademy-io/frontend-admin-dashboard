@@ -10,17 +10,32 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LiveSession } from '../schedule/-services/utils';
-// import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { deleteLiveSession, LiveSession } from '../schedule/-services/utils';
+import { handleDownloadQRCode } from '@/routes/homework-creation/create-assessment/$assessmentId/$examtype/-utils/helper';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface LiveSessionCardProps {
     session: LiveSession;
+    isDraft?: boolean;
 }
 
-export default function LiveSessionCard({ session }: LiveSessionCardProps) {
+export default function LiveSessionCard({ session, isDraft = false }: LiveSessionCardProps) {
+    const queryClient = useQueryClient();
     const joinLink =
-        session.meeting_link || `${BASE_URL_LEARNER_DASHBOARD}/register?code=${session.session_id}`;
+        session.registration_form_link_for_public_sessions ||
+        `${BASE_URL_LEARNER_DASHBOARD}/register/live-class?sessionId=${session.session_id}`;
     const formattedDateTime = `${session.meeting_date} ${session.start_time}`;
+
+    const handleDelete = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        try {
+            await deleteLiveSession(session.session_id);
+            await queryClient.invalidateQueries({ queryKey: ['liveSessions'] });
+            await queryClient.invalidateQueries({ queryKey: ['upcomingSessions'] });
+        } catch (error) {
+            console.error('Error deleting session:', error);
+        }
+    };
 
     return (
         <div className="my-6 flex cursor-pointer flex-col gap-4 rounded-xl border bg-neutral-50 p-4">
@@ -38,26 +53,6 @@ export default function LiveSessionCard({ session }: LiveSessionCardProps) {
                         {batchIdsList[0]}
                     </Badge> */}
 
-                    {/* {batchIdsList.length - 1 > 0 && (
-                        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                            <DialogTrigger onClick={(e) => e.stopPropagation()}>
-                                <span className="text-sm text-primary-500">
-                                    +{batchIdsList.length - 1} more
-                                </span>
-                            </DialogTrigger>
-                            <DialogContent className="p-0">
-                                <h1 className="rounded-t-lg bg-primary-50 p-4 font-semibold text-primary-500">
-                                    Assessment Batches
-                                </h1>
-                                <ul className="flex list-disc flex-col gap-4 pb-4 pl-8 pr-4">
-                                    {batchIdsList.map(
-                                        (batchId, idx) => idx > 0 && <li key={idx}>{batchId}</li>
-                                    )}
-                                </ul>
-                            </DialogContent>
-                        </Dialog>
-                    )} */}
-
                     <DropdownMenu>
                         <DropdownMenuTrigger>
                             <MyButton
@@ -70,23 +65,17 @@ export default function LiveSessionCard({ session }: LiveSessionCardProps) {
                             </MyButton>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                            <DropdownMenuItem className="cursor-pointer" onClick={() => {}}>
-                                View Live Session Details
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                className="cursor-pointer"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                }}
-                            >
-                                Duplicate Live Session
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                className="cursor-pointer"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                }}
-                            >
+                            {isDraft && (
+                                <DropdownMenuItem
+                                    className="cursor-pointer"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                    }}
+                                >
+                                    Edit Live Session
+                                </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem className="cursor-pointer" onClick={handleDelete}>
                                 Delete Live Session
                             </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -106,7 +95,7 @@ export default function LiveSessionCard({ session }: LiveSessionCardProps) {
                 </div>
 
                 <div className="flex items-center gap-2">
-                    <span className="text-black">Last Entry:</span>
+                    <span className="text-black">End Time:</span>
                     <span>{session.last_entry_time}</span>
                 </div>
 
@@ -145,10 +134,9 @@ export default function LiveSessionCard({ session }: LiveSessionCardProps) {
                         scale="small"
                         buttonType="secondary"
                         className="h-8 min-w-8"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            // TODO: implement download QR code
-                        }}
+                        onClick={() =>
+                            handleDownloadQRCode(`qr-code-svg-live-session-${session.session_id}`)
+                        }
                     >
                         <DownloadSimple size={32} />
                     </MyButton>

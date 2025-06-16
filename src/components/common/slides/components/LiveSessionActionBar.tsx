@@ -1,7 +1,7 @@
 // components/LiveSessionActionBar.tsx
 import React, { useState, useEffect, useRef } from 'react'; // Added useEffect, useRef
 import { Button } from '@/components/ui/button';
-import { Users, Tv2, X, Edit3, Copy, Loader2, Wifi, WifiOff, Mic, MicOff, PauseCircle, PlayCircle as PlayIcon, Download, Settings2, ChevronDown, QrCodeIcon } from 'lucide-react'; // Added QrCodeIcon
+import { Users, Tv2, X, Edit3, Copy, Loader2, Wifi, WifiOff, Mic, MicOff, PauseCircle, PlayCircle as PlayIcon, Download, Settings2, ChevronDown, QrCodeIcon, MessageSquareText, FileText } from 'lucide-react'; // Added QrCodeIcon
 import { toast } from 'sonner';
 import {
     DropdownMenu,
@@ -15,6 +15,7 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover"; // Import Popover components
 import QRCodeStyling from 'qr-code-styling'; // Import QRCodeStyling
+import { PRODUCT_NAME } from '@/config/branding';
 
 // QR Code instance (similar to SessionWaitingRoom)
 const qrCodeInstance = new QRCodeStyling({
@@ -28,6 +29,8 @@ const qrCodeInstance = new QRCodeStyling({
     cornersDotOptions: { type: 'dot', color: '#EA580C' },
 });
 
+
+
 interface LiveSessionActionBarProps {
     inviteCode: string;
     currentSlideIndex: number;
@@ -36,6 +39,9 @@ interface LiveSessionActionBarProps {
     onToggleParticipantsView: () => void;
     isParticipantsPanelOpen: boolean;
     onToggleWhiteboard: () => void;
+    onGenerateTranscript?: () => void; // Add this line
+    isTranscribing?: boolean; // Add this
+    hasTranscript?: boolean; // Add this
     isWhiteboardOpen: boolean;
     onEndSession: () => void;
     isEndingSession?: boolean;
@@ -69,7 +75,9 @@ export const LiveSessionActionBar: React.FC<LiveSessionActionBarProps> = ({
     onEndSession,
     isEndingSession,
     sseStatus,
-    // Audio Recording Props
+    onGenerateTranscript, 
+    isTranscribing,
+    hasTranscript,
     isAudioRecording,
     isAudioPaused,
     onPauseAudio,
@@ -134,7 +142,7 @@ export const LiveSessionActionBar: React.FC<LiveSessionActionBarProps> = ({
             <div className="flex items-center gap-2 sm:gap-3">
                 <Tv2 size={20} className="shrink-0 text-orange-400" />
                 <span className="hidden text-xs font-medium sm:text-sm md:inline">
-                    Live Session
+                    Live {PRODUCT_NAME}
                 </span>
                 <div className="ml-1"> <SseStatusIndicator /></div>
                 {isAudioRecording && (
@@ -152,8 +160,8 @@ export const LiveSessionActionBar: React.FC<LiveSessionActionBarProps> = ({
                             className="flex items-center rounded-full bg-slate-700 px-2 py-1 text-xs text-slate-200 hover:bg-slate-600 hover:text-orange-400 h-auto group"
                             title="Show Invite QR Code / Copy Link"
                         >
-                            <span className="mr-1 hidden sm:inline">Code:</span>
-                            <span className="font-mono tracking-wider">{inviteCode}</span>
+                    <span className="mr-1 hidden sm:inline">Code:</span>
+                    <span className="font-mono tracking-wider">{inviteCode}</span>
                             <QrCodeIcon size={14} className="ml-1.5 text-slate-400 group-hover:text-orange-300 transition-colors" />
                         </Button>
                     </PopoverTrigger>
@@ -167,14 +175,14 @@ export const LiveSessionActionBar: React.FC<LiveSessionActionBarProps> = ({
                                 height: `${qrCodeInstance._options.height}px` 
                             }}
                         />
-                        <Button 
+                    <Button
                             variant="outline"
                             size="sm"
                             className="w-full mt-3 border-slate-300 text-slate-600 hover:bg-slate-200 hover:text-slate-800"
-                            onClick={handleCopyInvite}
-                        >
+                        onClick={handleCopyInvite}
+                    >
                             <Copy size={14} className="mr-1.5" /> Copy Invite Link
-                        </Button>
+                    </Button>
                     </PopoverContent>
                 </Popover>
             </div>
@@ -224,6 +232,18 @@ export const LiveSessionActionBar: React.FC<LiveSessionActionBarProps> = ({
                                     </DropdownMenuItem>
                                 </>    
                             )}
+                            {isAudioRecording && onGenerateTranscript && (
+                                <DropdownMenuItem onClick={onGenerateTranscript} disabled={isTranscribing} className="hover:!bg-slate-600 focus:!bg-slate-600 cursor-pointer">
+                                {isTranscribing ? (
+                                    <Loader2 size={16} className="mr-2 animate-spin" />
+                                ) : hasTranscript ? (
+                                    <FileText size={16} className="mr-2 text-green-400" />
+                                ) : (
+                                    <MessageSquareText size={16} className="mr-2 text-teal-400" />
+                                )}
+                                {isTranscribing ? 'Transcribing...' : hasTranscript ? 'View Transcript' : 'Generate Transcript'}
+                            </DropdownMenuItem>
+                            )}
                         </DropdownMenuContent>
                     </DropdownMenu>
                 )}
@@ -249,6 +269,27 @@ export const LiveSessionActionBar: React.FC<LiveSessionActionBarProps> = ({
                     <Edit3 size={16} className="mr-0 sm:mr-1.5" />
                     <span className="hidden sm:inline">Whiteboard</span>
                 </Button>
+                {onGenerateTranscript && (
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={onGenerateTranscript}
+                        disabled={isTranscribing}
+                        className="text-slate-200 hover:bg-slate-700 hover:text-white"
+                        title={isTranscribing ? "Transcribing..." : hasTranscript ? "View Transcript" : "Generate Transcript"}
+                    >
+                        {isTranscribing ? (
+                            <Loader2 size={16} className="mr-0 sm:mr-1.5 animate-spin" />
+                        ) : hasTranscript ? (
+                            <FileText size={16} className="mr-0 sm:mr-1.5 text-green-400" />
+                        ) : (
+                            <MessageSquareText size={16} className="mr-0 sm:mr-1.5 text-teal-400" />
+                        )}
+                        <span className="hidden sm:inline">
+                            {isTranscribing ? "Transcribing..." : hasTranscript ? "View Transcript" : "Generate Transcript"}
+                        </span>
+                    </Button>
+                )}
                 <Button
                     variant="destructive"
                     size="sm"
