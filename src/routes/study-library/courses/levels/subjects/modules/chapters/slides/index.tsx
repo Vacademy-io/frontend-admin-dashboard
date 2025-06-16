@@ -36,7 +36,7 @@ export const onboardingParamsSchema = z.object({
     chapterId: z.string(),
     slideId: z.string(),
     sessionId: z.string(),
-    timestamp: z.string().optional(),
+    timestamp: z.number().optional(),
 });
 
 export const Route = createFileRoute(

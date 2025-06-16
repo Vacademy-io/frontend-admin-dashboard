@@ -437,7 +437,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
 
     useEffect(() => {
         if (searchParams.timestamp) {
-            handleQuestionClick(timestampToSeconds(searchParams.timestamp));
+            handleQuestionClick(searchParams.timestamp);
         }
     }, []);
 

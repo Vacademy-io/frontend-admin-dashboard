@@ -24,6 +24,8 @@ export const TimestampCell = ({ doubt }: { doubt: Doubt }) => {
     const router = useRouter();
     const { getDetailsFromPackageSessionId } = useInstituteDetailsStore();
 
+    console.log(doubt.content_position);
+
     const handleTimeStampClick = () => {
         const batch = getDetailsFromPackageSessionId({ packageSessionId: doubt?.batch_id || '' });
         const courseId = batch?.package_dto.id;
@@ -39,7 +41,7 @@ export const TimestampCell = ({ doubt }: { doubt: Doubt }) => {
                 chapterId: doubt.chapter_id,
                 slideId: doubt.source_id,
                 sessionId: sessionId || '',
-                timestamp: formatTime(Number(doubt.content_position) / 1000),
+                timestamp: Number(doubt.content_position) / 1000,
             },
             hash: '',
         });
