@@ -24,8 +24,6 @@ export const TimestampCell = ({ doubt }: { doubt: Doubt }) => {
     const router = useRouter();
     const { getDetailsFromPackageSessionId } = useInstituteDetailsStore();
 
-    console.log(doubt.content_position);
-
     const handleTimeStampClick = () => {
         const batch = getDetailsFromPackageSessionId({ packageSessionId: doubt?.batch_id || '' });
         const courseId = batch?.package_dto.id;
