@@ -26,24 +26,34 @@ import { SaveDraftProvider } from './-context/saveDraftContext';
 import { useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
 import { useModulesWithChaptersStore } from '@/stores/study-library/use-modules-with-chapters-store';
 import { SidebarProvider } from '@/components/ui/sidebar';
-import { z } from 'zod';
 
-export const onboardingParamsSchema = z.object({
-    courseId: z.string(),
-    levelId: z.string(),
-    subjectId: z.string(),
-    moduleId: z.string(),
-    chapterId: z.string(),
-    slideId: z.string(),
-    sessionId: z.string(),
-    timestamp: z.number().optional(),
-});
+interface ChapterSearchParams {
+    courseId: string;
+    levelId: string;
+    subjectId: string;
+    moduleId: string;
+    chapterId: string;
+    slideId: string;
+    sessionId: string;
+    timestamp?: number;
+}
 
 export const Route = createFileRoute(
     '/study-library/courses/levels/subjects/modules/chapters/slides/'
 )({
     component: RouteComponent,
-    validateSearch: onboardingParamsSchema,
+    validateSearch: (search: Record<string, unknown>): ChapterSearchParams => {
+        return {
+            courseId: search.courseId as string,
+            levelId: search.levelId as string,
+            subjectId: search.subjectId as string,
+            moduleId: search.moduleId as string,
+            chapterId: search.chapterId as string,
+            slideId: search.slideId as string,
+            sessionId: search.sessionId as string,
+            ...(typeof search.timestamp === 'number' && { timestamp: search.timestamp }),
+        };
+    },
 });
 
 function RouteComponent() {
