@@ -415,10 +415,10 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
     }, [videoUrl]);
 
     useEffect(() => {
-        if (searchParams.timestamp) {
+        if (searchParams.timestamp && playerRef.current) {
             handleQuestionClick(searchParams.timestamp);
         }
-    }, []);
+    }, [playerRef.current]);
 
     return (
         <div className="flex w-full flex-col">
