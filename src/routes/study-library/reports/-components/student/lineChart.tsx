@@ -1,23 +1,23 @@
-"use client";
+'use client';
 
-import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
-import { Card } from "@/components/ui/card";
+import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts';
+import { Card } from '@/components/ui/card';
 import {
     ChartConfig,
     ChartContainer,
     ChartTooltip,
     ChartTooltipContent,
-} from "@/components/ui/chart";
-import dayjs from "dayjs";
+} from '@/components/ui/chart';
+import dayjs from 'dayjs';
 
 const chartConfig = {
     avg_daily_time_minutes: {
-        label: "Time Spent",
-        color: "hsl(var(--chart-1))",
+        label: 'Time Spent',
+        color: 'hsl(var(--chart-1))',
     },
     avg_daily_time_minutes_batch: {
-        label: "Time Spent By Batch",
-        color: "hsl(var(--chart-6))",
+        label: 'Time Spent By Batch',
+        color: 'hsl(var(--chart-6))',
     },
 } satisfies ChartConfig;
 
@@ -29,7 +29,7 @@ export interface ChartDataType {
 export function LineChartComponent({ chartData }: { chartData: ChartDataType[] }) {
     return (
         <Card className="w-[65%]">
-            <ChartContainer className="h-[530px] w-full pb-6 pt-6" config={chartConfig}>
+            <ChartContainer className="h-[530px] w-full py-6" config={chartConfig}>
                 <LineChart
                     accessibilityLayer
                     data={chartData}
@@ -46,28 +46,28 @@ export function LineChartComponent({ chartData }: { chartData: ChartDataType[] }
                         tickLine={false}
                         axisLine={false}
                         tickMargin={8}
-                        tickFormatter={(value) => dayjs(value).format("DD MMMM").slice(0, 6)}
+                        tickFormatter={(value) => dayjs(value).format('DD MMMM').slice(0, 6)}
                         label={{
-                            value: "Date",
-                            position: "left",
+                            value: 'Date',
+                            position: 'left',
                             dx: 55,
                             dy: 30,
-                            style: { fontSize: "14px", fill: "#ED7424" },
+                            style: { fontSize: '14px', fill: '#ED7424' },
                         }}
                     />
                     <YAxis
-                        dataKey="avg_daily_time_minutes_batch"
+                        dataKey="avg_daily_time_minutes"
                         tickLine={false}
                         axisLine={true}
                         tickMargin={8}
                         width={40}
                         label={{
-                            value: "Hours",
-                            position: "insideLeft",
+                            value: 'Hours',
+                            position: 'insideLeft',
                             angle: -90, // Rotates the text to be vertical
                             dx: -10, // Adjusts the horizontal position
                             dy: 200, // Adjusts the vertical position
-                            style: { fontSize: "14px", fill: "#ED7424" },
+                            style: { fontSize: '14px', fill: '#ED7424' },
                         }}
                     />
                     <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
@@ -77,7 +77,7 @@ export function LineChartComponent({ chartData }: { chartData: ChartDataType[] }
                         stroke="var(--color-avg_daily_time_minutes)"
                         strokeWidth={2}
                         dot={{
-                            fill: "var(--color-avg_daily_time_minutes)",
+                            fill: 'var(--color-avg_daily_time_minutes)',
                         }}
                         activeDot={{
                             r: 6,
@@ -89,7 +89,7 @@ export function LineChartComponent({ chartData }: { chartData: ChartDataType[] }
                         stroke="var(--color-avg_daily_time_minutes_batch)"
                         strokeWidth={2}
                         dot={{
-                            fill: "var(--color-avg_daily_time_minutes_batch)",
+                            fill: 'var(--color-avg_daily_time_minutes_batch)',
                         }}
                         activeDot={{
                             r: 6,
