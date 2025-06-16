@@ -12,7 +12,7 @@ import {
     LightbulbFilament,
     Lightning,
 } from 'phosphor-react';
-import { CreateAssessmentDashboardLogo, DashboardCreateCourse, IndianYogaLogo } from '@/svgs';
+import { CreateAssessmentDashboardLogo, DashboardCreateCourse } from '@/svgs';
 import { Badge } from '@/components/ui/badge';
 import { CompletionStatusComponent } from './-components/CompletionStatusComponent';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
@@ -26,7 +26,7 @@ import {
     getInstituteDashboardData,
 } from './-services/dashboard-services';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
-import { HOLISTIC_INSTITUTE_ID, SSDC_INSTITUTE_ID } from '@/constants/urls';
+import { SSDC_INSTITUTE_ID } from '@/constants/urls';
 import { Helmet } from 'react-helmet';
 import { getModuleFlags } from '@/components/common/layout-container/sidebar/helper';
 import RoleTypeComponent from './-components/RoleTypeComponent';
@@ -511,11 +511,11 @@ export function DashboardComponent() {
                                 <CardDescription className="mt-1 flex justify-center">
                                     {' '}
                                     {/* Reduced margin */}
-                                    {getInstituteId() === HOLISTIC_INSTITUTE_ID ? (
+                                    {/* {getInstituteId() === HOLISTIC_INSTITUTE_ID ? (
                                         <IndianYogaLogo className="h-auto w-full max-w-[180px] sm:max-w-[200px]" />
                                     ) : (
-                                        <DashboardCreateCourse className="h-auto w-full max-w-[180px] sm:max-w-[200px]" />
-                                    )}
+                                    )} */}
+                                    <DashboardCreateCourse className="h-auto w-full max-w-[180px] sm:max-w-[200px]" />
                                 </CardDescription>
                             </CardHeader>
                         </Card>
