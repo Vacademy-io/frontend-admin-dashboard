@@ -1,5 +1,5 @@
-import { motion, AnimatePresence } from 'framer-motion';
-import { Mic, FileText, Wand2 } from 'lucide-react';
+import { motion, AnimatePresence, Variants } from 'framer-motion';
+import { Mic, Wand2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 const fullText =
@@ -19,7 +19,7 @@ export const AudioTranscriptionContent = () => {
             if (currentWordIndex < words.length) {
                 const nextWord = words[currentWordIndex];
                 if (nextWord) {
-                    setTranscribedWords(prev => [...prev, nextWord]);
+                    setTranscribedWords((prev) => [...prev, nextWord]);
                 }
                 currentWordIndex++;
             } else {
@@ -36,7 +36,7 @@ export const AudioTranscriptionContent = () => {
         return () => clearInterval(timer);
     }, []);
 
-    const waveformVariants = {
+    const waveformVariants: Variants = {
         animate: {
             pathLength: [0, 1, 0],
             transition: {
@@ -50,7 +50,7 @@ export const AudioTranscriptionContent = () => {
     return (
         <div className="absolute inset-0 flex items-center justify-center bg-purple-50 p-4">
             <motion.div
-                className="w-full max-w-sm bg-white rounded-lg shadow-md p-6"
+                className="w-full max-w-sm rounded-lg bg-white p-6 shadow-md"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5 }}
@@ -61,7 +61,7 @@ export const AudioTranscriptionContent = () => {
                 </div>
 
                 {/* Waveform */}
-                <div className="h-10 flex items-center justify-center space-x-1 my-2">
+                <div className="my-2 flex h-10 items-center justify-center space-x-1">
                     <svg width="100%" height="40" className="stroke-purple-300">
                         <g>
                             {[...Array(5)].map((_, i) => (
@@ -81,7 +81,7 @@ export const AudioTranscriptionContent = () => {
                     </svg>
                 </div>
 
-                <div className="bg-slate-50 p-3 rounded-md border border-slate-200 h-24 overflow-y-auto">
+                <div className="h-24 overflow-y-auto rounded-md border border-slate-200 bg-slate-50 p-3">
                     <p className="text-xs text-slate-600">
                         {transcribedWords.map((word, i) => (
                             <motion.span
@@ -100,18 +100,25 @@ export const AudioTranscriptionContent = () => {
                 <AnimatePresence>
                     {showInsight && (
                         <motion.div
-                            className="mt-4 pt-4 border-t border-slate-200"
+                            className="mt-4 border-t border-slate-200 pt-4"
                             initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0, transition: { delay: 0.5, duration: 0.5 } }}
+                            animate={{
+                                opacity: 1,
+                                y: 0,
+                                transition: { delay: 0.5, duration: 0.5 },
+                            }}
                             exit={{ opacity: 0, y: -10 }}
                         >
-                            <div className="flex items-center gap-3 mb-2">
+                            <div className="mb-2 flex items-center gap-3">
                                 <Wand2 className="text-purple-500" size={20} />
-                                <h4 className="text-sm font-semibold text-slate-600">AI-Generated Insight</h4>
+                                <h4 className="text-sm font-semibold text-slate-600">
+                                    AI-Generated Insight
+                                </h4>
                             </div>
-                            <p className="bg-purple-50 text-purple-800 border border-purple-200 rounded-md p-2 text-xs">
-                                This section about a "20% increase in engagement" is a strong point. Consider
-                                creating a new slide with a large chart to visualize this data.
+                            <p className="rounded-md border border-purple-200 bg-purple-50 p-2 text-xs text-purple-800">
+                                This section about a &quot;20% increase in engagement&quot; is a
+                                strong point. Consider creating a new slide with a large chart to
+                                visualize this data.
                             </p>
                         </motion.div>
                     )}
@@ -119,4 +126,4 @@ export const AudioTranscriptionContent = () => {
             </motion.div>
         </div>
     );
-}; 
+};

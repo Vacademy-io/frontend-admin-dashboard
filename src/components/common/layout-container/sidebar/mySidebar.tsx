@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/sidebar';
 import { SidebarStateType } from '../../../../types/layout-container/layout-container-types';
 import { SidebarItem } from './sidebar-item';
-import { SidebarItemsData } from './utils';
+import { filterSidebarData, SidebarItemsData } from './utils';
 import './scrollbarStyle.css';
 import React, { useEffect, useState } from 'react';
 import { useSuspenseQuery } from '@tanstack/react-query';
@@ -24,6 +24,7 @@ import { Command, CommandGroup, CommandItem, CommandList } from '@/components/ui
 import { WhatsappLogo, EnvelopeSimple, Lightning } from '@phosphor-icons/react';
 import { useNavigate, useRouter } from '@tanstack/react-router';
 import useInstituteLogoStore from './institutelogo-global-zustand';
+import { useUserPermissions } from '@/hooks/useUserPermissions';
 
 const voltSidebarData = [
     {
@@ -41,16 +42,21 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
     const router = useRouter();
     const currentRoute = router.state.location.pathname;
     const subModules = getModuleFlags(data?.sub_modules);
+    const userPermissions = useUserPermissions();
 
     const [isVoltSubdomain, setIsVoltSubdomain] = useState(false);
 
     useEffect(() => {
-        setIsVoltSubdomain(typeof window !== 'undefined' && window.location.hostname.startsWith('volt.'));
+        setIsVoltSubdomain(
+            typeof window !== 'undefined' && window.location.hostname.startsWith('volt.')
+        );
     }, []);
+
+    const sideBarItems = filterMenuItems(filterMenuList(subModules, SidebarItemsData), data?.id);
 
     const finalSidebarItems = isVoltSubdomain
         ? voltSidebarData
-        : filterMenuItems(filterMenuList(subModules, SidebarItemsData), data?.id);
+        : filterSidebarData(sideBarItems, userPermissions);
 
     const { getPublicUrl } = useFileUpload();
     const { instituteLogo, setInstituteLogo } = useInstituteLogoStore();

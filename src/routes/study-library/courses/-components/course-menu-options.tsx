@@ -1,13 +1,15 @@
-import { MyButton } from "@/components/design-system/button";
-import { MyDialog } from "@/components/design-system/dialog";
-import { MyDropdown } from "@/components/design-system/dropdown";
-import { CourseType } from "@/stores/study-library/use-study-library-store";
-import { DotsThree } from "phosphor-react";
-import { useRef, useState } from "react";
+import { MyButton } from '@/components/design-system/button';
+import { MyDialog } from '@/components/design-system/dialog';
+import { MyDropdown } from '@/components/design-system/dropdown';
+import { CourseType } from '@/stores/study-library/use-study-library-store';
+import { DotsThree } from 'phosphor-react';
+import { useRef, useState } from 'react';
 import {
     AddCourseData,
     AddCourseForm,
-} from "../../../../components/common/study-library/add-course/add-course-form";
+} from '../../../../components/common/study-library/add-course/add-course-form';
+import { hasPermission } from '@/utils/permission/permission';
+import { PERMISSION_IDS } from '@/types/permission';
 
 interface CourseMenuOptionsProps {
     onDelete: (courseId: string) => void;
@@ -17,14 +19,14 @@ interface CourseMenuOptionsProps {
 
 export const CourseMenuOptions = ({ onDelete, onEdit, course }: CourseMenuOptionsProps) => {
     const [openEditDialog, setOpenEditDialog] = useState(false);
-    const DropdownList = ["Edit Course", "Delete Course"];
+    const DropdownList = ['Edit Course', 'Delete Course'];
     const [disableAddButton, setDisableAddButton] = useState(false);
     const formSubmitRef = useRef<() => void>(() => {});
 
     const handleMenuOptionsChange = (value: string) => {
-        if (value === "Delete Course") {
+        if (value === 'Delete Course') {
             onDelete(course.id);
-        } else if (value === "Edit Course") {
+        } else if (value === 'Edit Course') {
             setOpenEditDialog(true);
         }
     };
@@ -57,6 +59,7 @@ export const CourseMenuOptions = ({ onDelete, onEdit, course }: CourseMenuOption
                     scale="small"
                     layoutVariant="icon"
                     className="flex items-center justify-center"
+                    hidden={!hasPermission(PERMISSION_IDS.COURSES_EDIT)}
                 >
                     <DotsThree />
                 </MyButton>

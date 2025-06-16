@@ -44,28 +44,45 @@ const myButtonVariants = {
 
 // Button Component
 export const MyButton = React.forwardRef<HTMLButtonElement, MyButtonProps>(
-    ({ className, buttonType = 'primary', scale = 'medium', layoutVariant = 'default', children, disable, ...props }, ref) => {
-    const getButtonClasses = () => {
-        // Create an array of classes
-        const classes: string[] = [
-            myButtonVariants.base,
-            myButtonVariants.types[buttonType],
-            myButtonVariants.scales[layoutVariant][scale],
-        ];
+    (
+        {
+            className,
+            buttonType = 'primary',
+            scale = 'medium',
+            layoutVariant = 'default',
+            children,
+            disable,
+            hidden = false,
+            ...props
+        },
+        ref
+    ) => {
+        const getButtonClasses = () => {
+            // Create an array of classes
+            const classes: string[] = [
+                myButtonVariants.base,
+                myButtonVariants.types[buttonType],
+                myButtonVariants.scales[layoutVariant][scale],
+            ];
 
-        // Add text-specific styles only for text type buttons
-        if (buttonType === 'text') {
-            classes.push(myButtonVariants.textStyles[scale]);
-        }
+            // Add text-specific styles only for text type buttons
+            if (buttonType === 'text') {
+                classes.push(myButtonVariants.textStyles[scale]);
+            }
 
-        return classes.join(' ');
-    };
+            return classes.join(' ');
+        };
 
-    return (
-            <Button ref={ref} className={cn(getButtonClasses(), className)} {...props} disabled={disable}>
-            {children}
-        </Button>
-    );
+        return (
+            <Button
+                ref={ref}
+                className={cn(getButtonClasses(), className, hidden && 'hidden')}
+                {...props}
+                disabled={disable}
+            >
+                {children}
+            </Button>
+        );
     }
 );
 

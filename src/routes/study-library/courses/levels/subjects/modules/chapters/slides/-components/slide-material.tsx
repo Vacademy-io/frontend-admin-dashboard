@@ -19,7 +19,7 @@ import {
     useSlides,
 } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides';
 import { toast } from 'sonner';
-import { Check, DownloadSimple, PencilSimpleLine, ChatText } from 'phosphor-react';
+import { Check, DownloadSimple, PencilSimpleLine } from 'phosphor-react';
 import {
     converDataToAssignmentFormat,
     converDataToVideoFormat,
@@ -36,7 +36,8 @@ import { formatHTMLString } from './slide-operations/formatHtmlString';
 import { handleConvertAndUpload } from './slide-operations/handleConvertUpload';
 import SlideEditor from './SlideEditor';
 import type { JSX } from 'react/jsx-runtime';
-import { useSidebar } from '@/components/ui/sidebar';
+import { hasPermission } from '@/utils/permission/permission';
+import { PERMISSION_IDS } from '@/types/permission';
 
 // Declare INSTITUTE_ID here or import it from a config file
 const INSTITUTE_ID = 'your-institute-id'; // Replace with your actual institute ID
@@ -65,13 +66,10 @@ export const SlideMaterial = ({
     const { addUpdateVideoSlide } = useSlides(chapterId || '');
     const { updateQuestionOrder } = useSlides(chapterId || '');
     const { updateAssignmentOrder } = useSlides(chapterId || '');
-    const { open, setOpen } = useSidebar();
 
     const handleHeadingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setHeading(e.target.value);
     };
-
-
 
     const setEditorContent = () => {
         const docData =
@@ -101,12 +99,14 @@ export const SlideMaterial = ({
 
     const getCurrentEditorHTMLContent: () => string = () => {
         const data = editor.getEditorValue();
+        console.log('Editor data:', data);
         const htmlString = html.serialize(editor, data);
         const formattedHtmlString = formatHTMLString(htmlString);
         return formattedHtmlString;
     };
 
     // Convert Excalidraw data to HTML for publishing
+    //  eslint-disable-next-line
     const convertExcalidrawToHTML = async (excalidrawData: any): Promise<string> => {
         const htmlContent = `
             <!DOCTYPE html>
@@ -454,12 +454,12 @@ export const SlideMaterial = ({
         }
     };
 
-    useEffect(()=>{
-        setInterval(()=>{
-            console.log("edtitor content: ", editor.getEditorValue())
-            console.log("html content: ", getCurrentEditorHTMLContent())
-        }, 3000)
-    }, [])
+    useEffect(() => {
+        setInterval(() => {
+            console.log('edtitor content: ', editor.getEditorValue());
+            console.log('html content: ', getCurrentEditorHTMLContent());
+        }, 3000);
+    }, []);
 
     useEffect(() => {
         setSlideTitle(
@@ -546,77 +546,59 @@ export const SlideMaterial = ({
                                 <h3 className="text-h3 font-semibold text-neutral-600">
                                     {heading || 'No content selected'}
                                 </h3>
-                                <PencilSimpleLine
-                                    className="cursor-pointer hover:text-primary-500"
-                                    onClick={() => setIsEditing(true)}
-                                />
+                                {hasPermission(PERMISSION_IDS.COURSES_EDIT) && (
+                                    <PencilSimpleLine
+                                        className="cursor-pointer hover:text-primary-500"
+                                        onClick={() => setIsEditing(true)}
+                                    />
+                                )}
                             </div>
                         )}
                     </div>
-                    <div className="flex items-center gap-6">
+                    {hasPermission(PERMISSION_IDS.COURSES_EDIT) && (
                         <div className="flex items-center gap-6">
-                            {activeItem.source_type == 'DOCUMENT' &&
-                                activeItem?.document_slide?.type == 'DOC' && (
+                            <div className="flex items-center gap-6">
+                                {activeItem.source_type == 'DOCUMENT' &&
+                                    activeItem?.document_slide?.type == 'DOC' && (
+                                        <MyButton
+                                            layoutVariant="icon"
+                                            onClick={async () => {
+                                                await SaveDraft(activeItem);
+                                                if (activeItem.status == 'PUBLISHED') {
+                                                    await handleConvertAndUpload(
+                                                        activeItem.document_slide?.published_data ||
+                                                            null
+                                                    );
+                                                } else {
+                                                    await handleConvertAndUpload(
+                                                        activeItem.document_slide?.data || null
+                                                    );
+                                                }
+                                            }}
+                                        >
+                                            <DownloadSimple size={30} />
+                                        </MyButton>
+                                    )}
+                                <ActivityStatsSidebar />
+                                {(activeItem?.document_slide?.type == 'DOC' ||
+                                    activeItem?.document_slide?.type == 'PRESENTATION' ||
+                                    activeItem?.source_type == 'QUESTION' ||
+                                    activeItem?.source_type == 'ASSIGNMENT') && (
                                     <MyButton
-                                        layoutVariant="icon"
-                                        onClick={async () => {
-                                            await SaveDraft(activeItem);
-                                            if (activeItem.status == 'PUBLISHED') {
-                                                await handleConvertAndUpload(
-                                                    activeItem.document_slide?.published_data ||
-                                                        null
-                                                );
-                                            } else {
-                                                await handleConvertAndUpload(
-                                                    activeItem.document_slide?.data || null
-                                                );
-                                            }
-                                        }}
+                                        buttonType="secondary"
+                                        scale="medium"
+                                        layoutVariant="default"
+                                        onClick={handleSaveDraftClick}
                                     >
-                                        <DownloadSimple size={30} />
+                                        Save Draft
                                     </MyButton>
                                 )}
-                            <ActivityStatsSidebar />
-                            {(activeItem?.document_slide?.type == 'DOC' ||
-                                activeItem?.document_slide?.type == 'PRESENTATION' ||
-                                activeItem?.source_type == 'QUESTION' ||
-                                activeItem?.source_type == 'ASSIGNMENT') && (
-                                <MyButton
-                                    buttonType="secondary"
-                                    scale="medium"
-                                    layoutVariant="default"
-                                    onClick={handleSaveDraftClick}
-                                >
-                                    Save Draft
-                                </MyButton>
-                            )}
-                            <UnpublishDialog
-                                isOpen={isUnpublishDialogOpen}
-                                setIsOpen={setIsUnpublishDialogOpen}
-                                handlePublishUnpublishSlide={() =>
-                                    handleUnpublishSlide(
-                                        setIsUnpublishDialogOpen,
-                                        false,
-                                        activeItem,
-                                        addUpdateDocumentSlide,
-                                        addUpdateVideoSlide,
-                                        updateQuestionOrder,
-                                        updateAssignmentOrder,
-                                        SaveDraft
-                                    )
-                                }
-                            />
-                            <PublishDialog
-                                isOpen={isPublishDialogOpen}
-                                setIsOpen={setIsPublishDialogOpen}
-                                handlePublishUnpublishSlide={() => {
-                                    // Custom publish logic for Excalidraw presentations
-                                    if (activeItem?.document_slide?.type === 'PRESENTATION') {
-                                        publishExcalidrawPresentation();
-                                        setIsPublishDialogOpen(false);
-                                    } else {
-                                        handlePublishSlide(
-                                            setIsPublishDialogOpen,
+                                <UnpublishDialog
+                                    isOpen={isUnpublishDialogOpen}
+                                    setIsOpen={setIsUnpublishDialogOpen}
+                                    handlePublishUnpublishSlide={() =>
+                                        handleUnpublishSlide(
+                                            setIsUnpublishDialogOpen,
                                             false,
                                             activeItem,
                                             addUpdateDocumentSlide,
@@ -624,13 +606,35 @@ export const SlideMaterial = ({
                                             updateQuestionOrder,
                                             updateAssignmentOrder,
                                             SaveDraft
-                                        );
+                                        )
                                     }
-                                }}
-                            />
+                                />
+                                <PublishDialog
+                                    isOpen={isPublishDialogOpen}
+                                    setIsOpen={setIsPublishDialogOpen}
+                                    handlePublishUnpublishSlide={() => {
+                                        // Custom publish logic for Excalidraw presentations
+                                        if (activeItem?.document_slide?.type === 'PRESENTATION') {
+                                            publishExcalidrawPresentation();
+                                            setIsPublishDialogOpen(false);
+                                        } else {
+                                            handlePublishSlide(
+                                                setIsPublishDialogOpen,
+                                                false,
+                                                activeItem,
+                                                addUpdateDocumentSlide,
+                                                addUpdateVideoSlide,
+                                                updateQuestionOrder,
+                                                updateAssignmentOrder,
+                                                SaveDraft
+                                            );
+                                        }
+                                    }}
+                                />
+                            </div>
+                            <SlidesMenuOption />
                         </div>
-                        <SlidesMenuOption />
-                    </div>
+                    )}
                 </div>
             )}
             <div

@@ -1,8 +1,8 @@
-import { motion } from 'framer-motion';
+import { motion, Variants } from 'framer-motion';
 import { File, ArrowRight, Layers } from 'lucide-react';
 
 export const PptImportContent = () => {
-    const containerVariants = {
+    const containerVariants: Variants = {
         hidden: { opacity: 0 },
         visible: {
             opacity: 1,
@@ -13,13 +13,13 @@ export const PptImportContent = () => {
         },
     };
 
-    const itemVariants = {
+    const itemVariants: Variants = {
         hidden: { opacity: 0, y: 20 },
         visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
     };
 
     return (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-100 p-4 overflow-hidden">
+        <div className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden bg-slate-100 p-4">
             <motion.div
                 className="flex items-center justify-center gap-4 md:gap-6"
                 variants={containerVariants}
@@ -27,40 +27,34 @@ export const PptImportContent = () => {
                 animate="visible"
             >
                 {/* PPT Icon */}
-                <motion.div
-                    className="flex flex-col items-center gap-2"
-                    variants={itemVariants}
-                >
-                    <File className="w-16 h-16 md:w-20 md:h-20 text-orange-500" />
+                <motion.div className="flex flex-col items-center gap-2" variants={itemVariants}>
+                    <File className="size-16 text-orange-500 md:size-20" />
                     <span className="text-xs font-bold text-slate-600">My Deck.pptx</span>
                 </motion.div>
 
                 {/* Arrow */}
                 <motion.div variants={itemVariants}>
-                    <ArrowRight className="w-10 h-10 md:w-12 md:h-12 text-slate-400 shrink-0" />
+                    <ArrowRight className="size-10 shrink-0 text-slate-400 md:size-12" />
                 </motion.div>
 
                 {/* Volt Slides */}
-                <motion.div
-                    className="relative w-20 h-20 md:w-24 md:h-24"
-                    variants={itemVariants}
-                >
+                <motion.div className="relative size-20 md:size-24" variants={itemVariants}>
                     <motion.div
-                        className="absolute top-0 left-0 w-14 h-14 md:w-16 md:h-16 bg-white rounded-lg shadow-md flex items-center justify-center border border-slate-200"
+                        className="absolute left-0 top-0 flex size-14 items-center justify-center rounded-lg border border-slate-200 bg-white shadow-md md:size-16"
                         animate={{ y: [0, -4, 0], x: [0, -2, 0], rotate: -3 }}
                         transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
                     >
-                        <Layers className="w-7 h-7 md:w-8 md:h-8 text-blue-500" />
+                        <Layers className="size-7 text-blue-500 md:size-8" />
                     </motion.div>
                     <motion.div
-                        className="absolute top-2 left-2 md:top-4 md:left-4 w-14 h-14 md:w-16 md:h-16 bg-white rounded-lg shadow-lg flex items-center justify-center border border-slate-200"
+                        className="absolute left-2 top-2 flex size-14 items-center justify-center rounded-lg border border-slate-200 bg-white shadow-lg md:left-4 md:top-4 md:size-16"
                         animate={{ y: [0, 5, 0], x: [0, 3, 0], rotate: 5 }}
                         transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
                     >
-                        <Layers className="w-7 h-7 md:w-8 md:h-8 text-purple-500" />
+                        <Layers className="size-7 text-purple-500 md:size-8" />
                     </motion.div>
                 </motion.div>
             </motion.div>
         </div>
     );
-}; 
+};

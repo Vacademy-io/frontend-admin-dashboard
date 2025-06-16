@@ -1,17 +1,8 @@
 'use client';
 
 import { BentoGrid } from '@/components/landing/BentoGrid';
-import {
-    MessageCircleCode,
-    BarChart,
-    Mic,
-    Bot,
-    Wand2,
-    Brush,
-    FileUp,
-    Send,
-} from 'lucide-react';
-import { motion } from 'framer-motion';
+import { MessageCircleCode, BarChart, Mic, Bot, Wand2, Brush, FileUp, Send } from 'lucide-react';
+import { motion, Variants } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { AiGeneratorCardContent } from './AiGeneratorCardContent';
 import { QuizJoinContent } from './QuizJoinContent';
@@ -23,18 +14,19 @@ import { PptImportContent } from './PptImportContent';
 import { ShareSummaryContent } from './ShareSummaryContent';
 
 const features = [
-   
     {
         Icon: MessageCircleCode,
         title: 'Interactive Quizzing & Polling',
-        description: 'Engage your audience with live multiple-choice questions, polls, and open-ended feedback.',
+        description:
+            'Engage your audience with live multiple-choice questions, polls, and open-ended feedback.',
         content: <QuizJoinContent />,
         className: 'lg:col-span-1',
     },
     {
         Icon: Bot,
         title: 'AI Presentation Generator',
-        description: 'Describe your topic, and our AI will create a full presentation for you in seconds.',
+        description:
+            'Describe your topic, and our AI will create a full presentation for you in seconds.',
         content: <AiGeneratorCardContent />,
         className: 'lg:col-span-1',
     },
@@ -62,27 +54,30 @@ const features = [
     {
         Icon: Brush,
         title: 'Full Creative Control',
-        description: 'Built on Excalidraw for the freedom of a whiteboard, with the structure of slides.',
+        description:
+            'Built on Excalidraw for the freedom of a whiteboard, with the structure of slides.',
         content: <ExcalidrawToolbarContent />,
         className: 'lg:col-span-1',
     },
     {
         Icon: FileUp,
         title: 'Import from PowerPoint',
-        description: 'Automatically convert your existing PPT/PPTX files into interactive Volt slides.',
+        description:
+            'Automatically convert your existing PPT/PPTX files into interactive Volt slides.',
         content: <PptImportContent />,
         className: 'lg:col-span-1',
     },
     {
         Icon: Send,
         title: 'Share Session Summary',
-        description: 'Automatically email participants a summary, action items, and a link to the Volt.',
+        description:
+            'Automatically email participants a summary, action items, and a link to the Volt.',
         content: <ShareSummaryContent />,
         className: 'lg:col-span-1',
     },
 ];
 
-const variants = {
+const variants: Variants = {
     initial: {
         scale: 0.95,
         opacity: 0,
@@ -117,16 +112,15 @@ export const VoltFeaturesGrid = () => (
                     feature.className
                 )}
             >
-                  <div className="p-4 border-t border-slate-200 bg-white shrink-0">
-                    <feature.Icon className="h-8 w-8 mb-2 text-neutral-700" />
-                    <h3 className="text-md font-semibold text-neutral-700">{feature.title}</h3>
+                <div className="shrink-0 border-t border-slate-200 bg-white p-4">
+                    <feature.Icon className="mb-2 size-8 text-neutral-700" />
+                    <h3 className="text-base font-semibold text-neutral-700">{feature.title}</h3>
                     <p className="text-sm text-neutral-500">{feature.description}</p>
                 </div>
-                <div className="relative flex-1 flex items-center justify-center bg-slate-100/50 overflow-hidden">
+                <div className="relative flex flex-1 items-center justify-center overflow-hidden bg-slate-100/50">
                     {feature.content}
                 </div>
-              
             </motion.div>
         ))}
     </BentoGrid>
-); 
+);

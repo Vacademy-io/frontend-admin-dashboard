@@ -228,6 +228,8 @@ export const GET_SESSION_BY_SESSION_ID = `${BASE_URL}/admin-core-service/get-ses
 export const LIVE_SESSION_REPORT_BY_SESSION_ID = `${BASE_URL}/admin-core-service/live-session-report/by-session-id`;
 
 export const GET_ALL_FACULTY = `${BASE_URL}/admin-core-service/institute/v1/faculty/faculty/get-all`;
+export const GET_FACULTY_BATCHES_URL = `${BASE_URL}/admin-core-service/institute/v1/faculty/batch-subject-assignments`;
+export const UPDATE_FACULTY_BATCHES_URL = `${BASE_URL}/admin-core-service/institute/v1/faculty/update-assign-subjects-and-batches`;
 
 export const LOGIN_URL_GOOGLE_GITHUB = `${BASE_URL}/auth-service/v1/oauth`;
 
@@ -235,6 +237,8 @@ export const ADD_DOUBT = `${BASE_URL}/admin-core-service/institute/v1/doubts/cre
 export const GET_DOUBTS = `${BASE_URL}/admin-core-service/institute/v1/doubts/get-all`;
 export const GET_USER_BASIC_DETAILS = `${BASE_URL}/auth-service/v1/user-details/get-basic-details`;
 
+// User Permission
+export const USER_PERMISSION_URL = `${BASE_URL}/auth-service/v1/user-permission`;
 // Engage Session URLs (Presentation specific)
 export const CREATE_SESSION_API_URL = `${BASE_URL}/community-service/engage/admin/create`;
 export const START_SESSION_API_URL = `${BASE_URL}/community-service/engage/admin/start`;

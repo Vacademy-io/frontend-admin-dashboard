@@ -20,6 +20,7 @@ export interface MyButtonProps extends Omit<ButtonProps, 'variant'> {
     layoutVariant?: ButtonLayoutVariant;
     children?: React.ReactNode;
     disable?: boolean;
+    hidden?: boolean;
     onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
     type?: 'button' | 'submit' | 'reset';
 }

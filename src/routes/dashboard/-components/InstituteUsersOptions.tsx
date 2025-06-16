@@ -21,6 +21,8 @@ import {
     handleDeleteDisableDashboardUsers,
 } from '../-services/dashboard-services';
 import { toast } from 'sonner';
+import { PermissionsDialog } from './PermissionDialog';
+
 export const inviteUsersSchema = z.object({
     roleType: z.array(z.string()).min(1, 'At least one role type is required'),
 });
@@ -38,7 +40,6 @@ const ChangeRoleTypeComponent: React.FC<ChangeRoleTypeComponentProps> = ({
     refetchData,
 }) => {
     const instituteId = getInstituteId();
-    //need to previous already assigned roles
     const form = useForm<FormValues>({
         resolver: zodResolver(inviteUsersSchema),
         defaultValues: {
@@ -85,7 +86,7 @@ const ChangeRoleTypeComponent: React.FC<ChangeRoleTypeComponentProps> = ({
         form.reset({
             roleType: student.roles.map((role) => role.role_name) || [],
         });
-    }, []);
+    }, [form, student.roles]); // Added form and student.roles to dependency array
 
     return (
         <DialogContent className="flex w-[420px] flex-col p-0">
@@ -184,7 +185,7 @@ const DisableUserComponent: React.FC<DisableUserComponentProps> = ({
                         scale="large"
                         buttonType="primary"
                         className="mt-4 font-medium"
-                        onClick={handlDisableUser} // Close the dialog when clicked
+                        onClick={handlDisableUser}
                     >
                         Yes
                     </MyButton>
@@ -238,14 +239,15 @@ const EnableUserComponent: React.FC<EnableUserComponentProps> = ({
     };
     return (
         <DialogContent className="flex flex-col p-0">
-            <h1 className="rounded-md bg-primary-50 p-4 text-primary-500">Disable User</h1>
+            <h1 className="rounded-md bg-primary-50 p-4 text-primary-500">Enable User</h1>{' '}
+            {/* Corrected Title */}
             <div className="flex flex-col gap-2 p-4">
                 <div className="flex items-center text-danger-600">
                     <p>Attention</p>
                     <WarningCircle size={18} />
                 </div>
                 <h1>
-                    Are you sure you want to disable{' '}
+                    Are you sure you want to enable {/* Corrected Action Text */}
                     <span className="text-primary-500">{student.full_name}</span>?
                 </h1>
                 <div className="flex justify-end">
@@ -254,7 +256,7 @@ const EnableUserComponent: React.FC<EnableUserComponentProps> = ({
                         scale="large"
                         buttonType="primary"
                         className="mt-4 font-medium"
-                        onClick={handlEnableUser} // Close the dialog when clicked
+                        onClick={handlEnableUser}
                     >
                         Yes
                     </MyButton>
@@ -324,7 +326,7 @@ const DeleteUserComponent: React.FC<DeleteUserComponentProps> = ({
                         scale="large"
                         buttonType="primary"
                         className="mt-4 font-medium"
-                        onClick={handlDeleteUser} // Close the dialog when clicked
+                        onClick={handlDeleteUser}
                     >
                         Yes
                     </MyButton>
@@ -360,6 +362,10 @@ const InstituteUsersOptions = ({
                 <DropdownMenuContent>
                     <DropdownMenuItem onClick={() => handleDropdownMenuClick('Change Role Type')}>
                         Change Role Type
+                    </DropdownMenuItem>
+                    {/* Add Manage Permissions Menu Item */}
+                    <DropdownMenuItem onClick={() => handleDropdownMenuClick('Manage Permissions')}>
+                        Manage Permissions
                     </DropdownMenuItem>
                     {user.status === 'ACTIVE' && (
                         <DropdownMenuItem onClick={() => handleDropdownMenuClick('Disable user')}>
@@ -401,6 +407,14 @@ const InstituteUsersOptions = ({
                 {selectedOption === 'Delete user' && (
                     <DeleteUserComponent
                         student={user}
+                        onClose={() => setOpenDialog(false)}
+                        refetchData={refetchData}
+                    />
+                )}
+                {/* Add condition to render ManagePermissionsComponent */}
+                {selectedOption === 'Manage Permissions' && (
+                    <PermissionsDialog
+                        user={user}
                         onClose={() => setOpenDialog(false)}
                         refetchData={refetchData}
                     />
