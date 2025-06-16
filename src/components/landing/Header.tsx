@@ -2,10 +2,49 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, Menu, X } from 'lucide-react';
+import { Zap, Menu, X, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useRouter } from '@tanstack/react-router';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+
+function JoinSessionPopover() {
+    const [sessionCode, setSessionCode] = useState('');
+
+    const handleJoinSession = () => {
+        if (sessionCode.trim()) {
+            window.open(`https://engage.vacademy.io/${sessionCode.trim()}`, '_blank');
+        }
+    };
+
+    return (
+        <div className="grid gap-4 p-4">
+            <div className="space-y-2">
+                <h4 className="font-medium leading-none">Join Session</h4>
+                <p className="text-sm text-muted-foreground">Enter the code to join a live session.</p>
+            </div>
+            <div className="flex items-center gap-2">
+                <Input
+                    id="session-code"
+                    placeholder="Enter Code"
+                    className="flex-1 text-center font-semibold tracking-wider"
+                    value={sessionCode}
+                    onChange={(e) => setSessionCode(e.target.value.toUpperCase())}
+                    onKeyPress={(e) => e.key === 'Enter' && handleJoinSession()}
+                />
+                <Button
+                    onClick={handleJoinSession}
+                    disabled={!sessionCode.trim()}
+                    className="bg-orange-500 text-white hover:bg-orange-600"
+                >
+                    <ArrowRight className="h-4 w-4" />
+                </Button>
+            </div>
+        </div>
+    );
+}
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -47,7 +86,19 @@ export function Header() {
               </span>
               </div>
               {/* Desktop Menu */}
-              <div className="hidden md:flex items-center gap-4">
+              <div className="hidden md:flex items-center gap-2">
+                  <Button variant="ghost" onClick={() => router.navigate({ to: '/pricing' })}>Pricing</Button>
+                  <Popover>
+                      <PopoverTrigger asChild>
+                          <Button variant="ghost">Join</Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-80">
+                          <JoinSessionPopover />
+                      </PopoverContent>
+                  </Popover>
+
+                  <div className="h-6 w-px bg-slate-200" />
+
                   <Button variant="ghost" onClick={() => router.navigate({ to: '/login'})}>
                       Sign In
                   </Button>
@@ -95,7 +146,16 @@ export function Header() {
                   <X className="h-6 w-6" />
                 </Button>
               </div>
-              <div className="mt-10 flex flex-col space-y-6">
+              <div className="mt-10 flex flex-col space-y-4">
+                <Button variant="outline" size="lg" onClick={() => router.navigate({ to: '/pricing' })}>Pricing</Button>
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <Button variant="outline" size="lg">Join a Session</Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80">
+                        <JoinSessionPopover />
+                    </PopoverContent>
+                </Popover>
                 <Button 
                   variant="outline" 
                   size="lg"

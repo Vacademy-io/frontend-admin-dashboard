@@ -1,12 +1,21 @@
 'use client';
 
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useRouter } from '@tanstack/react-router';
-import { Zap, Mic, Bot, BarChart } from 'lucide-react';
+import { Zap, Mic, Bot, BarChart, ArrowRight } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 
 export function Hero() {
   const router = useRouter();
+  const [sessionCode, setSessionCode] = useState('');
+
+  const handleJoinSession = () => {
+    if (sessionCode.trim()) {
+      window.open(`https://engage.vacademy.io/${sessionCode.trim()}`, '_blank');
+    }
+  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -90,6 +99,32 @@ export function Hero() {
               >
                 See Features
               </Button>
+            </motion.div>
+
+            <motion.div
+              variants={itemVariants}
+              className="mt-12 w-full max-w-md mx-auto"
+            >
+              <p className="text-sm font-medium text-slate-500 mb-2">
+                Already have a code? Join a session now.
+              </p>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="text"
+                  placeholder="Enter session code..."
+                  className="flex-1 text-center font-semibold tracking-wider"
+                  value={sessionCode}
+                  onChange={(e) => setSessionCode(e.target.value.toUpperCase())}
+                  onKeyPress={(e) => e.key === 'Enter' && handleJoinSession()}
+                />
+                <Button
+                  className="bg-orange-500 text-white hover:bg-orange-600"
+                  onClick={handleJoinSession}
+                  disabled={!sessionCode.trim()}
+                >
+                  Join <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
             </motion.div>
           </motion.div>
           

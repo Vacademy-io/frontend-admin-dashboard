@@ -80,9 +80,16 @@ import { Route as AssessmentAssessmentListAssessmentDetailsAssessmentIdExamTypeA
 
 // Create Virtual Routes
 
+const PricingLazyImport = createFileRoute("/pricing")()
 const LandingLazyImport = createFileRoute("/landing")()
 
 // Create/Update Routes
+
+const PricingLazyRoute = PricingLazyImport.update({
+  id: "/pricing",
+  path: "/pricing",
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import("./routes/pricing.lazy").then((d) => d.Route))
 
 const LandingLazyRoute = LandingLazyImport.update({
   id: "/landing",
@@ -533,6 +540,13 @@ declare module "@tanstack/react-router" {
       path: "/landing"
       fullPath: "/landing"
       preLoaderRoute: typeof LandingLazyImport
+      parentRoute: typeof rootRoute
+    }
+    "/pricing": {
+      id: "/pricing"
+      path: "/pricing"
+      fullPath: "/pricing"
+      preLoaderRoute: typeof PricingLazyImport
       parentRoute: typeof rootRoute
     }
     "/ai-center/": {
@@ -990,6 +1004,7 @@ declare module "@tanstack/react-router" {
 
 export interface FileRoutesByFullPath {
   "/landing": typeof LandingLazyRoute
+  "/pricing": typeof PricingLazyRoute
   "/ai-center": typeof AiCenterIndexRoute
   "/assessment": typeof AssessmentIndexRoute
   "/community": typeof CommunityIndexRoute
@@ -1058,6 +1073,7 @@ export interface FileRoutesByFullPath {
 
 export interface FileRoutesByTo {
   "/landing": typeof LandingLazyRoute
+  "/pricing": typeof PricingLazyRoute
   "/ai-center": typeof AiCenterIndexRoute
   "/assessment": typeof AssessmentIndexRoute
   "/community": typeof CommunityIndexRoute
@@ -1127,6 +1143,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   "/landing": typeof LandingLazyRoute
+  "/pricing": typeof PricingLazyRoute
   "/ai-center/": typeof AiCenterIndexRoute
   "/assessment/": typeof AssessmentIndexRoute
   "/community/": typeof CommunityIndexRoute
@@ -1197,6 +1214,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | "/landing"
+    | "/pricing"
     | "/ai-center"
     | "/assessment"
     | "/community"
@@ -1264,6 +1282,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | "/landing"
+    | "/pricing"
     | "/ai-center"
     | "/assessment"
     | "/community"
@@ -1331,6 +1350,7 @@ export interface FileRouteTypes {
   id:
     | "__root__"
     | "/landing"
+    | "/pricing"
     | "/ai-center/"
     | "/assessment/"
     | "/community/"
@@ -1400,6 +1420,7 @@ export interface FileRouteTypes {
 
 export interface RootRouteChildren {
   LandingLazyRoute: typeof LandingLazyRoute
+  PricingLazyRoute: typeof PricingLazyRoute
   AiCenterIndexRoute: typeof AiCenterIndexRoute
   AssessmentIndexRoute: typeof AssessmentIndexRoute
   CommunityIndexRoute: typeof CommunityIndexRoute
@@ -1468,6 +1489,7 @@ export interface RootRouteChildren {
 
 const rootRouteChildren: RootRouteChildren = {
   LandingLazyRoute: LandingLazyRoute,
+  PricingLazyRoute: PricingLazyRoute,
   AiCenterIndexRoute: AiCenterIndexRoute,
   AssessmentIndexRoute: AssessmentIndexRoute,
   CommunityIndexRoute: CommunityIndexRoute,
@@ -1567,6 +1589,7 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/landing",
+        "/pricing",
         "/ai-center/",
         "/assessment/",
         "/community/",
@@ -1635,6 +1658,9 @@ export const routeTree = rootRoute
     },
     "/landing": {
       "filePath": "landing.lazy.tsx"
+    },
+    "/pricing": {
+      "filePath": "pricing.lazy.tsx"
     },
     "/ai-center/": {
       "filePath": "ai-center/index.tsx"

@@ -23,18 +23,19 @@ import { PptImportContent } from './PptImportContent';
 import { ShareSummaryContent } from './ShareSummaryContent';
 
 const features = [
-    {
-        Icon: Bot,
-        title: 'AI Presentation Generator',
-        description: 'Describe your topic, and our AI will create a full presentation for you in seconds.',
-        content: <AiGeneratorCardContent />,
-        className: 'lg:col-span-1',
-    },
+   
     {
         Icon: MessageCircleCode,
         title: 'Interactive Quizzing & Polling',
         description: 'Engage your audience with live multiple-choice questions, polls, and open-ended feedback.',
         content: <QuizJoinContent />,
+        className: 'lg:col-span-1',
+    },
+    {
+        Icon: Bot,
+        title: 'AI Presentation Generator',
+        description: 'Describe your topic, and our AI will create a full presentation for you in seconds.',
+        content: <AiGeneratorCardContent />,
         className: 'lg:col-span-1',
     },
     {
@@ -99,7 +100,7 @@ const variants = {
 };
 
 export const VoltFeaturesGrid = () => (
-    <BentoGrid className="auto-rows-[32rem] md:auto-rows-[30rem] lg:grid-cols-2">
+    <BentoGrid className="auto-rows-[32rem] md:auto-rows-[40rem] lg:grid-cols-1">
         {features.map((feature, i) => (
             <motion.div
                 key={i}
@@ -116,14 +117,15 @@ export const VoltFeaturesGrid = () => (
                     feature.className
                 )}
             >
-                <div className="relative flex-1 flex items-center justify-center bg-slate-100/50 overflow-hidden">
-                    {feature.content}
-                </div>
-                <div className="p-4 border-t border-slate-200 bg-white shrink-0">
+                  <div className="p-4 border-t border-slate-200 bg-white shrink-0">
                     <feature.Icon className="h-8 w-8 mb-2 text-neutral-700" />
                     <h3 className="text-md font-semibold text-neutral-700">{feature.title}</h3>
                     <p className="text-sm text-neutral-500">{feature.description}</p>
                 </div>
+                <div className="relative flex-1 flex items-center justify-center bg-slate-100/50 overflow-hidden">
+                    {feature.content}
+                </div>
+              
             </motion.div>
         ))}
     </BentoGrid>
