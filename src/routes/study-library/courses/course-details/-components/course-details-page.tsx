@@ -46,12 +46,8 @@ import { useGetPackageSessionId } from '@/utils/helpers/study-library-helpers.ts
 import { useAddSubject } from '../subjects/-services/addSubject';
 import { useAddModule } from '../subjects/modules/-services/add-module';
 import { useAddChapter } from '../subjects/modules/chapters/-services/add-chapter';
+import { handleFetchModulesWithChapters } from '../../-services/getModulesWithChapters';
 import {
-    fetchModulesWithChapters,
-    handleFetchModulesWithChapters,
-} from '../../-services/getModulesWithChapters';
-import {
-    fetchChaptersWithSlides,
     handleFetchChaptersWithSlides,
     VideoSlide,
     DocumentSlide,
@@ -59,8 +55,7 @@ import {
     AssignmentSlide,
     ChapterWithSlides,
 } from '../../-services/getAllSlides';
-import { useSuspenseQuery, useQueries } from '@tanstack/react-query';
-import { useModulesWithChaptersQuery } from '../../-services/getModulesWithChapters';
+import { useQueries } from '@tanstack/react-query';
 
 type DialogType = 'subject' | 'module' | 'chapter' | 'slide' | null;
 
@@ -564,7 +559,7 @@ export const CourseDetailsPage = () => {
 
                     if (selectedCourse.level === 4) {
                         const response = await addModuleMutation.mutateAsync({
-                            subjectId: selectedParentId,
+                            subjectId: 'DEFAULT',
                             module: newModule,
                         });
 
