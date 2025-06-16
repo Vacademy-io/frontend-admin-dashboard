@@ -193,28 +193,15 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
 
     // Function to load YouTube IFrame API
     const loadYouTubeAPI = () => {
-        console.log('Loading YouTube API...');
-
         if (window.YT) {
-            console.log('YouTube API already loaded');
             setIsAPIReady(true);
             return;
-        }
-
-        // Remove any existing YouTube API script
-        const existingScript = document.querySelector(
-            'script[src="https://www.youtube.com/iframe_api"]'
-        );
-        if (existingScript) {
-            console.log('Removing existing YouTube API script');
-            existingScript.remove();
         }
 
         const tag = document.createElement('script');
         tag.src = 'https://www.youtube.com/iframe_api';
 
         window.onYouTubeIframeAPIReady = () => {
-            console.log('YouTube API Ready');
             setIsAPIReady(true);
         };
 
@@ -323,16 +310,10 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
 
     // Create player when API is ready and URL changes
     useEffect(() => {
-        if (!isAPIReady || !videoUrl) {
-            console.log('Waiting for API or missing video URL');
-            return;
-        }
+        if (!isAPIReady || !videoUrl) return;
 
         const videoId = extractVideoId(videoUrl);
-        if (!videoId || !containerRef.current) {
-            console.log('Invalid video ID or missing container');
-            return;
-        }
+        if (!videoId || !containerRef.current) return;
 
         // Destroy existing player
         if (playerRef.current) {
@@ -360,11 +341,9 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
             },
             events: {
                 onReady: (event) => {
-                    console.log('Player ready:', event);
                     setVideoDuration(event.target.getDuration());
                 },
                 onStateChange: (event) => {
-                    console.log('Player state changed:', event);
                     if (event.data === window.YT.PlayerState.PLAYING) {
                         setVideoDuration(event.target.getDuration());
                     }
