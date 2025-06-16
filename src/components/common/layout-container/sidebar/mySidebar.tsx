@@ -42,19 +42,23 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
     const router = useRouter();
     const currentRoute = router.state.location.pathname;
     const subModules = getModuleFlags(data?.sub_modules);
+    const userPermissions = useUserPermissions();
 
     const [isVoltSubdomain, setIsVoltSubdomain] = useState(false);
 
     useEffect(() => {
-        setIsVoltSubdomain(typeof window !== 'undefined' && window.location.hostname.startsWith('volt.'));
+        setIsVoltSubdomain(
+            typeof window !== 'undefined' && window.location.hostname.startsWith('volt.')
+        );
     }, []);
+
+    const sideBarItems = filterMenuItems(filterMenuList(subModules, SidebarItemsData), data?.id);
 
     const finalSidebarItems = isVoltSubdomain
         ? voltSidebarData
-        : filterMenuItems(filterMenuList(subModules, SidebarItemsData), data?.id);
+        : filterSidebarData(sideBarItems, userPermissions);
 
     const { getPublicUrl } = useFileUpload();
-    const userPermissions = useUserPermissions();
     const { instituteLogo, setInstituteLogo } = useInstituteLogoStore();
 
     useEffect(() => {
@@ -71,8 +75,6 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
 
         return () => clearTimeout(timer); // Cleanup the timeout on component unmount
     }, [data?.institute_logo_file_id]);
-
-    const filteredSidebarData = filterSidebarData(sideBarItems, userPermissions);
 
     if (isLoading) return <DashboardLoader />;
     return (
