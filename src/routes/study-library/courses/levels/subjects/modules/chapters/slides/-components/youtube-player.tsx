@@ -21,6 +21,7 @@ import { TrashSimple } from 'phosphor-react';
 import { MyButton } from '@/components/design-system/button';
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import { Route } from '..';
 
 export interface YTPlayer {
     destroy(): void;
@@ -77,6 +78,7 @@ interface YouTubePlayerProps {
 }
 
 export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
+    const searchParams = Route.useSearch();
     // Convert formRefData from a ref to useState to trigger re-renders
     const isAddTimeFrameRef = useRef<HTMLButtonElement | null>(null);
     const isAddQuestionTypeRef = useRef<HTMLButtonElement | null>(null);
@@ -432,6 +434,12 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
             questions: activeItem?.video_slide?.questions || [],
         }));
     }, [videoUrl]);
+
+    useEffect(() => {
+        if (searchParams.timestamp) {
+            handleQuestionClick(timestampToSeconds(searchParams.timestamp));
+        }
+    }, []);
 
     return (
         <div className="flex w-full flex-col">
