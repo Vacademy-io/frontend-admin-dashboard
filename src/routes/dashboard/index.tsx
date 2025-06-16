@@ -4,8 +4,15 @@ import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore
 import { useEffect, useState } from 'react';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { MyButton } from '@/components/design-system/button';
-import { ArrowSquareOut, Plus, Sparkle, FilePdf, LightbulbFilament, Lightning } from 'phosphor-react';
-import { CreateAssessmentDashboardLogo, DashboardCreateCourse } from '@/svgs';
+import {
+    ArrowSquareOut,
+    Plus,
+    Sparkle,
+    FilePdf,
+    LightbulbFilament,
+    Lightning,
+} from 'phosphor-react';
+import { CreateAssessmentDashboardLogo, DashboardCreateCourse, IndianYogaLogo } from '@/svgs';
 import { Badge } from '@/components/ui/badge';
 import { CompletionStatusComponent } from './-components/CompletionStatusComponent';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
@@ -19,7 +26,7 @@ import {
     getInstituteDashboardData,
 } from './-services/dashboard-services';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
-import { SSDC_INSTITUTE_ID } from '@/constants/urls';
+import { HOLISTIC_INSTITUTE_ID, SSDC_INSTITUTE_ID } from '@/constants/urls';
 import { Helmet } from 'react-helmet';
 import { getModuleFlags } from '@/components/common/layout-container/sidebar/helper';
 import RoleTypeComponent from './-components/RoleTypeComponent';
@@ -27,6 +34,8 @@ import useLocalStorage from '@/hooks/use-local-storage';
 import EditDashboardProfileComponent from './-components/EditDashboardProfileComponent';
 import { handleGetAdminDetails } from '@/services/student-list-section/getAdminDetails';
 import { motion } from 'framer-motion';
+import { getInstituteId } from '@/constants/helper';
+import { useTheme } from '@/providers/theme/theme-provider';
 
 export const Route = createFileRoute('/dashboard/')({
     component: DashboardPage,
@@ -35,9 +44,11 @@ export const Route = createFileRoute('/dashboard/')({
 function DashboardPage() {
     const navigate = useNavigate();
     const [isVoltSubdomain, setIsVoltSubdomain] = useState(false);
+    const { getPrimaryColorCode } = useTheme();
 
     useEffect(() => {
-        const subdomain = typeof window !== 'undefined' ? window.location.hostname.split('.')[0] : '';
+        const subdomain =
+            typeof window !== 'undefined' ? window.location.hostname.split('.')[0] : '';
         const isVolt = subdomain === 'volt';
         setIsVoltSubdomain(isVolt);
 
@@ -49,6 +60,11 @@ function DashboardPage() {
 
         return () => clearTimeout(timer);
     }, [navigate]);
+
+    useEffect(() => {
+        console.log('id ->  ', getInstituteId());
+        console.log('primary color code ->  ', getPrimaryColorCode());
+    }, []);
 
     if (isVoltSubdomain) {
         return (
@@ -495,8 +511,11 @@ export function DashboardComponent() {
                                 <CardDescription className="mt-1 flex justify-center">
                                     {' '}
                                     {/* Reduced margin */}
-                                    <DashboardCreateCourse className="h-auto w-full max-w-[180px] sm:max-w-[200px]" />{' '}
-                                    {/* Smaller SVG */}
+                                    {getInstituteId() === HOLISTIC_INSTITUTE_ID ? (
+                                        <IndianYogaLogo className="h-auto w-full max-w-[180px] sm:max-w-[200px]" />
+                                    ) : (
+                                        <DashboardCreateCourse className="h-auto w-full max-w-[180px] sm:max-w-[200px]" />
+                                    )}
                                 </CardDescription>
                             </CardHeader>
                         </Card>

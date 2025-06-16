@@ -1,4 +1,4 @@
-import { IconProps } from "@phosphor-icons/react";
+import { IconProps } from '@phosphor-icons/react';
 
 export interface subItemsType {
     subItem: string | undefined;
@@ -11,6 +11,7 @@ export interface SidebarItemsType {
     to?: string;
     subItems?: subItemsType[];
     id: string;
+    showForInstitute?: string;
 }
 export interface SidebarItemProps {
     icon?: React.FC<IconProps>;
