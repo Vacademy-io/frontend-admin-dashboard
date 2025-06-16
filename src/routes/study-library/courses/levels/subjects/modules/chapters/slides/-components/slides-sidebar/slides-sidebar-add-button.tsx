@@ -22,30 +22,11 @@ import { useContentStore } from '@/routes/study-library/courses/levels/subjects/
 import { useDialogStore } from '@/routes/study-library/courses/-stores/slide-add-dialogs-store';
 import AddQuestionDialog from './add-question-dialog';
 import { File } from 'phosphor-react';
-import { useForm } from 'react-hook-form';
-import {
-    assignmentFormSchema,
-    type AssignmentFormType,
-} from '../../-form-schemas/assignmentFormSchema';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { formatHTMLString } from '../slide-operations/formatHtmlString';
 import AddAssignmentDialog from './add-assignment-dialog';
 import { createPresentationSlidePayload } from '../create-presentation-slide';
 
 export const ChapterSidebarAddButton = () => {
-    const form = useForm<AssignmentFormType>({
-        resolver: zodResolver(assignmentFormSchema),
-        defaultValues: {
-            task: '',
-            taskDescription: '',
-            startDate: '',
-            endDate: '',
-            reattemptCount: '0',
-            uploaded_question_paper: null,
-            adaptive_marking_for_each_question: [],
-        },
-    });
-    console.log('Form values:', form);
     const { open } = useSidebar();
     const route = useRouter();
     const { chapterId } = route.state.location.search;

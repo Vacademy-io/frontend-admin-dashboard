@@ -12,12 +12,14 @@ import { toast } from 'sonner';
 import '@react-pdf-viewer/core/lib/styles/index.css';
 import '@react-pdf-viewer/default-layout/lib/styles/index.css';
 import { PDF_WORKER_URL } from '@/constants/urls';
+import { Route } from '..';
 
 interface PDFViewerProps {
     pdfUrl: string;
 }
 
 const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
+    const searchParams = Route.useSearch();
     const { pdfPageNumber, clearPdfPageNumber } = useMediaNavigationStore();
 
     const pageNavigationPluginInstance = pageNavigationPlugin();
@@ -36,6 +38,20 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
         renderToolbar,
     });
     const { renderDefaultToolbar } = defaultLayoutPluginInstance.toolbarPluginInstance;
+
+    // Handle initial page navigation from URL params
+    useEffect(() => {
+        if (searchParams.currentPage) {
+            try {
+                // Convert 1-based page number to 0-based index
+                const pageIndex = Number(searchParams.currentPage) - 1;
+                jumpToPage(pageIndex);
+            } catch (error) {
+                console.error('Error jumping to initial page:', error);
+                toast.error('Failed to navigate to initial page');
+            }
+        }
+    }, [searchParams.currentPage, jumpToPage]);
 
     // Handle page navigation when pdfPageNumber changes
     useEffect(() => {

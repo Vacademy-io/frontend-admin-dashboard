@@ -35,6 +35,8 @@ interface ChapterSearchParams {
     chapterId: string;
     slideId: string;
     sessionId: string;
+    timestamp?: number;
+    currentPage?: number;
 }
 
 export const Route = createFileRoute(
@@ -50,12 +52,15 @@ export const Route = createFileRoute(
             chapterId: search.chapterId as string,
             slideId: search.slideId as string,
             sessionId: search.sessionId as string,
+            ...(typeof search.timestamp === 'number' && { timestamp: search.timestamp }),
+            ...(typeof search.currentPage === 'number' && { currentPage: search.currentPage }),
         };
     },
 });
 
 function RouteComponent() {
-    const { courseId, subjectId, levelId, moduleId, chapterId, sessionId } = Route.useSearch();
+    const { courseId, subjectId, levelId, moduleId, chapterId, sessionId, timestamp, currentPage } =
+        Route.useSearch();
     const { studyLibraryData } = useStudyLibraryStore();
     const { modulesWithChaptersData } = useModulesWithChaptersStore();
     const navigate = useNavigate();
@@ -152,6 +157,8 @@ function RouteComponent() {
                 chapterId,
                 slideId: activeItem?.id || '',
                 sessionId: sessionId,
+                timestamp: timestamp,
+                currentPage: currentPage,
             },
             replace: true,
         });
