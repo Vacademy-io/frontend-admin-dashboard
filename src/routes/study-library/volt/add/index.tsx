@@ -8,7 +8,6 @@ interface AddPresentParams {
     title: string;
     description: string;
     id: string;
-    isEdit: boolean;
 }
 
 export const Route = createFileRoute('/study-library/volt/add/')({
@@ -18,14 +17,15 @@ export const Route = createFileRoute('/study-library/volt/add/')({
             title: (search.title as string) || '',
             description: (search.description as string) || '',
             id: (search.id as string) || '',
-            isEdit: search.isEdit === 'true',
         };
         return validatedParams;
     },
 });
 
 function RouteComponent() {
-    const { title = '', description = '', id, isEdit } = Route.useSearch();
+    const { title = '', description = '', id } = Route.useSearch();
+
+    const isEdit = !!id;
 
     return (
         <Suspense
@@ -38,7 +38,7 @@ function RouteComponent() {
             <SlidesEditorComponent
                 metaData={{ title, description }}
                 presentationId={id}
-                isEdit={String(isEdit) === 'true'}
+                isEdit={isEdit}
             />
         </Suspense>
     );

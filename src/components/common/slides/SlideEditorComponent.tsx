@@ -89,6 +89,15 @@ export default function SlidesEditorComponent({
     isEdit: boolean;
     autoStartLive?: string;
 }) {
+    console.log(
+        '[SlideEditorComponent] Props received on render:',
+        JSON.stringify({
+            metaData,
+            presentationId,
+            isEdit,
+            autoStartLive,
+        })
+    );
     const {
         slides,
         currentSlideId,
@@ -119,7 +128,12 @@ export default function SlidesEditorComponent({
     const {
         isLoading: isLoadingPresentation, 
         isRefetching: isRefetchingPresentation, 
-    } = useGetSinglePresentation({ presentationId, setSlides, setCurrentSlideId, isEdit: isEdit && !justExitedSession });
+    } = useGetSinglePresentation({
+        presentationId,
+        setSlides,
+        setCurrentSlideId,
+        isEdit: isEdit && !justExitedSession,
+    });
 
     useEffect(() => {
         console.log(`[Debug] Render | isEdit: ${isEdit} | editMode from store: ${editMode} | slides: ${slides.length} | isLoading: ${isLoadingPresentation} | isRefetching: ${isRefetchingPresentation}`);
@@ -206,14 +220,13 @@ export default function SlidesEditorComponent({
 
     useEffect(() => {
         const source = searchParams?.source;
-        console.log(`[SlidesEditorComponent] Mount check. isEdit: ${isEdit}, source: ${source}`);
-        if (isEdit === false && source !== 'ai' && source !== 'ppt') {
-            console.log('[SlidesEditorComponent] Initializing new presentation state for "From Scratch".');
+        // This effect should ONLY run to initialize a brand new, "from-scratch" presentation.
+        // A "from-scratch" presentation is defined by having no presentationId.
+        // Presentations from AI/PPT or existing ones being edited will have an ID or a source.
+        if (!presentationId && !source) {
             initializeNewPresentationState();
-        } else if (source === 'ai' || source === 'ppt') {
-            console.log(`[SlidesEditorComponent] Skipping state initialization for ${source}-generated presentation.`);
         }
-    }, [isEdit, initializeNewPresentationState, searchParams]);
+    }, [presentationId, searchParams, initializeNewPresentationState]);
 
     useEffect(() => {
         console.log("SlideEditorComponent useEffect fired");

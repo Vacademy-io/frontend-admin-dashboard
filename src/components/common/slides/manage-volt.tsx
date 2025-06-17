@@ -331,7 +331,6 @@ export default function ManageVolt() {
             to: '/study-library/volt/add',
             search: {
                 id: presentation.id,
-                isEdit: 'true',
                 title: presentation.title,
                 description: presentation.description,
             },
@@ -398,7 +397,6 @@ export default function ManageVolt() {
             to: '/study-library/volt/add',
             search: {
                 id: presentation.id,
-                isEdit: 'true',
                 title: presentation.title,
                 description: presentation.description,
                 autoStartLive: 'true',
