@@ -1,9 +1,12 @@
 import { Badge } from '@/components/ui/badge';
 import { TabsContent } from '@/components/ui/tabs';
-import { RoleTypeEmptyScreen, RoleTypeUserIcon } from '@/svgs';
+import { RoleTypeEmptyScreen } from '@/svgs';
 import { CheckCircle, XCircle } from 'phosphor-react';
 import InstituteUsersOptions from './InstituteUsersOptions';
 import { RolesDummyDataType, UserRolesDataEntry } from '@/types/dashboard/user-roles';
+import { useFileUpload } from '@/hooks/use-file-upload';
+import { useEffect, useState } from 'react';
+import { EnrollFormUploadImage } from '@/assets/svgs';
 
 interface InviteUsersTabProps {
     selectedTab: keyof RolesDummyDataType;
@@ -16,6 +19,24 @@ const InstituteUsersComponent: React.FC<InviteUsersTabProps> = ({
     selectedTabData,
     refetchData,
 }) => {
+    const { getPublicUrl } = useFileUpload();
+    const [profilePics, setProfilePics] = useState<{ [key: string]: string }>({});
+
+    useEffect(() => {
+        const fetchProfilePics = async () => {
+            const pics: { [key: string]: string } = {};
+            for (const user of selectedTabData) {
+                if (user.profile_pic_file_id) {
+                    const publicUrl = await getPublicUrl(user.profile_pic_file_id);
+                    pics[user.id] = publicUrl;
+                }
+            }
+            setProfilePics(pics);
+        };
+
+        fetchProfilePics();
+    }, [selectedTabData]);
+
     return (
         <>
             {selectedTab === 'instituteUsers' && selectedTabData.length === 0 ? (
@@ -33,7 +54,17 @@ const InstituteUsersComponent: React.FC<InviteUsersTabProps> = ({
                         return (
                             <div key={idx} className="flex justify-between">
                                 <div className="flex items-center gap-4">
-                                    <RoleTypeUserIcon />
+                                    {profilePics[item.id] ? (
+                                        <img
+                                            src={profilePics[item.id]}
+                                            alt={item.full_name}
+                                            className="size-12 rounded-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="flex size-12 items-center justify-center rounded-full bg-neutral-100 text-neutral-600">
+                                            <EnrollFormUploadImage />
+                                        </div>
+                                    )}
                                     <div className="flex flex-col gap-1">
                                         <div className="flex items-center gap-4">
                                             <p>{item.full_name}</p>
