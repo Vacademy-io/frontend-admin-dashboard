@@ -4,7 +4,14 @@ import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore
 import { useEffect, useState } from 'react';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { MyButton } from '@/components/design-system/button';
-import { ArrowSquareOut, Plus, Sparkle, FilePdf, LightbulbFilament, Lightning } from 'phosphor-react';
+import {
+    ArrowSquareOut,
+    Plus,
+    Sparkle,
+    FilePdf,
+    LightbulbFilament,
+    Lightning,
+} from 'phosphor-react';
 import { CreateAssessmentDashboardLogo, DashboardCreateCourse } from '@/svgs';
 import { Badge } from '@/components/ui/badge';
 import { CompletionStatusComponent } from './-components/CompletionStatusComponent';
@@ -37,7 +44,8 @@ function DashboardPage() {
     const [isVoltSubdomain, setIsVoltSubdomain] = useState(false);
 
     useEffect(() => {
-        const subdomain = typeof window !== 'undefined' ? window.location.hostname.split('.')[0] : '';
+        const subdomain =
+            typeof window !== 'undefined' ? window.location.hostname.split('.')[0] : '';
         const isVolt = subdomain === 'volt';
         setIsVoltSubdomain(isVolt);
 
