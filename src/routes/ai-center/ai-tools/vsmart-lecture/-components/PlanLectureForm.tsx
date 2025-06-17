@@ -1,19 +1,20 @@
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { MyButton } from "@/components/design-system/button";
-import { MyInput } from "@/components/design-system/input";
-import SelectField from "@/components/design-system/select-field";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
-import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
-import { languageSupport, teachingMethod } from "@/constants/dummy-data";
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { MyButton } from '@/components/design-system/button';
+import { MyInput } from '@/components/design-system/input';
+import SelectField from '@/components/design-system/select-field';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
+import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
+import { languageSupport, teachingMethod } from '@/constants/dummy-data';
+import { getRandomTaskName } from '@/routes/ai-center/-utils/helper';
 import {
     PlanLectureAIFormSchema,
     planLectureFormSchema,
-} from "@/routes/ai-center/-utils/plan-lecture-schema";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
-import { FormProvider, useForm } from "react-hook-form";
+} from '@/routes/ai-center/-utils/plan-lecture-schema';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useState } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
 
 type PlanLectureFormProps = {
     handleSubmitSuccess: (data: PlanLectureAIFormSchema) => void;
@@ -26,14 +27,14 @@ const PlanLectureForm = ({ handleSubmitSuccess, keyContext, loader }: PlanLectur
     const form = useForm<PlanLectureAIFormSchema>({
         resolver: zodResolver(planLectureFormSchema),
         defaultValues: {
-            taskName: "",
-            prompt: "",
-            level: "",
-            teachingMethod: "",
-            language: "",
+            taskName: getRandomTaskName(),
+            prompt: '',
+            level: '',
+            teachingMethod: '',
+            language: '',
             lectureDuration: {
-                hrs: "0",
-                min: "0",
+                hrs: '0',
+                min: '0',
             },
             isQuestionGenerated: false,
             isAssignmentHomeworkGenerated: false,
@@ -64,32 +65,13 @@ const PlanLectureForm = ({ handleSubmitSuccess, keyContext, loader }: PlanLectur
                     <form className="flex flex-col gap-4 overflow-y-auto px-6 py-4">
                         <FormField
                             control={form.control}
-                            name="taskName"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormControl>
-                                        <MyInput
-                                            input={field.value?.toString() || ""}
-                                            onChangeFunction={(e) => field.onChange(e.target.value)}
-                                            label="Task Name"
-                                            required={true}
-                                            inputType="text"
-                                            inputPlaceholder="Enter your task name"
-                                            className="w-full"
-                                        />
-                                    </FormControl>
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
                             name="prompt"
                             render={({ field }) => (
                                 <FormItem>
                                     <FormControl>
                                         <div className="flex flex-col gap-2">
                                             <FormLabel>
-                                                Topics to be covered in lecture{" "}
+                                                Topics to be covered in lecture{' '}
                                                 <span className="text-red-500">*</span>
                                             </FormLabel>
                                             <Textarea
@@ -150,7 +132,7 @@ const PlanLectureForm = ({ handleSubmitSuccess, keyContext, loader }: PlanLectur
                         />
                         <div className="flex flex-col items-start gap-2 text-sm font-thin">
                             <h1 className="font-normal">
-                                Lecture Duration{" "}
+                                Lecture Duration{' '}
                                 <span className="text-subtitle text-danger-600">*</span>
                             </h1>
                             <div className="flex items-center gap-4">
@@ -173,7 +155,7 @@ const PlanLectureForm = ({ handleSubmitSuccess, keyContext, loader }: PlanLectur
                                                     onChangeFunction={(e) => {
                                                         const inputValue = e.target.value.replace(
                                                             /[^0-9]/g,
-                                                            "",
+                                                            ''
                                                         ); // Remove non-numeric characters
                                                         field.onChange(inputValue); // Call onChange with the sanitized value
                                                     }}
@@ -206,7 +188,7 @@ const PlanLectureForm = ({ handleSubmitSuccess, keyContext, loader }: PlanLectur
                                                     onChangeFunction={(e) => {
                                                         const inputValue = e.target.value.replace(
                                                             /[^0-9]/g,
-                                                            "",
+                                                            ''
                                                         ); // Remove non-numeric characters
                                                         field.onChange(inputValue); // Call onChange with the sanitized value
                                                     }}
@@ -259,7 +241,7 @@ const PlanLectureForm = ({ handleSubmitSuccess, keyContext, loader }: PlanLectur
                         />
 
                         <div>
-                            {loader && keyContext == "planLecture" ? (
+                            {loader && keyContext == 'planLecture' ? (
                                 <MyButton
                                     type="button"
                                     scale="medium"
@@ -278,7 +260,7 @@ const PlanLectureForm = ({ handleSubmitSuccess, keyContext, loader }: PlanLectur
                                     className="text-sm"
                                     onClick={form.handleSubmit(onSubmit)}
                                     disable={
-                                        loader && keyContext != "planLecture" && keyContext != ""
+                                        loader && keyContext != 'planLecture' && keyContext != ''
                                     }
                                 >
                                     Submit

@@ -146,7 +146,6 @@ const AIChatWithPDFPreview = ({
                     chatResponse={chatResponse}
                     input_id={task.input_id}
                     parent_id={task.parent_id}
-                    task_name={task.task_name}
                 />
             )}
         </>

@@ -39,11 +39,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 interface AIQuestionsPreviewProps {
     task: AITaskIndividualListInterface;
     pollGenerateAssessment?: (prompt?: string, taskId?: string) => void;
-    handleGenerateQuestionsForAssessment?: (
-        pdfId?: string,
-        prompt?: string,
-        taskName?: string
-    ) => void;
+    handleGenerateQuestionsForAssessment?: (pdfId?: string, prompt?: string) => void;
     pollGenerateQuestionsFromText?: (data: QuestionsFromTextData) => void;
     pollGenerateQuestionsFromAudio?: (data: QuestionsFromTextData, taskId: string) => void;
     heading?: string;

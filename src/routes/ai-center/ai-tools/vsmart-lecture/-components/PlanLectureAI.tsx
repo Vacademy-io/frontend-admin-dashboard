@@ -8,6 +8,7 @@ import { useAICenter } from '@/routes/ai-center/-contexts/useAICenterContext';
 import { PlanLectureAIFormSchema } from '@/routes/ai-center/-utils/plan-lecture-schema';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { handleGetPlanLecture } from '@/routes/ai-center/-services/ai-center-service';
+import { getRandomTaskName } from '@/routes/ai-center/-utils/helper';
 
 const PlanLectureAI = () => {
     const queryClient = useQueryClient();
@@ -16,7 +17,7 @@ const PlanLectureAI = () => {
 
     const pollGenerateQuestionsFromText = (data: PlanLectureAIFormSchema) => {
         getQuestionsFromTextMutation.mutate({
-            taskName: data.taskName,
+            taskName: getRandomTaskName(),
             prompt: data.prompt,
             level: data.level,
             teachingMethod: data.teachingMethod,

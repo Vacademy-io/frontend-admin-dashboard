@@ -67,25 +67,6 @@ export const QuestionsFromTextDialog = ({
                 >
                     <FormField
                         control={form.control}
-                        name="taskName"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormControl>
-                                    <MyInput
-                                        input={field.value?.toString() || ''}
-                                        onChangeFunction={(e) => field.onChange(e.target.value)}
-                                        label="Task Name"
-                                        required={true}
-                                        inputType="text"
-                                        inputPlaceholder="Enter your task name"
-                                        className="w-full"
-                                    />
-                                </FormControl>
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
                         name="topics"
                         render={({ field }) => (
                             <FormItem>

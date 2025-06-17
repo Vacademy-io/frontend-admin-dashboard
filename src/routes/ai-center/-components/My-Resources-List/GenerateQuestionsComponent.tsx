@@ -59,14 +59,10 @@ const GenerateQuestionsComponent = ({ fileId }: { fileId: string }) => {
     });
 
     const handleExtractQuestions = () => {
-        const now = new Date();
-        const formattedDate = now.toLocaleString().replace(', ', '_');
-
-        const taskName = `Task_${formattedDate}`;
         generateAssessmentMutation.mutate({
             pdfId: fileId || '',
             userPrompt: prompt || '',
-            taskName,
+            taskName: getRandomTaskName(),
             taskId: '',
         });
     };
