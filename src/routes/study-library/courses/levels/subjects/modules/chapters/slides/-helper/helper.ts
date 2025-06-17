@@ -390,7 +390,8 @@ export const converDataToVideoFormat = ({
             video_length_in_millis: activeItem?.video_slide?.video_length_in_millis || 0,
             published_url:
                 activeItem?.video_slide?.url || activeItem?.video_slide?.published_url || '',
-            published_video_length_in_millis: activeItem?.video_slide?.published_video_length_in_millis || 0,
+            published_video_length_in_millis:
+                activeItem?.video_slide?.published_video_length_in_millis || 0,
             source_type: '',
             questions:
                 activeItem?.video_slide?.questions.map((question) =>

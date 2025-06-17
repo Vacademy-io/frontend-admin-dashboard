@@ -34,6 +34,8 @@ interface ChapterSearchParams {
     chapterId: string;
     slideId: string;
     sessionId: string;
+    timestamp?: number;
+    currentPage?: number;
 }
 
 export const Route = createFileRoute(
@@ -49,6 +51,8 @@ export const Route = createFileRoute(
             chapterId: search.chapterId as string,
             slideId: search.slideId as string,
             sessionId: search.sessionId as string,
+            ...(typeof search.timestamp === 'number' && { timestamp: search.timestamp }),
+            ...(typeof search.currentPage === 'number' && { currentPage: search.currentPage }),
         };
     },
 });

@@ -14,6 +14,7 @@ import { useAICenter } from '@/routes/ai-center/-contexts/useAICenterContext';
 import AITasksList from '@/routes/ai-center/-components/AITasksList';
 import { UseFormReturn } from 'react-hook-form';
 import { SectionFormType } from '@/types/assessments/assessment-steps';
+import { getRandomTaskName } from '@/routes/ai-center/-utils/helper';
 
 const GenerateAIAssessmentComponent = ({
     form,
@@ -25,7 +26,6 @@ const GenerateAIAssessmentComponent = ({
     const queryClient = useQueryClient();
     const [allPagesGenerateQuestionsStatus, setAllPagesGenerateQuestionsStatus] = useState(false);
     const [pageWiseGenerateQuestionsStatus, setPageWiseGenerateQuestionsStatus] = useState(false);
-    const [taskName, setTaskName] = useState('');
     const instituteId = getInstituteId();
     const { setLoader, key, setKey } = useAICenter();
     const { uploadFile } = useFileUpload();
@@ -103,7 +103,7 @@ const GenerateAIAssessmentComponent = ({
         generateAssessmentMutation.mutate({
             pdfId: uploadedFilePDFId,
             userPrompt: '',
-            taskName,
+            taskName: getRandomTaskName(),
             taskId,
         });
     };
@@ -190,7 +190,10 @@ const GenerateAIAssessmentComponent = ({
         if (convertPendingRef.current) {
             return;
         }
-        handleConvertPDFToHTMLMutation.mutate({ pdfId: uploadedFilePDFId, taskName });
+        handleConvertPDFToHTMLMutation.mutate({
+            pdfId: uploadedFilePDFId,
+            taskName: getRandomTaskName(),
+        });
     };
 
     const handleConvertPDFToHTMLFn = () => {
@@ -226,8 +229,6 @@ const GenerateAIAssessmentComponent = ({
                 cardDescription="Upload PDF/DOCX/PPT"
                 inputFormat=".pdf,.doc,.docx,.ppt,.pptx,.html"
                 keyProp="assessment"
-                taskName={taskName}
-                setTaskName={setTaskName}
                 pollGenerateAssessment={pollGenerateAssessment}
                 sectionsForm={form}
                 currentSectionIndex={currentSectionIndex}

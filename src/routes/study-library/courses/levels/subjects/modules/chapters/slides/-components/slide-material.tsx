@@ -466,7 +466,7 @@ export const SlideMaterial = ({
     }, [activeItem]);
 
     useEffect(() => {
-        if (items.length == 0 && slideId == undefined) {
+        if (items && items.length == 0 && slideId == undefined) {
             setActiveItem(null);
         } else {
             setActiveItem(items.find((slide) => slide.id == slideId) || items[0] || null);

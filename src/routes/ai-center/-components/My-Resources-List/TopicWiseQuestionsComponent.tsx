@@ -10,6 +10,7 @@ import { PromptDummyData } from '../Prompt-dummy-data';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { getRandomTaskName } from '../../-utils/helper';
 
 type PromptType = keyof typeof PromptDummyData;
 
@@ -48,14 +49,10 @@ const TopicWiseQuestionsComponent = ({ fileId }: { fileId: string }) => {
     });
 
     const handleExtractQuestions = () => {
-        const now = new Date();
-        const formattedDate = now.toLocaleString().replace(', ', '_');
-
-        const taskName = `Task_${formattedDate}`;
         generateAssessmentMutation.mutate({
             pdfId: fileId || '',
             userPrompt: prompt || '',
-            taskName,
+            taskName: getRandomTaskName(),
             taskId: '',
         });
     };

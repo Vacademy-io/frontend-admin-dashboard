@@ -23,8 +23,7 @@ const GenerateQuestionsFromAudioForm = ({
         numQuestions: string,
         prompt: string,
         difficulty: string,
-        language: string,
-        taskName: string
+        language: string
     ) => void;
     status: string;
 }) => {
@@ -36,8 +35,7 @@ const GenerateQuestionsFromAudioForm = ({
             values.numQuestions,
             values.prompt,
             values.difficulty,
-            values.language,
-            values.taskName
+            values.language
         );
     };
 
@@ -49,25 +47,6 @@ const GenerateQuestionsFromAudioForm = ({
                 </h1>
                 <FormProvider {...form}>
                     <form className="flex flex-col gap-4 overflow-y-auto px-6 py-4">
-                        <FormField
-                            control={form.control}
-                            name="taskName"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormControl>
-                                        <MyInput
-                                            input={field.value?.toString() || ''}
-                                            onChangeFunction={(e) => field.onChange(e.target.value)}
-                                            label="Task Name"
-                                            required={true}
-                                            inputType="text"
-                                            inputPlaceholder="Enter your task name"
-                                            className="w-full"
-                                        />
-                                    </FormControl>
-                                </FormItem>
-                            )}
-                        />
                         <FormField
                             control={form.control}
                             name="prompt"

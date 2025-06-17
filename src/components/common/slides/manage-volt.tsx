@@ -53,6 +53,7 @@ import { SlideTypeEnum } from './utils/types';
 import { AiGeneratingLoader, aiSteps, pptSteps } from './AiGeneratingLoader';
 import { PRODUCT_NAME } from '@/config/branding';
 import { VoltFeaturesGrid } from '@/components/landing/VoltFeaturesGrid';
+import { useFileUpload } from "@/hooks/use-file-upload";
 
 import type { PresentationData } from './types';
 
@@ -67,6 +68,7 @@ export default function ManageVolt() {
     const { data: fetchedPresentations, isLoading } = useGetPresntation();
     const [presentations, setPresentations] = useState<PresentationData[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
+    const { uploadFile, getPublicUrl, isUploading: isUploadingFile } = useFileUpload();
 
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [newTitle, setNewTitle] = useState('');
@@ -80,7 +82,7 @@ export default function ManageVolt() {
     const [pptFile, setPptFile] = useState<File | null>(null);
     const [isImporting, setIsImporting] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
-
+    const [isUploading, setIsUploading] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editingPresentation, setEditingPresentation] = useState<PresentationData | null>(null);
 
@@ -120,13 +122,30 @@ export default function ManageVolt() {
         setIsImporting(true);
         console.log(`[PPT Import] Starting import for file: "${pptFile.name}"`);
 
-        const formData = new FormData();
-        formData.append('file', pptFile);
-
         try {
-            const response = await authenticatedAxiosInstance.post(IMPORT_PPT_API_URL, formData, {
-                headers: { 'Content-Type': 'multipart/form-data' },
+            const tokenData = getTokenDecodedData(getTokenFromCookie(TokenKey.accessToken));
+            const userId = tokenData?.sub;
+            if (!userId) {
+                throw new Error("User not authenticated. Please log in.");
+            }
+
+            const fileId = await uploadFile({
+                file: pptFile,
+                setIsUploading,
+                userId,
+                source: "PPT",
+                sourceId: pptFile.name,
             });
+
+            if (!fileId) {
+                throw new Error("File upload failed and did not return a file ID.");
+            }
+
+            const response = await authenticatedAxiosInstance.post(
+                IMPORT_PPT_API_URL,
+                { fileId: fileId },
+                { headers: { 'Content-Type': 'application/json' } }
+            );
 
             const importedSlides = response.data;
             console.log('[PPT Import] Received slides:', importedSlides);
@@ -144,7 +163,7 @@ export default function ManageVolt() {
                 ...slide,
                 slide_order: index,
             }));
-            
+
             console.log('[PPT Import] Processed slides for store:', finalSlides);
             setSlides(finalSlides);
             setCurrentSlideId(finalSlides.length > 0 ? finalSlides[0].id : undefined);
@@ -152,7 +171,8 @@ export default function ManageVolt() {
             toast.success('PPT imported successfully! Opening editor...');
             setIsPptModalOpen(false);
 
-            const fileNameWithoutExt = pptFile.name.split('.').slice(0, -1).join('.') || `Imported ${PRODUCT_NAME}s`;
+            const fileNameWithoutExt =
+                pptFile.name.split('.').slice(0, -1).join('.') || `Imported ${PRODUCT_NAME}s`;
 
             router.navigate({
                 to: '/study-library/volt/add',
@@ -164,7 +184,6 @@ export default function ManageVolt() {
                     source: 'ppt',
                 },
             });
-
         } catch (error: any) {
             console.error('[PPT Import] Error:', error);
             toast.error(
@@ -290,6 +309,12 @@ export default function ManageVolt() {
             return;
         }
 
+        const { setSlides, setCurrentSlideId, initializeNewPresentationState } =
+            useSlideStore.getState();
+
+        initializeNewPresentationState(); // Clear out any old state
+        setSlides([]);
+
         router.navigate({
             to: '/study-library/volt/add',
             search: { isEdit: 'false', title: title, description: newDescription },
@@ -306,7 +331,6 @@ export default function ManageVolt() {
             to: '/study-library/volt/add',
             search: {
                 id: presentation.id,
-                isEdit: 'true',
                 title: presentation.title,
                 description: presentation.description,
             },
@@ -373,7 +397,6 @@ export default function ManageVolt() {
             to: '/study-library/volt/add',
             search: {
                 id: presentation.id,
-                isEdit: 'true',
                 title: presentation.title,
                 description: presentation.description,
                 autoStartLive: 'true',
@@ -765,7 +788,7 @@ export default function ManageVolt() {
                             <form onSubmit={handlePptImport} className="space-y-5">
                                 <div>
                                     <Label htmlFor="ppt-file" className="text-sm font-medium">
-                                    Volts File
+                                        Volt File
                                     </Label>
                                     <div
                                         className="mt-1.5 flex justify-center w-full px-6 pt-5 pb-6 border-2 border-neutral-300 border-dashed rounded-md cursor-pointer hover:border-orange-400"

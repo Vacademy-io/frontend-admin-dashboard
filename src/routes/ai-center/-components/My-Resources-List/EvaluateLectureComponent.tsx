@@ -4,6 +4,7 @@ import { handleEvaluateLecture } from '../../-services/ai-center-service';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import AITasksList from '../AITasksList';
 import { Badge } from '@/components/ui/badge';
+import { getRandomTaskName } from '../../-utils/helper';
 
 const EvaluateLectureComponent = ({ fileId }: { fileId: string }) => {
     const [enableDialog, setEnableDialog] = useState(false);
@@ -26,13 +27,9 @@ const EvaluateLectureComponent = ({ fileId }: { fileId: string }) => {
     });
 
     const handleExtractQuestions = () => {
-        const now = new Date();
-        const formattedDate = now.toLocaleString().replace(', ', '_');
-
-        const taskName = `Task_${formattedDate}`;
         generateAssessmentMutation.mutate({
             pdfId: fileId || '',
-            taskName,
+            taskName: getRandomTaskName(),
         });
     };
     return (

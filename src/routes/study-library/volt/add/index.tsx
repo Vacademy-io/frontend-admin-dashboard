@@ -8,23 +8,24 @@ interface AddPresentParams {
     title: string;
     description: string;
     id: string;
-    isEdit: boolean;
 }
 
 export const Route = createFileRoute('/study-library/volt/add/')({
     component: RouteComponent,
     validateSearch: (search: Record<string, unknown>): AddPresentParams => {
-        return {
-            title: search.title as string,
-            description: search.description as string,
-            id: search.id as string,
-            isEdit: search.isEdit as boolean,
+        const validatedParams = {
+            title: (search.title as string) || '',
+            description: (search.description as string) || '',
+            id: (search.id as string) || '',
         };
+        return validatedParams;
     },
 });
 
 function RouteComponent() {
-    const { title = '', description = '', id, isEdit } = Route.useSearch();
+    const { title = '', description = '', id } = Route.useSearch();
+
+    const isEdit = !!id;
 
     return (
         <Suspense
