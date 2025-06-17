@@ -19,6 +19,7 @@ interface SlideEditorProps {
     };
     onChange?: (elements: any[], appState: AppState, files: BinaryFiles) => void;
     editable?: boolean;
+    isSaving?: boolean;
 }
 
 const SlideEditor: React.FC<SlideEditorProps> = ({
@@ -27,6 +28,7 @@ const SlideEditor: React.FC<SlideEditorProps> = ({
     published_data,
     onChange,
     editable = true,
+    isSaving = false,
 }) => {
     const excalidrawRef = useRef<ExcalidrawImperativeAPI | null>(null);
     const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -216,6 +218,7 @@ const SlideEditor: React.FC<SlideEditorProps> = ({
                         loadScene: false,
                     },
                 }}
+                viewModeEnabled={isSaving}
             />
         </div>
     );
