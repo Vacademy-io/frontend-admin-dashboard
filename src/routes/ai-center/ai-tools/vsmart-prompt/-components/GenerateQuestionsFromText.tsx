@@ -15,6 +15,7 @@ import { Separator } from '@/components/ui/separator';
 import AITasksList from '@/routes/ai-center/-components/AITasksList';
 import { languageSupport } from '@/constants/dummy-data';
 import { SectionFormType } from '@/types/assessments/assessment-steps';
+import { getRandomTaskName } from '@/routes/ai-center/-utils/helper';
 
 const formSchema = z.object({
     taskName: z.string().min(1),
@@ -43,7 +44,7 @@ export const GenerateQuestionsFromText = ({
     const dialogForm = useForm<QuestionsFromTextData>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            taskName: '',
+            taskName: getRandomTaskName(),
             text: '',
             num: undefined,
             class_level: '',
@@ -111,7 +112,7 @@ export const GenerateQuestionsFromText = ({
         const taskId = ''; // Generate a unique taskId if needed
         getQuestionsFromTextMutation.mutate({
             data: {
-                taskName: data.taskName,
+                taskName: getRandomTaskName(),
                 text: data.text,
                 num: data.num,
                 class_level: data.class_level,
