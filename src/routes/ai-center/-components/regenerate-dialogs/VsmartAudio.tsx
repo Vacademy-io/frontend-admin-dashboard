@@ -1,12 +1,11 @@
-import { MyDialog } from "@/components/design-system/dialog";
-import { QuestionsFromTextData } from "../../ai-tools/vsmart-prompt/-components/GenerateQuestionsFromText";
-import { MyButton } from "@/components/design-system/button";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { AITaskIndividualListInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
+import { MyDialog } from '@/components/design-system/dialog';
+import { QuestionsFromTextData } from '../../ai-tools/vsmart-prompt/-components/GenerateQuestionsFromText';
+import { MyButton } from '@/components/design-system/button';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { AITaskIndividualListInterface } from '@/types/ai/generate-assessment/generate-complete-assessment';
 const formSchema = z.object({
-    taskName: z.string().min(1),
     text: z.string().min(1),
     num: z.number().min(1),
     class_level: z.string().min(1),
@@ -59,27 +58,12 @@ export const VsmartAudio = ({
         <MyDialog heading="Vsmart Audio" open={open} onOpenChange={handleOpen}>
             <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
                 <div className="flex flex-col gap-2">
-                    <label htmlFor="taskName" className="text-sm font-medium">
-                        Task Name
-                    </label>
-                    <input
-                        id="taskName"
-                        {...register("taskName")}
-                        className="w-full rounded-md border p-2"
-                        placeholder="Enter task name"
-                    />
-                    {errors.taskName && (
-                        <span className="text-sm text-red-500">{errors.taskName.message}</span>
-                    )}
-                </div>
-
-                <div className="flex flex-col gap-2">
                     <label htmlFor="text" className="text-sm font-medium">
                         Text
                     </label>
                     <textarea
                         id="text"
-                        {...register("text")}
+                        {...register('text')}
                         className="h-32 w-full resize-none rounded-md border p-2"
                         placeholder="Enter text"
                     />
@@ -95,7 +79,7 @@ export const VsmartAudio = ({
                     <input
                         id="num"
                         type="number"
-                        {...register("num", { valueAsNumber: true })}
+                        {...register('num', { valueAsNumber: true })}
                         className="w-full rounded-md border p-2"
                         placeholder="Enter number of questions"
                     />
@@ -110,7 +94,7 @@ export const VsmartAudio = ({
                     </label>
                     <input
                         id="class_level"
-                        {...register("class_level")}
+                        {...register('class_level')}
                         className="w-full rounded-md border p-2"
                         placeholder="Enter class level"
                     />
@@ -125,7 +109,7 @@ export const VsmartAudio = ({
                     </label>
                     <input
                         id="topics"
-                        {...register("topics")}
+                        {...register('topics')}
                         className="w-full rounded-md border p-2"
                         placeholder="Enter topics"
                     />
@@ -140,7 +124,7 @@ export const VsmartAudio = ({
                     </label>
                     <input
                         id="question_type"
-                        {...register("question_type")}
+                        {...register('question_type')}
                         className="w-full rounded-md border p-2"
                         placeholder="Enter question type"
                     />
@@ -155,7 +139,7 @@ export const VsmartAudio = ({
                     </label>
                     <input
                         id="question_language"
-                        {...register("question_language")}
+                        {...register('question_language')}
                         className="w-full rounded-md border p-2"
                         placeholder="Enter question language"
                     />

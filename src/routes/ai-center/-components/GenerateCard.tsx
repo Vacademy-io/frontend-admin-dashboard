@@ -6,7 +6,6 @@ import { useAICenter } from '../-contexts/useAICenterContext';
 import { AIToolPageData } from '../-constants/AIToolPageData';
 import { GetImagesForAITools } from '../-helpers/GetImagesForAITools';
 import { Separator } from '@/components/ui/separator';
-import { MyInput } from '@/components/design-system/input';
 import AITasksList from './AITasksList';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -27,8 +26,6 @@ interface GenerateCardProps {
     cardDescription: string;
     inputFormat: string;
     keyProp: string | null;
-    taskName: string;
-    setTaskName: React.Dispatch<React.SetStateAction<string>>;
     prompt?: string;
     setPrompt?: React.Dispatch<React.SetStateAction<string>>;
     pollGenerateAssessment?: (prompt?: string, taskId?: string) => void;
@@ -49,8 +46,6 @@ export const GenerateCard = ({
     handleFileChange,
     inputFormat,
     keyProp,
-    taskName,
-    setTaskName,
     prompt,
     setPrompt,
     pollGenerateAssessment,
@@ -87,16 +82,6 @@ export const GenerateCard = ({
                     <div className="flex items-center justify-between">
                         {GetImagesForAITools(toolData.key)}
                         <div className="flex flex-col gap-4">
-                            {keyProp !== 'audio' && (
-                                <MyInput
-                                    inputType="text"
-                                    inputPlaceholder="Enter Your Task Name"
-                                    input={taskName}
-                                    onChangeFunction={(e) => setTaskName(e.target.value)}
-                                    required={true}
-                                    label="Task Name"
-                                />
-                            )}
                             {keyProp === 'sortSplitPdf' && (
                                 <div className="flex flex-col gap-2">
                                     <h1>
@@ -154,10 +139,7 @@ export const GenerateCard = ({
                                     layoutVariant="default"
                                     className="text-sm"
                                     onClick={handleUploadClick}
-                                    disable={
-                                        (keyContext !== keyProp && loader && keyContext != null) ||
-                                        (keyProp !== 'audio' && !taskName)
-                                    }
+                                    disable={keyContext !== keyProp && loader && keyContext != null}
                                 >
                                     <UploadSimple size={32} />
                                     Upload
