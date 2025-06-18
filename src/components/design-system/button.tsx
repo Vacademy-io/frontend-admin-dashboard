@@ -44,7 +44,18 @@ const myButtonVariants = {
 
 // Button Component
 export const MyButton = React.forwardRef<HTMLButtonElement, MyButtonProps>(
-    ({ className, buttonType = 'primary', scale = 'medium', layoutVariant = 'default', children, disable, ...props }, ref) => {
+    (
+        {
+            className,
+            buttonType = 'primary',
+            scale = 'medium',
+            layoutVariant = 'default',
+            children,
+            disable,
+            ...props
+        },
+        ref
+    ) => {
         const getButtonClasses = () => {
             // Create an array of classes
             const classes: string[] = [
@@ -62,7 +73,12 @@ export const MyButton = React.forwardRef<HTMLButtonElement, MyButtonProps>(
         };
 
         return (
-            <Button ref={ref} className={cn(getButtonClasses(), className)} {...props} disabled={disable}>
+            <Button
+                ref={ref}
+                className={cn(getButtonClasses(), className)}
+                {...props}
+                disabled={disable}
+            >
                 {children}
             </Button>
         );

@@ -1,13 +1,12 @@
-// hooks/students/useEnrollStudent.ts
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { enrollStudent } from '@/services/student-list-section/enroll-manually';
+import { useMutation, useQueryClient } from '@tanstack/react-query';// 👈 new API call
 import { EnrollStudentRequest } from '@/types/students/type-enroll-student-manually';
+import { reEnrollStudent } from '@/services/student-list-section/re-enrollmanully';
 
-export const useEnrollStudent = () => {
+export const useReEnrollStudent = () => {
     const queryClient = useQueryClient();
 
     return useMutation<string, Error, EnrollStudentRequest>({
-        mutationFn: enrollStudent,
+        mutationFn: reEnrollStudent,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['students'] });
         },

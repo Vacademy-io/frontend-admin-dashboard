@@ -1,6 +1,6 @@
 export enum TokenKey {
-    accessToken = "accessToken",
-    refreshToken = "refreshToken",
+    accessToken = 'accessToken',
+    refreshToken = 'refreshToken',
 }
 
 export interface Tokens {

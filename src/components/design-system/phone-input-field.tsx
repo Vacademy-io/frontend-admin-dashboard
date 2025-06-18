@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
-import { type Control } from 'react-hook-form';
+import { Control } from 'react-hook-form';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/bootstrap.css';
 
@@ -8,16 +8,14 @@ interface PhoneInputFieldProps {
     label: string;
     name: string;
     placeholder: string;
-    // eslint-disable-next-line
-    control: any;
+    control: Control<any>;
     disabled?: boolean;
     country?: string;
     required?: boolean;
     labelStyle?: string;
-    value?: string;
 }
 
-const PhoneInputField: React.FC<PhoneInputFieldProps> = ({
+const PhoneInputField = ({
     label,
     name,
     placeholder,
@@ -26,11 +24,10 @@ const PhoneInputField: React.FC<PhoneInputFieldProps> = ({
     country = 'us',
     labelStyle,
     required = false,
-    value,
-}) => {
+}: PhoneInputFieldProps) => {
     return (
         <FormField
-            control={control as Control}
+            control={control}
             name={name}
             render={({ field }) => (
                 <FormItem>
@@ -40,14 +37,16 @@ const PhoneInputField: React.FC<PhoneInputFieldProps> = ({
                     </FormLabel>
                     <FormControl>
                         <PhoneInput
-                            {...field}
                             country={country}
                             enableSearch={true}
                             placeholder={placeholder}
+                            value={field.value}
                             onChange={field.onChange}
                             inputClass="!w-full h-7"
                             disabled={disabled}
-                            value={value}
+                            inputProps={{
+                                name,
+                            }}
                         />
                     </FormControl>
                     <FormMessage />

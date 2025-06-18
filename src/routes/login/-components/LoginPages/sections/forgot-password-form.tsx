@@ -1,19 +1,19 @@
-import { FormContainer } from "@/routes/login/-components/LoginPages/layout/form-container";
-import { Heading } from "@/routes/login/-components/LoginPages/ui/heading";
-import { MyInput } from "@/components/design-system/input";
-import { Link } from "@tanstack/react-router";
-import { forgotPasswordSchema } from "@/schemas/login/login";
-import { z } from "zod";
-import { forgotPassword } from "@/hooks/login/send-link-button";
-import { sendResetLink } from "@/hooks/login/reset-link-click";
-import { useMutation } from "@tanstack/react-query";
-import { MyButton } from "@/components/design-system/button";
-import { toast } from "sonner";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
-import { EnvelopeSimple, WhatsappLogo } from "phosphor-react";
-import { goToMailSupport, goToWhatsappSupport } from "@/lib/utils";
+import { FormContainer } from '@/routes/login/-components/LoginPages/layout/form-container';
+import { Heading } from '@/routes/login/-components/LoginPages/ui/heading';
+import { MyInput } from '@/components/design-system/input';
+import { Link } from '@tanstack/react-router';
+import { forgotPasswordSchema } from '@/schemas/login/login';
+import { z } from 'zod';
+import { forgotPassword } from '@/hooks/login/send-link-button';
+import { sendResetLink } from '@/hooks/login/reset-link-click';
+import { useMutation } from '@tanstack/react-query';
+import { MyButton } from '@/components/design-system/button';
+import { toast } from 'sonner';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
+import { EnvelopeSimple, WhatsappLogo } from 'phosphor-react';
+import { goToMailSupport, goToWhatsappSupport } from '@/lib/utils';
 
 type FormValues = z.infer<typeof forgotPasswordSchema>;
 
@@ -21,34 +21,34 @@ export function ForgotPassword() {
     const form = useForm<FormValues>({
         resolver: zodResolver(forgotPasswordSchema),
         defaultValues: {
-            email: "",
+            email: '',
         },
-        mode: "onTouched",
+        mode: 'onTouched',
     });
 
     const forgotPasswordMutation = useMutation({
         mutationFn: (email: string) => forgotPassword(email),
         onSuccess: async (response) => {
-            if (response.status === "success") {
-                toast.success("Password Sent Successfully", {
-                    className: "success-toast",
+            if (response.status === 'success') {
+                toast.success('Password Sent Successfully', {
+                    className: 'success-toast',
                     duration: 2000,
                 });
 
                 sendResetLinkMutation.mutate();
             } else {
-                toast.error("Login Error", {
+                toast.error('Login Error', {
                     description: "This account doesn't exist",
-                    className: "error-toast",
+                    className: 'error-toast',
                     duration: 2000,
                 });
                 form.reset(); // Clear email field if request fails
             }
         },
         onError: () => {
-            toast.error("Login Error", {
+            toast.error('Login Error', {
                 description: "This account doesn't exist",
-                className: "error-toast",
+                className: 'error-toast',
                 duration: 2000,
             });
         },
@@ -57,16 +57,16 @@ export function ForgotPassword() {
     const sendResetLinkMutation = useMutation({
         mutationFn: sendResetLink,
         onSuccess: (response) => {
-            if (response.status != "success") {
-                toast.error("Failed to reset the password", {
-                    className: "error-toast",
+            if (response.status != 'success') {
+                toast.error('Failed to reset the password', {
+                    className: 'error-toast',
                     duration: 3000,
                 });
             }
         },
         onError: () => {
-            toast.error("Failed to reset the password", {
-                className: "error-toast",
+            toast.error('Failed to reset the password', {
+                className: 'error-toast',
                 duration: 3000,
             });
         },
