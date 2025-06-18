@@ -2,10 +2,21 @@
 // @ts-nocheck
 'use client';
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
-import React, { useEffect, useState, FormEvent } from 'react';
+import React, { useEffect, useState, FormEvent, useRef } from 'react';
 import { Button as ShadButton } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Edit, FileText as FilePresentation, Loader2, Plus, Search, Trash2, Share2, Tv2 } from 'lucide-react';
+import {
+    Edit,
+    FileText as FilePresentation,
+    Loader2,
+    Plus,
+    Search,
+    Trash2,
+    Share2,
+    Tv2,
+    UploadCloud,
+    HelpCircle,
+} from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from '@tanstack/react-router';
@@ -39,10 +50,17 @@ import { ChevronDown } from 'lucide-react';
 import { useSlideStore } from '@/stores/Slides/useSlideStore';
 import { createNewSlide } from './utils/util';
 import { SlideTypeEnum } from './utils/types';
+import { AiGeneratingLoader, aiSteps, pptSteps } from './AiGeneratingLoader';
+import { PRODUCT_NAME } from '@/config/branding';
+import { VoltFeaturesGrid } from '@/components/landing/VoltFeaturesGrid';
+import { useFileUpload } from "@/hooks/use-file-upload";
 
 import type { PresentationData } from './types';
 
-export default function ManagePresentation() {
+const IMPORT_PPT_API_URL = 'https://backend-stage.vacademy.io/media-service/convert-presentations/import-ppt';
+const VOLT_FIRST_VISIT_KEY = 'volt-has-visited';
+
+export default function ManageVolt() {
     const router = useRouter();
     const { setNavHeading } = useNavHeadingStore();
     const queryClient = useQueryClient();
@@ -50,6 +68,7 @@ export default function ManagePresentation() {
     const { data: fetchedPresentations, isLoading } = useGetPresntation();
     const [presentations, setPresentations] = useState<PresentationData[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
+    const { uploadFile, getPublicUrl, isUploading: isUploadingFile } = useFileUpload();
 
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [newTitle, setNewTitle] = useState('');
@@ -59,15 +78,33 @@ export default function ManagePresentation() {
     const [aiLanguage, setAiLanguage] = useState('English');
     const [isGenerating, setIsGenerating] = useState(false);
 
+    const [isPptModalOpen, setIsPptModalOpen] = useState(false);
+    const [pptFile, setPptFile] = useState<File | null>(null);
+    const [isImporting, setIsImporting] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [isUploading, setIsUploading] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editingPresentation, setEditingPresentation] = useState<PresentationData | null>(null);
 
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [presentationToDelete, setPresentationToDelete] = useState<PresentationData | null>(null);
     const [isProcessingDelete, setIsProcessingDelete] = useState(false);
+    const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
 
     useEffect(() => {
-        setNavHeading('Manage Presentations');
+        const hasVisited = localStorage.getItem(VOLT_FIRST_VISIT_KEY);
+        if (!hasVisited) {
+            setIsHelpModalOpen(true);
+        }
+    }, []);
+
+    const handleHelpModalClose = () => {
+        localStorage.setItem(VOLT_FIRST_VISIT_KEY, 'true');
+        setIsHelpModalOpen(false);
+    };
+
+    useEffect(() => {
+        setNavHeading(`Manage ${PRODUCT_NAME}s`);
     }, [setNavHeading]);
 
     useEffect(() => {
@@ -75,6 +112,88 @@ export default function ManagePresentation() {
             setPresentations(fetchedPresentations as PresentationData[]);
         }
     }, [fetchedPresentations]);
+
+    const handlePptImport = async (e: FormEvent) => {
+        e.preventDefault();
+        if (!pptFile) {
+            toast.error('Please select a PPT/PPTX file to import.');
+            return;
+        }
+        setIsImporting(true);
+        console.log(`[PPT Import] Starting import for file: "${pptFile.name}"`);
+
+        try {
+            const tokenData = getTokenDecodedData(getTokenFromCookie(TokenKey.accessToken));
+            const userId = tokenData?.sub;
+            if (!userId) {
+                throw new Error("User not authenticated. Please log in.");
+            }
+
+            const fileId = await uploadFile({
+                file: pptFile,
+                setIsUploading,
+                userId,
+                source: "PPT",
+                sourceId: pptFile.name,
+            });
+
+            if (!fileId) {
+                throw new Error("File upload failed and did not return a file ID.");
+            }
+
+            const response = await authenticatedAxiosInstance.post(
+                IMPORT_PPT_API_URL,
+                { fileId: fileId },
+                { headers: { 'Content-Type': 'application/json' } }
+            );
+
+            const importedSlides = response.data;
+            console.log('[PPT Import] Received slides:', importedSlides);
+
+            if (!Array.isArray(importedSlides) || importedSlides.length === 0) {
+                throw new Error('No slides were generated from the PPT file.');
+            }
+
+            const { setSlides, setCurrentSlideId, initializeNewPresentationState } =
+                useSlideStore.getState();
+
+            initializeNewPresentationState();
+
+            const finalSlides = importedSlides.map((slide, index) => ({
+                ...slide,
+                slide_order: index,
+            }));
+
+            console.log('[PPT Import] Processed slides for store:', finalSlides);
+            setSlides(finalSlides);
+            setCurrentSlideId(finalSlides.length > 0 ? finalSlides[0].id : undefined);
+
+            toast.success('PPT imported successfully! Opening editor...');
+            setIsPptModalOpen(false);
+
+            const fileNameWithoutExt =
+                pptFile.name.split('.').slice(0, -1).join('.') || `Imported ${PRODUCT_NAME}s`;
+
+            router.navigate({
+                to: '/study-library/volt/add',
+                search: {
+                    title: fileNameWithoutExt,
+                    description: `Imported from ${pptFile.name}`,
+                    id: '',
+                    isEdit: false,
+                    source: 'ppt',
+                },
+            });
+        } catch (error: any) {
+            console.error('[PPT Import] Error:', error);
+            toast.error(
+                error.response?.data?.message || `Failed to import ${PRODUCT_NAME.toLowerCase()} from PPT.`
+            );
+        } finally {
+            setIsImporting(false);
+            setPptFile(null);
+        }
+    };
 
     const handleAiGenerate = async (e: FormEvent) => {
         e.preventDefault();
@@ -163,9 +282,9 @@ export default function ManagePresentation() {
             setIsAiModalOpen(false);
 
             router.navigate({
-                to: '/study-library/present/add',
+                to: '/study-library/volt/add',
                 search: {
-                    title: data.title || 'AI Generated Presentation',
+                    title: data.title || `AI Generated ${PRODUCT_NAME}`,
                     description: `Generated from topic: ${aiTopic}`,
                     id: '',
                     isEdit: false,
@@ -175,7 +294,7 @@ export default function ManagePresentation() {
         } catch (error: any) {
             console.error('[AI Gen] Error:', error);
             toast.error(
-                error.response?.data?.message || 'Failed to generate presentation from AI.'
+                error.response?.data?.message || `Failed to generate ${PRODUCT_NAME.toLowerCase()} from topic.`
             );
         } finally {
             setIsGenerating(false);
@@ -184,33 +303,36 @@ export default function ManagePresentation() {
 
     const handleCreatePresentation = (e: FormEvent) => {
         e.preventDefault();
-        if (!newTitle.trim()) {
-            toast.error('Title is required to create a presentation.');
+        const title = newTitle.trim();
+        if (!title) {
+            toast.error(`Title is required to create a ${PRODUCT_NAME.toLowerCase()}.`);
             return;
         }
+
+        const { setSlides, setCurrentSlideId, initializeNewPresentationState } =
+            useSlideStore.getState();
+
+        initializeNewPresentationState(); // Clear out any old state
+        setSlides([]);
+
         router.navigate({
-            to: `/study-library/present/add`,
-            search: {
-                title: newTitle,
-                description: newDescription,
-                id: '',
-                isEdit: false,
-            },
+            to: '/study-library/volt/add',
+            search: { isEdit: 'false', title: title, description: newDescription },
         });
-        setIsCreateModalOpen(false);
+
+        // Reset and close modal
         setNewTitle('');
         setNewDescription('');
+        setIsCreateModalOpen(false);
     };
 
     const handleEditPresentationDetails = (presentation: PresentationData) => {
-        setEditingPresentation(presentation);
         router.navigate({
-            to: `/study-library/present/add`,
+            to: '/study-library/volt/add',
             search: {
+                id: presentation.id,
                 title: presentation.title,
                 description: presentation.description,
-                id: presentation.id,
-                isEdit: true,
             },
         });
     };
@@ -233,7 +355,7 @@ export default function ManagePresentation() {
             const tokenData = getTokenDecodedData(accessToken);
             const INSTITUTE_ID = tokenData?.authorities && Object.keys(tokenData.authorities)[0];
             if (!INSTITUTE_ID) {
-                toast.error('Institute ID not found. Cannot delete presentation.');
+                toast.error('Institute ID not found. Cannot delete volt.');
                 setIsProcessingDelete(false);
                 return;
             }
@@ -252,11 +374,11 @@ export default function ManagePresentation() {
                 }
             );
             await queryClient.refetchQueries({ queryKey: ['GET_PRESNTATIONS'] });
-            toast.success(`Presentation "${presentationToDelete.title}" deleted successfully.`);
+            toast.success(`Volt "${presentationToDelete.title}" deleted successfully.`);
         } catch (error: any) {
             console.error('Delete error:', error);
             toast.error(
-                error.response?.data?.message || error.message || 'Failed to delete presentation.'
+                error.response?.data?.message || error.message || 'Failed to delete volt.'
             );
         } finally {
             setIsProcessingDelete(false);
@@ -267,14 +389,16 @@ export default function ManagePresentation() {
 
     const handleDirectStartLive = (presentation: PresentationData) => {
         if (presentation.added_slides_count === 0 && (!presentation.added_slides || presentation.added_slides.length === 0)) {
-            toast.error("This presentation has no slides. Add slides before starting a live session.");
+            toast.error(`This ${PRODUCT_NAME.toLowerCase()} has no slides. Add slides before starting a live session.`);
             return;
         }
+        // Navigate to the editor component with a query param to auto-start the session
         router.navigate({
-            to: `/study-library/present/add`,
+            to: '/study-library/volt/add',
             search: {
                 id: presentation.id,
-                isEdit: 'true',
+                title: presentation.title,
+                description: presentation.description,
                 autoStartLive: 'true',
             },
         });
@@ -290,9 +414,9 @@ export default function ManagePresentation() {
     const getStatusBadgeClass = (status: string = 'draft') => {
         switch (status.toLowerCase()) {
             case 'published':
-                return 'bg-green-100 text-green-700 border-green-200';
+                return 'bg-green-100 text-green-800 border-green-300';
             case 'draft':
-                return 'bg-amber-100 text-amber-700 border-amber-200';
+                return 'bg-yellow-100 text-yellow-800 border-yellow-300';
             case 'archived':
                 return 'bg-gray-100 text-gray-700 border-gray-200';
             default:
@@ -312,16 +436,24 @@ export default function ManagePresentation() {
         <div className="container mx-auto p-4 text-neutral-800 sm:p-6 lg:p-8">
             <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-center">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Presentations</h1>
+                    <h1 className="text-3xl font-bold tracking-tight">My {PRODUCT_NAME}s</h1>
                     <p className="text-md mt-1.5 text-neutral-500">
-                        Manage, create, and organize your presentation materials.
+                        Manage, create, and organize your {PRODUCT_NAME.toLowerCase()}s.
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
+                    <ShadButton
+                        variant="outline"
+                        className="text-slate-600"
+                        onClick={() => setIsHelpModalOpen(true)}
+                    >
+                        <HelpCircle className="mr-2 h-4 w-4" />
+                        Help
+                    </ShadButton>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <MyButton size="lg" className="gap-2 px-5 py-2.5">
-                                <Plus className="h-5 w-5" /> New Presentation
+                                <Plus className="h-5 w-5" /> New {PRODUCT_NAME}
                                 <ChevronDown className="h-4 w-4" />
                             </MyButton>
                         </DropdownMenuTrigger>
@@ -332,6 +464,9 @@ export default function ManagePresentation() {
                             <DropdownMenuItem onSelect={() => setIsAiModalOpen(true)}>
                                 Generate with AI
                             </DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => setIsPptModalOpen(true)}>
+                                Import PPT/PPTX
+                            </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
@@ -341,7 +476,7 @@ export default function ManagePresentation() {
                 <div className="relative w-full max-w-md">
                     <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-400" />
                     <Input
-                        placeholder="Search presentations by title or description..."
+                        placeholder={`Search ${PRODUCT_NAME.toLowerCase()}s by title or description...`}
                         className="w-full rounded-lg bg-white py-2.5 pl-10 pr-4 text-base shadow-sm"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
@@ -359,7 +494,7 @@ export default function ManagePresentation() {
                         >
                             <CardHeader className="px-4 pb-3 pt-4">
                                 <CardTitle className="line-clamp-2 text-lg font-semibold leading-tight text-neutral-800 transition-colors hover:text-orange-600">
-                                    {p.title || 'Untitled Presentation'}
+                                    {p.title || 'Untitled Volt'}
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="flex-grow px-4 pb-3">
@@ -400,11 +535,11 @@ export default function ManagePresentation() {
                                         className="h-8 w-8 rounded-md text-neutral-500 hover:bg-blue-100 hover:text-blue-600"
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            const shareUrl = `https://engage.vacademy.io/presentation/public/${p.id}`;
+                                            const shareUrl = `https://engage.vacademy.io/volt/public/${p.id}`;
                                             window.open(shareUrl, '_blank');
-                                            toast.info("Public presentation link opened!");
+                                            toast.info(`Public ${PRODUCT_NAME.toLowerCase()} link opened!`);
                                         }}
-                                        title="Share Presentation"
+                                        title={`Share ${PRODUCT_NAME}`}
                                     >
                                         <Share2 className="h-4 w-4" />
                                     </ShadButton>
@@ -428,7 +563,7 @@ export default function ManagePresentation() {
                                             e.stopPropagation();
                                             handleEditPresentationDetails(p)
                                         }}
-                                        title="Edit Presentation"
+                                        title="Edit Volt"
                                     >
                                         <Edit className="h-4 w-4" />
                                     </ShadButton>
@@ -440,7 +575,7 @@ export default function ManagePresentation() {
                                             e.stopPropagation();
                                             confirmDeletePresentation(p)
                                         }}
-                                        title="Delete Presentation"
+                                        title="Delete Volt"
                                     >
                                         <Trash2 className="h-4 w-4" />
                                     </ShadButton>
@@ -453,12 +588,12 @@ export default function ManagePresentation() {
                 <div className="flex min-h-[400px] flex-col items-center justify-center rounded-xl border-2 border-dashed border-neutral-200 bg-neutral-50/70 px-6 py-20 text-center">
                     <FilePresentation className="mb-5 h-16 w-16 text-neutral-300" />
                     <h3 className="text-xl font-semibold text-neutral-700">
-                        {searchQuery ? 'No Matching Presentations' : 'No Presentations Yet'}
+                        {searchQuery ? 'No Matching Volts' : 'No Volts Yet'}
                     </h3>
                     <p className="mt-2 max-w-sm text-neutral-500">
                         {searchQuery
                             ? `Your search for "${searchQuery}" did not return any results. Try a different term or clear the search.`
-                            : "It looks like you haven't created any presentations. Get started by clicking the 'New Presentation' button."}
+                            : "It looks like you haven't created any volts. Get started by clicking the 'New Volts' button."}
                     </p>
                     {searchQuery && (
                         <MyButton
@@ -506,7 +641,7 @@ export default function ManagePresentation() {
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Deleting...
                                 </>
                             ) : (
-                                'Yes, Delete Presentation'
+                                'Yes, Delete Volt'
                             )}
                         </MyButton>
                     </DialogFooter>
@@ -517,7 +652,7 @@ export default function ManagePresentation() {
                 <DialogContent className="p-6 sm:max-w-lg">
                     <DialogHeader className="mb-4">
                         <DialogTitle className="text-xl font-semibold">
-                            Create New Presentation
+                            Create New {PRODUCT_NAME}
                         </DialogTitle>
                         <DialogDescription className="text-sm text-neutral-500">
                             Provide a title and description. You'll add slides in the next step.
@@ -546,7 +681,7 @@ export default function ManagePresentation() {
                                 value={newDescription}
                                 onChange={(e) => setNewDescription(e.target.value)}
                                 className="mt-1.5 min-h-[80px] w-full"
-                                placeholder="A brief summary of your presentation"
+                                placeholder="A brief summary of your Volt"
                                 rows={3}
                             />
                         </div>
@@ -569,67 +704,162 @@ export default function ManagePresentation() {
 
             <Dialog open={isAiModalOpen} onOpenChange={setIsAiModalOpen}>
                 <DialogContent className="p-6 sm:max-w-lg">
-                    <DialogHeader className="mb-4">
-                        <DialogTitle className="text-xl font-semibold">
-                            Generate Presentation with AI
+                    {isGenerating ? (
+                        <AiGeneratingLoader
+                            title="Generating your Volt"
+                            description="Our AI is crafting your content. This may take a moment."
+                            steps={aiSteps}
+                        />
+                    ) : (
+                        <>
+                            <DialogHeader className="mb-4">
+                                <DialogTitle className="text-xl font-semibold">
+                                    Generate Volt with AI
+                                </DialogTitle>
+                                <DialogDescription className="text-sm text-neutral-500">
+                                    Provide a topic and language to generate slides and questions.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <form onSubmit={handleAiGenerate} className="space-y-5">
+                                <div>
+                                    <Label htmlFor="ai-topic" className="text-sm font-medium">
+                                        Topic
+                                    </Label>
+                                    <Textarea
+                                        id="ai-topic"
+                                        value={aiTopic}
+                                        onChange={(e) => setAiTopic(e.target.value)}
+                                        className="mt-1.5 min-h-[100px] w-full"
+                                        placeholder="e.g., An overview of the thermite reaction, its chemical properties, applications, and safety precautions."
+                                        required
+                                        rows={4}
+                                    />
+                                </div>
+                                <div>
+                                    <Label htmlFor="ai-language" className="text-sm font-medium">
+                                        Language
+                                    </Label>
+                                    <Input
+                                        id="ai-language"
+                                        value={aiLanguage}
+                                        onChange={(e) => setAiLanguage(e.target.value)}
+                                        className="mt-1.5 w-full"
+                                        placeholder="e.g., English"
+                                        required
+                                    />
+                                </div>
+                                <DialogFooter className="mt-6 !justify-stretch space-y-2 sm:flex sm:flex-row sm:space-x-3 sm:space-y-0">
+                                    <MyButton
+                                        type="button"
+                                        buttonType="secondary"
+                                        onClick={() => setIsAiModalOpen(false)}
+                                        className="w-full sm:w-auto"
+                                    >
+                                        Cancel
+                                    </MyButton>
+                                    <MyButton type="submit" className="w-full sm:w-auto">
+                                        Generate & Create
+                                    </MyButton>
+                                </DialogFooter>
+                            </form>
+                        </>
+                    )}
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={isPptModalOpen} onOpenChange={setIsPptModalOpen}>
+                <DialogContent className="p-6 sm:max-w-lg">
+                    {isImporting ? (
+                        <AiGeneratingLoader
+                            title="Importing your Volt"
+                            description="We're converting your file into editable slides. Please wait."
+                            steps={pptSteps}
+                        />
+                    ) : (
+                        <>
+                            <DialogHeader className="mb-4">
+                                <DialogTitle className="text-xl font-semibold">
+                                    Import from PPT/PPTX
+                                </DialogTitle>
+                                <DialogDescription className="text-sm text-neutral-500">
+                                    Select a .ppt or .pptx file to convert into slides.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <form onSubmit={handlePptImport} className="space-y-5">
+                                <div>
+                                    <Label htmlFor="ppt-file" className="text-sm font-medium">
+                                        Volt File
+                                    </Label>
+                                    <div
+                                        className="mt-1.5 flex justify-center w-full px-6 pt-5 pb-6 border-2 border-neutral-300 border-dashed rounded-md cursor-pointer hover:border-orange-400"
+                                        onClick={() => fileInputRef.current?.click()}
+                                    >
+                                        <div className="space-y-1 text-center">
+                                            <UploadCloud className="mx-auto h-12 w-12 text-neutral-400" />
+                                            <div className="flex text-sm text-neutral-600">
+                                                <span className="relative font-medium text-orange-600 hover:text-orange-500">
+                                                    {pptFile ? 'Replace file' : 'Upload a file'}
+                                                </span>
+                                                <input
+                                                    ref={fileInputRef}
+                                                    id="ppt-file-input"
+                                                    name="ppt-file"
+                                                    type="file"
+                                                    className="sr-only"
+                                                    accept=".ppt,.pptx,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                                                    onChange={(e) => setPptFile(e.target.files?.[0] || null)}
+                                                />
+                                                {!pptFile && <p className="pl-1">or drag and drop</p>}
+                                            </div>
+                                            <p className="text-xs text-neutral-500">
+                                                {pptFile ? pptFile.name : 'PPT, PPTX up to 50MB'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <DialogFooter className="mt-6 !justify-stretch space-y-2 sm:flex sm:flex-row sm:space-x-3 sm:space-y-0">
+                                    <MyButton
+                                        type="button"
+                                        buttonType="secondary"
+                                        onClick={() => {
+                                            setIsPptModalOpen(false);
+                                            setPptFile(null);
+                                        }}
+                                        className="w-full sm:w-auto"
+                                    >
+                                        Cancel
+                                    </MyButton>
+                                    <MyButton
+                                        type="submit"
+                                        className="w-full sm:w-auto"
+                                        disabled={!pptFile}
+                                    >
+                                        Import & Create
+                                    </MyButton>
+                                </DialogFooter>
+                            </form>
+                        </>
+                    )}
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={isHelpModalOpen} onOpenChange={setIsHelpModalOpen}>
+                <DialogContent
+                    className="w-[75vw] max-w-7xl h-[90vh] overflow-y-auto"
+                    onCloseAutoFocus={handleHelpModalClose}
+                >
+                    <DialogHeader>
+                        <DialogTitle className="text-2xl font-bold text-center">
+                            Welcome to {PRODUCT_NAME}! Here's what you can do.
                         </DialogTitle>
-                        <DialogDescription className="text-sm text-neutral-500">
-                            Provide a topic and language to generate slides and questions.
+                        <DialogDescription className="text-center">
+                            Explore the powerful features that make {PRODUCT_NAME} the best way to create and deliver
+                            interactive presentations.
                         </DialogDescription>
                     </DialogHeader>
-                    <form onSubmit={handleAiGenerate} className="space-y-5">
-                        <div>
-                            <Label htmlFor="ai-topic" className="text-sm font-medium">
-                                Topic
-                            </Label>
-                            <Textarea
-                                id="ai-topic"
-                                value={aiTopic}
-                                onChange={(e) => setAiTopic(e.target.value)}
-                                className="mt-1.5 min-h-[100px] w-full"
-                                placeholder="e.g., An overview of the thermite reaction, its chemical properties, applications, and safety precautions."
-                                required
-                                rows={4}
-                            />
-                        </div>
-                        <div>
-                            <Label htmlFor="ai-language" className="text-sm font-medium">
-                                Language
-                            </Label>
-                            <Input
-                                id="ai-language"
-                                value={aiLanguage}
-                                onChange={(e) => setAiLanguage(e.target.value)}
-                                className="mt-1.5 w-full"
-                                placeholder="e.g., English"
-                                required
-                            />
-                        </div>
-                        <DialogFooter className="mt-6 !justify-stretch space-y-2 sm:flex sm:flex-row sm:space-x-3 sm:space-y-0">
-                            <MyButton
-                                type="button"
-                                buttonType="secondary"
-                                onClick={() => setIsAiModalOpen(false)}
-                                className="w-full sm:w-auto"
-                                disabled={isGenerating}
-                            >
-                                Cancel
-                            </MyButton>
-                            <MyButton
-                                type="submit"
-                                className="w-full sm:w-auto"
-                                disabled={isGenerating}
-                            >
-                                {isGenerating ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating...
-                                    </>
-                                ) : (
-                                    'Generate & Create'
-                                )}
-                            </MyButton>
-                        </DialogFooter>
-                    </form>
+                    <div className="py-4">
+                        <VoltFeaturesGrid />
+                    </div>
                 </DialogContent>
             </Dialog>
         </div>

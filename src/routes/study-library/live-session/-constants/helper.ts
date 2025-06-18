@@ -4,6 +4,7 @@ import {
     weeklyClassSchema,
     addParticipantsSchema,
 } from '../schedule/-schema/schema';
+import { RecurringType } from '../-constants/enums';
 
 export const timeOptions = Array.from({ length: 96 }, (_, i) => {
     const hours = Math.floor(i / 4)
@@ -37,6 +38,7 @@ export interface LiveSessionStep1RequestDTO {
     allow_rewind?: boolean;
     is_live?: boolean;
     session_streaming_service_type?: string;
+    cover_file_id?: string | null;
 }
 
 interface ScheduleDTO {
@@ -105,7 +107,8 @@ export function transformFormToDTOStep1(
     instituteId: string,
     originalSchedules: WeeklyClass[] = [],
     musicFileId: string | undefined,
-    thumbnailFileId: string | undefined
+    thumbnailFileId: string | undefined,
+    coverFileId: string | undefined | null
 ): LiveSessionStep1RequestDTO {
     const {
         id: sessionId,
@@ -113,7 +116,6 @@ export function transformFormToDTOStep1(
         startTime,
         endDate,
         subject,
-        events,
         description,
         durationHours,
         durationMinutes,
@@ -128,7 +130,6 @@ export function transformFormToDTOStep1(
 
     // Convert hours and minutes to total duration in hours
     const totalDuration = Number(durationHours) + Number(durationMinutes) / 60;
-    const duration = String(Math.round(totalDuration));
     console.log('startTime ', startTime);
 
     // Fix timezone handling by creating an ISO string that preserves the local time
@@ -145,7 +146,6 @@ export function transformFormToDTOStep1(
     const added_schedules: ScheduleDTO[] = [];
     const updated_schedules: ScheduleDTO[] = [];
     const deleted_schedule_ids: string[] = [];
-    console.log('events ', events);
 
     // Map old schedule IDs for deletion tracking
     const originalScheduleMap = new Map<string, WeeklyClass>();
@@ -153,33 +153,43 @@ export function transformFormToDTOStep1(
         if (s.id) originalScheduleMap.set(s.id, s);
     });
 
-    console.log('startTimeISO ', startTimeISO);
-    console.log('lastEntryTimeISO ', lastEntryTimeISO);
+    if (meetingType === RecurringType.WEEKLY) {
+        recurringSchedule.forEach((dayBlock: WeeklyClass) => {
+            if (!dayBlock.isSelect) return;
 
-    recurringSchedule.forEach((dayBlock) => {
-        if (!dayBlock.isSelect) return;
+            dayBlock.sessions.forEach(
+                (session: {
+                    id?: string;
+                    startTime?: string;
+                    durationHours?: string;
+                    durationMinutes?: string;
+                    link?: string;
+                }) => {
+                    console.log('session ', session);
+                    const duration =
+                        Number(session.durationHours) * 60 + Number(session.durationMinutes);
+                    const baseSchedule: ScheduleDTO = {
+                        id: session.id,
+                        day: dayBlock.day,
+                        start_time: session.startTime ? `${session.startTime}:00` : '',
+                        duration: String(duration),
+                        link: session.link || '',
+                    };
 
-        dayBlock.sessions.forEach((session) => {
-            const baseSchedule: ScheduleDTO = {
-                id: dayBlock.id,
-                day: dayBlock.day,
-                start_time: session.startTime ? `${session.startTime}:00` : '',
-                duration: session.durationHours ?? duration,
-                link: session.link || '',
-            };
-
-            if (dayBlock.id && originalScheduleMap.has(dayBlock.id)) {
-                updated_schedules.push(baseSchedule);
-                originalScheduleMap.delete(dayBlock.id); // processed
-            } else {
-                added_schedules.push(baseSchedule);
-            }
+                    if (dayBlock.id && originalScheduleMap.has(dayBlock.id)) {
+                        updated_schedules.push(baseSchedule);
+                        originalScheduleMap.delete(dayBlock.id); // processed
+                    } else {
+                        added_schedules.push(baseSchedule);
+                    }
+                }
+            );
         });
-    });
 
-    // Anything left in originalScheduleMap is considered deleted
-    for (const id of originalScheduleMap.keys()) {
-        deleted_schedule_ids.push(id);
+        // Anything left in originalScheduleMap is considered deleted
+        for (const id of originalScheduleMap.keys()) {
+            deleted_schedule_ids.push(id);
+        }
     }
 
     return {
@@ -202,6 +212,7 @@ export function transformFormToDTOStep1(
         link_type: sessionPlatform,
         allow_rewind: allowRewind,
         session_streaming_service_type: streamingType,
+        cover_file_id: coverFileId,
     };
 }
 

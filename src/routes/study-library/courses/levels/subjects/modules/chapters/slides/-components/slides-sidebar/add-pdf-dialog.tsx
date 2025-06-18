@@ -115,7 +115,7 @@ export const AddPdfDialog = ({
                     title: data.pdfTitle,
                     image_file_id: '',
                     description: null,
-                    slide_order: null,
+                    slide_order: 0,
                     document_slide: {
                         id: crypto.randomUUID(),
                         type: 'PDF',

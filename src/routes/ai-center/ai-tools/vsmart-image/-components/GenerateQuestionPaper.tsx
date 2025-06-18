@@ -12,6 +12,7 @@ import AITasksList from '@/routes/ai-center/-components/AITasksList';
 import { jsPDF } from 'jspdf';
 import { UseFormReturn } from 'react-hook-form';
 import { SectionFormType } from '@/types/assessments/assessment-steps';
+import { getRandomTaskName } from '@/routes/ai-center/-utils/helper';
 
 interface ConvertImageToPDFResult {
     pdfFile: File;
@@ -80,7 +81,6 @@ const GenerateAiQuestionFromImageComponent = ({
     currentSectionIndex?: number;
 }) => {
     const queryClient = useQueryClient();
-    const [taskName, setTaskName] = useState('');
     const instituteId = getInstituteId();
     const { uploadFile } = useFileUpload();
     const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -117,7 +117,7 @@ const GenerateAiQuestionFromImageComponent = ({
                             generateAssessmentMutation.mutate({
                                 pdfId: response.pdf_id,
                                 userPrompt: '',
-                                taskName,
+                                taskName: getRandomTaskName(),
                                 taskId: '',
                             });
                         }
@@ -177,8 +177,6 @@ const GenerateAiQuestionFromImageComponent = ({
                 cardDescription="Upload JPG/JPEG/PNG"
                 inputFormat=".jpg,.jpeg,.png"
                 keyProp="image"
-                taskName={taskName}
-                setTaskName={setTaskName}
                 sectionsForm={form}
                 currentSectionIndex={currentSectionIndex}
             />

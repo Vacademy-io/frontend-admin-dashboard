@@ -69,11 +69,33 @@ export default defineConfig({
     },
     server: {
         headers: {
-            'Cross-Origin-Embedder-Policy': 'require-corp',
-            'Cross-Origin-Opener-Policy': 'same-origin',
+            'Cross-Origin-Embedder-Policy': 'unsafe-none',
+            'Cross-Origin-Opener-Policy': 'unsafe-none',
+            'Cross-Origin-Resource-Policy': 'cross-origin',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+            'Access-Control-Allow-Headers': 'X-Requested-With, content-type, Authorization',
+            'Content-Security-Policy':
+                "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; frame-src *; frame-ancestors 'self' https://www.youtube.com https://youtube.com https://*.youtube.com;",
+        },
+        proxy: {
+            '/youtube': {
+                target: 'https://www.youtube.com',
+                changeOrigin: true,
+                rewrite: (path) => path.replace(/^\/youtube/, ''),
+                secure: false,
+                headers: {
+                    'Access-Control-Allow-Origin': '*',
+                },
+            },
+        },
+        cors: true,
+        hmr: {
+            protocol: 'ws',
+            host: 'localhost',
         },
     },
     optimizeDeps: {
-        exclude: ['@ffmpeg/ffmpeg', '@ffmpeg/util']
-    }
+        exclude: ['@ffmpeg/ffmpeg', '@ffmpeg/util'],
+    },
 });

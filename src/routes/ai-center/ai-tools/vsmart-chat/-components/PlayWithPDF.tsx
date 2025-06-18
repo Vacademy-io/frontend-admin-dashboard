@@ -9,6 +9,7 @@ import {
     handleChatWithPDF,
     handleStartProcessUploadedFile,
 } from '@/routes/ai-center/-services/ai-center-service';
+import { getRandomTaskName } from '@/routes/ai-center/-utils/helper';
 import { useMutation } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 
@@ -23,15 +24,12 @@ const PlayWithPDF = ({
     chatResponse,
     input_id,
     parent_id,
-    task_name,
 }: {
     isListMode?: boolean;
     chatResponse?: QuestionWithAnswerChatInterface[];
     input_id?: string;
     parent_id?: string;
-    task_name?: string;
 }) => {
-    const [taskName, setTaskName] = useState(task_name ?? '');
     const instituteId = getInstituteId();
     const { setLoader, key, setKey } = useAICenter();
     const { uploadFile } = useFileUpload();
@@ -175,7 +173,7 @@ const PlayWithPDF = ({
         getQuestionResponseMutation.mutate({
             pdfId: uploadedFilePDFId,
             userPrompt: question,
-            taskName: taskName,
+            taskName: getRandomTaskName(),
             parentId: parentId,
         });
     };
@@ -220,8 +218,6 @@ const PlayWithPDF = ({
                     cardDescription="Upload PDF/DOCX/PPT"
                     inputFormat=".pdf,.doc,.docx,.ppt,.pptx,.html"
                     keyProp="chat"
-                    taskName={taskName}
-                    setTaskName={setTaskName}
                 />
             )}
             {(uploadedFilePDFId.length > 0 || isListMode) && (

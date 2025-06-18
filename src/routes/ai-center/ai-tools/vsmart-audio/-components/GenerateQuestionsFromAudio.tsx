@@ -19,6 +19,7 @@ import {
 } from '@/routes/ai-center/-utils/audio-questions-schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { languageSupport } from '@/constants/dummy-data';
+import { getRandomTaskName } from '@/routes/ai-center/-utils/helper';
 
 export const GenerateQuestionsFromAudio = ({
     form,
@@ -34,13 +35,12 @@ export const GenerateQuestionsFromAudio = ({
             prompt: '',
             difficulty: '',
             language: languageSupport[0],
-            taskName: '',
+            taskName: getRandomTaskName(),
         },
     });
 
     const [audioId, setAudioId] = useState('');
     const queryClient = useQueryClient();
-    const [taskName, setTaskName] = useState('');
     const instituteId = getInstituteId();
     const { uploadFile } = useFileUpload();
     const { setLoader, key, setKey } = useAICenter();
@@ -122,7 +122,7 @@ export const GenerateQuestionsFromAudio = ({
             prompt: data.text,
             difficulty: data.class_level,
             language: data.question_language,
-            taskName: data.taskName,
+            taskName: getRandomTaskName(),
             taskId: taskId,
         });
     };
@@ -132,8 +132,7 @@ export const GenerateQuestionsFromAudio = ({
         numQuestions: string,
         prompt: string,
         difficulty: string,
-        language: string,
-        taskName: string
+        language: string
     ) => {
         getQuestionsFromAudioMutation.mutate({
             audioId,
@@ -141,7 +140,7 @@ export const GenerateQuestionsFromAudio = ({
             prompt,
             difficulty,
             language,
-            taskName,
+            taskName: getRandomTaskName(),
         });
     };
 
@@ -161,8 +160,6 @@ export const GenerateQuestionsFromAudio = ({
                 cardDescription="Upload WAV/FLAC/MP3/AAC/M4A"
                 inputFormat=".mp3,.wav,.flac,.aac,.m4a"
                 keyProp="audio"
-                taskName={taskName}
-                setTaskName={setTaskName}
                 pollGenerateQuestionsFromAudio={pollGenerateQuestionsFromAudio}
                 sectionsForm={form}
                 currentSectionIndex={currentSectionIndex}

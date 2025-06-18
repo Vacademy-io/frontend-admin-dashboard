@@ -12,7 +12,7 @@ export const createNewSlide = (type: SlideTypeEnum): AppSlide => {
         files: {}
     };
 
-    switch (type) {
+        switch (type) {
         case SlideTypeEnum.Title:
             return { ...baseSlide, elements: [] };
         case SlideTypeEnum.Text:
@@ -43,9 +43,9 @@ export const createNewSlide = (type: SlideTypeEnum): AppSlide => {
                        feedbackAnswer: "",
                    }
                };
-        default:
+            default:
             return { ...baseSlide, type: SlideTypeEnum.Excalidraw };
-    }
+        }
 };
 
 

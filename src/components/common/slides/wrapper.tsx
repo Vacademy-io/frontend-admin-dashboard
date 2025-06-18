@@ -1,6 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
-import React, { useRef, useCallback } from 'react';
+import React, { useRef, useCallback, useEffect, useState } from 'react';
 import { Excalidraw } from '@excalidraw/excalidraw';
 import type { ExcalidrawAPIRefValue, ExcalidrawProps } from '@excalidraw/excalidraw/types';
 import type {
@@ -17,6 +17,9 @@ import type {
     SocketId,
     LibraryItems,
 } from '@excalidraw/excalidraw/types';
+import { LocateFixed, Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+
 interface ExcalidrawWrapperProps {
     initialData: ExcalidrawWrapperInitialData; // Renamed from initialSlide and typed
     onChange: (
@@ -32,16 +35,40 @@ const ExcalidrawWrapper: React.FC<ExcalidrawWrapperProps> = ({
     onChange,
     editMode,
 }) => {
-    const excalidrawRef = useRef<ExcalidrawAPIRefValue>(null);
+    const [excalidrawAPI, setExcalidrawAPI] = useState<ExcalidrawAPIRefValue | null>(null);
+    const [isLaserActive, setIsLaserActive] = useState(false);
 
-    const onReady = useCallback(() => {
-        if (excalidrawRef.current) {
-            // This ensures that whenever a new slide is displayed (keyed by initialData.id),
-            // the canvas will center on its content.
-            console.log(`[ExcalidrawWrapper] onReady: Centering content for slide ${initialData.id}`);
-            excalidrawRef.current.scrollToContent();
+    useEffect(() => {
+        if (excalidrawAPI) {
+            console.log(`[ExcalidrawWrapper] useEffect: Slide data or API changed for slide ${initialData.id}, re-centering content.`);
+            excalidrawAPI.scrollToContent();
+        } else {
+            console.error('[ExcalidrawWrapper] Excalidraw API is not available in state.');
         }
-    }, [initialData.id]); // The callback depends on the slide ID to have the correct context in logs.
+    }, [initialData, excalidrawAPI]);
+
+    const handleCenterView = () => {
+        console.log('[ExcalidrawWrapper] Center view button clicked.');
+        if (excalidrawAPI) {
+            excalidrawAPI.scrollToContent();
+            console.log('[ExcalidrawWrapper] Manually centered content via API from state.');
+        } else {
+            console.error('[ExcalidrawWrapper] Excalidraw API is not available in state.');
+        }
+    };
+
+    const handleToggleLaserPointer = () => {
+        console.log('[ExcalidrawWrapper] Laser Pointer button clicked.');
+        if (excalidrawAPI) {
+            const nextTool = isLaserActive ? 'selection' : 'laser';
+            excalidrawAPI.updateScene({
+                appState: { activeTool: { type: nextTool } },
+            });
+            console.log(`[ExcalidrawWrapper] Toggled laser. Set tool to: ${nextTool}`);
+        } else {
+            console.error('[ExcalidrawWrapper] Excalidraw API is not available to toggle laser.');
+        }
+    };
 
     const handleExcalidrawChange = useCallback(
         (
@@ -56,6 +83,9 @@ const ExcalidrawWrapper: React.FC<ExcalidrawWrapperProps> = ({
                 appStateFromExcalidraw.collaborators instanceof Map
                     ? appStateFromExcalidraw.collaborators
                     : new Map<ExcalidrawSocketId, ExcalidrawCollaborator>();
+
+            // Sync laser pointer state from Excalidraw's internal state
+            setIsLaserActive(appStateFromExcalidraw.activeTool.type === 'laser');
 
             onChange(elements, { ...appStateFromExcalidraw, collaborators }, files);
         },
@@ -95,12 +125,15 @@ const ExcalidrawWrapper: React.FC<ExcalidrawWrapperProps> = ({
     }
 
     return (
-        <div className="h-full w-full bg-white">
+        <div className="relative h-full w-full bg-white">
             {' '}
-            {/* Added bg-white for explicitness */}
+            {/* Added relative positioning and bg-white for explicitness */}
             <Excalidraw
                 key={initialData.id} // CRITICAL: Uses the ID from the initialData prop
-                ref={excalidrawRef}
+                excalidrawAPI={(api) => {
+                    console.log(`[ExcalidrawWrapper] API object received for slide ${initialData.id}.`);
+                    setExcalidrawAPI(api);
+                }}
                 initialData={{
                     // This is Excalidraw's own initialData prop
                     elements: initialData.elements || [],
@@ -109,10 +142,30 @@ const ExcalidrawWrapper: React.FC<ExcalidrawWrapperProps> = ({
                     libraryItems: initialData.libraryItems || undefined, // Can be undefined
                 }}
                 onChange={handleExcalidrawChange}
-                onReady={onReady}
                 viewModeEnabled={!editMode}
                 UIOptions={uiOptionsConfig}
             />
+            <div className="absolute top-4 right-4 z-20 flex gap-2">
+                <Button
+                    onClick={handleCenterView}
+                    className="h-auto rounded-full bg-white/80 p-2 shadow-lg backdrop-blur-sm hover:bg-white"
+                    variant="ghost"
+                    size="icon"
+                    title="Center on content"
+                >
+                    <LocateFixed className="h-5 w-5 text-gray-700" />
+                </Button>
+                <Button
+                    onClick={handleToggleLaserPointer}
+                    className="h-auto rounded-full bg-white/80 p-2 shadow-lg backdrop-blur-sm hover:bg-white data-[active=true]:bg-blue-100"
+                    variant="ghost"
+                    size="icon"
+                    title="Toggle Laser Pointer"
+                    data-active={isLaserActive}
+                >
+                    <Sparkles className="h-5 w-5 text-gray-700" />
+                </Button>
+            </div>
         </div>
     );
 };

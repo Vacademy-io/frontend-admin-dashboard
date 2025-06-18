@@ -4,7 +4,14 @@ import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore
 import { useEffect, useState } from 'react';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { MyButton } from '@/components/design-system/button';
-import { ArrowSquareOut, Plus, Sparkle, FilePdf, LightbulbFilament } from 'phosphor-react';
+import {
+    ArrowSquareOut,
+    Plus,
+    Sparkle,
+    FilePdf,
+    LightbulbFilament,
+    Lightning,
+} from 'phosphor-react';
 import { CreateAssessmentDashboardLogo, DashboardCreateCourse } from '@/svgs';
 import { Badge } from '@/components/ui/badge';
 import { CompletionStatusComponent } from './-components/CompletionStatusComponent';
@@ -26,14 +33,74 @@ import RoleTypeComponent from './-components/RoleTypeComponent';
 import useLocalStorage from '@/hooks/use-local-storage';
 import EditDashboardProfileComponent from './-components/EditDashboardProfileComponent';
 import { handleGetAdminDetails } from '@/services/student-list-section/getAdminDetails';
+import { motion } from 'framer-motion';
+import { getInstituteId } from '@/constants/helper';
+import { useTheme } from '@/providers/theme/theme-provider';
 
 export const Route = createFileRoute('/dashboard/')({
-    component: () => (
+    component: DashboardPage,
+});
+
+function DashboardPage() {
+    const navigate = useNavigate();
+    const [isVoltSubdomain, setIsVoltSubdomain] = useState(false);
+    const { getPrimaryColorCode } = useTheme();
+
+    useEffect(() => {
+        const subdomain =
+            typeof window !== 'undefined' ? window.location.hostname.split('.')[0] : '';
+        const isVolt = subdomain === 'volt';
+        setIsVoltSubdomain(isVolt);
+
+        if (!isVolt) return;
+
+        const timer = setTimeout(() => {
+            navigate({ to: '/study-library/volt' });
+        }, 2500);
+
+        return () => clearTimeout(timer);
+    }, [navigate]);
+
+    useEffect(() => {
+        console.log('id ->  ', getInstituteId());
+        console.log('primary color code ->  ', getPrimaryColorCode());
+    }, []);
+
+    if (isVoltSubdomain) {
+        return (
+            <div className="flex h-screen w-screen flex-col items-center justify-center bg-slate-900 text-white">
+                <motion.div
+                    initial={{ opacity: 0, y: -40 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, ease: 'easeOut' }}
+                    className="text-center"
+                >
+                    <Lightning size={80} className="mx-auto text-orange-400" weight="fill" />
+                    <h1 className="mt-6 text-5xl font-bold tracking-tight text-white">
+                        Welcome to Volt
+                    </h1>
+                    <p className="mt-2 text-lg text-slate-300">
+                        The future of interactive presentations.
+                    </p>
+                </motion.div>
+                <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 1, duration: 0.5 }}
+                    className="absolute bottom-10 text-sm text-slate-400"
+                >
+                    Redirecting you to your workspace...
+                </motion.p>
+            </div>
+        );
+    }
+
+    return (
         <LayoutContainer>
             <DashboardComponent />
         </LayoutContainer>
-    ),
-});
+    );
+}
 
 export function DashboardComponent() {
     const location = useLocation();
@@ -444,8 +511,11 @@ export function DashboardComponent() {
                                 <CardDescription className="mt-1 flex justify-center">
                                     {' '}
                                     {/* Reduced margin */}
-                                    <DashboardCreateCourse className="h-auto w-full max-w-[180px] sm:max-w-[200px]" />{' '}
-                                    {/* Smaller SVG */}
+                                    {/* {getInstituteId() === HOLISTIC_INSTITUTE_ID ? (
+                                        <IndianYogaLogo className="h-auto w-full max-w-[180px] sm:max-w-[200px]" />
+                                    ) : (
+                                    )} */}
+                                    <DashboardCreateCourse className="h-auto w-full max-w-[180px] sm:max-w-[200px]" />
                                 </CardDescription>
                             </CardHeader>
                         </Card>

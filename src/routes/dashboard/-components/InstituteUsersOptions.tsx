@@ -361,12 +361,12 @@ const InstituteUsersOptions = ({
                     <DropdownMenuItem onClick={() => handleDropdownMenuClick('Change Role Type')}>
                         Change Role Type
                     </DropdownMenuItem>
-                    {user.status === 'ACTIVE' && (
+                    {user.roles.some((role) => role.status === 'ACTIVE') && (
                         <DropdownMenuItem onClick={() => handleDropdownMenuClick('Disable user')}>
                             Disable user
                         </DropdownMenuItem>
                     )}
-                    {user.status === 'DISABLED' && (
+                    {!user.roles.some((role) => role.status === 'ACTIVE') && (
                         <DropdownMenuItem onClick={() => handleDropdownMenuClick('Enable user')}>
                             Enable user
                         </DropdownMenuItem>

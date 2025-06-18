@@ -11,7 +11,7 @@ import { useFilterDataForAssesment } from '@/routes/assessment/assessment-list/-
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
 import { MyRadioButton } from '@/components/design-system/radio';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
     RecurringType,
     SessionPlatform,
@@ -38,7 +38,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-
+import { useSessionDetailsStore } from '../../-store/useSessionDetailsStore';
 // Constants
 const WAITING_ROOM_OPTIONS = [
     { value: '15', label: '15 minutes', _id: 1 },
@@ -55,6 +55,7 @@ const STREAMING_OPTIONS = [
 export default function ScheduleStep1() {
     // Hooks and State
     const navigate = useNavigate();
+    const { sessionDetails } = useSessionDetailsStore();
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [selectedMusicFile, setSelectedMusicFile] = useState<File | null>(null);
     const musicFileInputRef = useRef<HTMLInputElement>(null);
@@ -69,7 +70,11 @@ export default function ScheduleStep1() {
         resolver: zodResolver(sessionFormSchema),
         defaultValues: {
             title: '',
-            meetingType: RecurringType.ONCE,
+            meetingType:
+                sessionDetails?.schedule?.added_schedules &&
+                sessionDetails.schedule.added_schedules.length > 0
+                    ? RecurringType.WEEKLY
+                    : RecurringType.ONCE,
             recurringSchedule: WEEK_DAYS.map((day) => ({
                 day: day.label,
                 isSelect: false,
@@ -87,7 +92,9 @@ export default function ScheduleStep1() {
             events: '1',
             openWaitingRoomBefore: '15',
             sessionType: SessionType.LIVE,
-            streamingType: SessionPlatform.EMBED_IN_APP,
+            streamingType: sessionDetails?.schedule?.session_streaming_service_type
+                ? sessionDetails?.schedule?.session_streaming_service_type
+                : SessionPlatform.EMBED_IN_APP,
             allowRewind: false,
             enableWaitingRoom: false,
             sessionPlatform: StreamingPlatform.YOUTUBE,
@@ -95,6 +102,81 @@ export default function ScheduleStep1() {
         },
         mode: 'onChange',
     });
+
+    useEffect(() => {
+        if (sessionDetails) {
+            form.setValue('id', sessionDetails.schedule.session_id);
+            form.setValue('title', sessionDetails.schedule.title);
+            form.setValue('subject', sessionDetails.schedule.subject ?? 'none');
+            form.setValue('description', sessionDetails.schedule.description_html ?? '');
+            form.setValue('startTime', sessionDetails.schedule.start_time);
+            form.setValue('defaultLink', sessionDetails.schedule.default_meet_link ?? '');
+            form.setValue(
+                'sessionPlatform',
+                sessionDetails.schedule.link_type ?? StreamingPlatform.YOUTUBE
+            );
+            form.setValue(
+                'streamingType',
+                sessionDetails.schedule.session_streaming_service_type ?? 'embed'
+            );
+
+            if (sessionDetails.schedule.start_time && sessionDetails.schedule.last_entry_time) {
+                const start = new Date(sessionDetails.schedule.start_time);
+                const end = new Date(sessionDetails.schedule.last_entry_time);
+                if (end > start) {
+                    const durationMs = end.getTime() - start.getTime();
+                    const hours = Math.floor(durationMs / 3600000);
+                    const minutes = Math.floor((durationMs % 3600000) / 60000);
+                    form.setValue('durationHours', String(hours));
+                    form.setValue('durationMinutes', String(minutes));
+                }
+            }
+            if (sessionDetails.schedule.added_schedules.length > 0) {
+                form.setValue('meetingType', RecurringType.WEEKLY);
+                form.setValue('endDate', sessionDetails.schedule.session_end_date);
+                const transformedSchedules = WEEK_DAYS.map((day) => {
+                    const matchingSchedule = sessionDetails.schedule.added_schedules.find(
+                        (schedule) => schedule.day.toLowerCase() === day.label.toLowerCase()
+                    );
+                    return {
+                        day: day.label,
+                        isSelect: !!matchingSchedule,
+                        sessions: matchingSchedule
+                            ? [
+                                  {
+                                      id: matchingSchedule.id,
+                                      startTime: matchingSchedule.startTime,
+                                      durationHours: String(
+                                          Math.floor(parseInt(matchingSchedule.duration) / 60)
+                                      ),
+                                      durationMinutes: String(
+                                          parseInt(matchingSchedule.duration) % 60
+                                      ),
+                                      link: matchingSchedule.link || '',
+                                  },
+                              ]
+                            : [
+                                  {
+                                      startTime: '00:00',
+                                      durationHours: '',
+                                      durationMinutes: '',
+                                      link: '',
+                                  },
+                              ],
+                    };
+                });
+                console.log('transformedSchedules ', transformedSchedules);
+                form.setValue('recurringSchedule', transformedSchedules);
+            }
+            if (sessionDetails.schedule.waiting_room_time) {
+                form.setValue('enableWaitingRoom', true);
+                form.setValue(
+                    'openWaitingRoomBefore',
+                    String(sessionDetails.schedule.waiting_room_time)
+                );
+            }
+        }
+    }, [sessionDetails]);
 
     const { control, watch } = form;
     const meetingType = useWatch({ control, name: 'meetingType' });
@@ -150,7 +232,38 @@ export default function ScheduleStep1() {
         if (selectedFile) {
             thumbnailFileId = await UploadFileInS3(selectedFile, () => {}, 'your-user-id');
         }
-        const body = transformFormToDTOStep1(data, INSTITUTE_ID, [], musicFileId, thumbnailFileId);
+
+        const transformedSchedules =
+            sessionDetails?.schedule?.added_schedules?.map((schedule) => ({
+                id: schedule.id,
+                day: schedule.day.toLowerCase() as
+                    | 'monday'
+                    | 'tuesday'
+                    | 'wednesday'
+                    | 'thursday'
+                    | 'friday'
+                    | 'saturday'
+                    | 'sunday',
+                isSelect: true,
+                sessions: [
+                    {
+                        id: schedule.id,
+                        startTime: schedule.startTime,
+                        durationHours: String(Math.floor(parseInt(schedule.duration) / 60)),
+                        durationMinutes: String(parseInt(schedule.duration) % 60),
+                        link: schedule.link || '',
+                    },
+                ],
+            })) || [];
+
+        const body = transformFormToDTOStep1(
+            data,
+            INSTITUTE_ID,
+            transformedSchedules,
+            musicFileId,
+            thumbnailFileId,
+            instituteDetails?.institute_logo_file_id
+        );
         try {
             const response = await createLiveSessionStep1(body);
             useLiveSessionStore.getState().setSessionId(response.id);
@@ -824,7 +937,6 @@ export default function ScheduleStep1() {
                         Next
                     </MyButton>
                 </div>
-                <Separator className="my-4" />
 
                 <div className="flex flex-col gap-8">
                     {renderBasicInformation()}

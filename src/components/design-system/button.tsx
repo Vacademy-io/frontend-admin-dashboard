@@ -64,13 +64,13 @@ export const MyButton = React.forwardRef<HTMLButtonElement, MyButtonProps>(
                 myButtonVariants.scales[layoutVariant][scale],
             ];
 
-            // Add text-specific styles only for text type buttons
-            if (buttonType === 'text') {
-                classes.push(myButtonVariants.textStyles[scale]);
-            }
+        // Add text-specific styles only for text type buttons
+        if (buttonType === 'text') {
+            classes.push(myButtonVariants.textStyles[scale]);
+        }
 
-            return classes.join(' ');
-        };
+        return classes.join(' ');
+    };
 
         return (
             <Button

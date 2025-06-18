@@ -7,6 +7,8 @@ import type {
     AppState, // Expect full AppState from Excalidraw/Wrapper
 } from '././utils/types'; // Assuming types.ts
 import type { ExcalidrawElement } from '@excalidraw/excalidraw/element/types';
+import { Button } from '@/components/ui/button';
+import { Wand2 } from 'lucide-react';
 
 export interface Props {
     slide: ExcalidrawSlideData; // Expects data specific to an Excalidraw slide
@@ -17,9 +19,10 @@ export interface Props {
         appState: AppState, // Changed from Partial<AppState>
         files: ExcalidrawBinaryFiles
     ) => void;
+    onRegenerate?: (slideId: string) => void;
 }
 
-export const SlideEditor = memo(({ slide, editMode, onSlideChange }: Props) => {
+export const SlideEditor = memo(({ slide, editMode, onSlideChange, onRegenerate }: Props) => {
     const handleExcalidrawChange = (
         elements: readonly ExcalidrawElement[],
         appState: AppState, // Received full AppState from ExcalidrawWrapper
@@ -54,6 +57,18 @@ export const SlideEditor = memo(({ slide, editMode, onSlideChange }: Props) => {
                 onChange={handleExcalidrawChange}
                 editMode={editMode}
             />
+            {editMode && onRegenerate && (
+                <div style={{ position: 'absolute', bottom: '20px', right: '20px', zIndex: 10 }}>
+                    <Button
+                        onClick={() => onRegenerate(slide.id)}
+                        className="bg-purple-600 text-white hover:bg-purple-700 shadow-lg"
+                        size="sm"
+                    >
+                        <Wand2 className="mr-2 h-4 w-4" />
+                        Regenerate with AI
+                    </Button>
+                </div>
+            )}
         </div>
     );
 });

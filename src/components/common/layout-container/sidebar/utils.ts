@@ -6,9 +6,12 @@ import {
     Globe,
     FileMagnifyingGlass,
     HeadCircuit,
+    MonitorPlay,
 } from '@phosphor-icons/react';
 import { SidebarItemsType } from '../../../../types/layout-container/layout-container-types';
-import { Chats, NotePencil, UsersFour } from 'phosphor-react';
+import { NotePencil, UsersFour } from 'phosphor-react';
+import { getInstituteId } from '@/constants/helper';
+import { HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
 
 export const SidebarItemsData: SidebarItemsType[] = [
     {
@@ -38,24 +41,34 @@ export const SidebarItemsData: SidebarItemsType[] = [
     },
     {
         icon: Users,
-        title: 'Manage Learner',
+        title: `Manage ${getInstituteId() === HOLISTIC_INSTITUTE_ID ? 'Members' : 'Learner'}`,
         id: 'student-mangement',
         subItems: [
             {
-                subItem: 'Learner list',
+                subItem: `${getInstituteId() === HOLISTIC_INSTITUTE_ID ? 'Member' : 'Learner'} list`,
                 subItemLink: '/manage-students/students-list',
             },
-            {
-                subItem: 'Enroll Requests',
-                subItemLink: '/manage-students/enroll-requests',
-            },
-            {
-                subItem: 'Invite',
-                subItemLink: '/manage-students/invite',
-            },
+            ...(getInstituteId() !== HOLISTIC_INSTITUTE_ID
+                ? [
+                      {
+                          subItem: 'Enroll Requests',
+                          subItemLink: '/manage-students/enroll-requests',
+                      },
+                      {
+                          subItem: 'Invite',
+                          subItemLink: '/manage-students/invite',
+                      },
+                  ]
+                : []),
         ],
     },
-
+    {
+        icon: MonitorPlay,
+        title: 'Live Classes',
+        id: 'live-classes',
+        to: '/study-library/live-session',
+        showForInstitute: HOLISTIC_INSTITUTE_ID,
+    },
     {
         icon: BookOpen,
         title: 'Learning Center',
@@ -74,8 +87,8 @@ export const SidebarItemsData: SidebarItemsType[] = [
                 subItemLink: '/study-library/reports',
             },
             {
-                subItem: 'Presentation',
-                subItemLink: '/study-library/present',
+                subItem: 'Volt',
+                subItemLink: '/study-library/volt',
             },
             {
                 subItem: 'Doubt Management',
