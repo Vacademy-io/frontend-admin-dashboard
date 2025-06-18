@@ -38,7 +38,16 @@ const levelDetailsSchema = z.object({
         .number()
         .int()
         .min(0, { message: 'Duration must be a non-negative integer.' }),
-    subjects: z.array(z.string()).optional(), // Subjects can be an empty array
+    subjects: z.array(z.object({
+        id: z.string(),
+        subject_name: z.string(),
+        subject_code: z.string(),
+        credit: z.number(),
+        thumbnail_id: z.string().nullable(),
+        created_at: z.string().nullable(),
+        updated_at: z.string().nullable(),
+        modules: z.array(z.any()).optional(),
+    })).optional(), // Changed to support SubjectType structure
 });
 
 // Define the schema for session details
@@ -174,6 +183,18 @@ interface CourseWithSessionsType {
     }>;
 }
 
+// Helper function to create a default subject for course structure 4
+const createDefaultSubject = (): SubjectType => ({
+    id: 'DEFAULT',
+    subject_name: 'DEFAULT',
+    subject_code: 'DEFAULT',
+    credit: 0,
+    thumbnail_id: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    modules: [],
+});
+
 export const transformApiDataToCourseData = async (apiData: CourseWithSessionsType) => {
     if (!apiData) return null;
 
@@ -213,21 +234,31 @@ export const transformApiDataToCourseData = async (apiData: CourseWithSessionsTy
             courseHtmlDescription: apiData.course.course_html_description,
             instructors: [], // This should be populated from your API if available
             sessions: apiData.sessions.map((session) => ({
-                levelDetails: session.level_with_details.map((level) => ({
-                    id: level.id,
-                    name: level.name,
-                    duration_in_days: level.duration_in_days,
-                    subjects: level.subjects.map((subject) => ({
-                        id: subject.id,
-                        subject_name: subject.subject_name,
-                        subject_code: subject.subject_code,
-                        credit: subject.credit,
-                        thumbnail_id: subject.thumbnail_id,
-                        created_at: subject.created_at,
-                        updated_at: subject.updated_at,
-                        modules: [],
-                    })),
-                })),
+                levelDetails: session.level_with_details.map((level) => {
+                    // For course structure 4, add a default subject if no subjects exist
+                    let subjects = level.subjects;
+                    if (apiData.course.course_depth === 4) {
+                        if (!subjects || subjects.length === 0) {
+                            subjects = [createDefaultSubject()];
+                        }
+                    }
+
+                    return {
+                        id: level.id,
+                        name: level.name,
+                        duration_in_days: level.duration_in_days,
+                        subjects: subjects.map((subject) => ({
+                            id: subject.id,
+                            subject_name: subject.subject_name,
+                            subject_code: subject.subject_code,
+                            credit: subject.credit,
+                            thumbnail_id: subject.thumbnail_id,
+                            created_at: subject.created_at,
+                            updated_at: subject.updated_at,
+                            modules: [],
+                        })),
+                    };
+                }),
                 sessionDetails: {
                     id: session.session_dto.id,
                     session_name: session.session_dto.session_name,

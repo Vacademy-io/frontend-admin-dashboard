@@ -7,7 +7,15 @@ export const useAddModule = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async ({ subjectId, module }: { subjectId: string; module: Module }) => {
+        mutationFn: async ({
+            subjectId,
+            packageSessionIds,
+            module,
+        }: {
+            subjectId: string;
+            packageSessionIds: string;
+            module: Module;
+        }) => {
             const payload = {
                 id: module.id,
                 module_name: module.module_name,
@@ -16,7 +24,10 @@ export const useAddModule = () => {
                 thumbnail_id: module.thumbnail_id,
             };
 
-            return authenticatedAxiosInstance.post(`${ADD_MODULE}?subjectId=${subjectId}`, payload);
+            return authenticatedAxiosInstance.post(
+                `${ADD_MODULE}?subjectId=${subjectId}&commaSeparatedPackageSessionIds=${packageSessionIds}`,
+                payload
+            );
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['GET_MODULES_WITH_CHAPTERS'] });
