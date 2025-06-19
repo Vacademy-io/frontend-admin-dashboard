@@ -56,6 +56,9 @@ import {
     ChapterWithSlides,
 } from '../../-services/getAllSlides';
 import { useQueries } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
+import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
+import { GET_SLIDES } from '@/constants/urls';
 
 type DialogType = 'subject' | 'module' | 'chapter' | 'slide' | null;
 
@@ -1831,13 +1834,22 @@ export const CourseDetailsPage = () => {
 
         switch (selectedCourse.level) {
             case 2:
-                // Only slides, flat structure
+                // Only slides, flat structure, use getSlidesQuery for courseStructure 2
+                if (getSlidesQuery.isLoading) {
+                    return <div className="p-4">Loading slides...</div>;
+                }
+                if (getSlidesQuery.error) {
+                    return <div className="p-4 text-red-500">Error loading slides.</div>;
+                }
+                const slides = getSlidesQuery.data || [];
                 return (
                     <div className="rounded-lg border p-4">
                         {renderTreeItem('Add Slide', 'add|slide', false, 0, true)}
-                        {(selectedCourse.structure.items as SlideType[]).map((slide) => (
+                        {slides.map((slide: any) => (
                             <div key={slide.id}>
-                                {renderTreeItem(slide.name, slide.id, false, 0, false, 'slide')}
+                                {renderTreeItem(slide.title, slide.id, false, 0, false, 'slide', {
+                                    chapterId: 'DEFAULT',
+                                })}
                             </div>
                         ))}
                     </div>
@@ -2280,6 +2292,20 @@ export const CourseDetailsPage = () => {
             );
         }
     }, [chapterQueries[0]?.data, selectedSession, selectedLevel, formResetKey]);
+
+    // For courseStructure 2, fetch slides for chapterId 'DEFAULT' using useQuery directly
+    const courseStructure = form.getValues('courseData').courseStructure;
+    const getSlidesQuery = useQuery({
+        queryKey: ['slides', 'DEFAULT'],
+        queryFn: async () => {
+            const response = await authenticatedAxiosInstance.get(
+                `${GET_SLIDES}?chapterId=DEFAULT`
+            );
+            return response.data;
+        },
+        enabled: courseStructure === 2,
+        staleTime: 3600000,
+    });
 
     return (
         <div className="flex min-h-screen flex-col bg-white">
