@@ -1,8 +1,8 @@
-import { MyButton } from "@/components/design-system/button";
-import { MyDialog } from "@/components/design-system/dialog";
-import { ReactNode, useRef, useState } from "react";
-import { Plus } from "phosphor-react";
-import { AddLevelData, AddLevelForm } from "./add-level-form";
+import { MyButton } from '@/components/design-system/button';
+import { MyDialog } from '@/components/design-system/dialog';
+import { ReactNode, useRef, useState } from 'react';
+import { Plus } from 'phosphor-react';
+import { AddLevelData, AddLevelForm } from './add-level-form';
 
 const triggerButton = (
     <MyButton buttonType="primary" scale="large" layoutVariant="default" id="assign-year">
@@ -62,20 +62,20 @@ export const AddLevelButton = ({ onSubmit, trigger, packageId }: AddLevelButtonP
             footer={levelSubmitButton}
             className="z-[99999]"
         >
-            {packageId ?
+            {packageId ? (
                 <AddLevelForm
                     onSubmitSuccess={onSubmit}
                     setOpenDialog={setOpenDialog}
                     submitForm={submitFormFn}
                     packageId={packageId}
                 />
-                :
+            ) : (
                 <AddLevelForm
                     onSubmitSuccess={onSubmit}
                     setOpenDialog={setOpenDialog}
                     submitForm={submitFormFn}
                 />
-            }
+            )}
         </MyDialog>
     );
 };

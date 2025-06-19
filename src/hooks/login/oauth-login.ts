@@ -1,6 +1,6 @@
+import { verifyEmailWithOtp } from '@/components/common/LoginPages/VerifyEmailWithOtp';
 import { toast } from 'sonner';
 
-import { verifyEmailWithOtp } from '@/components/common/LoginPages/verifyEmailWithOtp';
 export type OAuthProvider = 'google' | 'github';
 interface OAuthLoginOptions {
     isSignup?: boolean;
@@ -52,7 +52,7 @@ export const handleOAuthCallback = async () => {
 
             if (isInvalidEmail) {
                 const verified = await verifyEmailWithOtp();
-                
+
                 if (verified) {
                     return {
                         success: true,

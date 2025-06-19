@@ -10,8 +10,6 @@ import { StudentTable } from '@/types/student-table-types';
 import { useEffect, useRef, useState } from 'react';
 import { FormSubmitButtons } from './form-components/form-submit-buttons';
 import { useStudentCredentails } from '@/services/student-list-section/getStudentCredentails';
-import { useEnrollStudent } from '@/hooks/student-list-section/enroll-student-manually/useEnrollStudent';
-import { useReEnrollStudent } from '@/hooks/student-list-section/enroll-student-manually/useReEnrollStudent';
 
 interface EnrollManuallyButtonProps {
     triggerButton?: JSX.Element;
@@ -65,7 +63,6 @@ export const EnrollManuallyButton = ({
     });
 
     const isReEnroll = !!initialValues;
-    const enrollStudentMutation = isReEnroll ? useReEnrollStudent() : useEnrollStudent();
 
     const renderFooter = () => {
         switch (currentStep) {
@@ -134,7 +131,6 @@ export const EnrollManuallyButton = ({
                         credentials={credentials}
                         isLoadingCreds={isLoadingCreds}
                         isReEnroll={isReEnroll}
-                        enrollStudentMutation={enrollStudentMutation}
                     />
                 );
             default:

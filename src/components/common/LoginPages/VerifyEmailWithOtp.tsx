@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { MyDialog } from '@/components/design-system/dialog';
-import { MyInput } from '@/components/design-system/input';
 import { MyButton } from '@/components/design-system/button';
 import { toast } from 'sonner';
 import axios from 'axios';
@@ -76,8 +75,7 @@ export async function verifyEmailWithOtp(): Promise<boolean> {
                     setOpen(false);
                     resolve(true);
                     cleanup();
-                } catch (error) {
-                    
+                } catch {
                     toast.error('Invalid OTP or verification failed');
                 } finally {
                     setLoading(false);
@@ -141,32 +139,30 @@ export async function verifyEmailWithOtp(): Promise<boolean> {
                     <div className="space-y-4 p-6 text-center">
                         {step === 'email' ? (
                             <div className="flex items-end gap-3">
-                                <div>
-                                    <MyInput
-                                        inputType="email"
-                                        inputPlaceholder="you@example.com"
-                                        label="Email"
-                                        required
-                                        size="large"
+                                <div className="w-full text-left">
+                                    <label
+                                        htmlFor="email-input"
+                                        className="mb-1 block font-medium text-gray-700 dark:text-white"
+                                    >
+                                        Email
+                                    </label>
+                                    <input
+                                        type="email"
+                                        id="email-input"
                                         value={localEmail}
                                         onChange={(e) => setLocalEmail(e.target.value)}
-                                        disabled={loading}
-                                        error={false}
-                                        helperText=""
-                                        name="email"
-                                        id="email-input"
+                                        placeholder="you@example.com"
+                                        required
                                         autoFocus
-                                        labelStyle="text-left"
+                                        disabled={loading}
+                                        className="w-full rounded border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                                     />
                                 </div>
                                 <div>
                                     <button
                                         onClick={sendOtp}
                                         disabled={loading || !localEmail}
-                                        className={`h-10 min-w-20 self-end rounded bg-primary-500 p-0 text-subtitle
-              text-xs font-semibold text-neutral-50 transition-colors
-
-              hover:bg-primary-400 active:bg-primary-400 disabled:cursor-not-allowed disabled:bg-primary-300`}
+                                        className={`h-10 min-w-20 self-end rounded bg-primary-500 p-0 text-subtitle text-xs font-semibold text-neutral-50 transition-colors hover:bg-primary-400 active:bg-primary-400 disabled:cursor-not-allowed disabled:bg-primary-300`}
                                     >
                                         {loading ? 'Sending...' : 'Send OTP'}
                                     </button>
@@ -208,9 +204,7 @@ export async function verifyEmailWithOtp(): Promise<boolean> {
                                     scale="large"
                                     onClick={verifyOtp}
                                     disabled={loading}
-                                    loading={loading}
                                     className="w-full"
-                                    icon={undefined}
                                 >
                                     {loading ? 'Verifying...' : 'Verify OTP'}
                                 </MyButton>

@@ -32,7 +32,6 @@ export const StepFiveForm = ({
     credentials?: StudentCredentialsType | null;
     isLoadingCreds?: boolean;
     isReEnroll?: boolean;
-    reEnrollStudentMutation?: ReturnType<typeof useEnrollStudent>; // Reuse type for simplicity
 }) => {
     const [showCredentials, setShowCredentials] = useState(false);
     const {
@@ -112,10 +111,7 @@ export const StepFiveForm = ({
 
         try {
             const mutationToUse = isReEnroll ? reEnrollStudentMutation : enrollStudentMutation;
-            console.log('isReEnroll', isReEnroll);
-            console.log('reEnrollStudentMutation', reEnrollStudentMutation);
-            console.log('EnrollStudentMutation', enrollStudentMutation);
-            console.log(mutationToUse);
+
             if (!mutationToUse || !mutationToUse.mutateAsync) {
                 toast.error('Mutation function is missing or not initialized properly.');
                 return;
