@@ -1493,11 +1493,11 @@ export const CourseDetailsPage = () => {
                         moduleId = '',
                         chapterId = '';
 
-                    if (selectedCourse.level === 5) {
+                    if (selectedCourse?.level === 5) {
                         [subjectId = '', moduleId = '', chapterId = ''] = parts;
-                    } else if (selectedCourse.level === 4) {
+                    } else if (selectedCourse?.level === 4) {
                         [moduleId = '', chapterId = ''] = parts;
-                    } else if (selectedCourse.level === 3) {
+                    } else if (selectedCourse?.level === 3) {
                         [chapterId = ''] = parts;
                     }
 
@@ -1838,7 +1838,9 @@ export const CourseDetailsPage = () => {
             moduleId = '',
             chapterId = '';
 
-        if (selectedCourse?.level === 5) {
+        if (selectedCourse?.level === 2) {
+            chapterId = 'DEFAULT';
+        } else if (selectedCourse?.level === 5) {
             // For level 5, format is: add|slide|subjectId|moduleId|chapterId
             subjectId = parts[2] || '';
             moduleId = parts[3] || '';
@@ -1880,12 +1882,21 @@ export const CourseDetailsPage = () => {
         const handleSlideClick = (e: React.MouseEvent, slideId: string) => {
             e.stopPropagation(); // Prevent event bubbling
 
+            let chapterId = parentIds?.chapterId ?? '';
+            let subjectId = parentIds?.subjectId ?? '';
+            let moduleId = parentIds?.moduleId ?? '';
+            if (selectedCourse?.level === 2) {
+                chapterId = 'DEFAULT';
+                subjectId = '';
+                moduleId = '';
+            }
+
             const navigationParams = {
                 courseId: router.state.location.search.courseId ?? '',
                 levelId: selectedLevel,
-                subjectId: parentIds?.subjectId ?? '',
-                moduleId: parentIds?.moduleId ?? '',
-                chapterId: parentIds?.chapterId ?? '',
+                subjectId,
+                moduleId,
+                chapterId,
                 slideId,
                 sessionId: selectedSession,
             };
@@ -1899,12 +1910,21 @@ export const CourseDetailsPage = () => {
         const handleExportClick = (e: React.MouseEvent, slideId: string) => {
             e.stopPropagation(); // Prevent event bubbling
 
+            let chapterId = parentIds?.chapterId ?? '';
+            let subjectId = parentIds?.subjectId ?? '';
+            let moduleId = parentIds?.moduleId ?? '';
+            if (selectedCourse?.level === 2) {
+                chapterId = 'DEFAULT';
+                subjectId = '';
+                moduleId = '';
+            }
+
             const navigationParams = {
                 courseId: router.state.location.search.courseId ?? '',
                 levelId: selectedLevel,
-                subjectId: parentIds?.subjectId ?? '',
-                moduleId: parentIds?.moduleId ?? '',
-                chapterId: parentIds?.chapterId ?? '',
+                subjectId,
+                moduleId,
+                chapterId,
                 slideId,
                 sessionId: selectedSession,
             };
