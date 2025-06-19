@@ -250,6 +250,7 @@ export const CourseDetailsPage = () => {
     const [isAddingChapter, setIsAddingChapter] = useState(false);
     const [hasChaptersData, setHasChaptersData] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
+    const [formResetKey, setFormResetKey] = useState(0);
 
     // Reset refreshKey and hasChaptersData on navigation (session/level change)
     useEffect(() => {
@@ -377,7 +378,7 @@ export const CourseDetailsPage = () => {
                 return session;
             });
 
-            form.setValue('courseData.sessions', updatedSessions as any);
+            form.setValue('courseData.sessions', updatedSessions);
         }
     }, [selectedLevel, selectedSession]);
 
@@ -404,7 +405,7 @@ export const CourseDetailsPage = () => {
                                   refreshKey,
                               ],
                               enabled: !!defaultSubject.id && !!packageSessionIds,
-                              refetchOnMount: 'always',
+                              refetchOnMount: true,
                           },
                       ]
                     : [];
@@ -415,7 +416,7 @@ export const CourseDetailsPage = () => {
                 ...handleFetchModulesWithChapters(subject.id, packageSessionIds),
                 queryKey: ['GET_MODULES_WITH_CHAPTERS', subject.id, packageSessionIds, refreshKey],
                 enabled: !!subject.id && !!packageSessionIds,
-                refetchOnMount: 'always',
+                refetchOnMount: true,
             }));
         })(),
     });
@@ -434,7 +435,8 @@ export const CourseDetailsPage = () => {
                               refreshKey,
                           ],
                           enabled: !!packageSessionIds,
-                          refetchOnMount: 'always',
+                          refetchOnMount: true,
+                          refetchOnWindowFocus: true,
                       },
                   ]
                 : moduleQueries.flatMap((moduleQuery) => {
@@ -448,7 +450,8 @@ export const CourseDetailsPage = () => {
                               refreshKey,
                           ],
                           enabled: !!module.module.id && !!packageSessionIds,
-                          refetchOnMount: 'always',
+                          refetchOnMount: true,
+                          refetchOnWindowFocus: true,
                       }));
                   }),
     });
@@ -475,142 +478,117 @@ export const CourseDetailsPage = () => {
 
     useEffect(() => {
         const fetchModulesAndChapters = async () => {
-            // Removed hasChaptersData guard to always update form after navigation
-            if (currentLevel?.subjects && packageSessionIds && !isLoadingModules && !isLoading) {
+            // Add debug logs
+            console.log('chapterQueries[0]?.data:', chapterQueries[0]?.data);
+            console.log('moduleData:', moduleData);
+            console.log('currentLevel:', currentLevel);
+            console.log('selectedSession:', selectedSession);
+            console.log('selectedLevel:', selectedLevel);
+
+            // Only update if chapterQueries[0]?.data is present and non-empty
+            if (
+                currentLevel?.subjects &&
+                packageSessionIds &&
+                !isLoadingModules &&
+                !isLoading &&
+                chapterQueries[0]?.data &&
+                Array.isArray(chapterQueries[0]?.data) &&
+                chapterQueries[0]?.data.length > 0
+            ) {
                 setIsLoadingModules(true);
                 try {
                     const currentCourseStructure = form.getValues('courseData').courseStructure;
                     const subjects = currentLevel.subjects as unknown as SubjectType[];
 
-                    // For course structure 3, only process the DEFAULT subject
-                    let subjectsToProcess = subjects;
+                    // For course structure 3, only update the DEFAULT subject's DEFAULT module with chapters from chapterQueries[0].data
                     if (currentCourseStructure === 3) {
-                        const defaultSubject = subjects.find((subject) => subject.id === 'DEFAULT');
-                        subjectsToProcess = defaultSubject ? [defaultSubject] : [];
-                    }
-
-                    // Check if we have any chapters data in the current subjects
-                    // (no longer used to block the update)
-
-                    // Process the results from moduleQueries
-                    const subjectPromises = subjectsToProcess.map(async (subject, subjectIndex) => {
-                        if (!subject.id) return subject;
-
-                        const response = moduleData[subjectIndex];
-
-                        if (response) {
-                            // For each module, get its chapters from chapterQueries
-                            const modulesWithChaptersAndSlides = await Promise.all(
-                                (response as ModuleResponse[]).map(async (item, moduleIndex) => {
-                                    // Calculate the index in chapterQueries
-                                    const chapterQueryIndex =
-                                        subjectIndex * response.length + moduleIndex;
-                                    const chaptersWithSlides = chapterData[chapterQueryIndex] || [];
-
-                                    return {
-                                        id: item.module.id,
-                                        name: item.module.module_name,
-                                        description: item.module.description,
-                                        status: item.module.status,
-                                        thumbnail_id: item.module.thumbnail_id,
-                                        chapters: chaptersWithSlides.map(
-                                            (chapterWithSlides: ChapterWithSlides) => ({
-                                                id: chapterWithSlides.chapter.id,
-                                                name: chapterWithSlides.chapter.chapter_name,
-                                                status: chapterWithSlides.chapter.status,
-                                                file_id: chapterWithSlides.chapter.file_id,
-                                                description: chapterWithSlides.chapter.description,
-                                                chapter_order:
-                                                    chapterWithSlides.chapter.chapter_order,
-                                                slides: (chapterWithSlides.slides || []).map(
-                                                    (slide) => ({
-                                                        id: slide.id,
-                                                        name: slide.title,
-                                                        type: slide.source_type,
-                                                        description: slide.description || '',
-                                                        status: slide.status || '',
-                                                        order: slide.slide_order || 0,
-                                                        videoSlide: slide.video_slide || null,
-                                                        documentSlide: slide.document_slide || null,
-                                                        questionSlide: slide.question_slide || null,
-                                                        assignmentSlide:
-                                                            slide.assignment_slide || null,
-                                                    })
-                                                ),
-                                                isOpen: false,
-                                            })
-                                        ),
-                                        isOpen: false,
-                                    };
-                                })
-                            );
-
-                            // Update the subject with the modules
-                            return {
-                                ...subject,
-                                modules: modulesWithChaptersAndSlides,
-                            };
-                        }
-                        return subject;
-                    });
-
-                    const updatedSubjects = await Promise.all(subjectPromises);
-
-                    // For course structure 3, only update the DEFAULT subject, preserve other subjects
-                    let finalSubjects = subjects;
-                    if (currentCourseStructure === 3) {
-                        // Only update the DEFAULT subject's DEFAULT module with chapters from chapterQueries[0].data
                         const chaptersWithSlides = chapterQueries[0]?.data || [];
-                        finalSubjects = subjects.map((subject) => {
-                            if (subject.id === 'DEFAULT') {
+                        // Only update the chapters for the DEFAULT module in the DEFAULT subject for the selected session and level
+                        const updatedSessions = form
+                            .getValues('courseData')
+                            .sessions.map((session) => {
+                                if (session.sessionDetails.id !== selectedSession) return session;
                                 return {
-                                    ...subject,
-                                    modules: [
-                                        {
-                                            id: 'DEFAULT',
-                                            name: 'DEFAULT',
-                                            description: 'DEFAULT',
-                                            status: 'DEFAULT',
-                                            thumbnail_id: 'DEFAULT',
-                                            chapters: chaptersWithSlides.map(
-                                                (chapterWithSlides: ChapterWithSlides) => ({
-                                                    id: chapterWithSlides.chapter.id,
-                                                    name: chapterWithSlides.chapter.chapter_name,
-                                                    status: chapterWithSlides.chapter.status,
-                                                    file_id: chapterWithSlides.chapter.file_id,
-                                                    description:
-                                                        chapterWithSlides.chapter.description,
-                                                    chapter_order:
-                                                        chapterWithSlides.chapter.chapter_order,
-                                                    slides: (chapterWithSlides.slides || []).map(
-                                                        (slide) => ({
-                                                            id: slide.id,
-                                                            name: slide.title,
-                                                            type: slide.source_type,
-                                                            description: slide.description || '',
-                                                            status: slide.status || '',
-                                                            order: slide.slide_order || 0,
-                                                            videoSlide: slide.video_slide || null,
-                                                            documentSlide:
-                                                                slide.document_slide || null,
-                                                            questionSlide:
-                                                                slide.question_slide || null,
-                                                            assignmentSlide:
-                                                                slide.assignment_slide || null,
-                                                        })
+                                    ...session,
+                                    levelDetails: session.levelDetails.map((level) => {
+                                        if (level.id !== selectedLevel) return level;
+                                        return {
+                                            ...level,
+                                            subjects: (level.subjects || []).map((subject) => {
+                                                if (subject.id !== 'DEFAULT') return subject;
+                                                return {
+                                                    ...subject,
+                                                    modules: (subject.modules || []).map(
+                                                        (module) => {
+                                                            if (module.id !== 'DEFAULT')
+                                                                return module;
+                                                            return {
+                                                                ...module,
+                                                                chapters: chaptersWithSlides.map(
+                                                                    (
+                                                                        chapterWithSlides: ChapterWithSlides
+                                                                    ) => ({
+                                                                        id: chapterWithSlides
+                                                                            .chapter.id,
+                                                                        name: chapterWithSlides
+                                                                            .chapter.chapter_name,
+                                                                        status: chapterWithSlides
+                                                                            .chapter.status,
+                                                                        file_id:
+                                                                            chapterWithSlides
+                                                                                .chapter.file_id,
+                                                                        description:
+                                                                            chapterWithSlides
+                                                                                .chapter
+                                                                                .description,
+                                                                        chapter_order:
+                                                                            chapterWithSlides
+                                                                                .chapter
+                                                                                .chapter_order,
+                                                                        slides: (
+                                                                            chapterWithSlides.slides ||
+                                                                            []
+                                                                        ).map((slide) => ({
+                                                                            id: slide.id,
+                                                                            name: slide.title,
+                                                                            type: slide.source_type,
+                                                                            description:
+                                                                                slide.description ||
+                                                                                '',
+                                                                            status:
+                                                                                slide.status || '',
+                                                                            order:
+                                                                                slide.slide_order ||
+                                                                                0,
+                                                                            videoSlide:
+                                                                                slide.video_slide ||
+                                                                                null,
+                                                                            documentSlide:
+                                                                                slide.document_slide ||
+                                                                                null,
+                                                                            questionSlide:
+                                                                                slide.question_slide ||
+                                                                                null,
+                                                                            assignmentSlide:
+                                                                                slide.assignment_slide ||
+                                                                                null,
+                                                                        })),
+                                                                        isOpen: false,
+                                                                    })
+                                                                ),
+                                                            };
+                                                        }
                                                     ),
-                                                    isOpen: false,
-                                                })
-                                            ),
-                                            isOpen: false,
-                                        },
-                                    ],
+                                                };
+                                            }),
+                                        };
+                                    }),
                                 };
-                            }
-                            return subject;
-                        });
+                            });
+                        form.setValue('courseData.sessions', updatedSessions);
                     } else {
                         finalSubjects = updatedSubjects;
+                        // ... existing code ...
                     }
 
                     // Update the form with new subjects
@@ -698,6 +676,69 @@ export const CourseDetailsPage = () => {
                             });
                             form.setValue('mockCourses', updatedMockCourses as any);
                         }
+                    }
+
+                    // Replace the code that sets chapters for the selected session/level/module with a merge update
+                    if (
+                        chapterQueries[0]?.data &&
+                        Array.isArray(chapterQueries[0]?.data) &&
+                        chapterQueries[0]?.data.length > 0
+                    ) {
+                        const mappedChapters = chapterQueries[0].data.map((item: any) => ({
+                            id: item.chapter.id,
+                            name: item.chapter.chapter_name,
+                            status: item.chapter.status,
+                            file_id: item.chapter.file_id,
+                            description: item.chapter.description,
+                            chapter_order: item.chapter.chapter_order,
+                            slides: Array.isArray(item.slides)
+                                ? item.slides.map((slide: any) => ({
+                                      id: slide.id,
+                                      name: slide.title,
+                                      type: slide.source_type,
+                                      description: slide.description || '',
+                                      status: slide.status || '',
+                                      order: slide.slide_order || 0,
+                                      videoSlide: slide.video_slide || null,
+                                      documentSlide: slide.document_slide || null,
+                                      questionSlide: slide.question_slide || null,
+                                      assignmentSlide: slide.assignment_slide || null,
+                                  }))
+                                : [],
+                            isOpen: false,
+                        }));
+                        // Merge chapters into the correct session/level/subject/module
+                        const sessions = form.getValues('courseData').sessions;
+                        const updatedSessions = sessions.map((session) => {
+                            if (session.sessionDetails.id !== selectedSession) return session;
+                            return {
+                                ...session,
+                                levelDetails: session.levelDetails.map((level) => {
+                                    if (level.id !== selectedLevel) return level;
+                                    return {
+                                        ...level,
+                                        subjects: (level.subjects || []).map((subject) => {
+                                            if (subject.id !== 'DEFAULT') return subject;
+                                            return {
+                                                ...subject,
+                                                modules: (subject.modules || []).map((module) => {
+                                                    if (module.id !== 'DEFAULT') return module;
+                                                    return {
+                                                        ...module,
+                                                        chapters: mappedChapters,
+                                                    };
+                                                }),
+                                            };
+                                        }),
+                                    };
+                                }),
+                            };
+                        });
+                        form.setValue('courseData.sessions', updatedSessions);
+                        console.log(
+                            'After merged set, form value:',
+                            form.getValues('courseData').sessions
+                        );
                     }
                 } catch (error) {
                     console.error('Error fetching modules and chapters:', error);
@@ -1523,6 +1564,29 @@ export const CourseDetailsPage = () => {
                             };
                             updateSelectedCourseAndForm(updatedCourse);
                         }
+                        // After adding the slide, refetch chapters-with-slides and update form state
+                        if (selectedCourse.level === 5 && moduleId) {
+                            const chapterQuery = handleFetchChaptersWithSlides(
+                                moduleId,
+                                packageSessionIds
+                            );
+                            const chapterResponse = await chapterQuery.queryFn();
+                            // Optionally, update the form state here if needed
+                        } else if (selectedCourse.level === 4 && moduleId) {
+                            const chapterQuery = handleFetchChaptersWithSlides(
+                                moduleId,
+                                packageSessionIds
+                            );
+                            const chapterResponse = await chapterQuery.queryFn();
+                            // Optionally, update the form state here if needed
+                        } else if (selectedCourse.level === 3) {
+                            const chapterQuery = handleFetchChaptersWithSlides(
+                                'DEFAULT',
+                                packageSessionIds
+                            );
+                            const chapterResponse = await chapterQuery.queryFn();
+                            // Optionally, update the form state here if needed
+                        }
                     } catch (error) {
                         console.error('Error fetching updated chapter data:', error);
                     }
@@ -2017,197 +2081,6 @@ export const CourseDetailsPage = () => {
         }
     }, [sessionOptions]);
 
-    // Manual trigger to add DEFAULT modules (for testing)
-    const addDefaultModules = () => {
-        const courseStructure = form.getValues('courseData').courseStructure;
-        if (courseStructure === 3) {
-            const sessions = form.getValues('courseData').sessions;
-            let hasChanges = false;
-
-            const updatedSessions = sessions.map((session) => {
-                const updatedLevelDetails = session.levelDetails.map((level) => {
-                    // Check if this level needs DEFAULT subject and module
-                    const hasDefaultSubject = level.subjects?.some(
-                        (subject) => subject.id === 'DEFAULT'
-                    );
-                    if (!hasDefaultSubject) {
-                        hasChanges = true;
-                        return {
-                            ...level,
-                            subjects: [
-                                ...(level.subjects || []),
-                                {
-                                    id: 'DEFAULT',
-                                    subject_name: 'DEFAULT',
-                                    subject_code: 'DEFAULT',
-                                    credit: 0,
-                                    thumbnail_id: null,
-                                    created_at: new Date().toISOString(),
-                                    updated_at: new Date().toISOString(),
-                                    modules: [
-                                        {
-                                            id: 'DEFAULT',
-                                            name: 'DEFAULT',
-                                            description: 'DEFAULT',
-                                            status: 'DEFAULT',
-                                            thumbnail_id: 'DEFAULT',
-                                            chapters: [],
-                                            isOpen: false,
-                                        } as ModuleType,
-                                    ],
-                                } as SubjectType,
-                            ],
-                        };
-                    } else {
-                        // Check if DEFAULT subject has DEFAULT module
-                        const defaultSubject = level.subjects?.find(
-                            (subject) => subject.id === 'DEFAULT'
-                        );
-                        const hasDefaultModule = defaultSubject?.modules?.some(
-                            (module) => module.id === 'DEFAULT'
-                        );
-                        if (!hasDefaultModule) {
-                            hasChanges = true;
-                            const updatedSubjects =
-                                level.subjects?.map((subject) => {
-                                    if (subject.id === 'DEFAULT') {
-                                        return {
-                                            ...subject,
-                                            modules: [
-                                                ...(subject.modules || []),
-                                                {
-                                                    id: 'DEFAULT',
-                                                    name: 'DEFAULT',
-                                                    description: 'DEFAULT',
-                                                    status: 'DEFAULT',
-                                                    thumbnail_id: 'DEFAULT',
-                                                    chapters: [],
-                                                    isOpen: false,
-                                                } as ModuleType,
-                                            ],
-                                        };
-                                    }
-                                    return subject;
-                                }) || [];
-                            return {
-                                ...level,
-                                subjects: updatedSubjects,
-                            };
-                        }
-                    }
-                    return level;
-                });
-
-                return {
-                    ...session,
-                    levelDetails: updatedLevelDetails,
-                };
-            });
-
-            if (hasChanges) {
-                console.log('Manually adding DEFAULT modules to course structure 3');
-                form.setValue('courseData.sessions', updatedSessions as any);
-                console.log('Updated sessions:', updatedSessions);
-            } else {
-                console.log('No changes needed - DEFAULT modules already exist');
-            }
-        }
-    };
-
-    // Force DEFAULT module addition on component mount for course structure 3
-    useEffect(() => {
-        const courseStructure = form.getValues('courseData').courseStructure;
-        if (courseStructure === 3) {
-            const sessions = form.getValues('courseData').sessions;
-            let hasChanges = false;
-
-            const updatedSessions = sessions.map((session) => {
-                const updatedLevelDetails = session.levelDetails.map((level) => {
-                    // Check if this level needs DEFAULT subject and module
-                    const hasDefaultSubject = level.subjects?.some(
-                        (subject) => subject.id === 'DEFAULT'
-                    );
-                    if (!hasDefaultSubject) {
-                        hasChanges = true;
-                        return {
-                            ...level,
-                            subjects: [
-                                ...(level.subjects || []),
-                                {
-                                    id: 'DEFAULT',
-                                    subject_name: 'DEFAULT',
-                                    subject_code: 'DEFAULT',
-                                    credit: 0,
-                                    thumbnail_id: null,
-                                    created_at: new Date().toISOString(),
-                                    updated_at: new Date().toISOString(),
-                                    modules: [
-                                        {
-                                            id: 'DEFAULT',
-                                            name: 'DEFAULT',
-                                            description: 'DEFAULT',
-                                            status: 'DEFAULT',
-                                            thumbnail_id: 'DEFAULT',
-                                            chapters: [],
-                                            isOpen: false,
-                                        } as ModuleType,
-                                    ],
-                                } as SubjectType,
-                            ],
-                        };
-                    } else {
-                        // Check if DEFAULT subject has DEFAULT module
-                        const defaultSubject = level.subjects?.find(
-                            (subject) => subject.id === 'DEFAULT'
-                        );
-                        const hasDefaultModule = defaultSubject?.modules?.some(
-                            (module) => module.id === 'DEFAULT'
-                        );
-                        if (!hasDefaultModule) {
-                            hasChanges = true;
-                            const updatedSubjects =
-                                level.subjects?.map((subject) => {
-                                    if (subject.id === 'DEFAULT') {
-                                        return {
-                                            ...subject,
-                                            modules: [
-                                                ...(subject.modules || []),
-                                                {
-                                                    id: 'DEFAULT',
-                                                    name: 'DEFAULT',
-                                                    description: 'DEFAULT',
-                                                    status: 'DEFAULT',
-                                                    thumbnail_id: 'DEFAULT',
-                                                    chapters: [],
-                                                    isOpen: false,
-                                                } as ModuleType,
-                                            ],
-                                        };
-                                    }
-                                    return subject;
-                                }) || [];
-                            return {
-                                ...level,
-                                subjects: updatedSubjects,
-                            };
-                        }
-                    }
-                    return level;
-                });
-
-                return {
-                    ...session,
-                    levelDetails: updatedLevelDetails,
-                };
-            });
-
-            if (hasChanges) {
-                console.log('Adding DEFAULT modules to course structure 3');
-                form.setValue('courseData.sessions', updatedSessions as any);
-            }
-        }
-    }, [form.watch('courseData.sessions'), form.watch('courseData.courseStructure')]); // Run when sessions or course structure changes
-
     useEffect(() => {
         const loadCourseData = async () => {
             if (courseDetailsData?.course) {
@@ -2228,7 +2101,185 @@ export const CourseDetailsPage = () => {
         loadCourseData();
     }, [courseDetailsData]);
 
+    useEffect(() => {
+        const courseStructure = form.getValues('courseData').courseStructure;
+        if (courseStructure === 3) {
+            const sessions = form.getValues('courseData').sessions;
+            let hasChanges = false;
+
+            const updatedSessions = sessions.map((session) => {
+                const updatedLevelDetails = session.levelDetails.map((level) => {
+                    // Check if this level needs DEFAULT subject
+                    const defaultSubject = (level.subjects || []).find(
+                        (subject) => subject.id === 'DEFAULT'
+                    );
+                    if (!defaultSubject) {
+                        hasChanges = true;
+                        return {
+                            ...level,
+                            subjects: [
+                                ...(level.subjects || []),
+                                {
+                                    id: 'DEFAULT',
+                                    subject_name: 'DEFAULT',
+                                    subject_code: 'DEFAULT',
+                                    credit: 0,
+                                    thumbnail_id: null,
+                                    created_at: new Date().toISOString(),
+                                    updated_at: new Date().toISOString(),
+                                    modules: [
+                                        {
+                                            id: 'DEFAULT',
+                                            name: 'DEFAULT',
+                                            description: 'DEFAULT',
+                                            status: 'DEFAULT',
+                                            thumbnail_id: 'DEFAULT',
+                                            chapters: [],
+                                            isOpen: false,
+                                        },
+                                    ],
+                                },
+                            ],
+                        };
+                    } else {
+                        // DEFAULT subject exists, check for DEFAULT module
+                        const defaultModule = (defaultSubject.modules || []).find(
+                            (module) => module.id === 'DEFAULT'
+                        );
+                        if (!defaultModule) {
+                            hasChanges = true;
+                            const updatedSubjects = (level.subjects || []).map((subject) => {
+                                if (subject.id === 'DEFAULT') {
+                                    return {
+                                        ...subject,
+                                        modules: [
+                                            ...(subject.modules || []),
+                                            {
+                                                id: 'DEFAULT',
+                                                name: 'DEFAULT',
+                                                description: 'DEFAULT',
+                                                status: 'DEFAULT',
+                                                thumbnail_id: 'DEFAULT',
+                                                chapters: [],
+                                                isOpen: false,
+                                            },
+                                        ],
+                                    };
+                                }
+                                return subject;
+                            });
+                            return {
+                                ...level,
+                                subjects: updatedSubjects,
+                            };
+                        }
+                    }
+                    // If both DEFAULT subject and module exist, do nothing
+                    return level;
+                });
+
+                return {
+                    ...session,
+                    levelDetails: updatedLevelDetails,
+                };
+            });
+
+            if (hasChanges) {
+                console.log('Adding DEFAULT modules to course structure 3');
+                form.setValue('courseData.sessions', updatedSessions);
+            }
+        }
+    }, [form.watch('courseData.sessions'), form.watch('courseData.courseStructure')]);
+
+    useEffect(() => {
+        console.log(
+            'SESSIONS CHANGED:',
+            JSON.stringify(form.getValues('courseData').sessions, null, 2)
+        );
+    }, [form.watch('courseData.sessions')]);
+
     console.log(form.getValues());
+
+    // Add logs to form.reset and form.setValue
+    const originalReset = form.reset.bind(form);
+    form.reset = (...args: Parameters<typeof form.reset>) => {
+        const result = originalReset(...args);
+        setFormResetKey((k) => k + 1);
+        return result;
+    };
+    const originalSetValue = form.setValue.bind(form);
+    form.setValue = (...args: any[]) => {
+        console.log('FORM SETVALUE called with:', ...args);
+        return originalSetValue(...args);
+    };
+
+    // Add a useEffect to always merge chapters after a form.reset if chapterQueries[0]?.data is available
+    useEffect(() => {
+        // Only run if chapters data is available
+        if (
+            chapterQueries[0]?.data &&
+            Array.isArray(chapterQueries[0]?.data) &&
+            chapterQueries[0]?.data.length > 0 &&
+            selectedSession &&
+            selectedLevel
+        ) {
+            const mappedChapters = chapterQueries[0].data.map((item: ChapterWithSlides) => ({
+                id: item.chapter.id,
+                name: item.chapter.chapter_name,
+                status: item.chapter.status,
+                file_id: item.chapter.file_id,
+                description: item.chapter.description,
+                chapter_order: item.chapter.chapter_order,
+                slides: Array.isArray(item.slides)
+                    ? item.slides.map((slide: SlideType) => ({
+                          id: slide.id,
+                          name: slide.title,
+                          type: slide.source_type,
+                          description: slide.description || '',
+                          status: slide.status || '',
+                          order: slide.slide_order || 0,
+                          videoSlide: slide.video_slide || null,
+                          documentSlide: slide.document_slide || null,
+                          questionSlide: slide.question_slide || null,
+                          assignmentSlide: slide.assignment_slide || null,
+                      }))
+                    : [],
+                isOpen: false,
+            }));
+            // Merge chapters into the correct session/level/subject/module
+            const sessions = form.getValues('courseData').sessions;
+            const updatedSessions = sessions.map((session) => {
+                if (session.sessionDetails.id !== selectedSession) return session;
+                return {
+                    ...session,
+                    levelDetails: session.levelDetails.map((level) => {
+                        if (level.id !== selectedLevel) return level;
+                        return {
+                            ...level,
+                            subjects: (level.subjects || []).map((subject) => {
+                                if (subject.id !== 'DEFAULT') return subject;
+                                return {
+                                    ...subject,
+                                    modules: (subject.modules || []).map((module) => {
+                                        if (module.id !== 'DEFAULT') return module;
+                                        return {
+                                            ...module,
+                                            chapters: mappedChapters,
+                                        };
+                                    }),
+                                };
+                            }),
+                        };
+                    }),
+                };
+            });
+            form.setValue('courseData.sessions', updatedSessions);
+            console.log(
+                'After robust merge set, form value:',
+                form.getValues('courseData').sessions
+            );
+        }
+    }, [chapterQueries[0]?.data, selectedSession, selectedLevel, formResetKey]);
 
     return (
         <div className="flex min-h-screen flex-col bg-white">
@@ -2366,19 +2417,6 @@ export const CourseDetailsPage = () => {
                                         </SelectContent>
                                     </Select>
                                 </div>
-
-                                {/* Manual trigger button for testing */}
-                                {form.getValues('courseData').courseStructure === 3 && (
-                                    <div className="flex flex-col gap-2">
-                                        <Button
-                                            onClick={addDefaultModules}
-                                            variant="outline"
-                                            size="sm"
-                                        >
-                                            Add DEFAULT Modules
-                                        </Button>
-                                    </div>
-                                )}
                             </div>
                         </div>
 
