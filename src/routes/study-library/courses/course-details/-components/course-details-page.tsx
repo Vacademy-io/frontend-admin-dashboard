@@ -248,6 +248,14 @@ export const CourseDetailsPage = () => {
     >([]);
     const [isLoadingModules, setIsLoadingModules] = useState(false);
     const [isAddingChapter, setIsAddingChapter] = useState(false);
+    const [hasChaptersData, setHasChaptersData] = useState(false);
+    const [refreshKey, setRefreshKey] = useState(0);
+
+    // Reset refreshKey and hasChaptersData on navigation (session/level change)
+    useEffect(() => {
+        setRefreshKey((k) => k + 1);
+        setHasChaptersData(false);
+    }, [selectedSession, selectedLevel]);
 
     // Get current session and level IDs
     const currentSession = form
@@ -307,6 +315,7 @@ export const CourseDetailsPage = () => {
         // Clear expanded items when level changes to prevent showing modules from previous level
         setExpandedItems({});
         setIsLoadingModules(false);
+        setHasChaptersData(false); // Reset chapters data state
     };
 
     // Handle level change - reset modules and chapters for new level
@@ -315,11 +324,26 @@ export const CourseDetailsPage = () => {
             // Clear expanded items when level changes
             setExpandedItems({});
             setIsLoadingModules(false);
+            setHasChaptersData(false); // Reset chapters data state
+
+            // Only reset if there are no chapters yet
+            const sessions = form.getValues('courseData').sessions;
+            const currentSession = sessions.find(
+                (session) => session.sessionDetails.id === selectedSession
+            );
+            const currentLevel = currentSession?.levelDetails.find(
+                (level) => level.id === selectedLevel
+            );
+            const hasChapters = currentLevel?.subjects?.some((subject) =>
+                subject.modules?.some((module) => module.chapters && module.chapters.length > 0)
+            );
+            if (hasChapters) {
+                return;
+            }
 
             // Reset the subjects' modules for the new level to ensure clean state
             // But preserve DEFAULT modules for course structure 3
             const courseStructure = form.getValues('courseData').courseStructure;
-            const sessions = form.getValues('courseData').sessions;
             const updatedSessions = sessions.map((session) => {
                 if (session.sessionDetails.id === selectedSession) {
                     return {
@@ -373,7 +397,14 @@ export const CourseDetailsPage = () => {
                                   defaultSubject.id,
                                   packageSessionIds
                               ),
+                              queryKey: [
+                                  'GET_MODULES_WITH_CHAPTERS',
+                                  defaultSubject.id,
+                                  packageSessionIds,
+                                  refreshKey,
+                              ],
                               enabled: !!defaultSubject.id && !!packageSessionIds,
+                              refetchOnMount: 'always',
                           },
                       ]
                     : [];
@@ -382,7 +413,9 @@ export const CourseDetailsPage = () => {
             // For other course structures, query all subjects
             return subjects.map((subject) => ({
                 ...handleFetchModulesWithChapters(subject.id, packageSessionIds),
+                queryKey: ['GET_MODULES_WITH_CHAPTERS', subject.id, packageSessionIds, refreshKey],
                 enabled: !!subject.id && !!packageSessionIds,
+                refetchOnMount: 'always',
             }));
         })(),
     });
@@ -394,14 +427,28 @@ export const CourseDetailsPage = () => {
                 ? [
                       {
                           ...handleFetchChaptersWithSlides('DEFAULT', packageSessionIds),
+                          queryKey: [
+                              'GET_CHAPTERS_WITH_SLIDES',
+                              'DEFAULT',
+                              packageSessionIds,
+                              refreshKey,
+                          ],
                           enabled: !!packageSessionIds,
+                          refetchOnMount: 'always',
                       },
                   ]
                 : moduleQueries.flatMap((moduleQuery) => {
                       const modules = (moduleQuery.data as ModuleResponse[]) || [];
                       return modules.map((module) => ({
                           ...handleFetchChaptersWithSlides(module.module.id, packageSessionIds),
+                          queryKey: [
+                              'GET_CHAPTERS_WITH_SLIDES',
+                              module.module.id,
+                              packageSessionIds,
+                              refreshKey,
+                          ],
                           enabled: !!module.module.id && !!packageSessionIds,
+                          refetchOnMount: 'always',
                       }));
                   }),
     });
@@ -428,6 +475,7 @@ export const CourseDetailsPage = () => {
 
     useEffect(() => {
         const fetchModulesAndChapters = async () => {
+            // Removed hasChaptersData guard to always update form after navigation
             if (currentLevel?.subjects && packageSessionIds && !isLoadingModules && !isLoading) {
                 setIsLoadingModules(true);
                 try {
@@ -440,6 +488,9 @@ export const CourseDetailsPage = () => {
                         const defaultSubject = subjects.find((subject) => subject.id === 'DEFAULT');
                         subjectsToProcess = defaultSubject ? [defaultSubject] : [];
                     }
+
+                    // Check if we have any chapters data in the current subjects
+                    // (no longer used to block the update)
 
                     // Process the results from moduleQueries
                     const subjectPromises = subjectsToProcess.map(async (subject, subjectIndex) => {
