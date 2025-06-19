@@ -59,6 +59,7 @@ import { useQueries } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 import { GET_SLIDES } from '@/constants/urls';
+import { handleGetSlideCountDetails } from '../-services/get-slides-count';
 
 type DialogType = 'subject' | 'module' | 'chapter' | 'slide' | null;
 
@@ -147,6 +148,11 @@ type ModuleResponse = {
         status: string;
         thumbnail_id: string;
     };
+};
+
+type SlideCountType = {
+    slide_count: number;
+    source_type: string;
 };
 
 const mockCourses: Course[] = [
@@ -2307,6 +2313,12 @@ export const CourseDetailsPage = () => {
         staleTime: 3600000,
     });
 
+    // Add this with other queries at the top level of the component
+    const slideCountQuery = useQuery({
+        ...handleGetSlideCountDetails(packageSessionIds),
+        enabled: !!packageSessionIds,
+    });
+
     return (
         <div className="flex min-h-screen flex-col bg-white">
             {/* Top Banner */}
@@ -2513,40 +2525,89 @@ export const CourseDetailsPage = () => {
                             <div className="space-y-4">
                                 <div className="flex items-center gap-2">
                                     <Steps size={18} />
-                                    <span>Beginner</span>
+                                    <span>
+                                        {levelOptions.find(
+                                            (option) => option.value === selectedLevel
+                                        )?.label || 'Select Level'}
+                                    </span>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <Clock size={18} />
-                                    <span> 1 hr 38 min</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <PlayCircle size={18} />
-                                    <span>11 Vidoes slides</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Code size={18} />
-                                    <span>8 Code slides</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <FilePdf size={18} />
-                                    <span>2 Pdf slides</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <FileDoc size={18} />
-                                    <span>1 Doc slide</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Question size={18} />
-                                    <span>1 Question slide</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <File size={18} />
-                                    <span>1 Assignment slide</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <ChalkboardTeacher size={18} />
-                                    <span>Satya Dillikar, Savir Dillikar</span>
-                                </div>
+                                {slideCountQuery.isLoading ? (
+                                    <div className="space-y-2">
+                                        {[1, 2, 3, 4, 5].map((i) => (
+                                            <div
+                                                key={i}
+                                                className="h-6 w-32 animate-pulse rounded bg-gray-200"
+                                            />
+                                        ))}
+                                    </div>
+                                ) : slideCountQuery.error ? (
+                                    <div className="text-sm text-red-500">
+                                        Error loading slide counts
+                                    </div>
+                                ) : (
+                                    <>
+                                        {slideCountQuery.data?.map((count: SlideCountType) => (
+                                            <div
+                                                key={count.source_type}
+                                                className="flex items-center gap-2"
+                                            >
+                                                {count.source_type === 'VIDEO' && (
+                                                    <>
+                                                        <PlayCircle size={18} />
+                                                        <span>
+                                                            {count.slide_count} Video slides
+                                                        </span>
+                                                    </>
+                                                )}
+                                                {count.source_type === 'CODE' && (
+                                                    <>
+                                                        <Code size={18} />
+                                                        <span>{count.slide_count} Code slides</span>
+                                                    </>
+                                                )}
+                                                {count.source_type === 'PDF' && (
+                                                    <>
+                                                        <FilePdf size={18} />
+                                                        <span>{count.slide_count} PDF slides</span>
+                                                    </>
+                                                )}
+                                                {count.source_type === 'DOCUMENT' && (
+                                                    <>
+                                                        <FileDoc size={18} />
+                                                        <span>{count.slide_count} Doc slides</span>
+                                                    </>
+                                                )}
+                                                {count.source_type === 'QUESTION' && (
+                                                    <>
+                                                        <Question size={18} />
+                                                        <span>
+                                                            {count.slide_count} Question slides
+                                                        </span>
+                                                    </>
+                                                )}
+                                                {count.source_type === 'ASSIGNMENT' && (
+                                                    <>
+                                                        <File size={18} />
+                                                        <span>
+                                                            {count.slide_count} Assignment slides
+                                                        </span>
+                                                    </>
+                                                )}
+                                            </div>
+                                        ))}
+                                        {form.getValues('courseData').instructors.length > 0 && (
+                                            <div className="flex items-center gap-2">
+                                                <ChalkboardTeacher size={18} />
+                                                <span>
+                                                    {form
+                                                        .getValues('courseData')
+                                                        .instructors.map((i) => i.name)
+                                                        .join(', ')}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </>
+                                )}
                             </div>
                         </div>
                     </div>
