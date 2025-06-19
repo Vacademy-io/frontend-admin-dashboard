@@ -60,6 +60,7 @@ import { useQuery } from '@tanstack/react-query';
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 import { GET_SLIDES } from '@/constants/urls';
 import { handleGetSlideCountDetails } from '../-services/get-slides-count';
+import { ModuleResponse } from '../../-components/course-details-page';
 
 type DialogType = 'subject' | 'module' | 'chapter' | 'slide' | null;
 
@@ -2417,6 +2418,127 @@ export const CourseDetailsPage = () => {
         ...handleGetSlideCountDetails(packageSessionIds),
         enabled: !!packageSessionIds,
     });
+
+    useEffect(() => {
+        const fetchAllModulesAndChapters = async () => {
+            const sessions = form.getValues('courseData').sessions;
+            const currentSession = sessions.find(
+                (session) => session.sessionDetails.id === selectedSession
+            );
+            const currentLevel = currentSession?.levelDetails.find(
+                (level) => level.id === selectedLevel
+            );
+            if (!currentLevel || !packageSessionIds) return;
+            const subjects = currentLevel.subjects || [];
+            // Fetch modules for all subjects
+            const moduleResults: { subjectId: string; modules: ModuleResponse[] }[] =
+                await Promise.all(
+                    subjects.map(async (subject) => {
+                        const moduleQuery = handleFetchModulesWithChapters(
+                            subject.id,
+                            packageSessionIds
+                        );
+                        const moduleResponse: ModuleResponse[] = await moduleQuery.queryFn();
+                        return {
+                            subjectId: subject.id,
+                            modules: moduleResponse,
+                        };
+                    })
+                );
+            // Fetch chapters for all modules
+            const chapterResults: {
+                subjectId: string;
+                moduleId: string;
+                chapters: ChapterWithSlides[];
+            }[] = await Promise.all(
+                moduleResults.flatMap(({ subjectId, modules }) =>
+                    modules.map(async (module) => {
+                        const chapterQuery = handleFetchChaptersWithSlides(
+                            module.module.id,
+                            packageSessionIds
+                        );
+                        const chapterResponse: ChapterWithSlides[] = await chapterQuery.queryFn();
+                        return {
+                            subjectId,
+                            moduleId: module.module.id,
+                            chapters: chapterResponse,
+                        };
+                    })
+                )
+            );
+            // Assign modules and chapters into form state
+            const updatedSubjects = subjects.map((subject) => {
+                const subjectModules =
+                    moduleResults.find((r) => r.subjectId === subject.id)?.modules || [];
+                return {
+                    ...subject,
+                    modules: subjectModules.map((moduleData) => {
+                        const moduleChapters =
+                            chapterResults.find(
+                                (r) =>
+                                    r.subjectId === subject.id &&
+                                    r.moduleId === moduleData.module.id
+                            )?.chapters || [];
+                        return {
+                            id: moduleData.module.id,
+                            name: moduleData.module.module_name,
+                            description: moduleData.module.description,
+                            status: moduleData.module.status,
+                            thumbnail_id: moduleData.module.thumbnail_id,
+                            chapters: moduleChapters.map((chapterWithSlides) => ({
+                                id: chapterWithSlides.chapter.id,
+                                name: chapterWithSlides.chapter.chapter_name,
+                                status: chapterWithSlides.chapter.status,
+                                file_id: chapterWithSlides.chapter.file_id,
+                                description: chapterWithSlides.chapter.description,
+                                chapter_order: chapterWithSlides.chapter.chapter_order,
+                                slides: Array.isArray(chapterWithSlides.slides)
+                                    ? chapterWithSlides.slides.map((slide) => ({
+                                          id: slide.id,
+                                          name: slide.title,
+                                          type: slide.source_type,
+                                          description: slide.description || '',
+                                          status: slide.status || '',
+                                          order: slide.slide_order || 0,
+                                          videoSlide: slide.video_slide || null,
+                                          documentSlide: slide.document_slide || null,
+                                          questionSlide: slide.question_slide || null,
+                                          assignmentSlide: slide.assignment_slide || null,
+                                      }))
+                                    : [],
+                                isOpen: false,
+                            })),
+                            isOpen: false,
+                        };
+                    }),
+                };
+            });
+            // Update form state
+            const updatedSessions = sessions.map((session) => {
+                if (session.sessionDetails.id !== selectedSession) return session;
+                return {
+                    ...session,
+                    levelDetails: session.levelDetails.map((level) => {
+                        if (level.id !== selectedLevel) return level;
+                        return {
+                            ...level,
+                            subjects: updatedSubjects,
+                        };
+                    }),
+                };
+            });
+            form.setValue('courseData.sessions', updatedSessions);
+        };
+        // Call on mount
+        fetchAllModulesAndChapters();
+        // Call on navigation
+        const unsubscribe = router.subscribe(() => {
+            if (router.state.location.pathname.includes('/study-library/courses/course-details')) {
+                fetchAllModulesAndChapters();
+            }
+        });
+        return () => unsubscribe();
+    }, [router, selectedSession, selectedLevel, packageSessionIds]);
 
     return (
         <div className="flex min-h-screen flex-col bg-white">
