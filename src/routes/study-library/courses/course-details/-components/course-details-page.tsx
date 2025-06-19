@@ -595,6 +595,46 @@ export const CourseDetailsPage = () => {
                                 };
                             });
                         form.setValue('courseData.sessions', updatedSessions);
+                    } else if (
+                        currentCourseStructure === 5 &&
+                        moduleData.length > 0 &&
+                        currentLevel?.subjects
+                    ) {
+                        // Merge fetched modules into each subject for course structure 5
+                        const subjectModulesMap: Record<string, ModuleType[]> = {};
+                        moduleData.forEach((modulesArr: ModuleResponse[], idx: number) => {
+                            const subject = currentLevel.subjects[idx];
+                            if (!subject) return;
+                            subjectModulesMap[subject.id] = modulesArr.map((moduleRes) => ({
+                                id: moduleRes.module.id,
+                                name: moduleRes.module.module_name,
+                                description: moduleRes.module.description,
+                                status: moduleRes.module.status,
+                                thumbnail_id: moduleRes.module.thumbnail_id,
+                                chapters: [], // Will be filled in by chapter queries if needed
+                                isOpen: false,
+                            }));
+                        });
+                        const updatedSubjects = currentLevel.subjects.map((subject) => ({
+                            ...subject,
+                            modules: subjectModulesMap[subject.id] || [],
+                        }));
+                        const updatedSessions = form
+                            .getValues('courseData')
+                            .sessions.map((session) => {
+                                if (session.sessionDetails.id !== selectedSession) return session;
+                                return {
+                                    ...session,
+                                    levelDetails: session.levelDetails.map((level) => {
+                                        if (level.id !== selectedLevel) return level;
+                                        return {
+                                            ...level,
+                                            subjects: updatedSubjects,
+                                        };
+                                    }),
+                                };
+                            });
+                        form.setValue('courseData.sessions', updatedSessions);
                     } else {
                         finalSubjects = updatedSubjects;
                         // ... existing code ...
