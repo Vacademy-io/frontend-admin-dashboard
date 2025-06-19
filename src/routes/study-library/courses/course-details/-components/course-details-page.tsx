@@ -990,22 +990,78 @@ export const CourseDetailsPage = () => {
                         });
 
                         if (response) {
-                            const updatedCourse = {
-                                ...selectedCourse,
-                                structure: {
-                                    ...selectedCourse.structure,
-                                    items: [
-                                        ...(selectedCourse.structure.items as ModuleType[]),
-                                        {
-                                            id: response.data.id,
-                                            name: newItemName,
-                                            chapters: [],
-                                            isOpen: false,
-                                        },
-                                    ],
-                                },
-                            };
-                            updateSelectedCourseAndForm(updatedCourse);
+                            // Fetch the latest modules for the DEFAULT subject
+                            const moduleQuery = handleFetchModulesWithChapters(
+                                'DEFAULT',
+                                packageSessionIds
+                            );
+                            const modulesResponse = await moduleQuery.queryFn();
+
+                            // Map the modules to ModuleType[]
+                            const modules: ModuleType[] = modulesResponse.map(
+                                (moduleRes: ModuleResponse) => ({
+                                    id: moduleRes.module.id,
+                                    name: moduleRes.module.module_name,
+                                    description: moduleRes.module.description,
+                                    status: moduleRes.module.status,
+                                    thumbnail_id: moduleRes.module.thumbnail_id,
+                                    chapters: [],
+                                    isOpen: false,
+                                })
+                            );
+
+                            // Update the form state for the DEFAULT subject
+                            const currentSession = form
+                                .getValues('courseData')
+                                .sessions.find(
+                                    (session) => session.sessionDetails.id === selectedSession
+                                );
+                            const currentLevel = currentSession?.levelDetails.find(
+                                (level) => level.id === selectedLevel
+                            );
+                            if (currentLevel) {
+                                const updatedSubjects = currentLevel.subjects.map((subject) => {
+                                    if (subject.id === 'DEFAULT') {
+                                        return {
+                                            ...subject,
+                                            modules,
+                                        };
+                                    }
+                                    return subject;
+                                });
+
+                                const updatedSessions = form
+                                    .getValues('courseData')
+                                    .sessions.map((session) => {
+                                        if (session.sessionDetails.id === selectedSession) {
+                                            return {
+                                                ...session,
+                                                levelDetails: session.levelDetails.map((level) => {
+                                                    if (level.id === selectedLevel) {
+                                                        return {
+                                                            ...level,
+                                                            subjects: updatedSubjects,
+                                                        };
+                                                    }
+                                                    return level;
+                                                }),
+                                            };
+                                        }
+                                        return session;
+                                    });
+
+                                form.setValue('courseData.sessions', updatedSessions);
+
+                                // Also update selectedCourse for immediate UI update
+                                const updatedCourse = {
+                                    ...selectedCourse,
+                                    structure: {
+                                        ...selectedCourse.structure,
+                                        items: modules,
+                                    },
+                                };
+                                updateSelectedCourseAndForm(updatedCourse);
+                            }
                         }
                     } else if (selectedCourse.level === 5 && selectedParentId) {
                         // For level 5, selectedParentId is the subject ID
