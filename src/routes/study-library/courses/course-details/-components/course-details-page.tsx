@@ -598,12 +598,13 @@ export const CourseDetailsPage = () => {
                     } else if (
                         currentCourseStructure === 5 &&
                         moduleData.length > 0 &&
-                        currentLevel?.subjects
+                        currentLevel &&
+                        currentLevel.subjects
                     ) {
                         // Merge fetched modules into each subject for course structure 5
                         const subjectModulesMap: Record<string, ModuleType[]> = {};
                         moduleData.forEach((modulesArr: ModuleResponse[], idx: number) => {
-                            const subject = currentLevel.subjects[idx];
+                            const subject = currentLevel.subjects![idx];
                             if (!subject) return;
                             subjectModulesMap[subject.id] = modulesArr.map((moduleRes) => ({
                                 id: moduleRes.module.id,
@@ -615,17 +616,75 @@ export const CourseDetailsPage = () => {
                                 isOpen: false,
                             }));
                         });
-                        const updatedSubjects = currentLevel.subjects.map((subject) => ({
-                            ...subject,
-                            modules: subjectModulesMap[subject.id] || [],
-                        }));
+                        // --- Fix: assign chapters to each module ---
+                        const updatedSubjects = currentLevel.subjects!.map(
+                            (subject: any, subjectIdx: number) => {
+                                const modules = (subjectModulesMap[subject.id] || []).map(
+                                    (module: any, moduleIdx: number) => {
+                                        // Calculate the flat index for this module in chapterData
+                                        let idx = 0;
+                                        for (let i = 0; i < subjectIdx; i++) {
+                                            idx +=
+                                                subjectModulesMap[currentLevel.subjects![i].id]
+                                                    ?.length || 0;
+                                        }
+                                        idx += moduleIdx;
+                                        const chaptersWithSlides = chapterData[idx] || [];
+                                        return {
+                                            ...module,
+                                            chapters: chaptersWithSlides.map(
+                                                (chapterWithSlides: any) => ({
+                                                    // TODO: type chapterWithSlides
+                                                    id: chapterWithSlides.chapter.id,
+                                                    name: chapterWithSlides.chapter.chapter_name,
+                                                    status: chapterWithSlides.chapter.status,
+                                                    file_id: chapterWithSlides.chapter.file_id,
+                                                    description:
+                                                        chapterWithSlides.chapter.description,
+                                                    chapter_order:
+                                                        chapterWithSlides.chapter.chapter_order,
+                                                    slides: Array.isArray(chapterWithSlides.slides)
+                                                        ? chapterWithSlides.slides.map(
+                                                              (slide: any) => ({
+                                                                  // TODO: type slide
+                                                                  id: slide.id,
+                                                                  name: slide.title,
+                                                                  type: slide.source_type,
+                                                                  description:
+                                                                      slide.description || '',
+                                                                  status: slide.status || '',
+                                                                  order: slide.slide_order || 0,
+                                                                  videoSlide:
+                                                                      slide.video_slide || null,
+                                                                  documentSlide:
+                                                                      slide.document_slide || null,
+                                                                  questionSlide:
+                                                                      slide.question_slide || null,
+                                                                  assignmentSlide:
+                                                                      slide.assignment_slide ||
+                                                                      null,
+                                                              })
+                                                          )
+                                                        : [],
+                                                    isOpen: false,
+                                                })
+                                            ),
+                                        };
+                                    }
+                                );
+                                return {
+                                    ...subject,
+                                    modules,
+                                };
+                            }
+                        );
                         const updatedSessions = form
                             .getValues('courseData')
-                            .sessions.map((session) => {
+                            .sessions.map((session: any) => {
                                 if (session.sessionDetails.id !== selectedSession) return session;
                                 return {
                                     ...session,
-                                    levelDetails: session.levelDetails.map((level) => {
+                                    levelDetails: session.levelDetails.map((level: any) => {
                                         if (level.id !== selectedLevel) return level;
                                         return {
                                             ...level,
@@ -741,7 +800,7 @@ export const CourseDetailsPage = () => {
                             description: item.chapter.description,
                             chapter_order: item.chapter.chapter_order,
                             slides: Array.isArray(item.slides)
-                                ? item.slides.map((slide: any) => ({
+                                ? item.slides.map((slide: SlideType) => ({
                                       id: slide.id,
                                       name: slide.title,
                                       type: slide.source_type,
