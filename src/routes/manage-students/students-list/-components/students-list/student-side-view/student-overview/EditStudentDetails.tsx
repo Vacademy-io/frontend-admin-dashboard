@@ -299,7 +299,6 @@ export const EditStudentDetails = () => {
                                             control={form.control}
                                             country="in"
                                             required={true}
-                                            value={form.getValues('contact_number')}
                                         />
                                         <p className="text-subtitle text-danger-600">
                                             {form.formState.errors.contact_number?.message}
@@ -471,7 +470,6 @@ export const EditStudentDetails = () => {
                                             control={form.control}
                                             country="in"
                                             required={false}
-                                            value={form.getValues('parents_mobile_number')}
                                         />
                                         <p className="text-subtitle text-danger-600">
                                             {form.formState.errors.parents_mobile_number?.message}

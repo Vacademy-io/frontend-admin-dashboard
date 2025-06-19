@@ -308,7 +308,9 @@ export const myColumns: ColumnDef<StudentTable>[] = [
     {
         accessorKey: 'parents_to_mother_mobile_number',
         header: "Mother/Female Guardian's Mobile Number",
-        cell: ({ row }) => <CreateClickableCell row={row} columnId="parents_to_mother_mobile_number" />,
+        cell: ({ row }) => (
+            <CreateClickableCell row={row} columnId="parents_to_mother_mobile_number" />
+        ),
     },
     {
         accessorKey: 'parents_to_mother_email',

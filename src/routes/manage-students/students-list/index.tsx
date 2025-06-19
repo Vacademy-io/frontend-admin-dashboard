@@ -1,6 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { LayoutContainer } from '@/components/common/layout-container/layout-container';
-// import { EmptyDashboard } from "@/components/common/students/empty-dashboard/empty-dashboard";
 import { StudentsListSection } from '@/routes/manage-students/students-list/-components/students-list/student-list-section/students-list-section';
 import { Helmet } from 'react-helmet';
 

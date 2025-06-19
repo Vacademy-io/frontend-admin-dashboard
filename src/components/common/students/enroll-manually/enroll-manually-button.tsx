@@ -9,6 +9,7 @@ import { MyDialog } from '@/components/design-system/dialog';
 import { StudentTable } from '@/types/student-table-types';
 import { useEffect, useRef, useState } from 'react';
 import { FormSubmitButtons } from './form-components/form-submit-buttons';
+import { useStudentCredentails } from '@/services/student-list-section/getStudentCredentails';
 
 interface EnrollManuallyButtonProps {
     triggerButton?: JSX.Element;
@@ -27,6 +28,7 @@ export const EnrollManuallyButton = ({
     const { resetForm } = useFormStore();
     const currentStep = useFormStore((state) => state.currentStep);
     const [nextButtonDisable, setNextButtonDisable] = useState(true);
+
     const handleNextButtonDisable = (value: boolean) => setNextButtonDisable(value);
 
     const step1FormSubmitRef = useRef(() => {});
@@ -44,21 +46,23 @@ export const EnrollManuallyButton = ({
     const handleOpenDialog = (open: boolean) => {
         setOpenDialog(open);
         if (!open) {
-            // Reset form when dialog is closed
             resetForm();
-            // Call onClose callback if provided
-            if (!open && onClose) {
-                onClose();
-            }
+            if (onClose) onClose();
         }
     };
 
-    // Update openDialog when forceOpen changes
     useEffect(() => {
         if (forceOpen !== undefined) {
             setOpenDialog(forceOpen);
         }
     }, [forceOpen]);
+
+    // Fetch credentials if editing
+    const { data: credentials, isLoading: isLoadingCreds } = useStudentCredentails({
+        userId: initialValues?.user_id || '',
+    });
+
+    const isReEnroll = !!initialValues;
 
     const renderFooter = () => {
         switch (currentStep) {
@@ -124,6 +128,9 @@ export const EnrollManuallyButton = ({
                         handleNextButtonDisable={handleNextButtonDisable}
                         submitFn={submitFn5}
                         handleOpenDialog={handleOpenDialog}
+                        credentials={credentials}
+                        isLoadingCreds={isLoadingCreds}
+                        isReEnroll={isReEnroll}
                     />
                 );
             default:
@@ -137,7 +144,6 @@ export const EnrollManuallyButton = ({
         }
     };
 
-    // Determine the dialog title based on whether it's a re-enrollment
     const dialogTitle = initialValues ? 'Re-enroll Learner' : 'Enroll Learner';
 
     return (

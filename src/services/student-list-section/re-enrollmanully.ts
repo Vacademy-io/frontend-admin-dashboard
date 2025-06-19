@@ -1,28 +1,18 @@
-// services/api/studentApi.ts
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
-import { ENROLL_STUDENT_MANUALLY } from '@/constants/urls';
+import { RE_ENROLL_STUDENT_MANUALLY } from '@/constants/urls';
 import { EnrollStudentRequest } from '@/types/students/type-enroll-student-manually';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
 
-type EnrollStudentResponse = string;
-
-export const enrollStudent = async ({
+export const reEnrollStudent = async ({
     formData,
     packageSessionId,
-}: EnrollStudentRequest): Promise<EnrollStudentResponse> => {
+}: EnrollStudentRequest): Promise<string> => {
     try {
         const accessToken = getTokenFromCookie(TokenKey.accessToken);
         const tokenData = getTokenDecodedData(accessToken);
-
-        if (!tokenData || !tokenData.authorities) {
-            throw new Error('Invalid token: Missing authorities');
-        }
-
-        const instituteIds = Object.keys(tokenData.authorities);
-        if (instituteIds.length === 0) {
-            throw new Error('No institute ID found in token');
-        }
+        const instituteIds = Object.keys(tokenData?.authorities || {});
+        if (instituteIds.length === 0) throw new Error('No institute ID found in token');
 
         const INSTITUTE_ID = instituteIds[0];
 
@@ -39,7 +29,7 @@ export const enrollStudent = async ({
                 date_of_birth: '',
                 gender: formData.stepTwoData?.gender?.name ?? '',
                 password: formData.stepFiveData?.password ?? '',
-                profile_pic_file_id: formData.stepOneData?.profilePicture ?? '',
+                profile_pic_file_id: formData.stepOneData?.profilePicture ?? '', // ✅ safe fallback
                 roles: ['STUDENT'],
                 root_user: false,
             },
@@ -67,12 +57,13 @@ export const enrollStudent = async ({
         };
 
         const response = await authenticatedAxiosInstance.post(
-            ENROLL_STUDENT_MANUALLY,
+            RE_ENROLL_STUDENT_MANUALLY,
             requestBody
         );
+
         return response.data;
     } catch (error: any) {
-        console.error('[EnrollStudent Error]', error?.message || error);
-        throw new Error(error?.response?.data?.message || 'Failed to enroll student.');
+        console.error('[ReEnrollStudent Error]', error?.message || error);
+        throw new Error(error?.response?.data?.message || 'Failed to re-enroll student.');
     }
 };
