@@ -167,6 +167,7 @@ export const ActivityLogDialog = ({
                 ).time,
                 submissions: item.assignment_slides[0]?.comma_separated_file_ids,
             }));
+            console.log(transformedContent);
         }
 
         return {
@@ -318,14 +319,7 @@ export const ActivityLogDialog = ({
                             {activeItem?.source_type === 'QUESTION' && (
                                 <div className="no-scrollbar mt-6 overflow-x-scroll px-4">
                                     <MyTable
-                                        data={{
-                                            content: [],
-                                            total_pages: 0,
-                                            page_no: 0,
-                                            page_size: pageSize,
-                                            total_elements: 0,
-                                            last: true,
-                                        }}
+                                        data={tableData}
                                         columns={activityResponseTypeColumns}
                                         isLoading={isLoading}
                                         error={error}
@@ -345,14 +339,7 @@ export const ActivityLogDialog = ({
                             {activeItem?.source_type === 'ASSIGNMENT' && (
                                 <div className="no-scrollbar mt-6 overflow-x-scroll px-4">
                                     <MyTable
-                                        data={{
-                                            content: [],
-                                            total_pages: 0,
-                                            page_no: 0,
-                                            page_size: pageSize,
-                                            total_elements: 0,
-                                            last: true,
-                                        }}
+                                        data={tableData}
                                         columns={activityResponseAssignmentColumns}
                                         isLoading={isLoading}
                                         error={error}
