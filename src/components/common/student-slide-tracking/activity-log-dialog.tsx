@@ -167,7 +167,6 @@ export const ActivityLogDialog = ({
                 ).time,
                 submissions: item.assignment_slides[0]?.comma_separated_file_ids,
             }));
-            console.log(transformedContent);
         }
 
         return {
