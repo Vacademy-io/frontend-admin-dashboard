@@ -58,7 +58,9 @@ export const AddCourseForm = () => {
                     setIsOpen(false);
                     setStep(1);
                     setFormData({});
-                    navigate({ to: `/study-library/courses/course-details?courseId=${response.data}` });
+                    navigate({
+                        to: `/study-library/courses/course-details?courseId=${response.data}`,
+                    });
                 },
                 onError: () => {
                     toast.error('Failed to create course');

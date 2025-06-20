@@ -16,7 +16,7 @@ import { DropdownItemType, DropdownValueType } from '../dropdownTypesForPackageI
 import { StudentTable } from '@/types/student-table-types';
 import { BatchForSessionType } from '@/schemas/student/student-list/institute-schema';
 import { MyButton } from '@/components/design-system/button';
-import { AddCourseData } from '@/components/common/study-library/add-course/add-course-form';
+import { CourseFormData } from '@/components/common/study-library/add-course/add-course-form';
 import { useAddCourse } from '@/services/study-library/course-operations/add-course';
 import { toast } from 'sonner';
 import { AddSessionDataType } from '@/routes/manage-institute/sessions/-components/session-operations/add-session/add-session-form';
@@ -331,7 +331,7 @@ export const StepTwoForm = ({
         setValue('enrollmentNumber', enrollNum);
     };
 
-    const handleAddCourse = ({ requestData }: { requestData: AddCourseData }) => {
+    const handleAddCourse = ({ requestData }: { requestData: CourseFormData }) => {
         addCourseMutation.mutate(
             { requestData: requestData },
             {

@@ -204,7 +204,11 @@ export const SubjectMaterial = () => {
 
     const handleAddModule = (subjectId: string, module: Module) => {
         addModuleMutation.mutate(
-            { subjectId, module },
+            {
+                subjectId,
+                module,
+                packageSessionIds: '',
+            },
             {
                 onSuccess: async () => {
                     const updatedSubjects = getCourseSubjects(

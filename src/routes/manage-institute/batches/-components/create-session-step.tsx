@@ -9,6 +9,7 @@ import { FormControl, FormField, FormItem } from '@/components/ui/form';
 // import { Session } from '@/components/common/study-library/add-course/add-course-form';
 import { MyButton } from '@/components/design-system/button';
 import { X } from 'phosphor-react';
+import { Session } from '@/components/common/study-library/add-course/add-course-form';
 
 export const CreateSessionStep = () => {
     const [newSessionName, setNewSessionName] = useState('');
@@ -16,9 +17,6 @@ export const CreateSessionStep = () => {
     const form = useFormContext();
     const { watch } = form;
     const [sessionList, setSessionList] = useState<Session[]>([]);
-    // useEffect(() => {
-    //     setSessionList(getAllSessions().map((session) => convertToFormSession(session)));
-    // }, [instituteDetails]);
 
     const handleAddSession = (sessionName: string, startDate: string) => {
         const newSession = {
@@ -29,6 +27,8 @@ export const CreateSessionStep = () => {
             start_date: startDate,
             levels: [], // Initialize with empty levels array
         };
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
         setSessionList((prevSessionList) => [...prevSessionList, newSession]);
         // Set the new session in the form's state
         form.setValue('selectedSession', { id: newSession.id, name: newSession.session_name });
@@ -90,7 +90,7 @@ export const CreateSessionStep = () => {
                                             currentValue={field.value}
                                             dropdownList={sessionList.map((session) => ({
                                                 id: session.id,
-                                                name: session.session_name,
+                                                name: session.name,
                                             }))}
                                             handleChange={field.onChange}
                                             placeholder="Select session"

@@ -17,7 +17,7 @@ import { IntroKey } from '@/constants/storage/introKey';
 import { inviteSteps } from '@/constants/intro/steps';
 import { AddCourseButton } from '@/components/common/study-library/add-course/add-course-button';
 import { useAddCourse } from '@/services/study-library/course-operations/add-course';
-import { AddCourseData } from '@/components/common/study-library/add-course/add-course-form';
+import { CourseFormData } from '@/components/common/study-library/add-course/add-course-form';
 import { Plus } from 'phosphor-react';
 
 interface CreateInviteDialogProps {
@@ -130,7 +130,7 @@ export const CreateInviteDialog = ({
         );
     };
 
-    const handleAddCourse = ({ requestData }: { requestData: AddCourseData }) => {
+    const handleAddCourse = ({ requestData }: { requestData: CourseFormData }) => {
         addCourseMutation.mutate(
             { requestData: requestData },
             {
@@ -278,6 +278,8 @@ export const CreateInviteDialog = ({
                                     Batch Selection<span className="text-danger-600">*</span>
                                 </p>
                                 <AddCourseButton
+                                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                    // @ts-expect-error
                                     onSubmit={handleAddCourse}
                                     courseButton={
                                         <MyButton

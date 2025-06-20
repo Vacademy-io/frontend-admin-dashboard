@@ -11,7 +11,7 @@ import {
     enrollBulkFormType,
 } from '@/routes/manage-students/students-list/-schemas/student-bulk-enroll/enroll-bulk-schema';
 import { MyButton } from '@/components/design-system/button';
-import { AddCourseData } from '@/components/common/study-library/add-course/add-course-form';
+import { CourseFormData } from '@/components/common/study-library/add-course/add-course-form';
 import { toast } from 'sonner';
 import { useAddCourse } from '@/services/study-library/course-operations/add-course';
 import { useAddSession } from '@/services/study-library/session-management/addSession';
@@ -86,7 +86,7 @@ export const EnrollBulkDialog = () => {
         form.handleSubmit(onSubmitEnrollBulkForm)();
     };
 
-    const handleAddCourse = ({ requestData }: { requestData: AddCourseData }) => {
+    const handleAddCourse = ({ requestData }: { requestData: CourseFormData }) => {
         addCourseMutation.mutate(
             { requestData: requestData },
             {

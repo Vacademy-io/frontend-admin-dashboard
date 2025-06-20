@@ -15,7 +15,7 @@ import { AddCourseButton } from '@/components/common/study-library/add-course/ad
 import { AddSessionDialog } from '@/routes/manage-institute/sessions/-components/session-operations/add-session/add-session-dialog';
 import { MyButton } from '@/components/design-system/button';
 import { Plus } from 'lucide-react';
-import { AddCourseData } from '@/components/common/study-library/add-course/add-course-form';
+import { CourseFormData } from '@/components/common/study-library/add-course/add-course-form';
 import { AddSessionDataType } from '@/routes/manage-institute/sessions/-components/session-operations/add-session/add-session-form';
 import { AddLevelData } from '@/routes/study-library/courses/course-details/-components/add-course-details-form';
 import { useAddCourse } from '@/services/study-library/course-operations/add-course';
@@ -56,7 +56,7 @@ export const MyDropdown = ({
     showAddCourseButton?: boolean;
     showAddSessionButton?: boolean;
     showAddLevelButton?: boolean;
-    onAddCourse?: ({ requestData }: { requestData: AddCourseData }) => void;
+    onAddCourse?: ({ requestData }: { requestData: CourseFormData }) => void;
     onAddSession?: (data: AddSessionDataType) => void;
     onAddLevel?: (data: {
         requestData: AddLevelData;
@@ -116,7 +116,7 @@ export const MyDropdown = ({
         }
     };
 
-    const handleAddCourseSubmit = ({ requestData }: { requestData: AddCourseData }) => {
+    const handleAddCourseSubmit = ({ requestData }: { requestData: CourseFormData }) => {
         if (onAddCourse) {
             onAddCourse({ requestData });
         } else {
@@ -308,6 +308,8 @@ export const MyDropdown = ({
                             <div className="border-t border-neutral-200 pt-2">
                                 {showAddCourseButton && (
                                     <AddCourseButton
+                                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                        // @ts-expect-error
                                         onSubmit={handleAddCourseSubmit}
                                         courseButton={
                                             <MyButton

@@ -99,7 +99,7 @@ export const ModuleMaterial = () => {
     // };
 
     const handleAddModule = (module: Module) => {
-        addModuleMutation.mutate({ subjectId, module });
+        addModuleMutation.mutate({ subjectId, module, packageSessionIds: '' });
     };
 
     const handleDeleteModule = (module: Module) => {

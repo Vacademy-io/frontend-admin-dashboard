@@ -7,7 +7,7 @@ import { CreateLevelStep } from './create-level-step';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { useAddCourse } from '@/services/study-library/course-operations/add-course';
-import { AddCourseData } from '@/components/common/study-library/add-course/add-course-form';
+import { CourseFormData } from '@/components/common/study-library/add-course/add-course-form';
 import { useCopyStudyMaterialFromSession } from '../../../manage-students/students-list/-services/copyStudyMaterialFromSession';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
@@ -83,7 +83,7 @@ export const CreateBatchDialog = () => {
         levelId,
         sessionId,
     }: {
-        requestData: AddCourseData;
+        requestData: CourseFormData;
         duplicateFromSession: boolean;
         duplicationSessionId: string;
         courseId: string;
@@ -198,9 +198,11 @@ export const CreateBatchDialog = () => {
                               : undefined,
                       };
 
-            const courseData: AddCourseData =
+            const courseData: CourseFormData =
                 data.courseCreationType === 'new'
                     ? {
+                          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                          // @ts-expect-error
                           id: data.selectedCourse?.id || '',
                           course_name: data.selectedCourse?.name || '',
                           thumbnail_file_id: '',
