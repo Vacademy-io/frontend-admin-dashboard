@@ -29,6 +29,7 @@ import { StudentTable } from '@/types/student-table-types';
 import { SlideWithStatusType } from '@/routes/manage-students/students-list/-types/student-slides-progress-type';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { convertToLocalDateTime, extractDateTime } from '@/constants/helper';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
 
 export const ActivityLogDialog = ({
     selectedUser,
@@ -226,7 +227,11 @@ export const ActivityLogDialog = ({
                     <h1 className="rounded-t-lg bg-primary-50 p-4 font-semibold text-primary-500">
                         Activity Log
                     </h1>
-                    {tableData.content.length == 0 ? (
+                    {isLoading || isVideoResponseLoading ? (
+                        <div className="flex items-center justify-center p-8">
+                            <DashboardLoader height="200px" size={40} />
+                        </div>
+                    ) : tableData.content.length == 0 ? (
                         <p className="p-4 text-center text-primary-500">No activity found</p>
                     ) : (
                         <>
