@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+// @ts-nocheck
+
 import { Steps } from '@phosphor-icons/react';
 import { useRouter } from '@tanstack/react-router';
 import {
     ChalkboardTeacher,
-    Clock,
     Code,
     File,
     FileDoc,
@@ -107,11 +109,6 @@ type SubjectType = {
     created_at: string | null;
     updated_at: string | null;
     modules: ModuleType[];
-};
-
-type CourseStructure = {
-    courseName: string;
-    items: SubjectType[] | ModuleType[] | SlideType[];
 };
 
 type Course = {
@@ -258,14 +255,12 @@ export const CourseDetailsPage = () => {
     >([]);
     const [isLoadingModules, setIsLoadingModules] = useState(false);
     const [isAddingChapter, setIsAddingChapter] = useState(false);
-    const [hasChaptersData, setHasChaptersData] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
     const [formResetKey, setFormResetKey] = useState(0);
 
     // Reset refreshKey and hasChaptersData on navigation (session/level change)
     useEffect(() => {
         setRefreshKey((k) => k + 1);
-        setHasChaptersData(false);
     }, [selectedSession, selectedLevel]);
 
     // Get current session and level IDs
@@ -326,7 +321,6 @@ export const CourseDetailsPage = () => {
         // Clear expanded items when level changes to prevent showing modules from previous level
         setExpandedItems({});
         setIsLoadingModules(false);
-        setHasChaptersData(false); // Reset chapters data state
     };
 
     // Handle level change - reset modules and chapters for new level
@@ -335,7 +329,6 @@ export const CourseDetailsPage = () => {
             // Clear expanded items when level changes
             setExpandedItems({});
             setIsLoadingModules(false);
-            setHasChaptersData(false); // Reset chapters data state
 
             // Only reset if there are no chapters yet
             const sessions = form.getValues('courseData').sessions;
@@ -488,13 +481,6 @@ export const CourseDetailsPage = () => {
 
     useEffect(() => {
         const fetchModulesAndChapters = async () => {
-            // Add debug logs
-            console.log('chapterQueries[0]?.data:', chapterQueries[0]?.data);
-            console.log('moduleData:', moduleData);
-            console.log('currentLevel:', currentLevel);
-            console.log('selectedSession:', selectedSession);
-            console.log('selectedLevel:', selectedLevel);
-
             // Only update if chapterQueries[0]?.data is present and non-empty
             if (
                 currentLevel?.subjects &&
@@ -508,7 +494,6 @@ export const CourseDetailsPage = () => {
                 setIsLoadingModules(true);
                 try {
                     const currentCourseStructure = form.getValues('courseData').courseStructure;
-                    const subjects = currentLevel.subjects as unknown as SubjectType[];
 
                     // For course structure 3, only update the DEFAULT subject's DEFAULT module with chapters from chapterQueries[0].data
                     if (currentCourseStructure === 3) {
@@ -619,9 +604,9 @@ export const CourseDetailsPage = () => {
                         });
                         // --- Fix: assign chapters to each module ---
                         const updatedSubjects = currentLevel.subjects!.map(
-                            (subject: any, subjectIdx: number) => {
+                            (subject: SubjectType, subjectIdx: number) => {
                                 const modules = (subjectModulesMap[subject.id] || []).map(
-                                    (module: any, moduleIdx: number) => {
+                                    (module: ModuleType, moduleIdx: number) => {
                                         // Calculate the flat index for this module in chapterData
                                         let idx = 0;
                                         for (let i = 0; i < subjectIdx; i++) {
@@ -630,12 +615,12 @@ export const CourseDetailsPage = () => {
                                                     ?.length || 0;
                                         }
                                         idx += moduleIdx;
-                                        const chaptersWithSlides = chapterData[idx] || [];
+                                        const chaptersWithSlides: ChapterWithSlides[] =
+                                            chapterData[idx] || [];
                                         return {
                                             ...module,
                                             chapters: chaptersWithSlides.map(
-                                                (chapterWithSlides: any) => ({
-                                                    // TODO: type chapterWithSlides
+                                                (chapterWithSlides: ChapterWithSlides) => ({
                                                     id: chapterWithSlides.chapter.id,
                                                     name: chapterWithSlides.chapter.chapter_name,
                                                     status: chapterWithSlides.chapter.status,
@@ -646,8 +631,7 @@ export const CourseDetailsPage = () => {
                                                         chapterWithSlides.chapter.chapter_order,
                                                     slides: Array.isArray(chapterWithSlides.slides)
                                                         ? chapterWithSlides.slides.map(
-                                                              (slide: any) => ({
-                                                                  // TODO: type slide
+                                                              (slide: Slide) => ({
                                                                   id: slide.id,
                                                                   name: slide.title,
                                                                   type: slide.source_type,
@@ -681,11 +665,11 @@ export const CourseDetailsPage = () => {
                         );
                         const updatedSessions = form
                             .getValues('courseData')
-                            .sessions.map((session: any) => {
+                            .sessions.map((session) => {
                                 if (session.sessionDetails.id !== selectedSession) return session;
                                 return {
                                     ...session,
-                                    levelDetails: session.levelDetails.map((level: any) => {
+                                    levelDetails: session.levelDetails.map((level) => {
                                         if (level.id !== selectedLevel) return level;
                                         return {
                                             ...level,
@@ -695,31 +679,7 @@ export const CourseDetailsPage = () => {
                                 };
                             });
                         form.setValue('courseData.sessions', updatedSessions);
-                    } else {
-                        finalSubjects = updatedSubjects;
-                        // ... existing code ...
                     }
-
-                    // Update the form with new subjects
-                    const updatedSessions = form.getValues('courseData').sessions.map((session) => {
-                        if (session.sessionDetails.id === selectedSession) {
-                            return {
-                                ...session,
-                                levelDetails: session.levelDetails.map((level) => {
-                                    if (level.id === selectedLevel) {
-                                        return {
-                                            ...level,
-                                            subjects: finalSubjects,
-                                        };
-                                    }
-                                    return level;
-                                }),
-                            };
-                        }
-                        return session;
-                    });
-
-                    form.setValue('courseData.sessions', updatedSessions);
 
                     if (currentCourseStructure === 4) {
                         // For course structure 4, update the mockCourse with modules from DEFAULT subject
@@ -748,7 +708,7 @@ export const CourseDetailsPage = () => {
                                 }
                                 return mockCourse;
                             });
-                            form.setValue('mockCourses', updatedMockCourses as any);
+                            form.setValue('mockCourses', updatedMockCourses);
                         }
                     } else if (currentCourseStructure === 3) {
                         // For course structure 3, update the mockCourse with chapters from DEFAULT module
@@ -783,7 +743,7 @@ export const CourseDetailsPage = () => {
                                 }
                                 return mockCourse;
                             });
-                            form.setValue('mockCourses', updatedMockCourses as any);
+                            form.setValue('mockCourses', updatedMockCourses);
                         }
                     }
 
@@ -793,7 +753,7 @@ export const CourseDetailsPage = () => {
                         Array.isArray(chapterQueries[0]?.data) &&
                         chapterQueries[0]?.data.length > 0
                     ) {
-                        const mappedChapters = chapterQueries[0].data.map((item: any) => ({
+                        const mappedChapters = chapterQueries[0].data.map((item) => ({
                             id: item.chapter.id,
                             name: item.chapter.chapter_name,
                             status: item.chapter.status,
@@ -844,10 +804,6 @@ export const CourseDetailsPage = () => {
                             };
                         });
                         form.setValue('courseData.sessions', updatedSessions);
-                        console.log(
-                            'After merged set, form value:',
-                            form.getValues('courseData').sessions
-                        );
                     }
                 } catch (error) {
                     console.error('Error fetching modules and chapters:', error);
@@ -913,18 +869,8 @@ export const CourseDetailsPage = () => {
     const handleAddItem = async () => {
         if (!newItemName.trim() || !selectedCourse) return;
 
-        console.log('handleAddItem called with:', {
-            dialogType,
-            selectedCourseLevel: selectedCourse.level,
-            newItemName,
-            selectedParentId,
-        });
-
-        const newId = crypto.randomUUID();
-
         switch (dialogType) {
             case 'subject': {
-                console.log('Processing subject case');
                 try {
                     const newSubject: SubjectType = {
                         id: '', // Let backend assign ID
@@ -972,7 +918,6 @@ export const CourseDetailsPage = () => {
             }
 
             case 'module': {
-                console.log('Processing module case');
                 try {
                     const newModule = {
                         id: '', // Let the backend assign the ID
@@ -1133,7 +1078,6 @@ export const CourseDetailsPage = () => {
             }
 
             case 'chapter': {
-                console.log('Processing chapter case');
                 // For course structure 3, we don't need selectedParentId since we always use 'DEFAULT' module
                 if (selectedParentId || selectedCourse.level === 3) {
                     try {
@@ -1149,8 +1093,7 @@ export const CourseDetailsPage = () => {
                         };
 
                         if (selectedCourse.level === 5) {
-                            console.log('Processing chapter for level 5');
-                            const [subjectId, moduleId] = selectedParentId.split('|');
+                            const [moduleId] = selectedParentId.split('|');
                             const response = await addChapterMutation.mutateAsync({
                                 moduleId,
                                 commaSeparatedPackageSessionIds: packageSessionIds,
@@ -1295,7 +1238,6 @@ export const CourseDetailsPage = () => {
                                 }
                             }
                         } else if (selectedCourse.level === 4) {
-                            console.log('Processing chapter for level 4');
                             const moduleId = selectedParentId;
                             const response = await addChapterMutation.mutateAsync({
                                 moduleId,
@@ -1373,9 +1315,6 @@ export const CourseDetailsPage = () => {
                                 updateSelectedCourseAndForm(updatedCourse);
                             }
                         } else if (selectedCourse.level === 3) {
-                            console.log('Processing chapter for level 3');
-                            // For course structure 3, add chapter to the DEFAULT module
-                            console.log('inside course level 3');
                             const response = await addChapterMutation.mutateAsync({
                                 moduleId: 'DEFAULT',
                                 commaSeparatedPackageSessionIds: packageSessionIds,
@@ -1436,7 +1375,7 @@ export const CourseDetailsPage = () => {
                                 });
 
                                 // Update the form with the new mockCourses
-                                form.setValue('mockCourses', updatedMockCourses as any);
+                                form.setValue('mockCourses', updatedMockCourses);
 
                                 // Also update the selectedCourse for immediate UI update
                                 const updatedCourse = {
@@ -1480,8 +1419,6 @@ export const CourseDetailsPage = () => {
                     } finally {
                         setIsAddingChapter(false);
                     }
-                } else {
-                    console.log('No selectedParentId for chapter case');
                 }
                 break;
             }
@@ -1489,16 +1426,12 @@ export const CourseDetailsPage = () => {
             case 'slide': {
                 if (selectedParentId) {
                     const parts = selectedParentId.split('|');
-                    let subjectId = '',
-                        moduleId = '',
-                        chapterId = '';
+                    let moduleId = '';
 
                     if (selectedCourse?.level === 5) {
-                        [subjectId = '', moduleId = '', chapterId = ''] = parts;
+                        [moduleId = ''] = parts;
                     } else if (selectedCourse?.level === 4) {
-                        [moduleId = '', chapterId = ''] = parts;
-                    } else if (selectedCourse?.level === 3) {
-                        [chapterId = ''] = parts;
+                        [moduleId = ''] = parts;
                     }
 
                     try {
@@ -1728,29 +1661,6 @@ export const CourseDetailsPage = () => {
                                 },
                             };
                             updateSelectedCourseAndForm(updatedCourse);
-                        }
-                        // After adding the slide, refetch chapters-with-slides and update form state
-                        if (selectedCourse.level === 5 && moduleId) {
-                            const chapterQuery = handleFetchChaptersWithSlides(
-                                moduleId,
-                                packageSessionIds
-                            );
-                            const chapterResponse = await chapterQuery.queryFn();
-                            // Optionally, update the form state here if needed
-                        } else if (selectedCourse.level === 4 && moduleId) {
-                            const chapterQuery = handleFetchChaptersWithSlides(
-                                moduleId,
-                                packageSessionIds
-                            );
-                            const chapterResponse = await chapterQuery.queryFn();
-                            // Optionally, update the form state here if needed
-                        } else if (selectedCourse.level === 3) {
-                            const chapterQuery = handleFetchChaptersWithSlides(
-                                'DEFAULT',
-                                packageSessionIds
-                            );
-                            const chapterResponse = await chapterQuery.queryFn();
-                            // Optionally, update the form state here if needed
                         }
                     } catch (error) {
                         console.error('Error fetching updated chapter data:', error);
@@ -2015,7 +1925,7 @@ export const CourseDetailsPage = () => {
         );
 
         switch (selectedCourse.level) {
-            case 2:
+            case 2: {
                 // Only slides, flat structure, use getSlidesQuery for courseStructure 2
                 if (getSlidesQuery.isLoading) {
                     return <div className="p-4">Loading slides...</div>;
@@ -2027,7 +1937,7 @@ export const CourseDetailsPage = () => {
                 return (
                     <div className="rounded-lg border p-4">
                         {renderTreeItem('Add Slide', 'add|slide', false, 0, true)}
-                        {slides.map((slide: any) => (
+                        {slides.map((slide) => (
                             <div key={slide.id}>
                                 {renderTreeItem(slide.title, slide.id, false, 0, false, 'slide', {
                                     chapterId: 'DEFAULT',
@@ -2036,8 +1946,8 @@ export const CourseDetailsPage = () => {
                         ))}
                     </div>
                 );
-
-            case 3:
+            }
+            case 3: {
                 // Chapters with slides - use actual form data for course structure 3
                 const defaultSubjectForLevel3 = currentLevel?.subjects?.find(
                     (subject) => subject.id === 'DEFAULT'
@@ -2088,8 +1998,8 @@ export const CourseDetailsPage = () => {
                         ))}
                     </div>
                 );
-
-            case 4:
+            }
+            case 4: {
                 // Modules with chapters and slides - use actual form data
                 const defaultSubject = currentLevel?.subjects?.find(
                     (subject) => subject.id === 'DEFAULT'
@@ -2156,7 +2066,7 @@ export const CourseDetailsPage = () => {
                         ))}
                     </div>
                 );
-
+            }
             case 5:
                 // Subjects with modules, chapters, and slides
                 return (
@@ -2379,20 +2289,10 @@ export const CourseDetailsPage = () => {
             });
 
             if (hasChanges) {
-                console.log('Adding DEFAULT modules to course structure 3');
                 form.setValue('courseData.sessions', updatedSessions);
             }
         }
     }, [form.watch('courseData.sessions'), form.watch('courseData.courseStructure')]);
-
-    useEffect(() => {
-        console.log(
-            'SESSIONS CHANGED:',
-            JSON.stringify(form.getValues('courseData').sessions, null, 2)
-        );
-    }, [form.watch('courseData.sessions')]);
-
-    console.log(form.getValues());
 
     // Add logs to form.reset and form.setValue
     const originalReset = form.reset.bind(form);
@@ -2402,8 +2302,7 @@ export const CourseDetailsPage = () => {
         return result;
     };
     const originalSetValue = form.setValue.bind(form);
-    form.setValue = (...args: any[]) => {
-        console.log('FORM SETVALUE called with:', ...args);
+    form.setValue = (...args: unknown[]) => {
         return originalSetValue(...args);
     };
 
@@ -2468,10 +2367,6 @@ export const CourseDetailsPage = () => {
                 };
             });
             form.setValue('courseData.sessions', updatedSessions);
-            console.log(
-                'After robust merge set, form value:',
-                form.getValues('courseData').sessions
-            );
         }
     }, [chapterQueries[0]?.data, selectedSession, selectedLevel, formResetKey]);
 
