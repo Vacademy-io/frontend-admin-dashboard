@@ -198,9 +198,11 @@ export const ActivityLogDialog = ({
                     1000 /
                     60
                 ).toFixed(2)} mins`,
-                response: JSON.parse(
-                    item.video_slides_questions[0]?.response_json || ''
-                ).selectedOption.join(','),
+                response: item.video_slides_questions[0]?.response_json
+                    ? JSON.parse(
+                          item.video_slides_questions[0]?.response_json || ''
+                      ).selectedOption.join(',')
+                    : '',
                 responseStatus: item.video_slides_questions[0]?.response_status,
             })
         );
@@ -297,7 +299,7 @@ export const ActivityLogDialog = ({
                                             <div className="mt-6">
                                                 <MyPagination
                                                     currentPage={page}
-                                                    totalPages={tableData.total_pages}
+                                                    totalPages={tableDataVideoResponse.total_pages}
                                                     onPageChange={handlePageChange}
                                                 />
                                             </div>
