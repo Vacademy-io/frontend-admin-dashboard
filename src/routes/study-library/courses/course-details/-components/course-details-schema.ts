@@ -38,16 +38,20 @@ const levelDetailsSchema = z.object({
         .number()
         .int()
         .min(0, { message: 'Duration must be a non-negative integer.' }),
-    subjects: z.array(z.object({
-        id: z.string(),
-        subject_name: z.string(),
-        subject_code: z.string(),
-        credit: z.number(),
-        thumbnail_id: z.string().nullable(),
-        created_at: z.string().nullable(),
-        updated_at: z.string().nullable(),
-        modules: z.array(z.any()).optional(),
-    })).optional(), // Changed to support SubjectType structure
+    subjects: z
+        .array(
+            z.object({
+                id: z.string(),
+                subject_name: z.string(),
+                subject_code: z.string(),
+                credit: z.number(),
+                thumbnail_id: z.string().nullable(),
+                created_at: z.string().nullable(),
+                updated_at: z.string().nullable(),
+                modules: z.array(z.any()).optional(),
+            })
+        )
+        .optional(), // Changed to support SubjectType structure
 });
 
 // Define the schema for session details
@@ -192,7 +196,6 @@ const createDefaultSubject = (): SubjectType => ({
     thumbnail_id: null,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
-    modules: [],
 });
 
 export const transformApiDataToCourseData = async (apiData: CourseWithSessionsType) => {
