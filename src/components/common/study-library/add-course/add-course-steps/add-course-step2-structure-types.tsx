@@ -238,13 +238,13 @@ const mockCourses: Course[] = [
 const getIconForType = (type: Slide['type']) => {
     switch (type) {
         case 'video':
-            return <Video className="mr-1.5 h-4 w-4 flex-shrink-0 text-sky-500" />;
+            return <Video className="mr-1.5 size-4 shrink-0 text-sky-500" />;
         case 'pdf':
-            return <FileText className="mr-1.5 h-4 w-4 flex-shrink-0 text-rose-500" />;
+            return <FileText className="mr-1.5 size-4 shrink-0 text-rose-500" />;
         case 'doc':
-            return <FileType className="mr-1.5 h-4 w-4 flex-shrink-0 text-emerald-500" />;
+            return <FileType className="mr-1.5 size-4 shrink-0 text-emerald-500" />;
         default:
-            return <FileText className="mr-1.5 h-4 w-4 flex-shrink-0 text-gray-400" />;
+            return <FileText className="mr-1.5 size-4 shrink-0 text-gray-400" />;
     }
 };
 
@@ -264,127 +264,138 @@ const RecursiveStructure: React.FC<RecursiveStructureProps> = ({
     parentIsLast = [],
 }) => {
     const indentSize = 16; // Compact indentation
-    return items.map((item, index) => {
-        const isLast = index === items.length - 1;
-        const currentLineageIsLast = [...parentIsLast];
+    return (
+        <>
+            {items.map((item, index) => {
+                const isLast = index === items.length - 1;
+                const currentLineageIsLast = [...parentIsLast];
 
-        const isSlide = (i: TreeItem): i is Slide => 'type' in i;
-        const isContainer = (i: TreeItem): i is Subject | Module | Chapter =>
-            'isOpen' in i &&
-            ('modules' in i || 'chapters' in i || ('slides' in i && !('type' in i)));
+                const isSlide = (i: TreeItem): i is Slide => 'type' in i;
+                const isContainer = (i: TreeItem): i is Subject | Module | Chapter =>
+                    'isOpen' in i &&
+                    ('modules' in i || 'chapters' in i || ('slides' in i && !('type' in i)));
 
-        const itemRowPaddingLeft = '16px'; // Padding for the content part (icon + text), matches indent for lines
+                const itemRowPaddingLeft = '16px'; // Padding for the content part (icon + text), matches indent for lines
 
-        return (
-            <div
-                key={item.id}
-                className="tree-item-wrapper relative"
-                style={{ paddingLeft: `${level * indentSize}px` }}
-            >
-                {currentLineageIsLast.map(
-                    (wasParentLast, i) =>
-                        !wasParentLast && (
-                            <span
-                                key={`line-guide-${i}`}
-                                className="absolute bottom-0 top-0 w-px bg-gray-200 dark:bg-gray-700"
-                                style={{ left: `${i * indentSize + (indentSize / 2 - 1)}px` }}
-                            />
-                        )
-                )}
-                {level > 0 && (
-                    <>
-                        <span
-                            className="absolute top-0 w-px bg-gray-200 dark:bg-gray-700"
-                            style={{
-                                left: `${(level - 1) * indentSize + (indentSize / 2 - 1)}px`,
-                                height:
-                                    isLast && !isContainer(item)
-                                        ? '14px'
-                                        : isContainer(item) && !(item as any).isOpen && isLast
-                                          ? '14px'
-                                          : '100%',
-                            }}
-                        />
-                        <span
-                            className="absolute h-px bg-gray-200 dark:bg-gray-700"
-                            style={{
-                                left: `${(level - 1) * indentSize + (indentSize / 2 - 1)}px`,
-                                top: '14px', // Adjusted to align with py-1 and text-xs/sm
-                                width: `${indentSize / 2 + 1}px`,
-                            }}
-                        />
-                    </>
-                )}
-
-                {isSlide(item) ? (
+                return (
                     <div
-                        style={{ paddingLeft: itemRowPaddingLeft }}
-                        className="group flex w-full cursor-pointer items-center rounded-sm py-1 text-left text-xs text-gray-500 transition-colors duration-150 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
-                        title={item.name}
+                        key={item.id}
+                        className="tree-item-wrapper relative"
+                        style={{ paddingLeft: `${level * indentSize}px` }}
                     >
-                        {getIconForType(item.type)}
-                        <span className="truncate transition-colors duration-150 group-hover:text-gray-800 dark:group-hover:text-gray-200">
-                            {item.name}
-                        </span>
-                    </div>
-                ) : (
-                    (() => {
-                        let childrenToRecurse: TreeItem[] | undefined;
-                        const isSubject = (i: TreeItem): i is Subject => 'modules' in i;
-                        if (isSubject(item)) {
-                            childrenToRecurse = item.modules;
-                        } else if ('chapters' in item && item.chapters && !('type' in item)) {
-                            childrenToRecurse = item.chapters as TreeItem[];
-                        } else if ('slides' in item && item.slides && !('type' in item)) {
-                            childrenToRecurse = item.slides as TreeItem[];
-                        }
+                        {currentLineageIsLast.map(
+                            (wasParentLast, i) =>
+                                !wasParentLast && (
+                                    <span
+                                        key={`line-guide-${i}`}
+                                        className="absolute inset-y-0 w-px bg-gray-200 dark:bg-gray-700"
+                                        style={{
+                                            left: `${i * indentSize + (indentSize / 2 - 1)}px`,
+                                        }}
+                                    />
+                                )
+                        )}
+                        {level > 0 && (
+                            <>
+                                <span
+                                    className="absolute top-0 w-px bg-gray-200 dark:bg-gray-700"
+                                    style={{
+                                        left: `${(level - 1) * indentSize + (indentSize / 2 - 1)}px`,
+                                        height:
+                                            isLast && !isContainer(item)
+                                                ? '14px'
+                                                : // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                                  isContainer(item) && !item.isOpen && isLast
+                                                  ? '14px'
+                                                  : '100%',
+                                    }}
+                                />
+                                <span
+                                    className="absolute h-px bg-gray-200 dark:bg-gray-700"
+                                    style={{
+                                        left: `${(level - 1) * indentSize + (indentSize / 2 - 1)}px`,
+                                        top: '14px', // Adjusted to align with py-1 and text-xs/sm
+                                        width: `${indentSize / 2 + 1}px`,
+                                    }}
+                                />
+                            </>
+                        )}
 
-                        if (childrenToRecurse && isContainer(item)) {
-                            const isOpen = item.isOpen;
-                            return (
-                                <Collapsible
-                                    open={isOpen}
-                                    onOpenChange={() => onToggle(item.id)}
-                                    className="w-full"
-                                >
-                                    <CollapsibleTrigger asChild>
-                                        <button
-                                            style={{ paddingLeft: itemRowPaddingLeft }}
-                                            className="group flex w-full items-center rounded-sm py-1 pr-1.5 text-left transition-colors duration-150 hover:bg-gray-100 dark:hover:bg-gray-800"
-                                            title={item.name}
+                        {isSlide(item) ? (
+                            <div
+                                style={{ paddingLeft: itemRowPaddingLeft }}
+                                className="group flex w-full cursor-pointer items-center rounded-sm py-1 text-left text-xs text-gray-500 transition-colors duration-150 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+                                title={item.name}
+                            >
+                                {getIconForType(item.type)}
+                                <span className="truncate transition-colors duration-150 group-hover:text-gray-800 dark:group-hover:text-gray-200">
+                                    {item.name}
+                                </span>
+                            </div>
+                        ) : (
+                            (() => {
+                                let childrenToRecurse: TreeItem[] | undefined;
+                                const isSubject = (i: TreeItem): i is Subject => 'modules' in i;
+                                if (isSubject(item)) {
+                                    childrenToRecurse = item.modules;
+                                } else if (
+                                    'chapters' in item &&
+                                    item.chapters &&
+                                    !('type' in item)
+                                ) {
+                                    childrenToRecurse = item.chapters as TreeItem[];
+                                } else if ('slides' in item && item.slides && !('type' in item)) {
+                                    childrenToRecurse = item.slides as TreeItem[];
+                                }
+
+                                if (childrenToRecurse && isContainer(item)) {
+                                    const isOpen = item.isOpen;
+                                    return (
+                                        <Collapsible
+                                            open={isOpen}
+                                            onOpenChange={() => onToggle(item.id)}
+                                            className="w-full"
                                         >
-                                            {isOpen ? (
-                                                <ChevronDown className="mr-0.5 h-3.5 w-3.5 flex-shrink-0 text-gray-400" />
-                                            ) : (
-                                                <ChevronRight className="mr-0.5 h-3.5 w-3.5 flex-shrink-0 text-gray-400" />
-                                            )}
-                                            {isOpen ? (
-                                                <FolderOpen className="mr-1.5 h-4 w-4 flex-shrink-0 text-sky-500" />
-                                            ) : (
-                                                <Folder className="mr-1.5 h-4 w-4 flex-shrink-0 text-sky-500" />
-                                            )}
-                                            <span className="truncate text-sm font-medium text-gray-700 transition-colors duration-150 group-hover:text-gray-900 dark:text-gray-300 dark:group-hover:text-gray-100">
-                                                {item.name}
-                                            </span>
-                                        </button>
-                                    </CollapsibleTrigger>
-                                    <CollapsibleContent className="tree-collapsible-content data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up relative overflow-hidden pb-0.5 pt-0 transition-all duration-300 ease-in-out">
-                                        <RecursiveStructure
-                                            items={childrenToRecurse}
-                                            level={level + 1}
-                                            onToggle={onToggle}
-                                            parentIsLast={[...currentLineageIsLast, isLast]}
-                                        />
-                                    </CollapsibleContent>
-                                </Collapsible>
-                            );
-                        }
-                        return null;
-                    })()
-                )}
-            </div>
-        );
-    });
+                                            <CollapsibleTrigger asChild>
+                                                <button
+                                                    style={{ paddingLeft: itemRowPaddingLeft }}
+                                                    className="group flex w-full items-center rounded-sm py-1 pr-1.5 text-left transition-colors duration-150 hover:bg-gray-100 dark:hover:bg-gray-800"
+                                                    title={item.name}
+                                                >
+                                                    {isOpen ? (
+                                                        <ChevronDown className="mr-0.5 size-3.5 shrink-0 text-gray-400" />
+                                                    ) : (
+                                                        <ChevronRight className="mr-0.5 size-3.5 shrink-0 text-gray-400" />
+                                                    )}
+                                                    {isOpen ? (
+                                                        <FolderOpen className="mr-1.5 size-4 shrink-0 text-sky-500" />
+                                                    ) : (
+                                                        <Folder className="mr-1.5 size-4 shrink-0 text-sky-500" />
+                                                    )}
+                                                    <span className="truncate text-sm font-medium text-gray-700 transition-colors duration-150 group-hover:text-gray-900 dark:text-gray-300 dark:group-hover:text-gray-100">
+                                                        {item.name}
+                                                    </span>
+                                                </button>
+                                            </CollapsibleTrigger>
+                                            <CollapsibleContent className="tree-collapsible-content data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up relative overflow-hidden pb-0.5 pt-0 transition-all duration-300 ease-in-out">
+                                                <RecursiveStructure
+                                                    items={childrenToRecurse}
+                                                    level={level + 1}
+                                                    onToggle={onToggle}
+                                                    parentIsLast={[...currentLineageIsLast, isLast]}
+                                                />
+                                            </CollapsibleContent>
+                                        </Collapsible>
+                                    );
+                                }
+                                return null;
+                            })()
+                        )}
+                    </div>
+                );
+            })}
+        </>
+    );
 };
 
 // Updated CourseCard Props
@@ -459,7 +470,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
                     className="text-primary absolute right-2 top-2 opacity-0 transition-opacity duration-300 data-[selected=true]:opacity-100"
                     data-selected={isSelected}
                 >
-                    <CheckCircle2 className="h-5 w-5" />
+                    <CheckCircle2 className="size-5" />
                 </div>
             )}
             <CardHeader className="p-3">
