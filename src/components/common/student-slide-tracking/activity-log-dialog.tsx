@@ -67,7 +67,7 @@ export const ActivityLogDialog = ({
                 pageSize: pageSize,
             });
         }
-        if (activeItem?.video_slide?.url != null) {
+        if (activeItem?.source_type === 'VIDEO') {
             return getUserVideoSlideActivityLogs({
                 userId,
                 slideId,
@@ -148,9 +148,11 @@ export const ActivityLogDialog = ({
                     1000 /
                     60
                 ).toFixed(2)} mins`,
-                response: JSON.parse(
-                    item.question_slides[0]?.response_json || ''
-                ).selectedOption.join(','),
+                response: item.question_slides[0]?.response_json
+                    ? JSON.parse(item.question_slides[0]?.response_json || '').selectedOption.join(
+                          ','
+                      )
+                    : '',
                 responseStatus: item.question_slides[0]?.response_status,
             }));
         }
