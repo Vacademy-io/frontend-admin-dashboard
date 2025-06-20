@@ -15,6 +15,7 @@ import { TokenKey } from '@/constants/auth/tokens';
 import { useContentStore } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
 import { MyInput } from '@/components/design-system/input';
 import * as pdfjs from 'pdfjs-dist';
+import { CheckCircle, FilePdf } from '@phosphor-icons/react';
 
 // Set the workerSrc for pdfjs
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
@@ -36,6 +37,7 @@ export const AddPdfDialog = ({
     const [error, setError] = useState<string | null>(null);
     const [uploadProgress, setUploadProgress] = useState(0);
     const [isUploading, setIsUploading] = useState(false);
+    const [pdfPageCount, setPdfPageCount] = useState<number | null>(null);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const route = useRouter();
     const { chapterId } = route.state.location.search;
@@ -63,15 +65,21 @@ export const AddPdfDialog = ({
         setFile(selectedFile);
         form.setValue('pdfFile', [selectedFile] as unknown as FileList);
 
+        // Auto-populate title from filename
+        const fileName = selectedFile.name.replace(/\.[^/.]+$/, ""); // Remove extension
+        form.setValue('pdfTitle', fileName);
+
         // Get PDF page count
         try {
             const arrayBuffer = await selectedFile.arrayBuffer();
             const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
             const numPages = pdf.numPages;
-            toast.success(`File selected successfully. Total pages: ${numPages}`);
+            setPdfPageCount(numPages);
+            toast.success(`PDF selected successfully. ${numPages} page${numPages > 1 ? 's' : ''} detected.`);
         } catch (err) {
             console.error('Error reading PDF:', err);
-            toast.success('File selected successfully');
+            setPdfPageCount(null);
+            toast.success('PDF selected successfully');
         }
     };
 
@@ -141,6 +149,7 @@ export const AddPdfDialog = ({
             }
 
             clearInterval(progressInterval);
+            setUploadProgress(100);
             openState && openState(false);
         } catch (err) {
             const errorMessage =
@@ -157,60 +166,98 @@ export const AddPdfDialog = ({
         setError(null);
         setUploadProgress(0);
         setFileUrl(null);
+        setPdfPageCount(null);
         form.reset();
     }, []);
 
     return (
-        // <DialogContent onCloseAutoFocus={handleClose}>
         <Form {...form}>
             <form onSubmit={form.handleSubmit(handleUpload)} className="flex flex-col gap-6 p-6">
-                <FileUploadComponent
-                    fileInputRef={fileInputRef}
-                    onFileSubmit={handleFileSubmit}
-                    control={form.control}
-                    name="pdfFile"
-                    acceptedFileTypes={['application/pdf']}
-                    isUploading={isUploading}
-                    error={error}
-                    className="flex flex-col items-center rounded-lg border-2 border-dashed border-primary-500 px-5 pb-6 focus:outline-none"
-                >
-                    <div className="pointer-events-none flex flex-col items-center gap-6">
-                        <ImportFileImage />
-                        <div className="text-center">
+                {/* Enhanced File Upload Area */}
+                <div className="space-y-4">
+                    <FileUploadComponent
+                        fileInputRef={fileInputRef}
+                        onFileSubmit={handleFileSubmit}
+                        control={form.control}
+                        name="pdfFile"
+                        acceptedFileTypes={['application/pdf']}
+                        isUploading={isUploading}
+                        error={error}
+                        className={`
+                            flex flex-col items-center rounded-xl border-2 border-dashed px-6 py-8
+                            transition-all duration-300 ease-in-out
+                            ${file 
+                                ? 'border-green-300 bg-green-50/50' 
+                                : 'border-primary-300 bg-primary-50/30 hover:border-primary-400 hover:bg-primary-50/50'
+                            }
+                            focus:outline-none focus:ring-2 focus:ring-primary-500/20
+                        `}
+                    >
+                        <div className="pointer-events-none flex flex-col items-center gap-4">
                             {file ? (
-                                <>
-                                    <p className="text-primary-600 text-wrap font-medium">
-                                        {file.name}
-                                    </p>
-                                    <p className="text-sm text-gray-500">
-                                        {(file.size / (1024 * 1024)).toFixed(2)} MB
-                                    </p>
-                                </>
+                                <div className="flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                                    <div className="p-3 bg-green-100 rounded-full">
+                                        <CheckCircle className="w-6 h-6 text-green-600" />
+                                    </div>
+                                    <div>
+                                        <p className="text-green-700 font-medium text-wrap">
+                                            {file.name}
+                                        </p>
+                                        <div className="flex items-center gap-2 text-sm text-green-600">
+                                            <span>{(file.size / (1024 * 1024)).toFixed(2)} MB</span>
+                                            {pdfPageCount && (
+                                                <>
+                                                    <span>•</span>
+                                                    <span>{pdfPageCount} page{pdfPageCount > 1 ? 's' : ''}</span>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
                             ) : (
-                                <div className="flex flex-col gap-2">
-                                    <p className="text-neutral-600">
-                                        Drag and drop a PDF file here, or click to select
-                                    </p>
+                                <div className="text-center space-y-3">
+                                    <div className="p-4 bg-primary-100 rounded-full w-fit mx-auto animate-pulse">
+                                        <FilePdf className="w-8 h-8 text-primary-600" />
+                                    </div>
+                                    <div>
+                                        <p className="text-neutral-700 font-medium mb-1">
+                                            Drop your PDF here, or click to browse
+                                        </p>
+                                        <p className="text-sm text-neutral-500">
+                                            Supports PDF files up to 10MB
+                                        </p>
+                                    </div>
                                 </div>
                             )}
                         </div>
-                    </div>
-                </FileUploadComponent>
+                    </FileUploadComponent>
 
-                {fileUrl && !isUploading && (
-                    <>
-                        <div>
-                            <Progress
-                                value={uploadProgress}
-                                className="h-2 bg-neutral-200 [&>div]:bg-primary-500"
-                            />
-                            <p className="mt-2 text-sm text-neutral-600">
-                                Uploading... {uploadProgress}%
+                    {/* Error Display */}
+                    {error && (
+                        <div className="p-3 bg-red-50 border border-red-200 rounded-lg animate-in fade-in slide-in-from-top-2 duration-300">
+                            <p className="text-sm text-red-600 flex items-center gap-2">
+                                <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+                                {error}
                             </p>
                         </div>
-                    </>
+                    )}
+                </div>
+
+                {/* Progress Display */}
+                {isUploading && (
+                    <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        <Progress
+                            value={uploadProgress}
+                            className="h-2 bg-neutral-200 [&>div]:bg-gradient-to-r [&>div]:from-primary-500 [&>div]:to-primary-600"
+                        />
+                        <div className="flex items-center justify-between text-sm">
+                            <span className="text-neutral-600">Uploading PDF...</span>
+                            <span className="text-primary-600 font-medium">{uploadProgress}%</span>
+                        </div>
+                    </div>
                 )}
 
+                {/* Title Input */}
                 <FormField
                     control={form.control}
                     name="pdfTitle"
@@ -219,11 +266,11 @@ export const AddPdfDialog = ({
                             <FormControl>
                                 <MyInput
                                     {...field}
-                                    label="Title"
+                                    label="Document Title"
                                     required={true}
                                     input={field.value}
                                     inputType="text"
-                                    inputPlaceholder="File name"
+                                    inputPlaceholder="Enter a descriptive title"
                                     onChangeFunction={field.onChange}
                                     className="w-full"
                                 />
@@ -232,20 +279,41 @@ export const AddPdfDialog = ({
                     )}
                 />
 
-                <DialogFooter className="flex w-full items-center justify-center">
+                {/* Enhanced Footer */}
+                <DialogFooter className="flex w-full items-center justify-between pt-4 border-t border-neutral-100">
+                    <div className="text-xs text-neutral-500">
+                        {file && (
+                            <span className="flex items-center gap-1">
+                                <FilePdf className="w-3 h-3" />
+                                Ready to upload
+                            </span>
+                        )}
+                    </div>
                     <MyButton
                         buttonType="primary"
                         scale="large"
                         layoutVariant="default"
                         type="submit"
-                        disabled={!file || isUploading}
-                        className="mx-auto"
+                        disabled={!file || isUploading || !form.watch('pdfTitle')}
+                        className={`
+                            transition-all duration-300 ease-in-out
+                            ${!file || isUploading || !form.watch('pdfTitle')
+                                ? 'opacity-50 cursor-not-allowed'
+                                : 'hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl'
+                            }
+                        `}
                     >
-                        {isUploading ? 'Uploading...' : 'Upload PDF'}
+                        {isUploading ? (
+                            <div className="flex items-center gap-2">
+                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                Uploading...
+                            </div>
+                        ) : (
+                            'Upload PDF'
+                        )}
                     </MyButton>
                 </DialogFooter>
             </form>
         </Form>
-        // </DialogContent>
     );
 };

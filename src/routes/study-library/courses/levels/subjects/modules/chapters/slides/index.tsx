@@ -2,6 +2,7 @@ import { LayoutContainer } from '@/components/common/layout-container/layout-con
 import { SlideMaterial } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-components/slide-material';
 import { ChapterSidebarAddButton } from './-components/slides-sidebar/slides-sidebar-add-button';
 import { ChapterSidebarSlides } from './-components/slides-sidebar/slides-sidebar-slides';
+import './slides-sidebar-scrollbar.css';
 import { studyLibrarySteps } from '@/constants/intro/steps';
 import { StudyLibraryIntroKey } from '@/constants/storage/introKey';
 import {
@@ -121,7 +122,7 @@ function RouteComponent() {
     }, [studyLibraryData, modulesWithChaptersData]);
 
     const SidebarComponent = (
-        <div className="flex w-full flex-col items-center">
+        <div className="flex w-full flex-col items-center h-full">
             <div className={`flex w-full flex-col gap-6 px-3 pb-3 `}>
                 <div className="flex flex-wrap items-center gap-1 text-neutral-500">
                     <p onClick={handleSubjectRoute} className="cursor-pointer ">
@@ -134,8 +135,12 @@ function RouteComponent() {
                     <ChevronRightIcon className={`size-4 `} />
                     <p className="cursor-pointer text-primary-500">{chapterName}</p>
                 </div>
-                <div className="flex w-full flex-col items-center gap-6 pb-10">
-                    <ChapterSidebarSlides handleSlideOrderChange={handleSlideOrderChange} />
+                
+                {/* Enhanced Scrollable Container for Slides */}
+                <div className="flex-1 overflow-hidden h-[calc(100vh-200px)]">
+                    <div className="h-full overflow-y-auto pr-1 slides-sidebar-scrollable">
+                        <ChapterSidebarSlides handleSlideOrderChange={handleSlideOrderChange} />
+                    </div>
                 </div>
             </div>
             <div className="fixed bottom-0 flex w-[280px] items-center justify-center bg-primary-50 pb-3">

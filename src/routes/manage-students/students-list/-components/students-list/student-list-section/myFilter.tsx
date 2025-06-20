@@ -79,13 +79,15 @@ export const Filters = ({
     }, [selectedFilterList[filterId], filterDetails.label]);
 
     return (
-        <FilterChips
-            label={filterDetails.label}
-            filterList={filterDetails.filters}
-            selectedFilters={selectedFilterList[filterId]}
-            clearFilters={clearFilters}
-            handleSelect={handleSelectDeSelect}
-            handleClearFilters={handleClearFilters}
-        />
+        <div className="group transition-all duration-200 hover:scale-102">
+            <FilterChips
+                label={filterDetails.label}
+                filterList={filterDetails.filters}
+                selectedFilters={selectedFilterList[filterId]}
+                clearFilters={clearFilters}
+                handleSelect={handleSelectDeSelect}
+                handleClearFilters={handleClearFilters}
+            />
+        </div>
     );
 };

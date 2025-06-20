@@ -37,12 +37,14 @@ const SlideEditor: React.FC<SlideEditorProps> = ({
     // Load data from published_data or localStorage on mount
     useEffect(() => {
         const loadData = async () => {
+            console.log(`[SlideEditor ${slideId}] Loading data...`);
             setIsLoading(true);
             setError(null);
 
             try {
                 // If published_data has fileId, fetch from public URL
                 if (published_data?.fileId) {
+                    console.log(`[SlideEditor ${slideId}] Loading from published data`);
                     const publicUrl = await getPublicUrl(published_data.fileId);
                     const response = await fetch(publicUrl);
 
@@ -58,18 +60,21 @@ const SlideEditor: React.FC<SlideEditorProps> = ({
                         `excalidraw_${slideId}`,
                         JSON.stringify(publishedExcalidrawData)
                     );
-                    console.log('publishedExcalidrawData', publishedExcalidrawData);
-                    console.log('slideId', slideId);
+                    console.log(`[SlideEditor ${slideId}] Published data loaded:`, publishedExcalidrawData);
                 } else {
                     // Fallback to localStorage
+                    console.log(`[SlideEditor ${slideId}] Loading from localStorage`);
                     const savedData = localStorage.getItem(`excalidraw_${slideId}`);
                     if (savedData) {
                         const parsedData = JSON.parse(savedData);
                         setLoadedData(parsedData);
+                        console.log(`[SlideEditor ${slideId}] LocalStorage data loaded:`, parsedData);
+                    } else {
+                        console.log(`[SlideEditor ${slideId}] No saved data found, using initial data`);
                     }
                 }
             } catch (error) {
-                console.error('Error loading slide data:', error);
+                console.error(`[SlideEditor ${slideId}] Error loading slide data:`, error);
                 setError(error instanceof Error ? error.message : 'An unknown error occurred');
 
                 // Fallback to localStorage if published data fails
@@ -78,9 +83,10 @@ const SlideEditor: React.FC<SlideEditorProps> = ({
                     if (savedData) {
                         const parsedData = JSON.parse(savedData);
                         setLoadedData(parsedData);
+                        console.log(`[SlideEditor ${slideId}] Fallback to localStorage successful`);
                     }
                 } catch (localStorageError) {
-                    console.error('Error loading from localStorage:', localStorageError);
+                    console.error(`[SlideEditor ${slideId}] Error loading from localStorage:`, localStorageError);
                 }
             } finally {
                 setIsLoading(false);
@@ -107,8 +113,9 @@ const SlideEditor: React.FC<SlideEditorProps> = ({
 
                 try {
                     localStorage.setItem(`excalidraw_${slideId}`, JSON.stringify(excalidrawData));
+                    console.log(`[SlideEditor ${slideId}] Data saved to localStorage:`, excalidrawData);
                 } catch (error) {
-                    console.error('Error saving to localStorage:', error);
+                    console.error(`[SlideEditor ${slideId}] Error saving to localStorage:`, error);
                 }
             }, 1000);
         },
@@ -137,12 +144,17 @@ const SlideEditor: React.FC<SlideEditorProps> = ({
     const getInitialData = () => {
         const dataToUse = loadedData || initialData;
 
+        // Deep clone the data to ensure complete isolation between slides
+        const clonedElements = JSON.parse(JSON.stringify(dataToUse.elements || []));
+        const clonedFiles = JSON.parse(JSON.stringify(dataToUse.files || {}));
+        const clonedAppState = JSON.parse(JSON.stringify(dataToUse.appState || {}));
+
         // Ensure appState has all required properties
         const defaultAppState = {
             scrollX: 0,
             scrollY: 0,
             collaborators: new Map(), // Initialize as Map
-            ...dataToUse.appState,
+            ...clonedAppState,
         };
 
         // If collaborators exists but is not a Map, convert it
@@ -150,11 +162,14 @@ const SlideEditor: React.FC<SlideEditorProps> = ({
             defaultAppState.collaborators = new Map();
         }
 
-        return {
-            elements: dataToUse.elements || [],
-            files: dataToUse.files || {},
+        const finalData = {
+            elements: clonedElements,
+            files: clonedFiles,
             appState: defaultAppState,
         };
+        
+        console.log(`[SlideEditor ${slideId}] Initial data prepared:`, finalData);
+        return finalData;
     };
 
     // Show loading state
@@ -195,11 +210,15 @@ const SlideEditor: React.FC<SlideEditorProps> = ({
 
     return (
         <div
-            className="aspect-[4/3] w-full border"
-            style={{ height: '85vh' }}
+            className="aspect-[4/3] w-full border relative"
+            style={{ 
+                height: '85vh',
+                zIndex: 9999 // Ensure Excalidraw toolbar appears above other elements
+            }}
             onWheelCapture={(e) => e.stopPropagation()}
         >
             <Excalidraw
+                key={`excalidraw-${slideId}`}
                 excalidrawAPI={(api) => {
                     excalidrawRef.current = api;
                 }}

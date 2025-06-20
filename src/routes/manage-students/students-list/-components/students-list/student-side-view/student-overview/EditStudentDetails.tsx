@@ -182,8 +182,12 @@ export const EditStudentDetails = () => {
         <MyDialog
             trigger={
                 <div className="flex w-full items-center justify-center">
-                    <MyButton buttonType="secondary" scale="large" className="w-fit">
-                        Edit Student Details
+                    <MyButton 
+                        buttonType="secondary" 
+                        scale="medium" 
+                        className="w-fit bg-gradient-to-r from-primary-50 to-primary-100 hover:from-primary-100 hover:to-primary-200 border-primary-200 text-primary-700 hover:text-primary-800 transition-all duration-200 hover:scale-102 text-xs px-3 py-1.5"
+                    >
+                        ✏️ Edit Details
                     </MyButton>
                 </div>
             }

@@ -13,7 +13,7 @@ export function createPresentationSlidePayload(slideType: slideType): DocumentSl
     // Create the presentation slide payload
     return {
         id: slideId,
-        title: `New ${slideType} Slide`,
+        title: `New ${slideType.name} Slide`,
         image_file_id: '',
         description: '',
         slide_order: null,
@@ -29,7 +29,7 @@ export function createPresentationSlidePayload(slideType: slideType): DocumentSl
                 },
                 files: {},
             }),
-            title: `New ${slideType} Slide`,
+            title: `New ${slideType.name} Slide`,
             cover_file_id: '',
             total_pages: 1,
             published_data: null,
