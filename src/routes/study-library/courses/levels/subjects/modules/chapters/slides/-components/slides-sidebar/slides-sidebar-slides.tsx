@@ -261,22 +261,18 @@ export const ChapterSidebarSlides = ({
 
     useEffect(() => {
         if (slides?.length) {
-            form.reset({ slides: items });
-            setItems(items);
+            form.reset({ slides });
+            setItems(slides as Slide[]);
 
             if (slideId) {
-                const targetSlide: Slide | undefined = items.find(
-                    (item: Slide) => item.id === slideId
-                );
+                const targetSlide = slides.find((item) => item.id === slideId) as Slide | undefined;
                 if (targetSlide) {
                     setActiveItem(targetSlide);
                     return;
                 }
             }
 
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
-            setActiveItem(slides[0] ?? null);
+            setActiveItem(slides[0] as Slide);
         } else {
             if (slideId == undefined) {
                 setActiveItem(null);

@@ -268,7 +268,6 @@ const AdminProfile = ({ adminDetails }: { adminDetails: UserProfile }) => {
                                                             labelStyle="text-base font-normal"
                                                             country="in"
                                                             required={false}
-                                                            value={value}
                                                         />
                                                     </FormControl>
                                                 </FormItem>

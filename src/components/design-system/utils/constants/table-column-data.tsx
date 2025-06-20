@@ -360,7 +360,9 @@ export const myColumns: ColumnDef<StudentTable>[] = [
         minSize: 180,
         maxSize: 280,
         header: "Mother/Female Guardian's Mobile Number",
-        cell: ({ row }) => <CreateClickableCell row={row} columnId="parents_to_mother_mobile_number" />,
+        cell: ({ row }) => (
+            <CreateClickableCell row={row} columnId="parents_to_mother_mobile_number" />
+        ),
     },
     {
         accessorKey: 'parents_to_mother_email',

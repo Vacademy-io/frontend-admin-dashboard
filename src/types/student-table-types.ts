@@ -45,7 +45,7 @@ export interface StudentTable {
     updated_at: string;
     package_session_id: string;
     institute_enrollment_id: string;
-    status: "ACTIVE" | "TERMINATED" | "INACTIVE";
+    status: 'ACTIVE' | 'TERMINATED' | 'INACTIVE';
     session_expiry_days: number;
     institute_id: string;
     expiry_date: number;
@@ -54,6 +54,7 @@ export interface StudentTable {
     parents_to_mother_mobile_number: string;
     parents_to_mother_email: string;
     package_id?: string;
+    password?: string;
 }
 
 export interface StudentListResponse {
@@ -63,4 +64,11 @@ export interface StudentListResponse {
     total_elements: number;
     total_pages: number;
     last: boolean;
+}
+
+// Add this below the existing interfaces like StudentListResponse
+
+export interface StudentCredentialsType {
+    username: string;
+    password: string;
 }

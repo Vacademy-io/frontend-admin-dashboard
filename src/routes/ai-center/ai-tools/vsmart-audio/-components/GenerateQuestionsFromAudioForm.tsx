@@ -135,7 +135,7 @@ const GenerateQuestionsFromAudioForm = ({
                                     className=""
                                     type="button"
                                 >
-                                    <DashboardLoader size={18} color="#ffffff" />
+                                    <DashboardLoader/>
                                 </MyButton>
                             ) : (
                                 <MyButton

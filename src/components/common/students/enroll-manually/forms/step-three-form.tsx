@@ -1,18 +1,18 @@
 // step-three-form.tsx
-import { FormStepHeading } from "../form-components/form-step-heading";
-import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
-import { FormItemWrapper } from "../form-components/form-item-wrapper";
-import { useForm } from "react-hook-form";
-import { MyInput } from "@/components/design-system/input";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
+import { FormStepHeading } from '../form-components/form-step-heading';
+import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
+import { FormItemWrapper } from '../form-components/form-item-wrapper';
+import { useForm } from 'react-hook-form';
+import { MyInput } from '@/components/design-system/input';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useFormStore } from '@/stores/students/enroll-students-manually/enroll-manually-form-store';
 import {
     StepThreeData,
     stepThreeSchema,
-} from "@/schemas/student/student-list/schema-enroll-students-manually";
-import PhoneInputField from "@/components/design-system/phone-input-field";
-import { useEffect, useRef } from "react";
-import { StudentTable } from "@/types/student-table-types";
+} from '@/schemas/student/student-list/schema-enroll-students-manually';
+import PhoneInputField from '@/components/design-system/phone-input-field';
+import { useEffect, useRef } from 'react';
+import { StudentTable } from '@/types/student-table-types';
 
 export const StepThreeForm = ({
     initialValues,
@@ -25,15 +25,15 @@ export const StepThreeForm = ({
 
     const form = useForm<StepThreeData>({
         resolver: zodResolver(stepThreeSchema),
-        defaultValues: stepThreeData || {
-            mobileNumber: initialValues?.mobile_number || "",
-            email: initialValues?.email || "",
-            addressLine: initialValues?.address_line || "",
-            city: initialValues?.city || "",
-            state: initialValues?.region || "",
-            pincode: initialValues?.pin_code || "",
+        defaultValues: {
+            mobileNumber: stepThreeData?.mobileNumber ?? initialValues?.mobile_number ?? '',
+            email: stepThreeData?.email ?? initialValues?.email ?? '',
+            addressLine: stepThreeData?.addressLine ?? initialValues?.address_line ?? '',
+            city: stepThreeData?.city ?? initialValues?.city ?? '',
+            state: stepThreeData?.state ?? initialValues?.region ?? '',
+            pincode: stepThreeData?.pincode ?? initialValues?.pin_code ?? '',
         },
-        mode: "onChange",
+        mode: 'onChange',
     });
 
     const onSubmit = (values: StepThreeData) => {
@@ -41,9 +41,7 @@ export const StepThreeForm = ({
         nextStep();
     };
 
-    useEffect(() => {
-        console.log("mobile field: ", form.getValues("mobileNumber"));
-    }, [form.watch("mobileNumber")]);
+    useEffect(() => {}, [form.watch('mobileNumber')]);
 
     const formRef = useRef<HTMLFormElement>(null);
 
@@ -180,6 +178,7 @@ export const StepThreeForm = ({
                                     </FormItem>
                                 )}
                             />
+
                             <FormField
                                 control={form.control}
                                 name="pincode"
@@ -189,7 +188,7 @@ export const StepThreeForm = ({
                                             <MyInput
                                                 inputType="number"
                                                 label="Pincode"
-                                                inputPlaceholder="Eg.425562"
+                                                inputPlaceholder="Eg. 425562"
                                                 input={value}
                                                 onChangeFunction={onChange}
                                                 size="large"

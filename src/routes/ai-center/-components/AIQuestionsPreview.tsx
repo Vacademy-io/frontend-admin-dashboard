@@ -296,7 +296,7 @@ const AIQuestionsPreview = ({
                             onClick={() => handleRetryTask(task.id)}
                         >
                             {getRetryMutation.status === 'pending' ? (
-                                <DashboardLoader size={18} />
+                                <DashboardLoader/>
                             ) : (
                                 'Retry'
                             )}
@@ -310,7 +310,7 @@ const AIQuestionsPreview = ({
                             onClick={() => handlViewQuestionsList(task.id)}
                         >
                             {getQuestionsListMutation.status === 'pending' ? (
-                                <DashboardLoader size={18} />
+                                <DashboardLoader/>
                             ) : (
                                 'View'
                             )}
@@ -347,7 +347,7 @@ const AIQuestionsPreview = ({
                                         {currentSectionIndex !== undefined &&
                                             (handleSubmitFormData.status === 'pending' ? (
                                                 <MyButton type="button">
-                                                    <DashboardLoader size={18} color="#ffffff" />
+                                                    <DashboardLoader/>
                                                 </MyButton>
                                             ) : (
                                                 <MyButton

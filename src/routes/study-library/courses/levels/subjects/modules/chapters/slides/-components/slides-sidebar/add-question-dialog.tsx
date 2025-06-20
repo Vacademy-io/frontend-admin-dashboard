@@ -302,7 +302,7 @@ const AddQuestionDialog = ({
                                     buttonType="primary"
                                     className="font-medium"
                                 >
-                                    <DashboardLoader size={18} color="#ffffff" />
+                                    <DashboardLoader/>
                                 </MyButton>
                             ) : (
                                 <MyButton

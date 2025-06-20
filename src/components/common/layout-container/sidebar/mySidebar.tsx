@@ -7,7 +7,10 @@ import {
     SidebarMenuItem,
     useSidebar,
 } from '@/components/ui/sidebar';
-import { SidebarStateType } from '../../../../types/layout-container/layout-container-types';
+import {
+    SidebarStateType,
+    SidebarItemsType,
+} from '../../../../types/layout-container/layout-container-types';
 import { SidebarItem } from './sidebar-item';
 import { SidebarItemsData } from './utils';
 import './scrollbarStyle.css';
@@ -25,7 +28,7 @@ import { WhatsappLogo, EnvelopeSimple, Lightning } from '@phosphor-icons/react';
 import { useNavigate, useRouter } from '@tanstack/react-router';
 import useInstituteLogoStore from './institutelogo-global-zustand';
 
-const voltSidebarData = [
+const voltSidebarData: SidebarItemsType[] = [
     {
         icon: Lightning,
         title: 'Volt',
@@ -45,7 +48,9 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
     const [isVoltSubdomain, setIsVoltSubdomain] = useState(false);
 
     useEffect(() => {
-        setIsVoltSubdomain(typeof window !== 'undefined' && window.location.hostname.startsWith('volt.'));
+        setIsVoltSubdomain(
+            typeof window !== 'undefined' && window.location.hostname.startsWith('volt.')
+        );
     }, []);
 
     const finalSidebarItems = isVoltSubdomain
@@ -102,11 +107,16 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                 >
                     {sidebarComponent
                         ? sidebarComponent
-                        : finalSidebarItems.map((obj, key) => (
-                              <SidebarMenuItem key={key} id={obj.id}>
-                                  <SidebarItem {...obj} />
-                              </SidebarMenuItem>
-                          ))}
+                        : finalSidebarItems
+                              .filter(
+                                  (item) =>
+                                      !item.showForInstitute || item.showForInstitute === data?.id
+                              )
+                              .map((obj, key) => (
+                                  <SidebarMenuItem key={key} id={obj.id}>
+                                      <SidebarItem {...obj} />
+                                  </SidebarMenuItem>
+                              ))}
                 </SidebarMenu>
                 <div
                     className={cn(

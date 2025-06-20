@@ -49,6 +49,7 @@ import { Route as AssessmentQuestionPapersIndexImport } from "./routes/assessmen
 import { Route as AssessmentAssessmentListIndexImport } from "./routes/assessment/assessment-list/index"
 import { Route as AiCenterMyResourcesIndexImport } from "./routes/ai-center/my-resources/index"
 import { Route as AiCenterAiToolsIndexImport } from "./routes/ai-center/ai-tools/index"
+import { Route as SignupOauthCallbackImport } from "./routes/signup/oauth/callback"
 import { Route as StudyLibraryVoltAddIndexImport } from "./routes/study-library/volt/add/index"
 import { Route as StudyLibraryLiveSessionScheduleIndexImport } from "./routes/study-library/live-session/schedule/index"
 import { Route as StudyLibraryCoursesLevelsIndexImport } from "./routes/study-library/courses/levels/index"
@@ -327,6 +328,12 @@ const AiCenterMyResourcesIndexRoute = AiCenterMyResourcesIndexImport.update({
 const AiCenterAiToolsIndexRoute = AiCenterAiToolsIndexImport.update({
   id: "/ai-center/ai-tools/",
   path: "/ai-center/ai-tools/",
+  getParentRoute: () => rootRoute,
+} as any)
+
+const SignupOauthCallbackRoute = SignupOauthCallbackImport.update({
+  id: "/signup/oauth/callback",
+  path: "/signup/oauth/callback",
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -624,6 +631,13 @@ declare module "@tanstack/react-router" {
       path: "/study-library"
       fullPath: "/study-library"
       preLoaderRoute: typeof StudyLibraryIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/signup/oauth/callback": {
+      id: "/signup/oauth/callback"
+      path: "/signup/oauth/callback"
+      fullPath: "/signup/oauth/callback"
+      preLoaderRoute: typeof SignupOauthCallbackImport
       parentRoute: typeof rootRoute
     }
     "/ai-center/ai-tools/": {
@@ -1016,6 +1030,7 @@ export interface FileRoutesByFullPath {
   "/manage-students": typeof ManageStudentsIndexRoute
   "/signup": typeof SignupIndexRoute
   "/study-library": typeof StudyLibraryIndexRoute
+  "/signup/oauth/callback": typeof SignupOauthCallbackRoute
   "/ai-center/ai-tools": typeof AiCenterAiToolsIndexRoute
   "/ai-center/my-resources": typeof AiCenterMyResourcesIndexRoute
   "/assessment/assessment-list": typeof AssessmentAssessmentListIndexRoute
@@ -1085,6 +1100,7 @@ export interface FileRoutesByTo {
   "/manage-students": typeof ManageStudentsIndexRoute
   "/signup": typeof SignupIndexRoute
   "/study-library": typeof StudyLibraryIndexRoute
+  "/signup/oauth/callback": typeof SignupOauthCallbackRoute
   "/ai-center/ai-tools": typeof AiCenterAiToolsIndexRoute
   "/ai-center/my-resources": typeof AiCenterMyResourcesIndexRoute
   "/assessment/assessment-list": typeof AssessmentAssessmentListIndexRoute
@@ -1155,6 +1171,7 @@ export interface FileRoutesById {
   "/manage-students/": typeof ManageStudentsIndexRoute
   "/signup/": typeof SignupIndexRoute
   "/study-library/": typeof StudyLibraryIndexRoute
+  "/signup/oauth/callback": typeof SignupOauthCallbackRoute
   "/ai-center/ai-tools/": typeof AiCenterAiToolsIndexRoute
   "/ai-center/my-resources/": typeof AiCenterMyResourcesIndexRoute
   "/assessment/assessment-list/": typeof AssessmentAssessmentListIndexRoute
@@ -1226,6 +1243,7 @@ export interface FileRouteTypes {
     | "/manage-students"
     | "/signup"
     | "/study-library"
+    | "/signup/oauth/callback"
     | "/ai-center/ai-tools"
     | "/ai-center/my-resources"
     | "/assessment/assessment-list"
@@ -1294,6 +1312,7 @@ export interface FileRouteTypes {
     | "/manage-students"
     | "/signup"
     | "/study-library"
+    | "/signup/oauth/callback"
     | "/ai-center/ai-tools"
     | "/ai-center/my-resources"
     | "/assessment/assessment-list"
@@ -1362,6 +1381,7 @@ export interface FileRouteTypes {
     | "/manage-students/"
     | "/signup/"
     | "/study-library/"
+    | "/signup/oauth/callback"
     | "/ai-center/ai-tools/"
     | "/ai-center/my-resources/"
     | "/assessment/assessment-list/"
@@ -1432,6 +1452,7 @@ export interface RootRouteChildren {
   ManageStudentsIndexRoute: typeof ManageStudentsIndexRoute
   SignupIndexRoute: typeof SignupIndexRoute
   StudyLibraryIndexRoute: typeof StudyLibraryIndexRoute
+  SignupOauthCallbackRoute: typeof SignupOauthCallbackRoute
   AiCenterAiToolsIndexRoute: typeof AiCenterAiToolsIndexRoute
   AiCenterMyResourcesIndexRoute: typeof AiCenterMyResourcesIndexRoute
   AssessmentAssessmentListIndexRoute: typeof AssessmentAssessmentListIndexRoute
@@ -1501,6 +1522,7 @@ const rootRouteChildren: RootRouteChildren = {
   ManageStudentsIndexRoute: ManageStudentsIndexRoute,
   SignupIndexRoute: SignupIndexRoute,
   StudyLibraryIndexRoute: StudyLibraryIndexRoute,
+  SignupOauthCallbackRoute: SignupOauthCallbackRoute,
   AiCenterAiToolsIndexRoute: AiCenterAiToolsIndexRoute,
   AiCenterMyResourcesIndexRoute: AiCenterMyResourcesIndexRoute,
   AssessmentAssessmentListIndexRoute: AssessmentAssessmentListIndexRoute,
@@ -1601,6 +1623,7 @@ export const routeTree = rootRoute
         "/manage-students/",
         "/signup/",
         "/study-library/",
+        "/signup/oauth/callback",
         "/ai-center/ai-tools/",
         "/ai-center/my-resources/",
         "/assessment/assessment-list/",
@@ -1694,6 +1717,9 @@ export const routeTree = rootRoute
     },
     "/study-library/": {
       "filePath": "study-library/index.tsx"
+    },
+    "/signup/oauth/callback": {
+      "filePath": "signup/oauth/callback.tsx"
     },
     "/ai-center/ai-tools/": {
       "filePath": "ai-center/ai-tools/index.tsx"

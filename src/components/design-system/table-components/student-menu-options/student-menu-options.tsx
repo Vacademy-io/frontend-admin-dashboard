@@ -13,14 +13,6 @@ const getMenuOptions = (status?: string) => {
         return ['Re-enroll Student'];
     }
 
-    // return [
-    //     "View Student Portal",
-    //     "Change Batch",
-    //     "Extend Session",
-    //     "Re-register for Next Session",
-    //     "Terminate Registration",
-    //     "Delete Student",
-    // ];
     return ['Change Batch', 'Terminate Registration', 'Re-register for Next Session'];
 };
 

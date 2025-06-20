@@ -124,7 +124,7 @@ export const ViewDetails = ({ row }: { row: Row<SubjectOverviewColumnType> }) =>
                                 handleExportPDF();
                             }}
                         >
-                            {isExporting ? <DashboardLoader size={20} /> : "Export"}
+                            {isExporting ? <DashboardLoader/> : "Export"}
                         </MyButton>
                     </div>
                     <div className="grid grid-cols-3 items-center justify-between gap-4">
@@ -134,7 +134,7 @@ export const ViewDetails = ({ row }: { row: Row<SubjectOverviewColumnType> }) =>
                         <div>Subject: {row.getValue("subject")}</div>
                         <div>Module: {row.getValue("module")}</div>
                     </div>
-                    {(isChapterPending || isLearnerPending) && <DashboardLoader height="10vh" />}
+                    {(isChapterPending || isLearnerPending) && <DashboardLoader/>}
                     {chapterReportData &&
                         chapterReportData.map((chapter) => (
                             <div key={chapter.chapter_id} className="flex flex-col gap-6">

@@ -1,10 +1,10 @@
-import { SubjectDefaultImage } from "@/assets/svgs";
-import { CourseType } from "@/stores/study-library/use-study-library-store";
-import { CourseMenuOptions } from "./course-menu-options";
-import { useNavigate, useRouter } from "@tanstack/react-router";
-import { AddCourseData } from "../../../../components/common/study-library/add-course/add-course-form";
-import { useEffect, useState } from "react";
-import { getPublicUrl } from "@/services/upload_file";
+import { SubjectDefaultImage } from '@/assets/svgs';
+import { CourseType } from '@/stores/study-library/use-study-library-store';
+import { CourseMenuOptions } from './course-menu-options';
+import { useNavigate, useRouter } from '@tanstack/react-router';
+import { AddCourseData } from '../../../../components/common/study-library/add-course/add-course-form';
+import { useEffect, useState } from 'react';
+import { getPublicUrl } from '@/services/upload_file';
 
 export const CourseCard = ({
     course,
@@ -23,8 +23,8 @@ export const CourseCard = ({
     const handleCourseCardClick = (e: React.MouseEvent) => {
         if (
             e.target instanceof Element &&
-            (e.target.closest(".menu-options-container") ||
-                e.target.closest(".drag-handle-container") ||
+            (e.target.closest('.menu-options-container') ||
+                e.target.closest('.drag-handle-container') ||
                 e.target.closest('[role="menu"]') ||
                 e.target.closest('[role="dialog"]'))
         ) {
@@ -46,7 +46,7 @@ export const CourseCard = ({
                     const url = await getPublicUrl(course?.thumbnail_file_id);
                     setImageUrl(url);
                 } catch (error) {
-                    console.error("Failed to fetch image URL:", error);
+                    console.error('Failed to fetch image URL:', error);
                 }
             }
         };

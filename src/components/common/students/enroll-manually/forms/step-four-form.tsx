@@ -1,18 +1,17 @@
-// step-four-form.tsx
-import { FormStepHeading } from "../form-components/form-step-heading";
-import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
-import { FormItemWrapper } from "../form-components/form-item-wrapper";
-import { useForm } from "react-hook-form";
-import { MyInput } from "@/components/design-system/input";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
+import { FormStepHeading } from '../form-components/form-step-heading';
+import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
+import { FormItemWrapper } from '../form-components/form-item-wrapper';
+import { useForm } from 'react-hook-form';
+import { MyInput } from '@/components/design-system/input';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useFormStore } from '@/stores/students/enroll-students-manually/enroll-manually-form-store';
 import {
     StepFourData,
     stepFourSchema,
-} from "@/schemas/student/student-list/schema-enroll-students-manually";
-import PhoneInputField from "@/components/design-system/phone-input-field";
-import { StudentTable } from "@/types/student-table-types";
-import { useEffect, useRef } from "react";
+} from '@/schemas/student/student-list/schema-enroll-students-manually';
+import PhoneInputField from '@/components/design-system/phone-input-field';
+import { StudentTable } from '@/types/student-table-types';
+import { useEffect, useRef } from 'react';
 
 export const StepFourForm = ({
     initialValues,
@@ -26,18 +25,23 @@ export const StepFourForm = ({
     const form = useForm<StepFourData>({
         resolver: zodResolver(stepFourSchema),
         defaultValues: stepFourData || {
-            fatherName: initialValues?.father_name || "",
-            motherName: initialValues?.mother_name || "",
-            guardianName: "",
-            guardianEmail: initialValues?.parents_email || "",
-            guardianMobileNumber: initialValues?.parents_mobile_number || "",
-            motherEmail: initialValues?.parents_to_mother_email || "",
-            motherMobileNumber: initialValues?.parents_to_mother_mobile_number || "",
+            fatherName: initialValues?.father_name || '',
+            motherName: initialValues?.mother_name || '',
+            guardianName: '',
+            guardianEmail: initialValues?.parents_email || '',
+            guardianMobileNumber: initialValues?.parents_mobile_number || '',
+            motherEmail: initialValues?.parents_to_mother_email || '',
+            motherMobileNumber: initialValues?.parents_to_mother_mobile_number || '',
         },
-        mode: "onChange",
+        mode: 'onChange',
     });
 
-    useEffect(() => {}, [stepFourData]);
+    // Update form values when stepFourData changes
+    useEffect(() => {
+        if (stepFourData) {
+            form.reset(stepFourData); // Only reset if stepFourData changes
+        }
+    }, [stepFourData]);
 
     const onSubmit = (values: StepFourData) => {
         setStepFourData(values);
@@ -128,7 +132,7 @@ export const StepFourForm = ({
                                                 inputType="text"
                                                 label="Guardian's Name (if applicable)"
                                                 inputPlaceholder="Full Name (First and Last)"
-                                                input={value || ""}
+                                                input={value || ''}
                                                 onChangeFunction={onChange}
                                                 error={form.formState.errors.guardianName?.message}
                                                 required={false}

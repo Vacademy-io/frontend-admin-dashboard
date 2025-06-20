@@ -92,7 +92,7 @@ export const ViewDetails = ({ row }: { row: Row<SubjectOverviewBatchColumnType> 
                         <div>Subject: {row.getValue("subject")}</div>
                         <div>Module: {row.getValue("module")}</div>
                     </div>
-                    {(isChapterPending || isLearnerPending) && <DashboardLoader height="10vh" />}
+                    {(isChapterPending || isLearnerPending) && <DashboardLoader/>}
                     {chapterReportData &&
                         chapterReportData.map((chapter) => (
                             <div key={chapter.chapter_id} className="flex flex-col gap-6">

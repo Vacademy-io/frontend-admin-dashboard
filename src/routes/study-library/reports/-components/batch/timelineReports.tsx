@@ -437,7 +437,7 @@ export default function TimelineReports() {
                     </div>
                 )}
             </form>
-            {loading && <DashboardLoader height="10vh" />}
+            {loading && <DashboardLoader />}
             {reportData && !loading && <div className="border"></div>}
             {reportData && !loading && (
                 <div className="flex flex-col gap-10">
@@ -454,7 +454,7 @@ export default function TimelineReports() {
                                 handleExportPDF();
                             }}
                         >
-                            {isExporting ? <DashboardLoader size={20} /> : "Export"}
+                            {isExporting ? <DashboardLoader /> : "Export"}
                         </MyButton>
                     </div>
                     <div className="flex flex-row items-center justify-between">

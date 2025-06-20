@@ -37,6 +37,8 @@ import { formatHTMLString } from './slide-operations/formatHtmlString';
 import { handleConvertAndUpload } from './slide-operations/handleConvertUpload';
 import SlideEditor from './SlideEditor';
 import type { JSX } from 'react/jsx-runtime';
+import { cn } from '@/lib/utils';
+import { Loader2 } from 'lucide-react';
 
 // Declare INSTITUTE_ID here or import it from a config file
 const INSTITUTE_ID = 'your-institute-id'; // Replace with your actual institute ID
@@ -50,9 +52,10 @@ export const SlideMaterial = ({
 }) => {
     const { items, activeItem, setActiveItem } = useContentStore();
     const editor = useMemo(() => createYooptaEditor(), []);
-    const selectionRef = useRef(null);
+    const selectionRef = useRef<HTMLDivElement | null>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [slideTitle, setSlideTitle] = useState('');
+    const [isSaving, setIsSaving] = useState(false);
 
     const [heading, setHeading] = useState(slideTitle);
     const router = useRouter();
@@ -196,6 +199,7 @@ export const SlideMaterial = ({
     };
 
     // Convert Excalidraw data to HTML for publishing
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const convertExcalidrawToHTML = async (excalidrawData: any): Promise<string> => {
         const htmlContent = `
             <!DOCTYPE html>
@@ -352,73 +356,106 @@ export const SlideMaterial = ({
     };
 
     const SaveDraft = async (slideToSave?: Slide | null) => {
-        const slide = slideToSave ? slideToSave : activeItem;
-        const status = slide
-            ? slide.status == 'PUBLISHED'
-                ? 'UNSYNC'
-                : slide.status == 'UNSYNC'
-                  ? 'UNSYNC'
-                  : 'DRAFT'
-            : 'DRAFT';
+        setIsSaving(true);
+        try {
+            const slide = slideToSave ? slideToSave : activeItem;
+            const status = slide
+                ? slide.status == 'PUBLISHED'
+                    ? 'UNSYNC'
+                    : slide.status == 'UNSYNC'
+                      ? 'UNSYNC'
+                      : 'DRAFT'
+                : 'DRAFT';
 
-        if (activeItem?.source_type == 'ASSIGNMENT') {
-            const convertedData = converDataToAssignmentFormat({
-                activeItem,
-                status,
-                notify: false,
-                newSlide: false,
-            });
-            try {
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-expect-error
-                await updateAssignmentOrder(convertedData!);
-                toast.success(`slide saved in draft successfully!`);
-            } catch {
-                toast.error(`Error in publishing the slide`);
+            if (activeItem?.source_type == 'ASSIGNMENT') {
+                const convertedData = converDataToAssignmentFormat({
+                    activeItem,
+                    status,
+                    notify: false,
+                    newSlide: false,
+                });
+                try {
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-expect-error
+                    await updateAssignmentOrder(convertedData!);
+                    toast.success(`slide saved in draft successfully!`);
+                } catch {
+                    toast.error(`Error in publishing the slide`);
+                }
             }
-        }
 
-        if (activeItem?.source_type == 'VIDEO') {
-            const convertedData = converDataToVideoFormat({
-                activeItem,
-                status,
-                notify: false,
-                newSlide: false,
-            });
-            try {
-                await addUpdateVideoSlide(convertedData);
-                toast.success(`slide saved in draft successfully!`);
-            } catch {
-                toast.error(`Error in unpublishing the slide`);
+            if (activeItem?.source_type == 'VIDEO') {
+                const convertedData = converDataToVideoFormat({
+                    activeItem,
+                    status,
+                    notify: false,
+                    newSlide: false,
+                });
+                try {
+                    await addUpdateVideoSlide(convertedData);
+                    toast.success(`slide saved in draft successfully!`);
+                } catch {
+                    toast.error(`Error in unpublishing the slide`);
+                }
             }
-        }
 
-        if (activeItem?.source_type === 'QUESTION') {
-            const convertedData = convertToQuestionBackendSlideFormat({
-                activeItem,
-                status,
-                notify: false,
-                newSlide: false,
-            });
-            try {
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-expect-error
-                await updateQuestionOrder(convertedData!);
-                toast.success(`slide saved in draft successfully!`);
-            } catch {
-                toast.error('error saving slide');
+            if (activeItem?.source_type === 'QUESTION') {
+                const convertedData = convertToQuestionBackendSlideFormat({
+                    activeItem,
+                    status,
+                    notify: false,
+                    newSlide: false,
+                });
+                try {
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-expect-error
+                    await updateQuestionOrder(convertedData!);
+                    toast.success(`slide saved in draft successfully!`);
+                } catch {
+                    toast.error('error saving slide');
+                }
+                return;
             }
-            return;
-        }
 
-        // Handle Excalidraw presentations
-        if (
-            activeItem?.source_type === 'DOCUMENT' &&
-            activeItem?.document_slide?.type === 'PRESENTATION'
-        ) {
+            if (
+                activeItem?.source_type == 'DOCUMENT' &&
+                activeItem?.document_slide?.type == 'PRESENTATION'
+            ) {
+                try {
+                    // For presentations, we don't save to backend during draft - only localStorage
+                    // Just update the slide metadata
+                    await addUpdateDocumentSlide({
+                        id: slide?.id || '',
+                        title: slide?.title || '',
+                        image_file_id: '',
+                        description: slide?.description || '',
+                        slide_order: null,
+                        document_slide: {
+                            id: slide?.document_slide?.id || '',
+                            type: 'PRESENTATION',
+                            data: null, // No data field for presentations
+                            title: slide?.document_slide?.title || '',
+                            cover_file_id: '',
+                            total_pages: 1,
+                            published_data: null,
+                            published_document_total_pages: 0,
+                        },
+                        status: status,
+                        new_slide: false,
+                        notify: false,
+                    });
+                    toast.success(`Presentation saved successfully!`);
+                } catch {
+                    toast.error('Error saving presentation');
+                }
+                return;
+            }
+
+            // Handle regular documents
+            const currentHtml = getCurrentEditorHTMLContent();
+            const { totalPages } = await convertHtmlToPdf(currentHtml);
+
             try {
-                // For presentations, we don't save to backend during draft - only localStorage
-                // Just update the slide metadata
                 await addUpdateDocumentSlide({
                     id: slide?.id || '',
                     title: slide?.title || '',
@@ -427,11 +464,11 @@ export const SlideMaterial = ({
                     slide_order: null,
                     document_slide: {
                         id: slide?.document_slide?.id || '',
-                        type: 'PRESENTATION',
-                        data: null, // No data field for presentations
+                        type: 'DOC',
+                        data: currentHtml,
                         title: slide?.document_slide?.title || '',
                         cover_file_id: '',
-                        total_pages: 1,
+                        total_pages: totalPages,
                         published_data: null,
                         published_document_total_pages: 0,
                     },
@@ -439,41 +476,12 @@ export const SlideMaterial = ({
                     new_slide: false,
                     notify: false,
                 });
-                toast.success(`Presentation saved successfully!`);
+                toast.success(`slide saved in draft successfully!`);
             } catch {
-                toast.error('Error saving presentation');
+                toast.error(`Error in saving the slide`);
             }
-            return;
-        }
-
-        // Handle regular documents
-        const currentHtml = getCurrentEditorHTMLContent();
-        const { totalPages } = await convertHtmlToPdf(currentHtml);
-
-        try {
-            await addUpdateDocumentSlide({
-                id: slide?.id || '',
-                title: slide?.title || '',
-                image_file_id: '',
-                description: slide?.description || '',
-                slide_order: null,
-                document_slide: {
-                    id: slide?.document_slide?.id || '',
-                    type: 'DOC',
-                    data: currentHtml,
-                    title: slide?.document_slide?.title || '',
-                    cover_file_id: '',
-                    total_pages: totalPages,
-                    published_data: null,
-                    published_document_total_pages:
-                        slide?.document_slide?.published_document_total_pages || 0,
-                },
-                status: status,
-                new_slide: false,
-                notify: false,
-            });
-        } catch {
-            toast.error('error updating slide');
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -669,8 +677,17 @@ export const SlideMaterial = ({
                                     scale="medium"
                                     layoutVariant="default"
                                     onClick={handleSaveDraftClick}
+                                    disabled={isSaving}
+                                    className={cn(isSaving && 'pointer-events-none')}
                                 >
-                                    Save Draft
+                                    {isSaving ? (
+                                        <>
+                                            <Loader2 className="size-4 animate-spin text-primary-500 " />
+                                            Saving...
+                                        </>
+                                    ) : (
+                                        'Save Draft'
+                                    )}
                                 </MyButton>
                             )}
                             <UnpublishDialog

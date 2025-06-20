@@ -1,9 +1,7 @@
+import { verifyEmailWithOtp } from '@/components/common/LoginPages/VerifyEmailWithOtp';
 import { toast } from 'sonner';
-import { TokenKey } from '@/constants/auth/tokens';
-import { setAuthorizationCookie } from '@/lib/auth/sessionUtility';
 
 export type OAuthProvider = 'google' | 'github';
-
 interface OAuthLoginOptions {
     isSignup?: boolean;
     assess?: boolean;
@@ -14,33 +12,28 @@ export const handleOAuthLogin = (provider: OAuthProvider, options: OAuthLoginOpt
     try {
         const { isSignup = true, assess = false, lms = false } = options;
 
-        // Create state object with redirect information
         const stateObj = {
-            from: `https://dash.vacademy.io/${isSignup ? 'signup/onboarding?assess=true&lms=false&' : 'login'}`,
+            from: `${window.location.origin}/signup/oauth/callback?assess=${assess}&lms=${lms}`,
             account_type: isSignup ? (assess ? 'assess' : lms ? 'lms' : '') : '',
         };
 
-        // Encode state as base64
         const base64State = btoa(JSON.stringify(stateObj));
+        const loginUrl = `https://backend-stage.vacademy.io/auth-service/oauth2/authorization/${provider}?state=${encodeURIComponent(
+            base64State
+        )}`;
 
-        // Construct OAuth URL
-        const loginUrl = `https://backend-stage.vacademy.io/auth-service/oauth2/authorization/${provider}?state=${encodeURIComponent(base64State)}`;
-
-        // Redirect to OAuth provider
         window.location.href = loginUrl;
     } catch (error) {
-        console.error('Error initiating OAuth login:', error);
         toast.error('Failed to initiate login. Please try again.');
     }
 };
 
-export const handleOAuthCallback = () => {
+export const handleOAuthCallback = async () => {
     const urlParams = new URLSearchParams(window.location.search);
-    const accessToken = urlParams.get('accessToken');
-    const refreshToken = urlParams.get('refreshToken');
     const error = urlParams.get('error');
     const signupData = urlParams.get('signupData');
     const state = urlParams.get('state');
+    const emailVerified = urlParams.get('emailVerified') === 'true';
 
     if (error) {
         toast.error('Authentication failed', {
@@ -50,23 +43,34 @@ export const handleOAuthCallback = () => {
         return { success: false };
     }
 
-    if (accessToken && refreshToken) {
-        setAuthorizationCookie(TokenKey.accessToken, accessToken);
-        setAuthorizationCookie(TokenKey.refreshToken, refreshToken);
+    if (!emailVerified && signupData) {
+        try {
+            const decodedData = JSON.parse(atob(decodeURIComponent(signupData)));
+            const email = decodedData?.email;
+            const isInvalidEmail =
+                !email || email === 'null' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-        if (signupData) {
-            try {
-                const decodedData = JSON.parse(atob(signupData));
-                return { success: true, signupData: decodedData, state };
-            } catch (e) {
-                console.error('Error decoding signup data:', e);
+            if (isInvalidEmail) {
+                const verified = await verifyEmailWithOtp();
+
+                if (verified) {
+                    return {
+                        success: true,
+                        signupData: {
+                            ...decodedData,
+                            email: email,
+                        },
+                        state,
+                    };
+                } else {
+                    toast.warning('Email verification failed');
+                    return { success: false, reason: 'unverified_email' };
+                }
             }
-        } else {
-            // If not signup, redirect to dashboard
-            window.location.href = '/dashboard';
+        } catch (e) {
+            console.error('Error decoding signup data:', e);
+            return { success: false };
         }
-
-        return { success: true };
     }
 
     return { success: false };
