@@ -88,7 +88,7 @@ export class ErrorBoundary extends Component<Props, State> {
 export const DashboardLoader = ({ height = '', size = 20 }: { height?: string; size?: number }) => {
     console.log(height, size);
     return (
-        <div className="flex h-full min-h-[400px] w-full items-center justify-center">
+        <div className="flex size-full min-h-[400px] items-center justify-center">
             <div className="relative">
                 {/* Outer ring */}
                 <div className="h-16 w-16 animate-spin rounded-full border-4 border-neutral-200 border-t-primary-500"></div>
@@ -100,7 +100,7 @@ export const DashboardLoader = ({ height = '', size = 20 }: { height?: string; s
                 ></div>
 
                 {/* Center dot */}
-                <div className="absolute inset-6 h-4 w-4 animate-pulse rounded-full bg-primary-500"></div>
+                <div className="absolute inset-6 size-4 animate-pulse rounded-full bg-primary-500"></div>
             </div>
         </div>
     );

@@ -59,7 +59,7 @@ export const Route = createFileRoute(
 });
 
 function RouteComponent() {
-    const { chapterId, courseId, levelId, subjectId, moduleId, sessionId, slideId, timestamp, currentPage } = Route.useSearch();
+    const { chapterId, courseId, levelId, subjectId, moduleId, sessionId } = Route.useSearch();
     const navigate = useNavigate();
     const { studyLibraryData } = useStudyLibraryStore();
     const { modulesWithChaptersData } = useModulesWithChaptersStore();
