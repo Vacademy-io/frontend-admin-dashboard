@@ -14,7 +14,13 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { useNavigate } from '@tanstack/react-router';
-import { setAuthorizationCookie, handleSSOLogin } from '@/lib/auth/sessionUtility';
+import {
+    setAuthorizationCookie,
+    handleSSOLogin,
+    getUserRoles,
+    generateSSOUrl,
+    SSO_CONFIG,
+} from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
 import { Link2Icon } from 'lucide-react';
 import { handleOAuthLogin } from '@/hooks/login/oauth-login';
@@ -62,9 +68,40 @@ export function LoginForm() {
             setAuthorizationCookie(TokenKey.accessToken, accessToken);
             setAuthorizationCookie(TokenKey.refreshToken, refreshToken);
             queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
-            navigate({ to: '/dashboard' });
+
+            // Check user roles and redirect accordingly
+            const userRoles = getUserRoles(accessToken);
+            handlePostLoginRedirect(userRoles);
         }
     }, [navigate, queryClient]);
+
+    const handlePostLoginRedirect = (userRoles: string[]) => {
+        console.log('User roles after login:', userRoles);
+
+        // Check if user has both STUDENT and other roles
+        const hasStudentRole = userRoles.includes('STUDENT');
+        const hasAdminRole = userRoles.some((role) => ['ADMIN', 'TEACHER'].includes(role));
+
+        if (hasStudentRole && hasAdminRole) {
+            // User has both roles - stay on admin dashboard
+            console.log('User has multiple roles, staying on admin dashboard');
+            navigate({ to: '/dashboard' });
+        } else if (hasStudentRole && !hasAdminRole) {
+            // User only has STUDENT role - redirect to learner platform
+            console.log('User only has STUDENT role, redirecting to learner platform');
+            const ssoUrl = generateSSOUrl(SSO_CONFIG.LEARNER_DOMAIN, '/dashboard');
+            if (ssoUrl) {
+                window.location.href = ssoUrl;
+            } else {
+                // Fallback: direct redirect
+                window.location.href = `https://${SSO_CONFIG.LEARNER_DOMAIN}`;
+            }
+        } else {
+            // User has admin roles - stay on admin dashboard
+            console.log('User has admin roles, staying on admin dashboard');
+            navigate({ to: '/dashboard' });
+        }
+    };
 
     const mutation = useMutation({
         mutationFn: (values: FormValues) => loginUser(values.username, values.password),
@@ -73,7 +110,10 @@ export function LoginForm() {
                 queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
                 setAuthorizationCookie(TokenKey.accessToken, response.accessToken);
                 setAuthorizationCookie(TokenKey.refreshToken, response.refreshToken);
-                navigate({ to: '/dashboard' });
+
+                // Get user roles and handle redirect
+                const userRoles = getUserRoles(response.accessToken);
+                handlePostLoginRedirect(userRoles);
             } else {
                 toast.error('Login Error', {
                     description: 'Invalid credentials',

@@ -1,93 +1,100 @@
 import React from 'react';
-import { MyButton } from '@/components/design-system/button';
-import { useSSO } from '@/hooks/auth/useSSO';
-import { ExternalLink, GraduationCap, Settings } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { ExternalLink, GraduationCap } from 'lucide-react';
+import {
+    getUserRoles,
+    getTokenFromCookie,
+    generateSSOUrl,
+    SSO_CONFIG,
+    canAccessLearnerPlatform,
+} from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
 
 interface SSOSwitcherProps {
+    variant?: 'button' | 'dropdown' | 'inline';
     className?: string;
-    variant?: 'button' | 'link' | 'dropdown';
-    showIcon?: boolean;
 }
 
-export const SSOSwitcher: React.FC<SSOSwitcherProps> = ({
-    className = '',
-    variant = 'button',
-    showIcon = true,
-}) => {
-    const { userRoles, canAccessLearner, redirectToLearnerPlatform } = useSSO();
+export function SSOSwitcher({ variant = 'button', className = '' }: SSOSwitcherProps) {
+    const [userRoles, setUserRoles] = React.useState<string[]>([]);
+    const [canSwitchToLearner, setCanSwitchToLearner] = React.useState(false);
 
-    // Only show if user has STUDENT role
-    if (!canAccessLearner || !userRoles.includes('STUDENT')) {
+    React.useEffect(() => {
+        const accessToken = getTokenFromCookie(TokenKey.accessToken);
+        if (accessToken) {
+            const roles = getUserRoles(accessToken);
+            setUserRoles(roles);
+            setCanSwitchToLearner(canAccessLearnerPlatform(accessToken));
+        }
+    }, []);
+
+    const switchToLearnerPlatform = () => {
+        const ssoUrl = generateSSOUrl(SSO_CONFIG.LEARNER_DOMAIN, '/dashboard');
+        if (ssoUrl) {
+            console.log('ssoUrl', ssoUrl);
+            // window.location.href = ssoUrl;
+        } else {
+            window.location.href = `https://${SSO_CONFIG.LEARNER_DOMAIN}`;
+        }
+    };
+
+    // Don't show switcher if user can't access other platform
+    const showLearnerSwitch = canSwitchToLearner;
+
+    if (!showLearnerSwitch) {
         return null;
     }
 
-    const handleSwitchToLearner = () => {
-        redirectToLearnerPlatform('/dashboard');
-    };
-
-    if (variant === 'link') {
+    if (variant === 'inline') {
         return (
-            <button
-                onClick={handleSwitchToLearner}
-                className={`text-primary-600 hover:text-primary-700 flex items-center gap-2 text-sm transition-colors ${className}`}
-            >
-                {showIcon && <GraduationCap className="size-4" />}
-                Switch to Learner Platform
-                <ExternalLink className="size-3" />
-            </button>
+            <div className={`flex items-center gap-2 ${className}`}>
+                <Badge variant="outline" className="text-xs">
+                    {userRoles.join(', ')}
+                </Badge>
+                {showLearnerSwitch && (
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={switchToLearnerPlatform}
+                        className="text-xs"
+                    >
+                        <GraduationCap className="mr-1 size-3" />
+                        Switch to Learner
+                        <ExternalLink className="ml-1 size-3" />
+                    </Button>
+                )}
+            </div>
+        );
+    }
+
+    if (variant === 'button') {
+        return (
+            <div className={className}>
+                {showLearnerSwitch && (
+                    <Button
+                        variant="outline"
+                        onClick={switchToLearnerPlatform}
+                        className="flex items-center gap-2"
+                    >
+                        <GraduationCap className="size-4" />
+                        Go to Learner Platform
+                        <ExternalLink className="size-4" />
+                    </Button>
+                )}
+            </div>
         );
     }
 
     if (variant === 'dropdown') {
         return (
-            <div
-                className={`flex cursor-pointer items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-neutral-50 ${className}`}
-            >
-                <button
-                    onClick={handleSwitchToLearner}
-                    className="flex w-full items-center gap-2 text-left"
-                >
-                    {showIcon && <GraduationCap className="size-4" />}
-                    Switch to Learner Platform
-                    <ExternalLink className="ml-auto size-3" />
-                </button>
+            <div className={className}>
+                <span onClick={switchToLearnerPlatform}>Switch to Learner</span>
             </div>
         );
     }
 
-    return (
-        <MyButton
-            buttonType="secondary"
-            scale="small"
-            layoutVariant="default"
-            onClick={handleSwitchToLearner}
-            className={className}
-        >
-            {showIcon && <GraduationCap className="mr-2 size-4" />}
-            Switch to Learner Platform
-            <ExternalLink className="ml-2 size-3" />
-        </MyButton>
-    );
-};
-
-// Component to show current platform and available switches
-export const PlatformIndicator: React.FC<{ className?: string }> = ({ className = '' }) => {
-    const { userRoles, canAccessLearner } = useSSO();
-
-    if (!userRoles.length) return null;
-
-    return (
-        <div className={`flex items-center gap-2 text-xs text-neutral-600 ${className}`}>
-            <Settings className="size-3" />
-            <span>Admin Dashboard</span>
-            {canAccessLearner && (
-                <>
-                    <span>•</span>
-                    <SSOSwitcher variant="link" showIcon={false} />
-                </>
-            )}
-        </div>
-    );
-};
+    return null;
+}
 
 export default SSOSwitcher;
