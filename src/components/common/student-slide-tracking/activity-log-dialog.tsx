@@ -231,7 +231,7 @@ export const ActivityLogDialog = ({
                     </h1>
                     {isLoading || isVideoResponseLoading ? (
                         <div className="flex items-center justify-center p-8">
-                            <DashboardLoader height="200px" size={40} />
+                            <DashboardLoader />
                         </div>
                     ) : tableData.content.length == 0 ? (
                         <p className="p-4 text-center text-primary-500">No activity found</p>

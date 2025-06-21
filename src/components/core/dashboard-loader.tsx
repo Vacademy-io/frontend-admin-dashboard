@@ -32,21 +32,21 @@ export class ErrorBoundary extends Component<Props, State> {
     public render() {
         if (this.state.hasError) {
             return (
-                <div className="flex flex-col items-center justify-center py-12 px-6 text-center bg-gradient-to-br from-red-50 to-orange-50 rounded-xl border border-red-200 min-h-[400px]">
-                    <div className="mb-6 p-4 rounded-full bg-red-100">
+                <div className="flex min-h-[400px] flex-col items-center justify-center rounded-xl border border-red-200 bg-gradient-to-br from-red-50 to-orange-50 px-6 py-12 text-center">
+                    <div className="mb-6 rounded-full bg-red-100 p-4">
                         <Warning className="size-12 text-red-600" />
                     </div>
-                    
-                    <h2 className="text-xl font-semibold text-neutral-800 mb-3">
+
+                    <h2 className="mb-3 text-xl font-semibold text-neutral-800">
                         Something went wrong
                     </h2>
-                    
-                    <p className="text-sm text-neutral-600 mb-6 max-w-md leading-relaxed">
-                        We encountered an unexpected error while loading this content. 
-                        This might be due to a temporary issue or insufficient permissions.
+
+                    <p className="mb-6 max-w-md text-sm leading-relaxed text-neutral-600">
+                        We encountered an unexpected error while loading this content. This might be
+                        due to a temporary issue or insufficient permissions.
                     </p>
 
-                    <div className="flex flex-col sm:flex-row gap-3 items-center">
+                    <div className="flex flex-col items-center gap-3 sm:flex-row">
                         <MyButton
                             onClick={this.handleReset}
                             buttonType="primary"
@@ -56,7 +56,7 @@ export class ErrorBoundary extends Component<Props, State> {
                             <ArrowClockwise className="size-4" />
                             Try Again
                         </MyButton>
-                        
+
                         <MyButton
                             onClick={() => window.location.reload()}
                             buttonType="secondary"
@@ -67,11 +67,11 @@ export class ErrorBoundary extends Component<Props, State> {
                     </div>
 
                     {process.env.NODE_ENV === 'development' && this.state.error && (
-                        <details className="mt-6 p-4 bg-red-100 rounded-lg text-left max-w-full overflow-auto">
-                            <summary className="cursor-pointer text-sm font-medium text-red-800 mb-2">
+                        <details className="mt-6 max-w-full overflow-auto rounded-lg bg-red-100 p-4 text-left">
+                            <summary className="mb-2 cursor-pointer text-sm font-medium text-red-800">
                                 Error Details (Development)
                             </summary>
-                            <pre className="text-xs text-red-700 whitespace-pre-wrap break-words">
+                            <pre className="whitespace-pre-wrap break-words text-xs text-red-700">
                                 {this.state.error.stack}
                             </pre>
                         </details>
@@ -85,19 +85,22 @@ export class ErrorBoundary extends Component<Props, State> {
 }
 
 // Main dashboard loader component
-export const DashboardLoader = () => {
+export const DashboardLoader = ({ height = '', size = 20 }: { height?: string; size?: number }) => {
+    console.log(height, size);
     return (
-        <div className="flex h-full min-h-[400px] w-full items-center justify-center">
+        <div className="flex size-full min-h-[400px] items-center justify-center">
             <div className="relative">
                 {/* Outer ring */}
                 <div className="h-16 w-16 animate-spin rounded-full border-4 border-neutral-200 border-t-primary-500"></div>
-                
+
                 {/* Inner ring */}
-                <div className="absolute inset-2 h-12 w-12 animate-spin rounded-full border-4 border-neutral-100 border-t-primary-400" 
-                     style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
-                
+                <div
+                    className="absolute inset-2 h-12 w-12 animate-spin rounded-full border-4 border-neutral-100 border-t-primary-400"
+                    style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}
+                ></div>
+
                 {/* Center dot */}
-                <div className="absolute inset-6 h-4 w-4 animate-pulse rounded-full bg-primary-500"></div>
+                <div className="absolute inset-6 size-4 animate-pulse rounded-full bg-primary-500"></div>
             </div>
         </div>
     );
