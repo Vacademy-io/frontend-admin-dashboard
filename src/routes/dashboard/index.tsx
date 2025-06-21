@@ -34,8 +34,6 @@ import useLocalStorage from '@/hooks/use-local-storage';
 import EditDashboardProfileComponent from './-components/EditDashboardProfileComponent';
 import { handleGetAdminDetails } from '@/services/student-list-section/getAdminDetails';
 import { motion } from 'framer-motion';
-import { getInstituteId } from '@/constants/helper';
-import { useTheme } from '@/providers/theme/theme-provider';
 
 export const Route = createFileRoute('/dashboard/')({
     component: DashboardPage,
@@ -44,7 +42,6 @@ export const Route = createFileRoute('/dashboard/')({
 function DashboardPage() {
     const navigate = useNavigate();
     const [isVoltSubdomain, setIsVoltSubdomain] = useState(false);
-    const { getPrimaryColorCode } = useTheme();
 
     useEffect(() => {
         const subdomain =
@@ -60,11 +57,6 @@ function DashboardPage() {
 
         return () => clearTimeout(timer);
     }, [navigate]);
-
-    useEffect(() => {
-        console.log('id ->  ', getInstituteId());
-        console.log('primary color code ->  ', getPrimaryColorCode());
-    }, []);
 
     if (isVoltSubdomain) {
         return (

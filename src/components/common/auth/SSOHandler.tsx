@@ -1,57 +1,84 @@
-import { useEffect } from 'react';
-import { useNavigate } from '@tanstack/react-router';
+import React, { useEffect } from 'react';
 import {
+    handleSSOLogin,
     getTokenFromCookie,
     getUserRoles,
-    canAccessAdminDashboard,
-    SSO_CONFIG,
+    canAccessLearnerPlatform,
 } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
 
 interface SSOHandlerProps {
     children: React.ReactNode;
-    requireAuth?: boolean;
-    allowedRoles?: string[];
+    onAuthenticationChange?: (isAuthenticated: boolean) => void;
 }
 
-export const SSOHandler: React.FC<SSOHandlerProps> = ({
-    children,
-    requireAuth = true,
-    allowedRoles = ['ADMIN', 'TEACHER'],
-}) => {
-    const navigate = useNavigate();
-
+export function SSOHandler({ children, onAuthenticationChange }: SSOHandlerProps) {
     useEffect(() => {
-        const accessToken = getTokenFromCookie(TokenKey.accessToken);
+        // Check for SSO login from URL parameters
+        const ssoLoginSuccess = handleSSOLogin();
 
-        if (!accessToken && requireAuth) {
-            // No token and auth is required - redirect to login
-            navigate({ to: '/login' });
+        if (ssoLoginSuccess) {
+            console.log('SSO login successful');
+            onAuthenticationChange?.(true);
             return;
         }
 
+        // Check if user is already authenticated
+        const accessToken = getTokenFromCookie(TokenKey.accessToken);
         if (accessToken) {
             const userRoles = getUserRoles(accessToken);
+            const canAccess = canAccessLearnerPlatform(accessToken);
 
-            // Check if user can access admin dashboard
-            if (requireAuth && !canAccessAdminDashboard(accessToken)) {
-                // User doesn't have required roles for admin dashboard
-                const hasStudentRole = userRoles.includes('STUDENT');
+            console.log('Existing authentication found:', {
+                hasToken: !!accessToken,
+                userRoles,
+                canAccessLearner: canAccess,
+            });
 
-                if (hasStudentRole) {
-                    // Redirect to learner platform
-                    console.log('User only has STUDENT role, redirecting to learner platform');
-                    window.location.href = `https://${SSO_CONFIG.LEARNER_DOMAIN}`;
-                } else {
-                    // No valid roles at all - redirect to login
-                    navigate({ to: '/login' });
-                }
-                return;
+            if (canAccess) {
+                onAuthenticationChange?.(true);
+            } else {
+                console.log('User does not have STUDENT role, redirecting to admin dashboard');
+                window.location.href = 'https://dash.vacademy.io';
             }
+        } else {
+            onAuthenticationChange?.(false);
         }
-    }, [navigate, requireAuth, allowedRoles]);
+    }, [onAuthenticationChange]);
 
     return <>{children}</>;
-};
+}
 
-export default SSOHandler;
+// Hook for using SSO functionality in components
+export function useSSO() {
+    const [isAuthenticated, setIsAuthenticated] = React.useState<boolean | null>(null);
+    const [userRoles, setUserRoles] = React.useState<string[]>([]);
+
+    useEffect(() => {
+        const accessToken = getTokenFromCookie(TokenKey.accessToken);
+        if (accessToken) {
+            const roles = getUserRoles(accessToken);
+            const canAccessLearner = canAccessLearnerPlatform(accessToken);
+
+            setUserRoles(roles);
+            setIsAuthenticated(canAccessLearner);
+        } else {
+            setIsAuthenticated(false);
+            setUserRoles([]);
+        }
+    }, []);
+
+    const redirectToAdminDashboard = () => {
+        window.location.href = 'https://dash.vacademy.io';
+    };
+
+    const hasRole = (role: string) => userRoles.includes(role);
+
+    return {
+        isAuthenticated,
+        userRoles,
+        hasRole,
+        redirectToAdminDashboard,
+        canAccessLearner: isAuthenticated,
+    };
+}

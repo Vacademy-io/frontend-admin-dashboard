@@ -9,7 +9,11 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { removeCookiesAndLogout } from '@/lib/auth/sessionUtility';
+import {
+    getTokenFromCookie,
+    getUserRoles,
+    removeCookiesAndLogout,
+} from '@/lib/auth/sessionUtility';
 import { useNavigate } from '@tanstack/react-router';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import useInstituteLogoStore from '../sidebar/institutelogo-global-zustand';
@@ -29,6 +33,8 @@ import { Badge } from '@/components/ui/badge';
 import { handleGetAdminDetails } from '@/services/student-list-section/getAdminDetails';
 import useAdminLogoStore from '../sidebar/admin-logo-zustand';
 import { useFileUpload } from '@/hooks/use-file-upload';
+import { SSOSwitcher } from '../../auth/SSOSwitcher';
+import { TokenKey } from '@/constants/auth/tokens';
 
 export function Navbar() {
     const roleColors: Record<string, string> = {
@@ -54,6 +60,8 @@ export function Navbar() {
     const { instituteLogo } = useInstituteLogoStore();
     const { getPublicUrl } = useFileUpload();
     const { adminLogo, setAdminLogo, resetAdminLogo } = useAdminLogoStore();
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const roles = getUserRoles(accessToken);
 
     const handleLogout = async (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         event.preventDefault(); // Prevents dropdown from closing immediately
@@ -228,6 +236,11 @@ export function Navbar() {
                                     </div>
                                 </SheetContent>
                             </Sheet>
+                            {roles.includes('STUDENT') && (
+                                <DropdownMenuItem className="w-full cursor-pointer">
+                                    <SSOSwitcher variant="dropdown" />
+                                </DropdownMenuItem>
+                            )}
                             <DropdownMenuItem
                                 onClick={handleLogout}
                                 className="w-full cursor-pointer"

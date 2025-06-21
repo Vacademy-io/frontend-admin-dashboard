@@ -1,6 +1,7 @@
 import axios, { type AxiosResponse } from 'axios';
 import Cookies from 'js-cookie';
 import { jwtDecode } from 'jwt-decode';
+import CryptoJS from 'crypto-js';
 import { REFRESH_TOKEN_URL } from '@/constants/urls';
 import { UnauthorizedResponse } from '@/constants/auth/unauthorizeresponse';
 import { IAccessToken, TokenKey, Tokens } from '@/constants/auth/tokens';
@@ -139,11 +140,17 @@ const generateSSOUrl = (targetDomain: string, redirectPath?: string): string | n
         return null;
     }
 
+    // Encrypt tokens before adding to URL
+    // Use a more secure encryption method with a secret key
+    const secretKey = import.meta.env.VITE_SSO_SECRET_KEY ?? 'asjiuhrkjnasd';
+    const encryptedAccessToken = CryptoJS.AES.encrypt(accessToken, secretKey).toString();
+    const encryptedRefreshToken = CryptoJS.AES.encrypt(refreshToken, secretKey).toString();
+
     const baseUrl = `https://${targetDomain}`;
     const params = new URLSearchParams({
         sso: 'true',
-        accessToken,
-        refreshToken,
+        accessToken: encryptedAccessToken,
+        refreshToken: encryptedRefreshToken,
         ...(redirectPath && { redirect: redirectPath }),
     });
 
@@ -157,22 +164,38 @@ const handleSSOLogin = (): boolean => {
 
     if (!isSSOLogin) return false;
 
-    const accessToken = urlParams.get('accessToken');
-    const refreshToken = urlParams.get('refreshToken');
+    const encryptedAccessToken = urlParams.get('accessToken');
+    const encryptedRefreshToken = urlParams.get('refreshToken');
     const redirectPath = urlParams.get('redirect');
 
-    if (accessToken && refreshToken && !isTokenExpired(accessToken)) {
-        // Set tokens in cookies
-        setAuthorizationCookie(TokenKey.accessToken, accessToken);
-        setAuthorizationCookie(TokenKey.refreshToken, refreshToken);
+    if (encryptedAccessToken && encryptedRefreshToken) {
+        try {
+            // Decrypt tokens
+            const secretKey = import.meta.env.VITE_SSO_SECRET_KEY || 'fallback-secret-key';
+            const accessToken = CryptoJS.AES.decrypt(encryptedAccessToken, secretKey).toString(
+                CryptoJS.enc.Utf8
+            );
+            const refreshToken = CryptoJS.AES.decrypt(encryptedRefreshToken, secretKey).toString(
+                CryptoJS.enc.Utf8
+            );
 
-        // Clean up URL
-        const cleanUrl =
-            window.location.pathname + (redirectPath ? `?redirect=${redirectPath}` : '');
-        window.history.replaceState({}, document.title, cleanUrl);
+            if (accessToken && refreshToken && !isTokenExpired(accessToken)) {
+                // Set tokens in cookies
+                setAuthorizationCookie(TokenKey.accessToken, accessToken);
+                setAuthorizationCookie(TokenKey.refreshToken, refreshToken);
 
-        console.log('SSO login successful');
-        return true;
+                // Clean up URL
+                const cleanUrl =
+                    window.location.pathname + (redirectPath ? `?redirect=${redirectPath}` : '');
+                window.history.replaceState({}, document.title, cleanUrl);
+
+                console.log('SSO login successful');
+                return true;
+            }
+        } catch (error) {
+            console.error('Error decrypting SSO tokens:', error);
+            return false;
+        }
     }
 
     return false;
