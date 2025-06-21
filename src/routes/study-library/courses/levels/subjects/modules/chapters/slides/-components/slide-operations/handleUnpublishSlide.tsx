@@ -12,8 +12,7 @@ import {
   converDataToVideoFormat,
   convertToQuestionBackendSlideFormat,
 } from '../../-helper/helper';
-import { YTPlayer } from '@/components/your-video-player-component'; // Update import as per your structure
-
+// import { YTPlayer } from '@/components/your-video-player-component'; // Update import as per your structure
 type SlideResponse = {
   id: string;
   title: string;
