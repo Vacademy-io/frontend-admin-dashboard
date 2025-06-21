@@ -20,11 +20,13 @@ import {
 } from '@/components/common/students/enroll-manually/dropdownTypesForPackageItems';
 import { useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
 import { MyDropdown } from '@/components/common/students/enroll-manually/dropdownForPackageItems';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 export const ModuleMaterial = () => {
     const router = useRouter();
     const { modulesWithChaptersData } = useModulesWithChaptersStore();
     const { getSessionsByCourseLevelSubject } = useStudyLibraryStore();
+    const { getPackageSessionId } = useInstituteDetailsStore();
 
     const addModuleMutation = useAddModule();
     const updateModuleMutation = useUpdateModule();
@@ -99,7 +101,16 @@ export const ModuleMaterial = () => {
     // };
 
     const handleAddModule = (module: Module) => {
-        addModuleMutation.mutate({ subjectId, module });
+        addModuleMutation.mutate({
+            subjectId,
+            commaSeparatedPackageSessionIds:
+                getPackageSessionId({
+                    courseId: courseId,
+                    levelId: levelId,
+                    sessionId: currentSession?.id || '',
+                }) || '',
+            module,
+        });
     };
 
     const handleDeleteModule = (module: Module) => {

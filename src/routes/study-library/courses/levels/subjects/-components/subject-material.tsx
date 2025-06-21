@@ -86,7 +86,7 @@ export type SubjectModulesMap = { [subjectId: string]: ModuleWithChapters[] };
 export const SubjectMaterial = () => {
     const router = useRouter();
     const searchParams = router.state.location.search;
-    const { getSessionFromPackage } = useInstituteDetailsStore();
+    const { getSessionFromPackage, getPackageSessionId } = useInstituteDetailsStore();
     const { studyLibraryData } = useStudyLibraryStore();
     const { setActiveItem } = useContentStore();
 
@@ -203,7 +203,16 @@ export const SubjectMaterial = () => {
 
     const handleAddModule = (subjectId: string, module: Module) => {
         addModuleMutation.mutate(
-            { subjectId, module },
+            {
+                subjectId,
+                commaSeparatedPackageSessionIds:
+                    getPackageSessionId({
+                        courseId: courseId,
+                        levelId: levelId,
+                        sessionId: currentSession?.id || '',
+                    }) || '',
+                module,
+            },
             {
                 onSuccess: async () => {
                     const updatedSubjects = getCourseSubjects(
