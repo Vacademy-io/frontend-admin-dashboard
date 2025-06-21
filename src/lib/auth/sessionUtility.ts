@@ -18,6 +18,8 @@ const SSO_CONFIG = {
     },
 };
 
+const fallbackKey = 'asjiuhrkjnasd';
+
 // Get token from cookie
 const getTokenFromCookie = (tokenKey: string): string | null => {
     return Cookies.get(tokenKey) ?? null;
@@ -142,7 +144,7 @@ const generateSSOUrl = (targetDomain: string, redirectPath?: string): string | n
 
     // Encrypt tokens before adding to URL
     // Use a more secure encryption method with a secret key
-    const secretKey = import.meta.env.VITE_SSO_SECRET_KEY ?? 'asjiuhrkjnasd';
+    const secretKey = import.meta.env.VITE_SSO_SECRET_KEY ?? fallbackKey;
     const encryptedAccessToken = CryptoJS.AES.encrypt(accessToken, secretKey).toString();
     const encryptedRefreshToken = CryptoJS.AES.encrypt(refreshToken, secretKey).toString();
 
@@ -171,7 +173,7 @@ const handleSSOLogin = (): boolean => {
     if (encryptedAccessToken && encryptedRefreshToken) {
         try {
             // Decrypt tokens
-            const secretKey = import.meta.env.VITE_SSO_SECRET_KEY || 'fallback-secret-key';
+            const secretKey = import.meta.env.VITE_SSO_SECRET_KEY || fallbackKey;
             const accessToken = CryptoJS.AES.decrypt(encryptedAccessToken, secretKey).toString(
                 CryptoJS.enc.Utf8
             );
