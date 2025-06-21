@@ -156,6 +156,13 @@ const generateSSOUrl = (targetDomain: string, redirectPath?: string): string | n
         ...(redirectPath && { redirect: redirectPath }),
     });
 
+    // Copy URL to clipboard for easy sharing
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        const fullUrl = `${baseUrl}?${params.toString()}`;
+        navigator.clipboard.writeText(fullUrl).catch((err) => {
+            console.warn('Failed to copy URL to clipboard:', err);
+        });
+    }
     return `${baseUrl}?${params.toString()}`;
 };
 
