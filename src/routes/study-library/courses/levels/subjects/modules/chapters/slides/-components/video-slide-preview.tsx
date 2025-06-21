@@ -40,7 +40,7 @@ const VideoSlidePreview = ({ activeItem }: { activeItem: Slide }) => {
         }
     };
 
-    // Handle video seeking when videoSeekTime changes
+    //   video seeking when videoSeekTime changes
     useEffect(() => {
         if (videoSeekTime !== null && videoRef.current) {
             const video = videoRef.current;

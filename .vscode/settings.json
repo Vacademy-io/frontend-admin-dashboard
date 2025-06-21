@@ -6,5 +6,7 @@
         "*.css": "tailwindcss"
     },
     "typescript.tsdk": "node_modules/typescript/lib",
-    "files.autoSave": "afterDelay"
+    "files.autoSave": "afterDelay",
+    "workbench.editor.enablePreviewFromCodeNavigation": false,
+    "workbench.editor.enablePreview": false
 }
