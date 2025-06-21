@@ -14,13 +14,12 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { useNavigate } from '@tanstack/react-router';
-import { setAuthorizationCookie } from '@/lib/auth/sessionUtility';
+import { setAuthorizationCookie, handleSSOLogin } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
 import { Link2Icon } from 'lucide-react';
 import { handleOAuthLogin } from '@/hooks/login/oauth-login';
 import { GitHubLogoIcon } from '@radix-ui/react-icons';
 import { FcGoogle } from 'react-icons/fc';
-
 
 type FormValues = z.infer<typeof loginSchema>;
 
@@ -47,6 +46,14 @@ export function LoginForm() {
     }, [hasSeenAnimation, setHasSeenAnimation]);
 
     useEffect(() => {
+        // Handle SSO login from URL parameters
+        const ssoLoginSuccess = handleSSOLogin();
+
+        if (ssoLoginSuccess) {
+            queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
+            navigate({ to: '/dashboard' });
+            return;
+        }
         const urlParams = new URLSearchParams(window.location.search);
         const accessToken = urlParams.get('accessToken');
         const refreshToken = urlParams.get('refreshToken');
@@ -75,7 +82,8 @@ export function LoginForm() {
                 });
             }
         },
-        onError: () => {
+        onError: (error) => {
+            console.error('Login error:', error);
             toast.error('Login Error', {
                 description: 'Invalid username or password',
                 className: 'error-toast',
@@ -112,7 +120,6 @@ export function LoginForm() {
                             type="button"
                         >
                             {FcGoogle({ size: 20 })}
-
                             Continue with Google
                         </button>
                         <button
@@ -197,8 +204,9 @@ export function LoginForm() {
                                     scale="large"
                                     buttonType="primary"
                                     layoutVariant="default"
+                                    disabled={mutation.isPending}
                                 >
-                                    Login
+                                    {mutation.isPending ? 'Logging in...' : 'Login'}
                                 </MyButton>
                                 <p className="text-sm">
                                     Don&apos;t have an account?&nbsp;&nbsp;
