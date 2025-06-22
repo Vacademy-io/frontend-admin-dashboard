@@ -15,6 +15,7 @@ import {
 // import { YTPlayer } from '@/components/your-video-player-component'; // Update import as per your structure
 type SlideResponse = {
   id: string;
+  
   title: string;
   description: string;
   status: string;
