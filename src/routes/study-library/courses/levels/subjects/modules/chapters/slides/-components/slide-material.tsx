@@ -20,7 +20,6 @@ import {
     useSlides,
 } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides';
 import { toast } from 'sonner';
-
 import { Check, DownloadSimple, PencilSimpleLine } from 'phosphor-react';
 import {
     converDataToAssignmentFormat,
@@ -40,7 +39,12 @@ import SlideEditor from './SlideEditor';
 import type { JSX } from 'react/jsx-runtime';
 import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
+import DoubtResolutionSidebar from './doubt-resolution/doubtResolutionSidebar';
+import { ChatCircleDots } from '@phosphor-icons/react';
+import { useSidebar } from '@/components/ui/sidebar';
 
+// Inside your component
+ // this toggles the DoubtResolutionSidebar
 // Declare INSTITUTE_ID here or import it from a config file
 const INSTITUTE_ID = 'your-institute-id'; // Replace with your actual institute ID
 
@@ -69,7 +73,7 @@ export const SlideMaterial = ({
     const { addUpdateVideoSlide } = useSlides(chapterId || '');
     const { updateQuestionOrder } = useSlides(chapterId || '');
     const { updateAssignmentOrder } = useSlides(chapterId || '');
-
+    const { setOpen } = useSidebar();
 
     const handleHeadingChange = (e: ChangeEvent<HTMLInputElement>) => {
         setHeading(e.target.value);
@@ -273,7 +277,7 @@ const playerRef = useRef<YTPlayer | null>(null);
         }
 
         if (activeItem.source_type === 'VIDEO') {
-           setContent(<VideoSlidePreview activeItem={activeItem} playerRef={playerRef} />);
+           setContent(<VideoSlidePreview activeItem={activeItem} />);
 
             return;
         }
@@ -619,8 +623,15 @@ const playerRef = useRef<YTPlayer | null>(null);
         setSaveDraft(SaveDraft);
     }, [editor]);
 
+
+
+
+
 return (
-  <div className="flex w-full flex-1 flex-col transition-all duration-300 ease-in-out" ref={selectionRef}>
+  <div
+    className="flex w-full flex-1 flex-col transition-all duration-300 ease-in-out"
+    ref={selectionRef}
+  >
     {activeItem && (
       <div className="-m-8 flex items-center justify-between gap-4 border-b border-neutral-200 bg-white/80 backdrop-blur-sm px-6 py-3 shadow-sm relative z-10">
         <div className="flex items-center gap-3">
@@ -662,21 +673,22 @@ return (
 
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-6">
-            {activeItem.source_type === 'DOCUMENT' && activeItem?.document_slide?.type === 'DOC' && (
-              <MyButton
-                layoutVariant="icon"
-                onClick={async () => {
-                  await SaveDraft(activeItem);
-                  if (activeItem.status === 'PUBLISHED') {
-                    await handleConvertAndUpload(activeItem.document_slide?.published_data || null);
-                  } else {
-                    await handleConvertAndUpload(activeItem.document_slide?.data || null);
-                  }
-                }}
-              >
-                <DownloadSimple size={30} />
-              </MyButton>
-            )}
+            {activeItem.source_type === 'DOCUMENT' &&
+              activeItem?.document_slide?.type === 'DOC' && (
+                <MyButton
+                  layoutVariant="icon"
+                  onClick={async () => {
+                    await SaveDraft(activeItem);
+                    if (activeItem.status === 'PUBLISHED') {
+                      await handleConvertAndUpload(activeItem.document_slide?.published_data || null);
+                    } else {
+                      await handleConvertAndUpload(activeItem.document_slide?.data || null);
+                    }
+                  }}
+                >
+                  <DownloadSimple size={30} />
+                </MyButton>
+              )}
 
             <ActivityStatsSidebar />
 
@@ -716,7 +728,7 @@ return (
                   updateQuestionOrder,
                   updateAssignmentOrder,
                   SaveDraft,
-                  playerRef // ✅ added ref for video slide
+                  playerRef
                 )
               }
             />
@@ -738,12 +750,23 @@ return (
                     updateQuestionOrder,
                     updateAssignmentOrder,
                     SaveDraft,
-                    playerRef // ✅ added ref for video slide
+                    playerRef
                   );
                 }
               }}
             />
           </div>
+
+          {/* ✅ Doubt Icon Trigger */}
+          <MyButton
+            layoutVariant="icon"
+            onClick={() => setOpen(true)}
+            title="Open Doubt Resolution Sidebar"
+          >
+            <ChatCircleDots size={26} className="text-primary-600" />
+          </MyButton>
+
+          {/* Slides Menu Dropdown */}
           <SlidesMenuOption />
         </div>
       </div>
@@ -756,6 +779,10 @@ return (
     >
       {content}
     </div>
+
+    {/* ✅ Doubt Sidebar Always Mounted */}
+    <DoubtResolutionSidebar />
   </div>
 );
+
 }

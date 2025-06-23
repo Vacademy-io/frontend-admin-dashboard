@@ -29,14 +29,20 @@ export function ForgotPassword() {
     });
 
     // Countdown logic
-    useEffect(() => {
-        if (cooldown > 0) {
-            const timer = setInterval(() => {
-                setCooldown((prev) => prev - 1);
-            }, 1000);
-            return () => clearInterval(timer);
-        }
-    }, [cooldown]);
+   useEffect(() => {
+    let timer: NodeJS.Timeout | undefined;
+
+    if (cooldown > 0) {
+        timer = setInterval(() => {
+            setCooldown((prev) => prev - 1);
+        }, 1000);
+    }
+
+    return () => {
+        if (timer) clearInterval(timer);
+    };
+}, [cooldown]);
+
 
     const forgotPasswordMutation = useMutation({
         mutationFn: async (email: string) => {
