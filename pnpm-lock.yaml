@@ -4,617 +4,7 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-<<<<<<< HEAD
 importers:
-=======
-dependencies:
-  '@braintree/sanitize-url':
-    specifier: 6.0.2
-    version: 6.0.2
-  '@dnd-kit/core':
-    specifier: ^6.2.0
-    version: 6.3.1(react-dom@18.3.1)(react@18.3.1)
-  '@dnd-kit/modifiers':
-    specifier: ^8.0.0
-    version: 8.0.0(@dnd-kit/core@6.3.1)(react@18.3.1)
-  '@dnd-kit/sortable':
-    specifier: ^9.0.0
-    version: 9.0.0(@dnd-kit/core@6.3.1)(react@18.3.1)
-  '@dnd-kit/utilities':
-    specifier: ^3.2.2
-    version: 3.2.2(react@18.3.1)
-  '@edtr-io/mathquill':
-    specifier: ^0.11.0
-    version: 0.11.0
-  '@excalidraw/laser-pointer':
-    specifier: ^1.3.1
-    version: 1.3.1
-  '@excalidraw/mermaid-to-excalidraw':
-    specifier: ^1.1.2
-    version: 1.1.2
-  '@excalidraw/random-username':
-    specifier: ^1.2.0
-    version: 1.2.0
-  '@ffmpeg/ffmpeg':
-    specifier: ^0.12.15
-    version: 0.12.15
-  '@ffmpeg/util':
-    specifier: ^0.12.2
-    version: 0.12.2
-  '@hookform/resolvers':
-    specifier: ^3.9.1
-    version: 3.10.0(react-hook-form@7.56.4)
-  '@isoterik/react-word-cloud':
-    specifier: ^1.2.0
-    version: 1.2.0(react-dom@18.3.1)(react@18.3.1)
-  '@monaco-editor/react':
-    specifier: ^4.7.0
-    version: 4.7.0(monaco-editor@0.52.2)(react-dom@18.3.1)(react@18.3.1)
-  '@pdfme/common':
-    specifier: ^5.3.13
-    version: 5.4.0(antd@5.25.4)(form-render@2.5.3)
-  '@pdfme/generator':
-    specifier: ^5.3.13
-    version: 5.4.0(@pdfme/common@5.4.0)(@pdfme/schemas@5.4.0)
-  '@pdfme/schemas':
-    specifier: ^5.3.13
-    version: 5.4.0(@pdfme/common@5.4.0)
-  '@pdfme/ui':
-    specifier: 4.0.0
-    version: 4.0.0(@pdfme/common@5.4.0)(@pdfme/schemas@5.4.0)(@types/react@18.3.23)(date-fns@4.1.0)
-  '@phosphor-icons/react':
-    specifier: ^2.1.7
-    version: 2.1.10(react-dom@18.3.1)(react@18.3.1)
-  '@radix-ui/react-accordion':
-    specifier: ^1.2.2
-    version: 1.2.11(@types/react-dom@19.0.4)(@types/react@18.3.23)(react-dom@18.3.1)(react@18.3.1)
-  '@radix-ui/react-alert-dialog':
-    specifier: ^1.1.4
-    version: 1.1.14(@types/react-dom@19.0.4)(@types/react@18.3.23)(react-dom@18.3.1)(react@18.3.1)
-  '@radix-ui/react-avatar':
-    specifier: ^1.1.1
-    version: 1.1.10(@types/react-dom@19.0.4)(@types/react@18.3.23)(react-dom@18.3.1)(react@18.3.1)
-  '@radix-ui/react-checkbox':
-    specifier: ^1.1.2
-    version: 1.3.2(@types/react-dom@19.0.4)(@types/react@18.3.23)(react-dom@18.3.1)(react@18.3.1)
-  '@radix-ui/react-collapsible':
-    specifier: ^1.1.1
-    version: 1.1.11(@types/react-dom@19.0.4)(@types/react@18.3.23)(react-dom@18.3.1)(react@18.3.1)
-  '@radix-ui/react-dialog':
-    specifier: ^1.1.2
-    version: 1.1.14(@types/react-dom@19.0.4)(@types/react@18.3.23)(react-dom@18.3.1)(react@18.3.1)
-  '@radix-ui/react-dropdown-menu':
-    specifier: ^2.1.2
-    version: 2.1.15(@types/react-dom@19.0.4)(@types/react@18.3.23)(react-dom@18.3.1)(react@18.3.1)
-  '@radix-ui/react-hover-card':
-    specifier: ^1.1.5
-    version: 1.1.14(@types/react-dom@19.0.4)(@types/react@18.3.23)(react-dom@18.3.1)(react@18.3.1)
-  '@radix-ui/react-icons':
-    specifier: ^1.3.1
-    version: 1.3.2(react@18.3.1)
-  '@radix-ui/react-label':
-    specifier: ^2.1.0
-    version: 2.1.7(@types/react-dom@19.0.4)(@types/react@18.3.23)(react-dom@18.3.1)(react@18.3.1)
-  '@radix-ui/react-menubar':
-    specifier: ^1.1.6
-    version: 1.1.15(@types/react-dom@19.0.4)(@types/react@18.3.23)(react-dom@18.3.1)(react@18.3.1)
-  '@radix-ui/react-popover':
-    specifier: ^1.1.2
-    version: 1.1.14(@types/react-dom@19.0.4)(@types/react@18.3.23)(react-dom@18.3.1)(react@18.3.1)
-  '@radix-ui/react-progress':
-    specifier: ^1.1.1
-    version: 1.1.7(@types/react-dom@19.0.4)(@types/react@18.3.23)(react-dom@18.3.1)(react@18.3.1)
-  '@radix-ui/react-radio-group':
-    specifier: ^1.2.2
-    version: 1.3.7(@types/react-dom@19.0.4)(@types/react@18.3.23)(react-dom@18.3.1)(react@18.3.1)
-  '@radix-ui/react-scroll-area':
-    specifier: ^1.2.3
-    version: 1.2.9(@types/react-dom@19.0.4)(@types/react@18.3.23)(react-dom@18.3.1)(react@18.3.1)
-  '@radix-ui/react-select':
-    specifier: ^2.1.4
-    version: 2.2.5(@types/react-dom@19.0.4)(@types/react@18.3.23)(react-dom@18.3.1)(react@18.3.1)
-  '@radix-ui/react-separator':
-    specifier: ^1.1.1
-    version: 1.1.7(@types/react-dom@19.0.4)(@types/react@18.3.23)(react-dom@18.3.1)(react@18.3.1)
-  '@radix-ui/react-slider':
-    specifier: ^1.2.4
-    version: 1.3.5(@types/react-dom@19.0.4)(@types/react@18.3.23)(react-dom@18.3.1)(react@18.3.1)
-  '@radix-ui/react-slot':
-    specifier: ^1.1.0
-    version: 1.2.3(@types/react@18.3.23)(react@18.3.1)
-  '@radix-ui/react-switch':
-    specifier: ^1.1.2
-    version: 1.2.5(@types/react-dom@19.0.4)(@types/react@18.3.23)(react-dom@18.3.1)(react@18.3.1)
-  '@radix-ui/react-tabs':
-    specifier: ^1.1.2
-    version: 1.1.12(@types/react-dom@19.0.4)(@types/react@18.3.23)(react-dom@18.3.1)(react@18.3.1)
-  '@radix-ui/react-toast':
-    specifier: ^1.2.2
-    version: 1.2.14(@types/react-dom@19.0.4)(@types/react@18.3.23)(react-dom@18.3.1)(react@18.3.1)
-  '@radix-ui/react-tooltip':
-    specifier: ^1.1.6
-    version: 1.2.7(@types/react-dom@19.0.4)(@types/react@18.3.23)(react-dom@18.3.1)(react@18.3.1)
-  '@react-pdf-viewer/attachment':
-    specifier: ^3.12.0
-    version: 3.12.0(pdfjs-dist@3.4.120)(react-dom@18.3.1)(react@18.3.1)
-  '@react-pdf-viewer/bookmark':
-    specifier: ^3.12.0
-    version: 3.12.0(pdfjs-dist@3.4.120)(react-dom@18.3.1)(react@18.3.1)
-  '@react-pdf-viewer/core':
-    specifier: 3.12.0
-    version: 3.12.0(pdfjs-dist@3.4.120)(react-dom@18.3.1)(react@18.3.1)
-  '@react-pdf-viewer/default-layout':
-    specifier: ^3.12.0
-    version: 3.12.0(pdfjs-dist@3.4.120)(react-dom@18.3.1)(react@18.3.1)
-  '@react-pdf-viewer/drop':
-    specifier: ^3.12.0
-    version: 3.12.0(pdfjs-dist@3.4.120)(react-dom@18.3.1)(react@18.3.1)
-  '@react-pdf-viewer/full-screen':
-    specifier: ^3.12.0
-    version: 3.12.0(pdfjs-dist@3.4.120)(react-dom@18.3.1)(react@18.3.1)
-  '@react-pdf-viewer/get-file':
-    specifier: ^3.12.0
-    version: 3.12.0(pdfjs-dist@3.4.120)(react-dom@18.3.1)(react@18.3.1)
-  '@react-pdf-viewer/highlight':
-    specifier: ^3.12.0
-    version: 3.12.0(pdfjs-dist@3.4.120)(react-dom@18.3.1)(react@18.3.1)
-  '@react-pdf-viewer/locale-switcher':
-    specifier: ^3.12.0
-    version: 3.12.0(pdfjs-dist@3.4.120)(react-dom@18.3.1)(react@18.3.1)
-  '@react-pdf-viewer/open':
-    specifier: ^3.12.0
-    version: 3.12.0(pdfjs-dist@3.4.120)(react-dom@18.3.1)(react@18.3.1)
-  '@react-pdf-viewer/page-navigation':
-    specifier: ^3.12.0
-    version: 3.12.0(pdfjs-dist@3.4.120)(react-dom@18.3.1)(react@18.3.1)
-  '@react-pdf-viewer/print':
-    specifier: ^3.12.0
-    version: 3.12.0(pdfjs-dist@3.4.120)(react-dom@18.3.1)(react@18.3.1)
-  '@react-pdf-viewer/properties':
-    specifier: ^3.12.0
-    version: 3.12.0(pdfjs-dist@3.4.120)(react-dom@18.3.1)(react@18.3.1)
-  '@react-pdf-viewer/rotate':
-    specifier: ^3.12.0
-    version: 3.12.0(pdfjs-dist@3.4.120)(react-dom@18.3.1)(react@18.3.1)
-  '@react-pdf-viewer/scroll-mode':
-    specifier: ^3.12.0
-    version: 3.12.0(pdfjs-dist@3.4.120)(react-dom@18.3.1)(react@18.3.1)
-  '@react-pdf-viewer/search':
-    specifier: ^3.12.0
-    version: 3.12.0(pdfjs-dist@3.4.120)(react-dom@18.3.1)(react@18.3.1)
-  '@react-pdf-viewer/selection-mode':
-    specifier: ^3.12.0
-    version: 3.12.0(pdfjs-dist@3.4.120)(react-dom@18.3.1)(react@18.3.1)
-  '@react-pdf-viewer/theme':
-    specifier: ^3.12.0
-    version: 3.12.0(pdfjs-dist@3.4.120)(react-dom@18.3.1)(react@18.3.1)
-  '@react-pdf-viewer/thumbnail':
-    specifier: ^3.12.0
-    version: 3.12.0(pdfjs-dist@3.4.120)(react-dom@18.3.1)(react@18.3.1)
-  '@react-pdf-viewer/toolbar':
-    specifier: ^3.12.0
-    version: 3.12.0(pdfjs-dist@3.4.120)(react-dom@18.3.1)(react@18.3.1)
-  '@react-pdf-viewer/zoom':
-    specifier: ^3.12.0
-    version: 3.12.0(pdfjs-dist@3.4.120)(react-dom@18.3.1)(react@18.3.1)
-  '@react-pdf/renderer':
-    specifier: ^4.2.2
-    version: 4.3.0(react@18.3.1)
-  '@sentry/browser':
-    specifier: 9.0.1
-    version: 9.0.1
-  '@storybook/react-vite':
-    specifier: ^8.6.12
-    version: 8.6.14(@storybook/test@8.6.14)(react-dom@18.3.1)(react@18.3.1)(rollup@2.79.2)(storybook@8.6.14)(typescript@5.0.4)(vite@5.4.19)
-  '@tanstack/react-query':
-    specifier: ^5.59.19
-    version: 5.79.0(react@18.3.1)
-  '@tanstack/react-router':
-    specifier: ^1.78.3
-    version: 1.120.13(react-dom@18.3.1)(react@18.3.1)
-  '@tanstack/react-table':
-    specifier: ^8.20.5
-    version: 8.21.3(react-dom@18.3.1)(react@18.3.1)
-  '@types/youtube':
-    specifier: ^0.1.0
-    version: 0.1.2
-  '@yoopta/accordion':
-    specifier: ^4.9.4
-    version: 4.9.8(@yoopta/editor@4.9.8)(react-dom@18.3.1)(react@18.3.1)
-  '@yoopta/action-menu-list':
-    specifier: ^4.9.4
-    version: 4.9.8(@yoopta/editor@4.9.8)(react-dom@18.3.1)(react@18.3.1)
-  '@yoopta/blockquote':
-    specifier: ^4.9.4
-    version: 4.9.8(@yoopta/editor@4.9.8)(react-dom@18.3.1)(react@18.3.1)
-  '@yoopta/callout':
-    specifier: ^4.9.4
-    version: 4.9.8(@yoopta/editor@4.9.8)(react-dom@18.3.1)(react@18.3.1)
-  '@yoopta/code':
-    specifier: ^4.9.4
-    version: 4.9.8(@babel/runtime@7.27.4)(@codemirror/autocomplete@6.18.6)(@codemirror/commands@6.8.1)(@codemirror/language@6.11.0)(@codemirror/lint@6.8.5)(@codemirror/search@6.5.11)(@codemirror/state@6.5.2)(@codemirror/view@6.37.1)(@types/react-dom@19.0.4)(@types/react@18.3.23)(@yoopta/editor@4.9.8)(react-dom@18.3.1)(react@18.3.1)
-  '@yoopta/divider':
-    specifier: ^4.9.4
-    version: 4.9.8(@yoopta/editor@4.9.8)(react-dom@18.3.1)(react@18.3.1)
-  '@yoopta/editor':
-    specifier: ^4.9.4
-    version: 4.9.8(react-dom@18.3.1)(react@18.3.1)(slate-react@0.102.0)(slate@0.102.0)
-  '@yoopta/embed':
-    specifier: ^4.9.4
-    version: 4.9.8(@yoopta/editor@4.9.8)(react-dom@18.3.1)(react@18.3.1)
-  '@yoopta/exports':
-    specifier: ^4.9.4
-    version: 4.9.8(@yoopta/editor@4.9.8)(react-dom@18.3.1)(react@18.3.1)
-  '@yoopta/file':
-    specifier: ^4.9.4
-    version: 4.9.8(@yoopta/editor@4.9.8)(react-dom@18.3.1)(react@18.3.1)
-  '@yoopta/headings':
-    specifier: ^4.9.4
-    version: 4.9.8(@yoopta/editor@4.9.8)(react-dom@18.3.1)(react@18.3.1)
-  '@yoopta/image':
-    specifier: ^4.9.4
-    version: 4.9.8(@yoopta/editor@4.9.8)(react-dom@18.3.1)(react@18.3.1)
-  '@yoopta/link':
-    specifier: ^4.9.4
-    version: 4.9.8(@yoopta/editor@4.9.8)(react-dom@18.3.1)(react@18.3.1)
-  '@yoopta/link-tool':
-    specifier: ^4.9.4
-    version: 4.9.8(@yoopta/editor@4.9.8)(react-dom@18.3.1)(react@18.3.1)
-  '@yoopta/lists':
-    specifier: ^4.9.4
-    version: 4.9.8(@yoopta/editor@4.9.8)(react-dom@18.3.1)(react@18.3.1)
-  '@yoopta/marks':
-    specifier: ^4.9.4
-    version: 4.9.8(@yoopta/editor@4.9.8)(react-dom@18.3.1)(react@18.3.1)
-  '@yoopta/paragraph':
-    specifier: ^4.9.4
-    version: 4.9.8(@yoopta/editor@4.9.8)(react-dom@18.3.1)(react@18.3.1)
-  '@yoopta/table':
-    specifier: ^4.9.4
-    version: 4.9.8(@yoopta/editor@4.9.8)(react-dom@18.3.1)(react@18.3.1)
-  '@yoopta/toolbar':
-    specifier: ^4.9.4
-    version: 4.9.8(@types/react-dom@19.0.4)(@types/react@18.3.23)(@yoopta/editor@4.9.8)(react-dom@18.3.1)(react@18.3.1)
-  '@yoopta/video':
-    specifier: ^4.9.4
-    version: 4.9.8(@yoopta/editor@4.9.8)(react-dom@18.3.1)(react@18.3.1)
-  assemblyai:
-    specifier: ^4.13.2
-    version: 4.13.2
-  axios:
-    specifier: ^1.7.4
-    version: 1.9.0
-  blob-stream:
-    specifier: ^0.1.3
-    version: 0.1.3
-  browser-fs-access:
-    specifier: 0.29.1
-    version: 0.29.1
-  callsites:
-    specifier: 4.2.0
-    version: 4.2.0
-  canvas-roundrect-polyfill:
-    specifier: 0.0.1
-    version: 0.0.1
-  class-variance-authority:
-    specifier: ^0.7.0
-    version: 0.7.1
-  clsx:
-    specifier: ^2.1.1
-    version: 2.1.1
-  cmdk:
-    specifier: 1.0.0
-    version: 1.0.0(@types/react-dom@19.0.4)(@types/react@18.3.23)(react-dom@18.3.1)(react@18.3.1)
-  color-convert:
-    specifier: ^3.1.0
-    version: 3.1.0
-  concurrently:
-    specifier: ^9.1.2
-    version: 9.1.2
-  crypto-js:
-    specifier: ^4.2.0
-    version: 4.2.0
-  date-fns:
-    specifier: ^4.1.0
-    version: 4.1.0
-  dayjs:
-    specifier: ^1.11.13
-    version: 1.11.13
-  dom-to-image:
-    specifier: ^2.6.0
-    version: 2.6.0
-  emailjs-com:
-    specifier: ^3.2.0
-    version: 3.2.0
-  es6-promise-pool:
-    specifier: 2.5.0
-    version: 2.5.0
-  fabric:
-    specifier: ^6.6.1
-    version: 6.6.6
-  file-saver:
-    specifier: ^2.0.5
-    version: 2.0.5
-  firebase:
-    specifier: 11.3.1
-    version: 11.3.1
-  fractional-indexing:
-    specifier: 3.2.0
-    version: 3.2.0
-  framer-motion:
-    specifier: ^12.17.0
-    version: 12.17.0(react-dom@18.3.1)(react@18.3.1)
-  fuzzy:
-    specifier: 0.1.3
-    version: 0.1.3
-  hex-to-hsl:
-    specifier: ^1.0.2
-    version: 1.0.2
-  html-to-image:
-    specifier: ^1.11.11
-    version: 1.11.13
-  html2canvas:
-    specifier: ^1.4.1
-    version: 1.4.1
-  htmlparser2:
-    specifier: ^10.0.0
-    version: 10.0.0
-  i18next:
-    specifier: ^23.16.4
-    version: 23.16.8
-  i18next-browser-languagedetector:
-    specifier: 6.1.4
-    version: 6.1.4
-  idb-keyval:
-    specifier: 6.0.3
-    version: 6.0.3
-  image-blob-reduce:
-    specifier: 3.0.1
-    version: 3.0.1
-  image-to-base64:
-    specifier: ^2.2.0
-    version: 2.2.0
-  intro.js:
-    specifier: ^7.2.0
-    version: 7.2.0
-  intro.js-react:
-    specifier: ^1.0.0
-    version: 1.0.0(intro.js@7.2.0)(react@18.3.1)
-  jest-diff:
-    specifier: ^29.7.0
-    version: 29.7.0
-  jotai:
-    specifier: 2.11.0
-    version: 2.11.0(@types/react@18.3.23)(react@18.3.1)
-  jotai-scope:
-    specifier: 0.7.2
-    version: 0.7.2(jotai@2.11.0)(react@18.3.1)
-  jquery:
-    specifier: ^3.7.1
-    version: 3.7.1
-  js-cookie:
-    specifier: ^3.0.5
-    version: 3.0.5
-  jspdf:
-    specifier: ^2.5.2
-    version: 2.5.2
-  jspdf-autotable:
-    specifier: ^3.8.4
-    version: 3.8.4(jspdf@2.5.2)
-  jwt-decode:
-    specifier: ^4.0.0
-    version: 4.0.0
-  katex:
-    specifier: ^0.16.11
-    version: 0.16.22
-  lamejs:
-    specifier: ^1.2.1
-    version: 1.2.1
-  lodash:
-    specifier: ^4.17.21
-    version: 4.17.21
-  lodash.debounce:
-    specifier: 4.0.8
-    version: 4.0.8
-  lodash.isequal:
-    specifier: ^4.5.0
-    version: 4.5.0
-  lodash.throttle:
-    specifier: 4.1.1
-    version: 4.1.1
-  lucide-react:
-    specifier: ^0.456.0
-    version: 0.456.0(react@18.3.1)
-  mammoth:
-    specifier: ^1.9.0
-    version: 1.9.1
-  mathquill4quill:
-    specifier: ^2.4.0
-    version: 2.4.0
-  nanoid:
-    specifier: 3.3.3
-    version: 3.3.3
-  next-themes:
-    specifier: ^0.4.3
-    version: 0.4.6(react-dom@18.3.1)(react@18.3.1)
-  normalize.css:
-    specifier: ^8.0.1
-    version: 8.0.1
-  open-color:
-    specifier: 1.9.1
-    version: 1.9.1
-  pako:
-    specifier: 2.0.3
-    version: 2.0.3
-  papaparse:
-    specifier: ^5.5.1
-    version: 5.5.3
-  pdf-dist:
-    specifier: ^1.0.0
-    version: 1.0.0
-  pdf-lib:
-    specifier: ^1.17.1
-    version: 1.17.1
-  pdfjs-dist:
-    specifier: 3.4.120
-    version: 3.4.120
-  pdfjs-dist-3.11.174:
-    specifier: npm:pdfjs-dist@3.11.174
-    version: /pdfjs-dist@3.11.174
-  pdfkit:
-    specifier: ^0.16.0
-    version: 0.16.0
-  perfect-freehand:
-    specifier: 1.2.0
-    version: 1.2.0
-  phosphor-react:
-    specifier: ^1.4.1
-    version: 1.4.1(react@18.3.1)
-  pica:
-    specifier: 7.1.1
-    version: 7.1.1
-  png-chunk-text:
-    specifier: 1.0.0
-    version: 1.0.0
-  png-chunks-encode:
-    specifier: 1.0.0
-    version: 1.0.0
-  png-chunks-extract:
-    specifier: 1.0.0
-    version: 1.0.0
-  pnpm:
-    specifier: ^9.12.3
-    version: 9.15.9
-  points-on-curve:
-    specifier: 1.0.1
-    version: 1.0.1
-  pptxgenjs:
-    specifier: ^3.12.0
-    version: 3.12.0
-  prismjs:
-    specifier: ^1.30.0
-    version: 1.30.0
-  pwacompat:
-    specifier: 2.0.17
-    version: 2.0.17
-  qr-code-styling:
-    specifier: ^1.9.2
-    version: 1.9.2
-  qrcode.react:
-    specifier: ^4.2.0
-    version: 4.2.0(react@18.3.1)
-  re-resizable:
-    specifier: ^6.11.2
-    version: 6.11.2(react-dom@18.3.1)(react@18.3.1)
-  react:
-    specifier: ^18.3.1
-    version: 18.3.1
-  react-beautiful-dnd:
-    specifier: ^13.1.1
-    version: 13.1.1(react-dom@18.3.1)(react@18.3.1)
-  react-colorful:
-    specifier: ^5.6.1
-    version: 5.6.1(react-dom@18.3.1)(react@18.3.1)
-  react-day-picker:
-    specifier: 8.10.1
-    version: 8.10.1(date-fns@4.1.0)(react@18.3.1)
-  react-dom:
-    specifier: ^18.3.1
-    version: 18.3.1(react@18.3.1)
-  react-dropzone:
-    specifier: ^14.3.5
-    version: 14.3.8(react@18.3.1)
-  react-helmet:
-    specifier: ^6.1.0
-    version: 6.1.0(react@18.3.1)
-  react-hook-form:
-    specifier: ^7.55.0
-    version: 7.56.4(react@18.3.1)
-  react-i18next:
-    specifier: ^15.1.0
-    version: 15.5.2(i18next@23.16.8)(react-dom@18.3.1)(react@18.3.1)(typescript@5.0.4)
-  react-icons:
-    specifier: ^5.3.0
-    version: 5.5.0(react@18.3.1)
-  react-intersection-observer:
-    specifier: ^9.16.0
-    version: 9.16.0(react-dom@18.3.1)(react@18.3.1)
-  react-markdown:
-    specifier: ^10.1.0
-    version: 10.1.0(@types/react@18.3.23)(react@18.3.1)
-  react-pdf:
-    specifier: ^9.2.1
-    version: 9.2.1(@types/react@18.3.23)(react-dom@18.3.1)(react@18.3.1)
-  react-phone-input-2:
-    specifier: ^2.15.1
-    version: 2.15.1(react-dom@18.3.1)(react@18.3.1)
-  react-qr-code:
-    specifier: ^2.0.15
-    version: 2.0.15(react@18.3.1)
-  react-quill:
-    specifier: ^2.0.0
-    version: 2.0.0(react-dom@18.3.1)(react@18.3.1)
-  react-router-dom:
-    specifier: ^7.2.0
-    version: 7.6.1(react-dom@18.3.1)(react@18.3.1)
-  react-scripts:
-    specifier: ^5.0.1
-    version: 5.0.1(@babel/plugin-syntax-flow@7.27.1)(@babel/plugin-transform-react-jsx@7.27.1)(esbuild@0.25.5)(eslint@8.57.1)(react@18.3.1)(sass@1.51.0)(typescript@5.0.4)
-  react-simple-code-editor:
-    specifier: ^0.14.1
-    version: 0.14.1(react-dom@18.3.1)(react@18.3.1)
-  react-spinners:
-    specifier: ^0.15.0
-    version: 0.15.0(react-dom@18.3.1)(react@18.3.1)
-  react-to-pdf:
-    specifier: ^1.0.1
-    version: 1.0.1(react-dom@18.3.1)(react@18.3.1)
-  recharts:
-    specifier: ^2.15.0
-    version: 2.15.3(react-dom@18.3.1)(react@18.3.1)
-  rehype-raw:
-    specifier: ^7.0.0
-    version: 7.0.0
-  reveal.js:
-    specifier: ^5.2.1
-    version: 5.2.1
-  roughjs:
-    specifier: 4.6.4
-    version: 4.6.4
-  sass:
-    specifier: 1.51.0
-    version: 1.51.0
-  slate:
-    specifier: ^0.102.0
-    version: 0.102.0
-  slate-react:
-    specifier: ^0.102.0
-    version: 0.102.0(react-dom@18.3.1)(react@18.3.1)(slate@0.102.0)
-  socket.io-client:
-    specifier: 4.7.2
-    version: 4.7.2
-  sonner:
-    specifier: ^1.7.0
-    version: 1.7.4(react-dom@18.3.1)(react@18.3.1)
-  tailwind-merge:
-    specifier: ^2.5.4
-    version: 2.6.0
-  tailwindcss-animate:
-    specifier: ^1.0.7
-    version: 1.0.7(tailwindcss@3.4.17)
-  tunnel-rat:
-    specifier: 0.1.2
-    version: 0.1.2(@types/react@18.3.23)(react@18.3.1)
-  vite-plugin-html:
-    specifier: 3.2.2
-    version: 3.2.2(vite@5.4.19)
-  zod:
-    specifier: ^3.23.8
-    version: 3.25.42
-  zustand:
-    specifier: ^4.5.5
-    version: 4.5.7(@types/react@18.3.23)(react@18.3.1)
->>>>>>> main
 
   .:
     dependencies:
@@ -952,8 +342,8 @@ dependencies:
         specifier: 3.2.0
         version: 3.2.0
       framer-motion:
-        specifier: ^11.11.11
-        version: 11.18.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: ^12.17.0
+        version: 12.18.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       fuzzy:
         specifier: 0.1.3
         version: 0.1.3
@@ -8144,8 +7534,8 @@ packages:
     resolution: {integrity: sha512-PcOxmqwYCW7O2ovKRU8OoQQj2yqTfEB/yeTYk4gPid6dN5ODRfU1hXd9tTVZzax/0NkO7AxpHykvZnT1aYp/BQ==}
     engines: {node: ^14.13.1 || >=16.0.0}
 
-  framer-motion@11.18.2:
-    resolution: {integrity: sha512-5F5Och7wrvtLVElIpclDT0CBzMVg3dL22B64aZwHtsIY8RB4mXICLrkajK4G9R+ieSAGcgrLeae2SeUTg2pr6w==}
+  framer-motion@12.18.1:
+    resolution: {integrity: sha512-6o4EDuRPLk4LSZ1kRnnEOurbQ86MklVk+Y1rFBUKiF+d2pCdvMjWVu0ZkyMVCTwl5UyTH2n/zJEJx+jvTYuxow==}
     peerDependencies:
       '@emotion/is-prop-valid': '*'
       react: ^18.0.0 || ^19.0.0
@@ -9839,11 +9229,11 @@ packages:
   moo-color@1.0.3:
     resolution: {integrity: sha512-i/+ZKXMDf6aqYtBhuOcej71YSlbjT3wCO/4H1j8rPvxDJEifdwgg5MaFyu6iYAT8GBZJg2z0dkgK4YMzvURALQ==}
 
-  motion-dom@11.18.1:
-    resolution: {integrity: sha512-g76KvA001z+atjfxczdRtw/RXOM3OMSdd1f4DL77qCTF/+avrRJiawSG4yDibEQ215sr9kpinSlX2pCTJ9zbhw==}
+  motion-dom@12.18.1:
+    resolution: {integrity: sha512-dR/4EYT23Snd+eUSLrde63Ws3oXQtJNw/krgautvTfwrN/2cHfCZMdu6CeTxVfRRWREW3Fy1f5vobRDiBb/q+w==}
 
-  motion-utils@11.18.1:
-    resolution: {integrity: sha512-49Kt+HKjtbJKLtgO/LKj9Ld+6vw9BjH5d9sc40R/kVyH8GLAXgT42M2NnuPcJNuA3s9ZfZBUcwIgpmZWGEE+hA==}
+  motion-utils@12.18.1:
+    resolution: {integrity: sha512-az26YDU4WoDP0ueAkUtABLk2BIxe28d8NH1qWT8jPGhPyf44XTdDUh8pDk9OPphaSrR9McgpcJlgwSOIw/sfkA==}
 
   mri@1.2.0:
     resolution: {integrity: sha512-tzzskb3bG8LvYGFF/mDTpq3jpI6Q9wc3LEmBaghu+DdCssd1FakN7Bc0hVNmEyGq1bq3RgfkCb3cmQLpNPOroA==}
@@ -10960,7 +10350,6 @@ packages:
     engines: {node: '>=0.6.0', teleport: '>=0.2.0'}
     deprecated: |-
       You or someone you depend on is using Q, the JavaScript Promise library that gave JavaScript developers strong feelings about promises. They can almost certainly migrate to the native JavaScript promise now. Thank you literally everyone for joining me in this bet against the odds. Be excellent to each other.
-
       (For a CapTP with native promises, see @endo/eventual-send and @endo/captp)
 
   qr-code-styling@1.9.2:
@@ -15838,7 +15227,7 @@ snapshots:
       '@pdfme/schemas': 5.4.0(@pdfme/common@5.4.0(antd@5.26.0(date-fns@4.1.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(form-render@2.5.3(@types/react@18.3.23)(antd@5.26.0(date-fns@4.1.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(immer@10.1.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)))
       '@scena/react-guides': 0.16.0
       antd: 5.26.0(date-fns@4.1.0)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
-      form-render: 2.5.3(@types/react@18.3.23)(antd@5.26.0(date-fns@4.1.0)(react-dom@16.14.0(react@16.14.0))(react@16.14.0))(immer@10.1.1)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
+      form-render: 2.5.3(@types/react@18.3.23)(antd@5.26.0(date-fns@4.1.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(immer@10.1.1)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
       hotkeys-js: 3.13.11
       pdfjs-dist: 3.11.174
       react: 16.14.0
@@ -21769,7 +21158,7 @@ snapshots:
       hasown: 2.0.2
       mime-types: 2.1.35
 
-  form-render@2.5.3(@types/react@18.3.23)(antd@5.26.0(date-fns@4.1.0)(react-dom@16.14.0(react@16.14.0))(react@16.14.0))(immer@10.1.1)(react-dom@16.14.0(react@16.14.0))(react@16.14.0):
+  form-render@2.5.3(@types/react@18.3.23)(antd@5.26.0(date-fns@4.1.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(immer@10.1.1)(react-dom@16.14.0(react@16.14.0))(react@16.14.0):
     dependencies:
       '@ant-design/icons': 4.8.3(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
       ahooks: 3.8.5(react@16.14.0)
@@ -21782,7 +21171,7 @@ snapshots:
       rc-color-picker: 1.2.6(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
       react: 16.14.0
       react-dom: 16.14.0(react@16.14.0)
-      virtualizedtableforantd4: 1.3.1(antd@5.26.0(date-fns@4.1.0)(react-dom@16.14.0(react@16.14.0))(react@16.14.0))(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
+      virtualizedtableforantd4: 1.3.1(antd@5.26.0(date-fns@4.1.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
       zustand: 4.5.7(@types/react@18.3.23)(immer@10.1.1)(react@16.14.0)
     transitivePeerDependencies:
       - '@types/react'
@@ -21813,31 +21202,12 @@ snapshots:
 
   fractional-indexing@3.2.0: {}
 
-<<<<<<< HEAD
-  framer-motion@11.18.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+  framer-motion@12.18.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
-      motion-dom: 11.18.1
-      motion-utils: 11.18.1
+      motion-dom: 12.18.1
+      motion-utils: 12.18.1
       tslib: 2.8.1
     optionalDependencies:
-=======
-  /framer-motion@12.17.0(react-dom@18.3.1)(react@18.3.1):
-    resolution: {integrity: sha512-2hISKgDk49yCLStwG1wf4Kdy/D6eBw9/eRNaWFIYoI9vMQ/Mqd1Fz+gzVlEtxJmtQ9y4IWnXm19/+UXD3dAYAA==}
-    peerDependencies:
-      '@emotion/is-prop-valid': '*'
-      react: ^18.0.0 || ^19.0.0
-      react-dom: ^18.0.0 || ^19.0.0
-    peerDependenciesMeta:
-      '@emotion/is-prop-valid':
-        optional: true
-      react:
-        optional: true
-      react-dom:
-        optional: true
-    dependencies:
-      motion-dom: 12.17.0
-      motion-utils: 12.12.1
->>>>>>> main
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
 
@@ -24120,23 +23490,11 @@ snapshots:
     dependencies:
       color-name: 1.1.4
 
-<<<<<<< HEAD
-  motion-dom@11.18.1:
+  motion-dom@12.18.1:
     dependencies:
-      motion-utils: 11.18.1
+      motion-utils: 12.18.1
 
-  motion-utils@11.18.1: {}
-=======
-  /motion-dom@12.17.0:
-    resolution: {integrity: sha512-FA6/c70R9NKs3g41XDVONzmUUrEmyaifLVGCWtAmHP0usDnX9W+RN/tmbC4EUl0w6yLGvMTOwnWCFVgA5luhRg==}
-    dependencies:
-      motion-utils: 12.12.1
-    dev: false
-
-  /motion-utils@12.12.1:
-    resolution: {integrity: sha512-f9qiqUHm7hWSLlNW8gS9pisnsN7CRFRD58vNjptKdsqFLpkVnX00TNeD6Q0d27V9KzT7ySFyK1TZ/DShfVOv6w==}
-    dev: false
->>>>>>> main
+  motion-utils@12.18.1: {}
 
   mri@1.2.0: {}
 
@@ -27670,7 +27028,7 @@ snapshots:
       d3-time: 3.1.0
       d3-timer: 3.0.1
 
-  virtualizedtableforantd4@1.3.1(antd@5.26.0(date-fns@4.1.0)(react-dom@16.14.0(react@16.14.0))(react@16.14.0))(react-dom@16.14.0(react@16.14.0))(react@16.14.0):
+  virtualizedtableforantd4@1.3.1(antd@5.26.0(date-fns@4.1.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@16.14.0(react@16.14.0))(react@16.14.0):
     dependencies:
       antd: 5.26.0(date-fns@4.1.0)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
       react: 16.14.0

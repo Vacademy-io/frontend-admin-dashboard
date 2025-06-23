@@ -39,7 +39,12 @@ import SlideEditor from './SlideEditor';
 import type { JSX } from 'react/jsx-runtime';
 import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
+import DoubtResolutionSidebar from './doubt-resolution/doubtResolutionSidebar';
+import { ChatCircleDots } from '@phosphor-icons/react';
+import { useSidebar } from '@/components/ui/sidebar';
 
+// Inside your component
+ // this toggles the DoubtResolutionSidebar
 // Declare INSTITUTE_ID here or import it from a config file
 const INSTITUTE_ID = 'your-institute-id'; // Replace with your actual institute ID
 
@@ -68,10 +73,14 @@ export const SlideMaterial = ({
     const { addUpdateVideoSlide } = useSlides(chapterId || '');
     const { updateQuestionOrder } = useSlides(chapterId || '');
     const { updateAssignmentOrder } = useSlides(chapterId || '');
+    const { setOpen } = useSidebar();
 
     const handleHeadingChange = (e: ChangeEvent<HTMLInputElement>) => {
         setHeading(e.target.value);
     };
+ 
+   
+
 
     // Component to manage editor with placeholder
     const EditorWithPlaceholder = ({ initialIsEmpty }: { initialIsEmpty: boolean }) => {
@@ -246,6 +255,15 @@ export const SlideMaterial = ({
             appState: {},
         };
     };
+        interface YTPlayer {
+  destroy(): void;
+  getCurrentTime(): number;
+  getDuration(): number;
+  seekTo(seconds: number, allowSeekAhead: boolean): void;
+  getPlayerState(): number;
+}
+
+const playerRef = useRef<YTPlayer | null>(null);
 
     const loadContent = async () => {
         if (activeItem == null) {
@@ -259,7 +277,8 @@ export const SlideMaterial = ({
         }
 
         if (activeItem.source_type === 'VIDEO') {
-            setContent(<VideoSlidePreview activeItem={activeItem} />);
+           setContent(<VideoSlidePreview activeItem={activeItem} />);
+
             return;
         }
 
@@ -604,142 +623,166 @@ export const SlideMaterial = ({
         setSaveDraft(SaveDraft);
     }, [editor]);
 
-    return (
-        <div className="flex w-full flex-1 flex-col transition-all duration-300 ease-in-out" ref={selectionRef}>
-            {activeItem && (
-                <div className="-m-8 flex items-center justify-between gap-4 border-b border-neutral-200 bg-white/80 backdrop-blur-sm px-6 py-3 shadow-sm relative z-10">
-                    <div className="flex items-center gap-3">
-                        {isEditing ? (
-                            <div className="flex items-center justify-center gap-2 animate-in fade-in duration-200">
-                                <input
-                                    type="text"
-                                    value={heading}
-                                    onChange={handleHeadingChange}
-                                    className="w-fit text-lg font-semibold text-neutral-700 bg-transparent border-b border-neutral-300 focus:border-primary-500 focus:outline-none transition-colors duration-200"
-                                    autoFocus
-                                />
-                                <Check
-                                    onClick={() =>
-                                        updateHeading(
-                                            activeItem,
-                                            addUpdateVideoSlide,
-                                            SaveDraft,
-                                            heading,
-                                            setIsEditing,
-                                            addUpdateDocumentSlide
-                                        )
-                                    }
-                                    className="cursor-pointer hover:text-primary-500"
-                                />
-                            </div>
-                        ) : (
-                            <div className="flex items-center justify-center gap-2">
-                                <h3 className="text-h3 font-semibold text-neutral-600">
-                                    {heading || 'No content selected'}
-                                </h3>
-                                <PencilSimpleLine
-                                    className="cursor-pointer hover:text-primary-500"
-                                    onClick={() => setIsEditing(true)}
-                                />
-                            </div>
-                        )}
-                    </div>
-                    <div className="flex items-center gap-6">
-                        <div className="flex items-center gap-6">
-                            {activeItem.source_type == 'DOCUMENT' &&
-                                activeItem?.document_slide?.type == 'DOC' && (
-                                    <MyButton
-                                        layoutVariant="icon"
-                                        onClick={async () => {
-                                            await SaveDraft(activeItem);
-                                            if (activeItem.status == 'PUBLISHED') {
-                                                await handleConvertAndUpload(
-                                                    activeItem.document_slide?.published_data ||
-                                                        null
-                                                );
-                                            } else {
-                                                await handleConvertAndUpload(
-                                                    activeItem.document_slide?.data || null
-                                                );
-                                            }
-                                        }}
-                                    >
-                                        <DownloadSimple size={30} />
-                                    </MyButton>
-                                )}
-                            <ActivityStatsSidebar />
-                            {(activeItem?.document_slide?.type == 'DOC' ||
-                                activeItem?.document_slide?.type == 'PRESENTATION' ||
-                                activeItem?.source_type == 'QUESTION' ||
-                                activeItem?.source_type == 'ASSIGNMENT') && (
-                                <MyButton
-                                    buttonType="secondary"
-                                    scale="medium"
-                                    layoutVariant="default"
-                                    onClick={handleSaveDraftClick}
-                                    disabled={isSaving}
-                                    className={cn(isSaving && 'pointer-events-none')}
-                                >
-                                    {isSaving ? (
-                                        <>
-                                            <Loader2 className="size-4 animate-spin text-primary-500 " />
-                                            Saving...
-                                        </>
-                                    ) : (
-                                        'Save Draft'
-                                    )}
-                                </MyButton>
-                            )}
-                            <UnpublishDialog
-                                isOpen={isUnpublishDialogOpen}
-                                setIsOpen={setIsUnpublishDialogOpen}
-                                handlePublishUnpublishSlide={() =>
-                                    handleUnpublishSlide(
-                                        setIsUnpublishDialogOpen,
-                                        false,
-                                        activeItem,
-                                        addUpdateDocumentSlide,
-                                        addUpdateVideoSlide,
-                                        updateQuestionOrder,
-                                        updateAssignmentOrder,
-                                        SaveDraft
-                                    )
-                                }
-                            />
-                            <PublishDialog
-                                isOpen={isPublishDialogOpen}
-                                setIsOpen={setIsPublishDialogOpen}
-                                handlePublishUnpublishSlide={() => {
-                                    // Custom publish logic for Excalidraw presentations
-                                    if (activeItem?.document_slide?.type === 'PRESENTATION') {
-                                        publishExcalidrawPresentation();
-                                        setIsPublishDialogOpen(false);
-                                    } else {
-                                        handlePublishSlide(
-                                            setIsPublishDialogOpen,
-                                            false,
-                                            activeItem,
-                                            addUpdateDocumentSlide,
-                                            addUpdateVideoSlide,
-                                            updateQuestionOrder,
-                                            updateAssignmentOrder,
-                                            SaveDraft
-                                        );
-                                    }
-                                }}
-                            />
-                        </div>
-                        <SlidesMenuOption />
-                    </div>
-                </div>
-            )}
-            <div
-                className={`mx-auto mt-14 ${
-                    activeItem?.document_slide?.type == 'PDF' ? 'h-[calc(100vh-200px)]' : 'h-full'
-                } w-full overflow-hidden relative z-20`}
-            >
-                {content}
+
+
+
+
+return (
+  <div
+    className="flex w-full flex-1 flex-col transition-all duration-300 ease-in-out"
+    ref={selectionRef}
+  >
+    {activeItem && (
+      <div className="-m-8 flex items-center justify-between gap-4 border-b border-neutral-200 bg-white/80 backdrop-blur-sm px-6 py-3 shadow-sm relative z-10">
+        <div className="flex items-center gap-3">
+          {isEditing ? (
+            <div className="flex items-center justify-center gap-2 animate-in fade-in duration-200">
+              <input
+                type="text"
+                value={heading}
+                onChange={handleHeadingChange}
+                className="w-fit text-lg font-semibold text-neutral-700 bg-transparent border-b border-neutral-300 focus:border-primary-500 focus:outline-none transition-colors duration-200"
+                autoFocus
+              />
+              <Check
+                onClick={() =>
+                  updateHeading(
+                    activeItem,
+                    addUpdateVideoSlide,
+                    SaveDraft,
+                    heading,
+                    setIsEditing,
+                    addUpdateDocumentSlide
+                  )
+                }
+                className="cursor-pointer hover:text-primary-500"
+              />
             </div>
+          ) : (
+            <div className="flex items-center justify-center gap-2">
+              <h3 className="text-h3 font-semibold text-neutral-600">
+                {heading || 'No content selected'}
+              </h3>
+              <PencilSimpleLine
+                className="cursor-pointer hover:text-primary-500"
+                onClick={() => setIsEditing(true)}
+              />
+            </div>
+          )}
         </div>
-    );
-};
+
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-6">
+            {activeItem.source_type === 'DOCUMENT' &&
+              activeItem?.document_slide?.type === 'DOC' && (
+                <MyButton
+                  layoutVariant="icon"
+                  onClick={async () => {
+                    await SaveDraft(activeItem);
+                    if (activeItem.status === 'PUBLISHED') {
+                      await handleConvertAndUpload(activeItem.document_slide?.published_data || null);
+                    } else {
+                      await handleConvertAndUpload(activeItem.document_slide?.data || null);
+                    }
+                  }}
+                >
+                  <DownloadSimple size={30} />
+                </MyButton>
+              )}
+
+            <ActivityStatsSidebar />
+
+            {(activeItem?.document_slide?.type === 'DOC' ||
+              activeItem?.document_slide?.type === 'PRESENTATION' ||
+              activeItem?.source_type === 'QUESTION' ||
+              activeItem?.source_type === 'ASSIGNMENT') && (
+              <MyButton
+                buttonType="secondary"
+                scale="medium"
+                layoutVariant="default"
+                onClick={handleSaveDraftClick}
+                disabled={isSaving}
+                className={cn(isSaving && 'pointer-events-none')}
+              >
+                {isSaving ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin text-primary-500 " />
+                    Saving...
+                  </>
+                ) : (
+                  'Save Draft'
+                )}
+              </MyButton>
+            )}
+
+            <UnpublishDialog
+              isOpen={isUnpublishDialogOpen}
+              setIsOpen={setIsUnpublishDialogOpen}
+              handlePublishUnpublishSlide={() =>
+                handleUnpublishSlide(
+                  setIsUnpublishDialogOpen,
+                  false,
+                  activeItem,
+                  addUpdateDocumentSlide,
+                  addUpdateVideoSlide,
+                  updateQuestionOrder,
+                  updateAssignmentOrder,
+                  SaveDraft,
+                  playerRef
+                )
+              }
+            />
+
+            <PublishDialog
+              isOpen={isPublishDialogOpen}
+              setIsOpen={setIsPublishDialogOpen}
+              handlePublishUnpublishSlide={() => {
+                if (activeItem?.document_slide?.type === 'PRESENTATION') {
+                  publishExcalidrawPresentation();
+                  setIsPublishDialogOpen(false);
+                } else {
+                  handlePublishSlide(
+                    setIsPublishDialogOpen,
+                    false,
+                    activeItem,
+                    addUpdateDocumentSlide,
+                    addUpdateVideoSlide,
+                    updateQuestionOrder,
+                    updateAssignmentOrder,
+                    SaveDraft,
+                    playerRef
+                  );
+                }
+              }}
+            />
+          </div>
+
+          {/* ✅ Doubt Icon Trigger */}
+          <MyButton
+            layoutVariant="icon"
+            onClick={() => setOpen(true)}
+            title="Open Doubt Resolution Sidebar"
+          >
+            <ChatCircleDots size={26} className="text-primary-600" />
+          </MyButton>
+
+          {/* Slides Menu Dropdown */}
+          <SlidesMenuOption />
+        </div>
+      </div>
+    )}
+
+    <div
+      className={`mx-auto mt-14 ${
+        activeItem?.document_slide?.type === 'PDF' ? 'h-[calc(100vh-200px)]' : 'h-full'
+      } w-full overflow-hidden relative z-20`}
+    >
+      {content}
+    </div>
+
+    {/* ✅ Doubt Sidebar Always Mounted */}
+    <DoubtResolutionSidebar />
+  </div>
+);
+
+}
