@@ -198,6 +198,8 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         name: 'open_test.custom_fields',
     });
 
+    console.log(customFieldsArray);
+
     const handleSubmitStep3Form = useMutation({
         mutationFn: ({
             oldFormData,
@@ -262,7 +264,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
     };
 
     const toggleIsRequired = (id: string) => {
-        const updatedFields = customFields?.map((field) =>
+        const updatedFields = customFieldsArray?.map((field) =>
             field.id === id ? { ...field, isRequired: !field.isRequired } : field
         );
         setValue('open_test.custom_fields', updatedFields);
