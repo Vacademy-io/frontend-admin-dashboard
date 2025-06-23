@@ -32,10 +32,9 @@ export function SSOSwitcher({ variant = 'button', className = '' }: SSOSwitcherP
     const switchToLearnerPlatform = () => {
         const ssoUrl = generateSSOUrl(SSO_CONFIG.LEARNER_DOMAIN, '/dashboard');
         if (ssoUrl) {
-            console.log('ssoUrl', ssoUrl);
-            // window.location.href = ssoUrl;
+            window.location.href = ssoUrl;
         } else {
-            window.location.href = `https://${SSO_CONFIG.LEARNER_DOMAIN}`;
+            window.location.href = `https://${SSO_CONFIG.LEARNER_DOMAIN}/login`;
         }
     };
 
