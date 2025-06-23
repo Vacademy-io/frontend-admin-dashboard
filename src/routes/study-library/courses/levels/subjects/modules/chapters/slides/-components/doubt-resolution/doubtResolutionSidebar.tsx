@@ -132,10 +132,13 @@ const DoubtResolutionSidebar = () => {
 
     return (
         <Sidebar
-            ref={sidebarRef}
-            side="right"
-            className={`${open ? 'w-[35vw] min-w-[450px]' : 'w-0'} flex flex-col overflow-y-hidden border-l border-neutral-200 bg-white shadow-lg transition-all duration-300 ease-in-out`}
-        >
+  ref={sidebarRef}
+  side="right"
+  className={`fixed top-0 right-0 z-[9999] h-full ${
+    open ? 'w-[35vw] min-w-[450px]' : 'w-0'
+  } flex flex-col overflow-y-hidden border-l border-neutral-200 bg-white shadow-lg transition-all duration-300 ease-in-out`}
+>
+
             <SidebarHeader className="flex w-full items-center justify-between border-b border-neutral-200 p-4">
                 <div className="flex w-full items-center justify-between">
                     <h1 className="text-lg font-semibold text-neutral-800">
