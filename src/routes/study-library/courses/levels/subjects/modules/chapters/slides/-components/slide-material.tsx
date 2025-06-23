@@ -758,13 +758,15 @@ return (
           </div>
 
           {/* ✅ Doubt Icon Trigger */}
-          <MyButton
-            layoutVariant="icon"
-            onClick={() => setOpen(true)}
-            title="Open Doubt Resolution Sidebar"
-          >
-            <ChatCircleDots size={26} className="text-primary-600" />
-          </MyButton>
+              <MyButton
+  layoutVariant="icon"
+  buttonType="secondary" 
+  onClick={() => setOpen(true)}
+  title="Open Doubt Resolution Sidebar"
+>
+  <ChatCircleDots size={26} className="text-primary-600" />
+</MyButton>
+
 
           {/* Slides Menu Dropdown */}
           <SlidesMenuOption />
