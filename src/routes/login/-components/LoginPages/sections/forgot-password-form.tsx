@@ -21,6 +21,7 @@ type FormValues = z.infer<typeof forgotPasswordSchema>;
 
 export function ForgotPassword() {
   const [cooldown, setCooldown] = useState(0);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(forgotPasswordSchema),
@@ -30,13 +31,11 @@ export function ForgotPassword() {
 
   useEffect(() => {
     let timer: NodeJS.Timeout | undefined;
-
     if (cooldown > 0) {
       timer = setInterval(() => {
         setCooldown((prev) => prev - 1);
       }, 1000);
     }
-
     return () => {
       if (timer) clearInterval(timer);
     };
@@ -44,22 +43,19 @@ export function ForgotPassword() {
 
   const forgotPasswordMutation = useMutation({
     mutationFn: async (email: string) => {
-      const res = await forgotPassword(email);
-      return res;
+      return await forgotPassword(email);
     },
     onSuccess: (response) => {
       if (response.status === 'success') {
-        toast.success('Reset link sent to your email.', {
-          className: 'success-toast',
-          duration: 3000,
-        });
+       
         setCooldown(60);
+        setShowSuccessModal(true);
         form.reset();
       } else {
-        toast.error('Login Error', {
-          description: response.message || "This account doesn't exist",
+        toast.error("We couldn't find an account with that email address.", {
+          description: response.message,
           className: 'error-toast',
-          duration: 3000,
+          duration: 4000,
         });
       }
     },
@@ -187,6 +183,42 @@ export function ForgotPassword() {
           </Form>
         </div>
       </FormContainer>
+
+      {/* ✅ Modal shown on success */}
+     {showSuccessModal && (
+  <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50">
+    <div className="relative w-[90%] max-w-md rounded-xl bg-white p-6 text-center shadow-lg">
+      {/* ❌ Close button */}
+      <button
+        className="absolute right-4 top-4 text-neutral-500 hover:text-neutral-700"
+        onClick={() => setShowSuccessModal(false)}
+        aria-label="Close"
+      >
+        ×
+      </button>
+
+      <h2 className="mb-2 text-xl font-semibold text-neutral-800">
+        Check Your Email
+      </h2>
+      <p className="mb-6 text-neutral-600">
+        Your username and password have been sent to your email address.
+      </p>
+
+      {/* ✅ Replace "Got it" with "Back to Login" */}
+      <Link to="/login">
+        <MyButton
+          buttonType="primary"
+          scale="medium"
+          layoutVariant="default"
+          className="mx-auto"
+        >
+          Back to Login
+        </MyButton>
+      </Link>
+    </div>
+  </div>
+)}
+
     </div>
   );
 }
