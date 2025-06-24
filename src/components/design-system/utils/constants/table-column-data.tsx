@@ -519,6 +519,7 @@ export interface ActivityResponseType {
     startTime: string;
     endTime: string;
     duration: string;
+    questionName: string;
     response: string;
     responseStatus: string;
 }
@@ -539,6 +540,19 @@ export const activityResponseTypeColumns: ColumnDef<ActivityResponseType>[] = [
     {
         accessorKey: 'duration',
         header: 'Duration',
+    },
+    {
+        accessorKey: 'questionName',
+        header: 'Question Name',
+        cell: ({ row }) => {
+            return (
+                <p
+                    dangerouslySetInnerHTML={{
+                        __html: row.original.questionName || '',
+                    }}
+                />
+            );
+        },
     },
     {
         accessorKey: 'response',

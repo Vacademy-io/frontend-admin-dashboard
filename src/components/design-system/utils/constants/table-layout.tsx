@@ -54,6 +54,7 @@ export const ACTIVITY_RESPONSE_COLUMN_WIDTHS: ColumnWidthConfig = {
     startTime: 'min-w-[100px]',
     endTime: 'min-w-[100px]',
     duration: 'min-w-[100px]',
+    questionName: 'min-w-[100px]',
     response: 'min-w-[120px]',
     responseStatus: 'min-w-[140px]',
 };
