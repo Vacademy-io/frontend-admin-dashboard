@@ -14,6 +14,7 @@ const fetchInstituteDetails = async (): Promise<InstituteDetailsType> => {
         method: 'GET',
         url: `${INIT_INSTITUTE}/${INSTITUTE_ID}`,
     });
+    console.log(response.data);
     return response.data;
 };
 
