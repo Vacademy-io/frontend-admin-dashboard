@@ -106,6 +106,7 @@ export function Navbar() {
                 </div>
             </div>
             <div className="flex gap-6 text-neutral-600">
+                {roles.includes('STUDENT') && <SSOSwitcher variant="button" className="" />}
                 <div className="flex items-center gap-1">
                     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
                         <DropdownMenuTrigger className="flex items-center gap-2">
