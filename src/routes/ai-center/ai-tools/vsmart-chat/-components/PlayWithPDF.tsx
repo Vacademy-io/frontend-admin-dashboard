@@ -284,7 +284,7 @@ const PlayWithPDF = ({
                                         size="large"
                                         className="w-[500px] rounded-xl px-6 py-4"
                                     />
-                                    {pendingResponse && <DashboardLoader size={18} />}
+                                    {pendingResponse && <DashboardLoader/>}
                                 </div>
                             </div>
                         </div>

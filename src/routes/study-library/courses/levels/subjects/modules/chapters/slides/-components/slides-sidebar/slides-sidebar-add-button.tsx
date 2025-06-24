@@ -57,42 +57,64 @@ export const ChapterSidebarAddButton = () => {
 
     const dropdownList = [
         {
-            label: 'Pdf',
+            label: 'PDF Document',
             value: 'pdf',
-            icon: <FilePdf className="size-4" />,
+            icon: <FilePdf className="size-4 text-red-500" />,
+            description: 'Upload PDF files'
         },
         {
-            label: 'Doc',
+            label: 'Document',
             value: 'doc',
-            icon: <FileDoc className="size-4" />,
+            icon: <FileDoc className="size-4 text-blue-600" />,
+            description: 'Word documents & more',
             subItems: [
-                { label: 'Upload from device', value: 'upload-doc' },
-                { label: 'Create new doc', value: 'create-doc' },
+                { 
+                    label: 'Upload from device', 
+                    value: 'upload-doc',
+                    description: 'Upload existing document'
+                },
+                { 
+                    label: 'Create new document', 
+                    value: 'create-doc',
+                    description: 'Start with blank document'
+                },
             ],
         },
         {
             label: 'Video',
             value: 'video',
-            icon: <YoutubeLogo className="size-4" />,
+            icon: <YoutubeLogo className="size-4 text-green-500" />,
+            description: 'Video content',
             subItems: [
-                { label: 'Upload from device', value: 'upload-video' },
-                { label: 'YouTube link', value: 'youtube-video' },
+                { 
+                    label: 'Upload video file', 
+                    value: 'upload-video',
+                    description: 'Upload from device'
+                },
+                { 
+                    label: 'YouTube video', 
+                    value: 'youtube-video',
+                    description: 'Add YouTube link'
+                },
             ],
         },
         {
             label: 'Question',
             value: 'question',
-            icon: <Question className="size-4" />,
+            icon: <Question className="size-4 text-purple-500" />,
+            description: 'Interactive questions'
         },
         {
             label: 'Assignment',
             value: 'assignment',
-            icon: <File className="size-4" />,
+            icon: <File className="size-4 text-blue-500" />,
+            description: 'Student assignments'
         },
         {
             label: 'Presentation',
             value: 'presentation',
-            icon: <PresentationChart className="size-4" />,
+            icon: <PresentationChart className="size-4 text-orange-500" />,
+            description: 'Interactive presentations'
         },
     ];
 
@@ -197,31 +219,54 @@ export const ChapterSidebarAddButton = () => {
     };
 
     return (
-        <>
+        <div className="w-full animate-in fade-in slide-in-from-top-2 duration-500 px-1">
             <MyDropdown dropdownList={dropdownList} onSelect={handleSelect}>
                 <MyButton
                     buttonType="primary"
-                    scale="large"
-                    className={`${open ? '' : ''}`}
+                    scale="medium"
+                    className={`
+                        w-full group relative overflow-hidden
+                        bg-gradient-to-r from-primary-500 to-primary-600
+                        hover:from-primary-600 hover:to-primary-700
+                        shadow-md shadow-primary-500/20
+                        transition-all duration-300 ease-in-out
+                        hover:shadow-lg hover:shadow-primary-500/25
+                        hover:scale-[1.01] active:scale-[0.99]
+                        border-0 h-9
+                        ${open ? 'px-3' : 'px-2.5'}
+                    `}
                     id="add-slides"
                 >
-                    <Plus />
-                    <p>Add</p>
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-out" />
+                    
+                    <div className="flex items-center justify-center gap-1.5 relative z-10">
+                        <Plus className={`
+                            transition-all duration-300 ease-in-out
+                            group-hover:rotate-90 group-hover:scale-110
+                            ${open ? 'size-4' : 'size-3.5'}
+                        `} />
+                        {open && (
+                            <span className="font-medium text-sm tracking-wide animate-in slide-in-from-left-2 duration-300">
+                                Add Slide
+                            </span>
+                        )}
+                    </div>
                 </MyButton>
             </MyDropdown>
 
-            {/* PDF Upload Dialog */}
+            {/* Enhanced Dialog Components with consistent styling */}
             <MyDialog
                 trigger={<></>}
-                heading="Upload PDF"
+                heading="Upload PDF Document"
                 dialogWidth="min-w-[400px] w-auto"
                 open={isPdfDialogOpen}
                 onOpenChange={closePdfDialog}
             >
-                <AddPdfDialog openState={(open) => !open && closePdfDialog()} />
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+                    <AddPdfDialog openState={(open) => !open && closePdfDialog()} />
+                </div>
             </MyDialog>
 
-            {/* Doc Upload Dialog */}
             <MyDialog
                 trigger={<></>}
                 heading="Upload Document"
@@ -229,10 +274,11 @@ export const ChapterSidebarAddButton = () => {
                 open={isDocUploadDialogOpen}
                 onOpenChange={closeDocUploadDialog}
             >
-                <AddDocDialog openState={(open) => !open && closeDocUploadDialog()} />
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+                    <AddDocDialog openState={(open) => !open && closeDocUploadDialog()} />
+                </div>
             </MyDialog>
 
-            {/* YouTube Video Upload Dialog */}
             <MyDialog
                 trigger={<></>}
                 heading="Add YouTube Video"
@@ -240,41 +286,46 @@ export const ChapterSidebarAddButton = () => {
                 open={isVideoDialogOpen}
                 onOpenChange={closeVideoDialog}
             >
-                <AddVideoDialog openState={(open) => !open && closeVideoDialog()} />
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+                    <AddVideoDialog openState={(open) => !open && closeVideoDialog()} />
+                </div>
             </MyDialog>
 
-            {/* Video File Upload Dialog */}
             <MyDialog
                 trigger={<></>}
-                heading="Upload Video"
+                heading="Upload Video File"
                 dialogWidth="min-w-[400px]"
                 open={isVideoFileDialogOpen}
                 onOpenChange={closeVideoFileDialog}
             >
-                <AddVideoFileDialog openState={(open) => !open && closeVideoFileDialog()} />
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+                    <AddVideoFileDialog openState={(open) => !open && closeVideoFileDialog()} />
+                </div>
             </MyDialog>
 
-            {/* Question Upload Dialog */}
             <MyDialog
                 trigger={<></>}
-                heading="Upload Question"
+                heading="Create Question"
                 dialogWidth="min-w-[500px]"
                 open={isQuestionDialogOpen}
                 onOpenChange={closeQuestionDialog}
             >
-                <AddQuestionDialog openState={(open) => !open && closeQuestionDialog()} />
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+                    <AddQuestionDialog openState={(open) => !open && closeQuestionDialog()} />
+                </div>
             </MyDialog>
 
-            {/* Assignment Upload Dialog */}
             <MyDialog
                 trigger={<></>}
-                heading="Upload Assignment"
+                heading="Create Assignment"
                 dialogWidth="min-w-[500px]"
                 open={isAssignmentDialogOpen}
-                onOpenChange={closeAssignmentDialog} // Pass the action function directly
+                onOpenChange={closeAssignmentDialog}
             >
-                <AddAssignmentDialog openState={(open) => !open && closeAssignmentDialog()} />
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+                    <AddAssignmentDialog openState={(open) => !open && closeAssignmentDialog()} />
+                </div>
             </MyDialog>
-        </>
+        </div>
     );
 };

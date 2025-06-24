@@ -86,7 +86,7 @@ const ExtractQuestionsComponent = ({ fileId }: { fileId: string }) => {
                                 layoutVariant="default"
                                 className="text-sm"
                             >
-                                <DashboardLoader size={18} color="#ffffff" />
+                                <DashboardLoader/>
                             </MyButton>
                         ) : (
                             <MyButton

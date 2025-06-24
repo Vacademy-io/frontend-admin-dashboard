@@ -14,7 +14,7 @@ import { StudentOverview } from './student-overview/student-overview';
 import { StudentLearningProgress } from './student-learning-progress/student-learning-progress';
 import { StudentTestRecord } from './student-test-records/student-test-record';
 import { getPublicUrl } from '@/services/upload_file';
-import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { DashboardLoader, ErrorBoundary } from '@/components/core/dashboard-loader';
 import { useStudentSidebar } from '../../../-context/selected-student-sidebar-context';
 
 export const StudentSidebar = ({
@@ -72,103 +72,182 @@ export const StudentSidebar = ({
     return (
         <Sidebar side="right">
             <SidebarContent
-                className={`sidebar-content flex flex-col gap-10 border-r-2 border-r-neutral-300 bg-primary-50 p-6 text-neutral-600`}
+                className={`sidebar-content flex flex-col bg-white border-l border-neutral-200 text-neutral-700`}
             >
-                <SidebarHeader>
-                    <div className={`flex flex-col items-center justify-center gap-10`}>
-                        <div className={`flex w-full items-center justify-between`}>
-                            <div className="text-h3 font-semibold text-primary-500">
-                                Student Profile
+                <SidebarHeader className="border-b border-neutral-100 bg-white/95 backdrop-blur-sm sticky top-0 z-10 shadow-sm">
+                    <div className="flex flex-col p-4">
+                        {/* Header with close button - enhanced with gradient */}
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-3">
+                                <div className="w-1 h-6 bg-gradient-to-b from-primary-500 to-primary-600 rounded-full animate-pulse"></div>
+                                <h2 className="text-lg font-semibold bg-gradient-to-r from-neutral-800 to-neutral-600 bg-clip-text text-transparent">
+                                    Student Profile
+                                </h2>
                             </div>
-                            <X
-                                className="size-6 cursor-pointer text-neutral-500"
-                                onClick={() => {
-                                    toggleSidebar();
-                                }}
-                            />
+                            <button
+                                onClick={toggleSidebar}
+                                className="group p-2 rounded-xl hover:bg-gradient-to-r hover:from-red-50 hover:to-red-100 transition-all duration-300 hover:scale-105 active:scale-95"
+                            >
+                                <X className="size-5 text-neutral-500 group-hover:text-red-500 transition-colors duration-200" />
+                            </button>
                         </div>
-                        <div className="flex w-full">
-                            <div
-                                className={`w-full py-[9px] text-center ${
-                                    category == 'overview'
-                                        ? 'rounded-lg border border-primary-200 bg-white text-primary-500'
-                                        : 'border-none bg-none text-neutral-600'
-                                } cursor-pointer text-subtitle`}
-                                onClick={() => {
-                                    setCategory('overview');
-                                }}
+                        
+                        {/* Enhanced tab navigation with modern design */}
+                        <div className="relative flex bg-gradient-to-r from-neutral-50 to-neutral-100 rounded-xl p-1.5 gap-1 shadow-inner">
+                            {/* Animated background indicator */}
+                            <div 
+                                className={`absolute top-1.5 bottom-1.5 bg-white rounded-lg shadow-lg transition-all duration-300 ease-out ${
+                                    category === 'overview' ? 'left-1.5 w-[calc(33.333%-0.5rem)]' :
+                                    category === 'learningProgress' ? 'left-[calc(33.333%+0.167rem)] w-[calc(33.333%-0.333rem)]' :
+                                    'left-[calc(66.666%+0.833rem)] w-[calc(33.333%-0.5rem)]'
+                                }`}
+                            ></div>
+                            
+                            <button
+                                className={`relative z-10 flex-1 px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-300 group ${
+                                    category === 'overview'
+                                        ? 'text-primary-600 scale-105'
+                                        : 'text-neutral-600 hover:text-neutral-800 hover:scale-102'
+                                }`}
+                                onClick={() => setCategory('overview')}
                             >
-                                Overview
-                            </div>
-                            <div
-                                className={`w-full py-[9px] text-center ${
-                                    category == 'learningProgress'
-                                        ? 'rounded-lg border border-primary-200 bg-white text-primary-500'
-                                        : 'border-none bg-none text-neutral-600'
-                                } cursor-pointer text-subtitle`}
-                                onClick={() => {
-                                    setCategory('learningProgress');
-                                }}
+                                <span className="relative">
+                                    Overview
+                                    {category === 'overview' && (
+                                        <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-primary-500 rounded-full animate-bounce"></div>
+                                    )}
+                                </span>
+                            </button>
+                            <button
+                                className={`relative z-10 flex-1 px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-300 group ${
+                                    category === 'learningProgress'
+                                        ? 'text-primary-600 scale-105'
+                                        : 'text-neutral-600 hover:text-neutral-800 hover:scale-102'
+                                }`}
+                                onClick={() => setCategory('learningProgress')}
                             >
-                                Learning Progress
-                            </div>
-                            <div
-                                className={`w-full py-[9px] text-center ${
-                                    category == 'testRecord'
-                                        ? 'rounded-lg border border-primary-200 bg-white text-primary-500'
-                                        : 'border-none bg-none text-neutral-600'
-                                } cursor-pointer text-subtitle`}
-                                onClick={() => {
-                                    setCategory('testRecord');
-                                }}
+                                <span className="relative">
+                                    Progress
+                                    {category === 'learningProgress' && (
+                                        <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-primary-500 rounded-full animate-bounce"></div>
+                                    )}
+                                </span>
+                            </button>
+                            <button
+                                className={`relative z-10 flex-1 px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-300 group ${
+                                    category === 'testRecord'
+                                        ? 'text-primary-600 scale-105'
+                                        : 'text-neutral-600 hover:text-neutral-800 hover:scale-102'
+                                }`}
+                                onClick={() => setCategory('testRecord')}
                             >
-                                Test Records
-                            </div>
+                                <span className="relative">
+                                    Tests
+                                    {category === 'testRecord' && (
+                                        <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-primary-500 rounded-full animate-bounce"></div>
+                                    )}
+                                </span>
+                            </button>
                         </div>
                     </div>
                 </SidebarHeader>
 
-                <SidebarMenu className="no-scrollbar flex w-full flex-col gap-10 overflow-y-scroll">
-                    <SidebarMenuItem className="flex w-full flex-col gap-6">
-                        <div className="size-[240px] w-full items-center justify-center">
-                            <div className="size-full rounded-full object-cover">
-                                {faceLoader ? (
-                                    <DashboardLoader />
-                                ) : imageUrl == null ? (
-                                    <DummyProfile className="size-full" />
-                                ) : (
-                                    <div className="flex w-full items-center justify-center">
+                <div className="flex-1 overflow-y-auto">
+                    {/* Enhanced student profile header with animations */}
+                    <div className="p-4 border-b border-neutral-100 bg-gradient-to-r from-neutral-50/50 to-primary-50/30 relative overflow-hidden">
+                        {/* Animated background pattern */}
+                        <div className="absolute inset-0 opacity-5">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500 rounded-full transform translate-x-16 -translate-y-16 animate-pulse"></div>
+                            <div className="absolute bottom-0 left-0 w-24 h-24 bg-primary-300 rounded-full transform -translate-x-12 translate-y-12 animate-pulse delay-1000"></div>
+                        </div>
+                        
+                        <div className="relative flex items-center gap-4 group">
+                            <div className="relative">
+                                {/* Enhanced profile image with ring animation */}
+                                <div className="size-16 rounded-full overflow-hidden bg-gradient-to-br from-neutral-100 to-neutral-200 flex items-center justify-center relative group-hover:scale-105 transition-transform duration-300">
+                                    {/* Animated ring */}
+                                    <div className="absolute inset-0 rounded-full ring-2 ring-primary-500/20 ring-offset-2 ring-offset-white group-hover:ring-primary-500/40 transition-all duration-300"></div>
+                                    
+                                    {faceLoader ? (
+                                        <div className="relative">
+                                            <div className="size-4 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+                                            <div className="absolute inset-0 size-4 border-2 border-primary-200 rounded-full animate-ping"></div>
+                                        </div>
+                                    ) : imageUrl ? (
                                         <img
                                             src={imageUrl}
-                                            alt="face profile"
-                                            className={`size-[240px] rounded-full object-cover`}
+                                            alt="Profile"
+                                            className="size-full object-cover transition-transform duration-300 group-hover:scale-110"
                                         />
+                                    ) : (
+                                        <DummyProfile className="size-12 text-neutral-400 transition-colors duration-300 group-hover:text-neutral-600" />
+                                    )}
+                                </div>
+                                
+                                {/* Online status indicator */}
+                                <div className="absolute -bottom-1 -right-1 size-4 bg-green-500 rounded-full border-2 border-white shadow-lg animate-pulse">
+                                    <div className="absolute inset-0 bg-green-400 rounded-full animate-ping"></div>
+                                </div>
+                            </div>
+                            
+                            <div className="flex-1 min-w-0">
+                                <h3 className="font-semibold text-neutral-800 truncate group-hover:text-primary-700 transition-colors duration-300">
+                                    {selectedStudent?.full_name}
+                                </h3>
+                                <div className="flex items-center gap-2 mt-1">
+                                    <div className="transform transition-all duration-300 group-hover:scale-105">
+                                        <StatusChips status={selectedStudent?.status || 'INACTIVE'} />
                                     </div>
-                                )}
+                                    <div className="flex gap-1">
+                                        <div className="w-1.5 h-1.5 bg-primary-400 rounded-full animate-bounce"></div>
+                                        <div className="w-1.5 h-1.5 bg-primary-400 rounded-full animate-bounce delay-75"></div>
+                                        <div className="w-1.5 h-1.5 bg-primary-400 rounded-full animate-bounce delay-150"></div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div className="flex w-full items-center justify-center gap-4">
-                            <div className="text-h3 font-semibold text-neutral-600">
-                                {selectedStudent?.full_name}
-                            </div>
-                            <StatusChips status={selectedStudent?.status || 'INACTIVE'} />
-                        </div>
-                    </SidebarMenuItem>
+                    </div>
 
-                    {category == 'overview' && (
-                        <StudentOverview isSubmissionTab={isSubmissionTab} />
-                    )}
-                    {category == 'learningProgress' && (
-                        <StudentLearningProgress isSubmissionTab={isSubmissionTab} />
-                    )}
-                    {category == 'testRecord' && (
-                        <StudentTestRecord
-                            selectedTab={selectedTab}
-                            examType={examType}
-                            isStudentList={isStudentList}
-                        />
-                    )}
-                </SidebarMenu>
+                    {/* Enhanced content area with smooth transitions */}
+                    <div className="p-4 min-h-0 flex-1">
+                        <div className="relative w-full h-full">
+                            {/* Smooth content transitions */}
+                            <div className={`absolute inset-0 transition-all duration-500 ease-in-out transform ${
+                                category === 'overview' ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4 pointer-events-none'
+                            }`}>
+                                <div className="animate-fadeIn">
+                                    <ErrorBoundary>
+                                        <StudentOverview isSubmissionTab={isSubmissionTab} />
+                                    </ErrorBoundary>
+                                </div>
+                            </div>
+                            
+                            <div className={`absolute inset-0 transition-all duration-500 ease-in-out transform ${
+                                category === 'learningProgress' ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4 pointer-events-none'
+                            }`}>
+                                <div className="animate-fadeIn">
+                                    <ErrorBoundary>
+                                        <StudentLearningProgress isSubmissionTab={isSubmissionTab} />
+                                    </ErrorBoundary>
+                                </div>
+                            </div>
+                            
+                            <div className={`absolute inset-0 transition-all duration-500 ease-in-out transform ${
+                                category === 'testRecord' ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4 pointer-events-none'
+                            }`}>
+                                <div className="animate-fadeIn">
+                                    <ErrorBoundary>
+                                        <StudentTestRecord
+                                            selectedTab={selectedTab}
+                                            examType={examType}
+                                            isStudentList={isStudentList}
+                                        />
+                                    </ErrorBoundary>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </SidebarContent>
         </Sidebar>
     );

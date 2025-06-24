@@ -44,7 +44,7 @@ const ExportDialogPDFCSV = ({
                             className="font-medium"
                             onClick={handleExportPDF}
                         >
-                            {isPDFLoading ? <DashboardLoader size={20} /> : "PDF"}
+                            {isPDFLoading ? <DashboardLoader /> : "PDF"}
                         </MyButton>
                     )}
                     {isEnableCSV && (
@@ -55,7 +55,7 @@ const ExportDialogPDFCSV = ({
                             className="font-medium"
                             onClick={handleExportCSV}
                         >
-                            {isCSVLoading ? <DashboardLoader size={20} /> : "CSV"}
+                            {isCSVLoading ? <DashboardLoader /> : "CSV"}
                         </MyButton>
                     )}
                 </div>

@@ -1859,23 +1859,27 @@ export default function SlidesEditorComponent({
                                         This session has an audio recording. Would you like to generate a transcript and send a summary report to participants?
                                     </DialogDescription>
                                 </DialogHeader>
-                                <DialogFooter className="mt-6 !justify-stretch space-y-2 sm:flex sm:flex-row sm:space-x-3 sm:space-y-0">
+                                <DialogFooter className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-end">
                                     <MyButton
                                         type="button"
                                         buttonType="secondary"
                                         onClick={() => cleanupAndExitSession(true)}
+                                        className="w-full sm:w-auto"
+
                                     >
                                         Exit Without Summary
                                     </MyButton>
                                     <MyButton
                                         type="button"
                                         onClick={() => processAndFinishSession(true)}
+                                        className="w-full sm:w-auto"
                                     >
                                         Finish in Background
                                     </MyButton>
                                     <MyButton
-                                         type="submit"
+                                        type="submit"
                                         onClick={() => processAndFinishSession(false)}
+                                        className="w-full sm:w-auto"
                                     >
                                         Finish and Generate
                                     </MyButton>

@@ -119,7 +119,7 @@ const AIChatWithPDFPreview = ({
                     onClick={() => handleRetryTask(task.id)}
                 >
                     {getRetryMutation.status === 'pending' ? (
-                        <DashboardLoader size={18} />
+                        <DashboardLoader />
                     ) : (
                         'Retry'
                     )}
@@ -133,7 +133,7 @@ const AIChatWithPDFPreview = ({
                     onClick={() => handlViewChatList(task.id)}
                 >
                     {getChatListMutation.status === 'pending' ? (
-                        <DashboardLoader size={18} />
+                        <DashboardLoader />
                     ) : (
                         'View'
                     )}

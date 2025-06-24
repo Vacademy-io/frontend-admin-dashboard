@@ -89,7 +89,7 @@ const GeneratePageWiseAssessmentQuestionsDialog = ({
                     onClick={handleGenerateQuestionsForAssessment}
                 >
                     {loadingState === 'pending' ? (
-                        <DashboardLoader size={18} />
+                        <DashboardLoader/>
                     ) : (
                         'Extract Copied Questions'
                     )}

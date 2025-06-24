@@ -365,7 +365,7 @@ export default function ProgressReports() {
                     </div>
                 )}
             </form>
-            {isPending && <DashboardLoader height="10vh" />}
+            {isPending && <DashboardLoader/>}
             {subjectReportData && <div className="border"></div>}
             {subjectReportData && !isPending && (
                 <div className="flex flex-col gap-10">
@@ -387,7 +387,7 @@ export default function ProgressReports() {
                                         handleExportPDF();
                                     }}
                                 >
-                                    {isExporting ? <DashboardLoader size={20} /> : 'Export'}
+                                    {isExporting ? <DashboardLoader/> : 'Export'}
                                 </MyButton>
                             </div>
                         </div>

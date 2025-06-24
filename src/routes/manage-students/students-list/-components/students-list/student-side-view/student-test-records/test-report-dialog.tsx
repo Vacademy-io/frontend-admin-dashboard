@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { DotOutline } from '@phosphor-icons/react';
 import { Separator } from '@radix-ui/react-separator';
 import { getSubjectNameById } from '@/routes/assessment/question-papers/-utils/helper';
-import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
 import { convertToLocalDateTime, extractDateTime } from '@/constants/helper';
 import { ResponseBreakdownComponent } from './response-breakdown-component';
@@ -35,7 +35,7 @@ export const TestReportDialog = ({
     studentReport,
     assessmentDetails,
 }: TestReportDialogProps) => {
-    const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
+    const { data: instituteDetails } = useQuery(useInstituteQuery());
     const sectionsInfo = assessmentDetails[1]?.saved_data.sections?.map((section) => ({
         name: section.name,
         id: section.id,

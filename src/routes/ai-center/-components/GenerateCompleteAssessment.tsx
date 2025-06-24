@@ -219,8 +219,6 @@ const GenerateCompleteAssessment = ({
                                                             className="mr-4 text-sm"
                                                         >
                                                             <DashboardLoader
-                                                                size={20}
-                                                                color="#ffffff"
                                                             />
                                                         </MyButton>
                                                     ) : (

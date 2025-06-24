@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { MyButton } from '@/components/design-system/button';
 import { StatusChips } from '@/components/design-system/chips';
 import { TestReportDialog } from './test-report-dialog';
-import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { useStudentSidebar } from '@/routes/manage-students/students-list/-context/selected-student-sidebar-context';
 import { convertToLocalDateTime, extractDateTime, getInstituteId } from '@/constants/helper';
 import {
@@ -10,7 +10,7 @@ import {
     handleStudentReportData,
     viewStudentReport,
 } from '@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-services/assessment-details-services';
-import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { DashboardLoader, ErrorBoundary } from '@/components/core/dashboard-loader';
 import { MyPagination } from '@/components/design-system/pagination';
 import { AssessmentDetailsSearchComponent } from '@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-components/SearchComponent';
 import { getSubjectNameById } from '@/routes/assessment/question-papers/-utils/helper';
@@ -18,11 +18,106 @@ import { useInstituteQuery } from '@/services/student-list-section/getInstituteD
 import { AssessmentReportStudentInterface } from '@/types/assessments/assessment-overview';
 import { getAssessmentDetailsData } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-services/assessment-services';
 import { Steps } from '@/types/assessments/assessment-data-type';
+import { 
+    Shield, 
+    Warning, 
+    X, 
+    ArrowClockwise, 
+    FileX, 
+    ShieldCheck,
+    Info
+} from '@phosphor-icons/react';
+
 export interface StudentReportFilterInterface {
     name: string;
     status: string[];
     sort_columns: Record<string, string>; // Assuming it can have dynamic keys with any value
 }
+
+// Enhanced Error Component
+const ErrorDisplay = ({ 
+    error, 
+    onRetry, 
+    context = "data"
+}: { 
+    error: any; 
+    onRetry: () => void;
+    context?: string;
+}) => {
+    const isUnauthorized = error?.response?.status === 403;
+    const isServerError = error?.response?.status >= 500;
+    const isNetworkError = !error?.response;
+
+    return (
+        <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+            <div className={`mb-4 p-4 rounded-full ${
+                isUnauthorized ? 'bg-orange-100' : 
+                isServerError ? 'bg-red-100' : 
+                'bg-gray-100'
+            }`}>
+                {isUnauthorized ? (
+                    <Shield className="size-8 text-orange-600" />
+                ) : isServerError ? (
+                    <X className="size-8 text-red-600" />
+                ) : (
+                    <Warning className="size-8 text-gray-600" />
+                )}
+            </div>
+            
+            <h3 className="text-lg font-semibold text-neutral-800 mb-2">
+                {isUnauthorized ? 'Access Restricted' : 
+                 isServerError ? 'Server Error' : 
+                 'Unable to Load Data'}
+            </h3>
+            
+            <p className="text-sm text-neutral-600 mb-4 max-w-md">
+                {isUnauthorized ? 
+                    `You don't have permission to view ${context}. Please contact your administrator for access.` :
+                    isServerError ? 
+                    `There's a problem with our servers. Please try again later.` :
+                    `We're having trouble loading the ${context}. Please check your connection and try again.`
+                }
+            </p>
+            
+            {!isUnauthorized && (
+                <MyButton
+                    onClick={onRetry}
+                    buttonType="secondary"
+                    scale="medium"
+                    className="flex items-center gap-2"
+                >
+                    <ArrowClockwise className="size-4" />
+                    Try Again
+                </MyButton>
+            )}
+            
+            {isUnauthorized && (
+                <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-lg max-w-md">
+                    <div className="flex items-start gap-2">
+                        <Info className="size-4 text-orange-600 mt-0.5 flex-shrink-0" />
+                        <div className="text-xs text-orange-700">
+                            <p className="font-medium mb-1">Need access?</p>
+                            <p>Contact your system administrator to grant permissions for viewing test records.</p>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+// Empty State Component
+const EmptyState = () => (
+    <div className="flex flex-col items-center justify-center py-12 text-center">
+        <div className="mb-4 p-4 rounded-full bg-neutral-100">
+            <FileX className="size-8 text-neutral-400" />
+        </div>
+        <h3 className="text-lg font-semibold text-neutral-700 mb-2">No Test Records</h3>
+        <p className="text-sm text-neutral-500 max-w-md">
+            This student hasn't taken any assessments yet, or the test records are not available.
+        </p>
+    </div>
+);
 
 export const StudentTestRecord = ({
     selectedTab,
@@ -33,7 +128,13 @@ export const StudentTestRecord = ({
     examType: string | undefined;
     isStudentList?: boolean;
 }) => {
-    const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
+    // Institute data with error handling
+    const { 
+        data: instituteDetails, 
+        isLoading: instituteLoading, 
+        error: instituteError,
+        refetch: refetchInstitute
+    } = useQuery(useInstituteQuery());
 
     const [searchText, setSearchText] = useState('');
     const [selectedFilter] = useState<StudentReportFilterInterface>({
@@ -53,16 +154,31 @@ export const StudentTestRecord = ({
 
     const [pageNo, setPageNo] = useState(0);
     const instituteId = getInstituteId();
-    const { data, isLoading } = useSuspenseQuery(
-        handleStudentReportData({
+    
+    // Student report data with error handling
+    const { 
+        data, 
+        isLoading, 
+        error: reportError,
+        refetch: refetchReport
+    } = useQuery({
+        ...handleStudentReportData({
             studentId: selectedStudent?.id,
             instituteId,
             pageNo,
             pageSize: 10,
             selectedFilter,
-        })
-    );
-    const [studentReportData, setStudentReportData] = useState(data);
+        }),
+        retry: (failureCount, error: any) => {
+            // Don't retry on 403 errors
+            if (error?.response?.status === 403) return false;
+            // Retry up to 2 times for other errors
+            return failureCount < 2;
+        },
+        retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
+    });
+    
+    const [studentReportData, setStudentReportData] = useState(data || { content: [], total_pages: 0 });
 
     const [selectedTest, setSelectedTest] = useState(null);
     const [assessmentDetails, setAssessmentDetails] = useState<Steps | null>(null);
@@ -90,15 +206,20 @@ export const StudentTestRecord = ({
         }) => viewStudentReport(assessmentId, attemptId, instituteId),
         onSuccess: async (data, { assessmentId }) => {
             setSelectedTest(data);
-            const assessData = await getAssessmentDetailsData({
-                assessmentId: assessmentId,
-                instituteId: instituteDetails?.id,
-                type: examType,
-            });
-            setAssessmentDetails(assessData);
+            try {
+                const assessData = await getAssessmentDetailsData({
+                    assessmentId: assessmentId,
+                    instituteId: instituteDetails?.id,
+                    type: examType,
+                });
+                setAssessmentDetails(assessData);
+            } catch (error) {
+                console.error('Failed to fetch assessment details:', error);
+                // Continue with partial data instead of failing completely
+            }
         },
-        onError: (error: unknown) => {
-            throw error;
+        onError: (error: any) => {
+            console.error('Failed to view student report:', error);
         },
     });
 
@@ -136,8 +257,8 @@ export const StudentTestRecord = ({
         onSuccess: (data) => {
             setStudentReportData(data);
         },
-        onError: (error: unknown) => {
-            throw error;
+        onError: (error: any) => {
+            console.error('Failed to fetch student report:', error);
         },
     });
 
@@ -170,74 +291,123 @@ export const StudentTestRecord = ({
         });
     };
 
+    const handleRetryReport = () => {
+        refetchReport();
+    };
+
+    const handleRetryInstitute = () => {
+        refetchInstitute();
+    };
+
     useEffect(() => {
-        setStudentReportData(data);
+        if (data) {
+            setStudentReportData(data);
+        }
     }, [data]);
 
-    if (isLoading || viewStudentTestReportMutation.status === 'pending') return <DashboardLoader />;
+    // Show loading state
+    if (isLoading || instituteLoading || viewStudentTestReportMutation.status === 'pending') {
+        return <DashboardLoader />;
+    }
+
+    // Show institute error
+    if (instituteError) {
+        return (
+            <ErrorDisplay 
+                error={instituteError} 
+                onRetry={handleRetryInstitute}
+                context="institute details"
+            />
+        );
+    }
+
+    // Show report error
+    if (reportError) {
+        return (
+            <ErrorDisplay 
+                error={reportError} 
+                onRetry={handleRetryReport}
+                context="test records"
+            />
+        );
+    }
 
     return (
-        <div className="flex flex-col gap-10">
-            <div className="flex justify-between">
+        <div className="flex flex-col gap-6 animate-fadeIn">
+            {/* Enhanced header with better styling */}
+            <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                    <ShieldCheck className="size-5 text-primary-600" />
+                    <h3 className="text-lg font-semibold text-neutral-800">Test Records</h3>
+                </div>
                 <AssessmentDetailsSearchComponent
                     onSearch={handleSearch}
                     searchText={searchText}
                     setSearchText={setSearchText}
                     clearSearch={clearSearch}
-                    placeholderText="Search text, subject"
+                    placeholderText="Search test, subject"
                 />
             </div>
-            <div className="flex flex-col gap-10">
+
+            {/* Content area */}
+            <div className="flex flex-col gap-6">
                 {studentReportData.content && studentReportData.content.length > 0 ? (
                     studentReportData.content.map(
                         (studentReport: AssessmentReportStudentInterface, index: number) => (
                             <div
-                                className="flex w-full flex-col gap-2 rounded-lg border border-primary-300 p-4"
+                                className="group flex w-full flex-col gap-4 rounded-xl border border-neutral-200 p-4 hover:border-primary-200 hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-white to-neutral-50/30"
                                 key={index}
                             >
-                                <div className="flex w-full gap-4">
-                                    <div className="text-subtitle">
+                                <div className="flex w-full gap-4 items-start">
+                                    <div className="text-base font-medium text-neutral-800 flex-1 group-hover:text-primary-700 transition-colors duration-300">
                                         {studentReport.assessment_name}
                                     </div>
-                                    <StatusChips
-                                        status={
-                                            studentReport.attempt_status === 'PENDING'
-                                                ? 'pending'
-                                                : studentReport.attempt_status === 'ENDED'
-                                                  ? 'Attempted'
-                                                  : 'Not Attempted'
-                                        }
-                                    />
+                                    <div className="transform transition-all duration-300 group-hover:scale-105">
+                                        <StatusChips
+                                            status={
+                                                studentReport.attempt_status === 'PENDING'
+                                                    ? 'pending'
+                                                    : studentReport.attempt_status === 'ENDED'
+                                                      ? 'Attempted'
+                                                      : 'Not Attempted'
+                                            }
+                                        />
+                                    </div>
                                 </div>
+                                
                                 {studentReport.attempt_status === 'ENDED' ? (
-                                    <div className="flex w-full flex-col gap-8">
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                Subject:{' '}
-                                                {getSubjectNameById(
-                                                    instituteDetails?.subjects || [],
-                                                    studentReport.subject_id
-                                                ) || ''}
+                                    <div className="flex w-full flex-col gap-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-neutral-600">Subject:</span>
+                                                <span className="font-medium text-neutral-800">
+                                                    {getSubjectNameById(
+                                                        instituteDetails?.subjects || [],
+                                                        studentReport.subject_id
+                                                    ) || 'N/A'}
+                                                </span>
                                             </div>
-                                            <div>
-                                                Attempted Date:{' '}
-                                                {
-                                                    extractDateTime(
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-neutral-600">Attempted:</span>
+                                                <span className="font-medium text-neutral-800">
+                                                    {extractDateTime(
                                                         convertToLocalDateTime(
                                                             studentReport.attempt_date
                                                         )
-                                                    ).date
-                                                }
+                                                    ).date}
+                                                </span>
                                             </div>
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                            <div>Marks: {studentReport.total_marks.toFixed(2)}</div>
-                                            <div>
-                                                Duration:{' '}
-                                                {(studentReport.duration_in_seconds % 60).toFixed(
-                                                    2
-                                                )}{' '}
-                                                min
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-neutral-600">Marks:</span>
+                                                <span className="font-semibold text-primary-600">
+                                                    {studentReport.total_marks.toFixed(2)}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-neutral-600">Duration:</span>
+                                                <span className="font-medium text-neutral-800">
+                                                    {Math.floor(studentReport.duration_in_seconds / 60)} min {(studentReport.duration_in_seconds % 60).toFixed(0)} sec
+                                                </span>
                                             </div>
                                         </div>
                                         <div className="flex w-full justify-end">
@@ -252,8 +422,9 @@ export const StudentTestRecord = ({
                                                         studentReport
                                                     )
                                                 }
+                                                className="hover:scale-105 transition-transform duration-200"
                                             >
-                                                View Report
+                                                📊 View Report
                                             </MyButton>
                                         </div>
                                         {selectedTest && selectedStudentReport && (
@@ -270,19 +441,25 @@ export const StudentTestRecord = ({
                                         )}
                                     </div>
                                 ) : (
-                                    <div className="flex w-full flex-col gap-8">
-                                        <div>
-                                            Subject:{' '}
-                                            {getSubjectNameById(
-                                                instituteDetails?.subjects || [],
-                                                studentReport.subject_id
-                                            ) || ''}
-                                        </div>
-                                        <div>
-                                            Assessment Schedule:{' '}
-                                            {convertToLocalDateTime(studentReport.start_time)}
-                                            &nbsp;-&nbsp;
-                                            {convertToLocalDateTime(studentReport.end_time)}
+                                    <div className="flex w-full flex-col gap-4">
+                                        <div className="grid grid-cols-1 gap-3 text-sm">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-neutral-600">Subject:</span>
+                                                <span className="font-medium text-neutral-800">
+                                                    {getSubjectNameById(
+                                                        instituteDetails?.subjects || [],
+                                                        studentReport.subject_id
+                                                    ) || 'N/A'}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-neutral-600">Schedule:</span>
+                                                <span className="font-medium text-neutral-800">
+                                                    {convertToLocalDateTime(studentReport.start_time)}
+                                                    <span className="text-neutral-500 mx-2">to</span>
+                                                    {convertToLocalDateTime(studentReport.end_time)}
+                                                </span>
+                                            </div>
                                         </div>
                                         {studentReport.attempt_status === 'PENDING' && (
                                             <div className="flex w-full justify-end">
@@ -290,8 +467,9 @@ export const StudentTestRecord = ({
                                                     scale="medium"
                                                     buttonType="secondary"
                                                     layoutVariant="default"
+                                                    className="hover:scale-105 transition-transform duration-200"
                                                 >
-                                                    Send Reminder
+                                                    🔔 Send Reminder
                                                 </MyButton>
                                             </div>
                                         )}
@@ -301,15 +479,20 @@ export const StudentTestRecord = ({
                         )
                     )
                 ) : (
-                    <p className="py-4 text-center text-subtitle">No test record available </p>
+                    <EmptyState />
                 )}
             </div>
 
-            <MyPagination
-                currentPage={pageNo}
-                totalPages={studentReportData.total_pages}
-                onPageChange={handlePageChange}
-            />
+            {/* Enhanced pagination */}
+            {studentReportData.total_pages > 1 && (
+                <div className="flex justify-center pt-4">
+                    <MyPagination
+                        currentPage={pageNo}
+                        totalPages={studentReportData.total_pages}
+                        onPageChange={handlePageChange}
+                    />
+                </div>
+            )}
         </div>
     );
 };

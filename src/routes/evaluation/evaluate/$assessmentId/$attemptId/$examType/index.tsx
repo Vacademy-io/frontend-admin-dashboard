@@ -79,7 +79,7 @@ const EvaluateAttemptComponent = () => {
         return (
             <div className="flex h-full flex-col items-center justify-center gap-y-2">
                 <h1>Getting response file please wait...</h1>
-                <DashboardLoader height="fit-content" />
+                <DashboardLoader/>
             </div>
         );
 

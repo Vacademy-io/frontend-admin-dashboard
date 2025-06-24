@@ -2,6 +2,7 @@ import { LayoutContainer } from '@/components/common/layout-container/layout-con
 import { SlideMaterial } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-components/slide-material';
 import { ChapterSidebarAddButton } from './-components/slides-sidebar/slides-sidebar-add-button';
 import { ChapterSidebarSlides } from './-components/slides-sidebar/slides-sidebar-slides';
+import './slides-sidebar-scrollbar.css';
 import { studyLibrarySteps } from '@/constants/intro/steps';
 import { StudyLibraryIntroKey } from '@/constants/storage/introKey';
 import {
@@ -58,14 +59,15 @@ export const Route = createFileRoute(
 });
 
 function RouteComponent() {
-    const { courseId, subjectId, levelId, moduleId, chapterId, sessionId } = Route.useSearch();
+    const { chapterId, courseId, levelId, subjectId, moduleId, sessionId } = Route.useSearch();
+    const navigate = useNavigate();
     const { studyLibraryData } = useStudyLibraryStore();
     const { modulesWithChaptersData } = useModulesWithChaptersStore();
-    const navigate = useNavigate();
     const [subjectName, setSubjectName] = useState('');
     const [moduleName, setModuleName] = useState('');
     const chapterName = useChapterName(chapterId);
     const { updateSlideOrder } = useSlides(chapterId);
+    const { setNavHeading } = useNavHeadingStore();
 
     useIntroJsTour({
         key: StudyLibraryIntroKey.addSlidesStep,
@@ -176,8 +178,6 @@ function RouteComponent() {
             handleSlideOrderChange,
         ]
     );
-
-    const { setNavHeading } = useNavHeadingStore();
 
     useEffect(() => {
         setNavHeading(heading);

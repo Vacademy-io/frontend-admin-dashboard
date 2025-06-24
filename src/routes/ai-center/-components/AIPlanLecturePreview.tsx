@@ -129,7 +129,7 @@ const AIPlanLecturePreview = ({
                     onClick={() => handleRetryTask(task.id)}
                 >
                     {getRetryMutation.status === 'pending' ? (
-                        <DashboardLoader size={18} />
+                        <DashboardLoader/>
                     ) : (
                         'Retry'
                     )}
@@ -143,7 +143,7 @@ const AIPlanLecturePreview = ({
                     onClick={() => handlViewChatList(task.id)}
                 >
                     {getChatListMutation.status === 'pending' ? (
-                        <DashboardLoader size={18} />
+                        <DashboardLoader />
                     ) : (
                         'View'
                     )}
