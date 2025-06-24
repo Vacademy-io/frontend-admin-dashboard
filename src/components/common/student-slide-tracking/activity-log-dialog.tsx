@@ -148,10 +148,15 @@ export const ActivityLogDialog = ({
                     1000 /
                     60
                 ).toFixed(2)} mins`,
+                questionName: item.question_slides[0]?.response_json
+                    ? JSON.parse(item.question_slides[0]?.response_json || '')?.questionName
+                    : '',
                 response: item.question_slides[0]?.response_json
-                    ? JSON.parse(item.question_slides[0]?.response_json || '').selectedOption.join(
-                          ','
-                      )
+                    ? JSON.parse(item.question_slides[0]?.response_json || '')
+                          ?.selectedOptions?.map(
+                              (option: { id: string; name: string }) => option.name
+                          )
+                          .join(',')
                     : '',
                 responseStatus: item.question_slides[0]?.response_status,
             }));
@@ -201,10 +206,15 @@ export const ActivityLogDialog = ({
                     1000 /
                     60
                 ).toFixed(2)} mins`,
+                questionName: item.video_slides_questions[0]?.response_json
+                    ? JSON.parse(item.video_slides_questions[0]?.response_json || '')?.questionName
+                    : '',
                 response: item.video_slides_questions[0]?.response_json
-                    ? JSON.parse(
-                          item.video_slides_questions[0]?.response_json || ''
-                      ).selectedOption.join(',')
+                    ? JSON.parse(item.video_slides_questions[0]?.response_json || '')
+                          ?.selectedOptions?.map(
+                              (option: { id: string; name: string }) => option.name
+                          )
+                          .join(',')
                     : '',
                 responseStatus: item.video_slides_questions[0]?.response_status,
             })
