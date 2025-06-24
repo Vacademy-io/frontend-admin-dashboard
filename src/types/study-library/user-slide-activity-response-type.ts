@@ -54,6 +54,7 @@ export interface QuestionSlide {
     attempt_number: number;
     response_json: string;
     response_status: string;
+    question_name: string;
     marks: number;
 }
 
@@ -66,6 +67,7 @@ export interface AssignmentSlide {
 
 export interface VideoSlideQuestion {
     id: string;
+    question_name: string;
     response_json: string;
     response_status: string;
 }
