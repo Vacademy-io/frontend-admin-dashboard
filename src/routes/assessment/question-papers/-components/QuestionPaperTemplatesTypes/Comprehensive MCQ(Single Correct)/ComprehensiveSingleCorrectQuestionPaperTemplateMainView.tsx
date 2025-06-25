@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 'use client';
 
+=======
+>>>>>>> 46a334276a0f4020e9f8aaf6e434888ef81d9e29
 import { useEffect } from 'react';
 import { FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
@@ -23,6 +26,7 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplateMainView = ({
 }: QuestionPaperTemplateFormProps) => {
     const { control, getValues, setValue } = form;
 
+<<<<<<< HEAD
     // ✅ FIX: Safely set default value as number
     useEffect(() => {
         const reattempt = getValues(`questions.${currentQuestionIndex}.reattemptCount`);
@@ -30,6 +34,14 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplateMainView = ({
             setValue(`questions.${currentQuestionIndex}.reattemptCount`, 0 as number);
         }
     }, [currentQuestionIndex, getValues, setValue]);
+=======
+    useEffect(() => {
+        const reattempt = form.getValues(`questions.${currentQuestionIndex}.reattemptCount`);
+        if (reattempt === undefined) {
+            form.setValue(`questions.${currentQuestionIndex}.reattemptCount`, 0);
+        }
+    }, []);
+>>>>>>> 46a334276a0f4020e9f8aaf6e434888ef81d9e29
 
     const answersType = getValues('answersType') || 'Answer:';
     const explanationsType = getValues('explanationsType') || 'Explanation:';
@@ -96,7 +108,11 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplateMainView = ({
                             />
 
                             <CustomInput
+<<<<<<< HEAD
                                 control={control}
+=======
+                                control={form.control}
+>>>>>>> 46a334276a0f4020e9f8aaf6e434888ef81d9e29
                                 name={`questions.${currentQuestionIndex}.reattemptCount`}
                                 label="Reattempt Count"
                                 type="number"

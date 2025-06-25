@@ -272,7 +272,11 @@ export const ChapterSidebarSlides = ({
                 }
             }
 
+<<<<<<< HEAD
             setActiveItem(slides[0] ?? null); // ✅ Fix applied here
+=======
+            setActiveItem(slides[0]);
+>>>>>>> 46a334276a0f4020e9f8aaf6e434888ef81d9e29
         } else {
             if (slideId === undefined) {
                 setActiveItem(null);

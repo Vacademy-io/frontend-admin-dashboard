@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 'use client';
 
+=======
+>>>>>>> 46a334276a0f4020e9f8aaf6e434888ef81d9e29
 import { FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { Sliders, X } from 'phosphor-react';
@@ -147,7 +150,11 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
                                     <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
                                         <span className="!p-0 text-sm">
                                             {optionsType
+<<<<<<< HEAD
                                                 ? formatStructure(optionsType, letter!)
+=======
+                                                ? formatStructure(optionsType, letter)
+>>>>>>> 46a334276a0f4020e9f8aaf6e434888ef81d9e29
                                                 : `(${letter}.)`}
                                         </span>
                                     </div>
