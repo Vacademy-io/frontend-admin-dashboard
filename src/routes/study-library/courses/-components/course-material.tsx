@@ -104,8 +104,6 @@ export const CourseMaterial = () => {
         initialPageSize: 10,
     });
 
-    console.log(allCourses);
-
     const { data: accessControlUsers, isLoading: isUsersLoading } = useSuspenseQuery(
         handleGetInstituteUsersForAccessControl(instituteDetails?.id, {
             roles: [{ id: '5', name: 'TEACHER' }],
@@ -300,7 +298,7 @@ export const CourseMaterial = () => {
         handleGetCourses();
     }, [selectedTab]);
 
-    if (isUsersLoading) return <DashboardLoader />;
+    if (isUsersLoading || !allCourses || !instituteDetails?.id) return <DashboardLoader />;
 
     return (
         <div className="relative flex w-full flex-col gap-8 text-neutral-600">
