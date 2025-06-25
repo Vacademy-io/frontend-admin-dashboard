@@ -1,9 +1,6 @@
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
 import { useEffect, useState, useMemo } from 'react';
 import { AddCourseButton } from '@/components/common/study-library/add-course/add-course-button';
-import { useAddCourse } from '@/services/study-library/course-operations/add-course';
-import { CourseFormData } from '../../../../components/common/study-library/add-course/add-course-form';
-import { toast } from 'sonner'; // Import Toaster from sonner
 import useIntroJsTour from '@/hooks/use-intro';
 import { StudyLibraryIntroKey } from '@/constants/storage/introKey';
 import { studyLibrarySteps } from '@/constants/intro/steps';
@@ -24,9 +21,15 @@ import { handleGetInstituteUsersForAccessControl } from '@/routes/dashboard/-ser
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import type { UserRolesDataEntry } from '@/types/dashboard/user-roles';
+import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
 
 export const CourseMaterial = () => {
     const { instituteDetails } = useInstituteDetailsStore();
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const tokenData = getTokenDecodedData(accessToken);
+    const [roles, setRoles] = useState<string[] | undefined>([]);
+
     const { data: accessControlUsers, isLoading: isUsersLoading } = useSuspenseQuery(
         handleGetInstituteUsersForAccessControl(instituteDetails?.id, {
             roles: [{ id: '5', name: 'TEACHER' }],
@@ -35,7 +38,6 @@ export const CourseMaterial = () => {
     );
 
     const { setNavHeading } = useNavHeadingStore();
-    const addCourseMutation = useAddCourse();
     const [selectedTab, setSelectedTab] = useState('AllCourses');
     const [selectedFilters, setSelectedFilters] = useState<{
         status: string[];
@@ -66,20 +68,6 @@ export const CourseMaterial = () => {
         steps: studyLibrarySteps.createCourseStep,
         partial: true,
     });
-
-    const handleAddCourse = ({ requestData }: { requestData: CourseFormData }) => {
-        addCourseMutation.mutate(
-            { requestData: requestData },
-            {
-                onSuccess: () => {
-                    toast.success('Course added successfully');
-                },
-                onError: (error) => {
-                    toast.error(error.message || 'Failed to add course');
-                },
-            }
-        );
-    };
 
     const handleTabChange = (value: string) => {
         setSelectedTab(value);
@@ -222,12 +210,18 @@ export const CourseMaterial = () => {
         }));
     }, [sortBy]);
 
+    useEffect(() => {
+        if (tokenData && instituteDetails?.id) {
+            setRoles(tokenData.authorities[instituteDetails?.id]?.roles);
+        }
+    }, []);
+
     if (isUsersLoading) return <DashboardLoader />;
 
     return (
         <div className="relative flex w-full flex-col gap-8 text-neutral-600">
             <div className="flex flex-col items-end gap-4">
-                <AddCourseButton onSubmit={handleAddCourse} />
+                <AddCourseButton />
             </div>
             <div className="flex items-center gap-8">
                 <div className="flex flex-col gap-2">
@@ -260,48 +254,55 @@ export const CourseMaterial = () => {
                             All Courses
                         </span>
                     </TabsTrigger>
-                    <TabsTrigger
-                        value="MyCourses"
-                        className={`inline-flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
-                            selectedTab === 'MyCourses'
-                                ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
-                                : 'border-none bg-transparent'
-                        }`}
-                    >
-                        <span
-                            className={`${selectedTab === 'MyCourses' ? 'text-primary-500' : ''}`}
+                    {/* Conditionally render tabs based on roles */}
+                    {roles?.includes('ADMIN') && (
+                        <>
+                            <TabsTrigger
+                                value="AuthoredCourses"
+                                className={`inline-flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
+                                    selectedTab === 'AuthoredCourses'
+                                        ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                        : 'border-none bg-transparent'
+                                }`}
+                            >
+                                <span
+                                    className={`${selectedTab === 'AuthoredCourses' ? 'text-primary-500' : ''}`}
+                                >
+                                    Authored Courses
+                                </span>
+                            </TabsTrigger>
+                            <TabsTrigger
+                                value="CourseRequests"
+                                className={`inline-flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
+                                    selectedTab === 'CourseRequests'
+                                        ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                        : 'border-none bg-transparent'
+                                }`}
+                            >
+                                <span
+                                    className={`${selectedTab === 'CourseRequests' ? 'text-primary-500' : ''}`}
+                                >
+                                    Course Requests
+                                </span>
+                            </TabsTrigger>
+                        </>
+                    )}
+                    {roles?.includes('TEACHER') && !roles?.includes('ADMIN') && (
+                        <TabsTrigger
+                            value="AuthoredCourses"
+                            className={`inline-flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
+                                selectedTab === 'AuthoredCourses'
+                                    ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                    : 'border-none bg-transparent'
+                            }`}
                         >
-                            My Courses
-                        </span>
-                    </TabsTrigger>
-                    <TabsTrigger
-                        value="AuthoredCourses"
-                        className={`inline-flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
-                            selectedTab === 'AuthoredCourses'
-                                ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
-                                : 'border-none bg-transparent'
-                        }`}
-                    >
-                        <span
-                            className={`${selectedTab === 'AuthoredCourses' ? 'text-primary-500' : ''}`}
-                        >
-                            Authored Courses
-                        </span>
-                    </TabsTrigger>
-                    <TabsTrigger
-                        value="CourseRequests"
-                        className={`inline-flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
-                            selectedTab === 'CourseRequests'
-                                ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
-                                : 'border-none bg-transparent'
-                        }`}
-                    >
-                        <span
-                            className={`${selectedTab === 'CourseRequests' ? 'text-primary-500' : ''}`}
-                        >
-                            Course Requests
-                        </span>
-                    </TabsTrigger>
+                            <span
+                                className={`${selectedTab === 'AuthoredCourses' ? 'text-primary-500' : ''}`}
+                            >
+                                Authored Courses
+                            </span>
+                        </TabsTrigger>
+                    )}
                 </TabsList>
                 <TabsContent value={selectedTab}>
                     <div className="mt-6 flex w-full gap-6">
