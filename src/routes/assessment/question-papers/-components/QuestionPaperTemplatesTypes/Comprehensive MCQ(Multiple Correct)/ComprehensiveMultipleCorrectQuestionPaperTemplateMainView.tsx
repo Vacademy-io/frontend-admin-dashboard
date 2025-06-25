@@ -1,17 +1,19 @@
-import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
-import { Sliders, X } from "phosphor-react";
-import { Checkbox } from "@/components/ui/checkbox";
-import "react-quill/dist/quill.snow.css";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { PopoverClose } from "@radix-ui/react-popover";
-import SelectField from "@/components/design-system/select-field";
-import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
-import { QuestionPaperTemplateFormProps } from "../../../-utils/question-paper-template-form";
-import { formatStructure } from "../../../-utils/helper";
-import { QUESTION_TYPES } from "@/constants/dummy-data";
-import { PPTViewQuillEditor } from "@/components/quill/PPTViewQuillEditor";
-import { Badge } from "@/components/ui/badge";
+'use client';
+
+import { FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
+import { Sliders, X } from 'phosphor-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import 'react-quill/dist/quill.snow.css';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { PopoverClose } from '@radix-ui/react-popover';
+import SelectField from '@/components/design-system/select-field';
+import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
+import { QuestionPaperTemplateFormProps } from '../../../-utils/question-paper-template-form';
+import { formatStructure } from '../../../-utils/helper';
+import { QUESTION_TYPES } from '@/constants/dummy-data';
+import { PPTViewQuillEditor } from '@/components/quill/PPTViewQuillEditor';
+import { Badge } from '@/components/ui/badge';
 
 export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
     form,
@@ -20,19 +22,19 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
 }: QuestionPaperTemplateFormProps) => {
     const { control, getValues } = form;
 
-    const answersType = getValues("answersType") || "Answer:";
-    const explanationsType = getValues("explanationsType") || "Explanation:";
-    const optionsType = getValues("optionsType") || "";
-    const questionsType = getValues("questionsType") || "";
+    const answersType = getValues('answersType') || 'Answer:';
+    const explanationsType = getValues('explanationsType') || 'Explanation:';
+    const optionsType = getValues('optionsType') || '';
+    const questionsType = getValues('questionsType') || '';
 
-    const allQuestions = getValues("questions") || [];
+    const allQuestions = getValues('questions') || [];
 
     const option1 = getValues(`questions.${currentQuestionIndex}.cmultipleChoiceOptions.${0}`);
     const option2 = getValues(`questions.${currentQuestionIndex}.cmultipleChoiceOptions.${1}`);
     const option3 = getValues(`questions.${currentQuestionIndex}.cmultipleChoiceOptions.${2}`);
     const option4 = getValues(`questions.${currentQuestionIndex}.cmultipleChoiceOptions.${3}`);
     const tags = getValues(`questions.${currentQuestionIndex}.tags`) || [];
-    const level = getValues(`questions.${currentQuestionIndex}.level`) || "";
+    const level = getValues(`questions.${currentQuestionIndex}.level`) || '';
 
     if (allQuestions.length === 0) {
         return (
@@ -75,6 +77,8 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
                     </PopoverContent>
                 </Popover>
             </div>
+
+            {/* Comprehension Text */}
             <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
                 <span>Comprehension Text</span>
                 <FormField
@@ -93,6 +97,8 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
                     )}
                 />
             </div>
+
+            {/* Question */}
             <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
                 <div className="flex items-center gap-2">
                     <span>
@@ -116,226 +122,80 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
                     )}
                 />
                 <div className="mt-2 flex items-center gap-2">
-                    {tags?.map((tag, idx) => {
-                        return (
-                            <Badge variant="outline" key={idx}>
-                                {tag}
-                            </Badge>
-                        );
-                    })}
+                    {tags?.map((tag, idx) => (
+                        <Badge variant="outline" key={idx}>
+                            {tag}
+                        </Badge>
+                    ))}
                 </div>
             </div>
 
+            {/* Options (Answer Choices) */}
             <div className="flex w-full grow flex-col gap-4">
                 <span className="-mb-3">{answersType}</span>
-                <div className="flex gap-4">
-                    <div
-                        className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
-                            option1?.isSelected ? "border border-primary-300 bg-primary-50" : ""
-                        }`}
-                    >
-                        <div className="flex w-full items-center gap-4">
-                            <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
-                                <span className="!p-0 text-sm">
-                                    {optionsType ? formatStructure(optionsType, "a") : "(a.)"}
-                                </span>
+
+                {[option1, option2, option3, option4].map((opt, i) => {
+                    const letter = ['a', 'b', 'c', 'd'][i];
+                    return (
+                        <div className="flex gap-4" key={i}>
+                            <div
+                                className={`flex w-full items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
+                                    opt?.isSelected ? 'border border-primary-300 bg-primary-50' : ''
+                                }`}
+                            >
+                                <div className="flex w-full items-center gap-4">
+                                    <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
+                                        <span className="!p-0 text-sm">
+                                            {optionsType
+                                                ? formatStructure(optionsType, letter!)
+                                                : `(${letter}.)`}
+                                        </span>
+                                    </div>
+                                    <FormField
+                                        control={control}
+                                        name={`questions.${currentQuestionIndex}.cmultipleChoiceOptions.${i}.name`}
+                                        render={({ field }) => (
+                                            <FormItem className="w-full">
+                                                <FormControl>
+                                                    <MainViewQuillEditor
+                                                        value={field.value}
+                                                        onChange={field.onChange}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+                                <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
+                                    <FormField
+                                        control={control}
+                                        name={`questions.${currentQuestionIndex}.cmultipleChoiceOptions.${i}.isSelected`}
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormControl>
+                                                    <Checkbox
+                                                        checked={field.value}
+                                                        onCheckedChange={field.onChange}
+                                                        className={`mt-1 size-5 border-2 shadow-none ${
+                                                            field.value
+                                                                ? 'border-none bg-green-500 text-white'
+                                                                : ''
+                                                        }`}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
                             </div>
-                            <FormField
-                                control={control}
-                                name={`questions.${currentQuestionIndex}.cmultipleChoiceOptions.${0}.name`}
-                                render={({ field }) => (
-                                    <FormItem className="w-full">
-                                        <FormControl>
-                                            <MainViewQuillEditor
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
                         </div>
-                        <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
-                            <FormField
-                                control={control}
-                                name={`questions.${currentQuestionIndex}.cmultipleChoiceOptions.${0}.isSelected`}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <Checkbox
-                                                checked={field.value}
-                                                onCheckedChange={field.onChange}
-                                                className={`mt-1 size-5 border-2 shadow-none ${
-                                                    field.value
-                                                        ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
-                                                        : "" // Default styles when unchecked
-                                                }`}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                    </div>
-                    <div
-                        className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
-                            option2?.isSelected ? "border border-primary-300 bg-primary-50" : ""
-                        }`}
-                    >
-                        <div className="flex w-full items-center gap-4">
-                            <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
-                                <span className="!p-0 text-sm">
-                                    {optionsType ? formatStructure(optionsType, "b") : "(b.)"}
-                                </span>
-                            </div>
-                            <FormField
-                                control={control}
-                                name={`questions.${currentQuestionIndex}.cmultipleChoiceOptions.${1}.name`}
-                                render={({ field }) => (
-                                    <FormItem className="w-full">
-                                        <FormControl>
-                                            <MainViewQuillEditor
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                        <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
-                            <FormField
-                                control={control}
-                                name={`questions.${currentQuestionIndex}.cmultipleChoiceOptions.${1}.isSelected`}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <Checkbox
-                                                checked={field.value}
-                                                onCheckedChange={field.onChange}
-                                                className={`mt-1 size-5 border-2 shadow-none ${
-                                                    field.value
-                                                        ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
-                                                        : "" // Default styles when unchecked
-                                                }`}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                    </div>
-                </div>
-                <div className="flex gap-4">
-                    <div
-                        className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
-                            option3?.isSelected ? "border border-primary-300 bg-primary-50" : ""
-                        }`}
-                    >
-                        <div className="flex w-full items-center gap-4">
-                            <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
-                                <span className="!p-0 text-sm">
-                                    {optionsType ? formatStructure(optionsType, "c") : "(c.)"}
-                                </span>
-                            </div>
-                            <FormField
-                                control={control}
-                                name={`questions.${currentQuestionIndex}.cmultipleChoiceOptions.${2}.name`}
-                                render={({ field }) => (
-                                    <FormItem className="w-full">
-                                        <FormControl>
-                                            <MainViewQuillEditor
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                        <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
-                            <FormField
-                                control={control}
-                                name={`questions.${currentQuestionIndex}.cmultipleChoiceOptions.${2}.isSelected`}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <Checkbox
-                                                checked={field.value}
-                                                onCheckedChange={field.onChange}
-                                                className={`mt-1 size-5 border-2 shadow-none ${
-                                                    field.value
-                                                        ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
-                                                        : "" // Default styles when unchecked
-                                                }`}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                    </div>
-                    <div
-                        className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
-                            option4?.isSelected ? "border border-primary-300 bg-primary-50" : ""
-                        }`}
-                    >
-                        <div className="flex w-full items-center gap-4">
-                            <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
-                                <span className="!p-0 text-sm">
-                                    {optionsType ? formatStructure(optionsType, "d") : "(d.)"}
-                                </span>
-                            </div>
-                            {
-                                <FormField
-                                    control={control}
-                                    name={`questions.${currentQuestionIndex}.cmultipleChoiceOptions.${3}.name`}
-                                    render={({ field }) => (
-                                        <FormItem className="w-full">
-                                            <FormControl>
-                                                <MainViewQuillEditor
-                                                    value={field.value}
-                                                    onChange={field.onChange}
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            }
-                        </div>
-                        <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
-                            <FormField
-                                control={control}
-                                name={`questions.${currentQuestionIndex}.cmultipleChoiceOptions.${3}.isSelected`}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <Checkbox
-                                                checked={field.value}
-                                                onCheckedChange={field.onChange}
-                                                className={`mt-1 size-5 border-2 shadow-none ${
-                                                    field.value
-                                                        ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
-                                                        : "" // Default styles when unchecked
-                                                }`}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                    </div>
-                </div>
+                    );
+                })}
             </div>
 
+            {/* Explanation */}
             <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
                 <span>{explanationsType}</span>
                 <FormField
@@ -347,6 +207,31 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
                                 <MainViewQuillEditor
                                     value={field.value}
                                     onChange={field.onChange}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+            </div>
+
+            {/* ✅ Reattempt Count */}
+            <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
+                <span>Reattempt Count</span>
+                <FormField
+                    control={control}
+                    name={`questions.${currentQuestionIndex}.reattemptCount`}
+                    render={({ field }) => (
+                        <FormItem className="w-full">
+                            <FormControl>
+                                <input
+                                    type="number"
+                                    min={0}
+                                    className="focus:border-primary w-full rounded-md border border-border bg-background px-3 py-2 text-sm shadow-sm outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                    placeholder="Enter reattempt count"
+                                    {...field}
+                                    value={field.value ?? ''}
+                                    onChange={(e) => field.onChange(Number(e.target.value))}
                                 />
                             </FormControl>
                             <FormMessage />

@@ -34,7 +34,6 @@ export const LevelPage = () => {
 
     useEffect(() => {
         const type = useInstituteDetailsStore.getState().instituteDetails?.type ?? '';
-        console.log(type);
         setInstituteType(type);
     }, []);
 
@@ -81,17 +80,7 @@ export const LevelPage = () => {
         const isCorporate = instituteType?.toLowerCase() === 'corporate';
         console.log('isCorporate:', isCorporate);
 
-        const defaultCorporateLevels = [
-            { id: 'default-1', name: 'Beginner', duration_in_days: 0, subjects: [] },
-            { id: 'default-2', name: 'Intermediate', duration_in_days: 0, subjects: [] },
-            { id: 'default-3', name: 'Advanced', duration_in_days: 0, subjects: [] },
-        ];
-
-        const combinedLevels = isCorporate
-            ? [...defaultCorporateLevels, ...fetchedLevels]
-            : fetchedLevels;
-
-        setLevelList(combinedLevels);
+        setLevelList(fetchedLevels);
     }, [currentSession, searchParams.courseId, instituteType]);
 
     const handleSessionChange = (value: DropdownValueType) => {
