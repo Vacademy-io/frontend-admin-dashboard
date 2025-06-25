@@ -33,23 +33,33 @@ export const CourseMaterial = () => {
             status: [{ id: '1', name: 'ACTIVE' }],
         })
     );
-    console.log(accessControlUsers);
+
     const { setNavHeading } = useNavHeadingStore();
     const addCourseMutation = useAddCourse();
     const [selectedTab, setSelectedTab] = useState('AllCourses');
     const [selectedFilters, setSelectedFilters] = useState<{
-        levels: string[];
-        tags: string[];
-        users: string[];
+        status: string[];
+        level_ids: string[];
+        tag: string[];
+        faculty_ids: string[];
+        search_by_name: string;
+        min_percentage_completed: number;
+        max_percentage_completed: number;
+        sort_columns: Record<string, 'ASC' | 'DESC'>;
     }>({
-        levels: [],
-        tags: [],
-        users: [],
+        status: ['ACTIVE'],
+        level_ids: [],
+        tag: [],
+        faculty_ids: [],
+        search_by_name: '',
+        min_percentage_completed: 0,
+        max_percentage_completed: 0,
+        sort_columns: { created_at: 'DESC' },
     });
+    console.log(selectedFilters);
     const [activeCard, setActiveCard] = useState<number | null>(null);
     const [sortBy, setSortBy] = useState('oldest');
     const [searchValue, setSearchValue] = useState('');
-    console.log(selectedFilters);
 
     useIntroJsTour({
         key: StudyLibraryIntroKey.createCourseStep,
@@ -90,40 +100,55 @@ export const CourseMaterial = () => {
 
     const handleLevelChange = (levelId: string) => {
         setSelectedFilters((prev) => {
-            const alreadySelected = prev.levels.includes(levelId);
+            const alreadySelected = prev.level_ids.includes(levelId);
             return {
                 ...prev,
-                levels: alreadySelected
-                    ? prev.levels.filter((id) => id !== levelId)
-                    : [...prev.levels, levelId],
+                level_ids: alreadySelected
+                    ? prev.level_ids.filter((id) => id !== levelId)
+                    : [...prev.level_ids, levelId],
             };
         });
     };
 
-    const handleTagChange = (tag: string) => {
+    const handleTagChange = (tagValue: string) => {
         setSelectedFilters((prev) => {
-            const alreadySelected = prev.tags.includes(tag);
+            const alreadySelected = prev.tag.includes(tagValue);
             return {
                 ...prev,
-                tags: alreadySelected ? prev.tags.filter((t) => t !== tag) : [...prev.tags, tag],
+                tag: alreadySelected
+                    ? prev.tag.filter((t) => t !== tagValue)
+                    : [...prev.tag, tagValue],
             };
         });
     };
 
     const handleUserChange = (userId: string) => {
         setSelectedFilters((prev) => {
-            const alreadySelected = prev.users.includes(userId);
+            const alreadySelected = prev.faculty_ids.includes(userId);
             return {
                 ...prev,
-                users: alreadySelected
-                    ? prev.users.filter((id) => id !== userId)
-                    : [...prev.users, userId],
+                faculty_ids: alreadySelected
+                    ? prev.faculty_ids.filter((id) => id !== userId)
+                    : [...prev.faculty_ids, userId],
             };
         });
     };
 
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setSearchValue(value);
+        setSelectedFilters((prev) => ({ ...prev, search_by_name: value }));
+    };
+
     const handleClearAll = () => {
-        setSelectedFilters({ levels: [], tags: [], users: [] });
+        setSelectedFilters({
+            level_ids: [],
+            tag: [],
+            faculty_ids: [],
+            search_by_name: '',
+            sort_columns: { created_at: 'DESC' },
+        });
+        setSearchValue('');
     };
 
     const handleApply = () => {
@@ -185,6 +210,14 @@ export const CourseMaterial = () => {
     useEffect(() => {
         setNavHeading('Explore Courses');
     }, []);
+
+    // Update sort_columns in selectedFilters when sortBy changes
+    useEffect(() => {
+        setSelectedFilters((prev) => ({
+            ...prev,
+            sort_columns: sortBy === 'newest' ? { created_at: 'ASC' } : { created_at: 'DESC' },
+        }));
+    }, [sortBy]);
 
     if (isUsersLoading) return <DashboardLoader />;
 
@@ -267,15 +300,15 @@ export const CourseMaterial = () => {
                         </span>
                     </TabsTrigger>
                 </TabsList>
-                <TabsContent value="AllCourses">
+                <TabsContent value={selectedTab}>
                     <div className="mt-6 flex w-full gap-6">
                         {/* Filter Section */}
                         <div className="animate-fade-in flex h-fit min-w-[240px] max-w-[260px] flex-col gap-2 rounded-lg border border-neutral-200 bg-white p-4 shadow-sm">
                             <div className="mb-2 flex items-center justify-between">
                                 <div className="text-base font-semibold">Filters</div>
-                                {(selectedFilters.levels.length > 0 ||
-                                    selectedFilters.tags.length > 0 ||
-                                    selectedFilters.users.length > 0) && (
+                                {(selectedFilters.level_ids.length > 0 ||
+                                    selectedFilters.tag.length > 0 ||
+                                    selectedFilters.faculty_ids.length > 0) && (
                                     <div className="flex gap-2">
                                         <button
                                             className="text-xs font-medium text-primary-500 transition-transform hover:underline active:scale-95"
@@ -301,7 +334,7 @@ export const CourseMaterial = () => {
                                     >
                                         <input
                                             type="checkbox"
-                                            checked={selectedFilters.levels.includes(level.id)}
+                                            checked={selectedFilters.level_ids.includes(level.id)}
                                             onChange={() => handleLevelChange(level.id)}
                                             className="scale-110 accent-primary-500 transition-transform"
                                         />
@@ -316,19 +349,19 @@ export const CourseMaterial = () => {
                                 <>
                                     <div className="mb-1 mt-4 text-sm font-semibold">Tags</div>
                                     <div className="flex flex-col gap-2">
-                                        {tags.map((tag: string) => (
+                                        {tags.map((tagValue: string) => (
                                             <label
-                                                key={tag}
+                                                key={tagValue}
                                                 className="group flex cursor-pointer items-center gap-2"
                                             >
                                                 <input
                                                     type="checkbox"
-                                                    checked={selectedFilters.tags.includes(tag)}
-                                                    onChange={() => handleTagChange(tag)}
+                                                    checked={selectedFilters.tag.includes(tagValue)}
+                                                    onChange={() => handleTagChange(tagValue)}
                                                     className="scale-110 accent-primary-500 transition-transform"
                                                 />
                                                 <span className="transition-colors group-hover:text-primary-500">
-                                                    {tag}
+                                                    {tagValue}
                                                 </span>
                                             </label>
                                         ))}
@@ -348,7 +381,7 @@ export const CourseMaterial = () => {
                                                 >
                                                     <input
                                                         type="checkbox"
-                                                        checked={selectedFilters.users.includes(
+                                                        checked={selectedFilters.faculty_ids.includes(
                                                             user.id
                                                         )}
                                                         onChange={() => handleUserChange(user.id)}
@@ -389,7 +422,7 @@ export const CourseMaterial = () => {
                                     <input
                                         type="text"
                                         value={searchValue}
-                                        onChange={(e) => setSearchValue(e.target.value)}
+                                        onChange={handleSearchChange}
                                         placeholder="Search courses..."
                                         className="w-full rounded-md border border-neutral-200 px-9 py-2 text-sm shadow-sm transition-all focus:border-primary-400 focus:ring-2 focus:ring-primary-100"
                                     />
@@ -398,7 +431,13 @@ export const CourseMaterial = () => {
                                         <button
                                             className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-neutral-400 transition-transform active:scale-95"
                                             aria-label="Clear search"
-                                            onClick={() => setSearchValue('')}
+                                            onClick={() => {
+                                                setSearchValue('');
+                                                setSelectedFilters((prev) => ({
+                                                    ...prev,
+                                                    search_by_name: '',
+                                                }));
+                                            }}
                                             type="button"
                                         >
                                             <svg
@@ -526,9 +565,6 @@ export const CourseMaterial = () => {
                         </div>
                     </div>
                 </TabsContent>
-                <TabsContent value="MyCourses"></TabsContent>
-                <TabsContent value="AuthoredCourses"></TabsContent>
-                <TabsContent value="CourseRequests"></TabsContent>
             </Tabs>
         </div>
     );
