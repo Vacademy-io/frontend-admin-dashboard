@@ -25,7 +25,6 @@ import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtili
 import { TokenKey } from '@/constants/auth/tokens';
 import { MyPagination } from '@/components/design-system/pagination';
 import { getAllCoursesWithFilters } from '../-services/courses-services';
-import { usePaginationState } from '@/hooks/pagination';
 import { useFileUpload } from '@/hooks/use-file-upload';
 import { useNavigate } from '@tanstack/react-router';
 
@@ -101,10 +100,7 @@ export const CourseMaterial = () => {
     const tokenData = getTokenDecodedData(accessToken);
     const [roles, setRoles] = useState<string[] | undefined>([]);
     const [allCourses, setAllCourses] = useState<AllCoursesApiResponse | null>(null);
-    const { page, pageSize, handlePageChange } = usePaginationState({
-        initialPage: 0,
-        initialPageSize: 10,
-    });
+    const [page, setPage] = useState(0);
 
     const { data: accessControlUsers, isLoading: isUsersLoading } = useSuspenseQuery(
         handleGetInstituteUsersForAccessControl(instituteDetails?.id, {
@@ -152,7 +148,7 @@ export const CourseMaterial = () => {
     const handleGetCourses = () => {
         getAllCoursesMutation.mutate({
             page: page,
-            pageSize,
+            pageSize: 10,
             instituteId: instituteDetails?.id,
             data: selectedFilters,
         });
@@ -180,6 +176,16 @@ export const CourseMaterial = () => {
     const tags = useMemo(() => {
         return instituteDetails?.tags || [];
     }, [instituteDetails]);
+
+    const handlePageChange = (newPage: number) => {
+        setPage(newPage);
+        getAllCoursesMutation.mutate({
+            page: newPage,
+            pageSize: 10,
+            instituteId: instituteDetails?.id,
+            data: selectedFilters,
+        });
+    };
 
     const handleLevelChange = (levelId: string) => {
         setSelectedFilters((prev) => {
@@ -243,7 +249,7 @@ export const CourseMaterial = () => {
         setSearchValue('');
         getAllCoursesMutation.mutate({
             page: page,
-            pageSize,
+            pageSize: 10,
             instituteId: instituteDetails?.id,
             data: {
                 status: ['ACTIVE'],
@@ -271,7 +277,7 @@ export const CourseMaterial = () => {
         if (instituteDetails?.id) {
             handleGetCourses();
         }
-    }, [page, pageSize, instituteDetails?.id]);
+    }, [instituteDetails?.id]);
 
     // Update sort_columns in selectedFilters when sortBy changes and call handleGetCourses after update
     useEffect(() => {
@@ -492,7 +498,9 @@ export const CourseMaterial = () => {
                             {/* Users Section */}
                             {Array.isArray(accessControlUsers) && accessControlUsers.length > 0 && (
                                 <>
-                                    <div className="mb-1 mt-4 text-sm font-semibold">Users</div>
+                                    <div className="mb-1 mt-4 text-sm font-semibold">
+                                        Instructors
+                                    </div>
                                     <div className="flex flex-col gap-2">
                                         {(accessControlUsers as UserRolesDataEntry[]).map(
                                             (user) => (
@@ -608,10 +616,10 @@ export const CourseMaterial = () => {
                                         return (
                                             <div
                                                 key={course.id}
-                                                className={`animate-fade-in group relative flex flex-col gap-2 rounded-lg border border-neutral-200 bg-white p-0 shadow-sm transition-transform duration-500 hover:scale-[1.025] hover:shadow-md`}
+                                                className={`animate-fade-in group relative flex flex-col rounded-lg border border-neutral-200 bg-white p-0 shadow-sm transition-transform duration-500 hover:scale-[1.025] hover:shadow-md`}
                                             >
                                                 {/* Course Banner Image */}
-                                                <div className="flex size-full w-full items-center justify-center overflow-hidden rounded-lg p-4">
+                                                <div className="flex size-full w-full items-center justify-center overflow-hidden rounded-lg px-3 pb-0 pt-4">
                                                     <img
                                                         src={
                                                             courseImageUrls[course.id] ||
@@ -633,15 +641,32 @@ export const CourseMaterial = () => {
                                                             {course.level_name || 'Level'}
                                                         </div>
                                                     </div>
-                                                    <div className="mt-2 text-sm text-neutral-600">
-                                                        {/* Remove HTML tags for preview */}
+                                                    {/* Description section */}
+                                                    <div
+                                                        className={
+                                                            (
+                                                                course.course_html_description_html ||
+                                                                ''
+                                                            )
+                                                                .replace(/<[^>]*>/g, '')
+                                                                .slice(0, 120).length > 0
+                                                                ? 'mt-2 text-sm text-neutral-600'
+                                                                : 'text-sm text-neutral-600'
+                                                        }
+                                                    >
                                                         {(course.course_html_description_html || '')
                                                             .replace(/<[^>]*>/g, '')
                                                             .slice(0, 120)}
                                                     </div>
-                                                    {/* Instructors Section */}
-                                                    <div className="mt-2 flex items-center gap-2">
-                                                        {instructors.map((inst) => (
+                                                    {/* Instructors section */}
+                                                    <div
+                                                        className={
+                                                            instructors && instructors.length > 0
+                                                                ? 'mt-2 flex items-center gap-2'
+                                                                : 'flex items-center gap-2'
+                                                        }
+                                                    >
+                                                        {instructors?.map((inst) => (
                                                             <img
                                                                 key={inst.id}
                                                                 src={
@@ -654,22 +679,35 @@ export const CourseMaterial = () => {
                                                         ))}
                                                         <span className="ml-2 text-xs text-neutral-600">
                                                             {instructors
-                                                                .map((inst) => inst.full_name)
+                                                                ?.map((inst) => inst.full_name)
                                                                 .join(', ')}
                                                         </span>
                                                     </div>
-                                                    {/* Tags Section */}
-                                                    <div className="mt-2 flex flex-wrap gap-2">
-                                                        {tags.map((tag) => (
+                                                    {/* Tags section */}
+                                                    <div
+                                                        className={
+                                                            tags && tags.length > 0
+                                                                ? 'mt-2 flex flex-wrap gap-2'
+                                                                : 'flex flex-wrap gap-2'
+                                                        }
+                                                    >
+                                                        {tags?.map((tag) => (
                                                             <span
                                                                 key={tag}
-                                                                className={`rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700`}
+                                                                className="rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700"
                                                             >
                                                                 {tag}
                                                             </span>
                                                         ))}
                                                     </div>
-                                                    <div className="my-2 -mb-2 flex items-center gap-2">
+                                                    {/* Rating section */}
+                                                    <div
+                                                        className={
+                                                            tags && tags.length > 0
+                                                                ? 'my-2 -mb-2 flex items-center gap-2'
+                                                                : '-mb-2 flex items-center gap-2'
+                                                        }
+                                                    >
                                                         <StarRatingComponent
                                                             score={course.rating * 20}
                                                             maxScore={100}
