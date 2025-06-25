@@ -38,12 +38,67 @@ export interface AllCourseFilters {
     sort_columns: Record<string, 'ASC' | 'DESC'>;
 }
 
+// Add types for API response and course item
+interface CourseInstructor {
+    id: string;
+    username: string;
+    email: string;
+    full_name: string;
+    address_line: string;
+    city: string;
+    region: string;
+    pin_code: string;
+    mobile_number: string;
+    date_of_birth: string;
+    gender: string;
+    password: string;
+    profile_pic_file_id: string;
+    roles: string[];
+    root_user: boolean;
+}
+
+interface CourseItem {
+    id: string;
+    package_name: string;
+    thumbnail_file_id: string;
+    is_course_published_to_catalaouge: boolean;
+    course_preview_image_media_id: string;
+    course_banner_media_id: string;
+    course_media_id: string;
+    why_learn_html: string;
+    who_should_learn_html: string;
+    about_the_course_html: string;
+    comma_separeted_tags: string;
+    course_depth: number;
+    course_html_description_html: string;
+    percentage_completed: number;
+    rating: number;
+    package_session_id: string;
+    level_id: string;
+    level_name: string;
+    instructors: CourseInstructor[];
+}
+
+interface AllCoursesApiResponse {
+    totalPages: number;
+    totalElements: number;
+    pageable: unknown;
+    numberOfElements: number;
+    size: number;
+    content: CourseItem[];
+    number: number;
+    sort: unknown;
+    first: boolean;
+    last: boolean;
+    empty: boolean;
+}
+
 export const CourseMaterial = () => {
     const { instituteDetails } = useInstituteDetailsStore();
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
     const [roles, setRoles] = useState<string[] | undefined>([]);
-    const [allCourses, setAllCourses] = useState([]);
+    const [allCourses, setAllCourses] = useState<AllCoursesApiResponse | null>(null);
     const { page, pageSize, handlePageChange } = usePaginationState({
         initialPage: 0,
         initialPageSize: 10,
@@ -71,7 +126,6 @@ export const CourseMaterial = () => {
         sort_columns: { created_at: 'DESC' },
     });
 
-    const [activeCard, setActiveCard] = useState<number | null>(null);
     const [sortBy, setSortBy] = useState('oldest');
     const [searchValue, setSearchValue] = useState('');
 
@@ -169,6 +223,12 @@ export const CourseMaterial = () => {
         setSelectedFilters((prev) => ({ ...prev, search_by_name: value }));
     };
 
+    const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            handleGetCourses();
+        }
+    };
+
     const handleClearAll = () => {
         setSelectedFilters({
             status: ['ACTIVE'],
@@ -184,71 +244,34 @@ export const CourseMaterial = () => {
     };
 
     const handleApply = () => {
-        // Use selectedFilters for API/filtering logic
-    };
-
-    // Level color mapping
-    const levelStyles: Record<string, string> = {
-        Beginner: 'bg-green-100 text-green-700',
-        Intermediate: 'bg-blue-100 text-blue-600',
-        Advanced: 'bg-yellow-100 text-yellow-700',
-    };
-    const levelsList = ['Beginner', 'Intermediate', 'Advanced'];
-
-    // Tag color mapping
-    const tagStyles: Record<string, string> = {
-        Math: 'bg-red-100 text-red-700',
-        Science: 'bg-blue-100 text-blue-700',
-        History: 'bg-yellow-100 text-yellow-800',
-        Coding: 'bg-green-100 text-green-700',
-        Art: 'bg-pink-100 text-pink-700',
-        English: 'bg-purple-100 text-purple-700',
-    };
-    const tagsList = [
-        ['Math', 'Science', 'Coding'],
-        ['History', 'Art'],
-        ['English', 'Math'],
-        ['Science', 'Coding', 'Art'],
-    ];
-
-    // Sample instructors data for each card
-    const instructorsList = [
-        [
-            {
-                id: 1,
-                name: 'Alice',
-                profilePicId: 'https://randomuser.me/api/portraits/women/1.jpg',
-            },
-            { id: 2, name: 'Bob', profilePicId: 'https://randomuser.me/api/portraits/men/2.jpg' },
-        ],
-        [{ id: 3, name: 'Charlie', profilePicId: 'https://randomuser.me/api/portraits/men/3.jpg' }],
-        [
-            {
-                id: 4,
-                name: 'Diana',
-                profilePicId: 'https://randomuser.me/api/portraits/women/4.jpg',
-            },
-            { id: 5, name: 'Eve', profilePicId: 'https://randomuser.me/api/portraits/women/5.jpg' },
-            { id: 6, name: 'Frank', profilePicId: 'https://randomuser.me/api/portraits/men/6.jpg' },
-        ],
-        [{ id: 7, name: 'Grace', profilePicId: 'https://randomuser.me/api/portraits/women/7.jpg' }],
-    ];
-
-    const handleCardClick = (i: number) => {
-        setActiveCard(i);
-        setTimeout(() => setActiveCard(null), 300); // Remove scale after 300ms
+        handleGetCourses();
     };
 
     useEffect(() => {
         setNavHeading('Explore Courses');
     }, []);
 
-    // Update sort_columns in selectedFilters when sortBy changes
+    // Call handleGetCourses when page, pageSize, or instituteDetails?.id changes (not on filters, sort, or search)
     useEffect(() => {
-        setSelectedFilters((prev) => ({
-            ...prev,
-            sort_columns: sortBy === 'newest' ? { created_at: 'ASC' } : { created_at: 'DESC' },
-        }));
+        if (instituteDetails?.id) {
+            handleGetCourses();
+        }
+    }, [page, pageSize, instituteDetails?.id]);
+
+    // Update sort_columns in selectedFilters when sortBy changes and call handleGetCourses after update
+    useEffect(() => {
+        setSelectedFilters((prev) => {
+            const newSortColumns =
+                sortBy === 'newest'
+                    ? { created_at: 'ASC' as const }
+                    : { created_at: 'DESC' as const };
+            if (JSON.stringify(prev.sort_columns) !== JSON.stringify(newSortColumns)) {
+                const updated = { ...prev, sort_columns: newSortColumns };
+                setTimeout(() => handleGetCourses(), 0);
+                return updated;
+            }
+            return prev;
+        });
     }, [sortBy]);
 
     useEffect(() => {
@@ -256,6 +279,11 @@ export const CourseMaterial = () => {
             setRoles(tokenData.authorities[instituteDetails?.id]?.roles);
         }
     }, []);
+
+    // Call handleGetCourses when selectedTab changes
+    useEffect(() => {
+        handleGetCourses();
+    }, [selectedTab]);
 
     if (isUsersLoading) return <DashboardLoader />;
 
@@ -468,6 +496,7 @@ export const CourseMaterial = () => {
                                         type="text"
                                         value={searchValue}
                                         onChange={handleSearchChange}
+                                        onKeyDown={handleSearchKeyDown}
                                         placeholder="Search courses..."
                                         className="w-full rounded-md border border-neutral-200 px-9 py-2 text-sm shadow-sm transition-all focus:border-primary-400 focus:ring-2 focus:ring-primary-100"
                                     />
@@ -519,97 +548,108 @@ export const CourseMaterial = () => {
                                 </div>
                             </div>
                             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                                {[1, 2, 3, 4].map((i) => {
-                                    // Assign a random level for each card
-                                    const level =
-                                        levelsList[(i - 1) % levelsList.length] || 'Beginner';
-                                    const levelClass =
-                                        levelStyles[level] ?? 'bg-gray-100 text-gray-700';
-                                    const tags = tagsList[(i - 1) % tagsList.length] ?? [];
-                                    const instructors =
-                                        instructorsList[(i - 1) % instructorsList.length] ?? [];
-                                    return (
-                                        <div
-                                            key={i}
-                                            className={`animate-fade-in group relative flex flex-col gap-2 rounded-lg border border-neutral-200 bg-white p-0 shadow-sm transition-transform duration-500 hover:scale-[1.025] hover:shadow-md ${activeCard === i ? 'z-10 scale-105' : ''}`}
-                                            onMouseDown={() => handleCardClick(i)}
-                                            style={{
-                                                transitionTimingFunction:
-                                                    'cubic-bezier(0.22, 1, 0.36, 1)',
-                                            }}
-                                        >
-                                            {/* Course Banner Image */}
-                                            <div className="h-48 w-full overflow-hidden rounded-lg p-4">
-                                                <img
-                                                    src={`https://images.pexels.com/photos/31530661/pexels-photo-31530661.jpeg`}
-                                                    alt={`Course ${i}`}
-                                                    className="size-full rounded-lg object-cover transition-transform duration-300 group-hover:scale-105"
-                                                />
-                                            </div>
-                                            <div className="flex flex-col gap-1 p-4">
-                                                <div className="flex items-center justify-between">
-                                                    <div className="text-lg font-extrabold text-neutral-800">
-                                                        Course Title {i}
-                                                    </div>
-                                                    <div
-                                                        className={`rounded-lg p-1 px-2 text-xs font-semibold ${levelClass}`}
-                                                    >
-                                                        {level}
-                                                    </div>
-                                                </div>
-                                                <div className="mt-2 text-sm text-neutral-600">
-                                                    A short description of the course goes here.
-                                                    Make it concise and informative.
-                                                </div>
-                                                {/* Instructors Section */}
-                                                <div className="mt-2 flex items-center gap-2">
-                                                    {instructors.map((inst) => (
-                                                        <img
-                                                            key={inst.id}
-                                                            src={inst.profilePicId}
-                                                            alt={inst.name}
-                                                            className="-ml-2 size-7 rounded-full border border-neutral-200 object-cover first:ml-0"
-                                                        />
-                                                    ))}
-                                                    <span className="ml-2 text-xs text-neutral-600">
-                                                        {instructors
-                                                            .map((inst) => inst.name)
-                                                            .join(', ')}
-                                                    </span>
-                                                </div>
-                                                {/* Tags Section */}
-                                                <div className="mt-2 flex flex-wrap gap-2">
-                                                    {tags.map((tag) => (
-                                                        <span
-                                                            key={tag}
-                                                            className={`rounded px-2 py-0.5 text-xs font-medium ${tagStyles[tag] ?? 'bg-gray-100 text-gray-700'}`}
-                                                        >
-                                                            {tag}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                                <div className="my-2 -mb-2 flex items-center gap-2">
-                                                    <StarRatingComponent
-                                                        score={80}
-                                                        maxScore={100}
+                                {Array.isArray(allCourses?.content) &&
+                                allCourses.content.length > 0 ? (
+                                    allCourses.content.map((course) => {
+                                        const instructors = course.instructors || [];
+                                        const tags = course.comma_separeted_tags
+                                            ? course.comma_separeted_tags
+                                                  .split(',')
+                                                  .map((t) => t.trim())
+                                            : [];
+                                        return (
+                                            <div
+                                                key={course.id}
+                                                className={`animate-fade-in group relative flex flex-col gap-2 rounded-lg border border-neutral-200 bg-white p-0 shadow-sm transition-transform duration-500 hover:scale-[1.025] hover:shadow-md`}
+                                            >
+                                                {/* Course Banner Image */}
+                                                <div className="h-48 w-full overflow-hidden rounded-lg p-4">
+                                                    <img
+                                                        src={
+                                                            course.course_banner_media_id ||
+                                                            course.thumbnail_file_id ||
+                                                            'https://images.pexels.com/photos/31530661/pexels-photo-31530661.jpeg'
+                                                        }
+                                                        alt={course.package_name}
+                                                        className="size-full rounded-lg object-cover transition-transform duration-300 group-hover:scale-105"
                                                     />
-                                                    <span className="text-neutral-500">4.5</span>
                                                 </div>
-                                                {/* View Course Button */}
-                                                <MyButton
-                                                    className="mt-4 w-full"
-                                                    buttonType="primary"
-                                                >
-                                                    View Course
-                                                </MyButton>
+                                                <div className="flex flex-col gap-1 p-4">
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="text-lg font-extrabold text-neutral-800">
+                                                            {course.package_name}
+                                                        </div>
+                                                        <div
+                                                            className={`rounded-lg bg-gray-100 p-1 px-2 text-xs font-semibold text-gray-700`}
+                                                        >
+                                                            {course.level_name || 'Level'}
+                                                        </div>
+                                                    </div>
+                                                    <div className="mt-2 text-sm text-neutral-600">
+                                                        {/* Remove HTML tags for preview */}
+                                                        {(course.course_html_description_html || '')
+                                                            .replace(/<[^>]*>/g, '')
+                                                            .slice(0, 120)}
+                                                    </div>
+                                                    {/* Instructors Section */}
+                                                    <div className="mt-2 flex items-center gap-2">
+                                                        {instructors.map((inst) => (
+                                                            <img
+                                                                key={inst.id}
+                                                                src={
+                                                                    inst.profile_pic_file_id ||
+                                                                    'https://randomuser.me/api/portraits/lego/1.jpg'
+                                                                }
+                                                                alt={inst.full_name}
+                                                                className="-ml-2 size-7 rounded-full border border-neutral-200 object-cover first:ml-0"
+                                                            />
+                                                        ))}
+                                                        <span className="ml-2 text-xs text-neutral-600">
+                                                            {instructors
+                                                                .map((inst) => inst.full_name)
+                                                                .join(', ')}
+                                                        </span>
+                                                    </div>
+                                                    {/* Tags Section */}
+                                                    <div className="mt-2 flex flex-wrap gap-2">
+                                                        {tags.map((tag) => (
+                                                            <span
+                                                                key={tag}
+                                                                className={`rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700`}
+                                                            >
+                                                                {tag}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                    <div className="my-2 -mb-2 flex items-center gap-2">
+                                                        <StarRatingComponent
+                                                            score={course.rating * 20}
+                                                            maxScore={100}
+                                                        />
+                                                        <span className="text-neutral-500">
+                                                            {(course.rating || 0).toFixed(1)}
+                                                        </span>
+                                                    </div>
+                                                    {/* View Course Button */}
+                                                    <MyButton
+                                                        className="mt-4 w-full"
+                                                        buttonType="primary"
+                                                    >
+                                                        View Course
+                                                    </MyButton>
+                                                </div>
                                             </div>
-                                        </div>
-                                    );
-                                })}
+                                        );
+                                    })
+                                ) : (
+                                    <div className="col-span-2 text-center text-neutral-400">
+                                        No courses found.
+                                    </div>
+                                )}
                             </div>
                             <MyPagination
                                 currentPage={page}
-                                totalPages={pageSize}
+                                totalPages={allCourses?.totalPages || 0}
                                 onPageChange={handlePageChange}
                             />
                         </div>
