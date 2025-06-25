@@ -595,131 +595,116 @@ export const CourseMaterial = () => {
                                     </Select>
                                 </div>
                             </div>
-                            {getAllCoursesMutation.status === 'pending' ? (
-                                <div className="flex w-full items-center justify-center py-12">
-                                    <DashboardLoader />
-                                </div>
-                            ) : (
-                                <>
-                                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                                        {Array.isArray(allCourses?.content) &&
-                                        allCourses.content.length > 0 ? (
-                                            allCourses.content.map((course) => {
-                                                const instructors = course.instructors || [];
-                                                const tags = course.comma_separeted_tags
-                                                    ? course.comma_separeted_tags
-                                                          .split(',')
-                                                          .map((t) => t.trim())
-                                                    : [];
-                                                return (
-                                                    <div
-                                                        key={course.id}
-                                                        className={`animate-fade-in group relative flex flex-col gap-2 rounded-lg border border-neutral-200 bg-white p-0 shadow-sm transition-transform duration-500 hover:scale-[1.025] hover:shadow-md`}
-                                                    >
-                                                        {/* Course Banner Image */}
-                                                        <div className="flex size-full w-full items-center justify-center overflow-hidden rounded-lg p-4">
-                                                            <img
-                                                                src={
-                                                                    courseImageUrls[course.id] ||
-                                                                    course.thumbnail_file_id ||
-                                                                    'https://images.pexels.com/photos/31530661/pexels-photo-31530661.jpeg'
-                                                                }
-                                                                alt={course.package_name}
-                                                                className="object-fit rounded-lg bg-white p-2 transition-transform duration-300 group-hover:scale-105"
-                                                            />
+                            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                                {Array.isArray(allCourses?.content) &&
+                                allCourses.content.length > 0 ? (
+                                    allCourses.content.map((course) => {
+                                        const instructors = course.instructors || [];
+                                        const tags = course.comma_separeted_tags
+                                            ? course.comma_separeted_tags
+                                                  .split(',')
+                                                  .map((t) => t.trim())
+                                            : [];
+                                        return (
+                                            <div
+                                                key={course.id}
+                                                className={`animate-fade-in group relative flex flex-col gap-2 rounded-lg border border-neutral-200 bg-white p-0 shadow-sm transition-transform duration-500 hover:scale-[1.025] hover:shadow-md`}
+                                            >
+                                                {/* Course Banner Image */}
+                                                <div className="flex size-full w-full items-center justify-center overflow-hidden rounded-lg p-4">
+                                                    <img
+                                                        src={
+                                                            courseImageUrls[course.id] ||
+                                                            course.thumbnail_file_id ||
+                                                            'https://images.pexels.com/photos/31530661/pexels-photo-31530661.jpeg'
+                                                        }
+                                                        alt={course.package_name}
+                                                        className="object-fit rounded-lg bg-white p-2 transition-transform duration-300 group-hover:scale-105"
+                                                    />
+                                                </div>
+                                                <div className="flex flex-col gap-1 p-4">
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="text-lg font-extrabold text-neutral-800">
+                                                            {course.package_name}
                                                         </div>
-                                                        <div className="flex flex-col gap-1 p-4">
-                                                            <div className="flex items-center justify-between">
-                                                                <div className="text-lg font-extrabold text-neutral-800">
-                                                                    {course.package_name}
-                                                                </div>
-                                                                <div
-                                                                    className={`rounded-lg bg-gray-100 p-1 px-2 text-xs font-semibold text-gray-700`}
-                                                                >
-                                                                    {course.level_name || 'Level'}
-                                                                </div>
-                                                            </div>
-                                                            <div className="mt-2 text-sm text-neutral-600">
-                                                                {/* Remove HTML tags for preview */}
-                                                                {(
-                                                                    course.course_html_description_html ||
-                                                                    ''
-                                                                )
-                                                                    .replace(/<[^>]*>/g, '')
-                                                                    .slice(0, 120)}
-                                                            </div>
-                                                            {/* Instructors Section */}
-                                                            <div className="mt-2 flex items-center gap-2">
-                                                                {instructors.map((inst) => (
-                                                                    <img
-                                                                        key={inst.id}
-                                                                        src={
-                                                                            inst.profile_pic_file_id ||
-                                                                            'https://randomuser.me/api/portraits/lego/1.jpg'
-                                                                        }
-                                                                        alt={inst.full_name}
-                                                                        className="-ml-2 size-7 rounded-full border border-neutral-200 object-cover first:ml-0"
-                                                                    />
-                                                                ))}
-                                                                <span className="ml-2 text-xs text-neutral-600">
-                                                                    {instructors
-                                                                        .map(
-                                                                            (inst) => inst.full_name
-                                                                        )
-                                                                        .join(', ')}
-                                                                </span>
-                                                            </div>
-                                                            {/* Tags Section */}
-                                                            <div className="mt-2 flex flex-wrap gap-2">
-                                                                {tags.map((tag) => (
-                                                                    <span
-                                                                        key={tag}
-                                                                        className={`rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700`}
-                                                                    >
-                                                                        {tag}
-                                                                    </span>
-                                                                ))}
-                                                            </div>
-                                                            <div className="my-2 -mb-2 flex items-center gap-2">
-                                                                <StarRatingComponent
-                                                                    score={course.rating * 20}
-                                                                    maxScore={100}
-                                                                />
-                                                                <span className="text-neutral-500">
-                                                                    {(course.rating || 0).toFixed(
-                                                                        1
-                                                                    )}
-                                                                </span>
-                                                            </div>
-                                                            {/* View Course Button */}
-                                                            <MyButton
-                                                                className="mt-4 w-full"
-                                                                buttonType="primary"
-                                                                onClick={() =>
-                                                                    navigate({
-                                                                        to: `/study-library/courses/course-details?courseId=${course.id}`,
-                                                                    })
-                                                                }
-                                                            >
-                                                                View Course
-                                                            </MyButton>
+                                                        <div
+                                                            className={`rounded-lg bg-gray-100 p-1 px-2 text-xs font-semibold text-gray-700`}
+                                                        >
+                                                            {course.level_name || 'Level'}
                                                         </div>
                                                     </div>
-                                                );
-                                            })
-                                        ) : (
-                                            <div className="col-span-2 text-center text-neutral-400">
-                                                No courses found.
+                                                    <div className="mt-2 text-sm text-neutral-600">
+                                                        {/* Remove HTML tags for preview */}
+                                                        {(course.course_html_description_html || '')
+                                                            .replace(/<[^>]*>/g, '')
+                                                            .slice(0, 120)}
+                                                    </div>
+                                                    {/* Instructors Section */}
+                                                    <div className="mt-2 flex items-center gap-2">
+                                                        {instructors.map((inst) => (
+                                                            <img
+                                                                key={inst.id}
+                                                                src={
+                                                                    inst.profile_pic_file_id ||
+                                                                    'https://randomuser.me/api/portraits/lego/1.jpg'
+                                                                }
+                                                                alt={inst.full_name}
+                                                                className="-ml-2 size-7 rounded-full border border-neutral-200 object-cover first:ml-0"
+                                                            />
+                                                        ))}
+                                                        <span className="ml-2 text-xs text-neutral-600">
+                                                            {instructors
+                                                                .map((inst) => inst.full_name)
+                                                                .join(', ')}
+                                                        </span>
+                                                    </div>
+                                                    {/* Tags Section */}
+                                                    <div className="mt-2 flex flex-wrap gap-2">
+                                                        {tags.map((tag) => (
+                                                            <span
+                                                                key={tag}
+                                                                className={`rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700`}
+                                                            >
+                                                                {tag}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                    <div className="my-2 -mb-2 flex items-center gap-2">
+                                                        <StarRatingComponent
+                                                            score={course.rating * 20}
+                                                            maxScore={100}
+                                                        />
+                                                        <span className="text-neutral-500">
+                                                            {(course.rating || 0).toFixed(1)}
+                                                        </span>
+                                                    </div>
+                                                    {/* View Course Button */}
+                                                    <MyButton
+                                                        className="mt-4 w-full"
+                                                        buttonType="primary"
+                                                        onClick={() =>
+                                                            navigate({
+                                                                to: `/study-library/courses/course-details?courseId=${course.id}`,
+                                                            })
+                                                        }
+                                                    >
+                                                        View Course
+                                                    </MyButton>
+                                                </div>
                                             </div>
-                                        )}
+                                        );
+                                    })
+                                ) : (
+                                    <div className="col-span-2 text-center text-neutral-400">
+                                        No courses found.
                                     </div>
-                                    <MyPagination
-                                        currentPage={page}
-                                        totalPages={allCourses?.totalPages || 0}
-                                        onPageChange={handlePageChange}
-                                    />
-                                </>
-                            )}
+                                )}
+                            </div>
+                            <MyPagination
+                                currentPage={page}
+                                totalPages={allCourses?.totalPages || 0}
+                                onPageChange={handlePageChange}
+                            />
                         </div>
                     </div>
                 </TabsContent>
