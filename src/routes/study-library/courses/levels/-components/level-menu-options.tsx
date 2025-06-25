@@ -1,10 +1,10 @@
-import { MyButton } from '@/components/design-system/button';
-import { MyDropdown } from '@/components/design-system/dropdown';
-import { DotsThree } from 'phosphor-react';
-import { AddLevelData, AddLevelForm } from './add-level-form';
-import { useRef, useState } from 'react';
-import { MyDialog } from '@/components/design-system/dialog';
-import { LevelWithDetailsType } from '@/stores/study-library/use-study-library-store';
+import { MyButton } from "@/components/design-system/button";
+import { MyDropdown } from "@/components/design-system/dropdown";
+import { DotsThree } from "phosphor-react";
+import { AddLevelData, AddLevelForm } from "./add-level-form";
+import { useRef, useState } from "react";
+import { MyDialog } from "@/components/design-system/dialog";
+import { LevelWithDetailsType } from "@/stores/study-library/use-study-library-store";
 
 interface LevelMenuOptionsProps {
     onDelete: (levelId: string) => void;
@@ -15,12 +15,12 @@ interface LevelMenuOptionsProps {
 
 export const LevelMenuOptions = ({ onDelete, onEdit, levelId, level }: LevelMenuOptionsProps) => {
     const [openEditDialog, setOpenEditDialog] = useState(false);
-    const DropdownList = ['Edit Level', 'Delete Level'];
+    const DropdownList = ["Edit Level", "Delete Level"];
 
     const handleMenuOptionsChange = (value: string) => {
-        if (value === 'Delete Level') {
+        if (value === "Delete Level") {
             onDelete(levelId);
-        } else if (value === 'Edit Level') {
+        } else if (value === "Edit Level") {
             setOpenEditDialog(true);
         }
     };
@@ -68,7 +68,7 @@ export const LevelMenuOptions = ({ onDelete, onEdit, levelId, level }: LevelMenu
                     initialValues={{
                         id: level.id,
                         level_name: level.name,
-                        thumbnail_file_id: '',
+                        thumbnail_file_id: "",
                         duration_in_days: 0,
                         new_level: false,
                         sessions: [],

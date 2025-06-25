@@ -21,37 +21,71 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
     className,
 }: QuestionPaperTemplateFormProps) => {
     const [isMultipleAnswersAllowed, setIsMultipleAnswersAllowed] = useState(false);
-    const { control, getValues, trigger, watch, setValue } = form;
+    const { control, getValues, trigger, watch } = form;
 
     const numericType = watch(`questions.${currentQuestionIndex}.numericType`);
     const validAnswers = watch(`questions.${currentQuestionIndex}.validAnswers`);
-    const reattemptCount = watch(`questions.${currentQuestionIndex}.reattemptCount`);
-
     useEffect(() => {
-        if (validAnswers && validAnswers.length > 1) setIsMultipleAnswersAllowed(true);
+        if (validAnswers && validAnswers?.length > 1) setIsMultipleAnswersAllowed(true);
     }, []);
-
     useEffect(() => {
         trigger(`questions.${currentQuestionIndex}.validAnswers`);
     }, [numericType, currentQuestionIndex, trigger]);
 
-    useEffect(() => {
-        const validAnswrs = getValues(`questions.${currentQuestionIndex}.validAnswers`);
-        if (!validAnswrs) {
-            setValue(`questions.${currentQuestionIndex}.validAnswers`, [0]);
-        }
-        const reattempt = getValues(`questions.${currentQuestionIndex}.reattemptCount`);
-        if (reattempt === undefined) {
-            setValue(`questions.${currentQuestionIndex}.reattemptCount`, 0);
-        }
-    }, []);
-
     const answersType = getValues('answersType') || 'Answer:';
     const explanationsType = getValues('explanationsType') || 'Explanation:';
     const questionsType = getValues('questionsType') || '';
+
+    // const imageDetails = getValues(`questions.${currentQuestionIndex}.imageDetails`);
     const allQuestions = getValues('questions') || [];
     const tags = getValues(`questions.${currentQuestionIndex}.tags`) || [];
     const level = getValues(`questions.${currentQuestionIndex}.level`) || '';
+
+    // const [isExpanded, setIsExpanded] = useState<boolean>(false);
+
+    // interface CollapsibleQuillEditorProps {
+    //     value: string | null | undefined;
+    //     onChange: (content: string) => void;
+    // }
+
+    // const CollapsibleQuillEditor: React.FC<CollapsibleQuillEditorProps> = ({ value, onChange }) => {
+    //     return (
+    //         <div className="">
+    //             {!isExpanded ? (
+    //                 // Render only a single line preview
+    //                 <div className="flex cursor-pointer flex-row gap-1 border bg-primary-100 p-2">
+    //                     <div className="w-full max-w-[50vw] overflow-hidden text-ellipsis whitespace-nowrap text-body">
+    //                         {value && value.replace(/<[^>]+>/g, '')}
+    //                     </div>
+    //                     <button
+    //                         className="text-body text-blue-500"
+    //                         onClick={() => setIsExpanded(true)}
+    //                     >
+    //                         Show More
+    //                     </button>
+    //                 </div>
+    //             ) : (
+    //                 // Render full Quill Editor when expanded
+    //                 <div className="border bg-primary-100 p-2">
+    //                     <MainViewQuillEditor value={value} onChange={onChange} />
+    //                     <button
+    //                         className="mt-2 text-body text-blue-500"
+    //                         onClick={() => setIsExpanded(false)}
+    //                     >
+    //                         Show Less
+    //                     </button>
+    //                 </div>
+    //             )}
+    //         </div>
+    //     );
+    // };
+
+    useEffect(() => {
+        const validAnswrs = form.getValues(`questions.${currentQuestionIndex}.validAnswers`);
+        if (!validAnswrs) {
+            form.setValue(`questions.${currentQuestionIndex}.validAnswers`, [0]);
+        }
+    }, []);
 
     if (allQuestions.length === 0) {
         return (
@@ -86,7 +120,7 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
                                     label: option.display,
                                     _id: index,
                                 }))}
-                                control={control}
+                                control={form.control}
                                 className="!w-full"
                                 required
                             />
@@ -98,30 +132,20 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
                                     label: option,
                                     _id: index,
                                 }))}
-                                control={control}
+                                control={form.control}
                                 className="!w-full"
                                 required
                             />
                             <CustomInput
-                                control={control}
+                                control={form.control}
                                 name={`questions.${currentQuestionIndex}.decimals`}
                                 label="Decimal Precision"
-                                required
-                            />
-                            <CustomInput
-                                control={control}
-                                name={`questions.${currentQuestionIndex}.reattemptCount`}
-                                label="Reattempt Count"
-                                type="number"
-                                min={0}
                                 required
                             />
                         </div>
                     </PopoverContent>
                 </Popover>
             </div>
-
-            {/* Comprehension Text */}
             <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
                 <span>Comprehension Text</span>
                 <FormField
@@ -140,8 +164,6 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
                     )}
                 />
             </div>
-
-            {/* Question Name */}
             <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
                 <div className="flex items-center gap-2">
                     <span>
@@ -168,15 +190,16 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
                     )}
                 />
                 <div className="mt-2 flex items-center gap-2">
-                    {tags?.map((tag, idx) => (
-                        <Badge variant="outline" key={idx}>
-                            {tag}
-                        </Badge>
-                    ))}
+                    {tags?.map((tag, idx) => {
+                        return (
+                            <Badge variant="outline" key={idx}>
+                                {tag}
+                            </Badge>
+                        );
+                    })}
                 </div>
             </div>
 
-            {/* Valid Answers */}
             <div className="flex w-full flex-col gap-4">
                 <FormField
                     control={control}
@@ -192,6 +215,7 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
                                             onCheckedChange={(checked) => {
                                                 setIsMultipleAnswersAllowed(!!checked);
                                                 if (!checked) {
+                                                    // If unchecked, keep only the first answer
                                                     form.setValue(
                                                         `questions.${currentQuestionIndex}.validAnswers`,
                                                         field.value ? [field.value[0] || 0] : [0]
@@ -218,6 +242,7 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
                                     {Array.isArray(field.value) &&
                                         field.value.map((answer, index) => (
                                             <div key={index} className="flex items-center gap-2">
+                                                {/* Input for each validAnswer */}
                                                 <MyInput
                                                     input={answer.toString()}
                                                     onChangeFunction={(e) => {
@@ -225,11 +250,12 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
                                                             ...(field.value ?? []),
                                                         ];
                                                         updatedAnswers[index] =
-                                                            parseFloat(e.target.value) || 0;
+                                                            parseFloat(e.target.value) || 0; // Ensure number
                                                         field.onChange(updatedAnswers);
                                                     }}
                                                     inputType="number"
                                                 />
+                                                {/* Remove button for each answer */}
                                                 {isMultipleAnswersAllowed && (
                                                     <button
                                                         type="button"
@@ -246,6 +272,7 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
                                                 )}
                                             </div>
                                         ))}
+                                    {/* Add new answer */}
                                     {isMultipleAnswersAllowed && (
                                         <Button
                                             variant="outline"
@@ -265,8 +292,6 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
                     )}
                 />
             </div>
-
-            {/* Explanation */}
             <div className="mb-6 flex w-full flex-col !flex-nowrap items-start gap-1">
                 <span>{explanationsType}</span>
                 <FormField

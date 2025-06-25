@@ -20,7 +20,6 @@ import {
     DropdownItemType,
     DropdownValueType,
 } from '@/components/common/students/enroll-manually/dropdownTypesForPackageItems';
-import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 export const LevelPage = () => {
     const { open } = useSidebar();
@@ -29,23 +28,15 @@ export const LevelPage = () => {
     const addLevelMutation = useAddLevel();
     const deleteLevelMutation = useDeleteLevel();
     const updateLevelMutation = useUpdateLevel();
-
-    const [instituteType, setInstituteType] = useState('');
-
-    useEffect(() => {
-        const type = useInstituteDetailsStore.getState().instituteDetails?.type ?? '';
-        setInstituteType(type);
-    }, []);
-
+    // Ensure hooks always run
     const [sessionList, setSessionList] = useState<DropdownItemType[]>(
         searchParams.courseId
-            ? getCourseSessions(searchParams.courseId).map((s) => ({
-                  id: s.id,
-                  name: s.session_name,
+            ? getCourseSessions(searchParams.courseId).map((session) => ({
+                  id: session.id,
+                  name: session.session_name,
               }))
             : []
     );
-
     const initialSession: DropdownItemType | undefined = {
         id: sessionList[0]?.id || '',
         name: sessionList[0]?.name || '',
@@ -58,9 +49,9 @@ export const LevelPage = () => {
     useEffect(() => {
         setSessionList(
             searchParams.courseId
-                ? getCourseSessions(searchParams.courseId).map((s) => ({
-                      id: s.id,
-                      name: s.session_name,
+                ? getCourseSessions(searchParams.courseId).map((session) => ({
+                      id: session.id,
+                      name: session.session_name,
                   }))
                 : []
         );
@@ -70,18 +61,12 @@ export const LevelPage = () => {
         setCurrentSession({ id: sessionList[0]?.id || '', name: sessionList[0]?.name || '' });
     }, [sessionList]);
 
-    const [levelList, setLevelList] = useState([]);
+    // Get levels only if session is selected
+    const initialLevelList = currentSession
+        ? getCourseLevels(searchParams.courseId!, currentSession.id)
+        : [];
 
-    useEffect(() => {
-        const fetchedLevels = currentSession
-            ? getCourseLevels(searchParams.courseId!, currentSession.id)
-            : [];
-
-        const isCorporate = instituteType?.toLowerCase() === 'corporate';
-        console.log('isCorporate:', isCorporate);
-
-        setLevelList(fetchedLevels);
-    }, [currentSession, searchParams.courseId, instituteType]);
+    const [levelList, setLevelList] = useState(initialLevelList);
 
     const handleSessionChange = (value: DropdownValueType) => {
         if (value && typeof value === 'object' && 'id' in value && 'name' in value) {
@@ -91,10 +76,26 @@ export const LevelPage = () => {
 
     const handleLeveLDelete = (levelId: string) => {
         deleteLevelMutation.mutate(levelId, {
-            onSuccess: () => toast.success('Level deleted successfully'),
-            onError: (error) => toast.error(error.message || 'Failed to delete level'),
+            onSuccess: () => {
+                toast.success('Level deleted successfully');
+            },
+            onError: (error) => {
+                toast.error(error.message || 'Failed to delete level');
+            },
         });
     };
+
+    useIntroJsTour({
+        key: StudyLibraryIntroKey.assignYearStep,
+        steps: studyLibrarySteps.assignYearStep,
+    });
+
+    useEffect(() => {
+        const newLevelList = currentSession
+            ? getCourseLevels(searchParams.courseId!, currentSession.id)
+            : [];
+        setLevelList(newLevelList);
+    }, [currentSession, searchParams.courseId]);
 
     const handleAddLevel = ({
         requestData,
@@ -107,10 +108,14 @@ export const LevelPage = () => {
         levelId?: string;
     }) => {
         addLevelMutation.mutate(
-            { requestData, packageId: packageId || '', sessionId: sessionId || '' },
+            { requestData: requestData, packageId: packageId || '', sessionId: sessionId || '' },
             {
-                onSuccess: () => toast.success('Level added successfully'),
-                onError: (error) => toast.error(error.message || 'Failed to add course'),
+                onSuccess: () => {
+                    toast.success('Level added successfully');
+                },
+                onError: (error) => {
+                    toast.error(error.message || 'Failed to add course');
+                },
             }
         );
     };
@@ -119,32 +124,33 @@ export const LevelPage = () => {
         updateLevelMutation.mutate(
             { requestData },
             {
-                onSuccess: () => toast.success('Level updated successfully'),
-                onError: (error) => toast.error(error.message || 'Failed to update level'),
+                onSuccess: () => {
+                    toast.success('Level updated successfully');
+                },
+                onError: (error) => {
+                    toast.error(error.message || 'Failed to update level');
+                },
             }
         );
     };
 
-    useIntroJsTour({
-        key: StudyLibraryIntroKey.assignYearStep,
-        steps: studyLibrarySteps.assignYearStep,
-    });
-
-    const LevelHeader = () => (
-        <div className="flex items-center gap-8">
-            <div className="flex flex-col gap-2">
-                <div className="text-h3 font-semibold">Level Management</div>
-                <div className="text-subtitle">
-                    Effortlessly manage classes, subjects, and resources to ensure students have
-                    access to the best education materials. Organize, upload, and track study
-                    resources for all levels in one place.
+    const LevelHeader = () => {
+        return (
+            <div className="flex items-center gap-8">
+                <div className="flex flex-col gap-2">
+                    <div className="text-h3 font-semibold">Level Management</div>
+                    <div className="text-subtitle">
+                        Effortlessly manage classes, subjects, and resources to ensure students have
+                        access to the best education materials. Organize, upload, and track study
+                        resources for all levels in one place.
+                    </div>
+                </div>
+                <div className="flex flex-col items-center gap-4">
+                    <AddLevelButton onSubmit={handleAddLevel} />
                 </div>
             </div>
-            <div className="flex flex-col items-center gap-4">
-                <AddLevelButton onSubmit={handleAddLevel} />
-            </div>
-        </div>
-    );
+        );
+    };
 
     return (
         <div className="relative flex flex-1 flex-col gap-8 text-neutral-600">

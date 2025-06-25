@@ -1,20 +1,18 @@
-'use client';
-
-import { FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
-import { Button } from '@/components/ui/button';
-import { Sliders, X } from 'phosphor-react';
-import 'react-quill/dist/quill.snow.css';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { PopoverClose } from '@radix-ui/react-popover';
-import SelectField from '@/components/design-system/select-field';
-import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
-import { QuestionPaperTemplateFormProps } from '../../../-utils/question-paper-template-form';
-import { formatStructure } from '../../../-utils/helper';
-import { QUESTION_TYPES } from '@/constants/dummy-data';
-import { MyInput } from '@/components/design-system/input';
-import { useEffect } from 'react';
-import { CollapsibleQuillEditor } from '../CollapsibleQuillEditor';
-import { Badge } from '@/components/ui/badge';
+import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
+import { Sliders, X } from "phosphor-react";
+import "react-quill/dist/quill.snow.css";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { PopoverClose } from "@radix-ui/react-popover";
+import SelectField from "@/components/design-system/select-field";
+import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
+import { QuestionPaperTemplateFormProps } from "../../../-utils/question-paper-template-form";
+import { formatStructure } from "../../../-utils/helper";
+import { QUESTION_TYPES } from "@/constants/dummy-data";
+import { MyInput } from "@/components/design-system/input";
+import { useEffect } from "react";
+import { CollapsibleQuillEditor } from "../CollapsibleQuillEditor";
+import { Badge } from "@/components/ui/badge";
 
 export const OneWordQuestionPaperTemplateMainView = ({
     form,
@@ -22,15 +20,16 @@ export const OneWordQuestionPaperTemplateMainView = ({
     className,
 }: QuestionPaperTemplateFormProps) => {
     const { control, getValues } = form;
-    const explanationsType = getValues('explanationsType') || 'Explanation:';
-    const questionsType = getValues('questionsType') || '';
-    const allQuestions = getValues('questions') || [];
+    const explanationsType = getValues("explanationsType") || "Explanation:";
+    const questionsType = getValues("questionsType") || "";
+
+    const allQuestions = getValues("questions") || [];
     const tags = getValues(`questions.${currentQuestionIndex}.tags`) || [];
-    const level = getValues(`questions.${currentQuestionIndex}.level`) || '';
+    const level = getValues(`questions.${currentQuestionIndex}.level`) || "";
 
     useEffect(() => {
-        const validAnswers = form.getValues(`questions.${currentQuestionIndex}.validAnswers`);
-        if (!validAnswers) {
+        const validAnswrs = form.getValues(`questions.${currentQuestionIndex}.validAnswers`);
+        if (!validAnswrs) {
             form.setValue(`questions.${currentQuestionIndex}.validAnswers`, [0]);
         }
     }, []);
@@ -60,8 +59,6 @@ export const OneWordQuestionPaperTemplateMainView = ({
                                     <X size={16} />
                                 </PopoverClose>
                             </div>
-
-                            {/* Question Type Dropdown */}
                             <SelectField
                                 label="Question Type"
                                 name={`questions.${currentQuestionIndex}.questionType`}
@@ -74,43 +71,10 @@ export const OneWordQuestionPaperTemplateMainView = ({
                                 className="!w-full"
                                 required
                             />
-
-                            {/* Reattempt Count Field with label and string handling */}
-                            <FormField
-                                control={control}
-                                name={`questions.${currentQuestionIndex}.reattemptCount`}
-                                render={({ field }) => (
-                                    <FormItem className="w-full">
-                                        <label className="mb-1 block text-sm font-medium text-gray-700">
-                                            Reattempt Count
-                                        </label>
-                                        <FormControl>
-                                            <MyInput
-                                                input={
-                                                    field.value !== undefined
-                                                        ? String(field.value)
-                                                        : ''
-                                                }
-                                                inputType="number"
-                                                min={0}
-                                                onChangeFunction={(e) => {
-                                                    const val = e.target.value;
-                                                    field.onChange(
-                                                        val === '' ? '' : Math.max(0, parseInt(val))
-                                                    );
-                                                }}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
                         </div>
                     </PopoverContent>
                 </Popover>
             </div>
-
-            {/* Comprehension Text */}
             {getValues(`questions.${currentQuestionIndex}.parentRichTextContent`) && (
                 <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
                     <span>Comprehension Text</span>
@@ -131,8 +95,6 @@ export const OneWordQuestionPaperTemplateMainView = ({
                     />
                 </div>
             )}
-
-            {/* Question Text */}
             <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
                 <div className="flex items-center gap-2">
                     <span>
@@ -159,17 +121,19 @@ export const OneWordQuestionPaperTemplateMainView = ({
                     )}
                 />
                 <div className="mt-2 flex items-center gap-2">
-                    {tags?.map((tag, idx) => (
-                        <Badge variant="outline" key={idx}>
-                            {tag}
-                        </Badge>
-                    ))}
+                    {tags?.map((tag, idx) => {
+                        return (
+                            <Badge variant="outline" key={idx}>
+                                {tag}
+                            </Badge>
+                        );
+                    })}
                 </div>
             </div>
 
-            {/* Answer Field */}
             <div className="flex w-full flex-col gap-4">
                 <span>Answer</span>
+
                 <FormField
                     control={control}
                     name={`questions.${currentQuestionIndex}.subjectiveAnswerText`}
@@ -190,8 +154,6 @@ export const OneWordQuestionPaperTemplateMainView = ({
                     )}
                 />
             </div>
-
-            {/* Explanation Field */}
             <div className="mb-6 flex w-full flex-col !flex-nowrap items-start gap-1">
                 <span>{explanationsType}</span>
                 <FormField

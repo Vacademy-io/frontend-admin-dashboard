@@ -1,7 +1,7 @@
-import { LevelWithDetailsType } from '@/stores/study-library/use-study-library-store';
-import { useNavigate, useRouter } from '@tanstack/react-router';
-import { LevelMenuOptions } from './level-menu-options';
-import { AddLevelData } from './add-level-form';
+import { LevelWithDetailsType } from "@/stores/study-library/use-study-library-store";
+import { useNavigate, useRouter } from "@tanstack/react-router";
+import { LevelMenuOptions } from "./level-menu-options";
+import { AddLevelData } from "./add-level-form";
 
 export const LevelCard = ({
     level,
@@ -21,8 +21,8 @@ export const LevelCard = ({
     const handleLevelCardClick = (e: React.MouseEvent) => {
         if (
             e.target instanceof Element &&
-            (e.target.closest('.menu-options-container') ||
-                e.target.closest('.drag-handle-container') ||
+            (e.target.closest(".menu-options-container") ||
+                e.target.closest(".drag-handle-container") ||
                 e.target.closest('[role="menu"]') ||
                 e.target.closest('[role="dialog"]'))
         ) {
@@ -40,21 +40,16 @@ export const LevelCard = ({
 
     return (
         <div
-            className="relative flex h-[140px] w-full max-w-[900px] cursor-pointer flex-col justify-between rounded-xl border border-neutral-200 bg-neutral-50 p-4 transition-shadow hover:shadow-md"
+            className={`relative flex h-[100px] w-full cursor-pointer items-center gap-4 rounded-xl border border-neutral-200 bg-neutral-50 py-5`}
             onClick={handleLevelCardClick}
         >
-            {/* TOP: Level name and duration */}
-            <div className="flex flex-col overflow-hidden">
-                <p className="line-clamp-2 break-words text-sm font-semibold text-neutral-700">
-                    {level.name}
-                </p>
-                <p className="mt-1 text-xs text-neutral-500">
-                    Duration: {level.duration_in_days} days
-                </p>
-            </div>
-
-            {/* BOTTOM-RIGHT: Menu Options */}
-            <div className="flex justify-end">
+            <div className="flex w-full items-end justify-between gap-3 px-5">
+                <div className="flex flex-col text-wrap">
+                    <p className="text-subtitle font-semibold text-neutral-600">{level.name}</p>
+                    <p className="text-caption text-neutral-400">
+                        Duration: {level.duration_in_days} days
+                    </p>
+                </div>
                 <LevelMenuOptions
                     onDelete={onDelete}
                     onEdit={onEdit}

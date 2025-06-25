@@ -63,12 +63,33 @@ const StudyLibraryAssignmentPreview = ({ activeItem }: { activeItem: Slide }) =>
             });
         });
 
-        return () => subscription.unsubscribe();
+        return () => subscription.unsubscribe(); // cleanup
     }, [watch, items, activeItem, form, setItems]);
 
     return (
         <div key={`assignment-${activeItem.id}`} className="flex size-full flex-col gap-8">
             <FormProvider {...form}>
+                <FormField
+                    control={form.control}
+                    name="task"
+                    render={({ field: { onChange, value, ...field } }) => (
+                        <FormItem>
+                            <FormControl>
+                                <MyInput
+                                    inputType="text"
+                                    label="Task Name"
+                                    inputPlaceholder="Add Title"
+                                    input={value}
+                                    onChangeFunction={onChange}
+                                    required={false}
+                                    size="large"
+                                    className="w-96"
+                                    {...field}
+                                />
+                            </FormControl>
+                        </FormItem>
+                    )}
+                />
                 <div className="flex flex-col gap-6">
                     <h1 className="-mb-5">Task Description</h1>
                     <FormField
@@ -92,7 +113,7 @@ const StudyLibraryAssignmentPreview = ({ activeItem }: { activeItem: Slide }) =>
                         <FormField
                             control={form.control}
                             name="startDate"
-                            render={({ field }) => (
+                            render={({ field: { ...field } }) => (
                                 <FormItem>
                                     <FormControl>
                                         <MyInput
@@ -113,7 +134,7 @@ const StudyLibraryAssignmentPreview = ({ activeItem }: { activeItem: Slide }) =>
                         <FormField
                             control={form.control}
                             name="endDate"
-                            render={({ field }) => (
+                            render={({ field: { ...field } }) => (
                                 <FormItem>
                                     <FormControl>
                                         <MyInput
@@ -149,7 +170,7 @@ const StudyLibraryAssignmentPreview = ({ activeItem }: { activeItem: Slide }) =>
                                     size="large"
                                     className="w-96"
                                     {...field}
-                                    min={1}
+                                    min={0}
                                     onKeyDown={(e) => {
                                         if (['e', 'E', '-', '+'].includes(e.key)) {
                                             e.preventDefault();
@@ -283,17 +304,19 @@ const StudyLibraryAssignmentPreview = ({ activeItem }: { activeItem: Slide }) =>
                                 </TableRow>
                             </TableHeader>
                             <TableBody className="bg-neutral-50">
-                                {adaptive_marking_for_each_question?.map((question, idx) => (
-                                    <TableRow key={idx}>
-                                        <TableCell>{idx + 1}</TableCell>
-                                        <TableCell
-                                            dangerouslySetInnerHTML={{
-                                                __html: question.questionName || '',
-                                            }}
-                                        />
-                                        <TableCell>{question.questionType}</TableCell>
-                                    </TableRow>
-                                ))}
+                                {adaptive_marking_for_each_question?.map((question, idx) => {
+                                    return (
+                                        <TableRow key={idx}>
+                                            <TableCell>{idx + 1}</TableCell>
+                                            <TableCell
+                                                dangerouslySetInnerHTML={{
+                                                    __html: question.questionName || '',
+                                                }}
+                                            />
+                                            <TableCell>{question.questionType}</TableCell>
+                                        </TableRow>
+                                    );
+                                })}
                             </TableBody>
                         </Table>
                     </div>
