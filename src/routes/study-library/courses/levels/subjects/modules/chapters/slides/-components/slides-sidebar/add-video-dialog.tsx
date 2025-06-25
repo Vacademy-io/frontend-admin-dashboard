@@ -12,7 +12,6 @@ import { Route } from '@/routes/study-library/courses/levels/subjects/modules/ch
 import { useContentStore } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
 import { useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { YoutubeLogo, CheckCircle, PlayCircle } from '@phosphor-icons/react';
 
 const formSchema = z.object({
@@ -23,7 +22,6 @@ const formSchema = z.object({
         .refine((url) => url.includes('youtube.com') || url.includes('youtu.be'), {
             message: 'Please enter a valid YouTube URL',
         }),
-    videoName: z.string().min(1, 'Video title is required'),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -38,10 +36,13 @@ export const AddVideoDialog = ({
     const { setActiveItem, getSlideById } = useContentStore();
     const [isAPIReady, setIsAPIReady] = useState(false);
     const [isValidUrl, setIsValidUrl] = useState(false);
-    const [videoPreview, setVideoPreview] = useState<{ title: string; thumbnail: string } | null>(null);
+    const [videoPreview, setVideoPreview] = useState<{ title: string; thumbnail: string } | null>(
+        null
+    );
     const containerRef = useRef<HTMLDivElement>(null);
     const queryClient = useQueryClient();
     const [isVideoUploading, setIsVideoUploading] = useState(false);
+    const [autoTitle, setAutoTitle] = useState('');
 
     const extractVideoId = (url: string): string => {
         const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -49,7 +50,6 @@ export const AddVideoDialog = ({
         return match && match[2]?.length === 11 ? match[2] : '';
     };
 
-    // Function to load YouTube IFrame API
     const loadYouTubeAPI = () => {
         if (window.YT) {
             setIsAPIReady(true);
@@ -71,34 +71,31 @@ export const AddVideoDialog = ({
         loadYouTubeAPI();
     }, []);
 
-    // Auto-populate title from URL
     const handleUrlChange = (url: string) => {
         const videoId = extractVideoId(url);
         if (videoId) {
             setIsValidUrl(true);
-            // Try to get video title and thumbnail from YouTube
             fetch(`https://www.youtube.com/oembed?url=${url}&format=json`)
-                .then(response => response.json())
-                .then(data => {
-                    form.setValue('videoName', data.title || 'YouTube Video');
+                .then((response) => response.json())
+                .then((data) => {
+                    setAutoTitle(data.title || 'YouTube Video');
                     setVideoPreview({
                         title: data.title,
-                        thumbnail: data.thumbnail_url
+                        thumbnail: data.thumbnail_url,
                     });
                 })
                 .catch(() => {
-                    // Fallback if API fails
-                    form.setValue('videoName', 'YouTube Video');
+                    setAutoTitle('YouTube Video');
                     setVideoPreview(null);
                 });
         } else {
             setIsValidUrl(false);
             setVideoPreview(null);
+            setAutoTitle('');
         }
     };
 
     const handleSubmit = async (data: FormValues) => {
-        console.log("data: ",data);
         try {
             const videoId = extractVideoId(data.videoUrl);
             if (!videoId) {
@@ -106,7 +103,6 @@ export const AddVideoDialog = ({
                 return;
             }
 
-            // Create a temporary player to get duration
             if (containerRef.current && isAPIReady) {
                 const playerContainer = document.createElement('div');
                 containerRef.current.innerHTML = '';
@@ -123,17 +119,12 @@ export const AddVideoDialog = ({
                     events: {
                         onReady: (event) => {
                             const duration = event.target.getDuration();
-
-                            // Submit the form with the duration
                             submitFormWithDuration(data, duration * 1000);
-
-                            // Clean up
                             event.target.destroy();
                         },
                     },
                 });
             } else {
-                // If player creation fails, submit without duration
                 submitFormWithDuration(data, 0);
             }
         } catch (error) {
@@ -147,7 +138,7 @@ export const AddVideoDialog = ({
             const slideId = crypto.randomUUID();
             const response: string = await addUpdateVideoSlide({
                 id: slideId,
-                title: data.videoName,
+                title: autoTitle,
                 description: null,
                 image_file_id: null,
                 slide_order: 0,
@@ -155,7 +146,7 @@ export const AddVideoDialog = ({
                     id: crypto.randomUUID(),
                     description: '',
                     url: data.videoUrl,
-                    title: data.videoName,
+                    title: autoTitle,
                     video_length_in_millis: duration,
                     published_url: null,
                     published_video_length_in_millis: 0,
@@ -170,10 +161,10 @@ export const AddVideoDialog = ({
             form.reset();
             setVideoPreview(null);
             setIsValidUrl(false);
+            setAutoTitle('');
             openState?.(false);
             setActiveItem(getSlideById(response));
             await queryClient.invalidateQueries({ queryKey: ['slides'] });
-            queryClient.getQueryData(['slides']);
         } catch (error) {
             toast.error('Failed to add video');
         } finally {
@@ -185,7 +176,6 @@ export const AddVideoDialog = ({
         resolver: zodResolver(formSchema),
         defaultValues: {
             videoUrl: '',
-            videoName: '',
         },
     });
 
@@ -193,9 +183,8 @@ export const AddVideoDialog = ({
         <Form {...form}>
             <form
                 onSubmit={form.handleSubmit(handleSubmit)}
-                className="flex w-full flex-col gap-6 text-neutral-600 p-6"
+                className="flex w-full flex-col gap-6 p-6 text-neutral-600"
             >
-                {/* URL Input with enhanced styling */}
                 <div className="space-y-4">
                     <FormField
                         control={form.control}
@@ -216,11 +205,11 @@ export const AddVideoDialog = ({
                                             }}
                                             className="w-full pr-12"
                                         />
-                                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 mt-3">
+                                        <div className="absolute right-3 top-1/2 mt-3 -translate-y-1/2">
                                             {isValidUrl ? (
-                                                <CheckCircle className="w-5 h-5 text-green-500 animate-in fade-in duration-300" />
+                                                <CheckCircle className="size-5 text-green-500 duration-300 animate-in fade-in" />
                                             ) : (
-                                                <YoutubeLogo className="w-5 h-5 text-neutral-400" />
+                                                <YoutubeLogo className="size-5 text-neutral-400" />
                                             )}
                                         </div>
                                     </div>
@@ -231,56 +220,33 @@ export const AddVideoDialog = ({
 
                     {/* Video Preview */}
                     {videoPreview && (
-                        <div className="p-4 bg-neutral-50 rounded-xl border animate-in fade-in slide-in-from-bottom-2 duration-500">
+                        <div className="rounded-xl border bg-neutral-50 p-4 duration-500 animate-in fade-in slide-in-from-bottom-2">
                             <div className="flex items-center gap-3">
-                                <div className="relative flex-shrink-0">
-                                    <img 
+                                <div className="relative shrink-0">
+                                    <img
                                         src={videoPreview.thumbnail}
                                         alt="Video thumbnail"
-                                        className="w-16 h-12 object-cover rounded-lg"
+                                        className="h-12 w-16 rounded-lg object-cover"
                                     />
                                     <div className="absolute inset-0 flex items-center justify-center">
-                                        <PlayCircle className="w-6 h-6 text-white drop-shadow-lg" />
+                                        <PlayCircle className="size-6 text-white drop-shadow-lg" />
                                     </div>
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium text-neutral-700 truncate">
+                                <div className="min-w-0 flex-1">
+                                    <p className="truncate text-sm font-medium text-neutral-700">
                                         {videoPreview.title}
                                     </p>
                                     <p className="text-xs text-neutral-500">YouTube Video</p>
                                 </div>
-                                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                                <CheckCircle className="size-5 shrink-0 text-green-500" />
                             </div>
                         </div>
                     )}
                 </div>
 
-                {/* Title Input */}
-                <FormField
-                    control={form.control}
-                    name="videoName"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormControl>
-                                <MyInput
-                                    {...field}
-                                    label="Video Title"
-                                    required={true}
-                                    input={field.value}
-                                    inputType="text"
-                                    inputPlaceholder="Enter a descriptive title"
-                                    onChangeFunction={field.onChange}
-                                    className="w-full"
-                                />
-                            </FormControl>
-                        </FormItem>
-                    )}
-                />
-
                 <div ref={containerRef} className="hidden" />
 
-                {/* Enhanced Submit Button */}
-                <div className="flex justify-end pt-4 border-t border-neutral-100">
+                <div className="flex justify-end border-t border-neutral-100 pt-4">
                     {isVideoUploading ? (
                         <MyButton
                             type="button"
@@ -290,7 +256,7 @@ export const AddVideoDialog = ({
                             className="w-full"
                         >
                             <div className="flex items-center justify-center gap-2">
-                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                <div className="size-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                                 Adding Video...
                             </div>
                         </MyButton>
@@ -300,17 +266,18 @@ export const AddVideoDialog = ({
                             buttonType="primary"
                             scale="large"
                             layoutVariant="default"
-                            disabled={!form.getValues('videoName') || !form.getValues('videoUrl') || !isValidUrl}
+                            disabled={!form.getValues('videoUrl') || !isValidUrl}
                             className={`
                                 w-full transition-all duration-300 ease-in-out
-                                ${!form.getValues('videoName') || !form.getValues('videoUrl') || !isValidUrl
-                                    ? 'opacity-50 cursor-not-allowed'
-                                    : 'hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl'
+                                ${
+                                    !form.getValues('videoUrl') || !isValidUrl
+                                        ? 'cursor-not-allowed opacity-50'
+                                        : 'shadow-lg hover:scale-105 hover:shadow-xl active:scale-95'
                                 }
                             `}
                         >
                             <div className="flex items-center justify-center gap-2">
-                                <YoutubeLogo className="w-4 h-4" />
+                                <YoutubeLogo className="size-4" />
                                 Add YouTube Video
                             </div>
                         </MyButton>

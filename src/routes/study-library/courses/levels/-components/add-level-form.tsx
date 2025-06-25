@@ -1,15 +1,15 @@
 // add-subject-form.tsx
-import { MyInput } from "@/components/design-system/input";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { useRouter } from "@tanstack/react-router";
-import { useSelectedSessionStore } from "@/stores/study-library/selected-session-store";
-import { Checkbox } from "@/components/ui/checkbox";
-import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-import { AddSessionInput } from "@/components/design-system/add-session-input";
+import { MyInput } from '@/components/design-system/input';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react';
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
+import { useRouter } from '@tanstack/react-router';
+import { useSelectedSessionStore } from '@/stores/study-library/selected-session-store';
+import { Checkbox } from '@/components/ui/checkbox';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { AddSessionInput } from '@/components/design-system/add-session-input';
 
 const formSchema = z.object({
     id: z.string().optional(),
@@ -24,7 +24,7 @@ const formSchema = z.object({
             session_name: z.string(),
             status: z.string(),
             start_date: z.string().optional(),
-        }),
+        })
     ),
 });
 
@@ -61,22 +61,22 @@ export const AddLevelForm = ({
     submitForm,
     packageId,
 }: AddLevelFormProps) => {
-    const [newSessionName, setNewSessionName] = useState("");
+    const [newSessionName, setNewSessionName] = useState('');
     const { instituteDetails, getAllSessions } = useInstituteDetailsStore();
     const [sessionList, setSessionList] = useState<Session[]>(getAllSessions);
-    const [newSessionStartDate, setNewSessionStartDate] = useState<string>("");
+    const [newSessionStartDate, setNewSessionStartDate] = useState<string>('');
 
     const route = useRouter();
     const search = route.state.location.search;
-    const courseId: string = packageId ? packageId : search.courseId || "";
+    const courseId: string = packageId ? packageId : search.courseId || '';
     const { selectedSession } = useSelectedSessionStore();
 
     const handleAddSession = (sessionName: string, startDate: string) => {
         const newSession = {
-            id: "",
+            id: '',
             new_session: true,
             session_name: sessionName,
-            status: "INACTIVE",
+            status: 'INACTIVE',
             start_date: startDate,
         };
         setSessionList((prevSessionList) => [...prevSessionList, newSession]);
@@ -89,8 +89,8 @@ export const AddLevelForm = ({
     const form = useForm<AddLevelData>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            id: initialValues?.id || "",
-            level_name: initialValues?.level_name || "",
+            id: initialValues?.id || '',
+            level_name: initialValues?.level_name || '',
             new_level: initialValues?.new_level || true,
             duration_in_days: initialValues?.duration_in_days || 0,
             thumbnail_file_id: null,
@@ -101,11 +101,11 @@ export const AddLevelForm = ({
     const onSubmit = (data: AddLevelData) => {
         const submissionData = {
             ...data,
-            status: "ACTIVE",
+            status: 'ACTIVE',
         };
         onSubmitSuccess({
             packageId: packageId ? packageId : courseId,
-            sessionId: selectedSession?.id || "",
+            sessionId: selectedSession?.id || '',
             requestData: submissionData,
         });
         setOpenDialog(false);
@@ -165,7 +165,7 @@ export const AddLevelForm = ({
                                     inputType="number"
                                     inputPlaceholder="Enter duration in days"
                                     className="w-[352px]"
-                                    input={field.value?.toString() || ""}
+                                    input={field.value?.toString() || ''}
                                     onChangeFunction={(e) =>
                                         field.onChange(Math.floor(Number(e.target.value)))
                                     }
@@ -196,7 +196,7 @@ export const AddLevelForm = ({
                                                             className="data-[state=checked]:bg-primary-500 data-[state=checked]:text-white"
                                                             checked={
                                                                 field.value?.some(
-                                                                    (s) => s.id === session.id,
+                                                                    (s) => s.id === session.id
                                                                 ) ?? false
                                                             }
                                                             onCheckedChange={(checked) => {
@@ -207,13 +207,13 @@ export const AddLevelForm = ({
                                                                     sessions.push({
                                                                         ...session,
                                                                         new_session:
-                                                                            session.id === "",
+                                                                            session.id === '',
                                                                     });
                                                                 } else {
                                                                     const index =
                                                                         sessions.findIndex(
                                                                             (s) =>
-                                                                                s.id === session.id,
+                                                                                s.id === session.id
                                                                         );
                                                                     if (index !== -1) {
                                                                         sessions.splice(index, 1);

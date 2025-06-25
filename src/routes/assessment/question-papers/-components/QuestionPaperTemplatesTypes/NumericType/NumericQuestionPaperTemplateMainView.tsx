@@ -1,21 +1,22 @@
-import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
-import { Sliders, X, Plus } from "phosphor-react";
-import { Checkbox } from "@/components/ui/checkbox";
-import "react-quill/dist/quill.snow.css";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { PopoverClose } from "@radix-ui/react-popover";
-import SelectField from "@/components/design-system/select-field";
-import CustomInput from "@/components/design-system/custom-input";
-import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
-import { QuestionPaperTemplateFormProps } from "../../../-utils/question-paper-template-form";
-import { formatStructure } from "../../../-utils/helper";
-import { QUESTION_TYPES, NUMERIC_TYPES } from "@/constants/dummy-data";
-import { MyInput } from "@/components/design-system/input";
-import { useState, useEffect } from "react";
-import { CollapsibleQuillEditor } from "../CollapsibleQuillEditor";
-import { useWatch } from "react-hook-form";
-import { Badge } from "@/components/ui/badge";
+'use client';
+
+import { FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
+import { Sliders, X, Plus } from 'phosphor-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import 'react-quill/dist/quill.snow.css';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { PopoverClose } from '@radix-ui/react-popover';
+import SelectField from '@/components/design-system/select-field';
+import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
+import { QuestionPaperTemplateFormProps } from '../../../-utils/question-paper-template-form';
+import { formatStructure } from '../../../-utils/helper';
+import { QUESTION_TYPES, NUMERIC_TYPES } from '@/constants/dummy-data';
+import { MyInput } from '@/components/design-system/input';
+import { useState, useEffect } from 'react';
+import { CollapsibleQuillEditor } from '../CollapsibleQuillEditor';
+import { useWatch } from 'react-hook-form';
+import { Badge } from '@/components/ui/badge';
 
 export const NumericQuestionPaperTemplateMainView = ({
     form,
@@ -30,11 +31,11 @@ export const NumericQuestionPaperTemplateMainView = ({
     const validAnswers = watch(`questions.${currentQuestionIndex}.validAnswers`);
 
     useWatch({ control });
-    const answersType = getValues("answersType") || "Answer:";
-    const explanationsType = getValues("explanationsType") || "Explanation:";
-    const questionsType = getValues("questionsType") || "";
+    const answersType = getValues('answersType') || 'Answer:';
+    const explanationsType = getValues('explanationsType') || 'Explanation:';
+    const questionsType = getValues('questionsType') || '';
     const tags = getValues(`questions.${currentQuestionIndex}.tags`) || [];
-    const level = getValues(`questions.${currentQuestionIndex}.level`) || "";
+    const level = getValues(`questions.${currentQuestionIndex}.level`) || '';
 
     useEffect(() => {
         const validAnswrs = form.getValues(`questions.${currentQuestionIndex}.validAnswers`);
@@ -46,6 +47,7 @@ export const NumericQuestionPaperTemplateMainView = ({
     useEffect(() => {
         if (validAnswers && validAnswers?.length > 1) setIsMultipleAnswersAllowed(true);
     }, []);
+
     useEffect(() => {
         trigger(`questions.${currentQuestionIndex}.validAnswers`);
     }, [numericType, currentQuestionIndex, trigger]);
@@ -62,7 +64,7 @@ export const NumericQuestionPaperTemplateMainView = ({
                     <PopoverContent>
                         <div className="mb-2 flex flex-col gap-4">
                             <div className="flex w-full items-center justify-between">
-                                <h1 className="text-primary-500">Questions Settings</h1>
+                                <h1 className="text-primary-500">Questions Settings......</h1>
                                 <PopoverClose>
                                     <X size={16} />
                                 </PopoverClose>
@@ -91,16 +93,50 @@ export const NumericQuestionPaperTemplateMainView = ({
                                 className="!w-full"
                                 required
                             />
-                            <CustomInput
+                            <FormField
                                 control={form.control}
                                 name={`questions.${currentQuestionIndex}.decimals`}
-                                label="Decimal Precision"
-                                required
+                                render={({ field }) => (
+                                    <FormItem className="w-full">
+                                        <FormControl>
+                                            <MyInput
+                                                label="Decimal Precision"
+                                                input={field.value?.toString() || ''}
+                                                inputType="number"
+                                                onChangeFunction={(e) =>
+                                                    field.onChange(parseInt(e.target.value || '0'))
+                                                }
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name={`questions.${currentQuestionIndex}.reattemptCount`}
+                                render={({ field }) => (
+                                    <FormItem className="w-full">
+                                        <FormControl>
+                                            <MyInput
+                                                label="Reattempt Count"
+                                                input={field.value?.toString() || ''}
+                                                inputType="number"
+                                                min={0}
+                                                onChangeFunction={(e) =>
+                                                    field.onChange(parseInt(e.target.value || '0'))
+                                                }
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
                             />
                         </div>
                     </PopoverContent>
                 </Popover>
             </div>
+
             {getValues(`questions.${currentQuestionIndex}.parentRichTextContent`) && (
                 <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
                     <span>Comprehension Text</span>
@@ -121,6 +157,7 @@ export const NumericQuestionPaperTemplateMainView = ({
                     />
                 </div>
             )}
+
             <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
                 <div className="flex items-center gap-2">
                     <span>
@@ -147,13 +184,11 @@ export const NumericQuestionPaperTemplateMainView = ({
                     )}
                 />
                 <div className="mt-2 flex items-center gap-2">
-                    {tags?.map((tag, idx) => {
-                        return (
-                            <Badge variant="outline" key={idx}>
-                                {tag}
-                            </Badge>
-                        );
-                    })}
+                    {tags?.map((tag, idx) => (
+                        <Badge variant="outline" key={idx}>
+                            {tag}
+                        </Badge>
+                    ))}
                 </div>
             </div>
 
@@ -170,17 +205,11 @@ export const NumericQuestionPaperTemplateMainView = ({
                                         <Checkbox
                                             checked={isMultipleAnswersAllowed}
                                             onCheckedChange={(checked) => {
-                                                // const check =
-                                                //     !!checked ||
-                                                //     (validAnswers
-                                                //         ? validAnswers?.length > 1
-                                                //         : false);
                                                 setIsMultipleAnswersAllowed(!!checked);
                                                 if (!checked) {
-                                                    // If unchecked, keep only the first answer
                                                     form.setValue(
                                                         `questions.${currentQuestionIndex}.validAnswers`,
-                                                        field.value ? [field.value[0] || 0] : [0],
+                                                        field.value ? [field.value[0] || 0] : [0]
                                                     );
                                                 }
                                             }}
@@ -204,7 +233,6 @@ export const NumericQuestionPaperTemplateMainView = ({
                                     {Array.isArray(field.value) &&
                                         field.value.map((answer, index) => (
                                             <div key={index} className="flex items-center gap-2">
-                                                {/* Input for each validAnswer */}
                                                 <MyInput
                                                     input={answer.toString()}
                                                     onChangeFunction={(e) => {
@@ -212,20 +240,19 @@ export const NumericQuestionPaperTemplateMainView = ({
                                                             ...(field.value ?? []),
                                                         ];
                                                         updatedAnswers[index] =
-                                                            parseFloat(e.target.value) || 0; // Ensure number
+                                                            parseFloat(e.target.value) || 0;
                                                         field.onChange(updatedAnswers);
                                                     }}
                                                     inputType="number"
                                                 />
-                                                {/* Remove button for each answer */}
                                                 {isMultipleAnswersAllowed && (
                                                     <button
                                                         type="button"
                                                         onClick={() => {
                                                             field.onChange(
                                                                 field.value?.filter(
-                                                                    (_, i) => i !== index,
-                                                                ),
+                                                                    (_, i) => i !== index
+                                                                )
                                                             );
                                                         }}
                                                     >
@@ -234,7 +261,6 @@ export const NumericQuestionPaperTemplateMainView = ({
                                                 )}
                                             </div>
                                         ))}
-                                    {/* Add new answer */}
                                     {isMultipleAnswersAllowed && (
                                         <Button
                                             variant="outline"
@@ -254,6 +280,7 @@ export const NumericQuestionPaperTemplateMainView = ({
                     )}
                 />
             </div>
+
             <div className="mb-6 flex w-full flex-col !flex-nowrap items-start gap-1">
                 <span>{explanationsType}</span>
                 <FormField

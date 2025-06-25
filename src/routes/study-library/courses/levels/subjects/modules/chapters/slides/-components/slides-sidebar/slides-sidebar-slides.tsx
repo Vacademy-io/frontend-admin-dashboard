@@ -1,7 +1,16 @@
 import { Sortable, SortableDragHandle, SortableItem } from '@/components/ui/sortable';
 import { truncateString } from '@/lib/reusable/truncateString';
 import { useContentStore } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
-import { DotsSixVertical, FileDoc, FilePdf, PlayCircle } from '@phosphor-icons/react';
+import {
+    DotsSixVertical,
+    FileDoc,
+    FilePdf,
+    PlayCircle,
+    PresentationChart,
+    Question,
+    File,
+    CheckCircle,
+} from '@phosphor-icons/react';
 import { ReactNode, useEffect } from 'react';
 import {
     Slide,
@@ -11,7 +20,6 @@ import {
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { useRouter } from '@tanstack/react-router';
 import { useFieldArray, useForm } from 'react-hook-form';
-import { CheckCircle, File, Question } from 'phosphor-react';
 import { useSaveDraft } from '../../-context/saveDraftContext';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -26,18 +34,18 @@ export const getIcon = (
 ): ReactNode => {
     const sizeClass = `size-${size ? size : '5'}`;
     const iconClass = `${sizeClass} transition-all duration-200 ease-in-out group-hover:scale-105`;
-    
+
     if (source_type === 'ASSIGNMENT') {
         return <File className={`${iconClass} text-blue-500`} />;
     }
-    
+
     const type =
         source_type === 'QUESTION'
             ? 'QUESTION'
             : source_type === 'VIDEO'
               ? 'VIDEO'
               : source_type === 'DOCUMENT' && document_slide_type;
-              
+
     switch (type) {
         case 'PDF':
             return <FilePdf className={`${iconClass} text-red-500`} />;
@@ -48,36 +56,45 @@ export const getIcon = (
             return <FileDoc className={`${iconClass} text-blue-600`} />;
         case 'QUESTION':
             return <Question className={`${iconClass} text-purple-500`} />;
+        case 'PRESENTATION':
+            return <PresentationChart className={`${iconClass} text-orange-500`} />;
         default:
             return <></>;
     }
 };
 
-// Enhanced Slide Item Component
-const SlideItem = ({ 
-    slide, 
-    index, 
-    isActive, 
-    onClick 
-}: { 
-    slide: Slide; 
-    index: number; 
-    isActive: boolean; 
+const SlideItem = ({
+    slide,
+    index,
+    isActive,
+    onClick,
+}: {
+    slide: Slide;
+    index: number;
+    isActive: boolean;
     onClick: () => void;
 }) => {
     const getSlideTitle = () => {
-        return (slide.source_type === 'DOCUMENT' && slide.document_slide?.title) ||
-               (slide.source_type === 'VIDEO' && slide.video_slide?.title) ||
-               (slide.source_type === 'QUESTION' && slide?.title) ||
-               (slide.source_type === 'ASSIGNMENT' && slide?.title) ||
-               'Untitled';
+        return (
+            (slide.source_type === 'DOCUMENT' && slide.document_slide?.title) ||
+            (slide.source_type === 'VIDEO' && slide.video_slide?.title) ||
+            slide?.title ||
+            'Untitled'
+        );
+    };
+
+    const getSlideType = () => {
+        if (slide.source_type === 'DOCUMENT') {
+            return slide.document_slide?.type?.toLowerCase();
+        }
+        return slide.source_type?.toLowerCase().replace('_', ' ');
     };
 
     const getStatusBadge = () => {
         const status = slide.status;
         if (status === 'DRAFT') {
             return (
-                <div className="inline-flex items-center px-1 py-0.5 text-xs font-medium bg-yellow-50 text-yellow-600 rounded-full border border-yellow-200">
+                <div className="inline-flex items-center rounded-full border border-yellow-200 bg-yellow-50 px-1 py-0.5 text-xs font-medium text-yellow-600">
                     D
                 </div>
             );
@@ -93,7 +110,7 @@ const SlideItem = ({
         }
         if (status === 'UNSYNC') {
             return (
-                <div className="inline-flex items-center px-1 py-0.5 text-xs font-medium bg-orange-50 text-orange-600 rounded-full border border-orange-200">
+                <div className="inline-flex items-center rounded-full border border-orange-200 bg-orange-50 px-1 py-0.5 text-xs font-medium text-orange-600">
                     U
                 </div>
             );
@@ -102,80 +119,71 @@ const SlideItem = ({
     };
 
     return (
-        <SortableItem value={slide.id} asChild className="cursor-pointer group">
-            <div 
-                className="w-full transform transition-all duration-300 ease-in-out hover:scale-[1.01] animate-in fade-in slide-in-from-left-2" 
+        <SortableItem value={slide.id} asChild className="group cursor-pointer">
+            <div
+                className="w-full transition-all duration-300 ease-in-out animate-in fade-in slide-in-from-left-2 hover:scale-[1.01]"
                 onClick={onClick}
             >
                 <div
-                    className={`
-                        flex w-full items-center gap-2.5 rounded-lg px-3 py-2
-                        transition-all duration-300 ease-in-out
-                        border backdrop-blur-sm
-                        ${isActive
-                            ? 'border-primary-300 bg-primary-50/80 text-primary-600 shadow-md shadow-primary-100/50'
-                            : 'border-neutral-100 bg-white/60 text-neutral-600 hover:border-primary-200 hover:bg-primary-25 hover:text-primary-500 hover:shadow-sm'
-                        }
-                        group-hover:shadow-md
-                    `}
+                    className={`flex w-full items-center gap-2.5 rounded-lg border px-3 py-2 backdrop-blur-sm transition-all duration-300 ease-in-out ${
+                        isActive
+                            ? 'text-primary-600 border-primary-300 bg-primary-50/80 shadow-md shadow-primary-100/50'
+                            : 'hover:bg-primary-25 border-neutral-100 bg-white/60 text-neutral-600 hover:border-primary-200 hover:text-primary-500 hover:shadow-sm'
+                    } group-hover:shadow-md`}
                 >
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger className="w-full">
                                 <div className="flex flex-1 items-center gap-2.5">
-                                    {/* Slide Number with enhanced styling */}
-                                    <div className={`
-                                        flex items-center justify-center w-6 h-6 rounded-md text-xs font-bold
-                                        transition-all duration-200 ease-in-out group-hover:scale-105
-                                        ${isActive 
-                                            ? 'bg-primary-500 text-white shadow-sm' 
-                                            : 'bg-neutral-100 text-neutral-500 group-hover:bg-primary-100 group-hover:text-primary-600'
-                                        }
-                                    `}>
+                                    <div
+                                        className={`flex size-6 items-center justify-center rounded-md text-xs font-bold transition-all duration-200 ease-in-out group-hover:scale-105 ${
+                                            isActive
+                                                ? 'bg-primary-500 text-white shadow-sm'
+                                                : 'group-hover:text-primary-600 bg-neutral-100 text-neutral-500 group-hover:bg-primary-100'
+                                        }`}
+                                    >
                                         {index + 1}
                                     </div>
-                                    
-                                    {/* Icon with enhanced styling */}
-                                    <div className="flex-shrink-0">
-                                        {getIcon(slide.source_type, slide.document_slide?.type, '4')}
+
+                                    <div className="shrink-0">
+                                        {getIcon(
+                                            slide.source_type,
+                                            slide.document_slide?.type,
+                                            '4'
+                                        )}
                                     </div>
-                                    
-                                    {/* Content area */}
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-medium truncate leading-tight">
+
+                                    <div className="min-w-0 flex-1">
+                                        <p className="truncate text-sm font-medium leading-tight">
                                             {truncateString(getSlideTitle(), 18)}
                                         </p>
-                                        <p className="text-xs text-neutral-400 capitalize mt-0.5 leading-tight">
-                                            {slide.source_type.toLowerCase().replace('_', ' ')}
+                                        <p className="mt-0.5 text-xs capitalize leading-tight text-neutral-400">
+                                            {getSlideType()}
                                         </p>
                                     </div>
-                                    
-                                    {/* Status indicator */}
-                                    <div className="flex-shrink-0">
-                                        {getStatusBadge()}
-                                    </div>
+
+                                    <div className="shrink-0">{getStatusBadge()}</div>
                                 </div>
                             </TooltipTrigger>
-                            <TooltipContent 
-                                className="border border-neutral-300 bg-white/95 backdrop-blur-sm text-neutral-700 shadow-lg max-w-xs"
+                            <TooltipContent
+                                className="max-w-xs border border-neutral-300 bg-white/95 text-neutral-700 shadow-lg backdrop-blur-sm"
                                 side="right"
                             >
                                 <div className="space-y-1">
                                     <p className="font-medium">{getSlideTitle()}</p>
-                                    <p className="text-xs text-neutral-500 capitalize">
-                                        {slide.source_type.toLowerCase().replace('_', ' ')} • {slide.status.toLowerCase()}
+                                    <p className="text-xs capitalize text-neutral-500">
+                                        {getSlideType()} • {slide.status.toLowerCase()}
                                     </p>
                                 </div>
                             </TooltipContent>
                         </Tooltip>
                     </TooltipProvider>
-                    
-                    {/* Drag handle with enhanced styling */}
-                    <div className="drag-handle-container opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+
+                    <div className="drag-handle-container opacity-0 transition-opacity duration-200 group-hover:opacity-100">
                         <SortableDragHandle
                             variant="ghost"
                             size="icon"
-                            className="cursor-grab hover:bg-neutral-100 active:cursor-grabbing h-6 w-6 rounded-md transition-all duration-200 hover:scale-105 active:scale-95"
+                            className="size-6 cursor-grab rounded-md transition-all duration-200 hover:scale-105 hover:bg-neutral-100 active:scale-95 active:cursor-grabbing"
                         >
                             <DotsSixVertical className="size-3 shrink-0 text-neutral-400" />
                         </SortableDragHandle>
@@ -202,7 +210,6 @@ export const ChapterSidebarSlides = ({
     }, []);
 
     const handleSlideClick = async (slide: Slide) => {
-        // Check if we need to save the current slide before switching
         if (
             activeItem &&
             activeItem.source_type === 'DOCUMENT' &&
@@ -224,7 +231,6 @@ export const ChapterSidebarSlides = ({
             }
         }
 
-        // Now set the new active item
         setActiveItem(slide);
     };
 
@@ -241,17 +247,11 @@ export const ChapterSidebarSlides = ({
 
     const handleMove = ({ activeIndex, overIndex }: { activeIndex: number; overIndex: number }) => {
         move(activeIndex, overIndex);
-
-        // Create order payload after move
         const updatedFields = form.getValues('slides');
-
-        // Create order payload with the updated order
         const orderPayload = updatedFields.map((slide, index) => ({
             slide_id: slide.id,
             slide_order: index + 1,
         }));
-
-        // Call the handler to update the order through API
         handleSlideOrderChange(orderPayload);
     };
 
@@ -265,16 +265,20 @@ export const ChapterSidebarSlides = ({
             setItems(slides as Slide[]);
 
             if (slideId) {
-                const targetSlide = slides.find((item) => item.id === slideId) as Slide | undefined;
+                const targetSlide = slides.find((item) => item.id === slideId);
                 if (targetSlide) {
                     setActiveItem(targetSlide);
                     return;
                 }
             }
 
-            setActiveItem(slides[0] as Slide);
+<<<<<<< HEAD
+            setActiveItem(slides[0] ?? null); // ✅ Fix applied here
+=======
+            setActiveItem(slides[0]);
+>>>>>>> 46a334276a0f4020e9f8aaf6e434888ef81d9e29
         } else {
-            if (slideId == undefined) {
+            if (slideId === undefined) {
                 setActiveItem(null);
             } else {
                 setActiveItem({
@@ -299,7 +303,7 @@ export const ChapterSidebarSlides = ({
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center py-6 animate-in fade-in duration-500">
+            <div className="flex items-center justify-center py-6 duration-500 animate-in fade-in">
                 <DashboardLoader />
             </div>
         );
@@ -307,12 +311,12 @@ export const ChapterSidebarSlides = ({
 
     if (!items || items.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center py-8 px-3 text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
-                <div className="w-12 h-12 bg-neutral-100 rounded-full flex items-center justify-center mb-3 animate-pulse">
-                    <File className="w-6 h-6 text-neutral-400" />
+            <div className="flex flex-col items-center justify-center px-3 py-8 text-center duration-700 animate-in fade-in slide-in-from-bottom-4">
+                <div className="mb-3 flex size-12 animate-pulse items-center justify-center rounded-full bg-neutral-100">
+                    <File className="size-6 text-neutral-400" />
                 </div>
-                <h3 className="text-base font-medium text-neutral-600 mb-1">No slides yet</h3>
-                <p className="text-xs text-neutral-400 max-w-xs leading-relaxed">
+                <h3 className="mb-1 text-base font-medium text-neutral-600">No slides yet</h3>
+                <p className="max-w-xs text-xs leading-relaxed text-neutral-400">
                     Add your first slide to get started
                 </p>
             </div>
@@ -320,9 +324,9 @@ export const ChapterSidebarSlides = ({
     }
 
     return (
-        <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+        <div className="duration-500 animate-in fade-in slide-in-from-bottom-2">
             <Sortable value={items} onMove={handleMove} fast={false}>
-                <div className="flex w-full flex-col gap-1.5 text-neutral-600 px-1">
+                <div className="flex w-full flex-col gap-1.5 px-1 text-neutral-600">
                     {items.map((slide, index) => (
                         <SlideItem
                             key={slide.id}

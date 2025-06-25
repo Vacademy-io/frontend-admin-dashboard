@@ -1,36 +1,36 @@
-import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
-import { Sliders, X } from "phosphor-react";
-import "react-quill/dist/quill.snow.css";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { PopoverClose } from "@radix-ui/react-popover";
-import SelectField from "@/components/design-system/select-field";
-import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
-import { QuestionPaperTemplateFormProps } from "../../../-utils/question-paper-template-form";
-import { formatStructure } from "../../../-utils/helper";
-import { QUESTION_TYPES } from "@/constants/dummy-data";
-import { useEffect } from "react";
-import { CollapsibleQuillEditor } from "../CollapsibleQuillEditor";
-import { Badge } from "@/components/ui/badge";
+import { FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
+import { Sliders, X } from 'phosphor-react';
+import 'react-quill/dist/quill.snow.css';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { PopoverClose } from '@radix-ui/react-popover';
+import SelectField from '@/components/design-system/select-field';
+import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
+import { QuestionPaperTemplateFormProps } from '../../../-utils/question-paper-template-form';
+import { formatStructure } from '../../../-utils/helper';
+import { QUESTION_TYPES } from '@/constants/dummy-data';
+import { useEffect } from 'react';
+import { CollapsibleQuillEditor } from '../CollapsibleQuillEditor';
+import { Badge } from '@/components/ui/badge';
 
 export const LongAnswerQuestionPaperTemplateMainView = ({
     form,
     currentQuestionIndex,
     className,
 }: QuestionPaperTemplateFormProps) => {
-    const { control, getValues } = form;
-    const explanationsType = getValues("explanationsType") || "Explanation:";
-    const questionsType = getValues("questionsType") || "";
-    const allQuestions = getValues("questions") || [];
+    const { control, getValues, setValue } = form;
+    const explanationsType = getValues('explanationsType') || 'Explanation:';
+    const questionsType = getValues('questionsType') || '';
+    const allQuestions = getValues('questions') || [];
     const tags = getValues(`questions.${currentQuestionIndex}.tags`) || [];
-    const level = getValues(`questions.${currentQuestionIndex}.level`) || "";
+    const level = getValues(`questions.${currentQuestionIndex}.level`) || '';
 
     useEffect(() => {
-        const validAnswrs = form.getValues(`questions.${currentQuestionIndex}.validAnswers`);
-        if (!validAnswrs) {
-            form.setValue(`questions.${currentQuestionIndex}.validAnswers`, [0]);
+        const validAnswers = getValues(`questions.${currentQuestionIndex}.validAnswers`);
+        if (!validAnswers) {
+            setValue(`questions.${currentQuestionIndex}.validAnswers`, [0]);
         }
-    }, []);
+    }, [currentQuestionIndex]);
 
     if (allQuestions.length === 0) {
         return (
@@ -42,6 +42,7 @@ export const LongAnswerQuestionPaperTemplateMainView = ({
 
     return (
         <div className={className}>
+            {/* Popover Settings */}
             <div className="-mb-8 flex justify-end">
                 <Popover>
                     <PopoverTrigger>
@@ -52,7 +53,7 @@ export const LongAnswerQuestionPaperTemplateMainView = ({
                     <PopoverContent>
                         <div className="mb-2 flex flex-col gap-4">
                             <div className="flex w-full items-center justify-between">
-                                <h1 className="text-primary-500">Questions Settings</h1>
+                                <h1 className="text-primary-500">Question Settings</h1>
                                 <PopoverClose>
                                     <X size={16} />
                                 </PopoverClose>
@@ -73,8 +74,10 @@ export const LongAnswerQuestionPaperTemplateMainView = ({
                     </PopoverContent>
                 </Popover>
             </div>
+
+            {/* Comprehension Text (if present) */}
             {getValues(`questions.${currentQuestionIndex}.parentRichTextContent`) && (
-                <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
+                <div className="mt-4 flex w-full flex-col items-start gap-1">
                     <span>Comprehension Text</span>
                     <FormField
                         control={control}
@@ -93,15 +96,17 @@ export const LongAnswerQuestionPaperTemplateMainView = ({
                     />
                 </div>
             )}
-            <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
+
+            {/* Question Content */}
+            <div className="mt-6 flex w-full flex-col items-start gap-1">
                 <div className="flex items-center gap-2">
                     <span>
-                        Question&nbsp;
+                        Question{' '}
                         {questionsType
                             ? formatStructure(questionsType, currentQuestionIndex + 1)
                             : currentQuestionIndex + 1}
                     </span>
-                    <Badge variant="outline">{level}</Badge>
+                    {level && <Badge variant="outline">{level}</Badge>}
                 </div>
                 <FormField
                     control={control}
@@ -118,18 +123,19 @@ export const LongAnswerQuestionPaperTemplateMainView = ({
                         </FormItem>
                     )}
                 />
-                <div className="mt-2 flex items-center gap-2">
-                    {tags?.map((tag, idx) => {
-                        return (
-                            <Badge variant="outline" key={idx}>
+                {tags?.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                        {tags.map((tag, idx) => (
+                            <Badge key={idx} variant="outline">
                                 {tag}
                             </Badge>
-                        );
-                    })}
-                </div>
+                        ))}
+                    </div>
+                )}
             </div>
 
-            <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
+            {/* Answer Field */}
+            <div className="mt-6 flex w-full flex-col items-start gap-1">
                 <span>Answer</span>
                 <FormField
                     control={control}
@@ -148,7 +154,8 @@ export const LongAnswerQuestionPaperTemplateMainView = ({
                 />
             </div>
 
-            <div className="mb-6 flex w-full flex-col !flex-nowrap items-start gap-1">
+            {/* Explanation Field */}
+            <div className="my-6 flex w-full flex-col items-start gap-1">
                 <span>{explanationsType}</span>
                 <FormField
                     control={control}
