@@ -1,5 +1,5 @@
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { AddCourseButton } from '@/components/common/study-library/add-course/add-course-button';
 import { useAddCourse } from '@/services/study-library/course-operations/add-course';
 import { CourseFormData } from '../../../../components/common/study-library/add-course/add-course-form';
@@ -18,15 +18,38 @@ import {
     SelectItem,
 } from '@/components/ui/select';
 import { StarRatingComponent } from '@/components/common/star-rating-component';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import type { LevelType } from '@/schemas/student/student-list/institute-schema';
+import { handleGetInstituteUsersForAccessControl } from '@/routes/dashboard/-services/dashboard-services';
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import type { UserRolesDataEntry } from '@/types/dashboard/user-roles';
 
 export const CourseMaterial = () => {
+    const { instituteDetails } = useInstituteDetailsStore();
+    const { data: accessControlUsers, isLoading: isUsersLoading } = useSuspenseQuery(
+        handleGetInstituteUsersForAccessControl(instituteDetails?.id, {
+            roles: [{ id: '5', name: 'TEACHER' }],
+            status: [{ id: '1', name: 'ACTIVE' }],
+        })
+    );
+    console.log(accessControlUsers);
     const { setNavHeading } = useNavHeadingStore();
     const addCourseMutation = useAddCourse();
     const [selectedTab, setSelectedTab] = useState('AllCourses');
-    const [selectedLevels, setSelectedLevels] = useState<string[]>([]);
+    const [selectedFilters, setSelectedFilters] = useState<{
+        levels: string[];
+        tags: string[];
+        users: string[];
+    }>({
+        levels: [],
+        tags: [],
+        users: [],
+    });
     const [activeCard, setActiveCard] = useState<number | null>(null);
     const [sortBy, setSortBy] = useState('oldest');
     const [searchValue, setSearchValue] = useState('');
+    console.log(selectedFilters);
 
     useIntroJsTour({
         key: StudyLibraryIntroKey.createCourseStep,
@@ -52,18 +75,59 @@ export const CourseMaterial = () => {
         setSelectedTab(value);
     };
 
-    const levels = ['Beginner', 'Intermediate', 'Advanced'];
-    const isAnyFilterSelected = selectedLevels.length > 0;
-    const handleLevelChange = (level: string) => {
-        setSelectedLevels((prev) =>
-            prev.includes(level) ? prev.filter((l) => l !== level) : [...prev, level]
+    const levels = useMemo(() => {
+        return (
+            instituteDetails?.levels?.map((level: LevelType) => ({
+                id: level.id,
+                name: level.level_name,
+            })) || []
         );
+    }, [instituteDetails]);
+
+    const tags = useMemo(() => {
+        return instituteDetails?.tags || [];
+    }, [instituteDetails]);
+
+    const handleLevelChange = (levelId: string) => {
+        setSelectedFilters((prev) => {
+            const alreadySelected = prev.levels.includes(levelId);
+            return {
+                ...prev,
+                levels: alreadySelected
+                    ? prev.levels.filter((id) => id !== levelId)
+                    : [...prev.levels, levelId],
+            };
+        });
     };
+
+    const handleTagChange = (tag: string) => {
+        setSelectedFilters((prev) => {
+            const alreadySelected = prev.tags.includes(tag);
+            return {
+                ...prev,
+                tags: alreadySelected ? prev.tags.filter((t) => t !== tag) : [...prev.tags, tag],
+            };
+        });
+    };
+
+    const handleUserChange = (userId: string) => {
+        setSelectedFilters((prev) => {
+            const alreadySelected = prev.users.includes(userId);
+            return {
+                ...prev,
+                users: alreadySelected
+                    ? prev.users.filter((id) => id !== userId)
+                    : [...prev.users, userId],
+            };
+        });
+    };
+
     const handleClearAll = () => {
-        setSelectedLevels([]);
+        setSelectedFilters({ levels: [], tags: [], users: [] });
     };
+
     const handleApply = () => {
-        // Placeholder for filter apply logic
+        // Use selectedFilters for API/filtering logic
     };
 
     // Level color mapping
@@ -121,6 +185,8 @@ export const CourseMaterial = () => {
     useEffect(() => {
         setNavHeading('Explore Courses');
     }, []);
+
+    if (isUsersLoading) return <DashboardLoader />;
 
     return (
         <div className="relative flex w-full flex-col gap-8 text-neutral-600">
@@ -207,7 +273,9 @@ export const CourseMaterial = () => {
                         <div className="animate-fade-in flex h-fit min-w-[240px] max-w-[260px] flex-col gap-2 rounded-lg border border-neutral-200 bg-white p-4 shadow-sm">
                             <div className="mb-2 flex items-center justify-between">
                                 <div className="text-base font-semibold">Filters</div>
-                                {isAnyFilterSelected && (
+                                {(selectedFilters.levels.length > 0 ||
+                                    selectedFilters.tags.length > 0 ||
+                                    selectedFilters.users.length > 0) && (
                                     <div className="flex gap-2">
                                         <button
                                             className="text-xs font-medium text-primary-500 transition-transform hover:underline active:scale-95"
@@ -228,21 +296,73 @@ export const CourseMaterial = () => {
                             <div className="flex flex-col gap-2">
                                 {levels.map((level) => (
                                     <label
-                                        key={level}
+                                        key={level.id}
                                         className="group flex cursor-pointer items-center gap-2"
                                     >
                                         <input
                                             type="checkbox"
-                                            checked={selectedLevels.includes(level)}
-                                            onChange={() => handleLevelChange(level)}
+                                            checked={selectedFilters.levels.includes(level.id)}
+                                            onChange={() => handleLevelChange(level.id)}
                                             className="scale-110 accent-primary-500 transition-transform"
                                         />
                                         <span className="transition-colors group-hover:text-primary-500">
-                                            {level}
+                                            {level.name}
                                         </span>
                                     </label>
                                 ))}
                             </div>
+                            {/* Tags Section */}
+                            {tags.length > 0 && (
+                                <>
+                                    <div className="mb-1 mt-4 text-sm font-semibold">Tags</div>
+                                    <div className="flex flex-col gap-2">
+                                        {tags.map((tag: string) => (
+                                            <label
+                                                key={tag}
+                                                className="group flex cursor-pointer items-center gap-2"
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedFilters.tags.includes(tag)}
+                                                    onChange={() => handleTagChange(tag)}
+                                                    className="scale-110 accent-primary-500 transition-transform"
+                                                />
+                                                <span className="transition-colors group-hover:text-primary-500">
+                                                    {tag}
+                                                </span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </>
+                            )}
+                            {/* Users Section */}
+                            {Array.isArray(accessControlUsers) && accessControlUsers.length > 0 && (
+                                <>
+                                    <div className="mb-1 mt-4 text-sm font-semibold">Users</div>
+                                    <div className="flex flex-col gap-2">
+                                        {(accessControlUsers as UserRolesDataEntry[]).map(
+                                            (user) => (
+                                                <label
+                                                    key={user.id}
+                                                    className="group flex cursor-pointer items-center gap-2"
+                                                >
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedFilters.users.includes(
+                                                            user.id
+                                                        )}
+                                                        onChange={() => handleUserChange(user.id)}
+                                                        className="scale-110 accent-primary-500 transition-transform"
+                                                    />
+                                                    <span className="transition-colors group-hover:text-primary-500">
+                                                        {user.full_name}
+                                                    </span>
+                                                </label>
+                                            )
+                                        )}
+                                    </div>
+                                </>
+                            )}
                         </div>
                         {/* Courses Section */}
                         <div className="animate-fade-in flex flex-1 flex-col gap-4">
