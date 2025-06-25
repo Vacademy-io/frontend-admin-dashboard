@@ -241,6 +241,21 @@ export const CourseMaterial = () => {
             sort_columns: { created_at: 'DESC' },
         });
         setSearchValue('');
+        getAllCoursesMutation.mutate({
+            page: page,
+            pageSize,
+            instituteId: instituteDetails?.id,
+            data: {
+                status: ['ACTIVE'],
+                level_ids: [],
+                tag: [],
+                faculty_ids: [],
+                search_by_name: '',
+                min_percentage_completed: 0,
+                max_percentage_completed: 0,
+                sort_columns: { created_at: 'DESC' },
+            },
+        });
     };
 
     const handleApply = () => {
