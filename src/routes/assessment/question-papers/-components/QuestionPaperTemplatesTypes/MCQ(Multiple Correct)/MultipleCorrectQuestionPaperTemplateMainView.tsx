@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { Sliders, X } from 'phosphor-react';
@@ -6,6 +7,7 @@ import 'react-quill/dist/quill.snow.css';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { PopoverClose } from '@radix-ui/react-popover';
 import SelectField from '@/components/design-system/select-field';
+import CustomInput from '@/components/design-system/custom-input';
 import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
 import { QuestionPaperTemplateFormProps } from '../../../-utils/question-paper-template-form';
 import { formatStructure } from '../../../-utils/helper';
@@ -18,6 +20,14 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
     className,
 }: QuestionPaperTemplateFormProps) => {
     const { control, getValues } = form;
+
+    useEffect(() => {
+        const reattempt = form.getValues(`questions.${currentQuestionIndex}.reattemptCount`);
+        if (reattempt === undefined) {
+            form.setValue(`questions.${currentQuestionIndex}.reattemptCount`, 0);
+        }
+    }, []);
+
     const answersType = getValues('answersType') || 'Answer:';
     const explanationsType = getValues('explanationsType') || 'Explanation:';
     const optionsType = getValues('optionsType') || '';
@@ -57,6 +67,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                     <X size={16} />
                                 </PopoverClose>
                             </div>
+
                             <SelectField
                                 label="Question Type"
                                 name={`questions.${currentQuestionIndex}.questionType`}
@@ -69,10 +80,20 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                 className="!w-full"
                                 required
                             />
+
+                            <CustomInput
+                                control={form.control}
+                                name={`questions.${currentQuestionIndex}.reattemptCount`}
+                                label="Reattempt Count"
+                                type="number"
+                                min={0}
+                                required
+                            />
                         </div>
                     </PopoverContent>
                 </Popover>
             </div>
+
             {getValues(`questions.${currentQuestionIndex}.parentRichTextContent`) && (
                 <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
                     <span>Comprehension Text</span>
@@ -93,6 +114,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                     />
                 </div>
             )}
+
             <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
                 <div className="flex items-center gap-2">
                     <span>
@@ -103,6 +125,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                     </span>
                     <Badge variant="outline">{level}</Badge>
                 </div>
+
                 <FormField
                     control={control}
                     name={`questions.${currentQuestionIndex}.questionName`}
@@ -118,33 +141,36 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                         </FormItem>
                     )}
                 />
+
                 <div className="mt-2 flex items-center gap-2">
-                    {tags?.map((tag, idx) => {
-                        return (
-                            <Badge variant="outline" key={idx}>
-                                {tag}
-                            </Badge>
-                        );
-                    })}
+                    {tags?.map((tag, idx) => (
+                        <Badge variant="outline" key={idx}>
+                            {tag}
+                        </Badge>
+                    ))}
                 </div>
             </div>
+
             <div className="flex w-full grow flex-col gap-4">
                 <span className="-mb-3">{answersType}</span>
-                <div className="flex gap-4">
+                {[option1, option2, option3, option4].map((option, i) => (
                     <div
-                        className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
-                            option1?.isSelected ? 'border border-primary-300 bg-primary-50' : ''
+                        key={i}
+                        className={`flex w-full items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
+                            option?.isSelected ? 'border border-primary-300 bg-primary-50' : ''
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">
                             <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
                                 <span className="!p-0 text-sm">
-                                    {optionsType ? formatStructure(optionsType, 'a') : '(a.)'}
+                                    {optionsType
+                                        ? formatStructure(optionsType, String.fromCharCode(97 + i))
+                                        : `(${String.fromCharCode(97 + i)}.)`}
                                 </span>
                             </div>
                             <FormField
                                 control={control}
-                                name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${0}.name`}
+                                name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${i}.name`}
                                 render={({ field }) => (
                                     <FormItem className="w-full">
                                         <FormControl>
@@ -161,7 +187,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                         <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
-                                name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${0}.isSelected`}
+                                name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${i}.isSelected`}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl>
@@ -175,8 +201,8 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                                 }}
                                                 className={`mt-1 size-5 border-2 shadow-none ${
                                                     field.value
-                                                        ? 'border-none bg-green-500 text-white' // Blue background and red tick when checked
-                                                        : '' // Default styles when unchecked
+                                                        ? 'border-none bg-green-500 text-white'
+                                                        : ''
                                                 }`}
                                             />
                                         </FormControl>
@@ -186,177 +212,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                             />
                         </div>
                     </div>
-                    <div
-                        className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
-                            option2?.isSelected ? 'border border-primary-300 bg-primary-50' : ''
-                        }`}
-                    >
-                        <div className="flex w-full items-center gap-4">
-                            <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
-                                <span className="!p-0 text-sm">
-                                    {optionsType ? formatStructure(optionsType, 'b') : '(b.)'}
-                                </span>
-                            </div>
-
-                            <FormField
-                                control={control}
-                                name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${1}.name`}
-                                render={({ field }) => (
-                                    <FormItem className="w-full">
-                                        <FormControl>
-                                            <MainViewQuillEditor
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                        <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
-                            <FormField
-                                control={control}
-                                name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${1}.isSelected`}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <Checkbox
-                                                checked={field.value}
-                                                onCheckedChange={() => {
-                                                    field.onChange(!field.value);
-                                                    form.trigger(
-                                                        `questions.${currentQuestionIndex}.multipleChoiceOptions`
-                                                    );
-                                                }}
-                                                className={`mt-1 size-5 border-2 shadow-none ${
-                                                    field.value
-                                                        ? 'border-none bg-green-500 text-white' // Blue background and red tick when checked
-                                                        : '' // Default styles when unchecked
-                                                }`}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                    </div>
-                </div>
-                <div className="flex gap-4">
-                    <div
-                        className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
-                            option3?.isSelected ? 'border border-primary-300 bg-primary-50' : ''
-                        }`}
-                    >
-                        <div className="flex w-full items-center gap-4">
-                            <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
-                                <span className="!p-0 text-sm">
-                                    {optionsType ? formatStructure(optionsType, 'c') : '(c.)'}
-                                </span>
-                            </div>
-
-                            <FormField
-                                control={control}
-                                name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${2}.name`}
-                                render={({ field }) => (
-                                    <FormItem className="w-full">
-                                        <FormControl>
-                                            <MainViewQuillEditor
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                        <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
-                            <FormField
-                                control={control}
-                                name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${2}.isSelected`}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <Checkbox
-                                                checked={field.value}
-                                                onCheckedChange={() => {
-                                                    field.onChange(!field.value);
-                                                    form.trigger(
-                                                        `questions.${currentQuestionIndex}.multipleChoiceOptions`
-                                                    );
-                                                }}
-                                                className={`mt-1 size-5 border-2 shadow-none ${
-                                                    field.value
-                                                        ? 'border-none bg-green-500 text-white' // Blue background and red tick when checked
-                                                        : '' // Default styles when unchecked
-                                                }`}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                    </div>
-                    <div
-                        className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
-                            option4?.isSelected ? 'border border-primary-300 bg-primary-50' : ''
-                        }`}
-                    >
-                        <div className="flex w-full items-center gap-4">
-                            <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
-                                <span className="!p-0 text-sm">
-                                    {optionsType ? formatStructure(optionsType, 'd') : '(d.)'}
-                                </span>
-                            </div>
-
-                            <FormField
-                                control={control}
-                                name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${3}.name`}
-                                render={({ field }) => (
-                                    <FormItem className="w-full">
-                                        <FormControl>
-                                            <MainViewQuillEditor
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                        <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
-                            <FormField
-                                control={control}
-                                name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${3}.isSelected`}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <Checkbox
-                                                checked={field.value}
-                                                onCheckedChange={() => {
-                                                    field.onChange(!field.value);
-                                                    form.trigger(
-                                                        `questions.${currentQuestionIndex}.multipleChoiceOptions`
-                                                    );
-                                                }}
-                                                className={`mt-1 size-5 border-2 shadow-none ${
-                                                    field.value
-                                                        ? 'border-none bg-green-500 text-white' // Blue background and red tick when checked
-                                                        : '' // Default styles when unchecked
-                                                }`}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                    </div>
-                </div>
+                ))}
             </div>
 
             <div className="flex w-full flex-col !flex-nowrap items-start gap-1">

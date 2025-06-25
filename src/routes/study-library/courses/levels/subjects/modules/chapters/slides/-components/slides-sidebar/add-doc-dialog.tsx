@@ -1,10 +1,11 @@
+'use client';
+
 import { ImportFileImage } from '@/assets/svgs';
 import { MyButton } from '@/components/design-system/button';
-import { DialogFooter } from '@/components/ui/dialog';
 import { useState, useRef } from 'react';
 import { Progress } from '@/components/ui/progress';
 import { FileUploadComponent } from '@/components/design-system/file-upload';
-import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
+import { Form } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { FileType } from '@/types/common/file-upload';
@@ -13,12 +14,10 @@ import { useRouter } from '@tanstack/react-router';
 import { useSlides } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides';
 import { useReplaceBase64ImagesWithNetworkUrls } from '@/utils/helpers/study-library-helpers.ts/slides/replaceBase64ToNetworkUrl';
 import { useContentStore } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
-import { MyInput } from '@/components/design-system/input';
 import { convertHtmlToPdf } from '../../-helper/helper';
 
 interface FormData {
     docFile: FileList | null;
-    docTitle: string;
 }
 
 export const AddDocDialog = ({
@@ -40,7 +39,6 @@ export const AddDocDialog = ({
     const form = useForm<FormData>({
         defaultValues: {
             docFile: null,
-            docTitle: '',
         },
     });
 
@@ -61,11 +59,13 @@ export const AddDocDialog = ({
         toast.success('File selected successfully');
     };
 
-    const useHandleUpload = async (data: FormData) => {
+    const useHandleUpload = async () => {
         if (!file) {
             toast.error('Please select a file first');
             return;
         }
+
+        const fileName = file.name.replace(/\.[^/.]+$/, '');
 
         setIsUploading(true);
         setUploadProgress(0);
@@ -79,10 +79,11 @@ export const AddDocDialog = ({
             const HTMLContent = await convertDocToHtml(file);
             const processedHtml = await replaceBase64ImagesWithNetworkUrls(HTMLContent);
             const { totalPages } = await convertHtmlToPdf(processedHtml);
+
             const slideId = crypto.randomUUID();
             const response = await addUpdateDocumentSlide({
                 id: slideId,
-                title: data.docTitle,
+                title: fileName,
                 image_file_id: '',
                 description: null,
                 slide_order: 0,
@@ -90,7 +91,7 @@ export const AddDocDialog = ({
                     id: crypto.randomUUID(),
                     type: 'DOC',
                     data: processedHtml,
-                    title: data.docTitle,
+                    title: fileName,
                     cover_file_id: '',
                     total_pages: totalPages,
                     published_data: null,
@@ -108,15 +109,12 @@ export const AddDocDialog = ({
                     setActiveItem(getSlideById(response));
                 }, 500);
                 openState?.(false);
-                toast.success('Document uploaded successfully!');
             }
 
             setUploadProgress(100);
-            toast.success('Document converted successfully!');
 
             setFile(null);
             form.reset();
-            openState && openState(false);
         } catch (err) {
             console.error('Upload handling error:', err);
             const errorMessage =
@@ -168,52 +166,38 @@ export const AddDocDialog = ({
                     </div>
                 </FileUploadComponent>
 
-                <FormField
-                    control={form.control}
-                    name="docTitle"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormControl>
-                                <MyInput
-                                    {...field}
-                                    label="Title"
-                                    required={true}
-                                    input={field.value}
-                                    inputType="text"
-                                    inputPlaceholder="File name"
-                                    onChangeFunction={field.onChange}
-                                    className="w-full"
-                                />
-                            </FormControl>
-                        </FormItem>
-                    )}
-                />
                 {isUploading && (
-                    <>
-                        <div>
-                            <Progress
-                                value={uploadProgress}
-                                className="h-2 bg-neutral-200 [&>div]:bg-primary-500"
-                            />
-                            <p className="mt-2 text-sm text-neutral-600">
-                                This may take a few moments...
-                            </p>
-                        </div>
-                    </>
+                    <div>
+                        <Progress
+                            value={uploadProgress}
+                            className="h-2 bg-neutral-200 [&>div]:bg-primary-500"
+                        />
+                        <p className="mt-2 text-sm text-neutral-600">
+                            This may take a few moments...
+                        </p>
+                    </div>
                 )}
 
-                <DialogFooter className="flex w-full items-center justify-center">
+                {/* ✅ Upload Button Centered */}
+                <div className="flex w-full justify-center pt-2">
                     <MyButton
                         buttonType="primary"
                         scale="large"
                         layoutVariant="default"
                         type="submit"
                         disabled={!file || isUploading}
-                        className="mx-auto"
+                        className={`
+              transition-all duration-300 ease-in-out
+              ${
+                  !file || isUploading
+                      ? 'cursor-not-allowed opacity-50'
+                      : 'shadow-lg hover:scale-105 hover:shadow-xl active:scale-95'
+              }
+            `}
                     >
-                        {isUploading ? 'Converting...' : 'Convert Document'}
+                        {isUploading ? 'Uploading...' : 'Upload Document'}
                     </MyButton>
-                </DialogFooter>
+                </div>
             </form>
         </Form>
     );
