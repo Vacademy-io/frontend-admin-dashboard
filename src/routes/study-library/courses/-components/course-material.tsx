@@ -150,7 +150,13 @@ export const CourseMaterial = () => {
             page: page,
             pageSize: 10,
             instituteId: instituteDetails?.id,
-            data: selectedFilters,
+            data: {
+                ...selectedFilters,
+                faculty_ids:
+                    selectedTab === 'AuthoredCourses' && tokenData?.user
+                        ? [tokenData.user]
+                        : selectedFilters.faculty_ids,
+            },
         });
     };
 
@@ -183,7 +189,13 @@ export const CourseMaterial = () => {
             page: newPage,
             pageSize: 10,
             instituteId: instituteDetails?.id,
-            data: selectedFilters,
+            data: {
+                ...selectedFilters,
+                faculty_ids:
+                    selectedTab === 'AuthoredCourses' && tokenData?.user
+                        ? [tokenData.user]
+                        : selectedFilters.faculty_ids,
+            },
         });
     };
 
