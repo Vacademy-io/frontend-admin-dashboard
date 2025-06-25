@@ -1,30 +1,32 @@
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
 import { useEffect, useState } from 'react';
-import { UploadStudyMaterialButton } from './upload-study-material/upload-study-material-button';
-import { CreateStudyDocButton } from './upload-study-material/create-study-doc-button';
-import { useSidebar } from '@/components/ui/sidebar';
-import { getCourses } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getCourses';
-import { CourseCard } from './course-card';
 import { AddCourseButton } from '@/components/common/study-library/add-course/add-course-button';
 import { useAddCourse } from '@/services/study-library/course-operations/add-course';
-import { useDeleteCourse } from '@/services/study-library/course-operations/delete-course';
-import { useUpdateCourse } from '@/services/study-library/course-operations/update-course';
-import { useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
+import { CourseFormData } from '../../../../components/common/study-library/add-course/add-course-form';
 import { toast } from 'sonner'; // Import Toaster from sonner
 import useIntroJsTour from '@/hooks/use-intro';
 import { StudyLibraryIntroKey } from '@/constants/storage/introKey';
 import { studyLibrarySteps } from '@/constants/intro/steps';
-import { EmptyCoursePage } from '@/svgs';
+import { CourseCatalog } from '@/svgs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { MyButton } from '@/components/design-system/button';
+import {
+    Select,
+    SelectTrigger,
+    SelectValue,
+    SelectContent,
+    SelectItem,
+} from '@/components/ui/select';
+import { StarRatingComponent } from '@/components/common/star-rating-component';
 
 export const CourseMaterial = () => {
     const { setNavHeading } = useNavHeadingStore();
-    const { open } = useSidebar();
-    const { studyLibraryData } = useStudyLibraryStore();
-    const [courses, setCourses] = useState(getCourses());
-
     const addCourseMutation = useAddCourse();
-    const deleteCourseMutation = useDeleteCourse();
-    const updateCourseMutation = useUpdateCourse();
+    const [selectedTab, setSelectedTab] = useState('AllCourses');
+    const [selectedLevels, setSelectedLevels] = useState<string[]>([]);
+    const [activeCard, setActiveCard] = useState<number | null>(null);
+    const [sortBy, setSortBy] = useState('oldest');
+    const [searchValue, setSearchValue] = useState('');
 
     useIntroJsTour({
         key: StudyLibraryIntroKey.createCourseStep,
@@ -32,50 +34,102 @@ export const CourseMaterial = () => {
         partial: true,
     });
 
-    const handleCourseDelete = (courseId: string) => {
-        deleteCourseMutation.mutate(courseId, {
-            onSuccess: () => {
-                toast.success('Course deleted successfully');
-            },
-            onError: (error) => {
-                toast.error(error.message || 'Failed to delete course');
-            },
-        });
-    };
-
-    const handleCourseUpdate = ({
-        courseId,
-        requestData,
-    }: {
-        requestData: any;
-        courseId?: string;
-    }) => {
-        updateCourseMutation.mutate(
-            { courseId, requestData },
+    const handleAddCourse = ({ requestData }: { requestData: CourseFormData }) => {
+        addCourseMutation.mutate(
+            { requestData: requestData },
             {
                 onSuccess: () => {
-                    toast.success('Course updated successfully');
+                    toast.success('Course added successfully');
                 },
                 onError: (error) => {
-                    toast.error(error.message || 'Failed to update course');
+                    toast.error(error.message || 'Failed to add course');
                 },
             }
         );
     };
 
-    useEffect(() => {
-        setCourses(getCourses());
-    }, [studyLibraryData]);
+    const handleTabChange = (value: string) => {
+        setSelectedTab(value);
+    };
+
+    const levels = ['Beginner', 'Intermediate', 'Advanced'];
+    const isAnyFilterSelected = selectedLevels.length > 0;
+    const handleLevelChange = (level: string) => {
+        setSelectedLevels((prev) =>
+            prev.includes(level) ? prev.filter((l) => l !== level) : [...prev, level]
+        );
+    };
+    const handleClearAll = () => {
+        setSelectedLevels([]);
+    };
+    const handleApply = () => {
+        // Placeholder for filter apply logic
+    };
+
+    // Level color mapping
+    const levelStyles: Record<string, string> = {
+        Beginner: 'bg-green-100 text-green-700',
+        Intermediate: 'bg-blue-100 text-blue-600',
+        Advanced: 'bg-yellow-100 text-yellow-700',
+    };
+    const levelsList = ['Beginner', 'Intermediate', 'Advanced'];
+
+    // Tag color mapping
+    const tagStyles: Record<string, string> = {
+        Math: 'bg-red-100 text-red-700',
+        Science: 'bg-blue-100 text-blue-700',
+        History: 'bg-yellow-100 text-yellow-800',
+        Coding: 'bg-green-100 text-green-700',
+        Art: 'bg-pink-100 text-pink-700',
+        English: 'bg-purple-100 text-purple-700',
+    };
+    const tagsList = [
+        ['Math', 'Science', 'Coding'],
+        ['History', 'Art'],
+        ['English', 'Math'],
+        ['Science', 'Coding', 'Art'],
+    ];
+
+    // Sample instructors data for each card
+    const instructorsList = [
+        [
+            {
+                id: 1,
+                name: 'Alice',
+                profilePicId: 'https://randomuser.me/api/portraits/women/1.jpg',
+            },
+            { id: 2, name: 'Bob', profilePicId: 'https://randomuser.me/api/portraits/men/2.jpg' },
+        ],
+        [{ id: 3, name: 'Charlie', profilePicId: 'https://randomuser.me/api/portraits/men/3.jpg' }],
+        [
+            {
+                id: 4,
+                name: 'Diana',
+                profilePicId: 'https://randomuser.me/api/portraits/women/4.jpg',
+            },
+            { id: 5, name: 'Eve', profilePicId: 'https://randomuser.me/api/portraits/women/5.jpg' },
+            { id: 6, name: 'Frank', profilePicId: 'https://randomuser.me/api/portraits/men/6.jpg' },
+        ],
+        [{ id: 7, name: 'Grace', profilePicId: 'https://randomuser.me/api/portraits/women/7.jpg' }],
+    ];
+
+    const handleCardClick = (i: number) => {
+        setActiveCard(i);
+        setTimeout(() => setActiveCard(null), 300); // Remove scale after 300ms
+    };
 
     useEffect(() => {
-        setNavHeading('Learning Center');
+        setNavHeading('Explore Courses');
     }, []);
 
     return (
         <div className="relative flex w-full flex-col gap-8 text-neutral-600">
+            <div className="flex flex-col items-end gap-4">
+                <AddCourseButton onSubmit={handleAddCourse} />
+            </div>
             <div className="flex items-center gap-8">
                 <div className="flex flex-col gap-2">
-                    <div className="text-h3 font-semibold">Organize Your Courses</div>
+                    <div className="text-h3 font-semibold">Explore Courses</div>
                     <div className="text-subtitle">
                         Effortlessly organize, upload, and track educational resources in one place.
                         Provide students with easy access to the materials they need to succeed,
@@ -83,34 +137,279 @@ export const CourseMaterial = () => {
                     </div>
                 </div>
                 <div className="flex flex-col items-center gap-4">
-                    <CreateStudyDocButton />
-                    <UploadStudyMaterialButton />
-                    <AddCourseButton />
+                    <CourseCatalog />
                 </div>
             </div>
 
-            <div
-                className={`grid ${
-                    open ? 'grid-cols-3 gap-4' : 'grid-cols-4 gap-8'
-                } w-full items-center justify-between gap-y-8`}
-            >
-                {courses.map((course, key) => (
-                    <div key={key}>
-                        <CourseCard
-                            course={course}
-                            onDelete={handleCourseDelete}
-                            onEdit={handleCourseUpdate}
-                        />
+            {/* Add Tabs Section Here */}
+            <Tabs value={selectedTab} onValueChange={handleTabChange}>
+                <TabsList className="inline-flex h-auto justify-start gap-4 rounded-none border-b !bg-transparent p-0">
+                    <TabsTrigger
+                        value="AllCourses"
+                        className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
+                            selectedTab === 'AllCourses'
+                                ? 'border-4px rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                : 'border-none bg-transparent'
+                        }`}
+                    >
+                        <span
+                            className={`${selectedTab === 'AllCourses' ? 'text-primary-500' : ''}`}
+                        >
+                            All Courses
+                        </span>
+                    </TabsTrigger>
+                    <TabsTrigger
+                        value="MyCourses"
+                        className={`inline-flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
+                            selectedTab === 'MyCourses'
+                                ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                : 'border-none bg-transparent'
+                        }`}
+                    >
+                        <span
+                            className={`${selectedTab === 'MyCourses' ? 'text-primary-500' : ''}`}
+                        >
+                            My Courses
+                        </span>
+                    </TabsTrigger>
+                    <TabsTrigger
+                        value="AuthoredCourses"
+                        className={`inline-flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
+                            selectedTab === 'AuthoredCourses'
+                                ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                : 'border-none bg-transparent'
+                        }`}
+                    >
+                        <span
+                            className={`${selectedTab === 'AuthoredCourses' ? 'text-primary-500' : ''}`}
+                        >
+                            Authored Courses
+                        </span>
+                    </TabsTrigger>
+                    <TabsTrigger
+                        value="CourseRequests"
+                        className={`inline-flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
+                            selectedTab === 'CourseRequests'
+                                ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                : 'border-none bg-transparent'
+                        }`}
+                    >
+                        <span
+                            className={`${selectedTab === 'CourseRequests' ? 'text-primary-500' : ''}`}
+                        >
+                            Course Requests
+                        </span>
+                    </TabsTrigger>
+                </TabsList>
+                <TabsContent value="AllCourses">
+                    <div className="mt-6 flex w-full gap-6">
+                        {/* Filter Section */}
+                        <div className="animate-fade-in flex h-fit min-w-[240px] max-w-[260px] flex-col gap-2 rounded-lg border border-neutral-200 bg-white p-4 shadow-sm">
+                            <div className="mb-2 flex items-center justify-between">
+                                <div className="text-base font-semibold">Filters</div>
+                                {isAnyFilterSelected && (
+                                    <div className="flex gap-2">
+                                        <button
+                                            className="text-xs font-medium text-primary-500 transition-transform hover:underline active:scale-95"
+                                            onClick={handleClearAll}
+                                        >
+                                            Clear All
+                                        </button>
+                                        <button
+                                            className="hover:bg-primary-600 rounded bg-primary-500 px-3 py-1 text-xs font-medium text-white transition-transform active:scale-95"
+                                            onClick={handleApply}
+                                        >
+                                            Apply
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="mb-1 text-sm font-semibold">Levels</div>
+                            <div className="flex flex-col gap-2">
+                                {levels.map((level) => (
+                                    <label
+                                        key={level}
+                                        className="group flex cursor-pointer items-center gap-2"
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedLevels.includes(level)}
+                                            onChange={() => handleLevelChange(level)}
+                                            className="scale-110 accent-primary-500 transition-transform"
+                                        />
+                                        <span className="transition-colors group-hover:text-primary-500">
+                                            {level}
+                                        </span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+                        {/* Courses Section */}
+                        <div className="animate-fade-in flex flex-1 flex-col gap-4">
+                            <div className="mb-2 flex w-full items-center justify-between gap-4">
+                                {/* Search Bar */}
+                                <div className="relative max-w-xs flex-1">
+                                    {/* Search Icon */}
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400">
+                                        <svg
+                                            width="18"
+                                            height="18"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth="2"
+                                                d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 104.5 4.5a7.5 7.5 0 0012.15 12.15z"
+                                            />
+                                        </svg>
+                                    </span>
+                                    <input
+                                        type="text"
+                                        value={searchValue}
+                                        onChange={(e) => setSearchValue(e.target.value)}
+                                        placeholder="Search courses..."
+                                        className="w-full rounded-md border border-neutral-200 px-9 py-2 text-sm shadow-sm transition-all focus:border-primary-400 focus:ring-2 focus:ring-primary-100"
+                                    />
+                                    {/* Cross Button (visible only if searchValue) */}
+                                    {searchValue && (
+                                        <button
+                                            className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-neutral-400 transition-transform active:scale-95"
+                                            aria-label="Clear search"
+                                            onClick={() => setSearchValue('')}
+                                            type="button"
+                                        >
+                                            <svg
+                                                width="18"
+                                                height="18"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth="2"
+                                                    d="M6 18L18 6M6 6l12 12"
+                                                />
+                                            </svg>
+                                        </button>
+                                    )}
+                                </div>
+                                {/* Sort By */}
+                                <div className="flex min-w-[180px] items-center justify-end gap-2">
+                                    <span className="text-sm font-medium text-neutral-600">
+                                        Sort by
+                                    </span>
+                                    <Select value={sortBy} onValueChange={setSortBy}>
+                                        <SelectTrigger className="w-[110px]">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="oldest">Oldest</SelectItem>
+                                            <SelectItem value="newest">Newest</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                                {[1, 2, 3, 4].map((i) => {
+                                    // Assign a random level for each card
+                                    const level =
+                                        levelsList[(i - 1) % levelsList.length] || 'Beginner';
+                                    const levelClass =
+                                        levelStyles[level] ?? 'bg-gray-100 text-gray-700';
+                                    const tags = tagsList[(i - 1) % tagsList.length] ?? [];
+                                    const instructors =
+                                        instructorsList[(i - 1) % instructorsList.length] ?? [];
+                                    return (
+                                        <div
+                                            key={i}
+                                            className={`animate-fade-in group relative flex flex-col gap-2 rounded-lg border border-neutral-200 bg-white p-0 shadow-sm transition-transform duration-500 hover:scale-[1.025] hover:shadow-md ${activeCard === i ? 'z-10 scale-105' : ''}`}
+                                            onMouseDown={() => handleCardClick(i)}
+                                            style={{
+                                                transitionTimingFunction:
+                                                    'cubic-bezier(0.22, 1, 0.36, 1)',
+                                            }}
+                                        >
+                                            {/* Course Banner Image */}
+                                            <div className="h-48 w-full overflow-hidden rounded-lg p-4">
+                                                <img
+                                                    src={`https://images.pexels.com/photos/31530661/pexels-photo-31530661.jpeg`}
+                                                    alt={`Course ${i}`}
+                                                    className="size-full rounded-lg object-cover transition-transform duration-300 group-hover:scale-105"
+                                                />
+                                            </div>
+                                            <div className="flex flex-col gap-1 p-4">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="text-lg font-extrabold text-neutral-800">
+                                                        Course Title {i}
+                                                    </div>
+                                                    <div
+                                                        className={`rounded-lg p-1 px-2 text-xs font-semibold ${levelClass}`}
+                                                    >
+                                                        {level}
+                                                    </div>
+                                                </div>
+                                                <div className="mt-2 text-sm text-neutral-600">
+                                                    A short description of the course goes here.
+                                                    Make it concise and informative.
+                                                </div>
+                                                {/* Instructors Section */}
+                                                <div className="mt-2 flex items-center gap-2">
+                                                    {instructors.map((inst) => (
+                                                        <img
+                                                            key={inst.id}
+                                                            src={inst.profilePicId}
+                                                            alt={inst.name}
+                                                            className="-ml-2 size-7 rounded-full border border-neutral-200 object-cover first:ml-0"
+                                                        />
+                                                    ))}
+                                                    <span className="ml-2 text-xs text-neutral-600">
+                                                        {instructors
+                                                            .map((inst) => inst.name)
+                                                            .join(', ')}
+                                                    </span>
+                                                </div>
+                                                {/* Tags Section */}
+                                                <div className="mt-2 flex flex-wrap gap-2">
+                                                    {tags.map((tag) => (
+                                                        <span
+                                                            key={tag}
+                                                            className={`rounded px-2 py-0.5 text-xs font-medium ${tagStyles[tag] ?? 'bg-gray-100 text-gray-700'}`}
+                                                        >
+                                                            {tag}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                                <div className="my-2 -mb-2 flex items-center gap-2">
+                                                    <StarRatingComponent
+                                                        score={80}
+                                                        maxScore={100}
+                                                    />
+                                                    <span className="text-neutral-500">4.5</span>
+                                                </div>
+                                                {/* View Course Button */}
+                                                <MyButton
+                                                    className="mt-4 w-full"
+                                                    buttonType="primary"
+                                                >
+                                                    View Course
+                                                </MyButton>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
                     </div>
-                ))}
-            </div>
-            <div>
-                {courses.length === 0 && (
-                    <div className="flex flex-1 flex-col items-center justify-center py-10">
-                        <EmptyCoursePage />
-                    </div>
-                )}
-            </div>
+                </TabsContent>
+                <TabsContent value="MyCourses"></TabsContent>
+                <TabsContent value="AuthoredCourses"></TabsContent>
+                <TabsContent value="CourseRequests"></TabsContent>
+            </Tabs>
         </div>
     );
 };
