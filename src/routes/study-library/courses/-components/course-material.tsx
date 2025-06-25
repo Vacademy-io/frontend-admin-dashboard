@@ -18,17 +18,38 @@ import { StarRatingComponent } from '@/components/common/star-rating-component';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import type { LevelType } from '@/schemas/student/student-list/institute-schema';
 import { handleGetInstituteUsersForAccessControl } from '@/routes/dashboard/-services/dashboard-services';
-import { useSuspenseQuery } from '@tanstack/react-query';
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import type { UserRolesDataEntry } from '@/types/dashboard/user-roles';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
+import { MyPagination } from '@/components/design-system/pagination';
+import { getAllCoursesWithFilters } from '../-services/courses-services';
+import { usePaginationState } from '@/hooks/pagination';
+
+export interface AllCourseFilters {
+    status: string[];
+    level_ids: string[];
+    tag: string[];
+    faculty_ids: string[];
+    search_by_name: string;
+    min_percentage_completed: number;
+    max_percentage_completed: number;
+    sort_columns: Record<string, 'ASC' | 'DESC'>;
+}
 
 export const CourseMaterial = () => {
     const { instituteDetails } = useInstituteDetailsStore();
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
     const [roles, setRoles] = useState<string[] | undefined>([]);
+    const [allCourses, setAllCourses] = useState([]);
+    const { page, pageSize, handlePageChange } = usePaginationState({
+        initialPage: 0,
+        initialPageSize: 10,
+    });
+
+    console.log(allCourses);
 
     const { data: accessControlUsers, isLoading: isUsersLoading } = useSuspenseQuery(
         handleGetInstituteUsersForAccessControl(instituteDetails?.id, {
@@ -39,16 +60,7 @@ export const CourseMaterial = () => {
 
     const { setNavHeading } = useNavHeadingStore();
     const [selectedTab, setSelectedTab] = useState('AllCourses');
-    const [selectedFilters, setSelectedFilters] = useState<{
-        status: string[];
-        level_ids: string[];
-        tag: string[];
-        faculty_ids: string[];
-        search_by_name: string;
-        min_percentage_completed: number;
-        max_percentage_completed: number;
-        sort_columns: Record<string, 'ASC' | 'DESC'>;
-    }>({
+    const [selectedFilters, setSelectedFilters] = useState<AllCourseFilters>({
         status: ['ACTIVE'],
         level_ids: [],
         tag: [],
@@ -58,10 +70,39 @@ export const CourseMaterial = () => {
         max_percentage_completed: 0,
         sort_columns: { created_at: 'DESC' },
     });
-    console.log(selectedFilters);
+
     const [activeCard, setActiveCard] = useState<number | null>(null);
     const [sortBy, setSortBy] = useState('oldest');
     const [searchValue, setSearchValue] = useState('');
+
+    const getAllCoursesMutation = useMutation({
+        mutationFn: ({
+            page,
+            pageSize,
+            instituteId,
+            data,
+        }: {
+            page: number;
+            pageSize: number;
+            instituteId: string | undefined;
+            data: AllCourseFilters;
+        }) => getAllCoursesWithFilters(page, pageSize, instituteId, data),
+        onSuccess: (data) => {
+            setAllCourses(data);
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
+    const handleGetCourses = () => {
+        getAllCoursesMutation.mutate({
+            page: page,
+            pageSize,
+            instituteId: instituteDetails?.id,
+            data: selectedFilters,
+        });
+    };
 
     useIntroJsTour({
         key: StudyLibraryIntroKey.createCourseStep,
@@ -566,6 +607,11 @@ export const CourseMaterial = () => {
                                     );
                                 })}
                             </div>
+                            <MyPagination
+                                currentPage={page}
+                                totalPages={pageSize}
+                                onPageChange={handlePageChange}
+                            />
                         </div>
                     </div>
                 </TabsContent>

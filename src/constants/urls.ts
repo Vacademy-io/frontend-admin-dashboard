@@ -11,6 +11,7 @@ export const REFRESH_TOKEN_URL = `${BASE_URL}/auth-service/v1/refresh-token`;
 
 export const UPLOAD_DOCS_FILE_URL = `${BASE_URL}/media-service/convert/doc-to-html`;
 
+export const COURSE_CATALOG_URL = `${BASE_URL}/admin-core-service/packages/v1/search`;
 export const GET_DASHBOARD_URL = `${BASE_URL}/admin-core-service/institute/v1/get-dashboard`;
 export const UPDATE_DASHBOARD_URL = `${BASE_URL}/admin-core-service/institute/v1/institute-update`;
 export const UPDATE_ADMIN_DETAILS_URL = `${BASE_URL}/auth-service/v1/user-details/update`;

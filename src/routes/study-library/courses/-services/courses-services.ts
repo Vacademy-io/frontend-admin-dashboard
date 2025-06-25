@@ -1,4 +1,7 @@
 import { getInstituteId } from '@/constants/helper';
+import { AllCourseFilters } from '../-components/course-material';
+import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
+import { COURSE_CATALOG_URL } from '@/constants/urls';
 
 export const fetchCourseDetails = async (courseId: string) => {
     const instituteId = getInstituteId();
@@ -8,4 +11,27 @@ export const fetchCourseDetails = async (courseId: string) => {
         throw new Error('Failed to fetch course details');
     }
     return response.json();
+};
+
+export const getAllCoursesWithFilters = async (
+    page: number,
+    pageSize: number,
+    instituteId: string | undefined,
+    data: AllCourseFilters
+) => {
+    try {
+        const response = await authenticatedAxiosInstance({
+            method: 'POST',
+            url: `${COURSE_CATALOG_URL}`,
+            params: {
+                instituteId,
+                page,
+                size: pageSize,
+            },
+            data,
+        });
+        return response?.data;
+    } catch (error: unknown) {
+        throw new Error(`${error}`);
+    }
 };
