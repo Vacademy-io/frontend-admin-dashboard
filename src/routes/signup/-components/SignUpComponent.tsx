@@ -16,10 +16,11 @@ import { Plus } from 'phosphor-react';
 import { useNavigate } from '@tanstack/react-router';
 import useOrganizationStore from '../onboarding/-zustand-store/step1OrganizationZustand';
 import { useEffect } from 'react';
-import { handleOAuthLogin, type OAuthProvider } from '@/hooks/login/oauth-login';
 import { GitHubLogoIcon } from '@radix-ui/react-icons';
 import { FcGoogle } from 'react-icons/fc';
+import { handleOAuthSignUp } from '@/hooks/signup/oauth-signup';
 
+handleOAuthSignUp;
 const items = [
     {
         id: 'assess',
@@ -57,13 +58,13 @@ export function SignUpComponent() {
         console.log(data);
     }
 
-    const handleOAuthSignup = (provider: OAuthProvider) => {
+    const handleOAuthLogin = (provider: OAuthProvider) => {
         // Only enable OAuth signup when assess is true and lms is false
         if (!form.getValues('items.assess') || form.getValues('items.lms')) {
             return;
         }
 
-        handleOAuthLogin(provider, {
+        handleOAuthSignUp(provider, {
             isSignup: true,
             assess: form.getValues('items.assess'),
             lms: form.getValues('items.lms'),
@@ -102,7 +103,7 @@ export function SignUpComponent() {
                                     type="button"
                                     className="flex w-full items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 shadow-sm transition-colors hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
                                     onClick={() => {
-                                        handleOAuthLogin('google', { isSignup: true });
+                                        handleOAuthSignUp('google', { isSignup: true });
                                     }}
                                     disabled={
                                         !form.getValues('items.assess') &&
@@ -110,14 +111,13 @@ export function SignUpComponent() {
                                     }
                                 >
                                     {FcGoogle({ size: 20 })}
-
                                     Continue with Google
                                 </button>
                                 <button
                                     type="button"
                                     className="flex w-full items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 shadow-sm transition-colors hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
                                     onClick={() => {
-                                        handleOAuthLogin('github', { isSignup: true });
+                                        handleOAuthSignUp('github', { isSignup: true });
                                     }}
                                     disabled={
                                         !form.getValues('items.assess') &&

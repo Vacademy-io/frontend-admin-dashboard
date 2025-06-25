@@ -8,7 +8,7 @@ interface OAuthLoginOptions {
     lms?: boolean;
 }
 
-export const handleOAuthLogin = (provider: OAuthProvider, options: OAuthLoginOptions = {}) => {
+export const handleOAuthSignUp = (provider: OAuthProvider, options: OAuthLoginOptions = {}) => {
     try {
         const { isSignup = true, assess = false, lms = false } = options;
 

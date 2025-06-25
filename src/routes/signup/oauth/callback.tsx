@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { toast } from 'sonner';
-import { handleOAuthCallback } from '@/hooks/login/oauth-login';
+import { handleOAuthCallback } from '@/hooks/signup/oauth-signup';
 
 function OAuthCallbackPage() {
     const navigate = useNavigate();
@@ -36,11 +36,19 @@ function OAuthCallbackPage() {
     }, [navigate]);
 
     return (
-        <div className="flex min-h-screen items-center justify-center">
-            <div className="text-center">
-                <div className="mx-auto mb-4 size-10 animate-spin rounded-full border-4 border-primary-500 border-t-transparent" />
-                <p className="text-sm text-neutral-600">Finalizing login, please wait...</p>
-            </div>
+        <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 dark:bg-gray-900">
+            {/* <div className="space-y-4 text-center">
+                <div className="relative flex justify-center">
+                    <div className="size-12 animate-spin rounded-full border-4 border-primary-500 border-t-transparent"></div>
+                    <span className="sr-only">Loading...</span>
+                </div>
+                <h2 className="text-base font-semibold text-gray-800 dark:text-white">
+                    We're getting things ready...
+                </h2>
+                <p className="text-sm text-gray-500 dark:text-gray-300">
+                    Finalizing your login, hang tight!
+                </p>
+            </div> */}
         </div>
     );
 }
