@@ -63,6 +63,7 @@ import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 import { GET_SLIDES } from '@/constants/urls';
 import { handleGetSlideCountDetails } from '../-services/get-slides-count';
 import { ModuleResponse } from '../../-components/course-details-page';
+import { CourseDetailsRatingsComponent } from './course-details-ratings-page';
 
 type DialogType = 'subject' | 'module' | 'chapter' | 'slide' | null;
 
@@ -2518,7 +2519,7 @@ export const CourseDetailsPage = () => {
                 {!form.watch('courseData').courseBannerMediaId ? (
                     <div className="absolute inset-0 bg-primary-500" />
                 ) : (
-                    <div className="absolute inset-0">
+                    <div className="absolute inset-0 opacity-70">
                         <img
                             src={form.watch('courseData').courseBannerMediaId}
                             alt="Course Banner"
@@ -2530,7 +2531,6 @@ export const CourseDetailsPage = () => {
                         />
                     </div>
                 )}
-                <div className="absolute inset-0 bg-primary-500/70" />{' '}
                 {/* Primary color overlay with 70% opacity */}
                 <div className="container relative mx-auto px-4 py-12 text-white">
                     <div className="flex items-start justify-between gap-8">
@@ -2804,6 +2804,7 @@ export const CourseDetailsPage = () => {
                         </div>
                     </div>
                 </div>
+                <CourseDetailsRatingsComponent />
             </div>
             {getDialogContent()}
         </div>
