@@ -50,6 +50,7 @@ import { Route as AssessmentAssessmentListIndexImport } from "./routes/assessmen
 import { Route as AiCenterMyResourcesIndexImport } from "./routes/ai-center/my-resources/index"
 import { Route as AiCenterAiToolsIndexImport } from "./routes/ai-center/ai-tools/index"
 import { Route as SignupOauthCallbackImport } from "./routes/signup/oauth/callback"
+import { Route as LoginOauthRedirectImport } from "./routes/login/oauth/redirect"
 import { Route as StudyLibraryVoltAddIndexImport } from "./routes/study-library/volt/add/index"
 import { Route as StudyLibraryLiveSessionScheduleIndexImport } from "./routes/study-library/live-session/schedule/index"
 import { Route as StudyLibraryCoursesLevelsIndexImport } from "./routes/study-library/courses/levels/index"
@@ -334,6 +335,12 @@ const AiCenterAiToolsIndexRoute = AiCenterAiToolsIndexImport.update({
 const SignupOauthCallbackRoute = SignupOauthCallbackImport.update({
   id: "/signup/oauth/callback",
   path: "/signup/oauth/callback",
+  getParentRoute: () => rootRoute,
+} as any)
+
+const LoginOauthRedirectRoute = LoginOauthRedirectImport.update({
+  id: "/login/oauth/redirect",
+  path: "/login/oauth/redirect",
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -631,6 +638,13 @@ declare module "@tanstack/react-router" {
       path: "/study-library"
       fullPath: "/study-library"
       preLoaderRoute: typeof StudyLibraryIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/login/oauth/redirect": {
+      id: "/login/oauth/redirect"
+      path: "/login/oauth/redirect"
+      fullPath: "/login/oauth/redirect"
+      preLoaderRoute: typeof LoginOauthRedirectImport
       parentRoute: typeof rootRoute
     }
     "/signup/oauth/callback": {
@@ -1030,6 +1044,7 @@ export interface FileRoutesByFullPath {
   "/manage-students": typeof ManageStudentsIndexRoute
   "/signup": typeof SignupIndexRoute
   "/study-library": typeof StudyLibraryIndexRoute
+  "/login/oauth/redirect": typeof LoginOauthRedirectRoute
   "/signup/oauth/callback": typeof SignupOauthCallbackRoute
   "/ai-center/ai-tools": typeof AiCenterAiToolsIndexRoute
   "/ai-center/my-resources": typeof AiCenterMyResourcesIndexRoute
@@ -1100,6 +1115,7 @@ export interface FileRoutesByTo {
   "/manage-students": typeof ManageStudentsIndexRoute
   "/signup": typeof SignupIndexRoute
   "/study-library": typeof StudyLibraryIndexRoute
+  "/login/oauth/redirect": typeof LoginOauthRedirectRoute
   "/signup/oauth/callback": typeof SignupOauthCallbackRoute
   "/ai-center/ai-tools": typeof AiCenterAiToolsIndexRoute
   "/ai-center/my-resources": typeof AiCenterMyResourcesIndexRoute
@@ -1171,6 +1187,7 @@ export interface FileRoutesById {
   "/manage-students/": typeof ManageStudentsIndexRoute
   "/signup/": typeof SignupIndexRoute
   "/study-library/": typeof StudyLibraryIndexRoute
+  "/login/oauth/redirect": typeof LoginOauthRedirectRoute
   "/signup/oauth/callback": typeof SignupOauthCallbackRoute
   "/ai-center/ai-tools/": typeof AiCenterAiToolsIndexRoute
   "/ai-center/my-resources/": typeof AiCenterMyResourcesIndexRoute
@@ -1243,6 +1260,7 @@ export interface FileRouteTypes {
     | "/manage-students"
     | "/signup"
     | "/study-library"
+    | "/login/oauth/redirect"
     | "/signup/oauth/callback"
     | "/ai-center/ai-tools"
     | "/ai-center/my-resources"
@@ -1312,6 +1330,7 @@ export interface FileRouteTypes {
     | "/manage-students"
     | "/signup"
     | "/study-library"
+    | "/login/oauth/redirect"
     | "/signup/oauth/callback"
     | "/ai-center/ai-tools"
     | "/ai-center/my-resources"
@@ -1381,6 +1400,7 @@ export interface FileRouteTypes {
     | "/manage-students/"
     | "/signup/"
     | "/study-library/"
+    | "/login/oauth/redirect"
     | "/signup/oauth/callback"
     | "/ai-center/ai-tools/"
     | "/ai-center/my-resources/"
@@ -1452,6 +1472,7 @@ export interface RootRouteChildren {
   ManageStudentsIndexRoute: typeof ManageStudentsIndexRoute
   SignupIndexRoute: typeof SignupIndexRoute
   StudyLibraryIndexRoute: typeof StudyLibraryIndexRoute
+  LoginOauthRedirectRoute: typeof LoginOauthRedirectRoute
   SignupOauthCallbackRoute: typeof SignupOauthCallbackRoute
   AiCenterAiToolsIndexRoute: typeof AiCenterAiToolsIndexRoute
   AiCenterMyResourcesIndexRoute: typeof AiCenterMyResourcesIndexRoute
@@ -1522,6 +1543,7 @@ const rootRouteChildren: RootRouteChildren = {
   ManageStudentsIndexRoute: ManageStudentsIndexRoute,
   SignupIndexRoute: SignupIndexRoute,
   StudyLibraryIndexRoute: StudyLibraryIndexRoute,
+  LoginOauthRedirectRoute: LoginOauthRedirectRoute,
   SignupOauthCallbackRoute: SignupOauthCallbackRoute,
   AiCenterAiToolsIndexRoute: AiCenterAiToolsIndexRoute,
   AiCenterMyResourcesIndexRoute: AiCenterMyResourcesIndexRoute,
@@ -1623,6 +1645,7 @@ export const routeTree = rootRoute
         "/manage-students/",
         "/signup/",
         "/study-library/",
+        "/login/oauth/redirect",
         "/signup/oauth/callback",
         "/ai-center/ai-tools/",
         "/ai-center/my-resources/",
@@ -1717,6 +1740,9 @@ export const routeTree = rootRoute
     },
     "/study-library/": {
       "filePath": "study-library/index.tsx"
+    },
+    "/login/oauth/redirect": {
+      "filePath": "login/oauth/redirect.tsx"
     },
     "/signup/oauth/callback": {
       "filePath": "signup/oauth/callback.tsx"
