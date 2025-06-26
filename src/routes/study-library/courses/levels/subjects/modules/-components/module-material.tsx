@@ -114,7 +114,15 @@ export const ModuleMaterial = () => {
     };
 
     const handleDeleteModule = (module: Module) => {
-        deleteModuleMutation.mutate(module.id);
+        deleteModuleMutation.mutate({
+            moduleId: module.id,
+            commaSeparatedPackageSessionIds:
+                getPackageSessionId({
+                    courseId: courseId,
+                    levelId: levelId,
+                    sessionId: currentSession?.id || '',
+                }) || '',
+        });
     };
 
     const handleEditModule = (updatedModule: Module) => {
