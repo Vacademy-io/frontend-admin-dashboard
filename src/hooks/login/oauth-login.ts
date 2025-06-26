@@ -1,120 +1,107 @@
-import { verifyEmailWithOtp } from '@/components/common/LoginPages/VerifyEmailWithOtp';
 import { toast } from 'sonner';
+import {
+    setAuthorizationCookie,
+} from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
 
 export type OAuthProvider = 'google' | 'github';
+
 interface OAuthLoginOptions {
     isSignup?: boolean;
     assess?: boolean;
     lms?: boolean;
 }
 
-export const handleOAuthLogin = (provider: OAuthProvider, options: OAuthLoginOptions = {}) => {
-    try {
-        const { isSignup = true, assess = false, lms = false } = options;
+export const handleOAuthLogin = (
+    
+  provider: OAuthProvider,
+  options: OAuthLoginOptions = {}
+) => {
+    console.log("handle Outh Login");
+  try {
+    const { isSignup = false, assess = false, lms = false } = options;
 
-        const stateObj = {
-            from: `${window.location.origin}/signup/oauth/callback?assess=${assess}&lms=${lms}`,
-            account_type: isSignup ? (assess ? 'assess' : lms ? 'lms' : '') : '',
-        };
+    const redirectPath = isSignup
+      ? '/signup/oauth/callback'
+      : '/login/oauth/redirect';
 
-        const base64State = btoa(JSON.stringify(stateObj));
-        const loginUrl = `https://backend-stage.vacademy.io/auth-service/oauth2/authorization/${provider}?state=${encodeURIComponent(
-            base64State
-        )}`;
+    const stateObj = {
+      from: `${window.location.origin}${redirectPath}?assess=${assess}&lms=${lms}`,
+      account_type: isSignup
+        ? assess
+          ? 'assess'
+          : lms
+          ? 'lms'
+          : ''
+        : '',
+    };
 
-        // console.log('[OAuthLogin] Redirecting to:', loginUrl);
-        // console.log('[OAuthLogin] State object:', stateObj);
+    const base64State = btoa(JSON.stringify(stateObj));
 
-        window.location.href = loginUrl;
-    } catch (error) {
-        // console.error('[OAuthLogin] Error during OAuth login initiation:', error);
-        toast.error('Failed to initiate login. Please try again.');
-    }
+    const loginUrl = `https://backend-stage.vacademy.io/auth-service/oauth2/authorization/${provider}?state=${encodeURIComponent(
+      base64State
+    )}`;
+
+    console.log('[OAuthLogin] Redirecting to:', loginUrl);
+    console.log('[OAuthLogin] Encoded State:', stateObj);
+
+    window.location.href = loginUrl;
+  } catch (error) {
+    console.error('[OAuthLogin] Error during OAuth login initiation:', error);
+    toast.error('Failed to initiate login. Please try again.');
+  }
 };
 
-export const handleOAuthCallback = async () => {
-    // console.log('[OAuthCallback] Starting OAuth callback handling...');
-
+export const handleLoginOAuthCallback = async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const error = urlParams.get('error');
-    const signupData = urlParams.get('signupData');
-    const state = urlParams.get('state');
-    const emailVerified = urlParams.get('emailVerified') === 'true';
+    const stateEncoded = urlParams.get('state');
+    const accessToken = urlParams.get('accessToken');
+    const refreshToken = urlParams.get('refreshToken');
 
-    // console.log('[OAuthCallback] Params:', {
-    //     error,
-    //     signupData,
-    //     state,
-    //     emailVerified,
-    // });
+    console.log('[OAuthCallback] URL Params:', {
+        error,
+        stateEncoded,
+        accessToken,
+        refreshToken,
+    });
 
     if (error) {
-        toast.error('Authentication failed', {
+        toast.error('Authentication failed due to error ', {
             description: error,
             duration: 3000,
         });
-        // console.error('[OAuthCallback] OAuth error param found:', error);
+        console.error('[OAuthCallback] Error parameter found:', error);
         return { success: false };
     }
 
-    if (!emailVerified && signupData) {
-        // console.log('[OAuthCallback] Email not verified. Attempting to decode signup data...');
+    let redirectUrl = '/dashboard';
+
+    if (stateEncoded) {
         try {
-            const decodedData = JSON.parse(atob(decodeURIComponent(signupData)));
-            const email = decodedData?.email;
+            const decodedState = JSON.parse(atob(decodeURIComponent(stateEncoded)));
+            console.log('[OAuthCallback] Decoded state:', decodedState);
 
-            console.log('[OAuthCallback] Decoded signup data:', decodedData);
-
-            const isInvalidEmail =
-                !email || email === 'null' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-
-            if (isInvalidEmail) {
-                console.warn(
-                    '[OAuthCallback] Invalid or missing email. Prompting for verification...'
-                );
-                const verifiedEmail = await verifyEmailWithOtp();
-
-                if (verifiedEmail) {
-                    console.log('[OAuthCallback] Email verified through OTP. Proceeding...');
-                    return {
-                        success: true,
-                        signupData: {
-                            ...decodedData,
-                            email: verifiedEmail, // ✅ Use the actual verified email
-                        },
-                        state,
-                    };
-                } else {
-                    console.warn('[OAuthCallback] Email verification failed or was cancelled.');
-                    return { success: false };
-                }
-            } else {
-                console.warn('[OAuthCallback] Email is valid but emailVerified flag was false.');
+            if (decodedState?.from) {
+                redirectUrl = decodedState.from;
             }
-        } catch (e) {
-            // console.error('[OAuthCallback] Error decoding signupData:', e);
-            return { success: false };
+        } catch (err) {
+            console.warn('[OAuthCallback] Failed to decode state. Falling back to /dashboard:', err);
         }
     }
 
-    if (emailVerified && signupData) {
-        try {
-            const decodedData = JSON.parse(atob(decodeURIComponent(signupData)));
-            // console.log(
-            //     '[OAuthCallback] Email already verified. Proceeding with signup data:',
-            //     decodedData
-            // );
+    if (accessToken && refreshToken) {
+        console.log('[OAuthCallback] Setting tokens and redirecting...');
+        setAuthorizationCookie(TokenKey.accessToken, accessToken);
+        setAuthorizationCookie(TokenKey.refreshToken, refreshToken);
 
-            return {
-                success: true,
-                signupData: decodedData,
-                state,
-            };
-        } catch (e) {
-            // console.error('[OAuthCallback] Error decoding verified signupData:', e);
-            return { success: false };
-        }
+        console.log('[OAuthCallback] Redirecting to:', redirectUrl);
+        window.location.href = redirectUrl;
+
+        return { success: true };
     }
 
+    toast.error('Missing access or refresh token. Please login again.');
+    console.warn('[OAuthCallback] Tokens missing in URL.');
     return { success: false };
 };

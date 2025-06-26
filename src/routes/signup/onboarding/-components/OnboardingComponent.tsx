@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { CreateOnboardingSidebar } from './CreateOnboardingSidebar';
 import { OnboardingSteps } from './OnboardingSteps';
 import { Route } from '..';
-import { handleOAuthCallback } from '@/hooks/login/oauth-login'; // ✅ Make sure this path is correct
+import { handleOAuthCallback } from '@/hooks/signup/oauth-signup'; // ✅ Make sure this path is correct
 import { toast } from 'sonner';
 
 export function OnboardingComponent() {
@@ -30,26 +30,26 @@ export function OnboardingComponent() {
         }
     };
 
-    // ✅ OAuth Callback & OTP Verification Handling
-    useEffect(() => {
-        const checkOAuth = async () => {
-            const result = await handleOAuthCallback();
+    // // ✅ OAuth Callback & OTP Verification Handling
+    // useEffect(() => {
+    //     const checkOAuth = async () => {
+    //         const result = await handleOAuthCallback();
 
-            if (result?.success) {
-                console.log('✅ OAuth Verified:', result.signupData);
-                // Optional: store result.signupData in global state
-            } else if (result?.reason === 'unverified_email') {
-                console.warn('⚠️ OTP modal was closed without verification.');
-                toast.warning('Email verification required to continue.');
-                // Optional: redirect or halt progress
-            } else {
-                console.error('❌ OAuth Callback Failed or Skipped.');
+    //         if (result?.success) {
+    //             console.log('✅ OAuth Verified:', result.signupData);
+    //             // Optional: store result.signupData in global state
+    //         } else if (result?.reason === 'unverified_email') {
+    //             console.warn('⚠️ OTP modal was closed without verification.');
+    //             toast.warning('Email verification required to continue.');
+    //             // Optional: redirect or halt progress
+    //         } else {
+    //             console.error('❌ OAuth Callback Failed or Skipped.');
                 
-            }
-        };
+    //         }
+    //     };
 
-        checkOAuth();
-    }, []);
+    //     checkOAuth();
+    // }, []);
 
     return (
         <div className="flex h-screen w-full">

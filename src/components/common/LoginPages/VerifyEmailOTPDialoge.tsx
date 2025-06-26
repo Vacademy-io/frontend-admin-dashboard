@@ -1,8 +1,19 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MyDialog } from '@/components/design-system/dialog';
 import { MyButton } from '@/components/design-system/button';
+import axios from 'axios';
+import { toast } from 'sonner';
+import { REQUEST_OTP, LOGIN_OTP } from '@/constants/urls';
 
 const VerifyEmailOTPDialoge = () => {
+    const [open, setOpen] = useState(true);
+    const [loading, setLoading] = useState(false);
+    const [localEmail, setLocalEmail] = useState('');
+    const [otpArr, setOtpArr] = useState(Array(6).fill(''));
+    const [countdown, setCountdown] = useState(60);
+    const [step, setStep] = useState<'email' | 'otp'>('email');
+    const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
+
     useEffect(() => {
         let interval: NodeJS.Timeout | null = null;
         if (step === 'otp' && countdown === 60) {
@@ -65,17 +76,7 @@ const VerifyEmailOTPDialoge = () => {
         } finally {
             setLoading(false);
         }
-        const VerifyEmailWithOtp = () => {
-    const [open, setOpen] = useState(true);
-    const [loading, setLoading] = useState(false);
-    const [localEmail, setLocalEmail] = useState('');
-    const [otpArr, setOtpArr] = useState(Array(6).fill(''));
-    const [countdown, setCountdown] = useState(60);
-    const [step, setStep] = useState<'email' | 'otp'>('email');
-    const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
-
-
-
+    };
 
     const handleOtpChange = (value: string, index: number) => {
         const cleanVal = value.replace(/\D/, '');
@@ -113,7 +114,6 @@ const VerifyEmailOTPDialoge = () => {
         if (container) {
             container.remove();
         }
-    };
     };
 
     return (
@@ -158,7 +158,7 @@ const VerifyEmailOTPDialoge = () => {
                                 <button
                                     onClick={sendOtp}
                                     disabled={loading || !localEmail}
-                                    className={`h-10 min-w-20 self-end rounded bg-primary-500 p-0  text-xs font-semibold text-neutral-50 transition-colors hover:bg-primary-400 active:bg-primary-400 disabled:cursor-not-allowed disabled:bg-primary-300`}
+                                    className={`h-10 min-w-20 self-end rounded bg-primary-500 px-4 text-xs font-semibold text-white transition-colors hover:bg-primary-400 active:bg-primary-400 disabled:cursor-not-allowed disabled:bg-primary-300`}
                                 >
                                     {loading ? 'Sending...' : 'Send OTP'}
                                 </button>
