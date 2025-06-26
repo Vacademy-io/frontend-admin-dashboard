@@ -6,6 +6,11 @@ import { Progress } from '@/components/ui/progress';
 import { useState } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { MyButton } from '@/components/design-system/button';
+import { MyPagination } from '@/components/design-system/pagination';
+import { AxiosError } from 'axios';
+import { toast } from 'sonner';
+import { useMutation } from '@tanstack/react-query';
+import { handleSubmitRating } from '../-services/rating-services';
 
 // Mock data for demonstration
 const mockReviews = [
@@ -63,10 +68,40 @@ export function CourseDetailsRatingsComponent() {
     const [feedbackText, setFeedbackText] = useState('');
     const [selectedRating, setSelectedRating] = useState<number | null>(null);
     const [submitting, setSubmitting] = useState(false);
+    const [page, setPage] = useState(0);
 
     const handleStarClick = (rating: number) => {
         setSelectedRating(rating);
     };
+
+    const handleSubmitRatingMutation = useMutation({
+        mutationFn: async ({
+            id,
+            rating,
+            desc,
+            source_id,
+        }: {
+            id: string;
+            rating: string;
+            desc: string;
+            source_id: string;
+        }) => {
+            return handleSubmitRating(id, rating, desc, source_id);
+        },
+        onSuccess: (data) => {
+            console.log(data);
+        },
+        onError: (error: unknown) => {
+            if (error instanceof AxiosError) {
+                toast.error(error?.response?.data?.ex, {
+                    className: 'error-toast',
+                    duration: 2000,
+                });
+            } else {
+                console.error('Unexpected error:', error);
+            }
+        },
+    });
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -79,6 +114,10 @@ export function CourseDetailsRatingsComponent() {
             setSelectedRating(null);
             // Optionally show a toast or update reviews
         }, 1000);
+    };
+
+    const handlePageChange = (pageNo: number) => {
+        setPage(pageNo);
     };
 
     return (
@@ -167,11 +206,11 @@ export function CourseDetailsRatingsComponent() {
                 </div>
             </div>
             {/* User Reviews List */}
-            <div className="mt-8 flex flex-col gap-0">
+            <div className="mt-8 flex flex-col gap-4">
                 {mockReviews.map((review) => (
                     <div
                         key={review.id}
-                        className="flex flex-col rounded-xl bg-white p-5  md:items-start md:gap-4"
+                        className="flex flex-col rounded-lg border  bg-white p-5 md:items-start md:gap-4"
                     >
                         {/* Avatar */}
                         <div className="flex shrink-0 items-center justify-center gap-2">
@@ -236,6 +275,7 @@ export function CourseDetailsRatingsComponent() {
                         </div>
                     </div>
                 ))}
+                <MyPagination currentPage={page} totalPages={10} onPageChange={handlePageChange} />
             </div>
         </div>
     );

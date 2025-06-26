@@ -10,6 +10,7 @@ export const SIGNUP_URL = `${BASE_URL}/auth-service/v1/signup-root`;
 export const REFRESH_TOKEN_URL = `${BASE_URL}/auth-service/v1/refresh-token`;
 
 export const UPLOAD_DOCS_FILE_URL = `${BASE_URL}/media-service/convert/doc-to-html`;
+export const SUBMIT_RATING_URL = `${BASE_URL}/admin-core-service/rating`;
 
 export const COURSE_CATALOG_URL = `${BASE_URL}/admin-core-service/packages/v1/search`;
 export const GET_DASHBOARD_URL = `${BASE_URL}/admin-core-service/institute/v1/get-dashboard`;
