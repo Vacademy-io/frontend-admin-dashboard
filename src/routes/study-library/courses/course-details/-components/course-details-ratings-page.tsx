@@ -9,50 +9,90 @@ import { MyButton } from '@/components/design-system/button';
 import { MyPagination } from '@/components/design-system/pagination';
 import { AxiosError } from 'axios';
 import { toast } from 'sonner';
-import { useMutation } from '@tanstack/react-query';
-import { handleSubmitRating } from '../-services/rating-services';
+import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
+import {
+    handleGetOverAllRatingDetails,
+    handleGetRatingDetails,
+    handleSubmitRating,
+    handleUpdateRating,
+} from '../-services/rating-services';
 import { useRouter } from '@tanstack/react-router';
-import { usePackageSessionIds } from '@/routes/manage-students/students-list/-hooks/getPackageSessionId';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
-// Mock data for demonstration
-const mockReviews = [
-    {
-        id: '1',
+// Types for API Response
+interface User {
+    id: string;
+    username: string;
+    email: string;
+    full_name: string;
+    profile_pic_file_id: string | null;
+}
+
+interface Rating {
+    id: string;
+    points: number;
+    likes: number;
+    dislikes: number;
+    text: string;
+    user: User;
+    created_at: string;
+}
+
+interface PaginatedResponse {
+    content: Rating[];
+    totalPages: number;
+    totalElements: number;
+    number: number;
+    size: number;
+}
+
+interface SessionDetails {
+    id: string;
+    session_name: string;
+    status: string;
+    start_date: string;
+}
+
+interface Level {
+    id: string;
+    name: string;
+    duration_in_days: number;
+}
+
+interface Session {
+    sessionDetails: SessionDetails;
+    levelDetails: Level[];
+}
+
+// Type for transformed review data
+interface Review {
+    id: string;
+    user: {
+        name: string;
+        avatarUrl: string;
+    };
+    createdAt: string;
+    rating: number;
+    description: string;
+    likes: number;
+    dislikes: number;
+}
+
+// Helper function to transform API data to Review format
+const transformRatingToReview = (rating: Rating): Review => {
+    return {
+        id: rating.id,
         user: {
-            name: 'Alice Johnson',
-            avatarUrl: '',
+            name: rating.user.full_name || rating.user.username,
+            avatarUrl: rating.user.profile_pic_file_id || '',
         },
-        createdAt: '2024-06-01T10:30:00Z',
-        rating: 5,
-        description: 'Great course! Learned a lot and the instructor was amazing.',
-        likes: 12,
-        dislikes: 1,
-    },
-    {
-        id: '2',
-        user: {
-            name: 'Bob Smith',
-            avatarUrl: '',
-        },
-        createdAt: '2024-05-28T14:15:00Z',
-        rating: 4,
-        description: 'Good content, but could use more real-world examples.',
-        likes: 7,
-        dislikes: 0,
-    },
-    {
-        id: '3',
-        user: {
-            name: 'Carol Lee',
-            avatarUrl: '',
-        },
-        createdAt: '2024-05-20T09:00:00Z',
-        rating: 3,
-        description: 'Average experience. Some topics were rushed.',
-        likes: 2,
-        dislikes: 3,
-    },
-];
+        createdAt: rating.created_at,
+        rating: rating.points,
+        description: rating.text,
+        likes: rating.likes,
+        dislikes: rating.dislikes,
+    };
+};
 
 function timeAgo(dateString: string) {
     const now = new Date();
@@ -65,7 +105,14 @@ function timeAgo(dateString: string) {
     return date.toLocaleDateString();
 }
 
-export function CourseDetailsRatingsComponent() {
+export function CourseDetailsRatingsComponent({
+    currentSession,
+    currentLevel,
+}: {
+    currentSession: Session;
+    currentLevel: Level;
+}) {
+    const queryClient = useQueryClient();
     const router = useRouter();
     const courseId = router.state.location.search.courseId;
     const [feedbackText, setFeedbackText] = useState('');
@@ -73,7 +120,38 @@ export function CourseDetailsRatingsComponent() {
     const [submitting, setSubmitting] = useState(false);
     const [page, setPage] = useState(0);
 
-    const {getPackageSessionId} = usePackageSessionIds();
+    const { getPackageSessionId } = useInstituteDetailsStore();
+
+    const { data: ratingData, isLoading } = useSuspenseQuery<PaginatedResponse>(
+        handleGetRatingDetails({
+            pageNo: page,
+            pageSize: 10,
+            data: {
+                source_id:
+                    getPackageSessionId({
+                        courseId: courseId || '',
+                        levelId: currentLevel ? currentLevel.id : '',
+                        sessionId: currentSession ? currentSession.sessionDetails.id : '',
+                    }) || '',
+                source_type: 'PACKAGE_SESSION',
+            },
+        })
+    );
+
+    const { data: overallRatingData } = useSuspenseQuery(
+        handleGetOverAllRatingDetails({
+            source_id:
+                getPackageSessionId({
+                    courseId: courseId || '',
+                    levelId: currentLevel ? currentLevel.id : '',
+                    sessionId: currentSession ? currentSession.sessionDetails.id : '',
+                }) || '',
+        })
+    );
+
+    // Transform API data to reviews format
+    const reviews = ratingData?.content.map(transformRatingToReview) || [];
+    const totalPages = ratingData?.totalPages || 0;
 
     const handleStarClick = (rating: number) => {
         setSelectedRating(rating);
@@ -81,17 +159,15 @@ export function CourseDetailsRatingsComponent() {
 
     const handleSubmitRatingMutation = useMutation({
         mutationFn: async ({
-            id,
             rating,
             desc,
             source_id,
         }: {
-            id: string;
             rating: number;
             desc: string;
             source_id: string;
         }) => {
-            return handleSubmitRating(id, rating, desc, source_id);
+            return handleSubmitRating(rating, desc, source_id);
         },
         onSuccess: () => {
             toast.success('Thank you for your feedback!', {
@@ -102,7 +178,8 @@ export function CourseDetailsRatingsComponent() {
             setFeedbackText('');
             setSelectedRating(null);
             setSubmitting(false);
-            // Optionally: Refetch reviews or update the list
+            queryClient.invalidateQueries({ queryKey: ['GET_ALL_USER_COURSE_RATINGS'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_ALL_USER_COURSE_RATINGS_OVERALL'] });
         },
         onError: (error: unknown) => {
             if (error instanceof AxiosError) {
@@ -127,16 +204,53 @@ export function CourseDetailsRatingsComponent() {
 
         setSubmitting(true);
         handleSubmitRatingMutation.mutate({
-            id: courseId,
             rating: selectedRating,
             desc: feedbackText.trim(),
-            source_id:  getPackageSessionId({
-                courseId: courseId,
-                levelId: levelId,
-                sessionId: currentSession?.id || '',
-            }) || '',, // Assuming this is for course ratings
+            source_id:
+                getPackageSessionId({
+                    courseId: courseId,
+                    levelId: currentLevel.id,
+                    sessionId: currentSession.sessionDetails.id,
+                }) || '',
         });
     };
+
+    const handleUpdateRatingMutation = useMutation({
+        mutationFn: async ({
+            id,
+            rating,
+            source_id,
+            status,
+            likes,
+            dislikes,
+        }: {
+            id: string;
+            rating: number;
+            source_id: string;
+            status: string;
+            likes: number;
+            dislikes: number;
+        }) => {
+            return handleUpdateRating(id, rating, source_id, status, likes, dislikes);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['GET_ALL_USER_COURSE_RATINGS'] });
+        },
+        onError: (error: unknown) => {
+            if (error instanceof AxiosError) {
+                toast.error(error?.response?.data?.ex || 'Failed to submit rating', {
+                    className: 'error-toast',
+                    duration: 2000,
+                });
+            } else {
+                toast.error('An unexpected error occurred', {
+                    className: 'error-toast',
+                    duration: 2000,
+                });
+                console.error('Unexpected error:', error);
+            }
+        },
+    });
 
     const handlePageChange = (pageNo: number) => {
         setPage(pageNo);
@@ -193,111 +307,217 @@ export function CourseDetailsRatingsComponent() {
                     {submitting ? 'Submitting...' : 'Submit Feedback'}
                 </MyButton>
             </form>
-            <div className="flex w-full gap-12">
-                <div className="flex flex-col gap-2 text-center">
-                    <h1 className="text-3xl">4.5</h1>
-                    <StarRatingComponent score={40} starColor={true} />
-                    <span>120 reviews</span>
+            {reviews.length > 0 && (
+                <div className="flex w-full gap-12">
+                    <div className="flex flex-col gap-2 text-center">
+                        <h1 className="text-3xl">
+                            {overallRatingData?.average_rating !== null &&
+                            overallRatingData?.average_rating !== undefined
+                                ? Number(overallRatingData.average_rating).toFixed(1)
+                                : 'N/A'}
+                        </h1>
+                        <StarRatingComponent
+                            score={
+                                overallRatingData?.average_rating !== null &&
+                                overallRatingData?.average_rating !== undefined
+                                    ? Number(overallRatingData.average_rating) * 20
+                                    : 0
+                            }
+                            starColor={true}
+                        />
+                        <span>
+                            {overallRatingData?.total_reviews !== null &&
+                            overallRatingData?.total_reviews !== undefined
+                                ? overallRatingData.total_reviews
+                                : 0}{' '}
+                            reviews
+                        </span>
+                    </div>
+                    <div className="flex w-full flex-col gap-4">
+                        <div className="flex w-1/2 items-center gap-2">
+                            <span>5</span>
+                            <Progress value={overallRatingData?.percent_five_star ?? 0} />
+                            <span>
+                                {overallRatingData?.percent_five_star !== null &&
+                                overallRatingData?.percent_five_star !== undefined
+                                    ? `${overallRatingData.percent_five_star}%`
+                                    : '0%'}
+                            </span>
+                        </div>
+                        <div className="flex w-1/2 items-center gap-2">
+                            <span>4</span>
+                            <Progress value={overallRatingData?.percent_four_star ?? 0} />
+                            <span>
+                                {overallRatingData?.percent_four_star !== null &&
+                                overallRatingData?.percent_four_star !== undefined
+                                    ? `${overallRatingData.percent_four_star}%`
+                                    : '0%'}
+                            </span>
+                        </div>
+                        <div className="flex w-1/2 items-center gap-2">
+                            <span>3</span>
+                            <Progress value={overallRatingData?.percent_three_star ?? 0} />
+                            <span>
+                                {overallRatingData?.percent_three_star !== null &&
+                                overallRatingData?.percent_three_star !== undefined
+                                    ? `${overallRatingData.percent_three_star}%`
+                                    : '0%'}
+                            </span>
+                        </div>
+                        <div className="flex w-1/2 items-center gap-2">
+                            <span>2</span>
+                            <Progress value={overallRatingData?.percent_two_star ?? 0} />
+                            <span>
+                                {overallRatingData?.percent_two_star !== null &&
+                                overallRatingData?.percent_two_star !== undefined
+                                    ? `${overallRatingData.percent_two_star}%`
+                                    : '0%'}
+                            </span>
+                        </div>
+                        <div className="flex w-1/2 items-center gap-2">
+                            <span>1</span>
+                            <Progress value={overallRatingData?.percent_one_star ?? 0} />
+                            <span>
+                                {overallRatingData?.percent_one_star !== null &&
+                                overallRatingData?.percent_one_star !== undefined
+                                    ? `${overallRatingData.percent_one_star}%`
+                                    : '0%'}
+                            </span>
+                        </div>
+                    </div>
                 </div>
-                <div className="flex w-full flex-col gap-4">
-                    <div className="flex items-center gap-2">
-                        <span>5</span>
-                        <Progress value={100} />
-                        <span>100%</span>
-                    </div>
-                    <div className="flex w-1/2 items-center gap-2">
-                        <span>4</span>
-                        <Progress value={100} />
-                        <span>40%</span>
-                    </div>
-                    <div className="flex w-1/2 items-center gap-2">
-                        <span>3</span>
-                        <Progress value={100} />
-                        <span>40%</span>
-                    </div>
-                    <div className="flex w-1/2 items-center gap-2">
-                        <span>2</span>
-                        <Progress value={100} />
-                        <span>40%</span>
-                    </div>
-                    <div className="flex w-1/2 items-center gap-2">
-                        <span>1</span>
-                        <Progress value={100} />
-                        <span>40%</span>
-                    </div>
-                </div>
-            </div>
+            )}
             {/* User Reviews List */}
-            <div className="mt-8 flex flex-col gap-4">
-                {mockReviews.map((review) => (
-                    <div
-                        key={review.id}
-                        className="flex flex-col rounded-lg border  bg-white p-5 md:items-start md:gap-4"
-                    >
-                        {/* Avatar */}
-                        <div className="flex shrink-0 items-center justify-center gap-2">
-                            <Avatar>
-                                {review.user.avatarUrl ? (
-                                    <AvatarImage
-                                        src={review.user.avatarUrl}
-                                        alt={review.user.name}
-                                    />
-                                ) : (
-                                    <AvatarFallback>
-                                        {review.user.name
-                                            .split(' ')
-                                            .map((n) => n[0])
-                                            .join('')
-                                            .slice(0, 2)
-                                            .toUpperCase()}
-                                    </AvatarFallback>
-                                )}
-                            </Avatar>
+            <div className={`${reviews.length === 0 ? 'mt-0' : 'mt-8'} flex flex-col gap-4`}>
+                {isLoading ? (
+                    // Add loading skeleton here if needed
+                    <div>Loading reviews...</div>
+                ) : reviews.length === 0 ? (
+                    <div className="text-center text-neutral-500">No reviews yet</div>
+                ) : (
+                    reviews.map((review) => (
+                        <div
+                            key={review.id}
+                            className="flex flex-col rounded-lg border bg-white p-5 md:items-start md:gap-4"
+                        >
+                            {/* Avatar */}
+                            <div className="flex shrink-0 items-center justify-center gap-2">
+                                <Avatar>
+                                    {review.user.avatarUrl ? (
+                                        <AvatarImage
+                                            src={review.user.avatarUrl}
+                                            alt={review.user.name}
+                                        />
+                                    ) : (
+                                        <AvatarFallback>
+                                            {review.user.name
+                                                .split(' ')
+                                                .map((n) => n[0])
+                                                .join('')
+                                                .slice(0, 2)
+                                                .toUpperCase()}
+                                        </AvatarFallback>
+                                    )}
+                                </Avatar>
+                                <div className="flex flex-col">
+                                    <span className="font-semibold text-neutral-800">
+                                        {review.user.name}
+                                    </span>
+                                    <span className="mt-0.5 text-xs text-neutral-400">
+                                        {timeAgo(review.createdAt)}
+                                    </span>
+                                </div>
+                            </div>
                             <div className="flex flex-col">
-                                <span className="font-semibold text-neutral-800">
-                                    {review.user.name}
-                                </span>
-                                <span className="mt-0.5 text-xs text-neutral-400">
-                                    {timeAgo(review.createdAt)}
-                                </span>
+                                <div className="mt-1 flex items-center gap-2">
+                                    <StarRatingComponent
+                                        score={review.rating * 20}
+                                        starColor={true}
+                                    />
+                                </div>
+                                <div className="mt-2 text-neutral-700">{review.description}</div>
+                                <div className="mt-3 flex items-center justify-start gap-4">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="flex items-center gap-1 text-neutral-500 hover:text-blue-600"
+                                        onClick={() => {
+                                            handleUpdateRatingMutation.mutate({
+                                                id: review.id,
+                                                rating: review.rating,
+                                                source_id:
+                                                    getPackageSessionId({
+                                                        courseId: courseId || '',
+                                                        levelId: currentLevel.id,
+                                                        sessionId: currentSession.sessionDetails.id,
+                                                    }) || '',
+                                                status: 'ACTIVE',
+                                                likes: review.likes + 1,
+                                                dislikes: review.dislikes,
+                                            });
+                                        }}
+                                    >
+                                        <ThumbsUp size={18} />
+                                        <span className="text-xs">{review.likes}</span>
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="flex items-center gap-1 text-neutral-500 hover:text-red-500"
+                                        onClick={() => {
+                                            handleUpdateRatingMutation.mutate({
+                                                id: review.id,
+                                                rating: review.rating,
+                                                source_id:
+                                                    getPackageSessionId({
+                                                        courseId: courseId || '',
+                                                        levelId: currentLevel.id,
+                                                        sessionId: currentSession.sessionDetails.id,
+                                                    }) || '',
+                                                status: 'ACTIVE',
+                                                likes: review.likes,
+                                                dislikes: review.dislikes + 1,
+                                            });
+                                        }}
+                                    >
+                                        <ThumbsDown size={18} />
+                                        <span className="text-xs">{review.dislikes}</span>
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="flex items-center gap-1 text-neutral-400 hover:text-red-600"
+                                        onClick={() => {
+                                            handleUpdateRatingMutation.mutate({
+                                                id: review.id,
+                                                rating: review.rating,
+                                                source_id:
+                                                    getPackageSessionId({
+                                                        courseId: courseId || '',
+                                                        levelId: currentLevel.id,
+                                                        sessionId: currentSession.sessionDetails.id,
+                                                    }) || '',
+                                                status: 'DELETED',
+                                                likes: review.likes,
+                                                dislikes: review.dislikes,
+                                            });
+                                        }}
+                                    >
+                                        <Trash size={18} />
+                                        <span className="text-xs">Delete</span>
+                                    </Button>
+                                </div>
                             </div>
                         </div>
-                        <div className="flex flex-col">
-                            <div className="mt-1 flex items-center gap-2">
-                                <StarRatingComponent score={review.rating * 20} starColor={true} />
-                                <span className="text-xs text-neutral-500">{review.rating}.0</span>
-                            </div>
-                            <div className="mt-2 text-neutral-700">{review.description}</div>
-                            <div className="mt-3 flex items-center justify-start gap-4">
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="flex items-center gap-1 text-neutral-500 hover:text-blue-600"
-                                >
-                                    <ThumbsUp size={18} />
-                                    <span className="text-xs">{review.likes}</span>
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="flex items-center gap-1 text-neutral-500 hover:text-red-500"
-                                >
-                                    <ThumbsDown size={18} />
-                                    <span className="text-xs">{review.dislikes}</span>
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="flex items-center gap-1 text-neutral-400 hover:text-red-600"
-                                >
-                                    <Trash size={18} />
-                                    <span className="text-xs">Delete</span>
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
-                ))}
-                <MyPagination currentPage={page} totalPages={10} onPageChange={handlePageChange} />
+                    ))
+                )}
+                {totalPages > 1 && (
+                    <MyPagination
+                        currentPage={page}
+                        totalPages={totalPages}
+                        onPageChange={handlePageChange}
+                    />
+                )}
             </div>
         </div>
     );

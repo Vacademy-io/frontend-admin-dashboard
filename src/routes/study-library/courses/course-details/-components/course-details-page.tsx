@@ -2804,7 +2804,10 @@ export const CourseDetailsPage = () => {
                         </div>
                     </div>
                 </div>
-                <CourseDetailsRatingsComponent />
+                <CourseDetailsRatingsComponent
+                    currentSession={currentSession}
+                    currentLevel={currentLevel}
+                />
             </div>
             {getDialogContent()}
         </div>
