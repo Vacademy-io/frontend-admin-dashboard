@@ -3,7 +3,7 @@ import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 
 export const handleSubmitRating = async (
     id: string,
-    rating: string,
+    rating: number,
     desc: string,
     source_id: string
 ) => {

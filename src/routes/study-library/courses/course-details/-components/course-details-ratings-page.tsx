@@ -11,6 +11,8 @@ import { AxiosError } from 'axios';
 import { toast } from 'sonner';
 import { useMutation } from '@tanstack/react-query';
 import { handleSubmitRating } from '../-services/rating-services';
+import { useRouter } from '@tanstack/react-router';
+import { usePackageSessionIds } from '@/routes/manage-students/students-list/-hooks/getPackageSessionId';
 
 // Mock data for demonstration
 const mockReviews = [
@@ -64,11 +66,14 @@ function timeAgo(dateString: string) {
 }
 
 export function CourseDetailsRatingsComponent() {
-    // Feedback form state
+    const router = useRouter();
+    const courseId = router.state.location.search.courseId;
     const [feedbackText, setFeedbackText] = useState('');
     const [selectedRating, setSelectedRating] = useState<number | null>(null);
     const [submitting, setSubmitting] = useState(false);
     const [page, setPage] = useState(0);
+
+    const {getPackageSessionId} = usePackageSessionIds();
 
     const handleStarClick = (rating: number) => {
         setSelectedRating(rating);
@@ -82,38 +87,55 @@ export function CourseDetailsRatingsComponent() {
             source_id,
         }: {
             id: string;
-            rating: string;
+            rating: number;
             desc: string;
             source_id: string;
         }) => {
             return handleSubmitRating(id, rating, desc, source_id);
         },
-        onSuccess: (data) => {
-            console.log(data);
+        onSuccess: () => {
+            toast.success('Thank you for your feedback!', {
+                className: 'success-toast',
+                duration: 2000,
+            });
+            // Reset form
+            setFeedbackText('');
+            setSelectedRating(null);
+            setSubmitting(false);
+            // Optionally: Refetch reviews or update the list
         },
         onError: (error: unknown) => {
             if (error instanceof AxiosError) {
-                toast.error(error?.response?.data?.ex, {
+                toast.error(error?.response?.data?.ex || 'Failed to submit rating', {
                     className: 'error-toast',
                     duration: 2000,
                 });
             } else {
+                toast.error('An unexpected error occurred', {
+                    className: 'error-toast',
+                    duration: 2000,
+                });
                 console.error('Unexpected error:', error);
             }
+            setSubmitting(false);
         },
     });
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!selectedRating || !feedbackText.trim()) return;
+        if (!selectedRating || !feedbackText.trim() || !courseId) return;
+
         setSubmitting(true);
-        // Simulate submit
-        setTimeout(() => {
-            setSubmitting(false);
-            setFeedbackText('');
-            setSelectedRating(null);
-            // Optionally show a toast or update reviews
-        }, 1000);
+        handleSubmitRatingMutation.mutate({
+            id: courseId,
+            rating: selectedRating,
+            desc: feedbackText.trim(),
+            source_id:  getPackageSessionId({
+                courseId: courseId,
+                levelId: levelId,
+                sessionId: currentSession?.id || '',
+            }) || '',, // Assuming this is for course ratings
+        });
     };
 
     const handlePageChange = (pageNo: number) => {
