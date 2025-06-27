@@ -1,7 +1,7 @@
 import { getInstituteId } from '@/constants/helper';
 import { AllCourseFilters } from '../-components/course-material';
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
-import { COURSE_CATALOG_URL } from '@/constants/urls';
+import { COURSE_CATALOG_TEACHER_URL, COURSE_CATALOG_URL } from '@/constants/urls';
 
 export const fetchCourseDetails = async (courseId: string) => {
     const instituteId = getInstituteId();
@@ -23,6 +23,29 @@ export const getAllCoursesWithFilters = async (
         const response = await authenticatedAxiosInstance({
             method: 'POST',
             url: `${COURSE_CATALOG_URL}`,
+            params: {
+                instituteId,
+                page,
+                size: pageSize,
+            },
+            data,
+        });
+        return response?.data;
+    } catch (error: unknown) {
+        throw new Error(`${error}`);
+    }
+};
+
+export const getAllTeacherCoursesWithFilters = async (
+    page: number,
+    pageSize: number,
+    instituteId: string | undefined,
+    data: AllCourseFilters
+) => {
+    try {
+        const response = await authenticatedAxiosInstance({
+            method: 'POST',
+            url: `${COURSE_CATALOG_TEACHER_URL}`,
             params: {
                 instituteId,
                 page,

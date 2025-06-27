@@ -24,7 +24,10 @@ import type { UserRolesDataEntry } from '@/types/dashboard/user-roles';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
 import { MyPagination } from '@/components/design-system/pagination';
-import { getAllCoursesWithFilters } from '../-services/courses-services';
+import {
+    getAllCoursesWithFilters,
+    getAllTeacherCoursesWithFilters,
+} from '../-services/courses-services';
 import { useFileUpload } from '@/hooks/use-file-upload';
 import { useNavigate } from '@tanstack/react-router';
 
@@ -125,6 +128,26 @@ export const CourseMaterial = () => {
     const [sortBy, setSortBy] = useState('oldest');
     const [searchValue, setSearchValue] = useState('');
 
+    const getAllTeacherCoursesMutation = useMutation({
+        mutationFn: ({
+            page,
+            pageSize,
+            instituteId,
+            data,
+        }: {
+            page: number;
+            pageSize: number;
+            instituteId: string | undefined;
+            data: AllCourseFilters;
+        }) => getAllTeacherCoursesWithFilters(page, pageSize, instituteId, data),
+        onSuccess: (data) => {
+            setAllCourses(data);
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
     const getAllCoursesMutation = useMutation({
         mutationFn: ({
             page,
@@ -145,6 +168,20 @@ export const CourseMaterial = () => {
         },
     });
 
+    const handleGetTeacherCourses = () => {
+        getAllTeacherCoursesMutation.mutate({
+            page: page,
+            pageSize: 10,
+            instituteId: instituteDetails?.id,
+            data: {
+                ...selectedFilters,
+                faculty_ids: tokenData?.user
+                    ? [...selectedFilters.faculty_ids, tokenData.user]
+                    : selectedFilters.faculty_ids,
+            },
+        });
+    };
+
     const handleGetCourses = () => {
         getAllCoursesMutation.mutate({
             page: page,
@@ -154,7 +191,7 @@ export const CourseMaterial = () => {
                 ...selectedFilters,
                 faculty_ids:
                     selectedTab === 'AuthoredCourses' && tokenData?.user
-                        ? [tokenData.user]
+                        ? [...selectedFilters.faculty_ids, tokenData.user]
                         : selectedFilters.faculty_ids,
             },
         });
@@ -185,18 +222,32 @@ export const CourseMaterial = () => {
 
     const handlePageChange = (newPage: number) => {
         setPage(newPage);
-        getAllCoursesMutation.mutate({
-            page: newPage,
-            pageSize: 10,
-            instituteId: instituteDetails?.id,
-            data: {
-                ...selectedFilters,
-                faculty_ids:
-                    selectedTab === 'AuthoredCourses' && tokenData?.user
-                        ? [tokenData.user]
+        if (selectedTab === 'CourseRequests') {
+            getAllTeacherCoursesMutation.mutate({
+                page: newPage,
+                pageSize: 10,
+                instituteId: instituteDetails?.id,
+                data: {
+                    ...selectedFilters,
+                    faculty_ids: tokenData?.user
+                        ? [...selectedFilters.faculty_ids, tokenData.user]
                         : selectedFilters.faculty_ids,
-            },
-        });
+                },
+            });
+        } else {
+            getAllCoursesMutation.mutate({
+                page: newPage,
+                pageSize: 10,
+                instituteId: instituteDetails?.id,
+                data: {
+                    ...selectedFilters,
+                    faculty_ids:
+                        selectedTab === 'AuthoredCourses' && tokenData?.user
+                            ? [tokenData.user]
+                            : selectedFilters.faculty_ids,
+                },
+            });
+        }
     };
 
     const handleLevelChange = (levelId: string) => {
@@ -243,7 +294,11 @@ export const CourseMaterial = () => {
 
     const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
-            handleGetCourses();
+            if (selectedTab === 'CourseRequests') {
+                handleGetTeacherCourses();
+            } else {
+                handleGetCourses();
+            }
         }
     };
 
@@ -259,37 +314,52 @@ export const CourseMaterial = () => {
             sort_columns: { created_at: 'DESC' },
         });
         setSearchValue('');
-        getAllCoursesMutation.mutate({
-            page: page,
-            pageSize: 10,
-            instituteId: instituteDetails?.id,
-            data: {
-                status: ['ACTIVE'],
-                level_ids: [],
-                tag: [],
-                faculty_ids: [],
-                search_by_name: '',
-                min_percentage_completed: 0,
-                max_percentage_completed: 0,
-                sort_columns: { created_at: 'DESC' },
-            },
-        });
+        if (selectedTab === 'CourseRequests') {
+            getAllTeacherCoursesMutation.mutate({
+                page: page,
+                pageSize: 10,
+                instituteId: instituteDetails?.id,
+                data: {
+                    status: ['ACTIVE'],
+                    level_ids: [],
+                    tag: [],
+                    faculty_ids: tokenData?.user ? [tokenData.user] : [],
+                    search_by_name: '',
+                    min_percentage_completed: 0,
+                    max_percentage_completed: 0,
+                    sort_columns: { created_at: 'DESC' },
+                },
+            });
+        } else {
+            getAllCoursesMutation.mutate({
+                page: page,
+                pageSize: 10,
+                instituteId: instituteDetails?.id,
+                data: {
+                    status: ['ACTIVE'],
+                    level_ids: [],
+                    tag: [],
+                    faculty_ids: [],
+                    search_by_name: '',
+                    min_percentage_completed: 0,
+                    max_percentage_completed: 0,
+                    sort_columns: { created_at: 'DESC' },
+                },
+            });
+        }
     };
 
     const handleApply = () => {
-        handleGetCourses();
+        if (selectedTab === 'CourseRequests') {
+            handleGetTeacherCourses();
+        } else {
+            handleGetCourses();
+        }
     };
 
     useEffect(() => {
         setNavHeading('Explore Courses');
     }, []);
-
-    // Call handleGetCourses when page, pageSize, or instituteDetails?.id changes (not on filters, sort, or search)
-    useEffect(() => {
-        if (instituteDetails?.id) {
-            handleGetCourses();
-        }
-    }, [instituteDetails?.id]);
 
     // Update sort_columns in selectedFilters when sortBy changes and call handleGetCourses after update
     useEffect(() => {
@@ -300,7 +370,13 @@ export const CourseMaterial = () => {
                     : { created_at: 'DESC' as const };
             if (JSON.stringify(prev.sort_columns) !== JSON.stringify(newSortColumns)) {
                 const updated = { ...prev, sort_columns: newSortColumns };
-                setTimeout(() => handleGetCourses(), 0);
+                setTimeout(() => {
+                    if (selectedTab === 'CourseRequests') {
+                        handleGetTeacherCourses();
+                    } else {
+                        handleGetCourses();
+                    }
+                }, 0);
                 return updated;
             }
             return prev;
@@ -315,8 +391,12 @@ export const CourseMaterial = () => {
 
     // Call handleGetCourses when selectedTab changes
     useEffect(() => {
-        handleGetCourses();
-    }, [selectedTab]);
+        if (selectedTab === 'CourseRequests') {
+            handleGetTeacherCourses();
+        } else {
+            handleGetCourses();
+        }
+    }, [selectedTab, instituteDetails?.id]);
 
     const { getPublicUrl } = useFileUpload();
     const [courseImageUrls, setCourseImageUrls] = useState<Record<string, string>>({});
