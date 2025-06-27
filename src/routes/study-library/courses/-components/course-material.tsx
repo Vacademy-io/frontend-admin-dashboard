@@ -173,12 +173,7 @@ export const CourseMaterial = () => {
             page: page,
             pageSize: 10,
             instituteId: instituteDetails?.id,
-            data: {
-                ...selectedFilters,
-                faculty_ids: tokenData?.user
-                    ? [...selectedFilters.faculty_ids, tokenData.user]
-                    : selectedFilters.faculty_ids,
-            },
+            data: selectedFilters,
         });
     };
 
@@ -227,12 +222,7 @@ export const CourseMaterial = () => {
                 page: newPage,
                 pageSize: 10,
                 instituteId: instituteDetails?.id,
-                data: {
-                    ...selectedFilters,
-                    faculty_ids: tokenData?.user
-                        ? [...selectedFilters.faculty_ids, tokenData.user]
-                        : selectedFilters.faculty_ids,
-                },
+                data: selectedFilters,
             });
         } else {
             getAllCoursesMutation.mutate({
@@ -323,7 +313,7 @@ export const CourseMaterial = () => {
                     status: ['ACTIVE'],
                     level_ids: [],
                     tag: [],
-                    faculty_ids: tokenData?.user ? [tokenData.user] : [],
+                    faculty_ids: [],
                     search_by_name: '',
                     min_percentage_completed: 0,
                     max_percentage_completed: 0,
