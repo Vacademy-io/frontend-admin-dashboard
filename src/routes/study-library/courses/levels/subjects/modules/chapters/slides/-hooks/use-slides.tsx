@@ -195,7 +195,12 @@ interface UpdateSlideOrderParams {
     slideOrderPayload: slideOrderPayloadType;
 }
 
-export const useSlides = (chapterId: string, commaSeparatedPackageSessionIds: string) => {
+export const useSlides = (
+    chapterId: string,
+    moduleId?: string,
+    subjectId?: string,
+    packageSessionId?: string
+) => {
     const queryClient = useQueryClient();
     const { setItems } = useContentStore();
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
@@ -274,7 +279,7 @@ export const useSlides = (chapterId: string, commaSeparatedPackageSessionIds: st
     const addUpdateVideoSlideMutation = useMutation({
         mutationFn: async (payload: VideoSlidePayload) => {
             const response = await authenticatedAxiosInstance.post(
-                `${ADD_UPDATE_VIDEO_SLIDE}?chapterId=${chapterId}&instituteId=${INSTITUTE_ID}`,
+                `${ADD_UPDATE_VIDEO_SLIDE}?chapterId=${chapterId}&instituteId=${INSTITUTE_ID}&packageSessionId=${packageSessionId}&moduleId=${moduleId}&subjectId=${subjectId}`,
                 payload
             );
             return response.data;
@@ -291,7 +296,7 @@ export const useSlides = (chapterId: string, commaSeparatedPackageSessionIds: st
     const addUpdateDocumentSlideMutation = useMutation({
         mutationFn: async (payload: DocumentSlidePayload) => {
             const response = await authenticatedAxiosInstance.post(
-                `${ADD_UPDATE_DOCUMENT_SLIDE}?chapterId=${chapterId}&commaSeparatedPackageSessionIds=${commaSeparatedPackageSessionIds}&instituteId=${INSTITUTE_ID}`,
+                `${ADD_UPDATE_DOCUMENT_SLIDE}?chapterId=${chapterId}&moduleId=${moduleId}&subjectId=${subjectId}&packageSessionId=${packageSessionId}&instituteId=${INSTITUTE_ID}`,
                 payload
             );
             return response.data;

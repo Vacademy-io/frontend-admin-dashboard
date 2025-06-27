@@ -38,6 +38,7 @@ export const AddChapterForm = ({
 }: AddChapterFormProps) => {
     const router = useRouter();
     const courseId: string = router.state.location.search.courseId || '';
+    const subjectId: string = router.state.location.search.subjectId || '';
     const levelId: string = router.state.location.search.levelId || '';
     const sessionId: string = router.state.location.search.sessionId || session_id || '';
     const moduleId: string = router.state.location.search.moduleId || module_id || '';
@@ -174,6 +175,7 @@ export const AddChapterForm = ({
                 };
 
                 await addChapterMutation.mutateAsync({
+                    subjectId,
                     moduleId,
                     commaSeparatedPackageSessionIds: selectedPackageSessionIds,
                     chapter: newChapter,

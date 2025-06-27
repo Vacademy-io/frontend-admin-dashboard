@@ -7,15 +7,19 @@ export const useDeleteChapter = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async ({
+            moduleId,
+            subjectId,
             packageSessionIds,
             chapterIds,
         }: {
+            moduleId: string;
+            subjectId: string;
             packageSessionIds: string;
             chapterIds: string[];
         }) => {
             try {
                 const response = await authenticatedAxiosInstance.post(
-                    `${DELETE_CHAPTER}?packageSessionIds=${packageSessionIds}`,
+                    `${DELETE_CHAPTER}?moduleId=${moduleId}&subjectId=${subjectId}&packageSessionIds=${packageSessionIds}`,
                     chapterIds
                 );
                 toast.success('Chapter deleted successfully');

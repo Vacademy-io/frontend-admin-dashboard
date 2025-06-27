@@ -115,6 +115,7 @@ export const ModuleMaterial = () => {
 
     const handleDeleteModule = (module: Module) => {
         deleteModuleMutation.mutate({
+            subjectId,
             moduleId: module.id,
             commaSeparatedPackageSessionIds:
                 getPackageSessionId({

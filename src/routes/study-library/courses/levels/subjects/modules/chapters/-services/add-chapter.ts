@@ -8,10 +8,12 @@ export const useAddChapter = () => {
 
     return useMutation({
         mutationFn: async ({
+            subjectId,
             moduleId,
             commaSeparatedPackageSessionIds,
             chapter,
         }: {
+            subjectId: string;
             moduleId: string;
             commaSeparatedPackageSessionIds: string;
             chapter: Chapter;
@@ -27,7 +29,7 @@ export const useAddChapter = () => {
 
             try {
                 const response = await authenticatedAxiosInstance.post(
-                    `${ADD_CHAPTER}?moduleId=${moduleId}&commaSeparatedPackageSessionIds=${commaSeparatedPackageSessionIds}`,
+                    `${ADD_CHAPTER}?subjectId=${subjectId}&moduleId=${moduleId}&commaSeparatedPackageSessionIds=${commaSeparatedPackageSessionIds}`,
                     payload
                 );
                 return response.data;

@@ -7,15 +7,17 @@ export const useDeleteModule = () => {
 
     return useMutation({
         mutationFn: ({
+            subjectId,
             moduleId,
             commaSeparatedPackageSessionIds,
         }: {
+            subjectId: string;
             moduleId: string;
             commaSeparatedPackageSessionIds: string;
         }) => {
             const payload = [moduleId];
             return authenticatedAxiosInstance.post(
-                `${DELETE_MODULE}?commaSeparatedPackageSessionIds=${commaSeparatedPackageSessionIds}`,
+                `${DELETE_MODULE}?subjectId=${subjectId}&packageSessionId=${commaSeparatedPackageSessionIds}`,
                 payload
             );
         },

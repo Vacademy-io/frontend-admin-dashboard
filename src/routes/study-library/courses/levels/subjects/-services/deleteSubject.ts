@@ -14,7 +14,7 @@ export const useDeleteSubject = () => {
             commaSeparatedPackageSessionIds: string;
         }) => {
             return authenticatedAxiosInstance.delete(
-                `${DELETE_SUBJECT}&commaSeparatedPackageSessionIds=${commaSeparatedPackageSessionIds}`,
+                `${DELETE_SUBJECT}&packageSessionId=${commaSeparatedPackageSessionIds}`,
                 { data: [subjectId] }
             );
         },
