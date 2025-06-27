@@ -24,6 +24,8 @@ export interface FormValues {
 }
 
 export const ChapterMaterial = ({ currentModuleId }: { currentModuleId: string }) => {
+    const router = useRouter();
+    const subjectId: string = router.state.location.search.subjectId || '';
     const [isChapterLoading, setIsChapterLoading] = useState(true);
     const { modulesWithChaptersData } = useModulesWithChaptersStore();
     // const [moduleWithChapters, setModulesWithChapters] = useState(getModuleById(currentModuleId));
@@ -33,8 +35,6 @@ export const ChapterMaterial = ({ currentModuleId }: { currentModuleId: string }
     const updateChapterOrderMutation = useUpdateChapterOrder();
     const deleteChapterMutation = useDeleteChapter();
     const { getPackageSessionId, getSessionNameById } = useInstituteDetailsStore();
-
-    const router = useRouter();
 
     const { courseId, levelId, sessionId } = router.state.location.search;
 
@@ -58,6 +58,8 @@ export const ChapterMaterial = ({ currentModuleId }: { currentModuleId: string }
         const chapterIds: string[] = [chapter.chapter.id];
         try {
             await deleteChapterMutation.mutateAsync({
+                moduleId: currentModuleId,
+                subjectId,
                 packageSessionIds: packageSessionId || '',
                 chapterIds: chapterIds,
             });

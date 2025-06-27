@@ -1,17 +1,19 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
-import { Chapter } from "@/stores/study-library/use-modules-with-chapters-store";
-import { ADD_CHAPTER } from "@/constants/urls";
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
+import { Chapter } from '@/stores/study-library/use-modules-with-chapters-store';
+import { ADD_CHAPTER } from '@/constants/urls';
 
 export const useAddChapter = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
         mutationFn: async ({
+            subjectId,
             moduleId,
             commaSeparatedPackageSessionIds,
             chapter,
         }: {
+            subjectId: string;
             moduleId: string;
             commaSeparatedPackageSessionIds: string;
             chapter: Chapter;
@@ -27,19 +29,19 @@ export const useAddChapter = () => {
 
             try {
                 const response = await authenticatedAxiosInstance.post(
-                    `${ADD_CHAPTER}?moduleId=${moduleId}&commaSeparatedPackageSessionIds=${commaSeparatedPackageSessionIds}`,
-                    payload,
+                    `${ADD_CHAPTER}?subjectId=${subjectId}&moduleId=${moduleId}&commaSeparatedPackageSessionIds=${commaSeparatedPackageSessionIds}`,
+                    payload
                 );
                 return response.data;
             } catch (error) {
-                throw new Error("Failed to add chapter");
+                throw new Error('Failed to add chapter');
             }
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["GET_MODULES_WITH_CHAPTERS"] });
-            queryClient.invalidateQueries({ queryKey: ["GET_INIT_INSTITUTE"] });
-            queryClient.invalidateQueries({ queryKey: ["GET_INIT_STUDY_LIBRARY"] });
-            queryClient.invalidateQueries({ queryKey: ["GET_STUDENT_SUBJECTS_PROGRESS"] });
+            queryClient.invalidateQueries({ queryKey: ['GET_MODULES_WITH_CHAPTERS'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_INIT_STUDY_LIBRARY'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SUBJECTS_PROGRESS'] });
         },
     });
 };
