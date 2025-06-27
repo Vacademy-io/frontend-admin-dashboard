@@ -1,7 +1,29 @@
 import { Step1Data, Step2Data } from '../add-course/add-course-form';
-import { z } from 'zod';
 
 export type CourseFormData = Step1Data & Step2Data;
+
+interface AddFacultyToCourse {
+    user: UserDetails;
+    new_user: boolean;
+}
+
+interface UserDetails {
+    id: string;
+    username: string;
+    email: string;
+    full_name: string;
+    address_line: string;
+    city: string;
+    region: string;
+    pin_code: string;
+    mobile_number: string;
+    date_of_birth: string;
+    gender: string;
+    password: string;
+    profile_pic_file_id: string;
+    roles: string[];
+    root_user: boolean;
+}
 
 interface FormattedCourseData {
     id: string;
@@ -23,7 +45,7 @@ interface FormattedCourseData {
             duration_in_days: number;
             thumbnail_file_id: string;
             package_id: string;
-            userIds: string[];
+            add_faculty_to_course: AddFacultyToCourse[];
             group: {
                 id: string;
                 group_name: string;
@@ -51,7 +73,13 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
     const hasSessions = formData.hasSessions === 'yes';
 
     // Function to format levels
-    const formatLevels = (levels: Array<{ id: string; name: string; userIds: string[] }>, defaultUserIds: string[] = []): FormattedLevel[] =>
+    const formatLevels = (
+        levels: Array<{
+            id: string;
+            name: string;
+            userIds: { id: string; name: string; email: string }[];
+        }>
+    ): FormattedLevel[] =>
         levels.map((level) => ({
             id: '',
             new_level: true,
@@ -59,7 +87,26 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
             duration_in_days: 0,
             thumbnail_file_id: '',
             package_id: '',
-            userIds: level.userIds || defaultUserIds,
+            add_faculty_to_course: level.userIds?.map((user) => ({
+                user: {
+                    id: user.id || '',
+                    username: '',
+                    email: user.email || '',
+                    full_name: user.name || '',
+                    address_line: '',
+                    city: '',
+                    region: '',
+                    pin_code: '',
+                    mobile_number: '',
+                    date_of_birth: '',
+                    gender: '',
+                    password: '',
+                    profile_pic_file_id: '',
+                    roles: [],
+                    root_user: true,
+                },
+                new_user: false,
+            })),
             group: {
                 id: '',
                 group_name: '',
@@ -72,7 +119,7 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
     let sessions: FormattedSession[] = [];
     if (!hasLevels && !hasSessions) {
         // When both are false, all selected instructors go to default level in default session
-        const allUserIds = formData.selectedInstructors.map(instructor => instructor.id);
+        const allUsers = formData.selectedInstructors; // Instructor[]
 
         sessions = [
             {
@@ -89,7 +136,28 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
                         duration_in_days: 0,
                         thumbnail_file_id: '',
                         package_id: '',
-                        userIds: allUserIds,
+                        add_faculty_to_course: Array.isArray(allUsers)
+                            ? allUsers.map((user) => ({
+                                  user: {
+                                      id: user.id || '',
+                                      username: '',
+                                      email: user.email || '',
+                                      full_name: user.name || '',
+                                      address_line: '',
+                                      city: '',
+                                      region: '',
+                                      pin_code: '',
+                                      mobile_number: '',
+                                      date_of_birth: '',
+                                      gender: '',
+                                      password: '',
+                                      profile_pic_file_id: '',
+                                      roles: [],
+                                      root_user: true,
+                                  },
+                                  new_user: false,
+                              }))
+                            : [],
                         group: {
                             id: 'DEFAULT',
                             group_name: '',
@@ -108,7 +176,7 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
             start_date: session.startDate,
             new_session: true,
             levels: hasLevels
-                ? formatLevels(session.levels) // Keep userIds in their respective levels
+                ? formatLevels(session.levels)
                 : [
                       {
                           id: 'DEFAULT',
@@ -117,7 +185,28 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
                           duration_in_days: 0,
                           thumbnail_file_id: '',
                           package_id: '',
-                          userIds: session.levels[0]?.userIds ?? [], // When hasLevels is false, userIds go to default level
+                          add_faculty_to_course: Array.isArray(session.levels[0]?.userIds)
+                              ? session.levels[0].userIds.map((user) => ({
+                                    user: {
+                                        id: user.id || '',
+                                        username: '',
+                                        email: user.email || '',
+                                        full_name: user.name || '',
+                                        address_line: '',
+                                        city: '',
+                                        region: '',
+                                        pin_code: '',
+                                        mobile_number: '',
+                                        date_of_birth: '',
+                                        gender: '',
+                                        password: '',
+                                        profile_pic_file_id: '',
+                                        roles: [],
+                                        root_user: true,
+                                    },
+                                    new_user: false,
+                                }))
+                              : [],
                           group: {
                               id: 'DEFAULT',
                               group_name: '',
@@ -137,14 +226,35 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
                 status: 'ACTIVE',
                 start_date: '',
                 new_session: true,
-                levels: standaloneLevels.map(level => ({
+                levels: standaloneLevels.map((level) => ({
                     id: '',
                     new_level: true,
                     level_name: level.name,
                     duration_in_days: 0,
                     thumbnail_file_id: '',
                     package_id: '',
-                    userIds: level.userIds || [],
+                    add_faculty_to_course: Array.isArray(level.userIds)
+                        ? level.userIds.map((user) => ({
+                              user: {
+                                  id: user.id || '',
+                                  username: '',
+                                  email: user.email || '',
+                                  full_name: user.name || '',
+                                  address_line: '',
+                                  city: '',
+                                  region: '',
+                                  pin_code: '',
+                                  mobile_number: '',
+                                  date_of_birth: '',
+                                  gender: '',
+                                  password: '',
+                                  profile_pic_file_id: '',
+                                  roles: [],
+                                  root_user: true,
+                              },
+                              new_user: false,
+                          }))
+                        : [],
                     group: {
                         id: '',
                         group_name: '',

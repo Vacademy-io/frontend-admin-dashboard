@@ -1,6 +1,5 @@
 import { MyButton } from '@/components/design-system/button';
 import { MyInput } from '@/components/design-system/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -16,7 +15,7 @@ import { getInstituteId } from '@/constants/helper';
 import { toast } from 'sonner';
 
 interface InviteInstructorFormProps {
-    onInviteSuccess: (id: string, email: string) => void;
+    onInviteSuccess: (id: string, name: string, email: string) => void;
     onCancel: () => void;
 }
 
@@ -42,7 +41,7 @@ const InviteInstructorForm = ({ onInviteSuccess, onCancel }: InviteInstructorFor
             data: z.infer<typeof inviteUsersSchema>;
         }) => handleInviteUsers(instituteId, data),
         onSuccess: (res, { data }) => {
-            onInviteSuccess(res, data.email);
+            onInviteSuccess(res, data.name, data.email);
             form.reset();
             toast.success('Instructor invited successfully');
         },
@@ -78,7 +77,7 @@ const InviteInstructorForm = ({ onInviteSuccess, onCancel }: InviteInstructorFor
                                             error={form.formState.errors.name?.message}
                                             size="large"
                                             label="Full Name"
-                                            className="h-8 border-gray-300 w-full"
+                                            className="h-8 w-full border-gray-300"
                                         />
                                     </FormControl>
                                 </FormItem>
@@ -99,7 +98,7 @@ const InviteInstructorForm = ({ onInviteSuccess, onCancel }: InviteInstructorFor
                                             error={form.formState.errors.email?.message}
                                             size="large"
                                             label="Email"
-                                            className="h-8 border-gray-300 w-full"
+                                            className="h-8 w-full border-gray-300"
                                         />
                                     </FormControl>
                                 </FormItem>

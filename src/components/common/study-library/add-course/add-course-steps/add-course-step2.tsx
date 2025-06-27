@@ -18,11 +18,12 @@ import MultiSelectDropdown from '@/components/common/multi-select-dropdown';
 import { fetchInstituteDashboardUsers } from '@/routes/dashboard/-services/dashboard-services';
 import { getInstituteId } from '@/constants/helper';
 import InviteInstructorForm from './InviteInstructorForm';
+import { UserRolesDataEntry } from '@/types/dashboard/user-roles';
 
 interface Level {
     id: string;
     name: string;
-    userIds: string[];
+    userIds: Instructor[];
 }
 
 interface Session {
@@ -35,6 +36,7 @@ interface Session {
 interface Instructor {
     id: string;
     email: string;
+    name: string;
 }
 
 // Update the schema
@@ -52,7 +54,15 @@ export const step2Schema = z.object({
                     z.object({
                         id: z.string(),
                         name: z.string(),
-                        userIds: z.array(z.string()).default([]),
+                        userIds: z
+                            .array(
+                                z.object({
+                                    id: z.string(),
+                                    email: z.string(),
+                                    name: z.string(),
+                                })
+                            )
+                            .default([]),
                     })
                 ),
             })
@@ -62,6 +72,7 @@ export const step2Schema = z.object({
         .array(
             z.object({
                 id: z.string(),
+                name: z.string(),
                 email: z.string(),
             })
         )
@@ -70,6 +81,7 @@ export const step2Schema = z.object({
         .array(
             z.object({
                 id: z.string(),
+                name: z.string(),
                 email: z.string(),
             })
         )
@@ -116,6 +128,7 @@ export const AddCourseStep2 = ({
     const [selectedInstructors, setSelectedInstructors] = useState<Instructor[]>([]);
     const [instructorMappings, setInstructorMappings] = useState<InstructorMapping[]>([]);
     const [instructors, setInstructors] = useState<Instructor[]>([]);
+
     useEffect(() => {
         fetchInstituteDashboardUsers(instituteId, {
             roles: [{ id: '5', name: 'TEACHER' }],
@@ -123,9 +136,10 @@ export const AddCourseStep2 = ({
         })
             .then((res) => {
                 setInstructors(
-                    res.map((instructor: any) => ({
+                    res.map((instructor: UserRolesDataEntry) => ({
                         id: instructor.id,
                         email: instructor.email,
+                        name: instructor.full_name,
                     }))
                 );
             })
@@ -159,6 +173,8 @@ export const AddCourseStep2 = ({
             publishToCatalogue: false,
         },
     });
+
+    console.log(form.getValues());
 
     // Effect to update form when state changes
     useEffect(() => {
@@ -259,8 +275,8 @@ export const AddCourseStep2 = ({
         onSubmit(completeData);
     };
 
-    const handleInviteSuccess = (id: string, email: string) => {
-        const newInstructor: Instructor = { id: id, email };
+    const handleInviteSuccess = (id: string, name: string, email: string) => {
+        const newInstructor: Instructor = { id: id, email: email, name: name };
 
         // Add to available instructors list if not already present
         if (!instructors.some((i) => i.email === email)) {
@@ -362,19 +378,6 @@ export const AddCourseStep2 = ({
         setSessions(updatedSessions);
     };
 
-    // Function to get all session-level combinations
-    const getAllSessionLevelPairs = () => {
-        return sessions.flatMap((session) =>
-            session.levels.map((level) => ({
-                sessionId: session.id,
-                sessionName: session.name,
-                levelId: level.id,
-                levelName: level.name,
-                key: `${session.id}-${level.id}`,
-            }))
-        );
-    };
-
     // Function to handle checkbox changes
     const handleSessionLevelCheckboxChange = (
         sessionId: string,
@@ -382,7 +385,6 @@ export const AddCourseStep2 = ({
         levelId: string,
         levelName: string
     ) => {
-        const key = `${sessionId}-${levelId}`;
         setSelectedSessionLevels((prev) => {
             const exists = prev.some(
                 (item) => item.sessionId === sessionId && item.levelId === levelId
@@ -416,7 +418,7 @@ export const AddCourseStep2 = ({
                                 {
                                     id: 'DEFAULT',
                                     name: '',
-                                    userIds: selectedInstructors.map((instructor) => instructor.id),
+                                    userIds: selectedInstructors.map((instructor) => instructor),
                                 },
                             ],
                         },
@@ -427,22 +429,28 @@ export const AddCourseStep2 = ({
                         ...session,
                         levels: session.levels.map((level) => ({
                             ...level,
-                            userIds: selectedInstructors.map((instructor) => instructor.id),
+                            userIds: selectedInstructors.map((instructor) => instructor),
                         })),
                     }));
                 }
             } else {
-                // First, remove the instructor's ID from all levels they were previously assigned to
+                // First, remove the instructor from all levels they were previously assigned to
                 updatedSessions = sessions.map((session) => ({
                     ...session,
                     levels: session.levels.map((level) => ({
                         ...level,
-                        userIds: level.userIds.filter((id) => id !== selectedInstructorId),
+                        userIds: level.userIds.filter(
+                            (instructor) => instructor.id !== selectedInstructorId
+                        ),
                     })),
                 }));
 
-                // Then, add the instructor's ID to newly selected levels
+                // Then, add the instructor object to newly selected levels
                 selectedSessionLevels.forEach(({ sessionId, levelId }) => {
+                    const instructorObj = selectedInstructors.find(
+                        (i) => i.id === selectedInstructorId
+                    );
+                    if (!instructorObj) return;
                     if (hasSessions === 'yes') {
                         // Handle sessions case
                         const session = updatedSessions.find((s: Session) => s.id === sessionId);
@@ -450,8 +458,11 @@ export const AddCourseStep2 = ({
                             if (hasLevels === 'yes') {
                                 // For sessions with levels, add to specific level
                                 const level = session.levels.find((l: Level) => l.id === levelId);
-                                if (level) {
-                                    level.userIds.push(selectedInstructorId);
+                                if (
+                                    level &&
+                                    !level.userIds.some((i) => i.id === instructorObj.id)
+                                ) {
+                                    level.userIds.push(instructorObj);
                                 }
                             } else {
                                 // For sessions without levels, add to the default level
@@ -461,12 +472,17 @@ export const AddCourseStep2 = ({
                                         {
                                             id: 'DEFAULT',
                                             name: '',
-                                            userIds: [selectedInstructorId],
+                                            userIds: [instructorObj],
                                         },
                                     ];
-                                } else if (session.levels[0]) {
+                                } else if (
+                                    session.levels[0] &&
+                                    !session.levels[0].userIds.some(
+                                        (i) => i.id === instructorObj.id
+                                    )
+                                ) {
                                     // Add to existing default level
-                                    session.levels[0].userIds.push(selectedInstructorId);
+                                    session.levels[0].userIds.push(instructorObj);
                                 }
                             }
                         }
@@ -479,8 +495,8 @@ export const AddCourseStep2 = ({
                             const level = standaloneSession.levels.find(
                                 (l: Level) => l.id === levelId
                             );
-                            if (level) {
-                                level.userIds.push(selectedInstructorId);
+                            if (level && !level.userIds.some((i) => i.id === instructorObj.id)) {
+                                level.userIds.push(instructorObj);
                             }
                         }
                     }
@@ -853,7 +869,7 @@ export const AddCourseStep2 = ({
                                                         }
                                                         className="text-red-600 hover:text-red-700"
                                                     >
-                                                        <Trash2 className="h-3 w-3" />
+                                                        <Trash2 className="size-3" />
                                                     </MyButton>
                                                 </div>
                                             ))}
@@ -876,15 +892,15 @@ export const AddCourseStep2 = ({
                                             onClick={() => setShowInviteDialog(true)}
                                             className="font-light"
                                         >
-                                            <Plus className="h-4 w-4" />
+                                            <Plus className="size-4" />
                                             Invite
                                         </MyButton>
                                     </div>
 
                                     {showInviteDialog && (
                                         <InviteInstructorForm
-                                            onInviteSuccess={(id, email) => {
-                                                handleInviteSuccess(id, email);
+                                            onInviteSuccess={(id, name, email) => {
+                                                handleInviteSuccess(id, name, email);
                                                 setShowInviteDialog(false);
                                             }}
                                             onCancel={() => setShowInviteDialog(false)}
@@ -902,11 +918,13 @@ export const AddCourseStep2 = ({
                                                 )
                                                 .map((instructor) => ({
                                                     id: instructor.id,
-                                                    name: instructor.email,
+                                                    name: instructor.name,
+                                                    email: instructor.email,
                                                 }))}
                                             selected={selectedInstructors.map((instructor) => ({
                                                 id: instructor.id,
-                                                name: instructor.email,
+                                                name: instructor.name,
+                                                email: instructor.email,
                                             }))}
                                             onChange={(selected) => {
                                                 const selectedInstructorsList: Instructor[] =
@@ -918,9 +936,10 @@ export const AddCourseStep2 = ({
                                                             return {
                                                                 id: instructor?.id || '',
                                                                 email: instructor?.email || '',
+                                                                name: instructor?.name || '',
                                                             };
                                                         })
-                                                        .filter((i) => i.id && i.email);
+                                                        .filter((i) => i.id && i.email && i.name);
                                                 setSelectedInstructors(selectedInstructorsList);
                                             }}
                                             placeholder="Select instructor emails"
@@ -943,7 +962,7 @@ export const AddCourseStep2 = ({
                                                             >
                                                                 <div className="flex items-center justify-between">
                                                                     <div className="flex items-center gap-3">
-                                                                        <Avatar className="h-8 w-8">
+                                                                        <Avatar className="size-8">
                                                                             <AvatarImage
                                                                                 src=""
                                                                                 alt={
@@ -958,6 +977,8 @@ export const AddCourseStep2 = ({
                                                                         </Avatar>
                                                                         <div className="flex flex-col">
                                                                             <span className="text-sm font-medium text-gray-900">
+                                                                                {instructor.name}{' '}
+                                                                                --- &nbsp;
                                                                                 {instructor.email}
                                                                             </span>
                                                                             <span className="text-xs text-gray-500">
@@ -1037,7 +1058,7 @@ export const AddCourseStep2 = ({
                                                                             }}
                                                                             className="!size-6 text-red-600 hover:text-red-700"
                                                                         >
-                                                                            <Trash2 className="h-3 w-3" />
+                                                                            <Trash2 className="size-3" />
                                                                         </MyButton>
                                                                     </div>
                                                                 </div>
@@ -1295,7 +1316,7 @@ export const AddCourseStep2 = ({
                     </div>
 
                     {/* Fixed Footer */}
-                    <div className="fixed bottom-0 left-0 right-0 border-t bg-white px-8 py-4">
+                    <div className="fixed inset-x-0 bottom-0 border-t bg-white px-8 py-4">
                         <div className="flex justify-between">
                             <MyButton
                                 type="button"
@@ -1361,7 +1382,7 @@ const SessionCard: React.FC<{
             <CardContent className="p-3">
                 <div className="mb-3 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <Calendar className="h-4 w-4 text-[#3B82F6]" />
+                        <Calendar className="size-4 text-[#3B82F6]" />
                         <div>
                             <span className="text-sm font-medium text-gray-900">
                                 {session.name}
@@ -1393,7 +1414,7 @@ const SessionCard: React.FC<{
                             onClick={() => onRemoveSession(session.id)}
                             className="text-red-600 hover:text-red-700"
                         >
-                            <Trash2 className="h-3 w-3" />
+                            <Trash2 className="size-3" />
                         </MyButton>
                     </div>
                 </div>
@@ -1458,7 +1479,7 @@ const SessionCard: React.FC<{
                                             onClick={() => onRemoveLevel(session.id, level.id)}
                                             className="text-red-600 hover:text-red-700"
                                         >
-                                            <Trash2 className="h-3 w-3" />
+                                            <Trash2 className="size-3" />
                                         </MyButton>
                                     </div>
                                 ))}
