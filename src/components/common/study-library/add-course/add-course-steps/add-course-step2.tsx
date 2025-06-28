@@ -19,6 +19,7 @@ import { fetchInstituteDashboardUsers } from '@/routes/dashboard/-services/dashb
 import { getInstituteId } from '@/constants/helper';
 import InviteInstructorForm from './InviteInstructorForm';
 import { UserRolesDataEntry } from '@/types/dashboard/user-roles';
+import { CODE_CIRCLE_INSTITUTE_ID } from '@/constants/urls';
 
 interface Level {
     id: string;
@@ -114,7 +115,9 @@ export const AddCourseStep2 = ({
 }) => {
     const instituteId = getInstituteId();
     const [hasLevels, setHasLevels] = useState(initialData?.hasLevels || 'yes');
-    const [hasSessions, setHasSessions] = useState(initialData?.hasSessions || 'yes');
+    const [hasSessions, setHasSessions] = useState(
+        instituteId === CODE_CIRCLE_INSTITUTE_ID ? 'no' : initialData?.hasSessions || 'yes'
+    );
     const [sessions, setSessions] = useState<Session[]>(initialData?.sessions || []);
     const [showAddSession, setShowAddSession] = useState(false);
     const [showAddLevel, setShowAddLevel] = useState(false);
@@ -568,48 +571,51 @@ export const AddCourseStep2 = ({
                                     <AddCourseStep2StructureTypes form={form} />
                                 </div>
 
-                                <Separator className="bg-gray-200" />
-
-                                {/* Contains Sessions Radio */}
-                                <div className="space-y-2">
-                                    <Label className="block text-base font-medium text-gray-900">
-                                        Contains Sessions?
-                                    </Label>
-                                    <p className="text-sm text-gray-600">
-                                        Sessions organize a course into different batches or time
-                                        periods. For eg: January 2025 Batch, February 2025 Batch
-                                    </p>
-                                    <RadioGroup
-                                        value={hasSessions}
-                                        onValueChange={(value) => {
-                                            setHasSessions(value);
-                                            // Clear sessions when switching to 'no'
-                                            if (value === 'no') {
-                                                setSessions([]);
-                                            }
-                                        }}
-                                        className="flex gap-6"
-                                    >
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="yes" id="sessions-yes" />
-                                            <Label
-                                                htmlFor="sessions-yes"
-                                                className="text-sm font-normal"
-                                            >
-                                                Yes
+                                {instituteId !== CODE_CIRCLE_INSTITUTE_ID && (
+                                    <>
+                                        <Separator className="bg-gray-200" />
+                                        <div className="space-y-2">
+                                            <Label className="block text-base font-medium text-gray-900">
+                                                Contains Sessions?
                                             </Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="no" id="sessions-no" />
-                                            <Label
-                                                htmlFor="sessions-no"
-                                                className="text-sm font-normal"
+                                            <p className="text-sm text-gray-600">
+                                                Sessions organize a course into different batches or
+                                                time periods. For eg: January 2025 Batch, February
+                                                2025 Batch
+                                            </p>
+                                            <RadioGroup
+                                                value={hasSessions}
+                                                onValueChange={(value) => {
+                                                    setHasSessions(value);
+                                                    // Clear sessions when switching to 'no'
+                                                    if (value === 'no') {
+                                                        setSessions([]);
+                                                    }
+                                                }}
+                                                className="flex gap-6"
                                             >
-                                                No
-                                            </Label>
+                                                <div className="flex items-center space-x-2">
+                                                    <RadioGroupItem value="yes" id="sessions-yes" />
+                                                    <Label
+                                                        htmlFor="sessions-yes"
+                                                        className="text-sm font-normal"
+                                                    >
+                                                        Yes
+                                                    </Label>
+                                                </div>
+                                                <div className="flex items-center space-x-2">
+                                                    <RadioGroupItem value="no" id="sessions-no" />
+                                                    <Label
+                                                        htmlFor="sessions-no"
+                                                        className="text-sm font-normal"
+                                                    >
+                                                        No
+                                                    </Label>
+                                                </div>
+                                            </RadioGroup>
                                         </div>
-                                    </RadioGroup>
-                                </div>
+                                    </>
+                                )}
 
                                 <Separator className="bg-gray-200" />
 

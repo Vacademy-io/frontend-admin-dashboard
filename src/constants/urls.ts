@@ -3,6 +3,7 @@ export const BASE_URL_LEARNER_DASHBOARD = 'https://learner.vacademy.io';
 
 export const SSDC_INSTITUTE_ID = '69ca11c6-54e1-4e99-9498-50c9a4272ce6';
 export const SHUBHAM_INSTITUTE_ID = 'd0de8707-f36c-43a0-953c-019ca507c81d';
+export const CODE_CIRCLE_INSTITUTE_ID = 'dd9b9687-56ee-467a-9fc4-8c5835eae7f9';
 
 // urls
 export const LOGIN_URL = `${BASE_URL}/auth-service/v1/login-root`;
