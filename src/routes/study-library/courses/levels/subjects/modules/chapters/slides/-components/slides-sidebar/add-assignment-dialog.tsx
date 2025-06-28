@@ -5,8 +5,8 @@ import { toast } from 'sonner';
 import { useContentStore } from '../../-stores/chapter-sidebar-store';
 import { Route } from '../..';
 import { useSlides } from '../../-hooks/use-slides';
-import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { File, CheckCircle } from '@phosphor-icons/react';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 const AddAssignmentDialog = ({
     openState,
@@ -14,8 +14,18 @@ const AddAssignmentDialog = ({
     openState?: ((open: boolean) => void) | undefined;
 }) => {
     const { setActiveItem, getSlideById } = useContentStore();
-    const { chapterId } = Route.useSearch();
-    const { updateAssignmentOrder } = useSlides(chapterId);
+    const { getPackageSessionId } = useInstituteDetailsStore();
+    const { courseId, levelId, chapterId, moduleId, subjectId, sessionId } = Route.useSearch();
+    const { updateAssignmentOrder } = useSlides(
+        chapterId || '',
+        moduleId || '',
+        subjectId || '',
+        getPackageSessionId({
+            courseId: courseId || '',
+            levelId: levelId || '',
+            sessionId: sessionId || '',
+        }) || ''
+    );
     const [title, setTitle] = useState('');
     const [isAssignmentAdding, setIsAssignmentAdding] = useState(false);
 
@@ -65,14 +75,14 @@ const AddAssignmentDialog = ({
     };
 
     return (
-        <div className="flex flex-col gap-6 p-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+        <div className="flex flex-col gap-6 p-6 duration-500 animate-in fade-in slide-in-from-bottom-2">
             {/* Header Section */}
-            <div className="text-center space-y-3 pb-4 border-b border-neutral-100">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto animate-pulse">
-                    <File className="w-8 h-8 text-blue-600" />
+            <div className="space-y-3 border-b border-neutral-100 pb-4 text-center">
+                <div className="mx-auto flex h-16 w-16 animate-pulse items-center justify-center rounded-full bg-blue-100">
+                    <File className="h-8 w-8 text-blue-600" />
                 </div>
                 <div>
-                    <h3 className="text-lg font-semibold text-neutral-700 mb-1">
+                    <h3 className="mb-1 text-lg font-semibold text-neutral-700">
                         Create New Assignment
                     </h3>
                     <p className="text-sm text-neutral-500">
@@ -94,50 +104,43 @@ const AddAssignmentDialog = ({
                         className="w-full pr-10"
                     />
                     {title.trim() && (
-                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 mt-3">
-                            <CheckCircle className="w-5 h-5 text-green-500 animate-in fade-in duration-300" />
+                        <div className="absolute right-3 top-1/2 mt-3 -translate-y-1/2 transform">
+                            <CheckCircle className="h-5 w-5 text-green-500 duration-300 animate-in fade-in" />
                         </div>
                     )}
                 </div>
 
                 {/* Preview Card */}
                 {title.trim() && (
-                    <div className="p-4 bg-blue-50 rounded-xl border border-blue-200 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 duration-300 animate-in fade-in slide-in-from-bottom-2">
                         <div className="flex items-center gap-3">
-                            <div className="p-2 bg-blue-100 rounded-lg">
-                                <File className="w-5 h-5 text-blue-600" />
+                            <div className="rounded-lg bg-blue-100 p-2">
+                                <File className="h-5 w-5 text-blue-600" />
                             </div>
                             <div className="flex-1">
-                                <p className="text-sm font-medium text-blue-800">
-                                    {title}
-                                </p>
+                                <p className="text-sm font-medium text-blue-800">{title}</p>
                                 <p className="text-xs text-blue-600">Assignment • Draft</p>
                             </div>
-                            <CheckCircle className="w-4 h-4 text-green-500" />
+                            <CheckCircle className="h-4 w-4 text-green-500" />
                         </div>
                     </div>
                 )}
 
                 {/* Helper Text */}
-                <div className="text-xs text-neutral-500 bg-neutral-50 p-3 rounded-lg">
+                <div className="rounded-lg bg-neutral-50 p-3 text-xs text-neutral-500">
                     <p className="flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
+                        <span className="h-1.5 w-1.5 rounded-full bg-blue-500"></span>
                         The assignment will be created as a draft and can be edited later
                     </p>
                 </div>
             </div>
 
             {/* Footer Section */}
-            <div className="flex justify-end pt-4 border-t border-neutral-100">
+            <div className="flex justify-end border-t border-neutral-100 pt-4">
                 {isAssignmentAdding ? (
-                    <MyButton
-                        type="button"
-                        scale="large"
-                        buttonType="primary"
-                        className="w-full"
-                    >
+                    <MyButton type="button" scale="large" buttonType="primary" className="w-full">
                         <div className="flex items-center justify-center gap-2">
-                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                             Creating Assignment...
                         </div>
                     </MyButton>
@@ -148,16 +151,17 @@ const AddAssignmentDialog = ({
                         buttonType="primary"
                         className={`
                             w-full transition-all duration-300 ease-in-out
-                            ${!title.trim()
-                                ? 'opacity-50 cursor-not-allowed'
-                                : 'hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl'
+                            ${
+                                !title.trim()
+                                    ? 'cursor-not-allowed opacity-50'
+                                    : 'shadow-lg hover:scale-105 hover:shadow-xl active:scale-95'
                             }
                         `}
                         onClick={() => handleAddAssignment(title)}
                         disable={!title.trim()}
                     >
                         <div className="flex items-center justify-center gap-2">
-                            <File className="w-4 h-4" />
+                            <File className="h-4 w-4" />
                             Create Assignment
                         </div>
                     </MyButton>
