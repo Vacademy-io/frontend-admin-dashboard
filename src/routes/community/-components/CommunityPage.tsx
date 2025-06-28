@@ -1,10 +1,10 @@
 // import { PublishTab } from "./PublishTab";
-import { CommunityPageHeader } from "./CommunityPageHeader";
-import { FiltersTab } from "./FiltersTab";
-import { FilteredDataList } from "./FilteredDataList";
-import { fetchStaticData } from "../-services/utils";
-import { useEffect } from "react";
-import { useFilterStore } from "../-store/useFilterOptions";
+import { CommunityPageHeader } from './CommunityPageHeader';
+import { FiltersTab } from './FiltersTab';
+import { FilteredDataList } from './FilteredDataList';
+import { fetchStaticData } from '../-services/utils';
+import { useEffect } from 'react';
+import { useFilterStore } from '../-store/useFilterOptions';
 
 export function CommunityPage() {
     const { setOptions } = useFilterStore();

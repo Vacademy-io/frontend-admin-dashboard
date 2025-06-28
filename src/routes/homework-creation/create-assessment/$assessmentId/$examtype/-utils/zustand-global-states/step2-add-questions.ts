@@ -1,4 +1,4 @@
-import { create } from "zustand";
+import { create } from 'zustand';
 
 interface SectionDetailsState {
     status?: string;
@@ -60,7 +60,7 @@ interface SectionDetailsState {
 }
 
 // ✅ Define the initial empty state (excluding functions)
-const initialState: Omit<SectionDetailsState, "setSectionDetails" | "getSectionDetails" | "reset"> =
+const initialState: Omit<SectionDetailsState, 'setSectionDetails' | 'getSectionDetails' | 'reset'> =
     {
         status: undefined,
         testDuration: undefined,

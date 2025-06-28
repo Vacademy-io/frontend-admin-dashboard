@@ -1,11 +1,11 @@
 // utils/study-library/getSubjectName.ts
-import { useStudyLibraryStore } from "@/stores/study-library/use-study-library-store";
+import { useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
 
 export const getSubjectName = (subjectId: string): string => {
     const studyLibraryData = useStudyLibraryStore.getState().studyLibraryData;
 
     if (!studyLibraryData) {
-        return "";
+        return '';
     }
 
     // Search through all courses, sessions, and levels to find the subject
@@ -21,5 +21,5 @@ export const getSubjectName = (subjectId: string): string => {
         }
     }
 
-    return "";
+    return '';
 };

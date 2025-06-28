@@ -1,15 +1,15 @@
-import { ReactNode, useState } from "react";
-import { MyDialog } from "@/components/design-system/dialog";
-import { MyButton } from "@/components/design-system/button";
-import { useSubmissionsBulkActionsDialogStoreOngoing } from "../bulk-actions-zustand-store/useSubmissionsBulkActionsDialogStoreOngoing";
+import { ReactNode, useState } from 'react';
+import { MyDialog } from '@/components/design-system/dialog';
+import { MyButton } from '@/components/design-system/button';
+import { useSubmissionsBulkActionsDialogStoreOngoing } from '../bulk-actions-zustand-store/useSubmissionsBulkActionsDialogStoreOngoing';
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select";
-import { timeLimit } from "@/constants/dummy-data";
+} from '@/components/ui/select';
+import { timeLimit } from '@/constants/dummy-data';
 
 interface ProvideDialogDialogProps {
     trigger: ReactNode;
@@ -29,16 +29,16 @@ const IncreaseAssessmentTimeDialogContent = ({
 
     const handleSubmit = () => {
         if (isBulkAction && bulkActionInfo?.selectedStudents) {
-            console.log("bulk actions");
+            console.log('bulk actions');
         } else if (selectedStudent) {
-            console.log("individual student");
+            console.log('individual student');
         }
         closeAllDialogs();
     };
 
     return (
         <div className="flex max-h-[60vh] flex-col gap-6 overflow-y-auto text-neutral-600">
-            {durationDistribution === "ASSESSMENT" && (
+            {durationDistribution === 'ASSESSMENT' && (
                 <div className="flex flex-col gap-2 p-4">
                     <h1>Entire Assessment</h1>
                     <h3>Increase By</h3>
@@ -66,7 +66,7 @@ const IncreaseAssessmentTimeDialogContent = ({
                     </div>
                 </div>
             )}
-            {durationDistribution === "SECTION" && (
+            {durationDistribution === 'SECTION' && (
                 <div className="flex flex-col gap-2 p-4">
                     <h1>Section 1</h1>
                     <h3>Increase By</h3>
@@ -108,7 +108,7 @@ const IncreaseAssessmentTimeDialogContent = ({
                     </div>
                 </div>
             )}
-            {durationDistribution === "QUESTION" && (
+            {durationDistribution === 'QUESTION' && (
                 <div className="flex flex-col gap-2 p-4">
                     <h1>Question 1</h1>
                     <h3>Increase By</h3>

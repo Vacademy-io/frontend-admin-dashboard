@@ -1,9 +1,9 @@
-import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 export const useGetPackageSessionId = (
     packageId: string,
     sessionId: string,
-    levelId: string,
+    levelId: string
 ): string | undefined => {
     const { instituteDetails } = useInstituteDetailsStore();
 
@@ -13,7 +13,7 @@ export const useGetPackageSessionId = (
         (batch) =>
             batch.package_dto.id === packageId &&
             batch.session.id === sessionId &&
-            batch.level.id === levelId,
+            batch.level.id === levelId
     );
 
     return matchingBatch?.id ?? undefined;

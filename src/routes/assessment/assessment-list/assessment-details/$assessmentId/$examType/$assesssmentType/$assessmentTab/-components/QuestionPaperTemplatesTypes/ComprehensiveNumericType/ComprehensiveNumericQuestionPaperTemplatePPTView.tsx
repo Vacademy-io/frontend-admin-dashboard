@@ -1,16 +1,16 @@
-import { FormControl, FormField, FormItem } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
-import { DotsThree } from "phosphor-react";
-import { useState } from "react";
+import { FormControl, FormField, FormItem } from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
+import { DotsThree } from 'phosphor-react';
+import { useState } from 'react';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import "react-quill/dist/quill.snow.css";
-import { PPTViewQuillEditor } from "@/components/quill/PPTViewQuillEditor";
-import { SectionQuestionPaperFormProps } from "../../../-utils/assessment-question-paper";
+} from '@/components/ui/dropdown-menu';
+import 'react-quill/dist/quill.snow.css';
+import { PPTViewQuillEditor } from '@/components/quill/PPTViewQuillEditor';
+import { SectionQuestionPaperFormProps } from '../../../-utils/assessment-question-paper';
 
 export const ComprehensiveNumericQuestionPaperTemplatePPTView = ({
     form,
@@ -35,9 +35,9 @@ export const ComprehensiveNumericQuestionPaperTemplatePPTView = ({
         if (questionToDuplicate) {
             const duplicatedQuestion = {
                 ...questionToDuplicate,
-                questionId: questionToDuplicate.questionId || "",
-                questionName: questionToDuplicate.questionName || "",
-                explanation: questionToDuplicate.explanation || "",
+                questionId: questionToDuplicate.questionId || '',
+                questionName: questionToDuplicate.questionName || '',
+                explanation: questionToDuplicate.explanation || '',
                 // imageDetails: questionToDuplicate.imageDetails || [],
                 singleChoiceOptions: questionToDuplicate.singleChoiceOptions || [],
             };

@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 export const AssessmentSchema = z.object({
     assessment_access_statuses: z.array(z.string()),

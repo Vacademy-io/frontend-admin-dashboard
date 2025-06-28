@@ -1,6 +1,6 @@
-import { Badge } from "@/components/ui/badge";
-import { TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScheduleTestTab } from "@/types/assessments/assessment-list";
+import { Badge } from '@/components/ui/badge';
+import { TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ScheduleTestTab } from '@/types/assessments/assessment-list';
 
 const ScheduleTestTabList = ({
     selectedTab,
@@ -14,12 +14,12 @@ const ScheduleTestTabList = ({
             <TabsTrigger
                 value="liveTests"
                 className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
-                    selectedTab === "liveTests"
-                        ? "rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50"
-                        : "border-none bg-transparent"
+                    selectedTab === 'liveTests'
+                        ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                        : 'border-none bg-transparent'
                 }`}
             >
-                <span className={`${selectedTab === "liveTests" ? "text-primary-500" : ""}`}>
+                <span className={`${selectedTab === 'liveTests' ? 'text-primary-500' : ''}`}>
                     Live
                 </span>
                 <Badge
@@ -35,12 +35,12 @@ const ScheduleTestTabList = ({
             <TabsTrigger
                 value="previousTests"
                 className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
-                    selectedTab === "previousTests"
-                        ? "rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50"
-                        : "border-none bg-transparent"
+                    selectedTab === 'previousTests'
+                        ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                        : 'border-none bg-transparent'
                 }`}
             >
-                <span className={`${selectedTab === "previousTests" ? "text-primary-500" : ""}`}>
+                <span className={`${selectedTab === 'previousTests' ? 'text-primary-500' : ''}`}>
                     Previous
                 </span>
                 <Badge

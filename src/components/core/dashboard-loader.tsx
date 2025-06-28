@@ -91,11 +91,11 @@ export const DashboardLoader = ({ height = '', size = 20 }: { height?: string; s
         <div className="flex size-full min-h-[400px] items-center justify-center">
             <div className="relative">
                 {/* Outer ring */}
-                <div className="h-16 w-16 animate-spin rounded-full border-4 border-neutral-200 border-t-primary-500"></div>
+                <div className="size-16 animate-spin rounded-full border-4 border-neutral-200 border-t-primary-500"></div>
 
                 {/* Inner ring */}
                 <div
-                    className="absolute inset-2 h-12 w-12 animate-spin rounded-full border-4 border-neutral-100 border-t-primary-400"
+                    className="absolute inset-2 size-12 animate-spin rounded-full border-4 border-neutral-100 border-t-primary-400"
                     style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}
                 ></div>
 

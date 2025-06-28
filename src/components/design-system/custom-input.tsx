@@ -1,6 +1,6 @@
-import { Control, FieldValues, Path } from "react-hook-form";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
-import { Input } from "../ui/input";
+import { Control, FieldValues, Path } from 'react-hook-form';
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
+import { Input } from '../ui/input';
 
 interface CustomInputProps<T extends FieldValues> {
     control: Control<T>; // React Hook Form's control type for generic forms
@@ -15,9 +15,9 @@ const CustomInput = <T extends FieldValues>({
     control,
     name,
     label,
-    placeholder = "",
+    placeholder = '',
     required = false,
-    className = "",
+    className = '',
     ...props
 }: CustomInputProps<T>) => {
     return (

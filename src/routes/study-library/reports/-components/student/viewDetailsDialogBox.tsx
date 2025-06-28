@@ -1,25 +1,25 @@
-import { MyButton } from "@/components/design-system/button";
-import { MyDialog } from "@/components/design-system/dialog";
-import { useState, useEffect } from "react";
-import { Row } from "@tanstack/react-table";
+import { MyButton } from '@/components/design-system/button';
+import { MyDialog } from '@/components/design-system/dialog';
+import { useState, useEffect } from 'react';
+import { Row } from '@tanstack/react-table';
 import {
     SubjectOverviewColumnType,
     ChapterReport,
     ChapterOverviewStudentColumns,
     CHAPTER_OVERVIEW_STUDENT_WIDTH,
-} from "../../-types/types";
-import { useMutation } from "@tanstack/react-query";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { MyTable } from "@/components/design-system/table";
+} from '../../-types/types';
+import { useMutation } from '@tanstack/react-query';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { MyTable } from '@/components/design-system/table';
 import {
     fetchChapterWiseProgress,
     fetchLearnersChapterWiseProgress,
     exportLearnerModuleProgressReport,
-} from "../../-services/utils";
-import { usePacageDetails } from "../../-store/usePacageDetails";
-import dayjs from "dayjs";
-import { formatToTwoDecimalPlaces, convertMinutesToTimeFormat } from "../../-services/helper";
-import { toast } from "sonner";
+} from '../../-services/utils';
+import { usePacageDetails } from '../../-store/usePacageDetails';
+import dayjs from 'dayjs';
+import { formatToTwoDecimalPlaces, convertMinutesToTimeFormat } from '../../-services/helper';
+import { toast } from 'sonner';
 
 export const ViewDetails = ({ row }: { row: Row<SubjectOverviewColumnType> }) => {
     const [viewDetailsState, setViewDetailsState] = useState(false);
@@ -34,38 +34,38 @@ export const ViewDetails = ({ row }: { row: Row<SubjectOverviewColumnType> }) =>
     const { isPending: isChapterPending, error: chapterError } = ChapterWiseMutation;
     const { isPending: isLearnerPending, error: learnerError } = LearnersChapterWiseMutation;
     const date = new Date().toString();
-    const currDate = dayjs(date).format("DD/MM/YYYY");
+    const currDate = dayjs(date).format('DD/MM/YYYY');
     useEffect(() => {
         if (viewDetailsState) {
-            if (row.getValue("user_id")) {
+            if (row.getValue('user_id')) {
                 LearnersChapterWiseMutation.mutate(
                     {
-                        userId: row.getValue("user_id"),
-                        moduleId: row.getValue("module_id"),
+                        userId: row.getValue('user_id'),
+                        moduleId: row.getValue('module_id'),
                     },
                     {
                         onSuccess: (data) => {
                             setChapterReportData(data);
                         },
                         onError: (error) => {
-                            console.error("Error:", error);
+                            console.error('Error:', error);
                         },
-                    },
+                    }
                 );
             } else {
                 ChapterWiseMutation.mutate(
                     {
                         packageSessionId: pacageSessionId,
-                        moduleId: row.getValue("module_id"),
+                        moduleId: row.getValue('module_id'),
                     },
                     {
                         onSuccess: (data) => {
                             setChapterReportData(data);
                         },
                         onError: (error) => {
-                            console.error("Error:", error);
+                            console.error('Error:', error);
                         },
-                    },
+                    }
                 );
             }
         }
@@ -75,19 +75,19 @@ export const ViewDetails = ({ row }: { row: Row<SubjectOverviewColumnType> }) =>
         mutationFn: () =>
             exportLearnerModuleProgressReport({
                 packageSessionId: pacageSessionId,
-                userId: row.getValue("user_id"),
-                moduleId: row.getValue("module_id"),
+                userId: row.getValue('user_id'),
+                moduleId: row.getValue('module_id'),
             }),
         onSuccess: async (response) => {
             const url = window.URL.createObjectURL(new Blob([response]));
-            const link = document.createElement("a");
+            const link = document.createElement('a');
             link.href = url;
-            link.setAttribute("download", `learners_report.pdf`);
+            link.setAttribute('download', `learners_report.pdf`);
             document.body.appendChild(link);
             link.click();
             link.remove();
             window.URL.revokeObjectURL(url);
-            toast.success("Learners Report PDF exported successfully");
+            toast.success('Learners Report PDF exported successfully');
         },
         onError: (error: unknown) => {
             throw error;
@@ -124,17 +124,17 @@ export const ViewDetails = ({ row }: { row: Row<SubjectOverviewColumnType> }) =>
                                 handleExportPDF();
                             }}
                         >
-                            {isExporting ? <DashboardLoader/> : "Export"}
+                            {isExporting ? <DashboardLoader /> : 'Export'}
                         </MyButton>
                     </div>
                     <div className="grid grid-cols-3 items-center justify-between gap-4">
                         <div>Course: {course}</div>
                         <div>Session: {session}</div>
                         <div>Level: {level}</div>
-                        <div>Subject: {row.getValue("subject")}</div>
-                        <div>Module: {row.getValue("module")}</div>
+                        <div>Subject: {row.getValue('subject')}</div>
+                        <div>Module: {row.getValue('module')}</div>
                     </div>
-                    {(isChapterPending || isLearnerPending) && <DashboardLoader/>}
+                    {(isChapterPending || isLearnerPending) && <DashboardLoader />}
                     {chapterReportData &&
                         chapterReportData.map((chapter) => (
                             <div key={chapter.chapter_id} className="flex flex-col gap-6">
@@ -151,13 +151,13 @@ export const ViewDetails = ({ row }: { row: Row<SubjectOverviewColumnType> }) =>
                                             chapter.slides?.map((slide) => ({
                                                 study_slide: slide.slide_title,
                                                 concentration_score: `${formatToTwoDecimalPlaces(
-                                                    slide.avg_concentration_score,
+                                                    slide.avg_concentration_score
                                                 )} %`,
                                                 batch_concentration_score: `${formatToTwoDecimalPlaces(
-                                                    slide.avg_concentration_score,
+                                                    slide.avg_concentration_score
                                                 )} %`,
                                                 average_time_spent: `${convertMinutesToTimeFormat(
-                                                    slide.avg_time_spent,
+                                                    slide.avg_time_spent
                                                 )}`,
                                                 last_active: ``,
                                             })) || [],

@@ -1,5 +1,5 @@
-import { z } from "zod";
-import { AddCourseData } from "../../study-library/add-course/add-course-form";
+import { z } from 'zod';
+import { AddCourseData } from '../../study-library/add-course/add-course-form';
 
 export interface DropdownItem {
     label: string;

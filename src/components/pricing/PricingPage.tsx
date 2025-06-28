@@ -34,24 +34,44 @@ export function PricingPage() {
                     </p>
                 </div>
                 <p className="mx-auto mt-6 max-w-2xl text-center text-lg leading-8 text-slate-600">
-                    Choose the plan that best fits your needs. All plans include access to our powerful AI tools.
+                    Choose the plan that best fits your needs. All plans include access to our
+                    powerful AI tools.
                 </p>
 
                 {/* Controls */}
-                <div className="mt-16 flex justify-center items-center gap-8">
+                <div className="mt-16 flex items-center justify-center gap-8">
                     <div className="flex items-center space-x-2">
-                        <Label htmlFor="billing-cycle" className={cn(billingCycle === 'monthly' ? "text-slate-900" : "text-slate-500")}>Monthly</Label>
+                        <Label
+                            htmlFor="billing-cycle"
+                            className={cn(
+                                billingCycle === 'monthly' ? 'text-slate-900' : 'text-slate-500'
+                            )}
+                        >
+                            Monthly
+                        </Label>
                         <Switch
                             id="billing-cycle"
                             checked={billingCycle === 'yearly'}
-                            onCheckedChange={(checked) => setBillingCycle(checked ? 'yearly' : 'monthly')}
+                            onCheckedChange={(checked) =>
+                                setBillingCycle(checked ? 'yearly' : 'monthly')
+                            }
                         />
-                        <Label htmlFor="billing-cycle" className={cn(billingCycle === 'yearly' ? "text-slate-900" : "text-slate-500")}>
+                        <Label
+                            htmlFor="billing-cycle"
+                            className={cn(
+                                billingCycle === 'yearly' ? 'text-slate-900' : 'text-slate-500'
+                            )}
+                        >
                             Yearly
-                            <span className="ml-2 text-xs font-medium text-green-600">(Save up to 25%)</span>
+                            <span className="ml-2 text-xs font-medium text-green-600">
+                                (Save up to 25%)
+                            </span>
                         </Label>
                     </div>
-                    <Select value={currency} onValueChange={(value: CurrencyCode) => setCurrency(value)}>
+                    <Select
+                        value={currency}
+                        onValueChange={(value: CurrencyCode) => setCurrency(value)}
+                    >
                         <SelectTrigger className="w-[120px]">
                             <SelectValue placeholder="Currency" />
                         </SelectTrigger>
@@ -76,22 +96,27 @@ export function PricingPage() {
                             className={cn(
                                 'rounded-3xl p-8 ring-1 xl:p-10',
                                 plan.isMostPopular
-                                    ? 'ring-2 ring-orange-500 bg-orange-50'
+                                    ? 'bg-orange-50 ring-2 ring-orange-500'
                                     : 'ring-slate-200'
                             )}
                         >
-                            <h3 className="text-lg font-semibold leading-8 text-slate-900">{plan.name}</h3>
-                            <p className="mt-4 text-sm leading-6 text-slate-600">{plan.description}</p>
+                            <h3 className="text-lg font-semibold leading-8 text-slate-900">
+                                {plan.name}
+                            </h3>
+                            <p className="mt-4 text-sm leading-6 text-slate-600">
+                                {plan.description}
+                            </p>
                             <p className="mt-6 flex items-baseline gap-x-1">
                                 <span className="text-4xl font-bold tracking-tight text-slate-900">
-                                     {selectedCurrency?.symbol}{plan.prices[billingCycle][currency]}
+                                    {selectedCurrency?.symbol}
+                                    {plan.prices[billingCycle][currency]}
                                 </span>
                                 <span className="text-sm font-semibold leading-6 text-slate-600">
                                     {plan.prices[billingCycle][currency] > 0 ? '/ month' : ''}
                                 </span>
                             </p>
-                             {plan.name !== 'Free' && billingCycle === 'yearly' && (
-                                <p className="text-sm text-slate-500 mt-1">
+                            {plan.name !== 'Free' && billingCycle === 'yearly' && (
+                                <p className="mt-1 text-sm text-slate-500">
                                     Billed as {selectedCurrency?.symbol}
                                     {plan.prices[billingCycle][currency] * 12} per year
                                 </p>
@@ -106,10 +131,16 @@ export function PricingPage() {
                             >
                                 {plan.buttonText}
                             </Button>
-                            <ul role="list" className="mt-8 space-y-3 text-sm leading-6 text-slate-600 xl:mt-10">
+                            <ul
+                                role="list"
+                                className="mt-8 space-y-3 text-sm leading-6 text-slate-600 xl:mt-10"
+                            >
                                 {plan.features.map((feature) => (
                                     <li key={feature} className="flex gap-x-3">
-                                        <CheckCircle className="h-6 w-5 flex-none text-green-500" aria-hidden="true" />
+                                        <CheckCircle
+                                            className="h-6 w-5 flex-none text-green-500"
+                                            aria-hidden="true"
+                                        />
                                         {feature}
                                     </li>
                                 ))}
@@ -120,4 +151,4 @@ export function PricingPage() {
             </div>
         </div>
     );
-} 
+}

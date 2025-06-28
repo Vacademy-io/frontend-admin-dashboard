@@ -1,28 +1,28 @@
-import { Dispatch, SetStateAction, useRef, useState } from "react";
-import { uploadQuestionPaperFormSchema } from "../../-utils/upload-question-paper-form-schema";
-import { z } from "zod";
-import { FormProvider, useForm, UseFormReturn } from "react-hook-form";
-import SelectField from "@/components/design-system/select-field";
-import { UploadFileBg } from "@/svgs";
-import { FileUploadComponent } from "@/components/design-system/file-upload";
-import { File, X } from "phosphor-react";
-import { Progress } from "@/components/ui/progress";
-import { Button } from "@/components/ui/button";
-import { QuestionPaperTemplate } from "./QuestionPaperTemplate";
-import { useMutation } from "@tanstack/react-query";
-import { uploadDocsFile } from "@/routes/assessment/question-papers/-services/question-paper-services";
-import { toast } from "sonner";
-import { transformResponseDataToMyQuestionsSchema } from "@/routes/assessment/question-papers/-utils/helper";
+import { Dispatch, SetStateAction, useRef, useState } from 'react';
+import { uploadQuestionPaperFormSchema } from '../../-utils/upload-question-paper-form-schema';
+import { z } from 'zod';
+import { FormProvider, useForm, UseFormReturn } from 'react-hook-form';
+import SelectField from '@/components/design-system/select-field';
+import { UploadFileBg } from '@/svgs';
+import { FileUploadComponent } from '@/components/design-system/file-upload';
+import { File, X } from 'phosphor-react';
+import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
+import { QuestionPaperTemplate } from './QuestionPaperTemplate';
+import { useMutation } from '@tanstack/react-query';
+import { uploadDocsFile } from '@/routes/assessment/question-papers/-services/question-paper-services';
+import { toast } from 'sonner';
+import { transformResponseDataToMyQuestionsSchema } from '@/routes/assessment/question-papers/-utils/helper';
 import {
     ANSWER_LABELS,
     EXPLANATION_LABELS,
     OPTIONS_LABELS,
     QUESTION_LABELS,
-} from "@/constants/dummy-data";
-import useDialogStore from "@/routes/assessment/question-papers/-global-states/question-paper-dialogue-close";
-import sectionDetailsSchema from "../../-utils/section-details-sechma";
-import { zodResolver } from "@hookform/resolvers/zod";
-import ConvertToHTML from "@/routes/assessment/question-papers/-images/convertToHTML.png";
+} from '@/constants/dummy-data';
+import useDialogStore from '@/routes/assessment/question-papers/-global-states/question-paper-dialogue-close';
+import sectionDetailsSchema from '../../-utils/section-details-sechma';
+import { zodResolver } from '@hookform/resolvers/zod';
+import ConvertToHTML from '@/routes/assessment/question-papers/-images/convertToHTML.png';
 
 export type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 export type UploadQuestionPaperFormType = z.infer<typeof uploadQuestionPaperFormSchema>;
@@ -44,28 +44,28 @@ export const QuestionPaperUpload = ({
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const form = useForm<UploadQuestionPaperFormType>({
         resolver: zodResolver(uploadQuestionPaperFormSchema),
-        mode: "onChange",
+        mode: 'onChange',
         defaultValues: {
-            questionPaperId: "1",
+            questionPaperId: '1',
             createdOn: new Date(),
-            questionsType: "",
-            optionsType: "",
-            answersType: "",
-            explanationsType: "",
+            questionsType: '',
+            optionsType: '',
+            answersType: '',
+            explanationsType: '',
             fileUpload: undefined,
             questions: [],
         },
     });
     const { getValues, setValue, watch } = form;
 
-    const questionPaperId = getValues("questionPaperId");
-    const questionIdentifier = getValues("questionsType");
-    const optionIdentifier = getValues("optionsType");
-    const answerIdentifier = getValues("answersType");
-    const explanationIdentifier = getValues("explanationsType");
-    const fileUpload = getValues("fileUpload");
-    const questions = getValues("questions");
-    watch("fileUpload");
+    const questionPaperId = getValues('questionPaperId');
+    const questionIdentifier = getValues('questionsType');
+    const optionIdentifier = getValues('optionsType');
+    const answerIdentifier = getValues('answersType');
+    const explanationIdentifier = getValues('explanationsType');
+    const fileUpload = getValues('fileUpload');
+    const questions = getValues('questions');
+    watch('fileUpload');
 
     const [uploadProgress, setUploadProgress] = useState(0);
     const [isProgress, setIsProgress] = useState(false);
@@ -76,8 +76,8 @@ export const QuestionPaperUpload = ({
     } = useDialogStore();
 
     function onSubmit(values: z.infer<typeof uploadQuestionPaperFormSchema>) {
-        console.log("get questions ", getValues("questions"));
-        console.log("values ", values);
+        console.log('get questions ', getValues('questions'));
+        console.log('values ', values);
         setCurrentQuestionIndex(0);
         if (index !== undefined) {
             const ques = values.questions.map((question) => ({
@@ -88,8 +88,8 @@ export const QuestionPaperUpload = ({
                 parentRichText: question.parentRichTextContent,
             }));
             sectionsForm?.setValue(`section.${index}.adaptive_marking_for_each_question`, ques);
-            toast.success("Question Paper added successfully", {
-                className: "success-toast",
+            toast.success('Question Paper added successfully', {
+                className: 'success-toast',
                 duration: 2000,
             });
             sectionsForm?.trigger(`section.${index}.adaptive_marking_for_each_question`);
@@ -101,15 +101,15 @@ export const QuestionPaperUpload = ({
         if (index !== undefined) {
             sectionsForm?.setValue(`section.${index}`, {
                 ...sectionsForm?.getValues(`section.${index}`), // Keep other section data intact
-                sectionName: "Section 1",
+                sectionName: 'Section 1',
             });
         }
     }
 
     const onInvalid = (err: unknown) => {
         console.error(err);
-        toast.error("some of your questions are incomplete or needs attentions!", {
-            className: "error-toast",
+        toast.error('some of your questions are incomplete or needs attentions!', {
+            className: 'error-toast',
             duration: 3000,
         });
     };
@@ -136,7 +136,7 @@ export const QuestionPaperUpload = ({
                 answerIdentifier,
                 explanationIdentifier,
                 file,
-                setUploadProgress,
+                setUploadProgress
             ),
         onMutate: () => {
             setIsProgress(true);
@@ -146,8 +146,8 @@ export const QuestionPaperUpload = ({
         },
         onSuccess: async (data) => {
             const transformQuestionsData = transformResponseDataToMyQuestionsSchema(data);
-            setValue("questions", transformQuestionsData);
-            console.log("question ", getValues("questions"));
+            setValue('questions', transformQuestionsData);
+            console.log('question ', getValues('questions'));
             if (index !== undefined) {
                 sectionsForm?.setValue(`section.${index}`, {
                     ...sectionsForm?.getValues(`section.${index}`), // Keep other section data intact
@@ -161,7 +161,7 @@ export const QuestionPaperUpload = ({
                     })),
                 });
             }
-            form.trigger("questions");
+            form.trigger('questions');
         },
         onError: (error: unknown) => {
             toast.error(error as string);
@@ -169,7 +169,7 @@ export const QuestionPaperUpload = ({
     });
 
     const handleFileSubmit = (file: File) => {
-        setValue("fileUpload", file);
+        setValue('fileUpload', file);
         addDocsFileMutation.mutate({
             questionIdentifier,
             optionIdentifier,
@@ -187,10 +187,10 @@ export const QuestionPaperUpload = ({
     };
 
     const handleRemoveQuestionPaper = () => {
-        setValue("fileUpload", null as unknown as File);
-        setValue("questions", []);
+        setValue('fileUpload', null as unknown as File);
+        setValue('questions', []);
         if (fileInputRef.current) {
-            fileInputRef.current.value = ""; // Reset the file input to clear the selection
+            fileInputRef.current.value = ''; // Reset the file input to clear the selection
         }
     };
     return (
@@ -264,7 +264,7 @@ export const QuestionPaperUpload = ({
                                 </div>
                                 <h1 className="-mt-4 text-xs text-red-500">
                                     If you are having a problem while uploading docx file then
-                                    please convert your file in html{" "}
+                                    please convert your file in html{' '}
                                     <a
                                         href="https://wordtohtml.net/convert/docx-to-html"
                                         target="_blank"
@@ -272,7 +272,7 @@ export const QuestionPaperUpload = ({
                                         rel="noreferrer"
                                     >
                                         here
-                                    </a>{" "}
+                                    </a>{' '}
                                     and try to re-upload.
                                 </h1>
                             </div>
@@ -288,7 +288,7 @@ export const QuestionPaperUpload = ({
                                 </h1>
                                 <img src={ConvertToHTML} alt="logo" />
                             </div>
-                            {getValues("fileUpload") && (
+                            {getValues('fileUpload') && (
                                 <div className="flex w-full items-center gap-2 rounded-md bg-neutral-100 p-2">
                                     <div className="rounded-md bg-primary-100 p-2">
                                         <File
@@ -301,7 +301,7 @@ export const QuestionPaperUpload = ({
                                     <div className="flex w-full flex-col">
                                         <div className="flex items-start justify-between gap-2">
                                             <p className="break-all text-sm font-bold">
-                                                {getValues("fileUpload")?.name}
+                                                {getValues('fileUpload')?.name}
                                             </p>
                                             <X
                                                 size={16}
@@ -312,14 +312,14 @@ export const QuestionPaperUpload = ({
 
                                         <p className="my-1 whitespace-normal text-xs">
                                             {(
-                                                (((getValues("fileUpload")?.size || 0) /
+                                                (((getValues('fileUpload')?.size || 0) /
                                                     (1024 * 1024)) *
                                                     uploadProgress) /
                                                 100
-                                            ).toFixed(2)}{" "}
-                                            MB /{" "}
+                                            ).toFixed(2)}{' '}
+                                            MB /{' '}
                                             {(
-                                                (getValues("fileUpload")?.size || 0) /
+                                                (getValues('fileUpload')?.size || 0) /
                                                 (1024 * 1024)
                                             ).toFixed(2)}
                                             &nbsp;MB
@@ -390,7 +390,7 @@ export const QuestionPaperUpload = ({
                                 disabled={!!fileUpload}
                                 type="submit"
                                 className={`w-56 bg-primary-500 text-white ${
-                                    questions.length > 0 ? "block" : "hidden"
+                                    questions.length > 0 ? 'block' : 'hidden'
                                 }`}
                             >
                                 Done

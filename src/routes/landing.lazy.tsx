@@ -7,20 +7,20 @@ import { CTA } from '@/components/landing/CTA';
 import { Footer } from '@/components/landing/Footer';
 
 export const Route = createLazyFileRoute('/landing')({
-  component: LandingPage,
+    component: LandingPage,
 });
 
 function LandingPage() {
-  return (
-    <div style={{ width: '100%', position: 'static' }}>
-      <Header />
-      <main style={{ width: '100%', position: 'static' }}>
-        <Hero />
-        <Features />
-        <UseCases />
-        <CTA />
-      </main>
-      <Footer />
-    </div>
-  );
-} 
+    return (
+        <div style={{ width: '100%', position: 'static' }}>
+            <Header />
+            <main style={{ width: '100%', position: 'static' }}>
+                <Hero />
+                <Features />
+                <UseCases />
+                <CTA />
+            </main>
+            <Footer />
+        </div>
+    );
+}

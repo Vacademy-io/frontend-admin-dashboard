@@ -85,7 +85,8 @@ export const Doubt = ({ doubt, refetch }: { doubt: DoubtType; refetch: () => voi
         fetchImageUrl();
     }, [userBasicDetails?.[0]?.face_file_id]);
 
-    const canMarkAsResolved = isAdmin || (userId && doubt.all_doubt_assignee?.some((assignee) => assignee.id === userId));
+    const canMarkAsResolved =
+        isAdmin || (userId && doubt.all_doubt_assignee?.some((assignee) => assignee.id === userId));
 
     return (
         <div className="flex flex-col gap-3 rounded-lg border border-neutral-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
@@ -141,14 +142,10 @@ export const Doubt = ({ doubt, refetch }: { doubt: DoubtType; refetch: () => voi
 
             {/* Actions Bar: MarkAsResolved and DeleteDoubt (if admin) */}
             <div className="mt-2 flex items-center justify-between gap-3 border-b border-neutral-100 pb-3">
-                <div>
-                  {canMarkAsResolved && <MarkAsResolved doubt={doubt} refetch={refetch} />}
-                </div>
-                {isAdmin && (
-                    <DeleteDoubt doubt={doubt} refetch={refetch} showText={false} />
-                )}
+                <div>{canMarkAsResolved && <MarkAsResolved doubt={doubt} refetch={refetch} />}</div>
+                {isAdmin && <DeleteDoubt doubt={doubt} refetch={refetch} showText={false} />}
             </div>
-            
+
             {/* Teacher Assignment - now more subtle and integrated */}
             <div className="pt-2">
                 <TeacherSelection doubt={doubt} filters={filters} canChange={isAdmin || false} />

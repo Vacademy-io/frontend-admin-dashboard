@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { MyDialog } from "@/components/design-system/dialog";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { MyDialog } from '@/components/design-system/dialog';
 
 export default function Calculator({
     open,
@@ -11,13 +11,13 @@ export default function Calculator({
     open: boolean;
     onOpenChange: (open: boolean) => void;
 }) {
-    const [display, setDisplay] = useState("0");
+    const [display, setDisplay] = useState('0');
     const [firstOperand, setFirstOperand] = useState<number | null>(null);
     const [operator, setOperator] = useState<string | null>(null);
     const [waitingForSecondOperand, setWaitingForSecondOperand] = useState(false);
 
     const clearDisplay = () => {
-        setDisplay("0");
+        setDisplay('0');
         setFirstOperand(null);
         setOperator(null);
         setWaitingForSecondOperand(false);
@@ -35,19 +35,19 @@ export default function Calculator({
             setDisplay(digit);
             setWaitingForSecondOperand(false);
         } else {
-            setDisplay(display === "0" ? digit : display + digit);
+            setDisplay(display === '0' ? digit : display + digit);
         }
     };
 
     const inputDecimal = () => {
         if (waitingForSecondOperand) {
-            setDisplay("0.");
+            setDisplay('0.');
             setWaitingForSecondOperand(false);
             return;
         }
 
-        if (!display.includes(".")) {
-            setDisplay(display + ".");
+        if (!display.includes('.')) {
+            setDisplay(display + '.');
         }
     };
 
@@ -73,19 +73,19 @@ export default function Calculator({
         let result = 0;
 
         switch (operator) {
-            case "+":
+            case '+':
                 result = firstOperand + inputValue;
                 break;
-            case "-":
+            case '-':
                 result = firstOperand - inputValue;
                 break;
-            case "×":
+            case '×':
                 result = firstOperand * inputValue;
                 break;
-            case "÷":
+            case '÷':
                 result = firstOperand / inputValue;
                 break;
-            case "=":
+            case '=':
                 result = inputValue;
                 break;
         }
@@ -118,9 +118,9 @@ export default function Calculator({
         <MyDialog heading="Calculator" open={open} onOpenChange={onOpenChange}>
             <div className="mx-auto flex size-3/4 flex-col overflow-hidden rounded-2xl bg-slate-50">
                 {/* Display */}
-                <div className="flex h-1/4 items-end justify-end bg-slate-100 p-6 text-black relative">
+                <div className="relative flex h-1/4 items-end justify-end bg-slate-100 p-6 text-black">
                     {operator && (
-                        <div className="absolute top-2 left-2 text-[22px] text-gray-500">
+                        <div className="absolute left-2 top-2 text-[22px] text-gray-500">
                             {operator}
                         </div>
                     )}
@@ -134,7 +134,7 @@ export default function Calculator({
                         onClick={clearDisplay}
                         className="bg-gray-500 text-black hover:bg-gray-400"
                     >
-                        {firstOperand !== null && display !== "0" ? "C" : "AC"}
+                        {firstOperand !== null && display !== '0' ? 'C' : 'AC'}
                     </Button>
                     <Button
                         onClick={toggleSign}
@@ -149,11 +149,11 @@ export default function Calculator({
                         %
                     </Button>
                     <Button
-                        onClick={() => handleOperator("÷")}
+                        onClick={() => handleOperator('÷')}
                         className={`bg-orange-500 text-white hover:bg-orange-400 ${
-                            operator === "÷" && waitingForSecondOperand
-                                ? "bg-white text-orange-500"
-                                : ""
+                            operator === '÷' && waitingForSecondOperand
+                                ? 'bg-white text-orange-500'
+                                : ''
                         }`}
                     >
                         ÷
@@ -161,29 +161,29 @@ export default function Calculator({
 
                     {/* Row 2 */}
                     <Button
-                        onClick={() => inputDigit("7")}
+                        onClick={() => inputDigit('7')}
                         className="bg-gray-700 text-white hover:bg-gray-600"
                     >
                         7
                     </Button>
                     <Button
-                        onClick={() => inputDigit("8")}
+                        onClick={() => inputDigit('8')}
                         className="bg-gray-700 text-white hover:bg-gray-600"
                     >
                         8
                     </Button>
                     <Button
-                        onClick={() => inputDigit("9")}
+                        onClick={() => inputDigit('9')}
                         className="bg-gray-700 text-white hover:bg-gray-600"
                     >
                         9
                     </Button>
                     <Button
-                        onClick={() => handleOperator("×")}
+                        onClick={() => handleOperator('×')}
                         className={`bg-orange-500 text-white hover:bg-orange-400 ${
-                            operator === "×" && waitingForSecondOperand
-                                ? "bg-white text-orange-500"
-                                : ""
+                            operator === '×' && waitingForSecondOperand
+                                ? 'bg-white text-orange-500'
+                                : ''
                         }`}
                     >
                         ×
@@ -191,29 +191,29 @@ export default function Calculator({
 
                     {/* Row 3 */}
                     <Button
-                        onClick={() => inputDigit("4")}
+                        onClick={() => inputDigit('4')}
                         className="bg-gray-700 text-white hover:bg-gray-600"
                     >
                         4
                     </Button>
                     <Button
-                        onClick={() => inputDigit("5")}
+                        onClick={() => inputDigit('5')}
                         className="bg-gray-700 text-white hover:bg-gray-600"
                     >
                         5
                     </Button>
                     <Button
-                        onClick={() => inputDigit("6")}
+                        onClick={() => inputDigit('6')}
                         className="bg-gray-700 text-white hover:bg-gray-600"
                     >
                         6
                     </Button>
                     <Button
-                        onClick={() => handleOperator("-")}
+                        onClick={() => handleOperator('-')}
                         className={`bg-orange-500 text-white hover:bg-orange-400 ${
-                            operator === "-" && waitingForSecondOperand
-                                ? "bg-white text-orange-500"
-                                : ""
+                            operator === '-' && waitingForSecondOperand
+                                ? 'bg-white text-orange-500'
+                                : ''
                         }`}
                     >
                         −
@@ -221,29 +221,29 @@ export default function Calculator({
 
                     {/* Row 4 */}
                     <Button
-                        onClick={() => inputDigit("1")}
+                        onClick={() => inputDigit('1')}
                         className="bg-gray-700 text-white hover:bg-gray-600"
                     >
                         1
                     </Button>
                     <Button
-                        onClick={() => inputDigit("2")}
+                        onClick={() => inputDigit('2')}
                         className="bg-gray-700 text-white hover:bg-gray-600"
                     >
                         2
                     </Button>
                     <Button
-                        onClick={() => inputDigit("3")}
+                        onClick={() => inputDigit('3')}
                         className="bg-gray-700 text-white hover:bg-gray-600"
                     >
                         3
                     </Button>
                     <Button
-                        onClick={() => handleOperator("+")}
+                        onClick={() => handleOperator('+')}
                         className={`bg-orange-500 text-white hover:bg-orange-400 ${
-                            operator === "+" && waitingForSecondOperand
-                                ? "bg-white text-orange-500"
-                                : ""
+                            operator === '+' && waitingForSecondOperand
+                                ? 'bg-white text-orange-500'
+                                : ''
                         }`}
                     >
                         +
@@ -251,7 +251,7 @@ export default function Calculator({
 
                     {/* Row 5 */}
                     <Button
-                        onClick={() => inputDigit("0")}
+                        onClick={() => inputDigit('0')}
                         className="col-span-2 bg-gray-700 text-white hover:bg-gray-600"
                     >
                         0

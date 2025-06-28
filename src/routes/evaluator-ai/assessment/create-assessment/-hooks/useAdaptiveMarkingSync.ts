@@ -1,12 +1,12 @@
-import { useEffect } from "react";
-import { UseFormReturn } from "react-hook-form";
-import { useAdaptiveMarkingStore } from "./sectionData";
-import { z } from "zod";
-import sectionDetailsSchema from "../-utils/section-details-sechma";
+import { useEffect } from 'react';
+import { UseFormReturn } from 'react-hook-form';
+import { useAdaptiveMarkingStore } from './sectionData';
+import { z } from 'zod';
+import sectionDetailsSchema from '../-utils/section-details-sechma';
 
 export const useAdaptiveMarkingSync = (
     form: UseFormReturn<z.infer<typeof sectionDetailsSchema>>,
-    sectionIndex: number,
+    sectionIndex: number
 ) => {
     const { setSectionQuestions, getSectionQuestions } = useAdaptiveMarkingStore();
     const { watch, setValue } = form;

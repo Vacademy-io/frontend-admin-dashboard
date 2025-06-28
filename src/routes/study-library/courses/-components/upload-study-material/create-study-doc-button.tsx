@@ -1,8 +1,8 @@
-import { MyDialog } from "@/components/design-system/dialog";
-import { MyButton } from "@/components/design-system/button";
-import { FileDoc } from "@phosphor-icons/react";
-import { useState } from "react";
-import { CreateStudyDocForm } from "./create-study-doc-form";
+import { MyDialog } from '@/components/design-system/dialog';
+import { MyButton } from '@/components/design-system/button';
+import { FileDoc } from '@phosphor-icons/react';
+import { useState } from 'react';
+import { CreateStudyDocForm } from './create-study-doc-form';
 
 const triggerButton = (
     <MyButton

@@ -1,4 +1,4 @@
-import { create } from "zustand";
+import { create } from 'zustand';
 
 interface RefetchStoreAssessment {
     handleRefetchDataAssessment: () => void;
@@ -7,7 +7,7 @@ interface RefetchStoreAssessment {
 
 export const useRefetchStoreAssessment = create<RefetchStoreAssessment>((set) => ({
     handleRefetchDataAssessment: () => {
-        throw new Error("handleRefetchData has not been initialized.");
+        throw new Error('handleRefetchData has not been initialized.');
     },
     setHandleRefetchDataAssessment: (fn) => set(() => ({ handleRefetchDataAssessment: fn })),
 }));

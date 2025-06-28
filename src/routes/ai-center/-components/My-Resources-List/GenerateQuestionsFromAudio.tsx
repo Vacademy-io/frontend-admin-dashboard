@@ -199,7 +199,7 @@ const GenerateQuestionsFromAudio = ({ fileId }: { fileId: string }) => {
                                             className=""
                                             type="button"
                                         >
-                                            <DashboardLoader/>
+                                            <DashboardLoader />
                                         </MyButton>
                                     ) : (
                                         <MyButton

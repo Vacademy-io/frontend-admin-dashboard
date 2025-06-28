@@ -248,7 +248,7 @@ export function convertStudyLibraryQuestion(question: MyQuestion) {
             text: {
                 id: null, // Assuming no direct mapping for option text ID
                 type: 'HTML', // Assuming option content is HTML
-                content: opt?.name?.replace(/<\/?p>/g, ''), // Remove <p> tags from content
+                content: idx === 0 ? 'TRUE' : 'FALSE', // First option is TRUE, second is FALSE
             },
             explanation_text: {
                 id: null, // Assuming no direct mapping for explanation text ID
@@ -494,12 +494,12 @@ export function convertToQuestionSlideFormat(question: MyQuestion, sourceId?: st
             },
         }));
     } else if (question?.questionType === QuestionType.TRUE_FALSE) {
-        options = question?.trueFalseOptions?.map((opt) => ({
+        options = question?.trueFalseOptions?.map((opt, idx) => ({
             id: opt.id, // Assuming no direct mapping for option ID
             text: {
                 id: null, // Assuming no direct mapping for option text ID
                 type: 'HTML', // Assuming option content is HTML
-                content: opt?.name?.replace(/<\/?p>/g, ''), // Remove <p> tags from content
+                content: idx === 0 ? 'TRUE' : 'FALSE', // First option is TRUE, second is FALSE
             },
             explanation_text: {
                 id: null, // Assuming no direct mapping for explanation text ID

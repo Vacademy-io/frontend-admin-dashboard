@@ -91,7 +91,7 @@ const UploadFileMyResourcesComponent = () => {
                             buttonType="primary"
                             className="!bg-white font-medium !text-white"
                         >
-                            <DashboardLoader/>
+                            <DashboardLoader />
                         </MyButton>
                     ) : (
                         <MyButton
@@ -118,7 +118,7 @@ const UploadFileMyResourcesComponent = () => {
                             buttonType="primary"
                             className="!bg-white font-medium !text-white"
                         >
-                            <DashboardLoader/>
+                            <DashboardLoader />
                         </MyButton>
                     ) : (
                         <MyButton

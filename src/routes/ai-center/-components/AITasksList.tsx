@@ -148,7 +148,7 @@ const AITasksList = ({
                     </div>
                 </div>
                 {getAITasksIndividualListMutation.status === 'pending' || isLoading ? (
-                    <DashboardLoader/>
+                    <DashboardLoader />
                 ) : (
                     <div className="flex flex-col gap-4 overflow-y-auto p-4">
                         {allTasks.length === 0 ? (

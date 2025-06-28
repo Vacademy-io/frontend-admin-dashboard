@@ -36,7 +36,10 @@ export const ResponseOverlay: React.FC<ResponseOverlayProps> = ({ sessionId, sli
     const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
     const isMcqQuestion = useMemo(() => {
-        return slideData?.elements?.singleChoiceOptions && slideData.elements.singleChoiceOptions.length > 0;
+        return (
+            slideData?.elements?.singleChoiceOptions &&
+            slideData.elements.singleChoiceOptions.length > 0
+        );
     }, [slideData]);
 
     useEffect(() => {
@@ -51,7 +54,7 @@ export const ResponseOverlay: React.FC<ResponseOverlayProps> = ({ sessionId, sli
                     setResponses(response.data);
                 }
             } catch (error) {
-                console.error("Failed to fetch slide responses:", error);
+                console.error('Failed to fetch slide responses:', error);
                 // Don't show toast on interval, it would be annoying.
                 // toast.error("Could not fetch latest responses.");
             } finally {
@@ -79,40 +82,40 @@ export const ResponseOverlay: React.FC<ResponseOverlayProps> = ({ sessionId, sli
 
     return (
         <>
-            <div className="absolute bottom-14 left-1/2 -translate-x-1/2 z-[1002] flex items-center gap-2 p-2 bg-slate-800/80 text-white rounded-lg shadow-lg backdrop-blur-sm">
-                <div className="flex items-center gap-2 pr-2 border-r border-slate-600">
+            <div className="absolute bottom-14 left-1/2 z-[1002] flex -translate-x-1/2 items-center gap-2 rounded-lg bg-slate-800/80 p-2 text-white shadow-lg backdrop-blur-sm">
+                <div className="flex items-center gap-2 border-r border-slate-600 pr-2">
                     <BarChart size={20} className="text-sky-400" />
                     <span className="font-medium">Responses:</span>
                     {isLoading ? (
                         <Loader2 size={18} className="animate-spin" />
                     ) : (
-                        <span className="font-bold text-lg">{responses.length}</span>
+                        <span className="text-lg font-bold">{responses.length}</span>
                     )}
                 </div>
-                <Button 
-                    variant="outline" 
+                <Button
+                    variant="outline"
                     size="sm"
-                    className="bg-transparent border-orange-400 text-orange-400 hover:bg-orange-400 hover:text-white"
+                    className="border-orange-400 bg-transparent text-orange-400 hover:bg-orange-400 hover:text-white"
                     onClick={() => setIsLeaderboardOpen(true)}
                 >
                     <Trophy size={16} className="mr-2" />
                     Leaderboard
                 </Button>
                 {isMcqQuestion ? (
-                    <Button 
+                    <Button
                         variant="outline"
-                        size="sm" 
-                        className="bg-transparent border-sky-400 text-sky-400 hover:bg-sky-400 hover:text-white"
+                        size="sm"
+                        className="border-sky-400 bg-transparent text-sky-400 hover:bg-sky-400 hover:text-white"
                         onClick={() => setIsDistributionOpen(true)}
                     >
                         <PieChart size={16} className="mr-2" />
                         Distribution
                     </Button>
                 ) : (
-                    <Button 
+                    <Button
                         variant="outline"
-                        size="sm" 
-                        className="bg-transparent border-teal-400 text-teal-400 hover:bg-teal-400 hover:text-white"
+                        size="sm"
+                        className="border-teal-400 bg-transparent text-teal-400 hover:bg-teal-400 hover:text-white"
                         onClick={() => setIsWordCloudOpen(true)}
                     >
                         <Cloud size={16} className="mr-2" />
@@ -120,7 +123,7 @@ export const ResponseOverlay: React.FC<ResponseOverlayProps> = ({ sessionId, sli
                     </Button>
                 )}
             </div>
-            <LeaderboardModal 
+            <LeaderboardModal
                 isOpen={isLeaderboardOpen}
                 onClose={() => setIsLeaderboardOpen(false)}
                 responses={responses}
@@ -143,4 +146,4 @@ export const ResponseOverlay: React.FC<ResponseOverlayProps> = ({ sessionId, sli
             )}
         </>
     );
-}; 
+};

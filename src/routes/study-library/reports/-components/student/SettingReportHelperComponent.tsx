@@ -1,6 +1,6 @@
-import { X } from "phosphor-react";
-import { useState } from "react";
-import { MultipleInputProps } from "../../-types/types";
+import { X } from 'phosphor-react';
+import { useState } from 'react';
+import { MultipleInputProps } from '../../-types/types';
 
 export const MultipleInput = ({
     itemsList,
@@ -9,7 +9,7 @@ export const MultipleInput = ({
     role,
     commaSeperatedType,
 }: MultipleInputProps) => {
-    const [input, setInput] = useState<string>("");
+    const [input, setInput] = useState<string>('');
     const [list, setList] = useState<string[]>(itemsList);
 
     const isValidEmail = (email: string) => {
@@ -32,13 +32,13 @@ export const MultipleInput = ({
         const trimmedInput = input.trim();
 
         if (
-            trimmedInput !== "" &&
-            ((inputType === "email" && isValidEmail(trimmedInput)) ||
-                (inputType === "mobile" && isValidMobileNumber(trimmedInput))) &&
+            trimmedInput !== '' &&
+            ((inputType === 'email' && isValidEmail(trimmedInput)) ||
+                (inputType === 'mobile' && isValidMobileNumber(trimmedInput))) &&
             !list.includes(trimmedInput)
         ) {
             updateList([...list, trimmedInput]);
-            setInput("");
+            setInput('');
         }
     };
 
@@ -53,11 +53,11 @@ export const MultipleInput = ({
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && addItemsToList()}
+                    onKeyDown={(e) => e.key === 'Enter' && addItemsToList()}
                     placeholder={
-                        inputType === "email"
-                            ? "Enter email and press Enter"
-                            : "Enter mobile number and press Enter"
+                        inputType === 'email'
+                            ? 'Enter email and press Enter'
+                            : 'Enter mobile number and press Enter'
                     }
                     className="!focus:outline-none !focus:ring-0 mb-2 w-full rounded-md border p-1 !outline-none"
                 />
@@ -70,7 +70,7 @@ export const MultipleInput = ({
                         className="flex w-fit flex-row items-center gap-2 rounded-lg border px-3 py-1"
                     >
                         <div>
-                            {inputType === "mobile" && "+91 "}
+                            {inputType === 'mobile' && '+91 '}
                             {item}
                         </div>
                         <button

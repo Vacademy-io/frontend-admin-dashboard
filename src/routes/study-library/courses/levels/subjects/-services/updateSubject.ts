@@ -1,7 +1,7 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { SubjectType } from "@/stores/study-library/use-study-library-store";
-import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
-import { UPDATE_SUBJECT } from "@/constants/urls";
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { SubjectType } from '@/stores/study-library/use-study-library-store';
+import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
+import { UPDATE_SUBJECT } from '@/constants/urls';
 
 export const useUpdateSubject = () => {
     const queryClient = useQueryClient();
@@ -25,13 +25,13 @@ export const useUpdateSubject = () => {
             };
             return authenticatedAxiosInstance.put(
                 `${UPDATE_SUBJECT}?subjectId=${subjectId}`,
-                payload,
+                payload
             );
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["GET_INIT_STUDY_LIBRARY"] });
-            queryClient.invalidateQueries({ queryKey: ["GET_INIT_INSTITUTE"] });
-            queryClient.invalidateQueries({ queryKey: ["GET_STUDENT_SUBJECTS_PROGRESS"] });
+            queryClient.invalidateQueries({ queryKey: ['GET_INIT_STUDY_LIBRARY'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SUBJECTS_PROGRESS'] });
         },
     });
 };

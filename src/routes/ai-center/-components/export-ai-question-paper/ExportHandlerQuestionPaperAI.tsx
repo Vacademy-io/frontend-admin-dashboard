@@ -1,14 +1,14 @@
-import { useState, useRef } from "react";
-import { Download, X } from "lucide-react";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
-import { MyButton } from "@/components/design-system/button";
-import { Progress } from "@/components/ui/progress";
-import { Button } from "@/components/ui/button";
-import { CircleNotch } from "phosphor-react";
-import { ExportSettings } from "@/components/common/export-offline/contexts/export-settings-context";
-import { Question } from "@/components/common/export-offline/types/question";
-import { PaperSetQuestionsAI } from "./PaperSetQuestionsAI";
+import { useState, useRef } from 'react';
+import { Download, X } from 'lucide-react';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+import { MyButton } from '@/components/design-system/button';
+import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
+import { CircleNotch } from 'phosphor-react';
+import { ExportSettings } from '@/components/common/export-offline/contexts/export-settings-context';
+import { Question } from '@/components/common/export-offline/types/question';
+import { PaperSetQuestionsAI } from './PaperSetQuestionsAI';
 
 interface ExportHandlerProps {
     questionsData: Question[];
@@ -28,8 +28,8 @@ export function ExportHandlerQuestionPaperAI({
 
     const optimizeImage = (canvas: HTMLCanvasElement): string => {
         // Create a new canvas with optimal dimensions
-        const optimizedCanvas = document.createElement("canvas");
-        const ctx = optimizedCanvas.getContext("2d");
+        const optimizedCanvas = document.createElement('canvas');
+        const ctx = optimizedCanvas.getContext('2d');
 
         // Set dimensions to A4 at 200 DPI (still good quality but smaller than before)
         // A4 at 200 DPI: 1654 x 2339 pixels
@@ -39,7 +39,7 @@ export function ExportHandlerQuestionPaperAI({
         if (ctx) {
             // Enable image smoothing for better quality
             ctx.imageSmoothingEnabled = true;
-            ctx.imageSmoothingQuality = "high";
+            ctx.imageSmoothingQuality = 'high';
 
             // Draw original canvas onto optimized canvas
             ctx.drawImage(
@@ -51,13 +51,13 @@ export function ExportHandlerQuestionPaperAI({
                 0,
                 0,
                 optimizedCanvas.width,
-                optimizedCanvas.height,
+                optimizedCanvas.height
             );
         }
 
         // Convert to compressed JPEG instead of PNG
         // Quality 0.8 gives good balance between quality and file size
-        return optimizedCanvas.toDataURL("image/jpeg", 0.8);
+        return optimizedCanvas.toDataURL('image/jpeg', 0.8);
     };
 
     const handleExport = async () => {
@@ -70,19 +70,19 @@ export function ExportHandlerQuestionPaperAI({
         try {
             // Initialize PDF with compression
             const pdf = new jsPDF({
-                orientation: "portrait",
-                unit: "mm",
-                format: "a4",
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4',
                 compress: true,
             });
 
-            const pageElements = pagesRef.current.querySelectorAll(".page");
+            const pageElements = pagesRef.current.querySelectorAll('.page');
             const totalPages = pageElements.length;
 
             for (let i = 0; i < pageElements.length; i++) {
                 // Check if cancel was requested
                 if (cancelTokenRef.current.cancel) {
-                    throw new Error("PDF generation cancelled");
+                    throw new Error('PDF generation cancelled');
                 }
 
                 // Update progress
@@ -92,14 +92,14 @@ export function ExportHandlerQuestionPaperAI({
                 const pageElement = pageElements[i] as HTMLElement;
 
                 // Ensure the page element is visible during capture
-                pageElement.style.position = "fixed";
-                pageElement.style.top = "0";
-                pageElement.style.left = "0";
-                pageElement.style.padding = "40px";
-                pageElement.style.visibility = "visible";
-                pageElement.style.width = "210mm";
-                pageElement.style.height = "297mm";
-                pageElement.style.backgroundColor = "white";
+                pageElement.style.position = 'fixed';
+                pageElement.style.top = '0';
+                pageElement.style.left = '0';
+                pageElement.style.padding = '40px';
+                pageElement.style.visibility = 'visible';
+                pageElement.style.width = '210mm';
+                pageElement.style.height = '297mm';
+                pageElement.style.backgroundColor = 'white';
 
                 // Wait for any potential reflows
                 await new Promise((resolve) => setTimeout(resolve, 100));
@@ -110,7 +110,7 @@ export function ExportHandlerQuestionPaperAI({
                     allowTaint: true,
                     useCORS: true,
                     logging: true,
-                    backgroundColor: "#ffffff",
+                    backgroundColor: '#ffffff',
                     width: pageElement.offsetWidth,
                     height: pageElement.offsetHeight,
                     windowWidth: pageElement.offsetWidth,
@@ -130,45 +130,45 @@ export function ExportHandlerQuestionPaperAI({
                 // Add image with compression
                 pdf.addImage({
                     imageData: imgData,
-                    format: "JPEG",
+                    format: 'JPEG',
                     x: 0,
                     y: 0,
                     width: pdfWidth,
                     height: pdfHeight,
-                    compression: "FAST",
+                    compression: 'FAST',
                     rotation: 0,
                 });
 
                 // Reset the page element styles
-                pageElement.style.position = "";
-                pageElement.style.top = "";
-                pageElement.style.left = "";
-                pageElement.style.visibility = "";
-                pageElement.style.width = "";
-                pageElement.style.height = "";
-                pageElement.style.backgroundColor = "";
+                pageElement.style.position = '';
+                pageElement.style.top = '';
+                pageElement.style.left = '';
+                pageElement.style.visibility = '';
+                pageElement.style.width = '';
+                pageElement.style.height = '';
+                pageElement.style.backgroundColor = '';
             }
 
             // Final progress update
             setExportProgress(100);
 
             // Save with additional optimization
-            const pdfOutput = pdf.output("datauristring");
+            const pdfOutput = pdf.output('datauristring');
             const pdfBlob = await fetch(pdfOutput).then((res) => res.blob());
-            const optimizedPdfBlob = new Blob([pdfBlob], { type: "application/pdf" });
+            const optimizedPdfBlob = new Blob([pdfBlob], { type: 'application/pdf' });
 
             // Use URL.createObjectURL for more efficient saving
             const url = URL.createObjectURL(optimizedPdfBlob);
-            const link = document.createElement("a");
+            const link = document.createElement('a');
             link.href = url;
             link.download = `Paper${
-                setNumber ? ` ${String.fromCharCode(65 + setNumber)}` : ""
+                setNumber ? ` ${String.fromCharCode(65 + setNumber)}` : ''
             }.pdf`;
             link.click();
             URL.revokeObjectURL(url);
         } catch (error) {
-            if ((error as Error).message !== "PDF generation cancelled") {
-                console.error("PDF export failed:", error);
+            if ((error as Error).message !== 'PDF generation cancelled') {
+                console.error('PDF export failed:', error);
             }
             setExportProgress(0);
         } finally {
@@ -191,7 +191,7 @@ export function ExportHandlerQuestionPaperAI({
                     <MyButton onClick={handleExport} disabled={isExporting} className="gap-2">
                         <Download className="size-4" />
                         {isExporting
-                            ? "Exporting..."
+                            ? 'Exporting...'
                             : `Export ${settings.exportFormat.toUpperCase()}`}
                         {setNumber !== undefined && ` (Set ${String.fromCharCode(65 + setNumber)})`}
                     </MyButton>
@@ -201,11 +201,11 @@ export function ExportHandlerQuestionPaperAI({
                 <div
                     ref={pagesRef}
                     style={{
-                        position: "absolute",
-                        left: "-9999px",
+                        position: 'absolute',
+                        left: '-9999px',
                         opacity: 0,
-                        pointerEvents: "none",
-                        width: "210mm",
+                        pointerEvents: 'none',
+                        width: '210mm',
                     }}
                 >
                     <PaperSetQuestionsAI questionsData={questionsData} settings={settings} />
@@ -217,7 +217,7 @@ export function ExportHandlerQuestionPaperAI({
                         <div className="flex w-full items-start justify-between">
                             <p>
                                 <h3 className="flex items-center gap-x-2 text-base font-semibold text-gray-800">
-                                    Generating PDF{" "}
+                                    Generating PDF{' '}
                                     <CircleNotch className="size-4 animate-spin text-primary-300" />
                                     {setNumber !== undefined &&
                                         ` (Set ${String.fromCharCode(65 + setNumber)})`}

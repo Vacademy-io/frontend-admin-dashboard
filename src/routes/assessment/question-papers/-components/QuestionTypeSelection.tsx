@@ -11,21 +11,21 @@ import {
     // CompTrueFalse,
     // CompLongAnswer,
     // CompSingleWord,
-} from "@/svgs";
+} from '@/svgs';
 import {
     AlertDialogCancel,
     AlertDialogContent,
     AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { QuestionPaperUpload } from "./QuestionPaperUpload";
-import { X } from "phosphor-react";
-import useDialogStore from "../-global-states/question-paper-dialogue-close";
-import { useState } from "react";
-import { QuestionType as QuestionTypeList } from "@/constants/dummy-data";
+} from '@/components/ui/alert-dialog';
+import { QuestionPaperUpload } from './QuestionPaperUpload';
+import { X } from 'phosphor-react';
+import useDialogStore from '../-global-states/question-paper-dialogue-close';
+import { useState } from 'react';
+import { QuestionType as QuestionTypeList } from '@/constants/dummy-data';
 import {
     QuestionTypeProps,
     QuestionPaperHeadingInterface,
-} from "@/types/assessments/question-type-types";
+} from '@/types/assessments/question-type-types';
 
 export function QuestionTypeSelection({
     currentQuestionIndex,

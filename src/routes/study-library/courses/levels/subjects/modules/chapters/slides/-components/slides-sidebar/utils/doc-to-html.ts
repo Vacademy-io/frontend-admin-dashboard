@@ -1,4 +1,4 @@
-import mammoth from "mammoth";
+import mammoth from 'mammoth';
 
 export const convertDocToHtml = async (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -10,7 +10,7 @@ export const convertDocToHtml = async (file: File): Promise<string> => {
                 const result = await mammoth.convertToHtml({ arrayBuffer });
 
                 if (!result || !result.value) {
-                    reject(new Error("Document conversion failed - no content"));
+                    reject(new Error('Document conversion failed - no content'));
                     return;
                 }
 
@@ -25,7 +25,7 @@ export const convertDocToHtml = async (file: File): Promise<string> => {
                 // const yooptaContent = html.deserialize(editor, processedHTML);
                 resolve(processedHTML);
             } catch (error) {
-                console.error("Error during conversion:", error);
+                console.error('Error during conversion:', error);
                 reject(error);
             }
         };

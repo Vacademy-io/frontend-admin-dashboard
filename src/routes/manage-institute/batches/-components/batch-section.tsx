@@ -84,7 +84,7 @@ const BatchCard = ({ batch }: batchCardProps) => {
                         <MyButton
                             buttonType="text"
                             layoutVariant="icon"
-                            className="text-danger-400 hover:text-danger-600 hover:bg-danger-50 p-1 rounded-full"
+                            className="rounded-full p-1 text-danger-400 hover:bg-danger-50 hover:text-danger-600"
                             onClick={() => setOpenDeleteDialog(true)}
                             scale="medium"
                         >
@@ -99,7 +99,7 @@ const BatchCard = ({ batch }: batchCardProps) => {
                     </div>
                     <div className="flex items-center gap-2 text-sm text-neutral-500">
                         <p className="font-medium">Invite Code:</p>
-                        <span className="font-mono rounded bg-neutral-100 px-2 py-1 text-xs text-neutral-700">
+                        <span className="rounded bg-neutral-100 px-2 py-1 font-mono text-xs text-neutral-700">
                             {batch.invite_code}
                         </span>
                         <MyButton
@@ -113,14 +113,14 @@ const BatchCard = ({ batch }: batchCardProps) => {
                         </MyButton>
                     </div>
                 </div>
-                <div className="mt-5 flex items-center justify-end gap-3 pt-4 border-t border-neutral-100">
+                <div className="mt-5 flex items-center justify-end gap-3 border-t border-neutral-100 pt-4">
                     <EnrollManuallyButton
                         triggerButton={
                             <MyButton
                                 buttonType="text"
                                 layoutVariant="default"
                                 scale="medium"
-                                className="text-neutral-700 hover:text-primary-600"
+                                className="hover:text-primary-600 text-neutral-700"
                             >
                                 <Plus size={18} className="mr-1" /> Enroll Student
                             </MyButton>
@@ -131,7 +131,7 @@ const BatchCard = ({ batch }: batchCardProps) => {
                         layoutVariant="default"
                         scale="medium"
                         onClick={handleViewBatch}
-                        className="bg-neutral-100 hover:bg-neutral-200 text-neutral-700"
+                        className="bg-neutral-100 text-neutral-700 hover:bg-neutral-200"
                     >
                         View Batch
                     </MyButton>
@@ -154,7 +154,7 @@ const BatchCard = ({ batch }: batchCardProps) => {
                         <MyButton
                             buttonType="secondary"
                             onClick={handleDeleteBatch}
-                            className="text-danger-600 border-danger-300 hover:bg-danger-50 hover:border-danger-500"
+                            className="border-danger-300 text-danger-600 hover:border-danger-500 hover:bg-danger-50"
                         >
                             Yes, Delete
                         </MyButton>
@@ -178,33 +178,40 @@ interface BatchSectionProps {
 export const BatchSection = ({ batch, currentSessionId }: BatchSectionProps) => {
     const { instituteDetails } = useInstituteDetailsStore();
 
-    const filteredBatches = currentSessionId && instituteDetails?.batches_for_sessions
-        ? batch.batches.filter(b => {
-            const batchDetail: BatchForSessionStoreType | undefined = instituteDetails.batches_for_sessions.find(
-                (detail: BatchForSessionStoreType) => detail.id === b.package_session_id
-            );
-            return batchDetail?.session.id === currentSessionId;
-          })
-        : batch.batches;
+    const filteredBatches =
+        currentSessionId && instituteDetails?.batches_for_sessions
+            ? batch.batches.filter((b) => {
+                  const batchDetail: BatchForSessionStoreType | undefined =
+                      instituteDetails.batches_for_sessions.find(
+                          (detail: BatchForSessionStoreType) => detail.id === b.package_session_id
+                      );
+                  return batchDetail?.session.id === currentSessionId;
+              })
+            : batch.batches;
 
     return (
         <>
             {filteredBatches.length > 0 ? (
                 <div className="flex flex-col gap-5">
-                    <p className="text-xl font-semibold text-neutral-700">{batch.package_dto.package_name}</p>
+                    <p className="text-xl font-semibold text-neutral-700">
+                        {batch.package_dto.package_name}
+                    </p>
                     <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
                         {filteredBatches.map((batchLevel, index) => (
                             <BatchCard batch={batchLevel} />
                         ))}
                     </div>
                 </div>
-            ) : (
-                currentSessionId && batch.batches.length > 0 ? null : (
-                    <div className="flex flex-col gap-3 rounded-lg border border-dashed border-neutral-300 bg-neutral-50 p-8 text-center items-center">
-                        <p className="text-lg font-semibold text-neutral-700">{batch.package_dto.package_name}</p>
-                        <p className="text-neutral-500">No batches found for this package{currentSessionId ? " in the selected session" : ""}.</p>
-                    </div>
-                )
+            ) : currentSessionId && batch.batches.length > 0 ? null : (
+                <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-neutral-300 bg-neutral-50 p-8 text-center">
+                    <p className="text-lg font-semibold text-neutral-700">
+                        {batch.package_dto.package_name}
+                    </p>
+                    <p className="text-neutral-500">
+                        No batches found for this package
+                        {currentSessionId ? ' in the selected session' : ''}.
+                    </p>
+                </div>
             )}
         </>
     );

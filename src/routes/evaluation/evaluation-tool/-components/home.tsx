@@ -1,6 +1,6 @@
-import { Button } from "@/components/ui/button";
-import { Link } from "@tanstack/react-router";
-import { ArrowRight, CheckCircle } from "lucide-react";
+import { Button } from '@/components/ui/button';
+import { Link } from '@tanstack/react-router';
+import { ArrowRight, CheckCircle } from 'lucide-react';
 
 export default function HeroSection() {
     return (
@@ -10,7 +10,7 @@ export default function HeroSection() {
                     <div className="flex flex-col justify-center space-y-4">
                         <div className="space-y-2">
                             <h1 className="text-3xl font-bold tracking-tighter text-gray-900 sm:text-5xl xl:text-6xl/none">
-                                Evaluate Answer Sheets{" "}
+                                Evaluate Answer Sheets{' '}
                                 <span className="text-primary-400">Faster & Smarter</span>
                             </h1>
                             <p className="max-w-[600px] text-gray-500 md:text-xl">

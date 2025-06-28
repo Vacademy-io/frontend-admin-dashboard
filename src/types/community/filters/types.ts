@@ -25,7 +25,7 @@ export interface QuestionPaperEntityData {
 }
 
 export interface Entity<T> {
-    entityType: "QUESTION" | "QUESTION_PAPER";
+    entityType: 'QUESTION' | 'QUESTION_PAPER';
     entityId: string;
     entityData: T;
 }
@@ -45,7 +45,7 @@ export interface Tag {
 }
 
 export interface FilterRequest {
-    type?: "QUESTION_PAPER" | "QUESTION";
+    type?: 'QUESTION_PAPER' | 'QUESTION';
     name?: string;
     tags?: Tag[];
 }

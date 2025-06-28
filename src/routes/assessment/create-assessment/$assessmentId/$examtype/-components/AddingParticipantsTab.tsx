@@ -1,21 +1,21 @@
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
-import { useEffect, useState } from "react";
-import { TabsContent } from "@radix-ui/react-tabs";
-import { Checkbox } from "@/components/ui/checkbox";
-import { StudentListTab } from "./StudentListTab";
-import testAccessSchema from "../-utils/add-participants-schema";
-import { z } from "zod";
-import { UseFormReturn } from "react-hook-form";
-import { CheckCircle } from "@phosphor-icons/react";
-import { Route } from "..";
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Separator } from '@/components/ui/separator';
+import { useEffect, useState } from 'react';
+import { TabsContent } from '@radix-ui/react-tabs';
+import { Checkbox } from '@/components/ui/checkbox';
+import { StudentListTab } from './StudentListTab';
+import testAccessSchema from '../-utils/add-participants-schema';
+import { z } from 'zod';
+import { UseFormReturn } from 'react-hook-form';
+import { CheckCircle } from '@phosphor-icons/react';
+import { Route } from '..';
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 
 type TestAccessFormType = z.infer<typeof testAccessSchema>;
 
@@ -47,19 +47,19 @@ export function AddingParticipantsTab({
     sectionsInfo: SectionInfoInterface[];
 }) {
     const [selectedTab, setSelectedTab] = useState(
-        form.getValues("select_individually.checked") === true ? "Individually" : "Batch",
+        form.getValues('select_individually.checked') === true ? 'Individually' : 'Batch'
     );
     const handleChange = (value: string) => {
         setSelectedTab(value);
     };
 
     useEffect(() => {
-        if (selectedTab === "Batch") {
-            form.setValue("select_batch.checked", true);
-            form.setValue("select_individually.checked", false);
+        if (selectedTab === 'Batch') {
+            form.setValue('select_batch.checked', true);
+            form.setValue('select_individually.checked', false);
         } else {
-            form.setValue("select_batch.checked", false);
-            form.setValue("select_individually.checked", true);
+            form.setValue('select_batch.checked', false);
+            form.setValue('select_individually.checked', true);
         }
     }, [selectedTab]);
 
@@ -70,15 +70,15 @@ export function AddingParticipantsTab({
                     <TabsTrigger
                         value="Batch"
                         className={`flex gap-1.5 rounded-l-lg rounded-r-none p-2 pr-4 ${
-                            selectedTab === "Batch"
-                                ? "!bg-primary-100 !text-neutral-500"
-                                : "bg-transparent px-4"
+                            selectedTab === 'Batch'
+                                ? '!bg-primary-100 !text-neutral-500'
+                                : 'bg-transparent px-4'
                         }`}
                     >
-                        {selectedTab === "Batch" && (
+                        {selectedTab === 'Batch' && (
                             <CheckCircle size={18} className="text-teal-800 dark:text-teal-400" />
                         )}
-                        <span className={`${selectedTab === "Batch" ? "text-neutral-600" : ""}`}>
+                        <span className={`${selectedTab === 'Batch' ? 'text-neutral-600' : ''}`}>
                             Select Batch
                         </span>
                     </TabsTrigger>
@@ -86,17 +86,17 @@ export function AddingParticipantsTab({
                     <TabsTrigger
                         value="Individually"
                         className={`flex gap-1.5 rounded-l-none rounded-r-lg p-2 ${
-                            selectedTab === "Individually"
-                                ? "!bg-primary-100 pr-4"
-                                : "bg-transparent px-4"
+                            selectedTab === 'Individually'
+                                ? '!bg-primary-100 pr-4'
+                                : 'bg-transparent px-4'
                         }`}
                     >
-                        {selectedTab === "Individually" && (
+                        {selectedTab === 'Individually' && (
                             <CheckCircle size={18} className="text-teal-800 dark:text-teal-400" />
                         )}
                         <span
                             className={`${
-                                selectedTab === "Individually" ? "text-neutral-600" : ""
+                                selectedTab === 'Individually' ? 'text-neutral-600' : ''
                             }`}
                         >
                             Select Individually
@@ -137,21 +137,21 @@ const Step3BatchList = ({
     sectionsInfo: SectionInfoInterface[];
 }) => {
     const params = Route.useParams();
-    const assessmentId = params.assessmentId ?? "";
+    const assessmentId = params.assessmentId ?? '';
     const { setValue, watch } = form;
 
     // Ensure batchDetails is initialized before using it
     const transformedBatches: Record<string, string[]> = Object.fromEntries(
-        Object.entries(batchData).map(([key, value]) => [key, value.map((item) => item.id)]),
+        Object.entries(batchData).map(([key, value]) => [key, value.map((item) => item.id)])
     );
 
     // Ensure checkedState only contains string IDs
     const [checkedState, setCheckedState] = useState<Record<string, string[]>>(
-        assessmentId === "defaultId" ? {} : transformedBatches,
+        assessmentId === 'defaultId' ? {} : transformedBatches
     );
 
     // Watch for changes in form state
-    watch("select_batch.batch_details");
+    watch('select_batch.batch_details');
 
     // Handle parent checkbox toggle
     const handleParentToggle = (parentId: string, isChecked: boolean) => {
@@ -185,7 +185,7 @@ const Step3BatchList = ({
 
     // Ensure form value updates immediately
     useEffect(() => {
-        setValue("select_batch.batch_details", checkedState);
+        setValue('select_batch.batch_details', checkedState);
     }, [checkedState, setValue, selectedSection]);
 
     return (
@@ -217,8 +217,8 @@ const Step3BatchList = ({
                                 }
                                 className={`size-4 rounded-sm border-2 shadow-none ${
                                     isAllChildrenSelected(batchName)
-                                        ? "border-none bg-primary-500 text-white"
-                                        : ""
+                                        ? 'border-none bg-primary-500 text-white'
+                                        : ''
                                 }`}
                             />
                             <span className="ml-2 font-thin">{batchName}</span>
@@ -236,8 +236,8 @@ const Step3BatchList = ({
                                             }
                                             className={`size-4 rounded-sm border-2 shadow-none ${
                                                 checkedState[batchName]?.includes(pkg.id)
-                                                    ? "border-none bg-primary-500 text-white"
-                                                    : ""
+                                                    ? 'border-none bg-primary-500 text-white'
+                                                    : ''
                                             }`}
                                         />
                                         <span className="ml-2 font-thin">{pkg.name}</span>

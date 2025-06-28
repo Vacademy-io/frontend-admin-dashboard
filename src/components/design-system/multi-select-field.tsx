@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CaretDown, CaretUp, Check } from "phosphor-react";
-import { Badge } from "../ui/badge";
-import { FormControl, FormField, FormItem, FormLabel } from "../ui/form";
-import { type Control } from "react-hook-form";
-import { cn } from "@/lib/utils";
+import { useEffect, useState } from 'react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CaretDown, CaretUp, Check } from 'phosphor-react';
+import { Badge } from '../ui/badge';
+import { FormControl, FormField, FormItem, FormLabel } from '../ui/form';
+import { type Control } from 'react-hook-form';
+import { cn } from '@/lib/utils';
 
 interface Option {
     id: string;
@@ -37,7 +37,7 @@ export function MultiSelectField({
 
     const toggleSelection = (id: string) => {
         setSelectedOptions((prev) =>
-            prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
+            prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
         );
     };
 
@@ -57,7 +57,7 @@ export function MultiSelectField({
                 render={() => {
                     return (
                         <div>
-                            <FormItem className={cn("w-44", className)}>
+                            <FormItem className={cn('w-44', className)}>
                                 <FormLabel className={labelStyle}>
                                     {label}
                                     {required && <span className="text-red-500">*</span>}

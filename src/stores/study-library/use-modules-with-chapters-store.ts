@@ -1,5 +1,5 @@
 // stores/study-library/useModulesWithChaptersStore.ts
-import { create } from "zustand";
+import { create } from 'zustand';
 
 export interface SlidesCount {
     video_count: number;

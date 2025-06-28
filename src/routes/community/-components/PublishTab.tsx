@@ -1,4 +1,4 @@
-import { MyButton } from "@/components/design-system/button";
+import { MyButton } from '@/components/design-system/button';
 
 export const PublishTab = () => {
     return (

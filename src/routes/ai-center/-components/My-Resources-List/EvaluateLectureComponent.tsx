@@ -40,7 +40,7 @@ const EvaluateLectureComponent = ({ fileId }: { fileId: string }) => {
                 onClick={handleExtractQuestions}
             >
                 {generateAssessmentMutation.status === 'pending' ? (
-                    <DashboardLoader/>
+                    <DashboardLoader />
                 ) : (
                     'Evaluate Lecture'
                 )}

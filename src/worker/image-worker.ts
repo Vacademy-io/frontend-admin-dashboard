@@ -1,14 +1,14 @@
 // Worker function to convert URL to base64
 export async function getBase64FromUrlWorker(url: string): Promise<string> {
     // SVG handling
-    if (url.toLowerCase().endsWith(".svg")) {
+    if (url.toLowerCase().endsWith('.svg')) {
         try {
             const requestOptions: RequestInit = {
-                method: "GET",
-                mode: "cors",
-                cache: "no-cache",
-                credentials: "same-origin",
-                redirect: "follow",
+                method: 'GET',
+                mode: 'cors',
+                cache: 'no-cache',
+                credentials: 'same-origin',
+                redirect: 'follow',
             };
 
             // Timeout to prevent hanging
@@ -40,7 +40,7 @@ export async function getBase64FromUrlWorker(url: string): Promise<string> {
     // For non-SVG images, use fetch to get binary data
     try {
         const response = await fetch(`${url}?__v=${Date.now()}`, {
-            credentials: "same-origin",
+            credentials: 'same-origin',
         });
 
         if (!response.ok) {
@@ -67,7 +67,7 @@ export async function getBase64FromUrlWorker(url: string): Promise<string> {
 }
 
 // Set up message listener
-self.addEventListener("message", async (event) => {
+self.addEventListener('message', async (event) => {
     const { url, id } = event.data;
     try {
         const base64Url = await getBase64FromUrlWorker(url);

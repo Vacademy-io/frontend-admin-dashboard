@@ -10,7 +10,10 @@ export const ShowReplies = ({ parent, refetch }: { parent: Doubt; refetch: () =>
     const [showReplies, setShowReplies] = useState<boolean>(false);
     const userId = getUserId();
     const isAdmin = isUserAdmin();
-    const canReply = isAdmin || (userId && parent.all_doubt_assignee?.some(assignee => assignee.id === userId)) || (userId && parent.doubt_assignee_request_user_ids?.includes(userId));
+    const canReply =
+        isAdmin ||
+        (userId && parent.all_doubt_assignee?.some((assignee) => assignee.id === userId)) ||
+        (userId && parent.doubt_assignee_request_user_ids?.includes(userId));
 
     // Determine if the AddReply component should be shown when there are no replies
     const showAddReplyWithoutReplies = canReply && parent.replies.length === 0;
@@ -34,14 +37,14 @@ export const ShowReplies = ({ parent, refetch }: { parent: Doubt; refetch: () =>
                     {parent.replies?.map((reply, key) => (
                         <Reply reply={reply} key={key} refetch={refetch} />
                     ))}
-                     {/* Always show AddReply inside the expanded replies section if user can reply */}
+                    {/* Always show AddReply inside the expanded replies section if user can reply */}
                     {canReply && <AddReply parent={parent} refetch={refetch} />}
                 </div>
             )}
 
             {/* Show AddReply directly if there are no replies and user can reply */}
             {showAddReplyWithoutReplies && (
-                 <div className="mt-2">
+                <div className="mt-2">
                     <AddReply parent={parent} refetch={refetch} />
                 </div>
             )}

@@ -11,8 +11,7 @@ export const LOGIN_OTP = `${BASE_URL}/notification-service/v1/verify-email-otp`;
 // urls
 export const LOGIN_URL = `${BASE_URL}/auth-service/v1/login-root`;
 export const SIGNUP_URL = `${BASE_URL}/auth-service/v1/signup-root`;
-export const FORGOT_PASSWORD=`${BASE_URL}/auth-service/v1/send-password`;
-
+export const FORGOT_PASSWORD = `${BASE_URL}/auth-service/v1/send-password`;
 
 export const REFRESH_TOKEN_URL = `${BASE_URL}/auth-service/v1/refresh-token`;
 

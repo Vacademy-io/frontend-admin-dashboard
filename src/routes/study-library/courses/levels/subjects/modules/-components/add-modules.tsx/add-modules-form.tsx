@@ -1,21 +1,21 @@
 // add-modules-form.tsx
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
-import { MyInput } from "@/components/design-system/input";
-import { MyButton } from "@/components/design-system/button";
-import { Module } from "@/stores/study-library/use-modules-with-chapters-store";
-import { useRef, useState } from "react";
-import { useFileUpload } from "@/hooks/use-file-upload";
-import { FileUploadComponent } from "@/components/design-system/file-upload";
-import { SubjectDefaultImage } from "@/assets/svgs";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
-import { TokenKey } from "@/constants/auth/tokens";
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
+import { MyInput } from '@/components/design-system/input';
+import { MyButton } from '@/components/design-system/button';
+import { Module } from '@/stores/study-library/use-modules-with-chapters-store';
+import { useRef, useState } from 'react';
+import { useFileUpload } from '@/hooks/use-file-upload';
+import { FileUploadComponent } from '@/components/design-system/file-upload';
+import { SubjectDefaultImage } from '@/assets/svgs';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
 
 const formSchema = z.object({
-    moduleName: z.string().min(1, "Module name is required"),
+    moduleName: z.string().min(1, 'Module name is required'),
     description: z.string().optional(),
     imageFile: z.any().optional(),
 });
@@ -40,8 +40,8 @@ export const AddModulesForm = ({ initialValues, onSubmitSuccess }: AddModulesFor
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            moduleName: initialValues?.module_name || "",
-            description: initialValues?.description || "",
+            moduleName: initialValues?.module_name || '',
+            description: initialValues?.description || '',
             imageFile: null,
         },
     });
@@ -52,9 +52,9 @@ export const AddModulesForm = ({ initialValues, onSubmitSuccess }: AddModulesFor
             const fileId = await uploadFile({
                 file,
                 setIsUploading,
-                userId: "your-user-id",
+                userId: 'your-user-id',
                 source: INSTITUTE_ID,
-                sourceId: "MODULES",
+                sourceId: 'MODULES',
             });
 
             if (fileId) {
@@ -63,7 +63,7 @@ export const AddModulesForm = ({ initialValues, onSubmitSuccess }: AddModulesFor
                 setImageUrl(publicUrl);
             }
         } catch (error) {
-            console.error("Upload failed:", error);
+            console.error('Upload failed:', error);
         } finally {
             setIsUploading(false);
         }
@@ -71,11 +71,11 @@ export const AddModulesForm = ({ initialValues, onSubmitSuccess }: AddModulesFor
 
     const onSubmit = (data: FormValues) => {
         const newModule = {
-            id: initialValues?.id || "",
+            id: initialValues?.id || '',
             module_name: data.moduleName,
-            description: data.description || "",
-            status: "",
-            thumbnail_id: imageId || "",
+            description: data.description || '',
+            status: '',
+            thumbnail_id: imageId || '',
         };
         onSubmitSuccess(newModule);
     };
@@ -108,14 +108,14 @@ export const AddModulesForm = ({ initialValues, onSubmitSuccess }: AddModulesFor
 
                 <div className="relative flex w-full flex-col items-center justify-center gap-3">
                     {isUploading ? (
-                        <div className="inset-0 flex h-[150px] w-[150px] items-center justify-center bg-white">
+                        <div className="inset-0 flex size-[150px] items-center justify-center bg-white">
                             <DashboardLoader />
                         </div>
                     ) : imageUrl ? (
                         <img
                             src={imageUrl}
                             alt="Module"
-                            className="h-[150px] w-[150px] rounded-lg object-cover"
+                            className="size-[150px] rounded-lg object-cover"
                         />
                     ) : (
                         <SubjectDefaultImage />
@@ -129,7 +129,7 @@ export const AddModulesForm = ({ initialValues, onSubmitSuccess }: AddModulesFor
                     />
                     <div
                         className={`flex w-full flex-col items-center gap-3 ${
-                            isUploading ? "hidden" : "visible"
+                            isUploading ? 'hidden' : 'visible'
                         }`}
                     >
                         {/* <div className="w-full flex gap-6 items-end">
@@ -194,7 +194,7 @@ export const AddModulesForm = ({ initialValues, onSubmitSuccess }: AddModulesFor
                         layoutVariant="default"
                         className="w-full"
                     >
-                        {initialValues ? "Save Changes" : "Add"}
+                        {initialValues ? 'Save Changes' : 'Add'}
                     </MyButton>
                 </div>
             </form>

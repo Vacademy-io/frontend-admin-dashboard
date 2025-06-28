@@ -3,14 +3,14 @@ import {
     MARK_QUESTION_PAPER_STATUS,
     GET_TAGS_BY_QUESTION_PAPER_ID,
     ADD_PUBLIC_QUESTION_PAPER_TO_PRIVATE_INSTITUTE,
-} from "@/constants/urls";
-import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
-import { QuestionPaperData } from "@/types/community/filters/types";
+} from '@/constants/urls';
+import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
+import { QuestionPaperData } from '@/types/community/filters/types';
 
 export const getQuestionPaperById = async (questionPaperId: string) => {
     try {
         const response = await authenticatedAxiosInstance({
-            method: "GET",
+            method: 'GET',
             url: `${GET_QUESTION_PAPER_BY_ID}`,
             params: {
                 questionPaperId,
@@ -24,10 +24,10 @@ export const getQuestionPaperById = async (questionPaperId: string) => {
 
 export const processHtmlString = (htmlString: string) => {
     // Create a temporary div to parse the HTML
-    const tempDiv = document.createElement("div");
+    const tempDiv = document.createElement('div');
     tempDiv.innerHTML = htmlString;
     // Array to store processed content
-    const processedContent: Array<{ type: "text" | "image"; content: string }> = [];
+    const processedContent: Array<{ type: 'text' | 'image'; content: string }> = [];
     // Iterate through child nodes
     tempDiv.childNodes.forEach((node) => {
         if (node.nodeType === Node.TEXT_NODE) {
@@ -35,18 +35,18 @@ export const processHtmlString = (htmlString: string) => {
             const trimmedText = node.textContent?.trim();
             if (trimmedText) {
                 processedContent.push({
-                    type: "text",
+                    type: 'text',
                     content: trimmedText,
                 });
             }
         } else if (node.nodeType === Node.ELEMENT_NODE) {
             const element = node as HTMLElement;
             // Process image nodes
-            if (element.tagName.toLowerCase() === "img") {
-                const src = element.getAttribute("src");
+            if (element.tagName.toLowerCase() === 'img') {
+                const src = element.getAttribute('src');
                 if (src) {
                     processedContent.push({
-                        type: "image",
+                        type: 'image',
                         content: src,
                     });
                 }
@@ -55,7 +55,7 @@ export const processHtmlString = (htmlString: string) => {
                 const text = element.textContent?.trim();
                 if (text) {
                     processedContent.push({
-                        type: "text",
+                        type: 'text',
                         content: text,
                     });
                 }
@@ -68,11 +68,11 @@ export const processHtmlString = (htmlString: string) => {
 export const markQuestionPaperStatus = async (
     status: string,
     questionPaperId: string,
-    instituteId: string,
+    instituteId: string
 ) => {
     try {
         const response = await authenticatedAxiosInstance({
-            method: "POST",
+            method: 'POST',
             url: `${MARK_QUESTION_PAPER_STATUS}`,
             data: { status, question_paper_id: questionPaperId, institute_id: instituteId },
         });
@@ -83,11 +83,11 @@ export const markQuestionPaperStatus = async (
 };
 
 export const getTageByQuestionPaperId = async (
-    questionPaperId: string,
+    questionPaperId: string
 ): Promise<QuestionPaperData> => {
     try {
         const response = await authenticatedAxiosInstance({
-            method: "GET",
+            method: 'GET',
             url: `${GET_TAGS_BY_QUESTION_PAPER_ID}`,
             params: {
                 questionPaperId,
@@ -101,11 +101,11 @@ export const getTageByQuestionPaperId = async (
 
 export const addPublicQuestionPaperToPrivate = async (
     instituteId: string,
-    questionPaperId: string,
+    questionPaperId: string
 ) => {
     try {
         const response = await authenticatedAxiosInstance({
-            method: "POST",
+            method: 'POST',
             url: `${ADD_PUBLIC_QUESTION_PAPER_TO_PRIVATE_INSTITUTE}`,
             params: {
                 instituteId,

@@ -1,23 +1,25 @@
-import { MyButton } from "@/components/design-system/button";
-import { MyDialog } from "@/components/design-system/dialog";
-import { TokenKey } from "@/constants/auth/tokens";
-import { useSlides } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides";
-import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
-import { useRouter } from "@tanstack/react-router";
-import { Dispatch, SetStateAction } from "react";
-import { toast } from "sonner";
+import { MyButton } from '@/components/design-system/button';
+import { MyDialog } from '@/components/design-system/dialog';
+import { TokenKey } from '@/constants/auth/tokens';
+import { useSlides } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides';
+import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { useRouter } from '@tanstack/react-router';
+import { Dispatch, SetStateAction } from 'react';
+import { toast } from 'sonner';
+import { useContentStore } from '../../-stores/chapter-sidebar-store';
 
 interface DeleteProps {
-    openDialog: "copy" | "move" | "delete" | null;
-    setOpenDialog: Dispatch<SetStateAction<"copy" | "move" | "delete" | null>>;
+    openDialog: 'copy' | 'move' | 'delete' | null;
+    setOpenDialog: Dispatch<SetStateAction<'copy' | 'move' | 'delete' | null>>;
 }
 
 export const DeleteDialog = ({ openDialog, setOpenDialog }: DeleteProps) => {
     const router = useRouter();
     const searchParams = router.state.location.search;
-    const chapterId: string = searchParams.chapterId || "";
-    const slideId: string = searchParams.slideId || "";
-    const { updateSlideStatus } = useSlides(chapterId);
+    const chapterId: string = searchParams.chapterId || '';
+    const { activeItem } = useContentStore();
+    const slideId: string = activeItem?.id || '';
+    const { updateSlideStatus, refetch } = useSlides(chapterId);
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const data = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
@@ -27,14 +29,17 @@ export const DeleteDialog = ({ openDialog, setOpenDialog }: DeleteProps) => {
             await updateSlideStatus({
                 chapterId: chapterId,
                 slideId: slideId,
-                status: "DELETED",
-                instituteId: INSTITUTE_ID || "",
+                status: 'DELETED',
+                instituteId: INSTITUTE_ID || '',
             });
 
-            toast.success("Slide deleted successfully!");
+            // Refresh the slides state with new data
+            await refetch();
+
+            toast.success('Slide deleted successfully!');
             setOpenDialog(null);
         } catch (error) {
-            toast.error("Failed to delete the slide");
+            toast.error('Failed to delete the slide');
         }
     };
 
@@ -42,7 +47,7 @@ export const DeleteDialog = ({ openDialog, setOpenDialog }: DeleteProps) => {
         <MyDialog
             heading="Delete"
             dialogWidth="w-[400px]"
-            open={openDialog == "delete"}
+            open={openDialog == 'delete'}
             onOpenChange={() => setOpenDialog(null)}
         >
             <div className="flex w-full flex-col gap-6">

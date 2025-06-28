@@ -47,7 +47,9 @@ const DoubtResolutionSidebar = () => {
     );
 
     useEffect(() => {
-        setAllDoubts((data as any)?.pages?.flatMap((page: { content: DoubtType[] }) => page.content) || []);
+        setAllDoubts(
+            (data as any)?.pages?.flatMap((page: { content: DoubtType[] }) => page.content) || []
+        );
     }, [data]);
 
     useEffect(() => {
@@ -132,18 +134,15 @@ const DoubtResolutionSidebar = () => {
 
     return (
         <Sidebar
-  ref={sidebarRef}
-  side="right"
-  className={`fixed top-0 right-0 z-[9999] h-full ${
-    open ? 'w-[35vw] min-w-[450px]' : 'w-0'
-  } flex flex-col overflow-y-hidden border-l border-neutral-200 bg-white shadow-lg transition-all duration-300 ease-in-out`}
->
-
+            ref={sidebarRef}
+            side="right"
+            className={`fixed right-0 top-0 z-[9999] h-full ${
+                open ? 'w-[35vw] min-w-[450px]' : 'w-0'
+            } flex flex-col overflow-y-hidden border-l border-neutral-200 bg-white shadow-lg transition-all duration-300 ease-in-out`}
+        >
             <SidebarHeader className="flex w-full items-center justify-between border-b border-neutral-200 p-4">
                 <div className="flex w-full items-center justify-between">
-                    <h1 className="text-lg font-semibold text-neutral-800">
-                        Doubt Resolution
-                    </h1>
+                    <h1 className="text-lg font-semibold text-neutral-800">Doubt Resolution</h1>
                     <X
                         size={20}
                         className="cursor-pointer text-neutral-500 hover:text-neutral-700"
@@ -170,7 +169,10 @@ const DoubtResolutionSidebar = () => {
                     >
                         <DoubtList
                             allDoubts={allDoubts}
-                            isLoading={isLoading && (!(data as any)?.pages || (data as any).pages.length === 0)}
+                            isLoading={
+                                isLoading &&
+                                (!(data as any)?.pages || (data as any).pages.length === 0)
+                            }
                             lastDoubtElementRef={lastDoubtElementRef}
                             refetch={refetch}
                             isFetchingNextPage={isFetchingNextPage}
@@ -183,7 +185,10 @@ const DoubtResolutionSidebar = () => {
                     >
                         <DoubtList
                             allDoubts={allDoubts}
-                            isLoading={isLoading && (!(data as any)?.pages || (data as any).pages.length === 0)}
+                            isLoading={
+                                isLoading &&
+                                (!(data as any)?.pages || (data as any).pages.length === 0)
+                            }
                             lastDoubtElementRef={lastDoubtElementRef}
                             refetch={refetch}
                             isFetchingNextPage={isFetchingNextPage}
@@ -196,7 +201,10 @@ const DoubtResolutionSidebar = () => {
                     >
                         <DoubtList
                             allDoubts={allDoubts}
-                            isLoading={isLoading && (!(data as any)?.pages || (data as any).pages.length === 0)}
+                            isLoading={
+                                isLoading &&
+                                (!(data as any)?.pages || (data as any).pages.length === 0)
+                            }
                             lastDoubtElementRef={lastDoubtElementRef}
                             refetch={refetch}
                             isFetchingNextPage={isFetchingNextPage}

@@ -5,13 +5,7 @@ import { DoubtType } from '../../-types/add-doubt-type';
 import { useAddReply } from '../../-services/AddReply';
 import { handleAddReply } from '../../-helper/handleAddReply';
 
-export const MarkAsResolved = ({
-    doubt,
-    refetch,
-}: {
-    doubt: Doubt;
-    refetch: () => void;
-}) => {
+export const MarkAsResolved = ({ doubt, refetch }: { doubt: Doubt; refetch: () => void }) => {
     const [resolved, setResolved] = useState(doubt.status === 'RESOLVED');
     const addReply = useAddReply();
 
@@ -49,10 +43,10 @@ export const MarkAsResolved = ({
                 id={`mark-resolved-${doubt.id}`}
                 checked={resolved}
                 onCheckedChange={handleDoubtResolve}
-                className="data-[state=checked]:bg-green-600 data-[state=unchecked]:bg-neutral-300 scale-90"
+                className="scale-90 data-[state=checked]:bg-green-600 data-[state=unchecked]:bg-neutral-300"
             />
-            <label 
-                htmlFor={`mark-resolved-${doubt.id}`} 
+            <label
+                htmlFor={`mark-resolved-${doubt.id}`}
                 className="cursor-pointer select-none text-xs font-medium text-neutral-700 hover:text-neutral-900"
             >
                 {resolved ? 'Resolved' : 'Mark as Resolved'}

@@ -41,9 +41,7 @@ export const DoubtList = ({
             {showEmptyState && (
                 <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-neutral-300 bg-neutral-50 p-8 text-center">
                     <Info size={48} className="text-neutral-400" />
-                    <p className="text-base font-medium text-neutral-600">
-                        No Doubts Here
-                    </p>
+                    <p className="text-base font-medium text-neutral-600">No Doubts Here</p>
                     <p className="text-sm text-neutral-500">
                         {status === 'ALL'
                             ? 'There are no doubts added for this content yet.'

@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
     Table,
     TableBody,
@@ -9,9 +9,9 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Question } from "@/components/common/export-offline/types/question";
+} from '@/components/ui/table';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Question } from '@/components/common/export-offline/types/question';
 
 interface AnswerSpacingDialogProps {
     open: boolean;
@@ -42,9 +42,9 @@ export function AnswerSpacingQuestionPaperDialogAI({
 
     const eligibleQuestions = questionsData.filter(
         (q) =>
-            q.question_type === "LONG_ANSWER" ||
-            q.question_type === "ONE_WORD" ||
-            q.question_type === "NUMERIC",
+            q.question_type === 'LONG_ANSWER' ||
+            q.question_type === 'ONE_WORD' ||
+            q.question_type === 'NUMERIC'
     );
 
     const handleSpacingChange = (questionId: string, value: string) => {
@@ -87,7 +87,7 @@ export function AnswerSpacingQuestionPaperDialogAI({
                     <div className="mb-4 rounded-md border border-blue-100 bg-blue-50 p-3">
                         <p className="text-sm text-blue-700">
                             Specify the space (in mm) to be provided after each question for
-                            answers. Valid range is between <strong>{MIN_SPACING}mm</strong> and{" "}
+                            answers. Valid range is between <strong>{MIN_SPACING}mm</strong> and{' '}
                             <strong>{MAX_SPACING}mm</strong>.
                         </p>
                     </div>
@@ -124,7 +124,7 @@ export function AnswerSpacingQuestionPaperDialogAI({
                                                                 dangerouslySetInnerHTML={{
                                                                     __html:
                                                                         question.question.content ||
-                                                                        "",
+                                                                        '',
                                                                 }}
                                                             />
                                                         </div>
@@ -137,7 +137,7 @@ export function AnswerSpacingQuestionPaperDialogAI({
                                                             className="text-sm"
                                                             dangerouslySetInnerHTML={{
                                                                 __html:
-                                                                    question.question.content || "",
+                                                                    question.question.content || '',
                                                             }}
                                                         />
                                                     </TooltipContent>
@@ -145,9 +145,9 @@ export function AnswerSpacingQuestionPaperDialogAI({
                                             </TooltipProvider>
                                         </TableCell>
                                         <TableCell>
-                                            {question.question_type === "LONG_ANSWER"
-                                                ? "Long Answer"
-                                                : "One Word"}
+                                            {question.question_type === 'LONG_ANSWER'
+                                                ? 'Long Answer'
+                                                : 'One Word'}
                                         </TableCell>
                                         <TableCell>
                                             <div className="flex items-center">
@@ -159,13 +159,13 @@ export function AnswerSpacingQuestionPaperDialogAI({
                                                     onChange={(e) =>
                                                         handleSpacingChange(
                                                             question.question_id,
-                                                            e.target.value,
+                                                            e.target.value
                                                         )
                                                     }
                                                     onBlur={(e) =>
                                                         handleBlur(
                                                             question.question_id,
-                                                            Number(e.target.value),
+                                                            Number(e.target.value)
                                                         )
                                                     }
                                                 />

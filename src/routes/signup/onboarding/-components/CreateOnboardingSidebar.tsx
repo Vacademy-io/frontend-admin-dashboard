@@ -1,5 +1,5 @@
-import { CheckCircle } from "phosphor-react";
-import React from "react";
+import { CheckCircle } from 'phosphor-react';
+import React from 'react';
 
 export interface OrganizationOnboardingSidebarProps {
     steps: string[];
@@ -22,17 +22,17 @@ export const CreateOnboardingSidebar: React.FC<OrganizationOnboardingSidebarProp
                     onClick={() => onStepClick(index)}
                     className={`mx-6 flex items-center justify-between px-6 py-3 ${
                         index <= currentStep || completedSteps[index - 1]
-                            ? "cursor-pointer"
-                            : "cursor-not-allowed"
+                            ? 'cursor-pointer'
+                            : 'cursor-not-allowed'
                     } ${
                         currentStep === index
-                            ? "rounded-lg border-2 bg-white !text-primary-500"
+                            ? 'rounded-lg border-2 bg-white !text-primary-500'
                             : completedSteps[index]
-                              ? "bg-transparent text-black"
+                              ? 'bg-transparent text-black'
                               : `bg-transparent ${
                                     index > 0 && completedSteps[index - 1]
-                                        ? "text-black"
-                                        : "text-gray-300"
+                                        ? 'text-black'
+                                        : 'text-gray-300'
                                 } `
                     } focus:outline-none`}
                 >

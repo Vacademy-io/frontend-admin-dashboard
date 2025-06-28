@@ -1,6 +1,6 @@
-import { z } from "zod";
-import { create } from "zustand";
-import { uploadQuestionPaperFormSchema } from "../-utils/upload-question-paper-form-schema";
+import { z } from 'zod';
+import { create } from 'zustand';
+import { uploadQuestionPaperFormSchema } from '../-utils/upload-question-paper-form-schema';
 
 type QuestionPaperForm = z.infer<typeof uploadQuestionPaperFormSchema>;
 

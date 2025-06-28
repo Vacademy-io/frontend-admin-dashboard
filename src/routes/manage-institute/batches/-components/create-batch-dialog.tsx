@@ -248,9 +248,14 @@ export const CreateBatchDialog = () => {
                 currentStep === 2 ? submit() : nextStep();
             }}
             buttonType={currentStep === 2 ? 'secondary' : 'text'}
-            className={currentStep === 2 ? "text-neutral-700 font-semibold" : "text-primary-600 hover:text-primary-700 font-semibold"}
+            className={
+                currentStep === 2
+                    ? 'font-semibold text-neutral-700'
+                    : 'text-primary-600 hover:text-primary-700 font-semibold'
+            }
         >
-            {nextButtonIcon}{nextButtonText}
+            {nextButtonIcon}
+            {nextButtonText}
         </MyButton>
     );
 
@@ -280,7 +285,7 @@ export const CreateBatchDialog = () => {
             dialogWidth="w-[600px]"
             open={openManageBatchDialog}
             onOpenChange={handleOpenManageBatchDialog}
-            className="pt-6 pb-8 px-8"
+            className="px-8 pb-8 pt-6"
         >
             <FormProvider {...methods}>
                 <form onSubmit={methods.handleSubmit(submit)} className="space-y-6">

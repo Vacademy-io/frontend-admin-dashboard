@@ -1,7 +1,7 @@
-import { LevelWithDetailsType } from "@/stores/study-library/use-study-library-store";
-import { useNavigate, useRouter } from "@tanstack/react-router";
-import { LevelMenuOptions } from "./level-menu-options";
-import { AddLevelData } from "./add-level-form";
+import { LevelWithDetailsType } from '@/stores/study-library/use-study-library-store';
+import { useNavigate, useRouter } from '@tanstack/react-router';
+import { LevelMenuOptions } from './level-menu-options';
+import { AddLevelData } from './add-level-form';
 
 export const LevelCard = ({
     level,
@@ -21,8 +21,8 @@ export const LevelCard = ({
     const handleLevelCardClick = (e: React.MouseEvent) => {
         if (
             e.target instanceof Element &&
-            (e.target.closest(".menu-options-container") ||
-                e.target.closest(".drag-handle-container") ||
+            (e.target.closest('.menu-options-container') ||
+                e.target.closest('.drag-handle-container') ||
                 e.target.closest('[role="menu"]') ||
                 e.target.closest('[role="dialog"]'))
         ) {

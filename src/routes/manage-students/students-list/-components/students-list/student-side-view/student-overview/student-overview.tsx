@@ -1,18 +1,18 @@
 import { SidebarMenuItem } from '@/components/ui/sidebar';
 import { Separator } from '@/components/ui/separator';
 import { ProgressBar } from '@/components/design-system/progress-bar';
-import { 
-    Key, 
-    User, 
-    GraduationCap, 
-    Phone, 
-    Envelope, 
-    MapPin, 
+import {
+    Key,
+    User,
+    GraduationCap,
+    Phone,
+    Envelope,
+    MapPin,
     Users,
     Calendar,
     Clock,
     TrendUp,
-    Shield
+    Shield,
 } from '@phosphor-icons/react';
 import { useStudentSidebar } from '@/routes/manage-students/students-list/-context/selected-student-sidebar-context';
 import { useEffect, useState } from 'react';
@@ -127,20 +127,22 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
     }
 
     return (
-        <div className="flex flex-col gap-3 text-neutral-600 animate-fadeIn">
+        <div className="animate-fadeIn flex flex-col gap-3 text-neutral-600">
             {/* Compact Edit Button */}
             <div className="flex justify-center">
                 <EditStudentDetails />
             </div>
 
             {/* Compact Session Expiry Card */}
-            <div className="bg-gradient-to-br from-white to-neutral-50/30 rounded-lg p-3 border border-neutral-200/50 hover:border-primary-200/50 transition-all duration-200 hover:shadow-md">
-                <div className="flex items-center gap-2.5 mb-2">
-                    <div className="p-1.5 rounded-md bg-gradient-to-br from-primary-50 to-primary-100">
-                        <Clock className="size-4 text-primary-600" />
+            <div className="rounded-lg border border-neutral-200/50 bg-gradient-to-br from-white to-neutral-50/30 p-3 transition-all duration-200 hover:border-primary-200/50 hover:shadow-md">
+                <div className="mb-2 flex items-center gap-2.5">
+                    <div className="rounded-md bg-gradient-to-br from-primary-50 to-primary-100 p-1.5">
+                        <Clock className="text-primary-600 size-4" />
                     </div>
                     <div className="flex-1">
-                        <h4 className="text-xs font-medium text-neutral-700 mb-0.5">Session Expiry</h4>
+                        <h4 className="mb-0.5 text-xs font-medium text-neutral-700">
+                            Session Expiry
+                        </h4>
                         <div className="flex items-center gap-1.5">
                             <span
                                 className={`text-base font-bold ${
@@ -156,23 +158,23 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
                             <span className="text-xs text-neutral-500">days</span>
                         </div>
                     </div>
-                    <TrendUp 
+                    <TrendUp
                         className={`size-3.5 ${
                             daysUntilExpiry >= 180
                                 ? 'text-success-500'
                                 : daysUntilExpiry >= 30
                                   ? 'text-warning-500'
                                   : 'text-danger-500'
-                        }`} 
+                        }`}
                     />
                 </div>
                 <div className="relative">
                     <ProgressBar progress={daysUntilExpiry} />
-                    <div className="mt-1 text-[10px] text-neutral-500 text-center leading-tight">
-                        {daysUntilExpiry >= 180 
-                            ? 'Active session' 
-                            : daysUntilExpiry >= 30 
-                              ? 'Renewal due soon' 
+                    <div className="mt-1 text-center text-[10px] leading-tight text-neutral-500">
+                        {daysUntilExpiry >= 180
+                            ? 'Active session'
+                            : daysUntilExpiry >= 30
+                              ? 'Renewal due soon'
                               : 'Urgent renewal required'}
                     </div>
                 </div>
@@ -184,29 +186,57 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
                     overviewData?.map((studentDetail, key) => {
                         // Define icons and colors for each section
                         const sectionConfig = {
-                            0: { icon: Key, color: 'primary', bg: 'from-primary-50 to-primary-100' },
-                            1: { icon: GraduationCap, color: 'blue', bg: 'from-blue-50 to-blue-100' },
-                            2: { icon: Phone, color: 'emerald', bg: 'from-emerald-50 to-emerald-100' },
-                            3: { icon: MapPin, color: 'orange', bg: 'from-orange-50 to-orange-100' },
+                            0: {
+                                icon: Key,
+                                color: 'primary',
+                                bg: 'from-primary-50 to-primary-100',
+                            },
+                            1: {
+                                icon: GraduationCap,
+                                color: 'blue',
+                                bg: 'from-blue-50 to-blue-100',
+                            },
+                            2: {
+                                icon: Phone,
+                                color: 'emerald',
+                                bg: 'from-emerald-50 to-emerald-100',
+                            },
+                            3: {
+                                icon: MapPin,
+                                color: 'orange',
+                                bg: 'from-orange-50 to-orange-100',
+                            },
                             4: { icon: Users, color: 'purple', bg: 'from-purple-50 to-purple-100' },
-                        }[key] || { icon: User, color: 'neutral', bg: 'from-neutral-50 to-neutral-100' };
+                        }[key] || {
+                            icon: User,
+                            color: 'neutral',
+                            bg: 'from-neutral-50 to-neutral-100',
+                        };
 
                         const IconComponent = sectionConfig.icon;
 
                         return (
                             <div key={key} className="group">
-                                <div className={`bg-gradient-to-br from-white to-neutral-50/30 rounded-lg p-2.5 border border-neutral-200/50 hover:border-${sectionConfig.color}-200/50 transition-all duration-200 hover:shadow-md hover:scale-[1.01]`}>
+                                <div
+                                    className={`hover:border- rounded-lg border border-neutral-200/50 bg-gradient-to-br from-white to-neutral-50/30 p-2.5${sectionConfig.color}-200/50 transition-all duration-200 hover:scale-[1.01] hover:shadow-md`}
+                                >
                                     {/* Compact section header */}
-                                    <div className="flex items-center justify-between mb-2">
+                                    <div className="mb-2 flex items-center justify-between">
                                         <div className="flex items-center gap-2">
-                                            <div className={`p-1 rounded-md bg-gradient-to-br ${sectionConfig.bg} group-hover:scale-105 transition-transform duration-200`}>
-                                                <IconComponent className={`size-3.5 text-${sectionConfig.color}-600`} />
+                                            <div
+                                                className={`rounded-md bg-gradient-to-br p-1 ${sectionConfig.bg} transition-transform duration-200 group-hover:scale-105`}
+                                            >
+                                                <IconComponent
+                                                    className={`text- size-3.5${sectionConfig.color}-600`}
+                                                />
                                             </div>
-                                            <h3 className={`text-xs font-semibold text-neutral-700 group-hover:text-${sectionConfig.color}-700 transition-colors duration-200`}>
+                                            <h3
+                                                className={`group-hover:text- text-xs font-semibold text-neutral-700${sectionConfig.color}-700 transition-colors duration-200`}
+                                            >
                                                 {studentDetail.heading}
                                             </h3>
                                         </div>
-                                        
+
                                         {/* Compact share button for credentials */}
                                         {key === 0 && (
                                             <MyButton
@@ -214,11 +244,13 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
                                                 scale="small"
                                                 onClick={() =>
                                                     selectedStudent &&
-                                                    openIndividualShareCredentialsDialog(selectedStudent)
+                                                    openIndividualShareCredentialsDialog(
+                                                        selectedStudent
+                                                    )
                                                 }
-                                                className="text-[10px] px-2 py-1 h-auto min-h-0"
+                                                className="h-auto min-h-0 px-2 py-1 text-[10px]"
                                             >
-                                                <Shield className="size-2.5 mr-1" />
+                                                <Shield className="mr-1 size-2.5" />
                                                 Share
                                             </MyButton>
                                         )}
@@ -226,17 +258,21 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
 
                                     {/* Compact content grid */}
                                     <div className="space-y-1">
-                                        {studentDetail.content && studentDetail.content.length > 0 ? (
+                                        {studentDetail.content &&
+                                        studentDetail.content.length > 0 ? (
                                             studentDetail.content.map((obj, key2) => (
-                                                <div key={key2} className="group/item flex items-start gap-2 py-1 px-1.5 rounded-md hover:bg-white/60 transition-all duration-150">
-                                                    <div className="w-1 h-1 bg-neutral-300 rounded-full mt-1.5 group-hover/item:bg-primary-400 transition-colors duration-150 flex-shrink-0"></div>
-                                                    <div className="flex-1 min-w-0">
+                                                <div
+                                                    key={key2}
+                                                    className="group/item flex items-start gap-2 rounded-md px-1.5 py-1 transition-all duration-150 hover:bg-white/60"
+                                                >
+                                                    <div className="mt-1.5 size-1 shrink-0 rounded-full bg-neutral-300 transition-colors duration-150 group-hover/item:bg-primary-400"></div>
+                                                    <div className="min-w-0 flex-1">
                                                         {obj == undefined ? (
-                                                            <p className="text-xs text-primary-500 italic">
+                                                            <p className="text-xs italic text-primary-500">
                                                                 No data available
                                                             </p>
                                                         ) : (
-                                                            <p className="text-xs text-neutral-700 group-hover/item:text-neutral-900 transition-colors duration-150 leading-relaxed">
+                                                            <p className="text-xs leading-relaxed text-neutral-700 transition-colors duration-150 group-hover/item:text-neutral-900">
                                                                 {obj}
                                                             </p>
                                                         )}
@@ -245,10 +281,10 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
                                             ))
                                         ) : (
                                             <div className="py-3 text-center">
-                                                <div className="text-neutral-400 mb-1">
-                                                    <IconComponent className="size-5 mx-auto opacity-50" />
+                                                <div className="mb-1 text-neutral-400">
+                                                    <IconComponent className="mx-auto size-5 opacity-50" />
                                                 </div>
-                                                <p className="text-xs text-neutral-500 italic">
+                                                <p className="text-xs italic text-neutral-500">
                                                     No details available
                                                 </p>
                                             </div>
@@ -259,7 +295,7 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
                                 {/* Minimal separator */}
                                 {key < (overviewData?.length || 0) - 1 && (
                                     <div className="flex items-center justify-center py-1">
-                                        <div className="w-6 h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent"></div>
+                                        <div className="h-px w-6 bg-gradient-to-r from-transparent via-neutral-200 to-transparent"></div>
                                     </div>
                                 )}
                             </div>
@@ -267,8 +303,8 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
                     })
                 ) : (
                     <div className="py-6 text-center">
-                        <div className="text-neutral-400 mb-2">
-                            <User className="size-8 mx-auto opacity-50" />
+                        <div className="mb-2 text-neutral-400">
+                            <User className="mx-auto size-8 opacity-50" />
                         </div>
                         <p className="text-xs text-neutral-500">No overview data available</p>
                     </div>

@@ -1,15 +1,15 @@
-import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
-import { getAssessmentDetails } from "../../create-assessment/$assessmentId/$examtype/-services/assessment-services";
-import PreviewAndExport from "@/components/common/export-offline";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { LayoutContainer } from "@/components/common/layout-container/layout-container";
-import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
-import { useEffect } from "react";
-import { CaretLeft } from "phosphor-react";
+import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { createFileRoute } from '@tanstack/react-router';
+import { getAssessmentDetails } from '../../create-assessment/$assessmentId/$examtype/-services/assessment-services';
+import PreviewAndExport from '@/components/common/export-offline';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { LayoutContainer } from '@/components/common/layout-container/layout-container';
+import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
+import { useEffect } from 'react';
+import { CaretLeft } from 'phosphor-react';
 
-export const Route = createFileRoute("/assessment/export/$assessmentId/")({
+export const Route = createFileRoute('/assessment/export/$assessmentId/')({
     component: () => (
         <LayoutContainer>
             <RouteComponent />
@@ -25,8 +25,8 @@ function RouteComponent() {
         getAssessmentDetails({
             assessmentId: assessmentId,
             instituteId: instituteDetails?.id,
-            type: "EXAM",
-        }),
+            type: 'EXAM',
+        })
     );
 
     useEffect(() => {
@@ -34,7 +34,7 @@ function RouteComponent() {
             <div className="flex items-center gap-4">
                 <CaretLeft onClick={() => window.history.back()} className="cursor-pointer" />
                 <h1 className="text-lg">Preview and Export</h1>
-            </div>,
+            </div>
         );
     }, []);
 

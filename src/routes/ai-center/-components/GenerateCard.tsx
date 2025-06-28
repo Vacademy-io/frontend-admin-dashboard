@@ -129,7 +129,7 @@ export const GenerateCard = ({
                                     layoutVariant="default"
                                     className="w-full text-sm"
                                 >
-                                    <DashboardLoader/>
+                                    <DashboardLoader />
                                 </MyButton>
                             ) : (
                                 <MyButton

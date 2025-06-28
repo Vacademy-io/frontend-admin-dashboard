@@ -1,7 +1,7 @@
 import {
     ChapterWithSlides,
     useModulesWithChaptersStore,
-} from "@/stores/study-library/use-modules-with-chapters-store";
+} from '@/stores/study-library/use-modules-with-chapters-store';
 
 export const getChaptersByModuleId = (moduleId: string): ChapterWithSlides[] | null => {
     const modulesWithChaptersData = useModulesWithChaptersStore.getState().modulesWithChaptersData;
@@ -9,7 +9,7 @@ export const getChaptersByModuleId = (moduleId: string): ChapterWithSlides[] | n
     if (!modulesWithChaptersData) return null;
 
     const targetModule = modulesWithChaptersData.find(
-        (moduleData) => moduleData.module.id === moduleId,
+        (moduleData) => moduleData.module.id === moduleId
     );
 
     return targetModule?.chapters || null;

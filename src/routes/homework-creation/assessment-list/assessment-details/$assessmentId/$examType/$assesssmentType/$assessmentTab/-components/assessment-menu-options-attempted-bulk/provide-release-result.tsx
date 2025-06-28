@@ -1,13 +1,13 @@
-import { ReactNode } from "react";
-import { MyDialog } from "@/components/design-system/dialog";
-import { MyButton } from "@/components/design-system/button";
-import { useSubmissionsBulkActionsDialogStoreAttempted } from "../bulk-actions-zustand-store/useSubmissionsBulkActionsDialogStoreAttempted";
-import { useMutation } from "@tanstack/react-query";
-import { SelectedReleaseResultFilterInterface } from "../AssessmentSubmissionsTab";
-import { getReleaseStudentResult } from "../../-services/assessment-details-services";
-import { toast } from "sonner";
-import { Route } from "../..";
-import { getInstituteId } from "@/constants/helper";
+import { ReactNode } from 'react';
+import { MyDialog } from '@/components/design-system/dialog';
+import { MyButton } from '@/components/design-system/button';
+import { useSubmissionsBulkActionsDialogStoreAttempted } from '../bulk-actions-zustand-store/useSubmissionsBulkActionsDialogStoreAttempted';
+import { useMutation } from '@tanstack/react-query';
+import { SelectedReleaseResultFilterInterface } from '../AssessmentSubmissionsTab';
+import { getReleaseStudentResult } from '../../-services/assessment-details-services';
+import { toast } from 'sonner';
+import { Route } from '../..';
+import { getInstituteId } from '@/constants/helper';
 
 interface ProvideDialogDialogProps {
     trigger: ReactNode;
@@ -36,11 +36,11 @@ const ProvideReleaseResultDialogContent = () => {
         }) => getReleaseStudentResult(assessmentId, instituteId, methodType, selectedFilter),
         onSuccess: () => {
             toast.success(
-                "Your result for this assessment has been released for the selected students. Please check your email!",
+                'Your result for this assessment has been released for the selected students. Please check your email!',
                 {
-                    className: "success-toast",
+                    className: 'success-toast',
                     duration: 4000,
-                },
+                }
             );
             closeAllDialogs();
         },
@@ -54,15 +54,15 @@ const ProvideReleaseResultDialogContent = () => {
             getReleaseResultMutation.mutate({
                 assessmentId,
                 instituteId,
-                methodType: "PARTICIPANTS",
+                methodType: 'PARTICIPANTS',
                 selectedFilter: {
                     attempt_ids: bulkActionInfo.selectedStudents.map(
-                        (student) => student.attempt_id,
+                        (student) => student.attempt_id
                     ),
                 },
             });
         } else if (selectedStudent) {
-            console.log("individual student");
+            console.log('individual student');
         }
         closeAllDialogs();
     };

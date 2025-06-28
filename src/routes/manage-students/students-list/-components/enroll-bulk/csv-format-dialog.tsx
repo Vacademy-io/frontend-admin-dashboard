@@ -47,8 +47,6 @@ export const CSVFormatDialog = ({
     };
     const [csvFormatFormValues, setCsvFormatFormValues] = useState(defaultValues);
 
-
-
     const form = useForm<CSVFormatFormType>({
         resolver: zodResolver(csvFormatSchema),
         defaultValues: defaultValues,
@@ -242,7 +240,10 @@ export const CSVFormatDialog = ({
                                     { name: 'guardianName', label: "Guardian's Name" },
                                     { name: 'city', label: 'City' },
                                     { name: 'fatherEmail', label: "Father/Male Guardian's Email" },
-                                    { name: 'motherEmail', label: "Mother/Female Guardian's Email" },
+                                    {
+                                        name: 'motherEmail',
+                                        label: "Mother/Female Guardian's Email",
+                                    },
                                     { name: 'pincode', label: 'Pincode' },
                                     {
                                         name: 'fatherMobile',

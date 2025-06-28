@@ -1,10 +1,10 @@
-import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import "react-quill/dist/quill.snow.css";
-import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
-import { formatStructure } from "@/routes/assessment/question-papers/-utils/helper";
-import { useEffect } from "react";
-import { CollapsibleQuillEditor } from "../CollapsibleQuillEditor";
-import { QuestionPaperTemplateFormProps } from "../MainViewComponentFactory";
+import { FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
+import 'react-quill/dist/quill.snow.css';
+import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
+import { formatStructure } from '@/routes/assessment/question-papers/-utils/helper';
+import { useEffect } from 'react';
+import { CollapsibleQuillEditor } from '../CollapsibleQuillEditor';
+import { QuestionPaperTemplateFormProps } from '../MainViewComponentFactory';
 
 export const LongAnswerQuestionPaperTemplateMainView = ({
     form,
@@ -12,9 +12,9 @@ export const LongAnswerQuestionPaperTemplateMainView = ({
     className,
 }: QuestionPaperTemplateFormProps) => {
     const { control, getValues } = form;
-    const explanationsType = getValues("explanationsType") || "Explanation:";
-    const questionsType = getValues("questionsType") || "";
-    const allQuestions = getValues("questions") || [];
+    const explanationsType = getValues('explanationsType') || 'Explanation:';
+    const questionsType = getValues('questionsType') || '';
+    const allQuestions = getValues('questions') || [];
 
     useEffect(() => {
         const validAnswrs = form.getValues(`questions.${currentQuestionIndex}.validAnswers`);

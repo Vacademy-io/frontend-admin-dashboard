@@ -76,7 +76,9 @@ export const CreateLevelStep = () => {
                 name="levelCreationType"
                 render={({ field }: any) => (
                     <FormItem className="space-y-3">
-                        <FormLabel className="text-base font-medium text-neutral-700">Level Selection</FormLabel>
+                        <FormLabel className="text-base font-medium text-neutral-700">
+                            Level Selection
+                        </FormLabel>
                         <FormControl>
                             <RadioGroup
                                 className="flex gap-6 pt-1"
@@ -100,7 +102,7 @@ export const CreateLevelStep = () => {
                                     </FormControl>
                                     <FormLabel
                                         htmlFor="existing-level"
-                                        className={`font-normal cursor-pointer ${levelList.length === 0 ? 'text-neutral-400' : 'text-neutral-600'}`}
+                                        className={`cursor-pointer font-normal ${levelList.length === 0 ? 'text-neutral-400' : 'text-neutral-600'}`}
                                     >
                                         Select existing level
                                     </FormLabel>
@@ -109,7 +111,10 @@ export const CreateLevelStep = () => {
                                     <FormControl>
                                         <RadioGroupItem value="new" id="new-level" />
                                     </FormControl>
-                                    <FormLabel htmlFor="new-level" className="font-normal text-neutral-600 cursor-pointer">
+                                    <FormLabel
+                                        htmlFor="new-level"
+                                        className="cursor-pointer font-normal text-neutral-600"
+                                    >
                                         Create new level
                                     </FormLabel>
                                 </FormItem>
@@ -147,8 +152,8 @@ export const CreateLevelStep = () => {
 
             {form.watch('levelCreationType') === 'new' &&
                 (newLevelAdded ? (
-                    <div className="flex items-center gap-3 p-3 rounded-md border border-neutral-200 bg-neutral-50">
-                        <div className="flex flex-col flex-grow">
+                    <div className="flex items-center gap-3 rounded-md border border-neutral-200 bg-neutral-50 p-3">
+                        <div className="flex grow flex-col">
                             <p className="text-sm font-medium text-neutral-700">{newLevelName}</p>
                             {newLevelDuration && (
                                 <p className="text-xs text-neutral-500">
@@ -165,8 +170,8 @@ export const CreateLevelStep = () => {
                                 form.setValue('selectedLevelDuration', null);
                             }}
                             layoutVariant="icon"
-                            buttonType='text'
-                            className="text-neutral-500 hover:text-danger-600 hover:bg-danger-50 p-1"
+                            buttonType="text"
+                            className="p-1 text-neutral-500 hover:bg-danger-50 hover:text-danger-600"
                             scale="small"
                         >
                             <X size={18} />
@@ -184,7 +189,7 @@ export const CreateLevelStep = () => {
                 ))}
 
             {shouldShowDuplicateOption && (
-                <div className="pt-4 mt-4 border-t border-neutral-200">
+                <div className="mt-4 border-t border-neutral-200 pt-4">
                     <FormField
                         control={form.control}
                         name="duplicateStudyMaterials"
@@ -202,7 +207,10 @@ export const CreateLevelStep = () => {
                                         id="duplicate-materials"
                                     />
                                 </FormControl>
-                                <FormLabel htmlFor="duplicate-materials" className="text-sm font-normal text-neutral-700 cursor-pointer">
+                                <FormLabel
+                                    htmlFor="duplicate-materials"
+                                    className="cursor-pointer text-sm font-normal text-neutral-700"
+                                >
                                     Duplicate study materials from a pre-existing session
                                 </FormLabel>
                             </FormItem>
@@ -215,9 +223,10 @@ export const CreateLevelStep = () => {
                             name="selectedDuplicateSession"
                             rules={{ required: 'Please select a session to duplicate from' }}
                             render={({ field }: any) => (
-                                <FormItem className="flex flex-col gap-1.5 mt-3">
+                                <FormItem className="mt-3 flex flex-col gap-1.5">
                                     <FormLabel className="text-neutral-700">
-                                        Duplicate from Session <span className="text-danger-500">*</span>
+                                        Duplicate from Session{' '}
+                                        <span className="text-danger-500">*</span>
                                     </FormLabel>
                                     <FormControl>
                                         <MyDropdown

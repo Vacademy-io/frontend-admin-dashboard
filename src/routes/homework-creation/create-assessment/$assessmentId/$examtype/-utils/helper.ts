@@ -5,25 +5,25 @@ import {
     RegistrationFormField,
     Step3StudentDetailInterface,
     Steps,
-} from "@/types/assessments/assessment-data-type";
-import { useBasicInfoStore } from "./zustand-global-states/step1-basic-info";
-import { AdaptiveMarkingQuestion } from "@/types/assessments/basic-details-type";
-import { useSectionDetailsStore } from "./zustand-global-states/step2-add-questions";
-import { UseFormReturn } from "react-hook-form";
-import { useTestAccessStore } from "./zustand-global-states/step3-adding-participants";
-import { useAccessControlStore } from "./zustand-global-states/step4-access-control";
+} from '@/types/assessments/assessment-data-type';
+import { useBasicInfoStore } from './zustand-global-states/step1-basic-info';
+import { AdaptiveMarkingQuestion } from '@/types/assessments/basic-details-type';
+import { useSectionDetailsStore } from './zustand-global-states/step2-add-questions';
+import { UseFormReturn } from 'react-hook-form';
+import { useTestAccessStore } from './zustand-global-states/step3-adding-participants';
+import { useAccessControlStore } from './zustand-global-states/step4-access-control';
 import {
     AccessControlFormValues,
     BasicSectionFormType,
     SectionFormType,
     TestAccessFormType,
-} from "@/types/assessments/assessment-steps";
-import { z } from "zod";
-import sectionDetailsSchema from "./section-details-schema";
-import { convertCustomFields } from "../-services/assessment-services";
-import testAccessSchema from "./add-participants-schema";
-import { CourseWithSessionsType } from "@/stores/study-library/use-study-library-store";
-import { BatchData } from "@/types/assessments/batch-details";
+} from '@/types/assessments/assessment-steps';
+import { z } from 'zod';
+import sectionDetailsSchema from './section-details-schema';
+import { convertCustomFields } from '../-services/assessment-services';
+import testAccessSchema from './add-participants-schema';
+import { CourseWithSessionsType } from '@/stores/study-library/use-study-library-store';
+import { BatchData } from '@/types/assessments/batch-details';
 
 interface Role {
     roleId: string;
@@ -90,14 +90,14 @@ export const getFieldOptions = ({
     // Safely access the nested array using optional chaining
     return (
         assessmentDetails[currentStep]?.field_options?.[key]?.some(
-            (item) => item.value === value,
+            (item) => item.value === value
         ) || false
     );
 };
 
 export const parseHTMLIntoString = (htmlString: string) => {
     const parser = new DOMParser();
-    const doc = parser.parseFromString(htmlString, "text/html");
+    const doc = parser.parseFromString(htmlString, 'text/html');
     return doc;
 };
 
@@ -108,9 +108,9 @@ export const getQuestionTypeCounts = (questions: AdaptiveMarkingQuestion[]) => {
     let mcqsCount = 0;
 
     questions?.forEach((question) => {
-        if (question.questionType === "MCQM") {
+        if (question.questionType === 'MCQM') {
             mcqmCount++;
-        } else if (question.questionType === "MCQS") {
+        } else if (question.questionType === 'MCQS') {
             mcqsCount++;
         }
     });
@@ -127,36 +127,36 @@ export const getQuestionTypeCounts = (questions: AdaptiveMarkingQuestion[]) => {
 export const handleDownloadQRCode = (elementName: string) => {
     const svg = document.getElementById(elementName);
     if (!svg) {
-        alert("QR code not found!");
+        alert('QR code not found!');
         return;
     }
 
     const svgData = new XMLSerializer().serializeToString(svg);
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
     const img = new Image();
 
     img.onload = () => {
         canvas.width = img.width;
         canvas.height = img.height;
         ctx?.drawImage(img, 0, 0);
-        const pngFile = canvas.toDataURL("image/png");
+        const pngFile = canvas.toDataURL('image/png');
 
         // Create a temporary link element to download the image
-        const downloadLink = document.createElement("a");
+        const downloadLink = document.createElement('a');
         downloadLink.href = pngFile;
-        downloadLink.download = "qr-code.png";
+        downloadLink.download = 'qr-code.png';
         downloadLink.click();
     };
 
-    img.src = "data:image/svg+xml;base64," + btoa(svgData);
+    img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
 };
 
 export const copyToClipboard = async (text: string) => {
     try {
         await navigator.clipboard.writeText(text);
     } catch (err) {
-        console.log("Failed to copy text. Please try again.");
+        console.log('Failed to copy text. Please try again.');
     }
 };
 
@@ -182,7 +182,7 @@ export function transformBatchData(data: BatchData[], sessionId: string) {
         // Add the package details (name and id) to the batch key
         batchDetails[batchKey]!.push({
             name: `${levelName}`,
-            id: packageId || "",
+            id: packageId || '',
         });
     });
 
@@ -209,7 +209,7 @@ export function transformAllBatchData(data: BatchData[]) {
         // Add the package details (name and id) to the batch key
         batchDetails[batchKey]!.push({
             name: `${levelName}`,
-            id: packageId || "",
+            id: packageId || '',
         });
     });
 
@@ -236,7 +236,7 @@ export function transformBatchDataEdit(data: BatchData[]) {
         // Add the package details (name and id) to the batch key
         batchDetails[batchKey]!.push({
             name: `${packageName} - ${levelName}`,
-            id: packageId || "",
+            id: packageId || '',
         });
     });
 
@@ -245,14 +245,14 @@ export function transformBatchDataEdit(data: BatchData[]) {
 
 export function filterLevelDetailsByIds(
     data: CourseWithSessionsType[],
-    allowedIds: string[] | undefined,
+    allowedIds: string[] | undefined
 ) {
     return data.map((courseBlock) => ({
         ...courseBlock,
         sessions: courseBlock.sessions.map((session) => ({
             ...session,
-            level_with_details: session.level_with_details.filter(
-                (level) => allowedIds?.includes(level.id),
+            level_with_details: session.level_with_details.filter((level) =>
+                allowedIds?.includes(level.id)
             ),
         })),
     }));
@@ -274,21 +274,21 @@ export function getAllSessions(data: BatchData[]): { id: string; name: string }[
 }
 
 export const convertToUTC = (dateString: string) => {
-    if (dateString === "") return "";
+    if (dateString === '') return '';
     // Parse the input ISO 8601 date string into a Date object
     const date = new Date(dateString);
     return date.toISOString();
 };
 
 export const formatDateTimeLocal = (dateString: string | undefined) => {
-    if (!dateString) return ""; // Handle empty or undefined values
+    if (!dateString) return ''; // Handle empty or undefined values
     const date = new Date(dateString);
     return date.toISOString().slice(0, 16); // Extract `YYYY-MM-DDTHH:mm`
 };
 
 export const getTimeLimitString = (time: number, timeLimit: string[]) => {
     const timeStr = timeLimit.find((limit) => limit.startsWith(time.toString()));
-    return timeStr || ""; // Returns the matching string or an empty string if no match is found
+    return timeStr || ''; // Returns the matching string or an empty string if no match is found
 };
 
 export function calculateTotalMarks(questions: AdaptiveMarkingQuestion[]) {
@@ -309,16 +309,16 @@ export const syncStep1DataWithStore = (form: UseFormReturn<BasicSectionFormType>
     const setBasicInfo = useBasicInfoStore.getState().setBasicInfo;
     const { getValues } = form;
     const basicInfoData = {
-        status: getValues("status"),
-        testCreation: getValues("testCreation"),
-        assessmentPreview: getValues("assessmentPreview"),
-        submissionType: getValues("submissionType"),
-        reattemptCount: getValues("reattemptCount"),
-        durationDistribution: getValues("durationDistribution"),
-        evaluationType: getValues("evaluationType"),
-        switchSections: getValues("switchSections"),
-        raiseReattemptRequest: getValues("raiseReattemptRequest"),
-        raiseTimeIncreaseRequest: getValues("raiseTimeIncreaseRequest"),
+        status: getValues('status'),
+        testCreation: getValues('testCreation'),
+        assessmentPreview: getValues('assessmentPreview'),
+        submissionType: getValues('submissionType'),
+        reattemptCount: getValues('reattemptCount'),
+        durationDistribution: getValues('durationDistribution'),
+        evaluationType: getValues('evaluationType'),
+        switchSections: getValues('switchSections'),
+        raiseReattemptRequest: getValues('raiseReattemptRequest'),
+        raiseTimeIncreaseRequest: getValues('raiseTimeIncreaseRequest'),
     };
     setBasicInfo(basicInfoData);
 };
@@ -328,9 +328,9 @@ export const syncStep2DataWithStore = (form: UseFormReturn<SectionFormType>) => 
     const { getValues } = form;
 
     const sectionDetailsData = {
-        testDuration: getValues("testDuration"),
-        status: getValues("status"),
-        section: getValues("section"),
+        testDuration: getValues('testDuration'),
+        status: getValues('status'),
+        section: getValues('section'),
     };
 
     // Update Zustand Store
@@ -341,34 +341,34 @@ export const syncStep3DataWithStore = (form: UseFormReturn<TestAccessFormType>) 
     const setTestAccessInfo = useTestAccessStore.getState().setTestAccessInfo;
     const { getValues } = form;
     const testDetailsData = {
-        closed_test: getValues("closed_test"),
-        open_test: getValues("open_test"),
-        select_batch: getValues("select_batch"),
-        select_individually: getValues("select_individually"),
-        join_link: getValues("join_link"),
-        show_leaderboard: getValues("show_leaderboard"),
+        closed_test: getValues('closed_test'),
+        open_test: getValues('open_test'),
+        select_batch: getValues('select_batch'),
+        select_individually: getValues('select_individually'),
+        join_link: getValues('join_link'),
+        show_leaderboard: getValues('show_leaderboard'),
         notify_student: {
-            when_assessment_created: getValues("notify_student.when_assessment_created"),
+            when_assessment_created: getValues('notify_student.when_assessment_created'),
             before_assessment_goes_live: {
-                checked: getValues("notify_student.before_assessment_goes_live.checked"),
-                value: getValues("notify_student.before_assessment_goes_live.value"),
+                checked: getValues('notify_student.before_assessment_goes_live.checked'),
+                value: getValues('notify_student.before_assessment_goes_live.value'),
             },
-            when_assessment_live: getValues("notify_student.when_assessment_live"),
+            when_assessment_live: getValues('notify_student.when_assessment_live'),
             when_assessment_report_generated: getValues(
-                "notify_student.when_assessment_report_generated",
+                'notify_student.when_assessment_report_generated'
             ),
         },
         notify_parent: {
-            when_assessment_created: getValues("notify_parent.when_assessment_created"),
+            when_assessment_created: getValues('notify_parent.when_assessment_created'),
             before_assessment_goes_live: {
-                checked: getValues("notify_parent.before_assessment_goes_live.checked"),
-                value: getValues("notify_parent.before_assessment_goes_live.value"),
+                checked: getValues('notify_parent.before_assessment_goes_live.checked'),
+                value: getValues('notify_parent.before_assessment_goes_live.value'),
             },
-            when_assessment_live: getValues("notify_parent.when_assessment_live"),
-            when_student_appears: getValues("notify_parent.when_student_appears"),
-            when_student_finishes_test: getValues("notify_parent.when_student_finishes_test"),
+            when_assessment_live: getValues('notify_parent.when_assessment_live'),
+            when_student_appears: getValues('notify_parent.when_student_appears'),
+            when_student_finishes_test: getValues('notify_parent.when_student_finishes_test'),
             when_assessment_report_generated: getValues(
-                "notify_parent.when_assessment_report_generated",
+                'notify_parent.when_assessment_report_generated'
             ),
         },
     };
@@ -379,21 +379,21 @@ export const syncStep4DataWithStore = (form: UseFormReturn<AccessControlFormValu
     const setAccessControlData = useAccessControlStore.getState().setAccessControlData;
     const { getValues } = form;
     const testAccessData = {
-        assessment_creation_access: getValues("assessment_creation_access"),
-        live_assessment_notification: getValues("live_assessment_notification"),
+        assessment_creation_access: getValues('assessment_creation_access'),
+        live_assessment_notification: getValues('live_assessment_notification'),
         assessment_submission_and_report_access: getValues(
-            "assessment_submission_and_report_access",
+            'assessment_submission_and_report_access'
         ),
-        evaluation_process: getValues("evaluation_process"),
+        evaluation_process: getValues('evaluation_process'),
     };
     setAccessControlData(testAccessData);
 };
 
 export const convertStep2Data = (data: z.infer<typeof sectionDetailsSchema>) => {
     return data.section.map((section, index) => ({
-        section_description_html: section.section_description || "",
+        section_description_html: section.section_description || '',
         section_name: section.sectionName,
-        section_id: section.sectionId || "",
+        section_id: section.sectionId || '',
         section_duration:
             parseInt(section.section_duration.hrs) * 60 + parseInt(section.section_duration.min),
         section_order: index + 1,
@@ -406,15 +406,15 @@ export const convertStep2Data = (data: z.infer<typeof sectionDetailsSchema>) => 
                 marking_json: JSON.stringify({
                     type: question.questionType,
                     data: {
-                        totalMark: question.questionMark || "",
-                        negativeMark: question.questionPenalty || "",
+                        totalMark: question.questionMark || '',
+                        negativeMark: question.questionPenalty || '',
                         negativeMarkingPercentage:
                             question.questionMark && question.questionPenalty
                                 ? (Number(question.questionPenalty) /
                                       Number(question.questionMark)) *
                                   100
-                                : "",
-                        ...(question.questionType === "MCQM" && {
+                                : '',
+                        ...(question.questionType === 'MCQM' && {
                             partialMarking: question.correctOptionIdsCnt
                                 ? 1 / question.correctOptionIdsCnt
                                 : 0,
@@ -431,7 +431,7 @@ export const convertStep2Data = (data: z.infer<typeof sectionDetailsSchema>) => 
                 is_added: true,
                 is_deleted: false,
                 is_updated: false,
-            }),
+            })
         ),
     }));
 };
@@ -469,7 +469,7 @@ export function classifySections(oldSectionData: Section[], newSectionData: Sect
             acc[section.section_id] = section;
             return acc;
         },
-        {} as { [key: string]: Section },
+        {} as { [key: string]: Section }
     );
 
     const newSectionMap = new Set(newSectionData.map((section) => section.section_id));
@@ -503,10 +503,10 @@ export function classifySections(oldSectionData: Section[], newSectionData: Sect
 
             // Create maps for quick lookup
             const oldQuestionsMap = new Map(
-                oldSection?.question_and_marking?.map((q) => [q.question_id, q]),
+                oldSection?.question_and_marking?.map((q) => [q.question_id, q])
             );
             const newQuestionsMap = new Map(
-                newSection?.question_and_marking?.map((q) => [q.question_id, q]),
+                newSection?.question_and_marking?.map((q) => [q.question_id, q])
             );
 
             const updatedQuestionAndMarking: QuestionAndMarking[] = [];
@@ -594,7 +594,7 @@ export function calculateTotalTime(testData: z.infer<typeof sectionDetailsSchema
                     const min = parseInt(question.questionDuration.min, 10) || 0;
                     return qSum + hrs * 60 + min;
                 },
-                0,
+                0
             );
             return sum + questionMinutes;
         }, 0);
@@ -613,15 +613,15 @@ export function convertToCustomFieldsData(data: RegistrationFormField[] | undefi
         type: field.field_type,
         name: field.field_name,
         oldKey:
-            field.field_key === "full_name" ||
-            field.field_key === "phone_number" ||
-            field.field_key === "email"
+            field.field_key === 'full_name' ||
+            field.field_key === 'phone_number' ||
+            field.field_key === 'email'
                 ? true
                 : false,
         isRequired: field.is_mandatory,
         key: field.field_key,
-        ...(field.field_type === "dropdown" && {
-            options: field.comma_separated_options.split(",").map((value, index) => ({
+        ...(field.field_type === 'dropdown' && {
+            options: field.comma_separated_options.split(',').map((value, index) => ({
                 id: String(index),
                 value: value.trim(),
                 disabled: false,
@@ -633,28 +633,28 @@ export function convertToCustomFieldsData(data: RegistrationFormField[] | undefi
 export function getCustomFieldsWhileEditStep3(assessmentDetails: Steps) {
     const defaultFields = [
         {
-            id: "0",
-            type: "textfield",
-            name: "Full Name",
+            id: '0',
+            type: 'textfield',
+            name: 'Full Name',
             oldKey: true,
             isRequired: true,
-            key: "full_name",
+            key: 'full_name',
         },
         {
-            id: "1",
-            type: "textfield",
-            name: "Email",
+            id: '1',
+            type: 'textfield',
+            name: 'Email',
             oldKey: true,
             isRequired: true,
-            key: "email",
+            key: 'email',
         },
         {
-            id: "2",
-            type: "textfield",
-            name: "Phone Number",
+            id: '2',
+            type: 'textfield',
+            name: 'Phone Number',
             oldKey: true,
             isRequired: true,
-            key: "phone_number",
+            key: 'phone_number',
         },
     ];
 
@@ -664,8 +664,8 @@ export function getCustomFieldsWhileEditStep3(assessmentDetails: Steps) {
     const existingFieldNames = new Set(registrationFields.map((field) => field.field_name));
 
     // Check if all three fields exist
-    const hasAllDefaults = ["Full Name", "Email", "Phone Number"].every((field) =>
-        existingFieldNames.has(field),
+    const hasAllDefaults = ['Full Name', 'Email', 'Phone Number'].every((field) =>
+        existingFieldNames.has(field)
     );
 
     return hasAllDefaults
@@ -678,19 +678,19 @@ export const convertToCustomFieldSchema = (field: CustomFieldStep3): ConvertedCu
         id: field.id,
         name: field.name,
         type: field.type,
-        default_value: "", // Provide a default value, if necessary
-        description: "", // Provide a description, if necessary
+        default_value: '', // Provide a default value, if necessary
+        description: '', // Provide a description, if necessary
         is_mandatory: field.isRequired,
         key: field.key, // Use the ID as the key
         comma_separated_options: field.options
-            ? field.options.map((opt) => opt.value).join(",")
-            : "", // Join options for dropdowns
+            ? field.options.map((opt) => opt.value).join(',')
+            : '', // Join options for dropdowns
     };
 };
 
 export const convertDataToStep3 = (
     oldData: TestAccessFormType | null,
-    newData: z.infer<typeof testAccessSchema>,
+    newData: z.infer<typeof testAccessSchema>
 ) => {
     const convertedData: {
         closed_test: boolean;
@@ -714,9 +714,9 @@ export const convertDataToStep3 = (
     } = {
         closed_test: false,
         open_test_details: {
-            registration_start_date: "",
-            registration_end_date: "",
-            instructions_html: "",
+            registration_start_date: '',
+            registration_end_date: '',
+            instructions_html: '',
             registration_form_details: {
                 added_custom_added_fields: [],
                 updated_custom_added_fields: [],
@@ -727,7 +727,7 @@ export const convertDataToStep3 = (
         deleted_pre_register_batches_details: [],
         added_pre_register_students_details: [],
         deleted_pre_register_students_details: [],
-        updated_join_link: "",
+        updated_join_link: '',
         notify_student: {},
         notify_parent: {},
     };
@@ -747,9 +747,9 @@ export const convertDataToStep3 = (
         newData?.open_test.instructions !== oldData.open_test.instructions
     ) {
         convertedData.open_test_details = {
-            registration_start_date: newData?.open_test.start_date + ":00.000Z" || "",
-            registration_end_date: newData?.open_test.end_date + ":00.000Z" || "",
-            instructions_html: newData?.open_test.instructions || "",
+            registration_start_date: newData?.open_test.start_date + ':00.000Z' || '',
+            registration_end_date: newData?.open_test.end_date + ':00.000Z' || '',
+            instructions_html: newData?.open_test.instructions || '',
             registration_form_details: {
                 added_custom_added_fields: [],
                 removed_custom_added_fields: [],
@@ -761,7 +761,7 @@ export const convertDataToStep3 = (
     //Adding disabled false if type of field is dropdown
     newData.open_test.custom_fields =
         newData?.open_test.custom_fields.map((field) => {
-            if (field.type === "dropdown" && Array.isArray(field.options)) {
+            if (field.type === 'dropdown' && Array.isArray(field.options)) {
                 return {
                     ...field,
                     options: field.options.map((option) => ({
@@ -784,13 +784,13 @@ export const convertDataToStep3 = (
     newData.open_test.custom_fields.forEach((field: CustomFieldStep3) => {
         if (!oldCustomFields[field.id]) {
             convertedData.open_test_details.registration_form_details.added_custom_added_fields.push(
-                convertToCustomFieldSchema(field),
+                convertToCustomFieldSchema(field)
             );
         } else {
             const oldField = oldCustomFields[field.id];
             if (JSON.stringify(field) !== JSON.stringify(oldField)) {
                 convertedData.open_test_details.registration_form_details.updated_custom_added_fields.push(
-                    convertToCustomFieldSchema(field),
+                    convertToCustomFieldSchema(field)
                 );
             }
             delete oldCustomFields[field.id];
@@ -807,36 +807,36 @@ export const convertDataToStep3 = (
     const newBatches = Object.values(newData.select_batch.batch_details).flat();
 
     convertedData.deleted_pre_register_batches_details = oldBatches.filter(
-        (id) => !newBatches.includes(id),
+        (id) => !newBatches.includes(id)
     );
 
     convertedData.added_pre_register_batches_details = newBatches.filter(
-        (id) => !oldBatches.includes(id),
+        (id) => !oldBatches.includes(id)
     );
 
     // Compare student details
     const oldUserIds = new Set(
-        oldData.select_individually.student_details.map((student) => student.user_id),
+        oldData.select_individually.student_details.map((student) => student.user_id)
     );
     const newUserIds = new Set(
-        newData?.select_individually.student_details.map((student) => student.user_id),
+        newData?.select_individually.student_details.map((student) => student.user_id)
     );
 
     // Students present in newData but not in oldData (Added)
     convertedData.added_pre_register_students_details =
         newData?.select_individually.student_details.filter(
-            (student) => !oldUserIds.has(student.user_id),
+            (student) => !oldUserIds.has(student.user_id)
         );
 
     // Students present in oldData but not in newData (Deleted)
     convertedData.deleted_pre_register_students_details =
         oldData.select_individually.student_details.filter(
-            (student) => !newUserIds.has(student.user_id),
+            (student) => !newUserIds.has(student.user_id)
         );
 
     // Compare join_link
     if (newData?.join_link !== oldData.join_link) {
-        convertedData.updated_join_link = newData?.join_link ?? "";
+        convertedData.updated_join_link = newData?.join_link ?? '';
     }
 
     // Compare notification settings

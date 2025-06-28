@@ -1,7 +1,5 @@
 import { toast } from 'sonner';
-import {
-    setAuthorizationCookie,
-} from '@/lib/auth/sessionUtility';
+import { setAuthorizationCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
 
 export type OAuthProvider = 'google' | 'github';
@@ -12,44 +10,32 @@ interface OAuthLoginOptions {
     lms?: boolean;
 }
 
-export const handleOAuthLogin = (
-    
-  provider: OAuthProvider,
-  options: OAuthLoginOptions = {}
-) => {
-    console.log("handle Outh Login");
-  try {
-    const { isSignup = false, assess = false, lms = false } = options;
+export const handleOAuthLogin = (provider: OAuthProvider, options: OAuthLoginOptions = {}) => {
+    console.log('handle Outh Login');
+    try {
+        const { isSignup = false, assess = false, lms = false } = options;
 
-    const redirectPath = isSignup
-      ? '/signup/oauth/callback'
-      : '/login/oauth/redirect';
+        const redirectPath = isSignup ? '/signup/oauth/callback' : '/login/oauth/redirect';
 
-    const stateObj = {
-      from: `${window.location.origin}${redirectPath}?assess=${assess}&lms=${lms}`,
-      account_type: isSignup
-        ? assess
-          ? 'assess'
-          : lms
-          ? 'lms'
-          : ''
-        : '',
-    };
+        const stateObj = {
+            from: `${window.location.origin}${redirectPath}?assess=${assess}&lms=${lms}`,
+            account_type: isSignup ? (assess ? 'assess' : lms ? 'lms' : '') : '',
+        };
 
-    const base64State = btoa(JSON.stringify(stateObj));
+        const base64State = btoa(JSON.stringify(stateObj));
 
-    const loginUrl = `https://backend-stage.vacademy.io/auth-service/oauth2/authorization/${provider}?state=${encodeURIComponent(
-      base64State
-    )}`;
+        const loginUrl = `https://backend-stage.vacademy.io/auth-service/oauth2/authorization/${provider}?state=${encodeURIComponent(
+            base64State
+        )}`;
 
-    console.log('[OAuthLogin] Redirecting to:', loginUrl);
-    console.log('[OAuthLogin] Encoded State:', stateObj);
+        console.log('[OAuthLogin] Redirecting to:', loginUrl);
+        console.log('[OAuthLogin] Encoded State:', stateObj);
 
-    window.location.href = loginUrl;
-  } catch (error) {
-    console.error('[OAuthLogin] Error during OAuth login initiation:', error);
-    toast.error('Failed to initiate login. Please try again.');
-  }
+        window.location.href = loginUrl;
+    } catch (error) {
+        console.error('[OAuthLogin] Error during OAuth login initiation:', error);
+        toast.error('Failed to initiate login. Please try again.');
+    }
 };
 
 export const handleLoginOAuthCallback = async () => {
@@ -86,7 +72,10 @@ export const handleLoginOAuthCallback = async () => {
                 redirectUrl = decodedState.from;
             }
         } catch (err) {
-            console.warn('[OAuthCallback] Failed to decode state. Falling back to /dashboard:', err);
+            console.warn(
+                '[OAuthCallback] Failed to decode state. Falling back to /dashboard:',
+                err
+            );
         }
     }
 

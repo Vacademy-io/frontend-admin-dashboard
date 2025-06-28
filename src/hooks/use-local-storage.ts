@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback } from 'react';
 
 const useLocalStorage = <T>(key: string, initialValue: T) => {
     // Use state to store the value in the hook
@@ -26,7 +26,7 @@ const useLocalStorage = <T>(key: string, initialValue: T) => {
                 console.error(error);
             }
         },
-        [key, storedValue],
+        [key, storedValue]
     );
 
     // Getter function to retrieve the value from localStorage or state

@@ -6,18 +6,18 @@ import {
     SidebarMenu,
     SidebarMenuItem,
     useSidebar,
-} from "@/components/ui/sidebar";
-import { SidebarStateType } from "@/types/layout-container/layout-container-types";
-import { SidebarItem } from "./sidebar-item";
-import { SidebarItemsData } from "./utils";
-import "./scrollbarStyle.css";
-import React, { useState } from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn, goToMailSupport, goToWhatsappSupport } from "@/lib/utils";
-import { Question } from "phosphor-react";
-import { Command, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
-import { WhatsappLogo, EnvelopeSimple } from "@phosphor-icons/react";
-import { useNavigate } from "@tanstack/react-router";
+} from '@/components/ui/sidebar';
+import { SidebarStateType } from '@/types/layout-container/layout-container-types';
+import { SidebarItem } from './sidebar-item';
+import { SidebarItemsData } from './utils';
+import './scrollbarStyle.css';
+import React, { useState } from 'react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn, goToMailSupport, goToWhatsappSupport } from '@/lib/utils';
+import { Question } from 'phosphor-react';
+import { Command, CommandGroup, CommandItem, CommandList } from '@/components/ui/command';
+import { WhatsappLogo, EnvelopeSimple } from '@phosphor-icons/react';
+import { useNavigate } from '@tanstack/react-router';
 
 export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.ReactNode }) => {
     const { state }: SidebarStateType = useSidebar();
@@ -27,17 +27,17 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
         <Sidebar collapsible="icon" className="z-20">
             <SidebarContent
                 className={`sidebar-content flex flex-col gap-14 border-r border-r-neutral-300 bg-primary-50 py-10 ${
-                    state == "expanded" ? "w-[307px]" : "w-28"
+                    state == 'expanded' ? 'w-[307px]' : 'w-28'
                 }`}
             >
                 <SidebarHeader className="">
                     <div
                         className={`flex cursor-pointer items-center justify-center gap-2 ${
-                            state == "expanded" ? "pl-4" : "pl-0"
+                            state == 'expanded' ? 'pl-4' : 'pl-0'
                         }`}
                     >
                         <img
-                            src={"/vacademy-logo.svg"}
+                            src={'/vacademy-logo.svg'}
                             alt="logo"
                             className="size-12 rounded-full"
                         />
@@ -46,7 +46,7 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                             className={`text-[18px] font-semibold text-primary-500 group-data-[collapsible=icon]:hidden`}
                             onClick={() => {
                                 navigate({
-                                    to: "/evaluator-ai",
+                                    to: '/evaluator-ai',
                                 });
                             }}
                         >
@@ -57,7 +57,7 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                 </SidebarHeader>
                 <SidebarMenu
                     className={`flex shrink-0 flex-col justify-center gap-6 py-4 ${
-                        state == "expanded" ? "items-stretch" : "items-center"
+                        state == 'expanded' ? 'items-stretch' : 'items-center'
                     }`}
                 >
                     {sidebarComponent
@@ -75,8 +75,8 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                 </SidebarMenu>
                 <div
                     className={cn(
-                        "mt-auto flex items-center justify-center",
-                        state === "collapsed" ? "mx-auto px-1" : "px-1",
+                        'mt-auto flex items-center justify-center',
+                        state === 'collapsed' ? 'mx-auto px-1' : 'px-1'
                     )}
                 >
                     <SupportOptions />
@@ -101,15 +101,15 @@ function SupportOptions() {
                     onMouseLeave={toggleHover}
                 >
                     <Question
-                        className={cn("size-7", hover ? "text-primary-500" : "text-neutral-400")}
+                        className={cn('size-7', hover ? 'text-primary-500' : 'text-neutral-400')}
                         weight="fill"
                     />
                     <div
                         className={`${
-                            hover ? "text-primary-500" : "text-neutral-600"
+                            hover ? 'text-primary-500' : 'text-neutral-600'
                         } text-body font-regular text-neutral-600 group-data-[collapsible=icon]:hidden`}
                     >
-                        {"Support"}
+                        {'Support'}
                     </div>
                 </div>
             </PopoverTrigger>

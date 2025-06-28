@@ -1,13 +1,22 @@
-import { MarkAsResolved } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-components/doubt-resolution/MarkAsResolved";
-import { Doubt } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-types/get-doubts-type";
-import { useState, useRef, useEffect } from "react";
-import { CaretDown } from "phosphor-react";
-import { getUserId, isUserAdmin } from "@/utils/userDetails";
+import { MarkAsResolved } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-components/doubt-resolution/MarkAsResolved';
+import { Doubt } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-types/get-doubts-type';
+import { useState, useRef, useEffect } from 'react';
+import { CaretDown } from 'phosphor-react';
+import { getUserId, isUserAdmin } from '@/utils/userDetails';
 
-export const MarkResolutionDropdown = ({resolved, handleDoubtResolve, doubt}: {resolved: boolean, handleDoubtResolve: (value: boolean) => void, doubt: Doubt}) => {
+export const MarkResolutionDropdown = ({
+    resolved,
+    handleDoubtResolve,
+    doubt,
+}: {
+    resolved: boolean;
+    handleDoubtResolve: (value: boolean) => void;
+    doubt: Doubt;
+}) => {
     const isAdmin = isUserAdmin();
     const userId = getUserId();
-    const canResolve = isAdmin || doubt.all_doubt_assignee.some(assignee => assignee.id==userId);
+    const canResolve =
+        isAdmin || doubt.all_doubt_assignee.some((assignee) => assignee.id == userId);
 
     const [open, setOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -18,62 +27,68 @@ export const MarkResolutionDropdown = ({resolved, handleDoubtResolve, doubt}: {r
                 setOpen(false);
             }
         }
-        document.addEventListener("mousedown", handleClickOutside);
+        document.addEventListener('mousedown', handleClickOutside);
         return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener('mousedown', handleClickOutside);
         };
     }, []);
 
-    return (
-        canResolve ?
+    return canResolve ? (
         <div className="relative inline-block" ref={dropdownRef}>
             <button
                 onClick={() => setOpen((prev) => !prev)}
-                className={`py-1 px-2 rounded-xl border flex items-center gap-1 font-semibold text-caption cursor-pointer ${
+                className={`flex cursor-pointer items-center gap-1 rounded-xl border px-2 py-1 text-caption font-semibold ${
                     resolved
-                        ? "bg-green-50 text-green-700 border-success-500"
-                        : "bg-red-50 text-red-700 border-danger-500"
+                        ? 'border-success-500 bg-green-50 text-green-700'
+                        : 'border-danger-500 bg-red-50 text-red-700'
                 }`}
             >
-                {resolved ? "Resolved" : "Unresolved"} <span className="text-caption"><CaretDown /></span>
+                {resolved ? 'Resolved' : 'Unresolved'}{' '}
+                <span className="text-caption">
+                    <CaretDown />
+                </span>
             </button>
             {open && (
-                <div className="absolute top-[110%] left-0 bg-white shadow-md rounded-lg min-w-[120px] z-50">
+                <div className="absolute left-0 top-[110%] z-50 min-w-[120px] rounded-lg bg-white shadow-md">
                     <div
-                        onClick={() => { setOpen(false); if (resolved) handleDoubtResolve(false); }}
-                        className={` py-2 w-full text-center rounded-lg hover:bg-neutral-50 ${!resolved?"bg-danger-100 text-danger-700":"bg-white text-neutral-600"} ${resolved ? "cursor-pointer" : "cursor-default"}`}
+                        onClick={() => {
+                            setOpen(false);
+                            if (resolved) handleDoubtResolve(false);
+                        }}
+                        className={` w-full rounded-lg py-2 text-center hover:bg-neutral-50 ${!resolved ? 'bg-danger-100 text-danger-700' : 'bg-white text-neutral-600'} ${resolved ? 'cursor-pointer' : 'cursor-default'}`}
                     >
                         Unresolved
                     </div>
                     <div
-                        onClick={() => { setOpen(false); if (!resolved) handleDoubtResolve(true); }}
-                        className={`py-2 w-full text-center  rounded-lg ${
+                        onClick={() => {
+                            setOpen(false);
+                            if (!resolved) handleDoubtResolve(true);
+                        }}
+                        className={`w-full rounded-lg py-2  text-center ${
                             resolved
-                                ? "bg-green-50 font-semibold text-success-700"
-                                : "hover:bg-gray-50"
-                        } ${!resolved ? "cursor-pointer" : "cursor-default"}`}
+                                ? 'bg-green-50 font-semibold text-success-700'
+                                : 'hover:bg-gray-50'
+                        } ${!resolved ? 'cursor-pointer' : 'cursor-default'}`}
                     >
                         Resolved
                     </div>
                 </div>
             )}
         </div>
-        :
+    ) : (
         <button
-                onClick={() => setOpen((prev) => !prev)}
-                className={`py-1 px-2 rounded-xl border flex items-center gap-1 font-semibold text-caption cursor-pointer ${
-                    resolved
-                        ? "bg-green-50 text-green-700 border-success-500"
-                        : "bg-red-50 text-red-700 border-danger-500"
-                }`}
-            >
-                {resolved ? "Resolved" : "Unresolved"}
+            onClick={() => setOpen((prev) => !prev)}
+            className={`flex cursor-pointer items-center gap-1 rounded-xl border px-2 py-1 text-caption font-semibold ${
+                resolved
+                    ? 'border-success-500 bg-green-50 text-green-700'
+                    : 'border-danger-500 bg-red-50 text-red-700'
+            }`}
+        >
+            {resolved ? 'Resolved' : 'Unresolved'}
         </button>
     );
-}
+};
 
-export const MarkAsResolvedCell = ({doubt, refetch}: {doubt: Doubt, refetch: () => void}) => {
-    return(
-        <MarkAsResolved doubt={doubt} refetch={refetch} />
-    )
-}
+export const MarkAsResolvedCell = ({ doubt, refetch }: { doubt: Doubt; refetch: () => void }) => {
+    return <MarkAsResolved doubt={doubt} refetch={refetch} />;
+};

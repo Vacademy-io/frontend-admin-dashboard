@@ -1,15 +1,15 @@
 // modules.tsx
-import { EmptyModulesImage } from "@/assets/svgs";
-import { ModuleCard } from "./module-card";
-import { Sortable, SortableItem } from "@/components/ui/sortable";
-import { closestCorners } from "@dnd-kit/core";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { useEffect, useState } from "react";
+import { EmptyModulesImage } from '@/assets/svgs';
+import { ModuleCard } from './module-card';
+import { Sortable, SortableItem } from '@/components/ui/sortable';
+import { closestCorners } from '@dnd-kit/core';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { useEffect, useState } from 'react';
 import {
     Module,
     ModulesWithChapters,
-} from "@/stores/study-library/use-modules-with-chapters-store";
-import { orderModulePayloadType } from "@/routes/study-library/courses/-types/order-payload";
+} from '@/stores/study-library/use-modules-with-chapters-store';
+import { orderModulePayloadType } from '@/routes/study-library/courses/-types/order-payload';
 
 interface ModulesProps {
     modules: ModulesWithChapters[] | null;
@@ -65,7 +65,7 @@ export const Modules = ({
                     // Reconstruct the ModulesWithChapters array with sorted modules
                     if (modules) {
                         const newOrder = sortedModules.map(
-                            (sortedModule) => modules.find((m) => m.module.id === sortedModule.id)!,
+                            (sortedModule) => modules.find((m) => m.module.id === sortedModule.id)!
                         );
                         handleValueChange(newOrder);
                     }

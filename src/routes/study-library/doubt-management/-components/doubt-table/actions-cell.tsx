@@ -1,17 +1,17 @@
-import { DeleteDoubt } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-components/doubt-resolution/DeleteDoubt"
-import { Doubt } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-types/get-doubts-type";
-import { isUserAdmin } from "@/utils/userDetails";
-import { BookOpen, Clock, Eye, User } from "phosphor-react";
-import { useState } from "react";
-import { MyDialog } from "@/components/design-system/dialog";
-import { Separator } from "@/components/ui/separator";
-import { TimestampCell } from "./doubt-cell";
-import { MarkAsResolved } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-components/doubt-resolution/MarkAsResolved";
-import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-import { useDoubtTable } from "../../-hooks/useDoubtTable";
+import { DeleteDoubt } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-components/doubt-resolution/DeleteDoubt';
+import { Doubt } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-types/get-doubts-type';
+import { isUserAdmin } from '@/utils/userDetails';
+import { BookOpen, Clock, Eye, User } from 'phosphor-react';
+import { useState } from 'react';
+import { MyDialog } from '@/components/design-system/dialog';
+import { Separator } from '@/components/ui/separator';
+import { TimestampCell } from './doubt-cell';
+import { MarkAsResolved } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-components/doubt-resolution/MarkAsResolved';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { useDoubtTable } from '../../-hooks/useDoubtTable';
 
 const calculateTimeDifference = (raisedTime: string, resolvedTime: string | null) => {
-    if (!resolvedTime) return "Not resolved yet";
+    if (!resolvedTime) return 'Not resolved yet';
 
     const raised = new Date(raisedTime);
     const resolved = new Date(resolvedTime);
@@ -28,30 +28,35 @@ const calculateTimeDifference = (raisedTime: string, resolvedTime: string | null
     if (minutes > 0) parts.push(`${minutes}m`);
     if (seconds > 0) parts.push(`${seconds}s`);
 
-    return parts.join(" ") || "0s";
+    return parts.join(' ') || '0s';
 };
 
-export const ActionsCell = ({doubt, refetch}:{doubt: Doubt, refetch: () => void}) => {
+export const ActionsCell = ({ doubt, refetch }: { doubt: Doubt; refetch: () => void }) => {
     const isAdmin = isUserAdmin();
 
-
-    return(
-        <div className="flex items-center gap-2 w-full justify-center text-center">
+    return (
+        <div className="flex w-full items-center justify-center gap-2 text-center">
             <DoubtDetailsDialog doubt={doubt} refetch={refetch} />
             {isAdmin && <DeleteDoubt doubt={doubt} refetch={refetch} showText={false} />}
         </div>
-    )
-}
+    );
+};
 
-export const DoubtDetailsDialog = ({doubt, refetch}:{doubt: Doubt, refetch: () => void}) => {
+export const DoubtDetailsDialog = ({ doubt, refetch }: { doubt: Doubt; refetch: () => void }) => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const {instituteDetails} = useInstituteDetailsStore();
-    const batch = instituteDetails?.batches_for_sessions?.find(batch => batch.id==doubt.batch_id);
+    const { instituteDetails } = useInstituteDetailsStore();
+    const batch = instituteDetails?.batches_for_sessions?.find(
+        (batch) => batch.id == doubt.batch_id
+    );
     const { userDetailsRecord } = useDoubtTable();
-    const batchName = batch ?
-        batch.level.level_name + ' ' + batch.package_dto.package_name + ' ' + batch.session.session_name
-    : ""
-    return(
+    const batchName = batch
+        ? batch.level.level_name +
+          ' ' +
+          batch.package_dto.package_name +
+          ' ' +
+          batch.session.session_name
+        : '';
+    return (
         <MyDialog
             trigger={<Eye className="cursor-pointer" />}
             heading="Doubt Details"
@@ -61,26 +66,33 @@ export const DoubtDetailsDialog = ({doubt, refetch}:{doubt: Doubt, refetch: () =
         >
             <div className="flex flex-col gap-4 p-4">
                 <div className="flex justify-between gap-3">
-                    <div className="flex flex-col gap-8 w-3/4">
+                    <div className="flex w-3/4 flex-col gap-8">
                         <div className="flex flex-col gap-2">
-                            <p className="font-semibold text-regular">Doubt Description</p>
-                            <div className="border border-neutral-300 bg-neutral-50 p-2 rounded-lg w-full">
-                                <div dangerouslySetInnerHTML={{ __html: doubt.html_text }} className="text-neutral-800" />
+                            <p className="text-regular font-semibold">Doubt Description</p>
+                            <div className="w-full rounded-lg border border-neutral-300 bg-neutral-50 p-2">
+                                <div
+                                    dangerouslySetInnerHTML={{ __html: doubt.html_text }}
+                                    className="text-neutral-800"
+                                />
                             </div>
                         </div>
                         <Separator />
-                        <div className="flex flex-col gap-2 text-neutral-600 text-body">
-                            <p className="font-semibold text-regular flex items-center gap-2"><BookOpen /> Content Information</p>
-                            <div className="border border-neutral-300 p-2 rounded-lg w-full">
-                                <div className="w-full flex items-center justify-between">
+                        <div className="flex flex-col gap-2 text-body text-neutral-600">
+                            <p className="text-regular flex items-center gap-2 font-semibold">
+                                <BookOpen /> Content Information
+                            </p>
+                            <div className="w-full rounded-lg border border-neutral-300 p-2">
+                                <div className="flex w-full items-center justify-between">
                                     <p className="text-neutral-400">Slide Type:</p>
-                                    <p className="border border-primary-500 bg-primary-50 py-[2px] px-2 text-primary-500 rounded-lg text-caption">{doubt.content_type}</p>
+                                    <p className="rounded-lg border border-primary-500 bg-primary-50 px-2 py-[2px] text-caption text-primary-500">
+                                        {doubt.content_type}
+                                    </p>
                                 </div>
-                                <div className="w-full flex items-center justify-between">
+                                <div className="flex w-full items-center justify-between">
                                     <p className="text-neutral-400">Title:</p>
                                     <p className=" font-semibold ">{doubt.source_name}</p>
                                 </div>
-                                <div className="w-full flex items-center justify-between">
+                                <div className="flex w-full items-center justify-between">
                                     <p className="text-neutral-400">Location:</p>
                                     <TimestampCell doubt={doubt} />
                                 </div>
@@ -88,30 +100,37 @@ export const DoubtDetailsDialog = ({doubt, refetch}:{doubt: Doubt, refetch: () =
                         </div>
                         <MarkAsResolved doubt={doubt} refetch={refetch} />
                     </div>
-                    <div className="flex flex-col gap-8 flex-1">
+                    <div className="flex flex-1 flex-col gap-8">
                         <div className="flex flex-col gap-2">
-                            <div className="flex gap-1 items-center">
+                            <div className="flex items-center gap-1">
                                 <User />
-                                <p className="font-semibold text-regular">Learner</p>
+                                <p className="text-regular font-semibold">Learner</p>
                             </div>
-                            <div className="border border-neutral-300 p-2 rounded-lg w-full text-body">
-                                <div className="w-full flex items-center justify-between">
+                            <div className="w-full rounded-lg border border-neutral-300 p-2 text-body">
+                                <div className="flex w-full items-center justify-between">
                                     <p className="text-neutral-400">Name:</p>
-                                    <p className=" font-semibold ">{userDetailsRecord[doubt.user_id]?.name}</p>
+                                    <p className=" font-semibold ">
+                                        {userDetailsRecord[doubt.user_id]?.name}
+                                    </p>
                                 </div>
-                                <div className="w-full flex items-center justify-between">
+                                <div className="flex w-full items-center justify-between">
                                     <p className="text-neutral-400">Batch:</p>
                                     <p className=" font-semibold ">{batchName}</p>
                                 </div>
                             </div>
                         </div>
-                        <div className="flex flex-col gap-2 w-full">
-                            <div className="flex gap-1 items-center w-full">
+                        <div className="flex w-full flex-col gap-2">
+                            <div className="flex w-full items-center gap-1">
                                 <Clock />
-                                <p className="font-semibold text-regular">Summary</p>
+                                <p className="text-regular font-semibold">Summary</p>
                             </div>
-                            <div className="border border-primary-500 bg-primary-50 p-2 rounded-lg w-full flex flex-col items-center justify-normal text-primary-500">
-                                <p className="w-full text-center font-bold text-base">{calculateTimeDifference(doubt.raised_time, doubt.resolved_time)}</p>
+                            <div className="flex w-full flex-col items-center justify-normal rounded-lg border border-primary-500 bg-primary-50 p-2 text-primary-500">
+                                <p className="w-full text-center text-base font-bold">
+                                    {calculateTimeDifference(
+                                        doubt.raised_time,
+                                        doubt.resolved_time
+                                    )}
+                                </p>
                                 <p className="w-full text-center text-caption">Resolve Time</p>
                             </div>
                         </div>
@@ -119,5 +138,5 @@ export const DoubtDetailsDialog = ({doubt, refetch}:{doubt: Doubt, refetch: () =
                 </div>
             </div>
         </MyDialog>
-    )
-}
+    );
+};

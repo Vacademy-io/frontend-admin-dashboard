@@ -249,7 +249,7 @@ const PlanLectureForm = ({ handleSubmitSuccess, keyContext, loader }: PlanLectur
                                     layoutVariant="default"
                                     className="w-full text-sm"
                                 >
-                                    <DashboardLoader/>
+                                    <DashboardLoader />
                                 </MyButton>
                             ) : (
                                 <MyButton

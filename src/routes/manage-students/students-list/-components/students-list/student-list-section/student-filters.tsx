@@ -107,11 +107,11 @@ export const StudentFilters = ({
     };
 
     return (
-        <div className="space-y-4 animate-fadeIn">
+        <div className="animate-fadeIn space-y-4">
             {/* Top section with session selector and export buttons */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
                 {/* Session selector */}
-                <div className="flex-1 max-w-xs">
+                <div className="max-w-xs flex-1">
                     {sessionList.length == 0 ? (
                         <AddSessionDialog
                             isAddSessionDiaogOpen={isAddSessionDiaogOpen}
@@ -121,15 +121,15 @@ export const StudentFilters = ({
                                 <div className="group relative">
                                     <MyButton
                                         buttonType="text"
-                                        className="group flex items-center gap-2 text-primary-500 disabled:text-primary-300 hover:scale-102 transition-all duration-200"
+                                        className="hover:scale-102 group flex items-center gap-2 text-primary-500 transition-all duration-200 disabled:text-primary-300"
                                         disable={!instituteDetails?.batches_for_sessions.length}
                                     >
-                                        <Plus className="size-4 group-hover:scale-110 transition-transform duration-200" />
+                                        <Plus className="size-4 transition-transform duration-200 group-hover:scale-110" />
                                         <span className="hidden sm:inline">Add New Session</span>
                                         <span className="sm:hidden">Add Session</span>
                                     </MyButton>
                                     {!instituteDetails?.batches_for_sessions.length && (
-                                        <p className="-mt-1 text-[10px] text-neutral-400 text-center">
+                                        <p className="-mt-1 text-center text-[10px] text-neutral-400">
                                             (Create a course first)
                                         </p>
                                     )}
@@ -152,15 +152,15 @@ export const StudentFilters = ({
                 </div>
 
                 {/* Export buttons */}
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
                     <MyButton
                         scale="medium"
                         buttonType="secondary"
                         layoutVariant="default"
                         onClick={handleExportAccountDetails}
-                        className="group flex items-center gap-2 hover:scale-102 transition-all duration-200 bg-gradient-to-r from-neutral-50 to-neutral-100 hover:from-neutral-100 hover:to-neutral-200"
+                        className="hover:scale-102 group flex items-center gap-2 bg-gradient-to-r from-neutral-50 to-neutral-100 transition-all duration-200 hover:from-neutral-100 hover:to-neutral-200"
                     >
-                        <Export className="size-4 group-hover:scale-110 transition-transform duration-200" />
+                        <Export className="size-4 transition-transform duration-200 group-hover:scale-110" />
                         <span className="hidden md:inline">Export account details</span>
                         <span className="md:hidden">Account Details</span>
                     </MyButton>
@@ -170,9 +170,9 @@ export const StudentFilters = ({
                         layoutVariant="default"
                         id="export-data"
                         onClick={handleExportClick}
-                        className="group flex items-center gap-2 hover:scale-102 transition-all duration-200 bg-gradient-to-r from-emerald-50 to-emerald-100 hover:from-emerald-100 hover:to-emerald-200 border-emerald-200 text-emerald-700"
+                        className="hover:scale-102 group flex items-center gap-2 border-emerald-200 bg-gradient-to-r from-emerald-50 to-emerald-100 text-emerald-700 transition-all duration-200 hover:from-emerald-100 hover:to-emerald-200"
                     >
-                        <Export className="size-4 group-hover:scale-110 transition-transform duration-200" />
+                        <Export className="size-4 transition-transform duration-200 group-hover:scale-110" />
                         <span className="hidden md:inline">Export Data</span>
                         <span className="md:hidden">Export</span>
                     </MyButton>
@@ -180,7 +180,7 @@ export const StudentFilters = ({
             </div>
 
             {/* Filters and search section */}
-            <div className="bg-gradient-to-r from-white to-neutral-50/30 rounded-xl p-4 border border-neutral-200/50 shadow-sm">
+            <div className="rounded-xl border border-neutral-200/50 bg-gradient-to-r from-white to-neutral-50/30 p-4 shadow-sm">
                 <div className="flex flex-col gap-4">
                     {/* Search box */}
                     <div className="w-full lg:max-w-md">
@@ -196,7 +196,7 @@ export const StudentFilters = ({
                     {/* Filter chips */}
                     <div className="flex flex-wrap gap-3">
                         {filters.map((filter, index) => (
-                            <div 
+                            <div
                                 key={filter.id}
                                 className="animate-slideInRight"
                                 style={{ animationDelay: `${index * 0.1}s` }}
@@ -220,25 +220,25 @@ export const StudentFilters = ({
 
                     {/* Filter action buttons */}
                     {(columnFilters.length > 0 || isFilterActive) && (
-                        <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-neutral-200/50 animate-scaleIn">
+                        <div className="animate-scaleIn flex flex-wrap items-center gap-3 border-t border-neutral-200/50 pt-2">
                             <MyButton
                                 buttonType="primary"
                                 scale="small"
                                 layoutVariant="default"
-                                className="group flex items-center gap-2 h-8 hover:scale-102 transition-all duration-200 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 shadow-md"
+                                className="hover:scale-102 to-primary-600 hover:from-primary-600 hover:to-primary-700 group flex h-8 items-center gap-2 bg-gradient-to-r from-primary-500 shadow-md transition-all duration-200"
                                 onClick={onFilterClick}
                             >
-                                <Funnel className="size-3.5 group-hover:scale-110 transition-transform duration-200" />
+                                <Funnel className="size-3.5 transition-transform duration-200 group-hover:scale-110" />
                                 Apply Filters
                             </MyButton>
                             <MyButton
                                 buttonType="secondary"
                                 scale="small"
                                 layoutVariant="default"
-                                className="group flex items-center gap-2 h-8 border border-neutral-300 bg-neutral-100 hover:border-neutral-400 hover:bg-neutral-200 active:border-neutral-500 active:bg-neutral-300 hover:scale-102 transition-all duration-200"
+                                className="hover:scale-102 group flex h-8 items-center gap-2 border border-neutral-300 bg-neutral-100 transition-all duration-200 hover:border-neutral-400 hover:bg-neutral-200 active:border-neutral-500 active:bg-neutral-300"
                                 onClick={onClearFilters}
                             >
-                                <X className="size-3.5 group-hover:scale-110 transition-transform duration-200" />
+                                <X className="size-3.5 transition-transform duration-200 group-hover:scale-110" />
                                 Reset All
                             </MyButton>
                         </div>

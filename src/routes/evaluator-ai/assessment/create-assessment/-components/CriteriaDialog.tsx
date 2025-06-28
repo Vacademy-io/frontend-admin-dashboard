@@ -4,7 +4,7 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 import {
     Table,
     TableBody,
@@ -12,10 +12,10 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useState } from "react";
+} from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useState } from 'react';
 import {
     marking_1,
     marking_2,
@@ -23,16 +23,16 @@ import {
     marking_5,
     marking_8,
     marking_10,
-} from "../-constants/criteria";
-import { Plus, Trash } from "phosphor-react";
-import { cn } from "@/lib/utils";
+} from '../-constants/criteria';
+import { Plus, Trash } from 'phosphor-react';
+import { cn } from '@/lib/utils';
 import {
     Accordion,
     AccordionContent,
     AccordionItem,
     AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Criteria } from "../-hooks/sectionData";
+} from '@/components/ui/accordion';
+import { Criteria } from '../-hooks/sectionData';
 
 interface CriteriaDialogProps {
     marks: number;
@@ -47,7 +47,7 @@ export const CriteriaDialog = ({
     selectedCriteria,
     onRemoveCriteria,
 }: CriteriaDialogProps) => {
-    const [newCriteriaName, setNewCriteriaName] = useState("");
+    const [newCriteriaName, setNewCriteriaName] = useState('');
     const [newCriteriaMarks, setNewCriteriaMarks] = useState(marks);
 
     const getCriteriaByMarks = (marks: number): Criteria[] => {
@@ -67,13 +67,13 @@ export const CriteriaDialog = ({
 
     const handleSelectAll = () => {
         const unselectedCriteria = availableCriteria.filter(
-            (criteria) => !selectedCriteria.some((sc) => sc.name === criteria.name),
+            (criteria) => !selectedCriteria.some((sc) => sc.name === criteria.name)
         );
         unselectedCriteria.forEach((criteria) => onAddCriteria(criteria));
     };
     const handleRemoveAll = () => {
         selectedCriteria.forEach((criteria) => onRemoveCriteria(criteria.name));
-        setNewCriteriaName("");
+        setNewCriteriaName('');
     };
 
     return (
@@ -94,8 +94,8 @@ export const CriteriaDialog = ({
                         }}
                     >
                         {availableCriteria.length === selectedCriteria.length
-                            ? "Remove All"
-                            : "Select All"}
+                            ? 'Remove All'
+                            : 'Select All'}
                     </Button>
                 </DialogHeader>
 
@@ -169,11 +169,11 @@ export const CriteriaDialog = ({
                                                     name: newCriteriaName,
                                                     marks: newCriteriaMarks,
                                                 });
-                                                setNewCriteriaName("");
+                                                setNewCriteriaName('');
                                                 setNewCriteriaMarks(marks);
                                             }
                                         }}
-                                        variant={"outline"}
+                                        variant={'outline'}
                                         className="bg-primary-500 hover:bg-primary-400"
                                         disabled={!newCriteriaName || newCriteriaMarks <= 0}
                                     >
@@ -202,7 +202,7 @@ export const CriteriaDialog = ({
                                         <TableBody>
                                             {availableCriteria.map((criteria, index) => {
                                                 const isSelected = selectedCriteria.some(
-                                                    (sc) => sc.name === criteria.name,
+                                                    (sc) => sc.name === criteria.name
                                                 );
                                                 return (
                                                     <TableRow key={index}>
@@ -212,17 +212,17 @@ export const CriteriaDialog = ({
                                                             <Button
                                                                 variant={
                                                                     isSelected
-                                                                        ? "destructive"
-                                                                        : "outline"
+                                                                        ? 'destructive'
+                                                                        : 'outline'
                                                                 }
                                                                 className={cn(
                                                                     !isSelected &&
-                                                                        "bg-primary-500 hover:bg-primary-400",
+                                                                        'bg-primary-500 hover:bg-primary-400'
                                                                 )}
                                                                 onClick={() =>
                                                                     isSelected
                                                                         ? onRemoveCriteria(
-                                                                              criteria.name,
+                                                                              criteria.name
                                                                           )
                                                                         : onAddCriteria(criteria)
                                                                 }

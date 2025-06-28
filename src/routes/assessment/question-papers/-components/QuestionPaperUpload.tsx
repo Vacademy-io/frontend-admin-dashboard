@@ -554,7 +554,7 @@ export const QuestionPaperUpload = ({
                             </div>
                         </>
                     ) : (
-                        <DashboardLoader/>
+                        <DashboardLoader />
                     )}
                 </form>
             </FormProvider>

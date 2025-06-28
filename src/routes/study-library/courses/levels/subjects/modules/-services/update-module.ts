@@ -1,7 +1,7 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
-import { UPDATE_MODULE } from "@/constants/urls";
-import { Module } from "@/stores/study-library/use-modules-with-chapters-store";
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
+import { UPDATE_MODULE } from '@/constants/urls';
+import { Module } from '@/stores/study-library/use-modules-with-chapters-store';
 
 export const useUpdateModule = () => {
     const queryClient = useQueryClient();
@@ -18,9 +18,9 @@ export const useUpdateModule = () => {
             return authenticatedAxiosInstance.put(`${UPDATE_MODULE}?moduleId=${moduleId}`, payload);
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["GET_MODULES_WITH_CHAPTERS"] });
-            queryClient.invalidateQueries({ queryKey: ["GET_INIT_INSTITUTE"] });
-            queryClient.invalidateQueries({ queryKey: ["GET_STUDENT_SUBJECTS_PROGRESS"] });
+            queryClient.invalidateQueries({ queryKey: ['GET_MODULES_WITH_CHAPTERS'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SUBJECTS_PROGRESS'] });
         },
     });
 };

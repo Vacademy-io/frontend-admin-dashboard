@@ -10,12 +10,7 @@ import {
     FormItem,
     FormLabel,
 } from '@/components/ui/form';
-import {
-    OnboardingSignup,
-    VacademyAssessLogo,
-    VacademyLMSLogo,
-    VacademyLogo,
-} from '@/svgs';
+import { OnboardingSignup, VacademyAssessLogo, VacademyLMSLogo, VacademyLogo } from '@/svgs';
 import { MyButton } from '@/components/design-system/button';
 import { Plus } from 'phosphor-react';
 import { useNavigate } from '@tanstack/react-router';

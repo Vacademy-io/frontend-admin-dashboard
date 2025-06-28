@@ -1,21 +1,21 @@
-import { MyButton } from "@/components/design-system/button";
+import { MyButton } from '@/components/design-system/button';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useNavigate } from "@tanstack/react-router";
-import { DotsThree, Info } from "phosphor-react";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { TestContent } from "@/types/assessments/schedule-test-list";
-import { useMutation } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { AxiosError } from "axios";
-import { getInstituteId } from "@/constants/helper";
-import { handleDeleteAssessment } from "@/routes/assessment/assessment-list/-services/assessment-services";
+} from '@/components/ui/dropdown-menu';
+import { useNavigate } from '@tanstack/react-router';
+import { DotsThree, Info } from 'phosphor-react';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { useState } from 'react';
+import { Input } from '@/components/ui/input';
+import { TestContent } from '@/types/assessments/schedule-test-list';
+import { useMutation } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { AxiosError } from 'axios';
+import { getInstituteId } from '@/constants/helper';
+import { handleDeleteAssessment } from '@/routes/assessment/assessment-list/-services/assessment-services';
 
 export function ScheduleTestDetailsDropdownLive({
     scheduleTestContent,
@@ -31,7 +31,7 @@ export function ScheduleTestDetailsDropdownLive({
     const navigate = useNavigate();
     const handleNavigateAssessment = (assessmentId: string) => {
         navigate({
-            to: "/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType",
+            to: '/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType',
             params: {
                 assessmentId: assessmentId,
                 examType: scheduleTestContent.play_mode,
@@ -106,7 +106,7 @@ export function ScheduleTestDetailsDropdownUpcoming({
     const navigate = useNavigate();
     const handleNavigateAssessment = (assessmentId: string) => {
         navigate({
-            to: "/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType",
+            to: '/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType',
             params: {
                 assessmentId: assessmentId,
                 examType: scheduleTestContent.play_mode,
@@ -175,7 +175,7 @@ export function ScheduleTestDetailsDropdownPrevious({
     const navigate = useNavigate();
     const handleNavigateAssessment = (assessmentId: string) => {
         navigate({
-            to: "/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType",
+            to: '/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType',
             params: {
                 assessmentId: assessmentId,
                 examType: scheduleTestContent.play_mode,
@@ -246,7 +246,7 @@ export function ScheduleTestDetailsDropdowDrafts({
     const navigate = useNavigate();
     const handleNavigateAssessment = (assessmentId: string) => {
         navigate({
-            to: "/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType",
+            to: '/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType',
             params: {
                 assessmentId: assessmentId,
                 examType: scheduleTestContent.play_mode,
@@ -310,28 +310,28 @@ export function ScheduleTestMainDropdownComponent({
     handleRefetchData: () => void;
 }) {
     switch (selectedTab) {
-        case "liveTests":
+        case 'liveTests':
             return (
                 <ScheduleTestDetailsDropdownLive
                     scheduleTestContent={scheduleTestContent}
                     handleRefetchData={handleRefetchData}
                 />
             );
-        case "upcomingTests":
+        case 'upcomingTests':
             return (
                 <ScheduleTestDetailsDropdownUpcoming
                     scheduleTestContent={scheduleTestContent}
                     handleRefetchData={handleRefetchData}
                 />
             );
-        case "previousTests":
+        case 'previousTests':
             return (
                 <ScheduleTestDetailsDropdownPrevious
                     scheduleTestContent={scheduleTestContent}
                     handleRefetchData={handleRefetchData}
                 />
             );
-        case "draftTests":
+        case 'draftTests':
             return (
                 <ScheduleTestDetailsDropdowDrafts
                     scheduleTestContent={scheduleTestContent}
@@ -389,8 +389,8 @@ const ScheduleTestDeleteDialog = ({
             instituteId: string | undefined;
         }) => handleDeleteAssessment(assessmentId, instituteId),
         onSuccess: async () => {
-            toast.success("Assessment has been deleted successfully!", {
-                className: "success-toast",
+            toast.success('Assessment has been deleted successfully!', {
+                className: 'success-toast',
                 duration: 2000,
             });
             onClose();
@@ -399,12 +399,12 @@ const ScheduleTestDeleteDialog = ({
         onError: (error: unknown) => {
             if (error instanceof AxiosError) {
                 toast.error(error.message, {
-                    className: "error-toast",
+                    className: 'error-toast',
                     duration: 2000,
                 });
             } else {
                 // Handle non-Axios errors if necessary
-                console.error("Unexpected error:", error);
+                console.error('Unexpected error:', error);
             }
         },
     });

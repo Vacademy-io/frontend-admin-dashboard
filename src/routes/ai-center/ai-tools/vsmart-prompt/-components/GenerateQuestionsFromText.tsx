@@ -128,7 +128,7 @@ export const GenerateQuestionsFromText = ({
         <div className="flex w-full items-center justify-center">
             {loader ? (
                 <MyButton>
-                    <DashboardLoader/>
+                    <DashboardLoader />
                 </MyButton>
             ) : (
                 <MyButton onClick={() => formSubmitRef.current()}>Generate Questions</MyButton>
@@ -191,7 +191,7 @@ export const GenerateQuestionsFromText = ({
                                 layoutVariant="default"
                                 className="w-full text-sm"
                             >
-                                <DashboardLoader/>
+                                <DashboardLoader />
                             </MyButton>
                         ) : (
                             <MyButton

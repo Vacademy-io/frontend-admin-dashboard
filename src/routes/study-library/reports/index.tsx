@@ -1,9 +1,9 @@
-import { LayoutContainer } from "@/components/common/layout-container/layout-container";
-import { createFileRoute } from "@tanstack/react-router";
-import { Helmet } from "react-helmet";
-import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
-import { useEffect } from "react";
-import HeaderTabs from "./-components/headerTabs";
+import { LayoutContainer } from '@/components/common/layout-container/layout-container';
+import { createFileRoute } from '@tanstack/react-router';
+import { Helmet } from 'react-helmet';
+import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
+import { useEffect } from 'react';
+import HeaderTabs from './-components/headerTabs';
 
 export interface StudentReportParam {
     tab?: string;
@@ -19,7 +19,7 @@ export interface searchParams {
     studentReport: StudentReportParam | undefined;
 }
 
-export const Route = createFileRoute("/study-library/reports/")({
+export const Route = createFileRoute('/study-library/reports/')({
     component: RouteComponent,
     validateSearch: (search: searchParams) => ({
         studentReport: search.studentReport as StudentReportParam | undefined,

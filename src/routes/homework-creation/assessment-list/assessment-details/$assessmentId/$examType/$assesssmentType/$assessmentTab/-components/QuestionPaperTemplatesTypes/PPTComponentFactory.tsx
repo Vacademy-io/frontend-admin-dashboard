@@ -1,9 +1,9 @@
-import React from "react";
-import { SingleCorrectQuestionPaperTemplatePPTView } from "./MCQ(Single Correct)/SingleCorrectQuestionPaperTemplatePPTView";
-import { MultipleCorrectQuestionPaperTemplatePPTView } from "./MCQ(Multiple Correct)/MultipleCorrectQuestionPaperTemplatePPTView";
-import { SectionQuestionPaperFormProps } from "../../-utils/assessment-question-paper";
+import React from 'react';
+import { SingleCorrectQuestionPaperTemplatePPTView } from './MCQ(Single Correct)/SingleCorrectQuestionPaperTemplatePPTView';
+import { MultipleCorrectQuestionPaperTemplatePPTView } from './MCQ(Multiple Correct)/MultipleCorrectQuestionPaperTemplatePPTView';
+import { SectionQuestionPaperFormProps } from '../../-utils/assessment-question-paper';
 
-type PPTComponentType = "MCQS" | "MCQM";
+type PPTComponentType = 'MCQS' | 'MCQM';
 
 type PPTComponent = (props: SectionQuestionPaperFormProps) => React.ReactElement;
 

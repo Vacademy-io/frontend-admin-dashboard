@@ -1,27 +1,27 @@
 // add-course-form.tsx
-import { SubjectDefaultImage } from "@/assets/svgs";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { MyButton } from "@/components/design-system/button";
-import { FileUploadComponent } from "@/components/design-system/file-upload";
-import { MyInput } from "@/components/design-system/input";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Separator } from "@/components/ui/separator";
-import { TokenKey } from "@/constants/auth/tokens";
-import { useFileUpload } from "@/hooks/use-file-upload";
-import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
-import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { DotsThree } from "@phosphor-icons/react";
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { AddLevelInput } from "../../../design-system/add-level-input";
-import { AddSessionInput } from "../../../design-system/add-session-input";
-import { LevelInSessionField } from "./level-field";
-import { SessionType } from "@/schemas/student/student-list/institute-schema";
+import { SubjectDefaultImage } from '@/assets/svgs';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { MyButton } from '@/components/design-system/button';
+import { FileUploadComponent } from '@/components/design-system/file-upload';
+import { MyInput } from '@/components/design-system/input';
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Separator } from '@/components/ui/separator';
+import { TokenKey } from '@/constants/auth/tokens';
+import { useFileUpload } from '@/hooks/use-file-upload';
+import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { DotsThree } from '@phosphor-icons/react';
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { AddLevelInput } from '../../../design-system/add-level-input';
+import { AddSessionInput } from '../../../design-system/add-session-input';
+import { LevelInSessionField } from './level-field';
+import { SessionType } from '@/schemas/student/student-list/institute-schema';
 // import { CourseInfoDialog } from "./course-info-dialog";
-import getExplanation from "../-utils/getExplanation";
+import getExplanation from '../-utils/getExplanation';
 
 // Updated Session interface with levels array
 export interface Session {
@@ -75,9 +75,9 @@ const formSchema = z.object({
                         level_name: z.string(),
                         duration_in_days: z.number().nullable(),
                         thumbnail_id: z.string().nullable(),
-                    }),
+                    })
                 ),
-            }),
+            })
         )
         .optional(),
 });
@@ -120,11 +120,11 @@ export const AddCourseForm = ({
     const { uploadFile, getPublicUrl, isUploading: isUploadingFile } = useFileUpload();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [fileId, setFileId] = useState<string | undefined>(
-        initialValues?.thumbnail_file_id || undefined,
+        initialValues?.thumbnail_file_id || undefined
     );
     const [previewUrl, setPreviewUrl] = useState<string | undefined>(undefined);
-    const [newLevelName, setNewLevelName] = useState("");
-    const [newSessionName, setNewSessionName] = useState("");
+    const [newLevelName, setNewLevelName] = useState('');
+    const [newSessionName, setNewSessionName] = useState('');
 
     const { instituteDetails, getAllSessions, getLevelsFromPackage2 } = useInstituteDetailsStore();
     // At the top with other state variables
@@ -134,10 +134,10 @@ export const AddCourseForm = ({
     const handleAddLevel = (
         levelName: string,
         durationInDays: number | null,
-        sessionId: string,
+        sessionId: string
     ) => {
         const newLevel: Level = {
-            id: "", // Use temporary ID for new levels
+            id: '', // Use temporary ID for new levels
             new_level: true,
             level_name: levelName,
             duration_in_days: durationInDays,
@@ -151,7 +151,7 @@ export const AddCourseForm = ({
         }));
 
         // Update form sessions value if the session is already selected
-        const currentSessions = form.getValues("sessions") || [];
+        const currentSessions = form.getValues('sessions') || [];
         const sessionIndex = currentSessions.findIndex((s) => s.id === sessionId);
 
         if (sessionIndex !== -1) {
@@ -163,11 +163,11 @@ export const AddCourseForm = ({
                 currentSession.levels = [...(currentSession.levels || []), newLevel];
             }
 
-            form.setValue("sessions", updatedSessions);
+            form.setValue('sessions', updatedSessions);
         }
 
         // Reset inputs
-        setNewLevelName("");
+        setNewLevelName('');
         setNewLevelDuration(null);
     };
     const [sessionList, setSessionList] = useState<Session[]>([]);
@@ -176,17 +176,17 @@ export const AddCourseForm = ({
         setSessionList(getAllSessions().map((session) => convertToFormSession(session)));
     }, [instituteDetails]);
     const [newLevelDuration, setNewLevelDuration] = useState<number | null>(null);
-    const [newSessionStartDate, setNewSessionStartDate] = useState<string>("");
+    const [newSessionStartDate, setNewSessionStartDate] = useState<string>('');
 
     // In the form initialization
     const form = useForm<AddCourseData>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            id: initialValues?.id || "",
-            course_name: initialValues?.course_name || "",
+            id: initialValues?.id || '',
+            course_name: initialValues?.course_name || '',
             thumbnail_file_id: initialValues?.thumbnail_file_id || fileId,
             contain_levels: initialValues?.contain_levels || true,
-            status: initialValues?.status || "ACTIVE",
+            status: initialValues?.status || 'ACTIVE',
             new_course: initialValues?.new_course || true,
             sessions: [], // Changed from levels to sessions
         },
@@ -194,10 +194,10 @@ export const AddCourseForm = ({
 
     const handleAddSession = (sessionName: string, startDate: string) => {
         const newSession: Session = {
-            id: "",
+            id: '',
             new_session: true,
             session_name: sessionName,
-            status: "INACTIVE",
+            status: 'INACTIVE',
             start_date: startDate,
             levels: [], // Initialize with empty levels array
         };
@@ -211,7 +211,7 @@ export const AddCourseForm = ({
                     const url = await getPublicUrl(initialValues?.thumbnail_file_id);
                     setFileId(url);
                 } catch (error) {
-                    console.error("Failed to fetch image URL:", error);
+                    console.error('Failed to fetch image URL:', error);
                 }
             }
         };
@@ -225,34 +225,34 @@ export const AddCourseForm = ({
             const uploadedFileId = await uploadFile({
                 file,
                 setIsUploading,
-                userId: "your-user-id",
+                userId: 'your-user-id',
                 source: INSTITUTE_ID,
-                sourceId: "SUBJECTS",
+                sourceId: 'SUBJECTS',
             });
 
             if (uploadedFileId) {
                 setFileId(uploadedFileId);
                 // Get public URL only for preview purposes
-                form.setValue("thumbnail_file_id", uploadedFileId);
+                form.setValue('thumbnail_file_id', uploadedFileId);
                 const publicUrl = await getPublicUrl(uploadedFileId);
                 setPreviewUrl(publicUrl);
             }
         } catch (error) {
-            console.error("Upload failed:", error);
+            console.error('Upload failed:', error);
         } finally {
             setIsUploading(false);
         }
     };
 
     const onSubmit = (data: AddCourseData) => {
-        console.log("Complete form data:", JSON.stringify(data, null, 2));
+        console.log('Complete form data:', JSON.stringify(data, null, 2));
         // Filter out any sessions that might have no levels
         const filteredSessions =
             data.sessions?.filter((session) => session.levels && session.levels.length > 0) || [];
 
         const submissionData = {
             ...data,
-            status: "ACTIVE",
+            status: 'ACTIVE',
             sessions: filteredSessions,
         };
 
@@ -260,14 +260,14 @@ export const AddCourseForm = ({
         setOpenDialog(false);
     };
 
-    const containLevels = form.watch("contain_levels");
+    const containLevels = form.watch('contain_levels');
 
     useEffect(() => {
-        const containsLevelValue = form.getValues("contain_levels");
-        const sessionValue = form.getValues("sessions");
-        const courseName = form.getValues("course_name");
+        const containsLevelValue = form.getValues('contain_levels');
+        const sessionValue = form.getValues('sessions');
+        const courseName = form.getValues('course_name');
 
-        if (courseName === "") {
+        if (courseName === '') {
             // Always disable if course name is empty
             setDisableAddButton(true);
         } else if (containsLevelValue === true && !initialValues) {
@@ -281,7 +281,7 @@ export const AddCourseForm = ({
             // If "Contains Levels" is false, only require course name
             setDisableAddButton(false);
         }
-    }, [form.watch("sessions"), form.watch("course_name"), form.watch("contain_levels")]);
+    }, [form.watch('sessions'), form.watch('course_name'), form.watch('contain_levels')]);
 
     // Add this line to create a form ref
     const formRef = useRef<HTMLFormElement>(null);
@@ -371,7 +371,7 @@ export const AddCourseForm = ({
                     />
                     <div
                         className={`flex w-full flex-col items-center gap-3 ${
-                            isUploading ? "hidden" : "visible"
+                            isUploading ? 'hidden' : 'visible'
                         }`}
                     >
                         <MyButton
@@ -380,7 +380,7 @@ export const AddCourseForm = ({
                             buttonType="secondary"
                             layoutVariant="default"
                             scale="large"
-                            id={"course-thumbnail"}
+                            id={'course-thumbnail'}
                             type="button"
                         >
                             Upload Image
@@ -410,9 +410,9 @@ export const AddCourseForm = ({
                                     </label>
                                     <FormControl>
                                         <RadioGroup
-                                            value={field.value ? "true" : "false"}
+                                            value={field.value ? 'true' : 'false'}
                                             onValueChange={(value) =>
-                                                field.onChange(value === "true")
+                                                field.onChange(value === 'true')
                                             }
                                             className="flex gap-8"
                                         >
@@ -471,15 +471,15 @@ export const AddCourseForm = ({
                                         <div className="flex flex-col gap-4">
                                             {sessionList.map((session) => {
                                                 const isSessionSelected = (field.value || []).some(
-                                                    (s) => s.id === session.id,
+                                                    (s) => s.id === session.id
                                                 );
                                                 return (
                                                     <div key={session.id}>
                                                         <div
                                                             className={`rounded-lg border border-neutral-200 py-2 ${
                                                                 isSessionSelected
-                                                                    ? "bg-neutral-100"
-                                                                    : "bg-none"
+                                                                    ? 'bg-neutral-100'
+                                                                    : 'bg-none'
                                                             }`}
                                                         >
                                                             <div className="flex w-full items-center justify-between p-4 pr-8">
@@ -554,12 +554,12 @@ export const AddCourseForm = ({
                                                                         }
                                                                         handleAddLevel={(
                                                                             name,
-                                                                            duration,
+                                                                            duration
                                                                         ) =>
                                                                             handleAddLevel(
                                                                                 name,
                                                                                 duration,
-                                                                                session.id,
+                                                                                session.id
                                                                             )
                                                                         }
                                                                     />

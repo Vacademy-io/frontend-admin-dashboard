@@ -1,10 +1,10 @@
-import { LayoutContainer } from "@/components/common/layout-container/layout-container";
-import { CourseMaterial } from "@/routes/study-library/courses/-components/course-material";
-import { InitStudyLibraryProvider } from "@/providers/study-library/init-study-library-provider";
-import { createFileRoute } from "@tanstack/react-router";
-import { Helmet } from "react-helmet";
+import { LayoutContainer } from '@/components/common/layout-container/layout-container';
+import { CourseMaterial } from '@/routes/study-library/courses/-components/course-material';
+import { InitStudyLibraryProvider } from '@/providers/study-library/init-study-library-provider';
+import { createFileRoute } from '@tanstack/react-router';
+import { Helmet } from 'react-helmet';
 
-export const Route = createFileRoute("/study-library/courses/")({
+export const Route = createFileRoute('/study-library/courses/')({
     component: RouteComponent,
 });
 

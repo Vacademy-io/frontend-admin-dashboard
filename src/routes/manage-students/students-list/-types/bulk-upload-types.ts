@@ -67,7 +67,7 @@ export interface OptionalFieldsConfig {
     include_parents_email: boolean;
     include_linked_institute_name: boolean;
     include_parents_to_mother_email: boolean;
-    include_parents_to_mother_mobile: boolean
+    include_parents_to_mother_mobile: boolean;
 }
 
 export interface ExpiryAndStatusConfig {

@@ -1,9 +1,9 @@
-import { MyButton } from "@/components/design-system/button";
-import { CaretUpDown, XCircle } from "@phosphor-icons/react";
-import { BulkActionsMenuAttempted } from "./bulk-actions-menu-attempted";
-import { SubmissionStudentData } from "@/types/assessments/assessment-overview";
-import { BulkActionsMenuOngoing } from "./bulk-actions-menu-ongoing";
-import { BulkActionsMenuPending } from "./bulk-actions-menu-pending";
+import { MyButton } from '@/components/design-system/button';
+import { CaretUpDown, XCircle } from '@phosphor-icons/react';
+import { BulkActionsMenuAttempted } from './bulk-actions-menu-attempted';
+import { SubmissionStudentData } from '@/types/assessments/assessment-overview';
+import { BulkActionsMenuOngoing } from './bulk-actions-menu-ongoing';
+import { BulkActionsMenuPending } from './bulk-actions-menu-pending';
 
 interface BulkActionsProps {
     selectedCount: number;
@@ -41,7 +41,7 @@ export const BulkActions = ({
                     Reset
                     <XCircle />
                 </MyButton>
-                {selectedTab === "Attempted" && (
+                {selectedTab === 'Attempted' && (
                     <BulkActionsMenuAttempted
                         selectedCount={selectedCount}
                         selectedStudentIds={selectedStudentIds}
@@ -59,7 +59,7 @@ export const BulkActions = ({
                         }
                     />
                 )}
-                {selectedTab === "Ongoing" && (
+                {selectedTab === 'Ongoing' && (
                     <BulkActionsMenuOngoing
                         selectedCount={selectedCount}
                         selectedStudentIds={selectedStudentIds}
@@ -77,7 +77,7 @@ export const BulkActions = ({
                         }
                     />
                 )}
-                {selectedTab === "Pending" && (
+                {selectedTab === 'Pending' && (
                     <BulkActionsMenuPending
                         selectedCount={selectedCount}
                         selectedStudentIds={selectedStudentIds}

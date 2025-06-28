@@ -1,14 +1,14 @@
 // level-field.tsx (renamed to level-in-session-field.tsx)
-import { MyButton } from "@/components/design-system/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { DotsThree } from "@phosphor-icons/react";
-import { Level, Session, CourseFormData } from "./add-course-form";
-import { ControllerRenderProps } from "react-hook-form";
+import { MyButton } from '@/components/design-system/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { DotsThree } from '@phosphor-icons/react';
+import { Level, Session, CourseFormData } from './add-course-form';
+import { ControllerRenderProps } from 'react-hook-form';
 
 interface LevelInSessionFieldProps {
     level: Level;
     session: Session;
-    field: ControllerRenderProps<CourseFormData, "sessions">;
+    field: ControllerRenderProps<CourseFormData, 'sessions'>;
 }
 
 export const LevelInSessionField = ({ level, session, field }: LevelInSessionFieldProps) => {
@@ -42,7 +42,7 @@ export const LevelInSessionField = ({ level, session, field }: LevelInSessionFie
                     if (checked) {
                         // Adding this level to the session
                         const existingSessionIndex = newSessions.findIndex(
-                            (s) => s.id === session.id,
+                            (s) => s.id === session.id
                         );
 
                         if (existingSessionIndex === -1) {
@@ -51,7 +51,7 @@ export const LevelInSessionField = ({ level, session, field }: LevelInSessionFie
                                 id: session.id,
                                 session_name: session.session_name,
                                 status: session.status,
-                                start_date: session.start_date || "",
+                                start_date: session.start_date || '',
                                 new_session: session.new_session || false,
                                 levels: [
                                     {
@@ -59,7 +59,7 @@ export const LevelInSessionField = ({ level, session, field }: LevelInSessionFie
                                         level_name: level.level_name,
                                         duration_in_days: level.duration_in_days,
                                         thumbnail_id: level.thumbnail_id,
-                                        new_level: level.id === "" || false,
+                                        new_level: level.id === '' || false,
                                     },
                                 ],
                             });
@@ -80,7 +80,7 @@ export const LevelInSessionField = ({ level, session, field }: LevelInSessionFie
                                         level_name: level.level_name,
                                         duration_in_days: level.duration_in_days,
                                         thumbnail_id: level.thumbnail_id,
-                                        new_level: level.id === "" || false,
+                                        new_level: level.id === '' || false,
                                     });
                                 }
                             }
@@ -88,7 +88,7 @@ export const LevelInSessionField = ({ level, session, field }: LevelInSessionFie
                     } else {
                         // Remove this level from the session
                         const existingSessionIndex = newSessions.findIndex(
-                            (s) => s.id === session.id,
+                            (s) => s.id === session.id
                         );
 
                         if (existingSessionIndex !== -1) {
