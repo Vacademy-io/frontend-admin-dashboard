@@ -2512,6 +2512,8 @@ export const CourseDetailsPage = () => {
         return () => unsubscribe();
     }, [router, selectedSession, selectedLevel, packageSessionIds]);
 
+    console.log(levelOptions);
+
     return (
         <div className="flex min-h-screen flex-col bg-white">
             {/* Top Banner */}
@@ -2609,44 +2611,103 @@ export const CourseDetailsPage = () => {
                         {/* Session and Level Selectors */}
                         <div className="container mx-auto px-0 pb-6">
                             <div className="flex items-center gap-6">
-                                <div className="flex flex-col gap-2">
-                                    <label className="text-sm font-medium">Session</label>
-                                    <Select
-                                        value={selectedSession}
-                                        onValueChange={handleSessionChange}
-                                    >
-                                        <SelectTrigger className="w-48">
-                                            <SelectValue placeholder="Select Session" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {sessionOptions.map((option) => (
-                                                <SelectItem key={option._id} value={option.value}>
-                                                    {option.label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
+                                {sessionOptions.length === 1 ? (
+                                    sessionOptions[0].label !== 'default' && (
+                                        <div className="flex flex-col gap-2">
+                                            <label className="text-sm font-medium">Session</label>
+                                            <Select
+                                                value={selectedSession}
+                                                onValueChange={handleSessionChange}
+                                            >
+                                                <SelectTrigger className="w-48">
+                                                    <SelectValue placeholder="Select Session" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {sessionOptions.map((option) => (
+                                                        <SelectItem
+                                                            key={option._id}
+                                                            value={option.value}
+                                                        >
+                                                            {option.label}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    )
+                                ) : (
+                                    <div className="flex flex-col gap-2">
+                                        <label className="text-sm font-medium">Session</label>
+                                        <Select
+                                            value={selectedSession}
+                                            onValueChange={handleSessionChange}
+                                        >
+                                            <SelectTrigger className="w-48">
+                                                <SelectValue placeholder="Select Session" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {sessionOptions.map((option) => (
+                                                    <SelectItem
+                                                        key={option._id}
+                                                        value={option.value}
+                                                    >
+                                                        {option.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                )}
 
-                                <div className="flex flex-col gap-2">
-                                    <label className="text-sm font-medium">Level</label>
-                                    <Select
-                                        value={selectedLevel}
-                                        onValueChange={handleLevelChange}
-                                        disabled={!selectedSession}
-                                    >
-                                        <SelectTrigger className="w-48">
-                                            <SelectValue placeholder="Select Level" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {levelOptions.map((option) => (
-                                                <SelectItem key={option._id} value={option.value}>
-                                                    {option.label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
+                                {levelOptions.length === 1 ? (
+                                    levelOptions[0].label !== 'default' && (
+                                        <div className="flex flex-col gap-2">
+                                            <label className="text-sm font-medium">Level</label>
+                                            <Select
+                                                value={selectedLevel}
+                                                onValueChange={handleLevelChange}
+                                                disabled={!selectedSession}
+                                            >
+                                                <SelectTrigger className="w-48">
+                                                    <SelectValue placeholder="Select Level" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {levelOptions.map((option) => (
+                                                        <SelectItem
+                                                            key={option._id}
+                                                            value={option.value}
+                                                        >
+                                                            {option.label}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    )
+                                ) : (
+                                    <div className="flex flex-col gap-2">
+                                        <label className="text-sm font-medium">Level</label>
+                                        <Select
+                                            value={selectedLevel}
+                                            onValueChange={handleLevelChange}
+                                            disabled={!selectedSession}
+                                        >
+                                            <SelectTrigger className="w-48">
+                                                <SelectValue placeholder="Select Level" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {levelOptions.map((option) => (
+                                                    <SelectItem
+                                                        key={option._id}
+                                                        value={option.value}
+                                                    >
+                                                        {option.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                )}
                             </div>
                         </div>
 

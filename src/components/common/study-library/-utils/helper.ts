@@ -119,12 +119,12 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
     let sessions: FormattedSession[] = [];
     if (!hasLevels && !hasSessions) {
         // When both are false, all selected instructors go to default level in default session
-        const allUsers = formData.selectedInstructors; // Instructor[]
+        const allUsers = formData.instructors; // Instructor[]
 
         sessions = [
             {
                 id: 'DEFAULT',
-                session_name: '',
+                session_name: 'DEFAULT',
                 status: 'ACTIVE',
                 start_date: '',
                 new_session: true,
@@ -132,7 +132,7 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
                     {
                         id: 'DEFAULT',
                         new_level: true,
-                        level_name: '',
+                        level_name: 'DEFAULT',
                         duration_in_days: 0,
                         thumbnail_file_id: '',
                         package_id: '',
@@ -160,7 +160,7 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
                             : [],
                         group: {
                             id: 'DEFAULT',
-                            group_name: '',
+                            group_name: 'DEFAULT',
                             group_value: '',
                             new_group: true,
                         },
@@ -181,7 +181,7 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
                       {
                           id: 'DEFAULT',
                           new_level: true,
-                          level_name: '',
+                          level_name: 'DEFAULT',
                           duration_in_days: 0,
                           thumbnail_file_id: '',
                           package_id: '',
@@ -209,7 +209,7 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
                               : [],
                           group: {
                               id: 'DEFAULT',
-                              group_name: '',
+                              group_name: 'DEFAULT',
                               group_value: '',
                               new_group: true,
                           },
@@ -222,7 +222,7 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
         sessions = [
             {
                 id: 'DEFAULT',
-                session_name: '',
+                session_name: 'DEFAULT',
                 status: 'ACTIVE',
                 start_date: '',
                 new_session: true,
