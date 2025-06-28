@@ -22,6 +22,7 @@ import { MyButton } from '@/components/design-system/button';
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { Route } from '..';
+import { VideoSplitScreenAddDialog } from './video-split-screen-add-dialog';
 
 export interface YTPlayer {
     destroy(): void;
@@ -498,7 +499,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
 
             {/* Add Question Form */}
 
-            <div>
+            <div className="flex gap-2">
                 <VideoQuestionsTimeFrameAddDialog
                     addedQuestionForm={addedQuestionForm}
                     videoQuestionForm={videoQuestionForm}
@@ -515,6 +516,14 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                     isAddQuestionTypeRef={isAddQuestionTypeRef}
                     videoDuration={videoDuration}
                 />
+                {activeItem?.source_type === 'VIDEO' && !activeItem?.splitScreenMode && (
+                    <div className="my-2">
+                        <VideoSplitScreenAddDialog
+                            videoSlideId={activeItem?.id || ''}
+                            isEditable={activeItem?.status !== 'PUBLISHED'}
+                        />
+                    </div>
+                )}
             </div>
 
             {/* Questions List */}

@@ -10,6 +10,8 @@ import {
     YoutubeLogo,
     Question,
     PresentationChart,
+    Code,
+    BookOpen,
 } from '@phosphor-icons/react';
 import { MyDialog } from '@/components/design-system/dialog';
 import { AddVideoDialog } from './add-video-dialog';
@@ -21,7 +23,7 @@ import { useSlides } from '@/routes/study-library/courses/levels/subjects/module
 import { useContentStore } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
 import { useDialogStore } from '@/routes/study-library/courses/-stores/slide-add-dialogs-store';
 import AddQuestionDialog from './add-question-dialog';
-import { File } from 'phosphor-react';
+import { File, GameController } from 'phosphor-react';
 import { formatHTMLString } from '../slide-operations/formatHtmlString';
 import AddAssignmentDialog from './add-assignment-dialog';
 import { createPresentationSlidePayload } from '../create-presentation-slide';
@@ -60,7 +62,7 @@ export const ChapterSidebarAddButton = () => {
             label: 'PDF Document',
             value: 'pdf',
             icon: <FilePdf className="size-4 text-red-500" />,
-            description: 'Upload PDF files'
+            description: 'Upload PDF files',
         },
         {
             label: 'Document',
@@ -68,15 +70,15 @@ export const ChapterSidebarAddButton = () => {
             icon: <FileDoc className="size-4 text-blue-600" />,
             description: 'Word documents & more',
             subItems: [
-                { 
-                    label: 'Upload from device', 
+                {
+                    label: 'Upload from device',
                     value: 'upload-doc',
-                    description: 'Upload existing document'
+                    description: 'Upload existing document',
                 },
-                { 
-                    label: 'Create new document', 
+                {
+                    label: 'Create new document',
                     value: 'create-doc',
-                    description: 'Start with blank document'
+                    description: 'Start with blank document',
                 },
             ],
         },
@@ -86,15 +88,15 @@ export const ChapterSidebarAddButton = () => {
             icon: <YoutubeLogo className="size-4 text-green-500" />,
             description: 'Video content',
             subItems: [
-                { 
-                    label: 'Upload video file', 
+                {
+                    label: 'Upload video file',
                     value: 'upload-video',
-                    description: 'Upload from device'
+                    description: 'Upload from device',
                 },
-                { 
-                    label: 'YouTube video', 
+                {
+                    label: 'YouTube video',
                     value: 'youtube-video',
-                    description: 'Add YouTube link'
+                    description: 'Add YouTube link',
                 },
             ],
         },
@@ -102,19 +104,37 @@ export const ChapterSidebarAddButton = () => {
             label: 'Question',
             value: 'question',
             icon: <Question className="size-4 text-purple-500" />,
-            description: 'Interactive questions'
+            description: 'Interactive questions',
         },
         {
             label: 'Assignment',
             value: 'assignment',
             icon: <File className="size-4 text-blue-500" />,
-            description: 'Student assignments'
+            description: 'Student assignments',
         },
         {
             label: 'Presentation',
             value: 'presentation',
             icon: <PresentationChart className="size-4 text-orange-500" />,
-            description: 'Interactive presentations'
+            description: 'Interactive presentations',
+        },
+        {
+            label: 'Jupyter Notebook',
+            value: 'jupyter-notebook',
+            icon: <BookOpen className="size-4 text-violet-500" />,
+            description: 'Interactive coding notebooks',
+        },
+        {
+            label: 'Scratch Project',
+            value: 'scratch-project',
+            icon: <GameController className="size-4 text-yellow-500" />,
+            description: 'Visual programming blocks',
+        },
+        {
+            label: 'Code Editor',
+            value: 'code-editor',
+            icon: <Code className="size-4 text-green-500" />,
+            description: 'Interactive code environment',
         },
     ];
 
@@ -215,38 +235,170 @@ export const ChapterSidebarAddButton = () => {
                 }
                 break;
             }
+            case 'jupyter-notebook': {
+                try {
+                    // Create a Jupyter notebook slide as a document with special type
+                    const slideId = crypto.randomUUID();
+                    const response = await addUpdateDocumentSlide({
+                        id: slideId,
+                        title: 'Jupyter Notebook',
+                        image_file_id: '',
+                        description: 'Interactive Jupyter notebook environment',
+                        slide_order: 0,
+                        document_slide: {
+                            id: crypto.randomUUID(),
+                            type: 'JUPYTER',
+                            data: JSON.stringify({
+                                projectName: '',
+                                contentUrl: '',
+                                contentBranch: 'main',
+                                notebookLocation: 'root',
+                                activeTab: 'settings',
+                                editorType: 'jupyterEditor',
+                                timestamp: Date.now(),
+                            }),
+                            title: 'Jupyter Notebook',
+                            cover_file_id: '',
+                            total_pages: 1,
+                            published_data: null,
+                            published_document_total_pages: 0,
+                        },
+                        status: 'DRAFT',
+                        new_slide: true,
+                        notify: false,
+                    });
+
+                    if (response) {
+                        setTimeout(() => {
+                            setActiveItem(getSlideById(slideId));
+                        }, 500);
+                    }
+                } catch (err) {
+                    console.error('Error creating Jupyter notebook:', err);
+                }
+                break;
+            }
+            case 'scratch-project': {
+                try {
+                    // Create a Scratch project slide as a document with special type
+                    const slideId = crypto.randomUUID();
+                    const response = await addUpdateDocumentSlide({
+                        id: slideId,
+                        title: 'Scratch Project',
+                        image_file_id: '',
+                        description: 'Interactive Scratch programming environment',
+                        slide_order: 0,
+                        document_slide: {
+                            id: crypto.randomUUID(),
+                            type: 'SCRATCH',
+                            data: JSON.stringify({
+                                projectId: '',
+                                scratchUrl: '',
+                                embedType: 'project',
+                                autoStart: false,
+                                hideControls: false,
+                                editorType: 'scratchEditor',
+                                timestamp: Date.now(),
+                            }),
+                            title: 'Scratch Project',
+                            cover_file_id: '',
+                            total_pages: 1,
+                            published_data: null,
+                            published_document_total_pages: 0,
+                        },
+                        status: 'DRAFT',
+                        new_slide: true,
+                        notify: false,
+                    });
+
+                    if (response) {
+                        setTimeout(() => {
+                            setActiveItem(getSlideById(slideId));
+                        }, 500);
+                    }
+                } catch (err) {
+                    console.error('Error creating Scratch project:', err);
+                }
+                break;
+            }
+            case 'code-editor': {
+                try {
+                    // Create a code editor slide as a document with special type
+                    const slideId = crypto.randomUUID();
+                    const response = await addUpdateDocumentSlide({
+                        id: slideId,
+                        title: 'Code Editor',
+                        image_file_id: '',
+                        description: 'Interactive code editing environment',
+                        slide_order: 0,
+                        document_slide: {
+                            id: crypto.randomUUID(),
+                            type: 'CODE',
+                            data: JSON.stringify({
+                                language: 'javascript',
+                                theme: 'dark',
+                                code: '// Welcome to the code editor\nconsole.log("Hello, World!");',
+                                readOnly: false,
+                                showLineNumbers: true,
+                                fontSize: 14,
+                                editorType: 'codeEditor',
+                                timestamp: Date.now(),
+                            }),
+                            title: 'Code Editor',
+                            cover_file_id: '',
+                            total_pages: 1,
+                            published_data: null,
+                            published_document_total_pages: 0,
+                        },
+                        status: 'DRAFT',
+                        new_slide: true,
+                        notify: false,
+                    });
+
+                    if (response) {
+                        setTimeout(() => {
+                            setActiveItem(getSlideById(slideId));
+                        }, 500);
+                    }
+                } catch (err) {
+                    console.error('Error creating code editor:', err);
+                }
+                break;
+            }
         }
     };
 
     return (
-        <div className="w-full animate-in fade-in slide-in-from-top-2 duration-500 px-1">
+        <div className="w-full px-1 duration-500 animate-in fade-in slide-in-from-top-2">
             <MyDropdown dropdownList={dropdownList} onSelect={handleSelect}>
                 <MyButton
                     buttonType="primary"
                     scale="medium"
                     className={`
-                        w-full group relative overflow-hidden
-                        bg-gradient-to-r from-primary-500 to-primary-600
-                        hover:from-primary-600 hover:to-primary-700
-                        shadow-md shadow-primary-500/20
-                        transition-all duration-300 ease-in-out
-                        hover:shadow-lg hover:shadow-primary-500/25
-                        hover:scale-[1.01] active:scale-[0.99]
-                        border-0 h-9
+                        to-primary-600 hover:from-primary-600 hover:to-primary-700 group
+                        relative h-9 w-full
+                        overflow-hidden border-0
+                        bg-gradient-to-r from-primary-500
+                        shadow-md shadow-primary-500/20 transition-all
+                        duration-300 ease-in-out
+                        hover:scale-[1.01] hover:shadow-lg
+                        hover:shadow-primary-500/25 active:scale-[0.99]
                         ${open ? 'px-3' : 'px-2.5'}
                     `}
                     id="add-slides"
                 >
-                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-out" />
-                    
-                    <div className="flex items-center justify-center gap-1.5 relative z-10">
-                        <Plus className={`
+                    <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 transition-transform duration-700 ease-out group-hover:translate-x-full" />
+
+                    <div className="relative z-10 flex items-center justify-center gap-1.5">
+                        <Plus
+                            className={`
                             transition-all duration-300 ease-in-out
                             group-hover:rotate-90 group-hover:scale-110
                             ${open ? 'size-4' : 'size-3.5'}
-                        `} />
+                        `}
+                        />
                         {open && (
-                            <span className="font-medium text-sm tracking-wide animate-in slide-in-from-left-2 duration-300">
+                            <span className="text-sm font-medium tracking-wide duration-300 animate-in slide-in-from-left-2">
                                 Add Slide
                             </span>
                         )}
@@ -262,7 +414,7 @@ export const ChapterSidebarAddButton = () => {
                 open={isPdfDialogOpen}
                 onOpenChange={closePdfDialog}
             >
-                <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+                <div className="duration-300 animate-in fade-in slide-in-from-bottom-4">
                     <AddPdfDialog openState={(open) => !open && closePdfDialog()} />
                 </div>
             </MyDialog>
@@ -274,7 +426,7 @@ export const ChapterSidebarAddButton = () => {
                 open={isDocUploadDialogOpen}
                 onOpenChange={closeDocUploadDialog}
             >
-                <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+                <div className="duration-300 animate-in fade-in slide-in-from-bottom-4">
                     <AddDocDialog openState={(open) => !open && closeDocUploadDialog()} />
                 </div>
             </MyDialog>
@@ -286,7 +438,7 @@ export const ChapterSidebarAddButton = () => {
                 open={isVideoDialogOpen}
                 onOpenChange={closeVideoDialog}
             >
-                <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+                <div className="duration-300 animate-in fade-in slide-in-from-bottom-4">
                     <AddVideoDialog openState={(open) => !open && closeVideoDialog()} />
                 </div>
             </MyDialog>
@@ -298,7 +450,7 @@ export const ChapterSidebarAddButton = () => {
                 open={isVideoFileDialogOpen}
                 onOpenChange={closeVideoFileDialog}
             >
-                <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+                <div className="duration-300 animate-in fade-in slide-in-from-bottom-4">
                     <AddVideoFileDialog openState={(open) => !open && closeVideoFileDialog()} />
                 </div>
             </MyDialog>
@@ -310,7 +462,7 @@ export const ChapterSidebarAddButton = () => {
                 open={isQuestionDialogOpen}
                 onOpenChange={closeQuestionDialog}
             >
-                <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+                <div className="duration-300 animate-in fade-in slide-in-from-bottom-4">
                     <AddQuestionDialog openState={(open) => !open && closeQuestionDialog()} />
                 </div>
             </MyDialog>
@@ -322,7 +474,7 @@ export const ChapterSidebarAddButton = () => {
                 open={isAssignmentDialogOpen}
                 onOpenChange={closeAssignmentDialog}
             >
-                <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+                <div className="duration-300 animate-in fade-in slide-in-from-bottom-4">
                     <AddAssignmentDialog openState={(open) => !open && closeAssignmentDialog()} />
                 </div>
             </MyDialog>
