@@ -356,7 +356,11 @@ export const CourseMaterial = () => {
             onSuccess: () => {
                 toast.success('Course deleted successfully');
                 handleGetCourses();
-                handleGetTeacherCourses();
+                if (selectedTab === 'CourseRequests') {
+                    handleGetTeacherCourses();
+                } else {
+                    handleGetCourses();
+                }
             },
             onError: (error) => {
                 toast.error(error.message || 'Failed to delete course');
