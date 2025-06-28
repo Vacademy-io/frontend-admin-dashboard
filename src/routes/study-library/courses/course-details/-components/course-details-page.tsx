@@ -2776,14 +2776,18 @@ export const CourseDetailsPage = () => {
                             {/* Course Stats */}
                             <h2 className="mb-4 text-lg font-bold">Scratch Programming Language</h2>
                             <div className="space-y-4">
-                                <div className="flex items-center gap-2">
-                                    <Steps size={18} />
-                                    <span>
-                                        {levelOptions.find(
-                                            (option) => option.value === selectedLevel
-                                        )?.label || 'Select Level'}
-                                    </span>
-                                </div>
+                                {levelOptions[0]?.label !== 'default' && (
+                                    <div className="flex items-center gap-2">
+                                        <Steps size={18} />
+                                        <span>
+                                            {
+                                                levelOptions.find(
+                                                    (option) => option.value === selectedLevel
+                                                )?.label
+                                            }
+                                        </span>
+                                    </div>
+                                )}
                                 {slideCountQuery.isLoading ? (
                                     <div className="space-y-2">
                                         {[1, 2, 3, 4, 5].map((i) => (
