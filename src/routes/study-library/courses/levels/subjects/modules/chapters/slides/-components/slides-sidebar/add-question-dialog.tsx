@@ -17,6 +17,7 @@ import { useSlides } from '../../-hooks/use-slides';
 import { Route } from '../..';
 import { convertToQuestionSlideFormat } from '../../-helper/helper';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 export interface QuestionTypeProps {
     icon: React.ReactNode; // Accepts an SVG or any React component
@@ -56,8 +57,18 @@ const AddQuestionDialog = ({
         },
     });
 
-    const { chapterId } = Route.useSearch();
-    const { updateQuestionOrder, updateSlideOrder } = useSlides(chapterId);
+    const { courseId, levelId, chapterId, moduleId, subjectId, sessionId } = Route.useSearch();
+    const { getPackageSessionId } = useInstituteDetailsStore();
+    const { updateQuestionOrder, updateSlideOrder } = useSlides(
+        chapterId || '',
+        moduleId || '',
+        subjectId || '',
+        getPackageSessionId({
+            courseId: courseId || '',
+            levelId: levelId || '',
+            sessionId: sessionId || '',
+        }) || ''
+    );
     const [title, setTitle] = useState('');
     const [localReattempts, setLocalReattempts] = useState('');
     const [activeQuestionDialog, setActiveQuestionDialog] = useState<QuestionTypeList | null>(null);

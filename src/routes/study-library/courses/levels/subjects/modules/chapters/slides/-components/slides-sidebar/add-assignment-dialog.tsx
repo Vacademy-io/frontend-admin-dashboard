@@ -5,8 +5,8 @@ import { toast } from 'sonner';
 import { useContentStore } from '../../-stores/chapter-sidebar-store';
 import { Route } from '../..';
 import { useSlides } from '../../-hooks/use-slides';
-import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { File, CheckCircle } from '@phosphor-icons/react';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 const AddAssignmentDialog = ({
     openState,
@@ -14,8 +14,18 @@ const AddAssignmentDialog = ({
     openState?: ((open: boolean) => void) | undefined;
 }) => {
     const { setActiveItem, getSlideById, items } = useContentStore();
-    const { chapterId } = Route.useSearch();
-    const { updateAssignmentOrder, updateSlideOrder } = useSlides(chapterId);
+    const { getPackageSessionId } = useInstituteDetailsStore();
+    const { courseId, levelId, chapterId, moduleId, subjectId, sessionId } = Route.useSearch();
+    const { updateAssignmentOrder, updateSlideOrder } = useSlides(
+        chapterId || '',
+        moduleId || '',
+        subjectId || '',
+        getPackageSessionId({
+            courseId: courseId || '',
+            levelId: levelId || '',
+            sessionId: sessionId || '',
+        }) || ''
+    );
     const [title, setTitle] = useState('');
     const [isAssignmentAdding, setIsAssignmentAdding] = useState(false);
 
@@ -107,8 +117,8 @@ const AddAssignmentDialog = ({
         <div className="flex flex-col gap-6 p-6 duration-500 animate-in fade-in slide-in-from-bottom-2">
             {/* Header Section */}
             <div className="space-y-3 border-b border-neutral-100 pb-4 text-center">
-                <div className="mx-auto flex h-16 w-16 animate-pulse items-center justify-center rounded-full bg-blue-100">
-                    <File className="h-8 w-8 text-blue-600" />
+                <div className="mx-auto flex size-16 animate-pulse items-center justify-center rounded-full bg-blue-100">
+                    <File className="size-8 text-blue-600" />
                 </div>
                 <div>
                     <h3 className="mb-1 text-lg font-semibold text-neutral-700">
@@ -133,8 +143,8 @@ const AddAssignmentDialog = ({
                         className="w-full pr-10"
                     />
                     {title.trim() && (
-                        <div className="absolute right-3 top-1/2 mt-3 -translate-y-1/2 transform">
-                            <CheckCircle className="h-5 w-5 text-green-500 duration-300 animate-in fade-in" />
+                        <div className="absolute right-3 top-1/2 mt-3 -translate-y-1/2">
+                            <CheckCircle className="size-5 text-green-500 duration-300 animate-in fade-in" />
                         </div>
                     )}
                 </div>
@@ -144,13 +154,13 @@ const AddAssignmentDialog = ({
                     <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 duration-300 animate-in fade-in slide-in-from-bottom-2">
                         <div className="flex items-center gap-3">
                             <div className="rounded-lg bg-blue-100 p-2">
-                                <File className="h-5 w-5 text-blue-600" />
+                                <File className="size-5 text-blue-600" />
                             </div>
                             <div className="flex-1">
                                 <p className="text-sm font-medium text-blue-800">{title}</p>
                                 <p className="text-xs text-blue-600">Assignment • Draft</p>
                             </div>
-                            <CheckCircle className="h-4 w-4 text-green-500" />
+                            <CheckCircle className="size-4 text-green-500" />
                         </div>
                     </div>
                 )}
@@ -158,7 +168,7 @@ const AddAssignmentDialog = ({
                 {/* Helper Text */}
                 <div className="rounded-lg bg-neutral-50 p-3 text-xs text-neutral-500">
                     <p className="flex items-center gap-2">
-                        <span className="h-1.5 w-1.5 rounded-full bg-blue-500"></span>
+                        <span className="size-1.5 rounded-full bg-blue-500"></span>
                         The assignment will be created as a draft and can be edited later
                     </p>
                 </div>
@@ -169,7 +179,7 @@ const AddAssignmentDialog = ({
                 {isAssignmentAdding ? (
                     <MyButton type="button" scale="large" buttonType="primary" className="w-full">
                         <div className="flex items-center justify-center gap-2">
-                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                            <div className="size-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                             Creating Assignment...
                         </div>
                     </MyButton>
@@ -190,7 +200,7 @@ const AddAssignmentDialog = ({
                         disable={!title.trim()}
                     >
                         <div className="flex items-center justify-center gap-2">
-                            <File className="h-4 w-4" />
+                            <File className="size-4" />
                             Create Assignment
                         </div>
                     </MyButton>
