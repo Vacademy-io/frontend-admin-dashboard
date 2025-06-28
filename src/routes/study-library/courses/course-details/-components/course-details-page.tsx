@@ -1320,6 +1320,7 @@ export const CourseDetailsPage = () => {
                             }
                         } else if (selectedCourse.level === 3) {
                             const response = await addChapterMutation.mutateAsync({
+                                subjectId: 'DEFAULT',
                                 moduleId: 'DEFAULT',
                                 commaSeparatedPackageSessionIds: packageSessionIds,
                                 chapter: newChapter,
