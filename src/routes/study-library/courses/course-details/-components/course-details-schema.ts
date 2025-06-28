@@ -221,7 +221,7 @@ export const transformApiDataToCourseData = async (apiData: CourseWithSessionsTy
             id: apiData.course.id,
             title: apiData.course.package_name,
             description: apiData.course.course_html_description.replace(/<[^>]*>/g, ''), // Remove HTML tags
-            tags: apiData.course.tags.split(',').map((tag) => tag.trim()),
+            tags: apiData.course.tags?.split(',').map((tag) => tag.trim()) || [],
             imageUrl: coursePreviewImageMediaId || '', // Use the preview image as the main image
             courseStructure: apiData.course.course_depth,
             whatYoullLearn: apiData.course.why_learn,
