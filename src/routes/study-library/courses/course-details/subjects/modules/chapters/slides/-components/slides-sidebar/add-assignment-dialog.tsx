@@ -6,6 +6,7 @@ import { useContentStore } from '../../-stores/chapter-sidebar-store';
 import { Route } from '../..';
 import { useSlides } from '../../-hooks/use-slides';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 const AddAssignmentDialog = ({
     openState,
@@ -13,8 +14,18 @@ const AddAssignmentDialog = ({
     openState?: ((open: boolean) => void) | undefined;
 }) => {
     const { setActiveItem, getSlideById } = useContentStore();
-    const { chapterId } = Route.useSearch();
-    const { updateAssignmentOrder } = useSlides(chapterId);
+    const { getPackageSessionId } = useInstituteDetailsStore();
+    const { courseId, levelId, chapterId, moduleId, subjectId, sessionId } = Route.useSearch();
+    const { updateAssignmentOrder } = useSlides(
+        chapterId || '',
+        moduleId || '',
+        subjectId || '',
+        getPackageSessionId({
+            courseId: courseId || '',
+            levelId: levelId || '',
+            sessionId: sessionId || '',
+        }) || ''
+    );
     const [title, setTitle] = useState('');
     const [isAssignmentAdding, setIsAssignmentAdding] = useState(false);
 

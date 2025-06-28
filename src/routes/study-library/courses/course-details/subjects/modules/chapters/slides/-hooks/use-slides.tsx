@@ -289,7 +289,7 @@ export const useSlides = (
     const updateQuestionSlideMutation = useMutation({
         mutationFn: async (payload: SlideQuestionsDataInterface) => {
             const response = await authenticatedAxiosInstance.post(
-                `${UPDATE_QUESTION_ORDER}?chapterId=${chapterId}&instituteId=${INSTITUTE_ID}`,
+                `${UPDATE_QUESTION_ORDER}?chapterId=${chapterId}&instituteId=${INSTITUTE_ID}&packageSessionId=${packageSessionId}&moduleId=${moduleId}&subjectId=${subjectId}`,
                 payload
             );
             return response.data;
@@ -306,7 +306,7 @@ export const useSlides = (
     const updateAssignmentSlideMutation = useMutation({
         mutationFn: async (payload: SlideQuestionsDataInterface) => {
             const response = await authenticatedAxiosInstance.post(
-                `${UPDATE_ASSIGNMENT_ORDER}?chapterId=${chapterId}&instituteId=${INSTITUTE_ID}`,
+                `${UPDATE_ASSIGNMENT_ORDER}?chapterId=${chapterId}&instituteId=${INSTITUTE_ID}&packageSessionId=${packageSessionId}&subjectId=${subjectId}&moduleId=${moduleId}`,
                 payload
             );
             return response.data;

@@ -109,8 +109,26 @@ export const SlideMaterial = ({
             sessionId: sessionId || '',
         }) || ''
     );
-    const { updateQuestionOrder } = useSlides(chapterId || '');
-    const { updateAssignmentOrder } = useSlides(chapterId || '');
+    const { updateQuestionOrder } = useSlides(
+        chapterId || '',
+        moduleId || '',
+        subjectId || '',
+        getPackageSessionId({
+            courseId: courseId || '',
+            levelId: levelId || '',
+            sessionId: sessionId || '',
+        }) || ''
+    );
+    const { updateAssignmentOrder } = useSlides(
+        chapterId || '',
+        moduleId || '',
+        subjectId || '',
+        getPackageSessionId({
+            courseId: courseId || '',
+            levelId: levelId || '',
+            sessionId: sessionId || '',
+        }) || ''
+    );
     const editingContainerRef = useRef<HTMLDivElement>(null);
     const [doubtProgressMarkerPdf, setDoubtProgressMarkerPdf] = useState<number | null>(null);
     const [doubtProgressMarkerVideo, setDoubtProgressMarkerVideo] = useState<number | null>(null);
