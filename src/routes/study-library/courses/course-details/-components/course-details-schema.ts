@@ -198,24 +198,25 @@ const createDefaultSubject = (): SubjectType => ({
     updated_at: new Date().toISOString(),
 });
 
+const tryGetPublicUrl = async (mediaId: string | null | undefined): Promise<string> => {
+    if (!mediaId) return '';
+    try {
+        const url = await getPublicUrl(mediaId);
+        return url || '';
+    } catch {
+        return '';
+    }
+};
+
 export const transformApiDataToCourseData = async (apiData: CourseWithSessionsType) => {
     if (!apiData) return null;
 
     try {
-        let coursePreviewImageMediaId = '';
-        let courseBannerMediaId = '';
-        let courseMediaId = '';
-
-        await new Promise((resolve) => {
-            setTimeout(async () => {
-                coursePreviewImageMediaId = await getPublicUrl(
-                    apiData.course.course_preview_image_media_id
-                );
-                courseBannerMediaId = await getPublicUrl(apiData.course.course_banner_media_id);
-                courseMediaId = await getPublicUrl(apiData.course.course_media_id);
-                resolve(true);
-            }, 0);
-        });
+        const [coursePreviewImageMediaId, courseBannerMediaId, courseMediaId] = await Promise.all([
+            tryGetPublicUrl(apiData.course.course_preview_image_media_id),
+            tryGetPublicUrl(apiData.course.course_banner_media_id),
+            tryGetPublicUrl(apiData.course.course_media_id),
+        ]);
 
         return {
             id: apiData.course.id,
