@@ -32,6 +32,7 @@ import { useFileUpload } from '@/hooks/use-file-upload';
 import { useNavigate } from '@tanstack/react-router';
 import { useDeleteCourse } from '@/services/study-library/course-operations/delete-course';
 import { toast } from 'sonner';
+import { TrashSimple } from 'phosphor-react';
 
 export interface AllCourseFilters {
     status: string[];
@@ -831,23 +832,10 @@ export const CourseMaterial = () => {
                                                             onClick={() =>
                                                                 handleCourseDelete(course.id)
                                                             }
-                                                            className="flex size-10 items-center justify-center rounded-md border border-red-200 bg-red-50 text-red-500 transition-colors hover:border-red-300 hover:bg-red-100 active:scale-95"
+                                                            className="flex size-9 items-center justify-center rounded-md border border-red-200 bg-red-50 text-red-500 transition-colors hover:border-red-300 hover:bg-red-100 active:scale-95"
                                                             title="Delete course"
                                                         >
-                                                            <svg
-                                                                width="16"
-                                                                height="16"
-                                                                fill="none"
-                                                                viewBox="0 0 24 24"
-                                                                stroke="currentColor"
-                                                            >
-                                                                <path
-                                                                    strokeLinecap="round"
-                                                                    strokeLinejoin="round"
-                                                                    strokeWidth="2"
-                                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                                                />
-                                                            </svg>
+                                                            <TrashSimple size={18} />
                                                         </button>
                                                     </div>
                                                 </div>
