@@ -28,6 +28,7 @@ import { formatHTMLString } from '../slide-operations/formatHtmlString';
 import AddAssignmentDialog from './add-assignment-dialog';
 import { createPresentationSlidePayload } from '../create-presentation-slide';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { toast } from 'sonner';
 
 export const ChapterSidebarAddButton = () => {
     const { open } = useSidebar();
@@ -35,7 +36,7 @@ export const ChapterSidebarAddButton = () => {
     const { getPackageSessionId } = useInstituteDetailsStore();
     const { courseId, levelId, chapterId, moduleId, subjectId, sessionId } =
         route.state.location.search;
-    const { addUpdateDocumentSlide } = useSlides(
+    const { addUpdateDocumentSlide, updateSlideOrder } = useSlides(
         chapterId || '',
         moduleId || '',
         subjectId || '',
@@ -45,7 +46,7 @@ export const ChapterSidebarAddButton = () => {
             sessionId: sessionId || '',
         }) || ''
     );
-    const { setActiveItem, getSlideById } = useContentStore();
+    const { setActiveItem, getSlideById, items } = useContentStore();
 
     // Use the Zustand store instead of useState
     const {
@@ -68,6 +69,42 @@ export const ChapterSidebarAddButton = () => {
         openAssignmentDialog,
         closeAssignmentDialog,
     } = useDialogStore();
+
+    // Function to reorder slides after adding a new one at the top
+    const reorderSlidesAfterNewSlide = async (newSlideId: string) => {
+        try {
+            // Get current slides and reorder them
+            const currentSlides = items || [];
+            const newSlide = currentSlides.find((slide) => slide.id === newSlideId);
+
+            if (!newSlide) return;
+
+            // Create new order: new slide at top (order 0), then existing slides
+            const reorderedSlides = [
+                { slide_id: newSlideId, slide_order: 0 },
+                ...currentSlides
+                    .filter((slide) => slide.id !== newSlideId)
+                    .map((slide, index) => ({
+                        slide_id: slide.id,
+                        slide_order: index + 1,
+                    })),
+            ];
+
+            // Update slide order in backend
+            await updateSlideOrder({
+                chapterId: chapterId || '',
+                slideOrderPayload: reorderedSlides,
+            });
+
+            // Set the new slide as active
+            setTimeout(() => {
+                setActiveItem(getSlideById(newSlideId));
+            }, 500);
+        } catch (error) {
+            console.error('Error reordering slides:', error);
+            toast.error('Slide created but reordering failed');
+        }
+    };
 
     const dropdownList = [
         {
@@ -167,7 +204,7 @@ export const ChapterSidebarAddButton = () => {
                         title: 'New Doc',
                         image_file_id: '',
                         description: '',
-                        slide_order: 0,
+                        slide_order: 0, // Always insert at top
                         document_slide: {
                             id: crypto.randomUUID(),
                             type: 'DOC',
@@ -184,12 +221,12 @@ export const ChapterSidebarAddButton = () => {
                     });
 
                     if (response) {
-                        setTimeout(() => {
-                            setActiveItem(getSlideById(slideId));
-                        }, 500);
+                        // Reorder slides and set as active
+                        await reorderSlidesAfterNewSlide(slideId);
                     }
                 } catch (err) {
                     console.error('Error creating new doc:', err);
+                    toast.error('Failed to create new document');
                 }
                 break;
             }
@@ -215,6 +252,7 @@ export const ChapterSidebarAddButton = () => {
                         slides: null,
                     };
                     const payload = createPresentationSlidePayload(slideTypeObj);
+                    payload.slide_order = 0; // Always insert at top
                     console.log('payload', payload);
                     const response = await addUpdateDocumentSlide(payload);
 
@@ -235,15 +273,12 @@ export const ChapterSidebarAddButton = () => {
                             JSON.stringify(excalidrawData)
                         );
 
-                        // Set the active item after a short delay to ensure the slide is created
-                        setTimeout(() => {
-                            if (payload.id) {
-                                setActiveItem(getSlideById(payload.id));
-                            }
-                        }, 500);
+                        // Reorder slides and set as active
+                        await reorderSlidesAfterNewSlide(payload?.id || '');
                     }
                 } catch (err) {
                     console.error('Error creating new presentation:', err);
+                    toast.error('Failed to create new presentation');
                 }
                 break;
             }
@@ -256,7 +291,7 @@ export const ChapterSidebarAddButton = () => {
                         title: 'Jupyter Notebook',
                         image_file_id: '',
                         description: 'Interactive Jupyter notebook environment',
-                        slide_order: 0,
+                        slide_order: 0, // Always insert at top
                         document_slide: {
                             id: crypto.randomUUID(),
                             type: 'JUPYTER',
@@ -281,12 +316,12 @@ export const ChapterSidebarAddButton = () => {
                     });
 
                     if (response) {
-                        setTimeout(() => {
-                            setActiveItem(getSlideById(slideId));
-                        }, 500);
+                        // Reorder slides and set as active
+                        await reorderSlidesAfterNewSlide(slideId);
                     }
                 } catch (err) {
                     console.error('Error creating Jupyter notebook:', err);
+                    toast.error('Failed to create Jupyter notebook');
                 }
                 break;
             }
@@ -299,7 +334,7 @@ export const ChapterSidebarAddButton = () => {
                         title: 'Scratch Project',
                         image_file_id: '',
                         description: 'Interactive Scratch programming environment',
-                        slide_order: 0,
+                        slide_order: 0, // Always insert at top
                         document_slide: {
                             id: crypto.randomUUID(),
                             type: 'SCRATCH',
@@ -324,12 +359,12 @@ export const ChapterSidebarAddButton = () => {
                     });
 
                     if (response) {
-                        setTimeout(() => {
-                            setActiveItem(getSlideById(slideId));
-                        }, 500);
+                        // Reorder slides and set as active
+                        await reorderSlidesAfterNewSlide(slideId);
                     }
                 } catch (err) {
                     console.error('Error creating Scratch project:', err);
+                    toast.error('Failed to create Scratch project');
                 }
                 break;
             }
@@ -342,7 +377,7 @@ export const ChapterSidebarAddButton = () => {
                         title: 'Code Editor',
                         image_file_id: '',
                         description: 'Interactive code editing environment',
-                        slide_order: 0,
+                        slide_order: 0, // Always insert at top
                         document_slide: {
                             id: crypto.randomUUID(),
                             type: 'CODE',
@@ -368,12 +403,12 @@ export const ChapterSidebarAddButton = () => {
                     });
 
                     if (response) {
-                        setTimeout(() => {
-                            setActiveItem(getSlideById(slideId));
-                        }, 500);
+                        // Reorder slides and set as active
+                        await reorderSlidesAfterNewSlide(slideId);
                     }
                 } catch (err) {
                     console.error('Error creating code editor:', err);
+                    toast.error('Failed to create code editor');
                 }
                 break;
             }

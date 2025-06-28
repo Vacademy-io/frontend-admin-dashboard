@@ -33,7 +33,7 @@ export const AddVideoFileDialog = ({
 }) => {
     const { getPackageSessionId } = useInstituteDetailsStore();
     const { courseId, levelId, chapterId, moduleId, subjectId, sessionId } = Route.useSearch();
-    const { addUpdateVideoSlide } = useSlides(
+    const { addUpdateVideoSlide, updateSlideOrder } = useSlides(
         chapterId || '',
         moduleId || '',
         subjectId || '',
@@ -43,9 +43,45 @@ export const AddVideoFileDialog = ({
             sessionId: sessionId || '',
         }) || ''
     );
-    const { setActiveItem, getSlideById } = useContentStore();
+    const { setActiveItem, getSlideById, items } = useContentStore();
     const [isUploading, setIsUploading] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+    // Function to reorder slides after adding a new one at the top
+    const reorderSlidesAfterNewSlide = async (newSlideId: string) => {
+        try {
+            // Get current slides and reorder them
+            const currentSlides = items || [];
+            const newSlide = currentSlides.find((slide) => slide.id === newSlideId);
+
+            if (!newSlide) return;
+
+            // Create new order: new slide at top (order 0), then existing slides
+            const reorderedSlides = [
+                { slide_id: newSlideId, slide_order: 0 },
+                ...currentSlides
+                    .filter((slide) => slide.id !== newSlideId)
+                    .map((slide, index) => ({
+                        slide_id: slide.id,
+                        slide_order: index + 1,
+                    })),
+            ];
+
+            // Update slide order in backend
+            await updateSlideOrder({
+                chapterId: chapterId || '',
+                slideOrderPayload: reorderedSlides,
+            });
+
+            // Set the new slide as active
+            setTimeout(() => {
+                setActiveItem(getSlideById(newSlideId));
+            }, 500);
+        } catch (error) {
+            console.error('Error reordering slides:', error);
+            toast.error('Slide created but reordering failed');
+        }
+    };
 
     const handleSubmit = async (data: FormValues) => {
         try {
@@ -71,7 +107,7 @@ export const AddVideoFileDialog = ({
                 title: data.videoName,
                 description: null,
                 image_file_id: null,
-                slide_order: 0,
+                slide_order: 0, // Always insert at top
                 video_slide: {
                     id: crypto.randomUUID(),
                     description: '',
@@ -88,13 +124,15 @@ export const AddVideoFileDialog = ({
             });
             console.log('Response:', response, 'source_type', 'FILE_ID');
 
-            toast.success('Video uploaded successfully!');
+            if (response) {
+                // Reorder slides and set as active
+                await reorderSlidesAfterNewSlide(response);
+                openState?.(false);
+                toast.success('Video uploaded successfully!');
+            }
+
             form.reset();
             setSelectedFile(null);
-            openState?.(false);
-            setTimeout(() => {
-                setActiveItem(getSlideById(response));
-            }, 500);
         } catch (error) {
             console.error('Error uploading video:', error);
             toast.error('Failed to upload video');

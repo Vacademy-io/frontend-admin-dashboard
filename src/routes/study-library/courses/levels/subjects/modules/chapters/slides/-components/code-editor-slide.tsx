@@ -2,13 +2,6 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
@@ -17,7 +10,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import {
     Code,
     Play,
@@ -36,13 +28,13 @@ interface CodeEditorData {
     language: 'python' | 'javascript';
     code: string;
     theme: 'light' | 'dark';
+    viewMode: 'view' | 'edit';
 }
 
 interface CodeEditorSlideProps {
     codeData?: CodeEditorData;
     isEditable: boolean;
     onDataChange?: (newData: CodeEditorData) => void;
-    isSplitScreen?: boolean;
 }
 
 const DEFAULT_CODE = {
@@ -82,13 +74,13 @@ export const CodeEditorSlide: React.FC<CodeEditorSlideProps> = ({
     codeData,
     isEditable,
     onDataChange,
-    isSplitScreen = false,
 }) => {
     const editorRef = useRef<unknown>(null);
     const [currentData, setCurrentData] = useState<CodeEditorData>(() => ({
         language: codeData?.language || 'python',
         code: codeData?.code || DEFAULT_CODE.python,
         theme: codeData?.theme || 'light',
+        viewMode: codeData?.viewMode || 'edit',
         ...codeData,
     }));
 
@@ -100,6 +92,7 @@ export const CodeEditorSlide: React.FC<CodeEditorSlideProps> = ({
                 language: codeData.language || 'python',
                 code: codeData.code || DEFAULT_CODE[codeData.language || 'python'],
                 theme: codeData.theme || 'light',
+                viewMode: codeData.viewMode || 'edit',
             });
         }
     }, [codeData]);
@@ -109,22 +102,6 @@ export const CodeEditorSlide: React.FC<CodeEditorSlideProps> = ({
     const [waitingForInput, setWaitingForInput] = useState(false);
     const [inputValue, setInputValue] = useState<string>('');
     const [activeTab, setActiveTab] = useState<string>('editor');
-    const [viewMode, setViewMode] = useState<'view' | 'edit'>('edit');
-    const [isSmallScreen, setIsSmallScreen] = useState(false);
-
-    // Check for small screen size
-    useEffect(() => {
-        const checkScreenSize = () => {
-            setIsSmallScreen(window.innerWidth < 1024);
-        };
-
-        checkScreenSize();
-        window.addEventListener('resize', checkScreenSize);
-        return () => window.removeEventListener('resize', checkScreenSize);
-    }, []);
-
-    // Show dropdown controls when on small screens or in split screen mode
-    const shouldUseDropdown = isSmallScreen || isSplitScreen;
 
     const updateData = useCallback(
         (updates: Partial<CodeEditorData>) => {
@@ -149,6 +126,13 @@ export const CodeEditorSlide: React.FC<CodeEditorSlideProps> = ({
         const newTheme = currentData.theme === 'light' ? 'dark' : 'light';
         updateData({ theme: newTheme });
     }, [currentData.theme, updateData]);
+
+    const handleViewModeChange = useCallback(
+        (viewMode: 'view' | 'edit') => {
+            updateData({ viewMode });
+        },
+        [updateData]
+    );
 
     const handleCodeChange = useCallback(
         (value: string | undefined) => {
@@ -325,175 +309,106 @@ Hello, World!`);
                             <Code className="size-5" />
                             Code Editor
                             <span className="ml-2 rounded-full bg-gray-100 px-2 py-1 text-xs font-normal text-gray-600">
-                                {viewMode === 'edit' ? 'Edit Mode' : 'View Mode'}
+                                {currentData.viewMode === 'edit' ? 'Edit Mode' : 'View Mode'}
                             </span>
                         </CardTitle>
 
-                        {/* Dropdown controls for small screens and split screen mode */}
-                        {shouldUseDropdown ? (
-                            <div className="flex items-center gap-2">
-                                <Button
-                                    onClick={runCode}
-                                    disabled={isRunning}
-                                    size="sm"
-                                    className="bg-green-600 text-white hover:bg-green-700"
-                                >
-                                    <Play className="mr-1 size-4" />
-                                    {isRunning ? 'Running...' : 'Run'}
-                                </Button>
+                        <div className="flex items-center gap-2">
+                            <Button
+                                onClick={runCode}
+                                disabled={isRunning || !isEditable}
+                                size="sm"
+                                className="bg-green-600 text-white hover:bg-green-700"
+                            >
+                                <Play className="mr-1 size-4" />
+                                {isRunning ? 'Running...' : 'Run'}
+                            </Button>
 
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="outline" size="sm">
-                                            <Settings className="mr-1 size-4" />
-                                            Settings
-                                            <ChevronDown className="ml-1 size-3" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" className="w-56">
-                                        <DropdownMenuItem className="flex items-center justify-between">
-                                            <span>View/Edit Mode</span>
-                                            <div className="flex items-center gap-1">
-                                                <Eye className="size-3" />
-                                                <Switch
-                                                    checked={viewMode === 'edit'}
-                                                    onCheckedChange={(checked) =>
-                                                        setViewMode(checked ? 'edit' : 'view')
-                                                    }
-                                                />
-                                                <Edit className="size-3" />
-                                            </div>
-                                        </DropdownMenuItem>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="outline" size="sm">
+                                        <Settings className="mr-1 size-4" />
+                                        Settings
+                                        <ChevronDown className="ml-1 size-3" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-56">
+                                    <DropdownMenuItem className="flex items-center justify-between">
+                                        <span>View/Edit Mode</span>
+                                        <div className="flex items-center gap-1">
+                                            <Eye className="size-3" />
+                                            <Switch
+                                                checked={currentData.viewMode === 'edit'}
+                                                onCheckedChange={(checked) =>
+                                                    handleViewModeChange(checked ? 'edit' : 'view')
+                                                }
+                                                disabled={!isEditable}
+                                            />
+                                            <Edit className="size-3" />
+                                        </div>
+                                    </DropdownMenuItem>
 
-                                        <DropdownMenuSeparator />
+                                    <DropdownMenuSeparator />
 
-                                        <DropdownMenuItem
-                                            onClick={() => handleLanguageChange('python')}
-                                            className={
-                                                currentData.language === 'python' ? 'bg-accent' : ''
-                                            }
-                                        >
-                                            <span>Python</span>
-                                            {currentData.language === 'python' && (
-                                                <span className="ml-auto">✓</span>
-                                            )}
-                                        </DropdownMenuItem>
-
-                                        <DropdownMenuItem
-                                            onClick={() => handleLanguageChange('javascript')}
-                                            className={
-                                                currentData.language === 'javascript'
-                                                    ? 'bg-accent'
-                                                    : ''
-                                            }
-                                        >
-                                            <span>JavaScript</span>
-                                            {currentData.language === 'javascript' && (
-                                                <span className="ml-auto">✓</span>
-                                            )}
-                                        </DropdownMenuItem>
-
-                                        <DropdownMenuSeparator />
-
-                                        <DropdownMenuItem
-                                            onClick={handleThemeChange}
-                                            disabled={!isEditable}
-                                        >
-                                            {currentData.theme === 'light' ? (
-                                                <>
-                                                    <Moon className="mr-2 size-4" />
-                                                    Switch to Dark Theme
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Sun className="mr-2 size-4" />
-                                                    Switch to Light Theme
-                                                </>
-                                            )}
-                                        </DropdownMenuItem>
-
-                                        <DropdownMenuSeparator />
-
-                                        <DropdownMenuItem onClick={copyCode}>
-                                            <Copy className="mr-2 size-4" />
-                                            Copy Code
-                                        </DropdownMenuItem>
-
-                                        <DropdownMenuItem onClick={downloadCode}>
-                                            <Download className="mr-2 size-4" />
-                                            Download Code
-                                        </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </div>
-                        ) : (
-                            /* Regular controls for large screens */
-                            <div className="flex flex-wrap items-center gap-2">
-                                <div className="flex flex-wrap items-center gap-2 rounded-md border border-gray-200 p-1">
-                                    <Label
-                                        htmlFor="view-mode"
-                                        className="flex items-center gap-1 text-sm"
-                                    >
-                                        <Eye className="size-3" />
-                                        View
-                                    </Label>
-                                    <Switch
-                                        id="view-mode"
-                                        checked={viewMode === 'edit'}
-                                        onCheckedChange={(checked) =>
-                                            setViewMode(checked ? 'edit' : 'view')
+                                    <DropdownMenuItem
+                                        onClick={() => handleLanguageChange('python')}
+                                        disabled={!isEditable || currentData.viewMode === 'view'}
+                                        className={
+                                            currentData.language === 'python' ? 'bg-accent' : ''
                                         }
-                                    />
-                                    <Label
-                                        htmlFor="view-mode"
-                                        className="flex items-center gap-1 text-sm"
                                     >
-                                        <Edit className="size-3" />
-                                        Edit
-                                    </Label>
-                                </div>
-                                <Button
-                                    onClick={runCode}
-                                    disabled={isRunning}
-                                    size="sm"
-                                    className="bg-green-600 text-white hover:bg-green-700"
-                                >
-                                    <Play className="mr-1 size-4" />
-                                    {isRunning ? 'Running...' : 'Run'}
-                                </Button>
-                                <Select
-                                    value={currentData.language}
-                                    onValueChange={handleLanguageChange}
-                                    disabled={!isEditable}
-                                >
-                                    <SelectTrigger className="w-32">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="python">Python</SelectItem>
-                                        <SelectItem value="javascript">JavaScript</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={handleThemeChange}
-                                    disabled={!isEditable}
-                                >
-                                    {currentData.theme === 'light' ? (
-                                        <Moon className="size-4" />
-                                    ) : (
-                                        <Sun className="size-4" />
-                                    )}
-                                </Button>
-                                <Button variant="outline" size="sm" onClick={copyCode}>
-                                    <Copy className="size-4" />
-                                </Button>
-                                <Button variant="outline" size="sm" onClick={downloadCode}>
-                                    <Download className="size-4" />
-                                </Button>
-                            </div>
-                        )}
+                                        <span>Python</span>
+                                        {currentData.language === 'python' && (
+                                            <span className="ml-auto">✓</span>
+                                        )}
+                                    </DropdownMenuItem>
+
+                                    <DropdownMenuItem
+                                        onClick={() => handleLanguageChange('javascript')}
+                                        disabled={!isEditable || currentData.viewMode === 'view'}
+                                        className={
+                                            currentData.language === 'javascript' ? 'bg-accent' : ''
+                                        }
+                                    >
+                                        <span>JavaScript</span>
+                                        {currentData.language === 'javascript' && (
+                                            <span className="ml-auto">✓</span>
+                                        )}
+                                    </DropdownMenuItem>
+
+                                    <DropdownMenuSeparator />
+
+                                    <DropdownMenuItem
+                                        onClick={handleThemeChange}
+                                        disabled={!isEditable}
+                                    >
+                                        {currentData.theme === 'light' ? (
+                                            <>
+                                                <Moon className="mr-2 size-4" />
+                                                Switch to Dark Theme
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Sun className="mr-2 size-4" />
+                                                Switch to Light Theme
+                                            </>
+                                        )}
+                                    </DropdownMenuItem>
+
+                                    <DropdownMenuSeparator />
+
+                                    <DropdownMenuItem onClick={copyCode}>
+                                        <Copy className="mr-2 size-4" />
+                                        Copy Code
+                                    </DropdownMenuItem>
+
+                                    <DropdownMenuItem onClick={downloadCode}>
+                                        <Download className="mr-2 size-4" />
+                                        Download Code
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
                     </div>
                 </CardHeader>
                 <CardContent className="p-0">
@@ -523,7 +438,7 @@ Hello, World!`);
                                     onChange={handleCodeChange}
                                     onMount={handleEditorDidMount}
                                     options={{
-                                        readOnly: !isEditable,
+                                        readOnly: !isEditable || currentData.viewMode === 'view',
                                         minimap: { enabled: false },
                                         scrollBeyondLastLine: false,
                                         automaticLayout: true,
@@ -539,9 +454,14 @@ Hello, World!`);
                                 />
                             </div>
                             <div className="border-t p-4">
-                                <Button onClick={runCode} disabled={isRunning} className="w-full">
-                                    <Play className="mr-2 size-4" />
-                                    {isRunning ? 'Running...' : 'Run Code'}
+                                <Button
+                                    onClick={runCode}
+                                    disabled={isRunning || !isEditable}
+                                    size="sm"
+                                    className="bg-green-600 text-white hover:bg-green-700"
+                                >
+                                    <Play className="mr-1 size-4" />
+                                    {isRunning ? 'Running...' : 'Run'}
                                 </Button>
                             </div>
                         </TabsContent>

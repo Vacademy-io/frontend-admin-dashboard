@@ -30,6 +30,7 @@ interface CodeEditorData {
     language: 'python' | 'javascript';
     code: string;
     theme: 'light' | 'dark';
+    viewMode: 'view' | 'edit';
 }
 
 interface SplitScreenData {
@@ -59,6 +60,7 @@ interface SplitScreenData {
     showLineNumbers?: boolean;
     fontSize?: number;
     timestamp?: number;
+    viewMode?: string;
     [key: string]: unknown;
 }
 
@@ -205,10 +207,10 @@ export const SplitScreenSlide: React.FC<SplitScreenSlideProps> = ({
                                 (splitScreenData.language as 'python' | 'javascript') || 'python',
                             code: splitScreenData.code || '',
                             theme: (splitScreenData.theme as 'light' | 'dark') || 'light',
+                            viewMode: (splitScreenData.viewMode as 'view' | 'edit') || 'edit',
                         }}
                         isEditable={isEditable}
                         onDataChange={handleCodeDataChange}
-                        isSplitScreen={true}
                     />
                 );
             default:

@@ -408,8 +408,15 @@ export const SlideMaterial = ({
 
             if (documentType === 'JUPYTER') {
                 try {
-                    const notebookData = activeItem.document_slide?.data
-                        ? JSON.parse(activeItem.document_slide.data)
+                    // Fallback: first check data field, then published_data for published slides
+                    const rawData =
+                        activeItem.status === 'PUBLISHED'
+                            ? activeItem.document_slide?.data ||
+                              activeItem.document_slide?.published_data
+                            : activeItem.document_slide?.data;
+
+                    const notebookData = rawData
+                        ? JSON.parse(rawData)
                         : { contentUrl: '', projectName: '' };
 
                     setContent(
@@ -537,8 +544,15 @@ export const SlideMaterial = ({
 
             if (documentType === 'SCRATCH') {
                 try {
-                    const scratchData = activeItem.document_slide?.data
-                        ? JSON.parse(activeItem.document_slide.data)
+                    // Fallback: first check data field, then published_data for published slides
+                    const rawData =
+                        activeItem.status === 'PUBLISHED'
+                            ? activeItem.document_slide?.data ||
+                              activeItem.document_slide?.published_data
+                            : activeItem.document_slide?.data;
+
+                    const scratchData = rawData
+                        ? JSON.parse(rawData)
                         : { projectId: '', projectName: '', scratchUrl: '', timestamp: Date.now() };
 
                     setContent(
@@ -667,8 +681,15 @@ export const SlideMaterial = ({
 
             if (documentType === 'CODE') {
                 try {
-                    const codeData = activeItem.document_slide?.data
-                        ? JSON.parse(activeItem.document_slide.data)
+                    // Fallback: first check data field, then published_data for published slides
+                    const rawData =
+                        activeItem.status === 'PUBLISHED'
+                            ? activeItem.document_slide?.data ||
+                              activeItem.document_slide?.published_data
+                            : activeItem.document_slide?.data;
+
+                    const codeData = rawData
+                        ? JSON.parse(rawData)
                         : { language: 'python', code: '', theme: 'light' };
 
                     setContent(
@@ -751,8 +772,15 @@ export const SlideMaterial = ({
             // Handle split-screen slides
             if (documentType?.startsWith('SPLIT_')) {
                 try {
-                    const splitScreenData = activeItem.document_slide?.data
-                        ? JSON.parse(activeItem.document_slide.data)
+                    // Fallback: first check data field, then published_data for published slides
+                    const rawData =
+                        activeItem.status === 'PUBLISHED'
+                            ? activeItem.document_slide?.data ||
+                              activeItem.document_slide?.published_data
+                            : activeItem.document_slide?.data;
+
+                    const splitScreenData = rawData
+                        ? JSON.parse(rawData)
                         : { splitScreen: true, videoSlideId: '', timestamp: Date.now() };
 
                     const { SplitScreenSlide } = await import('./split-screen-slide');
@@ -892,9 +920,6 @@ export const SlideMaterial = ({
                     activeItem.video_slide?.id ||
                     crypto.randomUUID();
 
-                // Check if this is a newly created split screen or an update
-                const isNewSplitScreen = (activeItem as any).isNewSplitScreen;
-
                 const videoSlidePayload = {
                     id: activeItem.id,
                     title: projectName || activeItem.title || '',
@@ -917,7 +942,7 @@ export const SlideMaterial = ({
                         questions: (originalVideoData.questions as any) || [],
                     },
                     status: status,
-                    new_slide: isNewSplitScreen || false,
+                    new_slide: false,
                     notify: false,
                 };
                 try {
@@ -1016,7 +1041,13 @@ export const SlideMaterial = ({
             ) {
                 try {
                     // For these slide types, ensure the latest data is saved to backend
-                    // Data should already be up to date from their onDataChange handlers
+                    // Use fallback: first check data field, then published_data for published slides
+                    const rawData =
+                        activeItem.status === 'PUBLISHED'
+                            ? activeItem.document_slide?.data ||
+                              activeItem.document_slide?.published_data
+                            : activeItem.document_slide?.data;
+
                     await addUpdateDocumentSlide({
                         id: slide?.id || '',
                         title: slide?.title || '',
@@ -1026,14 +1057,11 @@ export const SlideMaterial = ({
                         document_slide: {
                             id: slide?.document_slide?.id || '',
                             type: activeItem.document_slide.type,
-                            data: activeItem.document_slide.data || '{}', // Ensure data exists
+                            data: rawData || '{}', // Use the fallback data
                             title: slide?.document_slide?.title || '',
                             cover_file_id: '',
                             total_pages: 1,
-                            published_data:
-                                activeItem.status === 'PUBLISHED'
-                                    ? activeItem.document_slide.data
-                                    : null,
+                            published_data: activeItem.status === 'PUBLISHED' ? rawData : null,
                             published_document_total_pages: 0,
                         },
                         status: status,
