@@ -36,7 +36,7 @@ export const ChapterMaterial = ({ currentModuleId }: { currentModuleId: string }
 
     const router = useRouter();
 
-    const { courseId, levelId, sessionId } = router.state.location.search;
+    const { moduleId, subjectId, courseId, levelId, sessionId } = router.state.location.search;
 
     const form = useForm<FormValues>({
         defaultValues: {
@@ -58,6 +58,8 @@ export const ChapterMaterial = ({ currentModuleId }: { currentModuleId: string }
         const chapterIds: string[] = [chapter.chapter.id];
         try {
             await deleteChapterMutation.mutateAsync({
+                moduleId: moduleId || '',
+                subjectId: subjectId || '',
                 packageSessionIds: packageSessionId || '',
                 chapterIds: chapterIds,
             });

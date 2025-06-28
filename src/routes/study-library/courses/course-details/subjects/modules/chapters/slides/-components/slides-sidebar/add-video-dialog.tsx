@@ -13,6 +13,7 @@ import { useContentStore } from '@/routes/study-library/courses/course-details/s
 import { useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 const formSchema = z.object({
     videoUrl: z
@@ -32,8 +33,18 @@ export const AddVideoDialog = ({
 }: {
     openState?: ((open: boolean) => void) | undefined;
 }) => {
-    const { chapterId } = Route.useSearch();
-    const { addUpdateVideoSlide } = useSlides(chapterId);
+    const { getPackageSessionId } = useInstituteDetailsStore();
+    const { courseId, levelId, chapterId, moduleId, subjectId, sessionId } = Route.useSearch();
+    const { addUpdateVideoSlide } = useSlides(
+        chapterId || '',
+        moduleId || '',
+        subjectId || '',
+        getPackageSessionId({
+            courseId: courseId || '',
+            levelId: levelId || '',
+            sessionId: sessionId || '',
+        }) || ''
+    );
     const { setActiveItem, getSlideById } = useContentStore();
     const [isAPIReady, setIsAPIReady] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);

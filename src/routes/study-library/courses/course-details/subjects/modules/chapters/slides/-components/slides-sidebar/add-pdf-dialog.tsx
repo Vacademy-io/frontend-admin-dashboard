@@ -15,6 +15,7 @@ import { TokenKey } from '@/constants/auth/tokens';
 import { useContentStore } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
 import { MyInput } from '@/components/design-system/input';
 import * as pdfjs from 'pdfjs-dist';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 // Set the workerSrc for pdfjs
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
@@ -38,8 +39,19 @@ export const AddPdfDialog = ({
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const route = useRouter();
-    const { chapterId } = route.state.location.search;
-    const { addUpdateDocumentSlide } = useSlides(chapterId || '');
+    const { courseId, levelId, chapterId, moduleId, subjectId, sessionId } =
+        route.state.location.search;
+    const { getPackageSessionId } = useInstituteDetailsStore();
+    const { addUpdateDocumentSlide } = useSlides(
+        chapterId || '',
+        moduleId || '',
+        subjectId || '',
+        getPackageSessionId({
+            courseId: courseId || '',
+            levelId: levelId || '',
+            sessionId: sessionId || '',
+        }) || ''
+    );
     const { setActiveItem, getSlideById } = useContentStore();
 
     const [fileUrl, setFileUrl] = useState<string | null>(null);

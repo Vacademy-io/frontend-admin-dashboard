@@ -1096,6 +1096,7 @@ export const CourseDetailsPage = () => {
                         if (selectedCourse.level === 5) {
                             const [moduleId] = selectedParentId.split('|');
                             const response = await addChapterMutation.mutateAsync({
+                                subjectId,
                                 moduleId,
                                 commaSeparatedPackageSessionIds: packageSessionIds,
                                 chapter: newChapter,

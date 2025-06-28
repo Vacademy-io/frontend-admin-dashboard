@@ -30,6 +30,7 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import { formatHTMLString } from '../slide-operations/formatHtmlString';
 import AddAssignmentDialog from './add-assignment-dialog';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 export const ChapterSidebarAddButton = () => {
     const form = useForm<AssignmentFormType>({
@@ -47,8 +48,19 @@ export const ChapterSidebarAddButton = () => {
     console.log('Form values:', form);
     const { open } = useSidebar();
     const route = useRouter();
-    const { chapterId } = route.state.location.search;
-    const { addUpdateDocumentSlide } = useSlides(chapterId || '');
+    const { getPackageSessionId } = useInstituteDetailsStore();
+    const { courseId, levelId, chapterId, moduleId, subjectId, sessionId } =
+        route.state.location.search;
+    const { addUpdateDocumentSlide } = useSlides(
+        chapterId || '',
+        moduleId || '',
+        subjectId || '',
+        getPackageSessionId({
+            courseId: courseId || '',
+            levelId: levelId || '',
+            sessionId: sessionId || '',
+        }) || ''
+    );
     // const { setActiveItem, getSlideById, setItems, items } = useContentStore();
     const { setActiveItem, getSlideById } = useContentStore();
 

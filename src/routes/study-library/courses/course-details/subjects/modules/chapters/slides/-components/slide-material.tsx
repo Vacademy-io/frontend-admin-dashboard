@@ -36,6 +36,7 @@ import { formatHTMLString } from './slide-operations/formatHtmlString';
 import { handleConvertAndUpload } from './slide-operations/handleConvertUpload';
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import { Loader2 } from 'lucide-react';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 const LazyDoubtResolutionSidebar = lazy(() => import('./doubt-resolution/doubtResolutionSidebar'));
 
@@ -83,12 +84,31 @@ export const SlideMaterial = ({
     const [heading, setHeading] = useState(slideTitle);
     const router = useRouter();
     const [content, setContent] = useState<JSX.Element | null>(null);
-
-    const { chapterId, slideId } = router.state.location.search;
+    const { courseId, levelId, chapterId, slideId, moduleId, subjectId, sessionId } =
+        router.state.location.search;
+    const { getPackageSessionId } = useInstituteDetailsStore();
     const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
     const [isUnpublishDialogOpen, setIsUnpublishDialogOpen] = useState(false);
-    const { addUpdateDocumentSlide } = useSlides(chapterId || '');
-    const { addUpdateVideoSlide } = useSlides(chapterId || '');
+    const { addUpdateDocumentSlide } = useSlides(
+        chapterId || '',
+        moduleId || '',
+        subjectId || '',
+        getPackageSessionId({
+            courseId: courseId || '',
+            levelId: levelId || '',
+            sessionId: sessionId || '',
+        }) || ''
+    );
+    const { addUpdateVideoSlide } = useSlides(
+        chapterId || '',
+        moduleId || '',
+        subjectId || '',
+        getPackageSessionId({
+            courseId: courseId || '',
+            levelId: levelId || '',
+            sessionId: sessionId || '',
+        }) || ''
+    );
     const { updateQuestionOrder } = useSlides(chapterId || '');
     const { updateAssignmentOrder } = useSlides(chapterId || '');
     const editingContainerRef = useRef<HTMLDivElement>(null);
