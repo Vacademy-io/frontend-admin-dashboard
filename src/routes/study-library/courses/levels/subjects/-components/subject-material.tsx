@@ -284,7 +284,16 @@ export const SubjectMaterial = () => {
         }
         addSubjectMutation.mutate({ subject: newSubject, packageSessionIds });
     };
-    const handleDeleteSubject = (subjectId: string) => deleteSubjectMutation.mutate(subjectId);
+    const handleDeleteSubject = (subjectId: string) =>
+        deleteSubjectMutation.mutate({
+            subjectId,
+            commaSeparatedPackageSessionIds:
+                getPackageSessionId({
+                    courseId: courseId,
+                    levelId: levelId,
+                    sessionId: currentSession?.id || '',
+                }) || '',
+        });
     const handleEditSubject = (subjectId: string, updatedSubject: SubjectType) =>
         updateSubjectMutation.mutate({ subjectId, updatedSubject });
     const handleSubjectOrderChange = (updatedOrder: orderSubjectPayloadType[]) =>

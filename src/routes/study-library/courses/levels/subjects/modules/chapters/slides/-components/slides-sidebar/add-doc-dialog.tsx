@@ -15,6 +15,7 @@ import { useReplaceBase64ImagesWithNetworkUrls } from '@/utils/helpers/study-lib
 import { useContentStore } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
 import { MyInput } from '@/components/design-system/input';
 import { convertHtmlToPdf } from '../../-helper/helper';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 interface FormData {
     docFile: FileList | null;
@@ -32,8 +33,19 @@ export const AddDocDialog = ({
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const route = useRouter();
-    const { chapterId } = route.state.location.search;
-    const { addUpdateDocumentSlide } = useSlides(chapterId || '');
+    const { getPackageSessionId } = useInstituteDetailsStore();
+    const { courseId, levelId, chapterId, moduleId, subjectId, sessionId } =
+        route.state.location.search;
+    const { addUpdateDocumentSlide } = useSlides(
+        chapterId || '',
+        moduleId || '',
+        subjectId || '',
+        getPackageSessionId({
+            courseId: courseId || '',
+            levelId: levelId || '',
+            sessionId: sessionId || '',
+        }) || ''
+    );
     const replaceBase64ImagesWithNetworkUrls = useReplaceBase64ImagesWithNetworkUrls();
     const { setActiveItem, getSlideById } = useContentStore();
 

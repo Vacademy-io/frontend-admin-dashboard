@@ -25,7 +25,7 @@ export const useAddModule = () => {
             };
 
             return authenticatedAxiosInstance.post(
-                `${ADD_MODULE}?subjectId=${subjectId}&commaSeparatedPackageSessionIds=${commaSeparatedPackageSessionIds}`,
+                `${ADD_MODULE}?subjectId=${subjectId}&packageSessionId=${commaSeparatedPackageSessionIds}`,
                 payload
             );
         },

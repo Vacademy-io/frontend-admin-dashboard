@@ -10,25 +10,24 @@ import {
     FormItem,
     FormLabel,
 } from '@/components/ui/form';
-import { OnboardingSignup, VacademyAssessLogo, VacademyLMSLogo, VacademyLogo } from '@/svgs';
+import {
+    OnboardingSignup,
+    VacademyAssessLogo,
+    VacademyLMSLogo,
+    VacademyLogo,
+} from '@/svgs';
 import { MyButton } from '@/components/design-system/button';
 import { Plus } from 'phosphor-react';
 import { useNavigate } from '@tanstack/react-router';
 import useOrganizationStore from '../onboarding/-zustand-store/step1OrganizationZustand';
 import { useEffect } from 'react';
-import { handleOAuthLogin, type OAuthProvider } from '@/hooks/login/oauth-login';
 import { GitHubLogoIcon } from '@radix-ui/react-icons';
 import { FcGoogle } from 'react-icons/fc';
+import { handleOAuthSignUp } from '@/hooks/signup/oauth-signup';
 
 const items = [
-    {
-        id: 'assess',
-        label: 'Assess',
-    },
-    {
-        id: 'lms',
-        label: 'LMS',
-    },
+    { id: 'assess', label: 'Assess' },
+    { id: 'lms', label: 'LMS' },
 ] as const;
 
 const FormSchema = z.object({
@@ -42,6 +41,7 @@ const FormSchema = z.object({
 export function SignUpComponent() {
     const navigate = useNavigate();
     const { resetForm } = useOrganizationStore();
+
     const form = useForm<z.infer<typeof FormSchema>>({
         resolver: zodResolver(FormSchema),
         defaultValues: {
@@ -56,19 +56,6 @@ export function SignUpComponent() {
     function onSubmit(data: z.infer<typeof FormSchema>) {
         console.log(data);
     }
-
-    const handleOAuthSignup = (provider: OAuthProvider) => {
-        // Only enable OAuth signup when assess is true and lms is false
-        if (!form.getValues('items.assess') || form.getValues('items.lms')) {
-            return;
-        }
-
-        handleOAuthLogin(provider, {
-            isSignup: true,
-            assess: form.getValues('items.assess'),
-            lms: form.getValues('items.lms'),
-        });
-    };
 
     useEffect(() => {
         resetForm();
@@ -101,24 +88,32 @@ export function SignUpComponent() {
                                 <button
                                     type="button"
                                     className="flex w-full items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 shadow-sm transition-colors hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
-                                    onClick={() => {
-                                        handleOAuthLogin('google', { isSignup: true });
-                                    }}
+                                    onClick={() =>
+                                        handleOAuthSignUp('google', {
+                                            isSignup: true,
+                                            assess: form.getValues('items.assess'),
+                                            lms: form.getValues('items.lms'),
+                                        })
+                                    }
                                     disabled={
                                         !form.getValues('items.assess') &&
                                         !form.getValues('items.lms')
                                     }
                                 >
                                     {FcGoogle({ size: 20 })}
-
                                     Continue with Google
                                 </button>
+
                                 <button
                                     type="button"
                                     className="flex w-full items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 shadow-sm transition-colors hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
-                                    onClick={() => {
-                                        handleOAuthLogin('github', { isSignup: true });
-                                    }}
+                                    onClick={() =>
+                                        handleOAuthSignUp('github', {
+                                            isSignup: true,
+                                            assess: form.getValues('items.assess'),
+                                            lms: form.getValues('items.lms'),
+                                        })
+                                    }
                                     disabled={
                                         !form.getValues('items.assess') &&
                                         !form.getValues('items.lms')
@@ -169,6 +164,7 @@ export function SignUpComponent() {
                                 ))}
                             </div>
                         </div>
+
                         <MyButton
                             type="submit"
                             scale="large"
@@ -188,6 +184,7 @@ export function SignUpComponent() {
                             <Plus size={32} />
                             Create Free Account
                         </MyButton>
+
                         <p className="text-sm text-neutral-500">
                             Already have an account?{' '}
                             <span

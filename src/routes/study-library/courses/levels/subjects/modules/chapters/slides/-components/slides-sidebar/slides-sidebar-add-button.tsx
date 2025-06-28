@@ -27,12 +27,24 @@ import { File, GameController } from 'phosphor-react';
 import { formatHTMLString } from '../slide-operations/formatHtmlString';
 import AddAssignmentDialog from './add-assignment-dialog';
 import { createPresentationSlidePayload } from '../create-presentation-slide';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 export const ChapterSidebarAddButton = () => {
     const { open } = useSidebar();
     const route = useRouter();
-    const { chapterId } = route.state.location.search;
-    const { addUpdateDocumentSlide } = useSlides(chapterId || '');
+    const { getPackageSessionId } = useInstituteDetailsStore();
+    const { courseId, levelId, chapterId, moduleId, subjectId, sessionId } =
+        route.state.location.search;
+    const { addUpdateDocumentSlide } = useSlides(
+        chapterId || '',
+        moduleId || '',
+        subjectId || '',
+        getPackageSessionId({
+            courseId: courseId || '',
+            levelId: levelId || '',
+            sessionId: sessionId || '',
+        }) || ''
+    );
     const { setActiveItem, getSlideById } = useContentStore();
 
     // Use the Zustand store instead of useState
@@ -375,13 +387,13 @@ export const ChapterSidebarAddButton = () => {
                     buttonType="primary"
                     scale="medium"
                     className={`
-                        to-primary-600 hover:from-primary-600 hover:to-primary-700 group
-                        relative h-9 w-full
-                        overflow-hidden border-0
-                        bg-gradient-to-r from-primary-500
-                        shadow-md shadow-primary-500/20 transition-all
-                        duration-300 ease-in-out
-                        hover:scale-[1.01] hover:shadow-lg
+                        group relative h-9 w-full
+                        overflow-hidden border-0 bg-gradient-to-r
+                        from-primary-400 to-primary-400
+                        shadow-md shadow-primary-500/20
+                        transition-all duration-300 ease-in-out
+                        hover:scale-[1.01] hover:from-primary-400
+                        hover:to-primary-400 hover:shadow-lg
                         hover:shadow-primary-500/25 active:scale-[0.99]
                         ${open ? 'px-3' : 'px-2.5'}
                     `}

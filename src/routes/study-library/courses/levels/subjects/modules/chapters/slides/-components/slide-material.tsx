@@ -45,6 +45,7 @@ import { useSidebar } from '@/components/ui/sidebar';
 import { JupyterNotebookSlide } from './jupyter-notebook-slide';
 import { ScratchProjectSlide } from './scratch-project-slide';
 import { CodeEditorSlide } from './code-editor-slide';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 // Inside your component
 // this toggles the DoubtResolutionSidebar
@@ -69,11 +70,31 @@ export const SlideMaterial = ({
     const router = useRouter();
     const [content, setContent] = useState<JSX.Element | null>(null);
 
-    const { chapterId, slideId } = router.state.location.search;
+    const { courseId, levelId, chapterId, slideId, moduleId, subjectId, sessionId } =
+        router.state.location.search;
     const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
     const [isUnpublishDialogOpen, setIsUnpublishDialogOpen] = useState(false);
-    const { addUpdateDocumentSlide } = useSlides(chapterId || '');
-    const { addUpdateVideoSlide } = useSlides(chapterId || '');
+    const { getPackageSessionId } = useInstituteDetailsStore();
+    const { addUpdateDocumentSlide } = useSlides(
+        chapterId || '',
+        moduleId || '',
+        subjectId || '',
+        getPackageSessionId({
+            courseId: courseId || '',
+            levelId: levelId || '',
+            sessionId: sessionId || '',
+        }) || ''
+    );
+    const { addUpdateVideoSlide } = useSlides(
+        chapterId || '',
+        moduleId || '',
+        subjectId || '',
+        getPackageSessionId({
+            courseId: courseId || '',
+            levelId: levelId || '',
+            sessionId: sessionId || '',
+        }) || ''
+    );
     const { updateQuestionOrder } = useSlides(chapterId || '');
     const { updateAssignmentOrder } = useSlides(chapterId || '');
     const { setOpen } = useSidebar();
