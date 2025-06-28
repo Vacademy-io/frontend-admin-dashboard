@@ -30,6 +30,8 @@ import {
 } from '../-services/courses-services';
 import { useFileUpload } from '@/hooks/use-file-upload';
 import { useNavigate } from '@tanstack/react-router';
+import { useDeleteCourse } from '@/services/study-library/course-operations/delete-course';
+import { toast } from 'sonner';
 
 export interface AllCourseFilters {
     status: string[];
@@ -98,6 +100,7 @@ interface AllCoursesApiResponse {
 }
 
 export const CourseMaterial = () => {
+    const deleteCourseMutation = useDeleteCourse();
     const { instituteDetails } = useInstituteDetailsStore();
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
@@ -345,6 +348,19 @@ export const CourseMaterial = () => {
         } else {
             handleGetCourses();
         }
+    };
+
+    const handleCourseDelete = (courseId: string) => {
+        deleteCourseMutation.mutate(courseId, {
+            onSuccess: () => {
+                toast.success('Course deleted successfully');
+                handleGetCourses();
+                handleGetTeacherCourses();
+            },
+            onError: (error) => {
+                toast.error(error.message || 'Failed to delete course');
+            },
+        });
     };
 
     useEffect(() => {
@@ -799,17 +815,41 @@ export const CourseMaterial = () => {
                                                         </span>
                                                     </div>
                                                     {/* View Course Button */}
-                                                    <MyButton
-                                                        className="mt-4 w-full"
-                                                        buttonType="primary"
-                                                        onClick={() =>
-                                                            navigate({
-                                                                to: `/study-library/courses/course-details?courseId=${course.id}`,
-                                                            })
-                                                        }
-                                                    >
-                                                        View Course
-                                                    </MyButton>
+                                                    <div className="mt-4 flex gap-2">
+                                                        <MyButton
+                                                            className="flex-1"
+                                                            buttonType="primary"
+                                                            onClick={() =>
+                                                                navigate({
+                                                                    to: `/study-library/courses/course-details?courseId=${course.id}`,
+                                                                })
+                                                            }
+                                                        >
+                                                            View Course
+                                                        </MyButton>
+                                                        <button
+                                                            onClick={() =>
+                                                                handleCourseDelete(course.id)
+                                                            }
+                                                            className="flex size-10 items-center justify-center rounded-md border border-red-200 bg-red-50 text-red-500 transition-colors hover:border-red-300 hover:bg-red-100 active:scale-95"
+                                                            title="Delete course"
+                                                        >
+                                                            <svg
+                                                                width="16"
+                                                                height="16"
+                                                                fill="none"
+                                                                viewBox="0 0 24 24"
+                                                                stroke="currentColor"
+                                                            >
+                                                                <path
+                                                                    strokeLinecap="round"
+                                                                    strokeLinejoin="round"
+                                                                    strokeWidth="2"
+                                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                                                />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         );
