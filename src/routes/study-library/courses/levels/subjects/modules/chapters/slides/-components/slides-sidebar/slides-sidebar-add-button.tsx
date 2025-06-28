@@ -10,6 +10,8 @@ import {
     YoutubeLogo,
     Question,
     PresentationChart,
+    Code,
+    BookOpen,
 } from '@phosphor-icons/react';
 import { MyDialog } from '@/components/design-system/dialog';
 import { AddVideoDialog } from './add-video-dialog';
@@ -21,11 +23,12 @@ import { useSlides } from '@/routes/study-library/courses/levels/subjects/module
 import { useContentStore } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
 import { useDialogStore } from '@/routes/study-library/courses/-stores/slide-add-dialogs-store';
 import AddQuestionDialog from './add-question-dialog';
-import { File } from 'phosphor-react';
+import { File, GameController } from 'phosphor-react';
 import { formatHTMLString } from '../slide-operations/formatHtmlString';
 import AddAssignmentDialog from './add-assignment-dialog';
 import { createPresentationSlidePayload } from '../create-presentation-slide';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { toast } from 'sonner';
 
 export const ChapterSidebarAddButton = () => {
     const { open } = useSidebar();
@@ -33,7 +36,7 @@ export const ChapterSidebarAddButton = () => {
     const { getPackageSessionId } = useInstituteDetailsStore();
     const { courseId, levelId, chapterId, moduleId, subjectId, sessionId } =
         route.state.location.search;
-    const { addUpdateDocumentSlide } = useSlides(
+    const { addUpdateDocumentSlide, updateSlideOrder } = useSlides(
         chapterId || '',
         moduleId || '',
         subjectId || '',
@@ -43,7 +46,7 @@ export const ChapterSidebarAddButton = () => {
             sessionId: sessionId || '',
         }) || ''
     );
-    const { setActiveItem, getSlideById } = useContentStore();
+    const { setActiveItem, getSlideById, items } = useContentStore();
 
     // Use the Zustand store instead of useState
     const {
@@ -66,6 +69,42 @@ export const ChapterSidebarAddButton = () => {
         openAssignmentDialog,
         closeAssignmentDialog,
     } = useDialogStore();
+
+    // Function to reorder slides after adding a new one at the top
+    const reorderSlidesAfterNewSlide = async (newSlideId: string) => {
+        try {
+            // Get current slides and reorder them
+            const currentSlides = items || [];
+            const newSlide = currentSlides.find((slide) => slide.id === newSlideId);
+
+            if (!newSlide) return;
+
+            // Create new order: new slide at top (order 0), then existing slides
+            const reorderedSlides = [
+                { slide_id: newSlideId, slide_order: 0 },
+                ...currentSlides
+                    .filter((slide) => slide.id !== newSlideId)
+                    .map((slide, index) => ({
+                        slide_id: slide.id,
+                        slide_order: index + 1,
+                    })),
+            ];
+
+            // Update slide order in backend
+            await updateSlideOrder({
+                chapterId: chapterId || '',
+                slideOrderPayload: reorderedSlides,
+            });
+
+            // Set the new slide as active
+            setTimeout(() => {
+                setActiveItem(getSlideById(newSlideId));
+            }, 500);
+        } catch (error) {
+            console.error('Error reordering slides:', error);
+            toast.error('Slide created but reordering failed');
+        }
+    };
 
     const dropdownList = [
         {
@@ -128,6 +167,24 @@ export const ChapterSidebarAddButton = () => {
             icon: <PresentationChart className="size-4 text-orange-500" />,
             description: 'Interactive presentations',
         },
+        {
+            label: 'Jupyter Notebook',
+            value: 'jupyter-notebook',
+            icon: <BookOpen className="size-4 text-violet-500" />,
+            description: 'Interactive coding notebooks',
+        },
+        {
+            label: 'Scratch Project',
+            value: 'scratch-project',
+            icon: <GameController className="size-4 text-yellow-500" />,
+            description: 'Visual programming blocks',
+        },
+        {
+            label: 'Code Editor',
+            value: 'code-editor',
+            icon: <Code className="size-4 text-green-500" />,
+            description: 'Interactive code environment',
+        },
     ];
 
     const handleSelect = async (value: string) => {
@@ -147,7 +204,7 @@ export const ChapterSidebarAddButton = () => {
                         title: 'New Doc',
                         image_file_id: '',
                         description: '',
-                        slide_order: 0,
+                        slide_order: 0, // Always insert at top
                         document_slide: {
                             id: crypto.randomUUID(),
                             type: 'DOC',
@@ -164,12 +221,12 @@ export const ChapterSidebarAddButton = () => {
                     });
 
                     if (response) {
-                        setTimeout(() => {
-                            setActiveItem(getSlideById(slideId));
-                        }, 500);
+                        // Reorder slides and set as active
+                        await reorderSlidesAfterNewSlide(slideId);
                     }
                 } catch (err) {
                     console.error('Error creating new doc:', err);
+                    toast.error('Failed to create new document');
                 }
                 break;
             }
@@ -195,6 +252,7 @@ export const ChapterSidebarAddButton = () => {
                         slides: null,
                     };
                     const payload = createPresentationSlidePayload(slideTypeObj);
+                    payload.slide_order = 0; // Always insert at top
                     console.log('payload', payload);
                     const response = await addUpdateDocumentSlide(payload);
 
@@ -215,15 +273,142 @@ export const ChapterSidebarAddButton = () => {
                             JSON.stringify(excalidrawData)
                         );
 
-                        // Set the active item after a short delay to ensure the slide is created
-                        setTimeout(() => {
-                            if (payload.id) {
-                                setActiveItem(getSlideById(payload.id));
-                            }
-                        }, 500);
+                        // Reorder slides and set as active
+                        await reorderSlidesAfterNewSlide(payload?.id || '');
                     }
                 } catch (err) {
                     console.error('Error creating new presentation:', err);
+                    toast.error('Failed to create new presentation');
+                }
+                break;
+            }
+            case 'jupyter-notebook': {
+                try {
+                    // Create a Jupyter notebook slide as a document with special type
+                    const slideId = crypto.randomUUID();
+                    const response = await addUpdateDocumentSlide({
+                        id: slideId,
+                        title: 'Jupyter Notebook',
+                        image_file_id: '',
+                        description: 'Interactive Jupyter notebook environment',
+                        slide_order: 0, // Always insert at top
+                        document_slide: {
+                            id: crypto.randomUUID(),
+                            type: 'JUPYTER',
+                            data: JSON.stringify({
+                                projectName: '',
+                                contentUrl: '',
+                                contentBranch: 'main',
+                                notebookLocation: 'root',
+                                activeTab: 'settings',
+                                editorType: 'jupyterEditor',
+                                timestamp: Date.now(),
+                            }),
+                            title: 'Jupyter Notebook',
+                            cover_file_id: '',
+                            total_pages: 1,
+                            published_data: null,
+                            published_document_total_pages: 0,
+                        },
+                        status: 'DRAFT',
+                        new_slide: true,
+                        notify: false,
+                    });
+
+                    if (response) {
+                        // Reorder slides and set as active
+                        await reorderSlidesAfterNewSlide(slideId);
+                    }
+                } catch (err) {
+                    console.error('Error creating Jupyter notebook:', err);
+                    toast.error('Failed to create Jupyter notebook');
+                }
+                break;
+            }
+            case 'scratch-project': {
+                try {
+                    // Create a Scratch project slide as a document with special type
+                    const slideId = crypto.randomUUID();
+                    const response = await addUpdateDocumentSlide({
+                        id: slideId,
+                        title: 'Scratch Project',
+                        image_file_id: '',
+                        description: 'Interactive Scratch programming environment',
+                        slide_order: 0, // Always insert at top
+                        document_slide: {
+                            id: crypto.randomUUID(),
+                            type: 'SCRATCH',
+                            data: JSON.stringify({
+                                projectId: '',
+                                scratchUrl: '',
+                                embedType: 'project',
+                                autoStart: false,
+                                hideControls: false,
+                                editorType: 'scratchEditor',
+                                timestamp: Date.now(),
+                            }),
+                            title: 'Scratch Project',
+                            cover_file_id: '',
+                            total_pages: 1,
+                            published_data: null,
+                            published_document_total_pages: 0,
+                        },
+                        status: 'DRAFT',
+                        new_slide: true,
+                        notify: false,
+                    });
+
+                    if (response) {
+                        // Reorder slides and set as active
+                        await reorderSlidesAfterNewSlide(slideId);
+                    }
+                } catch (err) {
+                    console.error('Error creating Scratch project:', err);
+                    toast.error('Failed to create Scratch project');
+                }
+                break;
+            }
+            case 'code-editor': {
+                try {
+                    // Create a code editor slide as a document with special type
+                    const slideId = crypto.randomUUID();
+                    const response = await addUpdateDocumentSlide({
+                        id: slideId,
+                        title: 'Code Editor',
+                        image_file_id: '',
+                        description: 'Interactive code editing environment',
+                        slide_order: 0, // Always insert at top
+                        document_slide: {
+                            id: crypto.randomUUID(),
+                            type: 'CODE',
+                            data: JSON.stringify({
+                                language: 'javascript',
+                                theme: 'dark',
+                                code: '// Welcome to the code editor\nconsole.log("Hello, World!");',
+                                readOnly: false,
+                                showLineNumbers: true,
+                                fontSize: 14,
+                                editorType: 'codeEditor',
+                                timestamp: Date.now(),
+                            }),
+                            title: 'Code Editor',
+                            cover_file_id: '',
+                            total_pages: 1,
+                            published_data: null,
+                            published_document_total_pages: 0,
+                        },
+                        status: 'DRAFT',
+                        new_slide: true,
+                        notify: false,
+                    });
+
+                    if (response) {
+                        // Reorder slides and set as active
+                        await reorderSlidesAfterNewSlide(slideId);
+                    }
+                } catch (err) {
+                    console.error('Error creating code editor:', err);
+                    toast.error('Failed to create code editor');
                 }
                 break;
             }
@@ -237,19 +422,19 @@ export const ChapterSidebarAddButton = () => {
                     buttonType="primary"
                     scale="medium"
                     className={`
-                        to-primary-600 hover:from-primary-600 hover:to-primary-700 group
-                        relative h-9 w-full
-                        overflow-hidden border-0
-                        bg-gradient-to-r from-primary-500
-                        shadow-md shadow-primary-500/20 transition-all
-                        duration-300 ease-in-out
-                        hover:scale-[1.01] hover:shadow-lg
+                        group relative h-9 w-full
+                        overflow-hidden border-0 bg-gradient-to-r
+                        from-primary-400 to-primary-400
+                        shadow-md shadow-primary-500/20
+                        transition-all duration-300 ease-in-out
+                        hover:scale-[1.01] hover:from-primary-400
+                        hover:to-primary-400 hover:shadow-lg
                         hover:shadow-primary-500/25 active:scale-[0.99]
                         ${open ? 'px-3' : 'px-2.5'}
                     `}
                     id="add-slides"
                 >
-                    <div className="absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-white/0 via-white/20 to-white/0 transition-transform duration-700 ease-out group-hover:translate-x-[100%]" />
+                    <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 transition-transform duration-700 ease-out group-hover:translate-x-full" />
 
                     <div className="relative z-10 flex items-center justify-center gap-1.5">
                         <Plus

@@ -44,7 +44,7 @@ export const AddPdfDialog = ({
     const { courseId, levelId, chapterId, moduleId, subjectId, sessionId } =
         route.state.location.search;
     const { getPackageSessionId } = useInstituteDetailsStore();
-    const { addUpdateDocumentSlide } = useSlides(
+    const { addUpdateDocumentSlide, updateSlideOrder } = useSlides(
         chapterId || '',
         moduleId || '',
         subjectId || '',
@@ -54,7 +54,7 @@ export const AddPdfDialog = ({
             sessionId: sessionId || '',
         }) || ''
     );
-    const { setActiveItem, getSlideById } = useContentStore();
+    const { setActiveItem, getSlideById, items } = useContentStore();
 
     const [fileUrl, setFileUrl] = useState<string | null>(null);
 
@@ -66,6 +66,42 @@ export const AddPdfDialog = ({
     });
 
     const { uploadFile, getPublicUrl } = useFileUpload();
+
+    // Function to reorder slides after adding a new one at the top
+    const reorderSlidesAfterNewSlide = async (newSlideId: string) => {
+        try {
+            // Get current slides and reorder them
+            const currentSlides = items || [];
+            const newSlide = currentSlides.find((slide) => slide.id === newSlideId);
+
+            if (!newSlide) return;
+
+            // Create new order: new slide at top (order 0), then existing slides
+            const reorderedSlides = [
+                { slide_id: newSlideId, slide_order: 0 },
+                ...currentSlides
+                    .filter((slide) => slide.id !== newSlideId)
+                    .map((slide, index) => ({
+                        slide_id: slide.id,
+                        slide_order: index + 1,
+                    })),
+            ];
+
+            // Update slide order in backend
+            await updateSlideOrder({
+                chapterId: chapterId || '',
+                slideOrderPayload: reorderedSlides,
+            });
+
+            // Set the new slide as active
+            setTimeout(() => {
+                setActiveItem(getSlideById(newSlideId));
+            }, 500);
+        } catch (error) {
+            console.error('Error reordering slides:', error);
+            toast.error('Slide created but reordering failed');
+        }
+    };
 
     const handleFileSubmit = async (selectedFile: File) => {
         if (!selectedFile.type.includes('pdf')) {
@@ -137,7 +173,7 @@ export const AddPdfDialog = ({
                     title: data.pdfTitle,
                     image_file_id: '',
                     description: null,
-                    slide_order: 0,
+                    slide_order: 0, // Always insert at top
                     document_slide: {
                         id: crypto.randomUUID(),
                         type: 'PDF',
@@ -154,9 +190,8 @@ export const AddPdfDialog = ({
                 });
 
                 if (response) {
-                    setTimeout(() => {
-                        setActiveItem(getSlideById(response));
-                    }, 500);
+                    // Reorder slides and set as active
+                    await reorderSlidesAfterNewSlide(response);
                     openState?.(false);
                     toast.success('PDF uploaded successfully!');
                 }

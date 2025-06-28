@@ -36,7 +36,7 @@ export const AddDocDialog = ({
     const { getPackageSessionId } = useInstituteDetailsStore();
     const { courseId, levelId, chapterId, moduleId, subjectId, sessionId } =
         route.state.location.search;
-    const { addUpdateDocumentSlide } = useSlides(
+    const { addUpdateDocumentSlide, updateSlideOrder } = useSlides(
         chapterId || '',
         moduleId || '',
         subjectId || '',
@@ -47,7 +47,7 @@ export const AddDocDialog = ({
         }) || ''
     );
     const replaceBase64ImagesWithNetworkUrls = useReplaceBase64ImagesWithNetworkUrls();
-    const { setActiveItem, getSlideById } = useContentStore();
+    const { setActiveItem, getSlideById, items } = useContentStore();
 
     const form = useForm<FormData>({
         defaultValues: {
@@ -55,6 +55,42 @@ export const AddDocDialog = ({
             docTitle: '',
         },
     });
+
+    // Function to reorder slides after adding a new one at the top
+    const reorderSlidesAfterNewSlide = async (newSlideId: string) => {
+        try {
+            // Get current slides and reorder them
+            const currentSlides = items || [];
+            const newSlide = currentSlides.find((slide) => slide.id === newSlideId);
+
+            if (!newSlide) return;
+
+            // Create new order: new slide at top (order 0), then existing slides
+            const reorderedSlides = [
+                { slide_id: newSlideId, slide_order: 0 },
+                ...currentSlides
+                    .filter((slide) => slide.id !== newSlideId)
+                    .map((slide, index) => ({
+                        slide_id: slide.id,
+                        slide_order: index + 1,
+                    })),
+            ];
+
+            // Update slide order in backend
+            await updateSlideOrder({
+                chapterId: chapterId || '',
+                slideOrderPayload: reorderedSlides,
+            });
+
+            // Set the new slide as active
+            setTimeout(() => {
+                setActiveItem(getSlideById(newSlideId));
+            }, 500);
+        } catch (error) {
+            console.error('Error reordering slides:', error);
+            toast.error('Slide created but reordering failed');
+        }
+    };
 
     const handleFileSubmit = async (selectedFile: File) => {
         const allowedTypes = {
@@ -97,7 +133,7 @@ export const AddDocDialog = ({
                 title: data.docTitle,
                 image_file_id: '',
                 description: null,
-                slide_order: 0,
+                slide_order: 0, // Always insert at top
                 document_slide: {
                     id: crypto.randomUUID(),
                     type: 'DOC',
@@ -113,12 +149,9 @@ export const AddDocDialog = ({
                 notify: false,
             });
 
-            toast.success('Document uploaded successfully!');
-
             if (response) {
-                setTimeout(() => {
-                    setActiveItem(getSlideById(response));
-                }, 500);
+                // Reorder slides and set as active
+                await reorderSlidesAfterNewSlide(response);
                 openState?.(false);
                 toast.success('Document uploaded successfully!');
             }

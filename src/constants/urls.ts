@@ -123,6 +123,7 @@ export const DELETE_SESSION = `${BASE_URL}/admin-core-service/sessions/v1/delete
 
 export const GET_SLIDES = `${BASE_URL}/admin-core-service/slide/v1/slides`;
 export const ADD_UPDATE_VIDEO_SLIDE = `${BASE_URL}/admin-core-service/slide/video-slide/add-or-update`;
+export const ADD_UPDATE_SPLIT_SCREEN_SLIDE = `${BASE_URL}/admin-core-service/slide/v1/add-update-video-slide`;
 export const GET_ALL_SLIDES = `${BASE_URL}/admin-core-service/v1/study-library/chapters-with-slides`;
 export const ADD_UPDATE_DOCUMENT_SLIDE = `${BASE_URL}/admin-core-service/slide/v1/add-update-document-slide`;
 export const UPDATE_SLIDE_STATUS = `${BASE_URL}/admin-core-service/slide/v1/update-status`;
