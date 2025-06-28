@@ -6,8 +6,17 @@ export const useDeleteSubject = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: (subjectId: string) => {
-            return authenticatedAxiosInstance.delete(`${DELETE_SUBJECT}`, { data: [subjectId] });
+        mutationFn: ({
+            subjectId,
+            commaSeparatedPackageSessionIds,
+        }: {
+            subjectId: string;
+            commaSeparatedPackageSessionIds: string;
+        }) => {
+            return authenticatedAxiosInstance.delete(
+                `${DELETE_SUBJECT}&packageSessionId=${commaSeparatedPackageSessionIds}`,
+                { data: [subjectId] }
+            );
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['GET_INIT_STUDY_LIBRARY'] });

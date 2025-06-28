@@ -14,6 +14,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { YoutubeLogo, CheckCircle, PlayCircle } from '@phosphor-icons/react';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 const formSchema = z.object({
     videoUrl: z
@@ -33,8 +34,18 @@ export const AddVideoDialog = ({
 }: {
     openState?: ((open: boolean) => void) | undefined;
 }) => {
-    const { chapterId } = Route.useSearch();
-    const { addUpdateVideoSlide } = useSlides(chapterId);
+    const { getPackageSessionId } = useInstituteDetailsStore();
+    const { courseId, levelId, chapterId, moduleId, subjectId, sessionId } = Route.useSearch();
+    const { addUpdateVideoSlide } = useSlides(
+        chapterId || '',
+        moduleId || '',
+        subjectId || '',
+        getPackageSessionId({
+            courseId: courseId || '',
+            levelId: levelId || '',
+            sessionId: sessionId || '',
+        }) || ''
+    );
     const { setActiveItem, getSlideById } = useContentStore();
     const [isAPIReady, setIsAPIReady] = useState(false);
     const [isValidUrl, setIsValidUrl] = useState(false);
@@ -218,11 +229,11 @@ export const AddVideoDialog = ({
                                             }}
                                             className="w-full pr-12"
                                         />
-                                        <div className="absolute right-3 top-1/2 mt-3 -translate-y-1/2">
+                                        <div className="absolute right-3 top-1/2 mt-3 -translate-y-1/2 transform">
                                             {isValidUrl ? (
-                                                <CheckCircle className="size-5 text-green-500 duration-300 animate-in fade-in" />
+                                                <CheckCircle className="h-5 w-5 text-green-500 duration-300 animate-in fade-in" />
                                             ) : (
-                                                <YoutubeLogo className="size-5 text-neutral-400" />
+                                                <YoutubeLogo className="h-5 w-5 text-neutral-400" />
                                             )}
                                         </div>
                                     </div>
@@ -235,14 +246,14 @@ export const AddVideoDialog = ({
                     {videoPreview && (
                         <div className="rounded-xl border bg-neutral-50 p-4 duration-500 animate-in fade-in slide-in-from-bottom-2">
                             <div className="flex items-center gap-3">
-                                <div className="relative shrink-0">
+                                <div className="relative flex-shrink-0">
                                     <img
                                         src={videoPreview.thumbnail}
                                         alt="Video thumbnail"
                                         className="h-12 w-16 rounded-lg object-cover"
                                     />
                                     <div className="absolute inset-0 flex items-center justify-center">
-                                        <PlayCircle className="size-6 text-white drop-shadow-lg" />
+                                        <PlayCircle className="h-6 w-6 text-white drop-shadow-lg" />
                                     </div>
                                 </div>
                                 <div className="min-w-0 flex-1">
@@ -251,7 +262,7 @@ export const AddVideoDialog = ({
                                     </p>
                                     <p className="text-xs text-neutral-500">YouTube Video</p>
                                 </div>
-                                <CheckCircle className="size-5 shrink-0 text-green-500" />
+                                <CheckCircle className="h-5 w-5 flex-shrink-0 text-green-500" />
                             </div>
                         </div>
                     )}
@@ -292,7 +303,7 @@ export const AddVideoDialog = ({
                             className="w-full"
                         >
                             <div className="flex items-center justify-center gap-2">
-                                <div className="size-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                                 Adding Video...
                             </div>
                         </MyButton>
@@ -319,7 +330,7 @@ export const AddVideoDialog = ({
                             `}
                         >
                             <div className="flex items-center justify-center gap-2">
-                                <YoutubeLogo className="size-4" />
+                                <YoutubeLogo className="h-4 w-4" />
                                 Add YouTube Video
                             </div>
                         </MyButton>

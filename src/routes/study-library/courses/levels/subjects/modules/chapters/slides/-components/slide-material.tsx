@@ -42,9 +42,12 @@ import { Loader2 } from 'lucide-react';
 import DoubtResolutionSidebar from './doubt-resolution/doubtResolutionSidebar';
 import { ChatCircleDots } from '@phosphor-icons/react';
 import { useSidebar } from '@/components/ui/sidebar';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 // Inside your component
 // this toggles the DoubtResolutionSidebar
+// Declare INSTITUTE_ID here or import it from a config file
+const INSTITUTE_ID = 'your-institute-id'; // Replace with your actual institute ID
 
 export const SlideMaterial = ({
     setGetCurrentEditorHTMLContent,
@@ -65,13 +68,51 @@ export const SlideMaterial = ({
     const [content, setContent] = useState<JSX.Element | null>(null);
     const isAutoSavingRef = useRef(false);
 
-    const { chapterId, slideId } = router.state.location.search;
+    const { courseId, levelId, chapterId, slideId, moduleId, subjectId, sessionId } =
+        router.state.location.search;
     const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
     const [isUnpublishDialogOpen, setIsUnpublishDialogOpen] = useState(false);
-    const { addUpdateDocumentSlide } = useSlides(chapterId || '');
-    const { addUpdateVideoSlide } = useSlides(chapterId || '');
-    const { updateQuestionOrder } = useSlides(chapterId || '');
-    const { updateAssignmentOrder } = useSlides(chapterId || '');
+    const { getPackageSessionId } = useInstituteDetailsStore();
+    const { addUpdateDocumentSlide } = useSlides(
+        chapterId || '',
+        moduleId || '',
+        subjectId || '',
+        getPackageSessionId({
+            courseId: courseId || '',
+            levelId: levelId || '',
+            sessionId: sessionId || '',
+        }) || ''
+    );
+    const { addUpdateVideoSlide } = useSlides(
+        chapterId || '',
+        moduleId || '',
+        subjectId || '',
+        getPackageSessionId({
+            courseId: courseId || '',
+            levelId: levelId || '',
+            sessionId: sessionId || '',
+        }) || ''
+    );
+    const { updateQuestionOrder } = useSlides(
+        chapterId || '',
+        moduleId || '',
+        subjectId || '',
+        getPackageSessionId({
+            courseId: courseId || '',
+            levelId: levelId || '',
+            sessionId: sessionId || '',
+        }) || ''
+    );
+    const { updateAssignmentOrder } = useSlides(
+        chapterId || '',
+        moduleId || '',
+        subjectId || '',
+        getPackageSessionId({
+            courseId: courseId || '',
+            levelId: levelId || '',
+            sessionId: sessionId || '',
+        }) || ''
+    );
     const { setOpen } = useSidebar();
 
     const handleHeadingChange = (e: ChangeEvent<HTMLInputElement>) => {

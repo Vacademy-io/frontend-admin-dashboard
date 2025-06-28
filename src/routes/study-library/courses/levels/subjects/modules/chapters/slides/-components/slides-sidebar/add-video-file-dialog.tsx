@@ -14,6 +14,7 @@ import { Route } from '@/routes/study-library/courses/levels/subjects/modules/ch
 import { useContentStore } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
 import { useState } from 'react';
 import { UploadFileInS3 } from '@/services/upload_file';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 const formSchema = z.object({
     videoName: z.string().min(1, 'File name is required'),
@@ -30,8 +31,18 @@ export const AddVideoFileDialog = ({
 }: {
     openState?: ((open: boolean) => void) | undefined;
 }) => {
-    const { chapterId } = Route.useSearch();
-    const { addUpdateVideoSlide } = useSlides(chapterId);
+    const { getPackageSessionId } = useInstituteDetailsStore();
+    const { courseId, levelId, chapterId, moduleId, subjectId, sessionId } = Route.useSearch();
+    const { addUpdateVideoSlide } = useSlides(
+        chapterId || '',
+        moduleId || '',
+        subjectId || '',
+        getPackageSessionId({
+            courseId: courseId || '',
+            levelId: levelId || '',
+            sessionId: sessionId || '',
+        }) || ''
+    );
     const { setActiveItem, getSlideById } = useContentStore();
     const [isUploading, setIsUploading] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);

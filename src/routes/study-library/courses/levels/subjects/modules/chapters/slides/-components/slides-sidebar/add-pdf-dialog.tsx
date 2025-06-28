@@ -16,6 +16,7 @@ import { useContentStore } from '@/routes/study-library/courses/levels/subjects/
 import { MyInput } from '@/components/design-system/input';
 import * as pdfjs from 'pdfjs-dist';
 import { CheckCircle, FilePdf } from '@phosphor-icons/react';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 // Set the workerSrc for pdfjs
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
@@ -40,8 +41,19 @@ export const AddPdfDialog = ({
     const [pdfPageCount, setPdfPageCount] = useState<number | null>(null);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const route = useRouter();
-    const { chapterId } = route.state.location.search;
-    const { addUpdateDocumentSlide } = useSlides(chapterId || '');
+    const { courseId, levelId, chapterId, moduleId, subjectId, sessionId } =
+        route.state.location.search;
+    const { getPackageSessionId } = useInstituteDetailsStore();
+    const { addUpdateDocumentSlide } = useSlides(
+        chapterId || '',
+        moduleId || '',
+        subjectId || '',
+        getPackageSessionId({
+            courseId: courseId || '',
+            levelId: levelId || '',
+            sessionId: sessionId || '',
+        }) || ''
+    );
     const { setActiveItem, getSlideById } = useContentStore();
 
     const [fileUrl, setFileUrl] = useState<string | null>(null);
@@ -200,7 +212,7 @@ export const AddPdfDialog = ({
                             {file ? (
                                 <div className="flex items-center gap-3 duration-500 animate-in fade-in slide-in-from-bottom-2">
                                     <div className="rounded-full bg-green-100 p-3">
-                                        <CheckCircle className="size-6 text-green-600" />
+                                        <CheckCircle className="h-6 w-6 text-green-600" />
                                     </div>
                                     <div>
                                         <p className="text-wrap font-medium text-green-700">
@@ -223,7 +235,7 @@ export const AddPdfDialog = ({
                             ) : (
                                 <div className="space-y-3 text-center">
                                     <div className="mx-auto w-fit animate-pulse rounded-full bg-primary-100 p-4">
-                                        <FilePdf className="text-primary-600 size-8" />
+                                        <FilePdf className="text-primary-600 h-8 w-8" />
                                     </div>
                                     <div>
                                         <p className="mb-1 font-medium text-neutral-700">
@@ -242,7 +254,7 @@ export const AddPdfDialog = ({
                     {error && (
                         <div className="rounded-lg border border-red-200 bg-red-50 p-3 duration-300 animate-in fade-in slide-in-from-top-2">
                             <p className="flex items-center gap-2 text-sm text-red-600">
-                                <span className="size-2 rounded-full bg-red-500"></span>
+                                <span className="h-2 w-2 rounded-full bg-red-500"></span>
                                 {error}
                             </p>
                         </div>
@@ -290,7 +302,7 @@ export const AddPdfDialog = ({
                     <div className="text-xs text-neutral-500">
                         {file && (
                             <span className="flex items-center gap-1">
-                                <FilePdf className="size-3" />
+                                <FilePdf className="h-3 w-3" />
                                 Ready to upload
                             </span>
                         )}
@@ -312,7 +324,7 @@ export const AddPdfDialog = ({
                     >
                         {isUploading ? (
                             <div className="flex items-center gap-2">
-                                <div className="size-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                                 Uploading...
                             </div>
                         ) : (
