@@ -232,6 +232,8 @@ export const CourseDetailsPage = () => {
         mode: 'onChange',
     });
 
+    console.log(form.getValues());
+
     const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
 
     const [selectedCourse, setSelectedCourse] = useState<Course | undefined>(() => {
@@ -1086,7 +1088,7 @@ export const CourseDetailsPage = () => {
                         const newChapter = {
                             id: '', // Let backend assign ID
                             chapter_name: newItemName,
-                            status: 'true',
+                            status: 'ACTIVE',
                             file_id: '',
                             description:
                                 'Click to view and access eBooks and video lectures for this chapter.',
@@ -1094,7 +1096,7 @@ export const CourseDetailsPage = () => {
                         };
 
                         if (selectedCourse.level === 5) {
-                            const [moduleId] = selectedParentId.split('|');
+                            const [subjectId, moduleId] = selectedParentId.split('|');
                             const response = await addChapterMutation.mutateAsync({
                                 subjectId,
                                 moduleId,
@@ -2512,8 +2514,6 @@ export const CourseDetailsPage = () => {
         });
         return () => unsubscribe();
     }, [router, selectedSession, selectedLevel, packageSessionIds]);
-
-    console.log(levelOptions);
 
     return (
         <div className="flex min-h-screen flex-col bg-white">
