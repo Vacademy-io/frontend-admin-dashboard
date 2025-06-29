@@ -38,11 +38,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import {
-    CourseDetailsFormValues,
-    courseDetailsSchema,
-    transformApiDataToCourseData,
-} from './course-details-schema';
+import { CourseDetailsFormValues, courseDetailsSchema } from './course-details-schema';
 import { useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
 import { useGetPackageSessionId } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionId';
 import { useAddSubject } from '../subjects/-services/addSubject';
@@ -64,6 +60,7 @@ import { GET_SLIDES } from '@/constants/urls';
 import { handleGetSlideCountDetails } from '../-services/get-slides-count';
 import { ModuleResponse } from '../../-components/course-details-page';
 import { CourseDetailsRatingsComponent } from './course-details-ratings-page';
+import { transformApiDataToCourseData } from '../-utils/helper';
 
 type DialogType = 'subject' | 'module' | 'chapter' | 'slide' | null;
 
