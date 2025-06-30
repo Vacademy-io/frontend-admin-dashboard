@@ -60,7 +60,7 @@ export const AddCourseForm = () => {
     const handleStep2Submit = (data: Step2Data) => {
         const newSubject: SubjectType = {
             id: '', // Let backend assign ID
-            subject_name: 'DEFAULT',
+            subject_name: '',
             subject_code: '',
             credit: 0,
             thumbnail_id: '',
@@ -71,7 +71,7 @@ export const AddCourseForm = () => {
 
         const newModule = {
             id: '',
-            module_name: 'DEFAULT',
+            module_name: '',
             description: '',
             status: '',
             thumbnail_id: '',
@@ -79,7 +79,7 @@ export const AddCourseForm = () => {
 
         const newChapter = {
             id: '', // Let backend assign ID
-            chapter_name: 'DEFAULT',
+            chapter_name: '',
             status: 'ACTIVE',
             file_id: '',
             description: '',
