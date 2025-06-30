@@ -379,22 +379,30 @@ export const SubjectMaterial = () => {
         slideId: string
     ) => {
         console.log('slideId: ', slideId);
-        setActiveItem({
-            id: slideId,
-            source_id: '',
-            source_type: '',
-            title: '',
-            image_file_id: '',
-            description: '',
-            status: '',
-            slide_order: 0,
-            video_slide: null,
-            document_slide: null,
-            question_slide: null,
-            assignment_slide: null,
-            is_loaded: false,
-            new_slide: false,
-        });
+
+        const slide = chapterSlidesMap[chapterId]?.find((s) => s.id === slideId);
+
+        if (slide) {
+            setActiveItem(slide);
+        } else {
+            // Fallback for safety, though this path should ideally not be taken
+            setActiveItem({
+                id: slideId,
+                source_id: '',
+                source_type: '',
+                title: '',
+                image_file_id: '',
+                description: '',
+                status: '',
+                slide_order: 0,
+                video_slide: null,
+                document_slide: null,
+                question_slide: null,
+                assignment_slide: null,
+                is_loaded: false,
+                new_slide: false,
+            });
+        }
 
         navigateTo(`${router.state.location.pathname}/modules/chapters/slides`, {
             courseId,
@@ -847,6 +855,8 @@ export const SubjectMaterial = () => {
     };
 
     if (courseId === '' || levelId === '') {
+        console.log('courseId: ', courseId);
+        console.log('levelId: ', levelId);
         return (
             <div className="flex h-full items-center justify-center p-4">
                 <div className="max-w-md rounded-lg bg-white p-6 text-center shadow-lg">
