@@ -18,7 +18,7 @@ export const InternalSideBar = ({
     sideBarData?: { title: string; listIconText: string; searchParam: string };
 }) => {
     const router = useRouter();
-    const navigate = useNavigate({ from: router.state.location.pathname });
+    const navigate = useNavigate();
     const { search } = router.state.location;
 
     const courseId = (search as Record<string, string | undefined>).courseId;
@@ -33,16 +33,18 @@ export const InternalSideBar = ({
     };
 
     const handleLevelNavigation = (clickedLevelId: string) => {
+        if (!courseId) return;
         navigate({
             to: '/study-library/courses/levels/subjects',
-            search: (prev) => ({ ...prev, levelId: clickedLevelId, subjectId: undefined }),
+            search: (prev) => ({ ...prev, courseId, levelId: clickedLevelId, subjectId: undefined }),
         });
     };
 
     const handleSubjectNavigation = (clickedSubjectId: string) => {
+        if (!courseId || !levelId) return;
         navigate({
             to: '/study-library/courses/levels/subjects',
-            search: (prev) => ({ ...prev, subjectId: clickedSubjectId }),
+            search: (prev) => ({ ...prev, courseId, levelId, subjectId: clickedSubjectId }),
         });
     };
 

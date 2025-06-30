@@ -395,7 +395,7 @@ export const converDataToVideoFormat = ({
             source_type: '',
             questions:
                 activeItem?.video_slide?.questions.map((question) =>
-                    convertStudyLibraryQuestion(question)
+                    convertStudyLibraryQuestion(question as any)
                 ) || [],
         },
         document_slide: null,
@@ -464,7 +464,9 @@ export const converDataToAssignmentFormat = ({
         video_slide: null,
         document_slide: null,
         question_slide: null,
-        assignment_slide: convertToAssignmentSlideBackendFormat(activeItem.assignment_slide),
+        assignment_slide: activeItem.assignment_slide
+            ? convertToAssignmentSlideBackendFormat(activeItem.assignment_slide as any)
+            : null,
         is_loaded: true,
         new_slide: newSlide,
         notify,
@@ -628,10 +630,9 @@ export function convertToQuestionBackendSlideFormat({
         slide_order: 0,
         video_slide: null,
         document_slide: null,
-        question_slide: convertToQuestionSlideFormat(
-            activeItem.question_slide,
-            activeItem?.source_id
-        ),
+        question_slide: activeItem.question_slide
+            ? convertToQuestionSlideFormat(activeItem.question_slide as any, activeItem?.source_id)
+            : null,
         assignment_slide: null,
         is_loaded: true,
         new_slide: newSlide,
@@ -669,54 +670,36 @@ const transformAssignmentSlide = (assignment: AssignmentSlide) => {
 
 export function cleanVideoQuestions(data: Slide[]) {
     return data.map((item) => {
-        console.log(`Processing slide ${item.id} of type ${item.source_type}`);
         if (item.source_type === 'VIDEO' && item.video_slide) {
-            try {
-                console.log(`Transforming VIDEO slide ${item.id}`);
-                return {
-                    ...item,
-                    video_slide: {
-                        ...item.video_slide,
-                        questions: transformResponseDataToMyQuestionsSchema(
-                            item.video_slide.questions
-                        ),
-                    },
-                };
-            } catch (e) {
-                console.error(`Error transforming VIDEO slide ${item.id}:`, e);
-                console.error('Problematic VIDEO slide data:', item);
-                return item;
-            }
+            return {
+                ...item,
+                video_slide: {
+                    ...item.video_slide,
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-expect-error
+                    questions: transformResponseDataToMyQuestionsSchema(item.video_slide.questions),
+                },
+            };
         }
         if (item.source_type === 'QUESTION') {
-            try {
-                console.log(`Transforming QUESTION slide ${item.id}`);
-                return {
-                    ...item,
-                    question_slide: transformResponseDataToMyQuestionsSchemaSingleQuestion(
-                        item.question_slide
-                    ),
-                };
-            } catch (e) {
-                console.error(`Error transforming QUESTION slide ${item.id}:`, e);
-                console.error('Problematic QUESTION slide data:', item);
-                return item;
-            }
+            return {
+                ...item,
+                question_slide: transformResponseDataToMyQuestionsSchemaSingleQuestion(
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-expect-error
+                    item.question_slide
+                ),
+            };
         }
         if (item.source_type === 'ASSIGNMENT') {
-            try {
-                console.log(`Transforming ASSIGNMENT slide ${item.id}`);
-                return {
-                    ...item,
-                    assignment_slide: transformAssignmentSlide(
-                        item.assignment_slide
-                    ),
-                };
-            } catch (e) {
-                console.error(`Error transforming ASSIGNMENT slide ${item.id}:`, e);
-                console.error('Problematic ASSIGNMENT slide data:', item);
-                return item;
-            }
+            return {
+                ...item,
+                assignment_slide: transformAssignmentSlide(
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-expect-error
+                    item.assignment_slide
+                ),
+            };
         }
         return item;
     });
