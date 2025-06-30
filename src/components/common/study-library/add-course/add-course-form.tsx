@@ -9,6 +9,12 @@ import { toast } from 'sonner';
 import { convertToApiCourseFormat } from '../-utils/helper';
 import { useAddCourse } from '@/services/study-library/course-operations/add-course';
 import { useNavigate } from '@tanstack/react-router';
+import { useAddSubject } from '@/routes/study-library/courses/course-details/subjects/-services/addSubject';
+import { useAddModule } from '@/routes/study-library/courses/course-details/subjects/modules/-services/add-module';
+import { useAddChapter } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/-services/add-chapter';
+import { SubjectType } from '@/routes/study-library/courses/course-details/-components/course-details-page';
+import { fetchInstituteDetails } from '@/services/student-list-section/getInstituteDetails';
+import { BatchForSessionType } from '@/schemas/student/student-list/institute-schema';
 
 export interface Level {
     id: string;
@@ -30,6 +36,10 @@ export interface CourseFormData extends Step1Data, Step2Data {}
 
 // Main wrapper component
 export const AddCourseForm = () => {
+    const addSubjectMutation = useAddSubject();
+    const addModuleMutation = useAddModule();
+    const addChapterMutation = useAddChapter();
+
     const navigate = useNavigate();
     const addCourseMutation = useAddCourse();
     const [step, setStep] = useState(1);
@@ -42,7 +52,40 @@ export const AddCourseForm = () => {
         setStep(2);
     };
 
+    function findIdByPackageId(data: BatchForSessionType[], packageId: string) {
+        const result = data?.find((item) => item.package_dto?.id === packageId);
+        return result?.id || '';
+    }
+
     const handleStep2Submit = (data: Step2Data) => {
+        const newSubject: SubjectType = {
+            id: '', // Let backend assign ID
+            subject_name: 'DEFAULT',
+            subject_code: '',
+            credit: 0,
+            thumbnail_id: '',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            modules: [], // Add empty modules array
+        };
+
+        const newModule = {
+            id: '',
+            module_name: 'DEFAULT',
+            description: '',
+            status: '',
+            thumbnail_id: '',
+        };
+
+        const newChapter = {
+            id: '', // Let backend assign ID
+            chapter_name: 'DEFAULT',
+            status: 'ACTIVE',
+            file_id: '',
+            description: '',
+            chapter_order: 0,
+        };
+
         const finalData = { ...formData, ...data };
 
         // Format the data using the helper function
@@ -55,7 +98,32 @@ export const AddCourseForm = () => {
             // @ts-expect-error
             { requestData: formattedData },
             {
-                onSuccess: (response) => {
+                onSuccess: async (response) => {
+                    const instituteDetails = await fetchInstituteDetails();
+
+                    const packageSessionId = findIdByPackageId(
+                        instituteDetails?.batches_for_sessions || [],
+                        response.data
+                    );
+
+                    const subjectResponse = await addSubjectMutation.mutateAsync({
+                        subject: newSubject,
+                        packageSessionIds: packageSessionId,
+                    });
+
+                    const moduleResponse = await addModuleMutation.mutateAsync({
+                        subjectId: subjectResponse.data.id,
+                        packageSessionIds: packageSessionId,
+                        module: newModule,
+                    });
+
+                    await addChapterMutation.mutateAsync({
+                        subjectId: subjectResponse.data.id,
+                        moduleId: moduleResponse.data.id,
+                        commaSeparatedPackageSessionIds: packageSessionId,
+                        chapter: newChapter,
+                    });
+
                     toast.success('Course created successfully');
                     setIsOpen(false);
                     setStep(1);

@@ -6,7 +6,7 @@ import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtili
 import { TokenKey } from '@/constants/auth/tokens';
 import { useTheme } from '@/providers/theme/theme-provider';
 
-const fetchInstituteDetails = async (): Promise<InstituteDetailsType> => {
+export const fetchInstituteDetails = async (): Promise<InstituteDetailsType> => {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const data = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
