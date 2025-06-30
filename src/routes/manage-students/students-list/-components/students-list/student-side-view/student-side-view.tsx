@@ -154,9 +154,9 @@ export const StudentSidebar = ({
                     </div>
                 </SidebarHeader>
 
-                <div className="flex-1 overflow-y-auto">
+                <div className="flex-1 overflow-y-auto p-4">
                     {/* Enhanced student profile header with animations */}
-                    <div className="relative overflow-hidden border-b border-neutral-100 bg-gradient-to-r from-neutral-50/50 to-primary-50/30 p-4">
+                    <div className="relative mb-4 overflow-hidden rounded-xl border border-neutral-100 bg-gradient-to-r from-neutral-50/50 to-primary-50/30 p-4">
                         {/* Animated background pattern */}
                         <div className="absolute inset-0 opacity-5">
                             <div className="absolute right-0 top-0 size-32 -translate-y-16 translate-x-16 animate-pulse rounded-full bg-primary-500"></div>
@@ -198,9 +198,7 @@ export const StudentSidebar = ({
                                 </h3>
                                 <div className="mt-1 flex items-center gap-2">
                                     <div className="transition-all duration-300 group-hover:scale-105">
-                                        <StatusChips
-                                            status={selectedStudent?.status || 'INACTIVE'}
-                                        />
+                                        <StatusChips status={selectedStudent?.status || 'INACTIVE'} />
                                     </div>
                                     <div className="flex gap-1">
                                         <div className="size-1.5 animate-bounce rounded-full bg-primary-400"></div>
@@ -211,60 +209,21 @@ export const StudentSidebar = ({
                             </div>
                         </div>
                     </div>
-
-                    {/* Enhanced content area with smooth transitions */}
-                    <div className="min-h-0 flex-1 p-4">
-                        <div className="relative size-full">
-                            {/* Smooth content transitions */}
-                            <div
-                                className={`absolute inset-0 transition-all duration-500 ease-in-out${
-                                    category === 'overview'
-                                        ? 'translate-x-0 opacity-100'
-                                        : 'pointer-events-none translate-x-4 opacity-0'
-                                }`}
-                            >
-                                <div className="animate-fadeIn">
-                                    <ErrorBoundary>
-                                        <StudentOverview isSubmissionTab={isSubmissionTab} />
-                                    </ErrorBoundary>
-                                </div>
-                            </div>
-
-                            <div
-                                className={`absolute inset-0 transition-all duration-500 ease-in-out${
-                                    category === 'learningProgress'
-                                        ? 'translate-x-0 opacity-100'
-                                        : 'pointer-events-none translate-x-4 opacity-0'
-                                }`}
-                            >
-                                <div className="animate-fadeIn">
-                                    <ErrorBoundary>
-                                        <StudentLearningProgress
-                                            isSubmissionTab={isSubmissionTab}
-                                        />
-                                    </ErrorBoundary>
-                                </div>
-                            </div>
-
-                            <div
-                                className={`absolute inset-0 transition-all duration-500 ease-in-out${
-                                    category === 'testRecord'
-                                        ? 'translate-x-0 opacity-100'
-                                        : 'pointer-events-none translate-x-4 opacity-0'
-                                }`}
-                            >
-                                <div className="animate-fadeIn">
-                                    <ErrorBoundary>
-                                        <StudentTestRecord
-                                            selectedTab={selectedTab}
-                                            examType={examType}
-                                            isStudentList={isStudentList}
-                                        />
-                                    </ErrorBoundary>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <ErrorBoundary>
+                        {category === 'overview' && (
+                            <StudentOverview isSubmissionTab={isSubmissionTab} />
+                        )}
+                        {category === 'learningProgress' && (
+                            <StudentLearningProgress isSubmissionTab={isSubmissionTab} />
+                        )}
+                        {category === 'testRecord' && (
+                            <StudentTestRecord
+                                selectedTab={selectedTab || ''}
+                                examType={examType || ''}
+                                isStudentList={isStudentList || false}
+                            />
+                        )}
+                    </ErrorBoundary>
                 </div>
             </SidebarContent>
         </Sidebar>

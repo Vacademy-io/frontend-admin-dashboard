@@ -31,6 +31,8 @@ import { useUsersCredentials } from '../../../-services/usersCredentials';
 import { DropdownItemType } from '@/components/common/students/enroll-manually/dropdownTypesForPackageItems';
 import { ShareCredentialsDialog } from './bulk-actions/share-credentials-dialog';
 import { IndividualShareCredentialsDialog } from './bulk-actions/individual-share-credentials-dialog';
+import { SendMessageDialog } from './bulk-actions/send-message-dialog';
+import { SendEmailDialog } from './bulk-actions/send-email-dialog';
 import { InviteFormProvider } from '@/routes/manage-students/invite/-context/useInviteFormContext';
 import { Users, FileMagnifyingGlass } from '@phosphor-icons/react';
 
@@ -360,6 +362,8 @@ export const StudentsListSection = () => {
                 />
                 <ShareCredentialsDialog />
                 <IndividualShareCredentialsDialog />
+                <SendMessageDialog />
+                <SendEmailDialog />
             </section>
         </ErrorBoundary>
     );

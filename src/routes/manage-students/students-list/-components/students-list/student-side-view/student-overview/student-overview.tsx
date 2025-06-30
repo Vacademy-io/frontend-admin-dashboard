@@ -13,9 +13,14 @@ import {
     Clock,
     TrendUp,
     Shield,
+    Bell,
+    WhatsappLogo,
+    Copy,
+    Check,
 } from '@phosphor-icons/react';
 import { useStudentSidebar } from '@/routes/manage-students/students-list/-context/selected-student-sidebar-context';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import { OverViewData, OverviewDetailsType } from './overview';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { EditStudentDetails } from './EditStudentDetails';
@@ -31,6 +36,7 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
 
     const [overviewData, setOverviewData] = useState<OverviewDetailsType[] | null>(null);
     const [daysUntilExpiry, setDaysUntilExpiry] = useState<number>(0);
+    const [copiedField, setCopiedField] = useState<string>('');
     const userId = isSubmissionTab ? selectedStudent?.id : selectedStudent?.user_id;
     const { data: studentDetails, isLoading, isError } = useGetStudentDetails(userId || '');
 
@@ -41,7 +47,23 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
         getCredentials(isSubmissionTab ? selectedStudent?.id || '' : selectedStudent?.user_id || '')
             ?.password || 'password not found'
     );
-    const { openIndividualShareCredentialsDialog } = useDialogStore();
+    const { 
+        openIndividualShareCredentialsDialog,
+        openIndividualSendEmailDialog,
+        openIndividualSendMessageDialog 
+    } = useDialogStore();
+
+    // Copy function with feedback
+    const handleCopy = async (text: string, fieldName: string) => {
+        try {
+            await navigator.clipboard.writeText(text);
+            setCopiedField(fieldName);
+            toast.success(`${fieldName} copied to clipboard!`);
+            setTimeout(() => setCopiedField(''), 2000);
+        } catch (error) {
+            toast.error(`Failed to copy ${fieldName}`);
+        }
+    };
 
     useEffect(() => {
         if (selectedStudent) {
@@ -127,7 +149,7 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
     }
 
     return (
-        <div className="animate-fadeIn flex flex-col gap-3 text-neutral-600">
+        <div className="relative animate-fadeIn flex flex-col gap-3 text-neutral-600">
             {/* Compact Edit Button */}
             <div className="flex justify-center">
                 <EditStudentDetails />
@@ -180,6 +202,60 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
                 </div>
             </div>
 
+            {/* Compact Notification Section */}
+            <div className="rounded-lg border border-neutral-200/50 bg-gradient-to-br from-white to-neutral-50/30 p-3 transition-all duration-200 hover:border-primary-200/50 hover:shadow-md">
+                <div className="mb-2 flex items-center gap-2.5">
+                    <div className="rounded-md bg-gradient-to-br from-blue-50 to-blue-100 p-1.5">
+                        <Bell className="text-blue-600 size-4" />
+                    </div>
+                    <div className="flex-1">
+                        <h4 className="text-xs font-medium text-neutral-700">
+                            Send Notification
+                        </h4>
+                        <p className="text-[10px] text-neutral-500">
+                            Email or WhatsApp message
+                        </p>
+                    </div>
+                </div>
+
+                {/* Notification action buttons */}
+                <div className="flex gap-2">
+                    <MyButton
+                        type="button"
+                        buttonType="secondary"
+                        scale="small"
+                        disable={false}
+                        onClick={() => {
+                            if (selectedStudent) {
+                                openIndividualSendEmailDialog(selectedStudent);
+                            }
+                        }}
+                        className="hover:scale-102 group flex-1 flex items-center justify-center gap-1.5 border border-blue-200 bg-white text-xs text-blue-700 transition-all duration-200 hover:border-blue-300 hover:bg-blue-50 cursor-pointer"
+                        style={{ pointerEvents: 'auto', zIndex: 10 }}
+                    >
+                        <Envelope className="size-3 transition-transform duration-200 group-hover:scale-110" />
+                        Email
+                    </MyButton>
+                    
+                    <MyButton
+                        type="button"
+                        buttonType="secondary"
+                        scale="small"
+                        disable={false}
+                        onClick={() => {
+                            if (selectedStudent) {
+                                openIndividualSendMessageDialog(selectedStudent);
+                            }
+                        }}
+                        className="hover:scale-102 group flex-1 flex items-center justify-center gap-1.5 border border-green-200 bg-white text-xs text-green-700 transition-all duration-200 hover:border-green-300 hover:bg-green-50 cursor-pointer"
+                        style={{ pointerEvents: 'auto', zIndex: 10 }}
+                    >
+                        <WhatsappLogo className="size-3 transition-transform duration-200 group-hover:scale-110" />
+                        WhatsApp
+                    </MyButton>
+                </div>
+            </div>
+
             {/* Compact overview sections */}
             <div className="space-y-2.5">
                 {selectedStudent != null ? (
@@ -218,7 +294,7 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
                         return (
                             <div key={key} className="group">
                                 <div
-                                    className={`hover:border- rounded-lg border border-neutral-200/50 bg-gradient-to-br from-white to-neutral-50/30 p-2.5${sectionConfig.color}-200/50 transition-all duration-200 hover:scale-[1.01] hover:shadow-md`}
+                                    className={`rounded-lg border border-neutral-200/50 bg-gradient-to-br from-white to-neutral-50/30 p-2.5 transition-all duration-200 hover:scale-[1.01] hover:shadow-md hover:border-${sectionConfig.color}-200/50`}
                                 >
                                     {/* Compact section header */}
                                     <div className="mb-2 flex items-center justify-between">
@@ -227,11 +303,11 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
                                                 className={`rounded-md bg-gradient-to-br p-1 ${sectionConfig.bg} transition-transform duration-200 group-hover:scale-105`}
                                             >
                                                 <IconComponent
-                                                    className={`text- size-3.5${sectionConfig.color}-600`}
+                                                    className={`size-3.5 text-${sectionConfig.color}-600`}
                                                 />
                                             </div>
                                             <h3
-                                                className={`group-hover:text- text-xs font-semibold text-neutral-700${sectionConfig.color}-700 transition-colors duration-200`}
+                                                className={`text-xs font-semibold text-neutral-700 transition-colors duration-200 group-hover:text-${sectionConfig.color}-700`}
                                             >
                                                 {studentDetail.heading}
                                             </h3>
@@ -240,15 +316,17 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
                                         {/* Compact share button for credentials */}
                                         {key === 0 && (
                                             <MyButton
+                                                type="button"
                                                 buttonType="secondary"
                                                 scale="small"
-                                                onClick={() =>
-                                                    selectedStudent &&
-                                                    openIndividualShareCredentialsDialog(
-                                                        selectedStudent
-                                                    )
-                                                }
-                                                className="h-auto min-h-0 px-2 py-1 text-[10px]"
+                                                disable={false}
+                                                onClick={() => {
+                                                    if (selectedStudent) {
+                                                        openIndividualShareCredentialsDialog(selectedStudent);
+                                                    }
+                                                }}
+                                                className="h-auto min-h-0 px-2 py-1 text-[10px] cursor-pointer"
+                                                style={{ pointerEvents: 'auto', zIndex: 10 }}
                                             >
                                                 <Shield className="mr-1 size-2.5" />
                                                 Share
@@ -260,25 +338,71 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
                                     <div className="space-y-1">
                                         {studentDetail.content &&
                                         studentDetail.content.length > 0 ? (
-                                            studentDetail.content.map((obj, key2) => (
-                                                <div
-                                                    key={key2}
-                                                    className="group/item flex items-start gap-2 rounded-md px-1.5 py-1 transition-all duration-150 hover:bg-white/60"
-                                                >
-                                                    <div className="mt-1.5 size-1 shrink-0 rounded-full bg-neutral-300 transition-colors duration-150 group-hover/item:bg-primary-400"></div>
-                                                    <div className="min-w-0 flex-1">
-                                                        {obj == undefined ? (
+                                            studentDetail.content.map((obj, key2) => {
+                                                if (!obj) {
+                                                    return (
+                                                        <div
+                                                            key={key2}
+                                                            className="group/item flex items-start gap-2 rounded-md px-1.5 py-1"
+                                                        >
+                                                            <div className="mt-1.5 size-1 shrink-0 rounded-full bg-neutral-300"></div>
                                                             <p className="text-xs italic text-primary-500">
                                                                 No data available
                                                             </p>
-                                                        ) : (
-                                                            <p className="text-xs leading-relaxed text-neutral-700 transition-colors duration-150 group-hover/item:text-neutral-900">
-                                                                {obj}
-                                                            </p>
-                                                        )}
+                                                        </div>
+                                                    );
+                                                }
+
+                                                const parts = obj.split(':');
+                                                const fieldName = parts[0]?.trim();
+                                                const value = parts.slice(1).join(':').trim();
+                                                const canCopy =
+                                                    value &&
+                                                    value !== 'N/A' &&
+                                                    value !== 'password not found' &&
+                                                    value !== 'undefined';
+
+                                                return (
+                                                    <div
+                                                        key={key2}
+                                                        className="flex items-start gap-2 rounded-md px-1.5 py-1"
+                                                    >
+                                                        <div className="mt-1.5 size-1 shrink-0 rounded-full bg-neutral-300"></div>
+                                                        <div className="min-w-0 flex-1 text-xs leading-relaxed text-neutral-700">
+                                                            <span className="font-medium text-neutral-600">
+                                                                {fieldName}:{' '}
+                                                            </span>
+                                                            <span className="group/value relative inline-flex items-center text-neutral-800">
+                                                                <span>{value}</span>
+                                                                {canCopy && (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            if (fieldName) {
+                                                                                handleCopy(
+                                                                                    value,
+                                                                                    fieldName
+                                                                                );
+                                                                            }
+                                                                        }}
+                                                                        className="ml-2 rounded-md p-1 hover:bg-neutral-200 cursor-pointer"
+                                                                        style={{
+                                                                            pointerEvents: 'auto',
+                                                                        }}
+                                                                    >
+                                                                        {copiedField ===
+                                                                        fieldName ? (
+                                                                            <Check className="size-3 text-green-600" />
+                                                                        ) : (
+                                                                            <Copy className="size-3 text-neutral-500 hover:text-neutral-700" />
+                                                                        )}
+                                                                    </button>
+                                                                )}
+                                                            </span>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            ))
+                                                );
+                                            })
                                         ) : (
                                             <div className="py-3 text-center">
                                                 <div className="mb-1 text-neutral-400">
