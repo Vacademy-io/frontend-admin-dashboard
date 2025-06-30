@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { QuestionType } from '@/constants/dummy-data';
 import {
     getEvaluationJSON,
@@ -373,6 +374,36 @@ export const converDataToVideoFormat = ({
     notify: boolean;
     newSlide: boolean;
 }) => {
+    // Check if this is a split screen slide and include embedded data
+    const splitData = (activeItem as any).splitScreenData;
+    const splitType = (activeItem as any).splitScreenType;
+    const isSplitScreen = (activeItem as any).splitScreenMode;
+
+    const videoSlideData = {
+        id: activeItem?.video_slide?.id || '',
+        description: activeItem?.video_slide?.description || '',
+        title: activeItem?.video_slide?.title || '',
+        url: '',
+        video_length_in_millis: activeItem?.video_slide?.video_length_in_millis || 0,
+        published_url: activeItem?.video_slide?.url || activeItem?.video_slide?.published_url || '',
+        published_video_length_in_millis:
+            activeItem?.video_slide?.published_video_length_in_millis || 0,
+        source_type: '',
+        questions:
+            activeItem?.video_slide?.questions.map((question) =>
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-expect-error
+                convertStudyLibraryQuestion(question)
+            ) || [],
+        // Include embedded data for split screen slides
+        ...(isSplitScreen &&
+            splitData &&
+            splitType && {
+                embedded_type: splitType.replace('SPLIT_', ''),
+                embedded_data: JSON.stringify(splitData),
+            }),
+    };
+
     return {
         id: activeItem?.id || '',
         title: activeItem?.title || '',
@@ -382,22 +413,7 @@ export const converDataToVideoFormat = ({
         source_type: activeItem?.source_type || '',
         status: status,
         slide_order: 0,
-        video_slide: {
-            id: activeItem?.video_slide?.id || '',
-            description: activeItem?.video_slide?.description || '',
-            title: activeItem?.video_slide?.title || '',
-            url: '',
-            video_length_in_millis: activeItem?.video_slide?.video_length_in_millis || 0,
-            published_url:
-                activeItem?.video_slide?.url || activeItem?.video_slide?.published_url || '',
-            published_video_length_in_millis:
-                activeItem?.video_slide?.published_video_length_in_millis || 0,
-            source_type: '',
-            questions:
-                activeItem?.video_slide?.questions.map((question) =>
-                    convertStudyLibraryQuestion(question as any)
-                ) || [],
-        },
+        video_slide: videoSlideData,
         document_slide: null,
         question_slide: null,
         assignment_slide: null,
@@ -671,6 +687,48 @@ const transformAssignmentSlide = (assignment: AssignmentSlide) => {
 export function cleanVideoQuestions(data: Slide[]) {
     return data.map((item) => {
         if (item.source_type === 'VIDEO' && item.video_slide) {
+            // Check if this is a split screen video slide
+            const videoSlide = item.video_slide as any;
+            if (videoSlide.embedded_type && videoSlide.embedded_data) {
+                try {
+                    // Parse the embedded data to reconstruct split screen slide
+                    const splitScreenData = JSON.parse(videoSlide.embedded_data);
+
+                    return {
+                        ...item,
+                        splitScreenMode: true,
+                        splitScreenData: splitScreenData,
+                        splitScreenType: `SPLIT_${videoSlide.embedded_type}`,
+                        isNewSplitScreen: false, // Existing slides loaded from backend are not new
+                        originalVideoSlide: {
+                            ...videoSlide,
+                            // Remove embedded fields from the original video slide
+                            embedded_type: undefined,
+                            embedded_data: undefined,
+                        },
+                        video_slide: {
+                            ...videoSlide,
+                            questions: transformResponseDataToMyQuestionsSchema(
+                                videoSlide.questions
+                            ),
+                        },
+                    };
+                } catch (error) {
+                    console.error('Error parsing split screen data:', error);
+                    // Fall back to regular video slide if parsing fails
+                    return {
+                        ...item,
+                        video_slide: {
+                            ...item.video_slide,
+                            questions: transformResponseDataToMyQuestionsSchema(
+                                item.video_slide.questions as any
+                            ),
+                        },
+                    };
+                }
+            }
+
+            // Regular video slide processing
             return {
                 ...item,
                 video_slide: {

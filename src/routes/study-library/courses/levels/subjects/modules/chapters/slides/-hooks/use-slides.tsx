@@ -63,6 +63,8 @@ export interface VideoSlide {
     published_url: string;
     published_video_length_in_millis: number;
     source_type: string;
+    embedded_type?: string;
+    embedded_data?: string;
     questions: VideoQuestion[];
 }
 
@@ -134,6 +136,10 @@ export interface Slide {
     assignment_slide?: AssignmentSlide | null;
     is_loaded: boolean;
     new_slide: boolean;
+    // Split-screen mode properties (frontend only)
+    splitScreenMode?: boolean;
+    splitScreenData?: Record<string, unknown>;
+    splitScreenType?: string;
 }
 
 export interface VideoSlidePayload {
@@ -151,6 +157,9 @@ export interface VideoSlidePayload {
         published_url: string | null;
         published_video_length_in_millis: number;
         source_type: string;
+        embedded_type?: string;
+        embedded_data?: string;
+        questions?: VideoQuestion[];
     };
     status: string;
     new_slide?: boolean;
@@ -228,9 +237,9 @@ export const useSlides = (
         description?: string;
         slide_order: number;
         excalidraw_slide?: {
-            elements: any[];
-            files: Record<string, any>;
-            appState: Record<string, any>;
+            elements: unknown[];
+            files: Record<string, unknown>;
+            appState: Record<string, unknown>;
         };
         status?: string;
         new_slide: boolean;
@@ -381,6 +390,7 @@ export const useSlides = (
         error: getSlidesQuery.error,
         refetch: getSlidesQuery.refetch,
         addUpdateVideoSlide: addUpdateVideoSlideMutation.mutateAsync,
+
         addUpdateDocumentSlide: addUpdateDocumentSlideMutation.mutateAsync,
         updateSlideStatus: updateSlideStatus.mutateAsync,
         updateSlideOrder: updateSlideOrderMutation.mutateAsync,

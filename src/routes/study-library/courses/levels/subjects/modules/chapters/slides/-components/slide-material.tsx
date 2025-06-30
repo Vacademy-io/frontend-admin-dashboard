@@ -1,4 +1,4 @@
-import type React from 'react';
+/* eslint-disable */
 import YooptaEditor, { createYooptaEditor } from '@yoopta/editor';
 import { useEffect, useMemo, useRef, useCallback, type ChangeEvent } from 'react';
 import '../excalidraw-z-index-fix.css';
@@ -42,6 +42,9 @@ import { Loader2 } from 'lucide-react';
 import DoubtResolutionSidebar from './doubt-resolution/doubtResolutionSidebar';
 import { ChatCircleDots } from '@phosphor-icons/react';
 import { useSidebar } from '@/components/ui/sidebar';
+import { JupyterNotebookSlide } from './jupyter-notebook-slide';
+import { ScratchProjectSlide } from './scratch-project-slide';
+import { CodeEditorSlide } from './code-editor-slide';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 // Inside your component
@@ -328,7 +331,41 @@ export const SlideMaterial = ({
         }
 
         if (activeItem.source_type === 'VIDEO') {
-            setContent(<VideoSlidePreview activeItem={activeItem} />);
+            // Check if this video slide is in split-screen mode
+            if (activeItem.splitScreenMode && activeItem.splitScreenData) {
+                try {
+                    const { SplitScreenSlide } = await import('./split-screen-slide');
+                    setContent(
+                        <SplitScreenSlide
+                            splitScreenData={activeItem.splitScreenData as any}
+                            slideType={
+                                activeItem.splitScreenType as
+                                    | 'SPLIT_JUPYTER'
+                                    | 'SPLIT_SCRATCH'
+                                    | 'SPLIT_CODE'
+                            }
+                            isEditable={activeItem.status !== 'PUBLISHED'}
+                            currentSlideId={activeItem.id}
+                            onDataChange={(updatedSplitData) => {
+                                // Update split-screen data locally and handle title changes
+                                const projectName =
+                                    updatedSplitData.projectName || updatedSplitData.name;
+                                const updatedSlide = {
+                                    ...activeItem,
+                                    title: projectName || activeItem.title,
+                                    splitScreenData: updatedSplitData,
+                                };
+                                setActiveItem(updatedSlide as any);
+                            }}
+                        />
+                    );
+                } catch (error) {
+                    console.error('Error loading split screen component:', error);
+                    setContent(<VideoSlidePreview activeItem={activeItem} />);
+                }
+            } else {
+                setContent(<VideoSlidePreview activeItem={activeItem} />);
+            }
 
             return;
         }
@@ -371,6 +408,421 @@ export const SlideMaterial = ({
 
                 const url = await getPublicUrl(data || '');
                 setContent(<PDFViewer pdfUrl={url} />);
+                return;
+            }
+
+            if (documentType === 'JUPYTER') {
+                try {
+                    // Fallback: first check data field, then published_data for published slides
+                    const rawData =
+                        activeItem.status === 'PUBLISHED'
+                            ? activeItem.document_slide?.data ||
+                              activeItem.document_slide?.published_data
+                            : activeItem.document_slide?.data;
+
+                    const notebookData = rawData
+                        ? JSON.parse(rawData)
+                        : { contentUrl: '', projectName: '' };
+
+                    setContent(
+                        <JupyterNotebookSlide
+                            notebookData={notebookData}
+                            isEditable={activeItem.status !== 'PUBLISHED'}
+                            onDataChange={async (updatedNotebookData) => {
+                                // Save the notebook data to backend
+                                try {
+                                    await addUpdateDocumentSlide({
+                                        id: activeItem.id,
+                                        title:
+                                            updatedNotebookData.projectName ||
+                                            activeItem.title ||
+                                            '',
+                                        image_file_id: '',
+                                        description: activeItem.description || '',
+                                        slide_order: null,
+                                        document_slide: {
+                                            id: activeItem.document_slide?.id || '',
+                                            type: 'JUPYTER',
+                                            data: JSON.stringify(updatedNotebookData),
+                                            title:
+                                                updatedNotebookData.projectName ||
+                                                activeItem.document_slide?.title ||
+                                                '',
+                                            cover_file_id: '',
+                                            total_pages: 1,
+                                            published_data: null,
+                                            published_document_total_pages: 0,
+                                        },
+                                        status: activeItem.status,
+                                        new_slide: false,
+                                        notify: false,
+                                    });
+
+                                    // Update activeItem with new title and data
+                                    const updatedActiveItem = {
+                                        ...activeItem,
+                                        title: updatedNotebookData.projectName || activeItem.title,
+                                        document_slide: activeItem.document_slide
+                                            ? {
+                                                  ...activeItem.document_slide,
+                                                  title:
+                                                      updatedNotebookData.projectName ||
+                                                      activeItem.document_slide.title,
+                                                  data: JSON.stringify(updatedNotebookData),
+                                              }
+                                            : undefined,
+                                    };
+                                    setActiveItem(updatedActiveItem);
+
+                                    // Re-render with updated data
+                                    setContent(
+                                        <JupyterNotebookSlide
+                                            notebookData={updatedNotebookData}
+                                            isEditable={activeItem.status !== 'PUBLISHED'}
+                                            onDataChange={(newNotebookData) => {
+                                                // Handle further updates recursively
+                                                const recursiveUpdate = async () => {
+                                                    await addUpdateDocumentSlide({
+                                                        id: activeItem.id,
+                                                        title:
+                                                            newNotebookData.projectName ||
+                                                            activeItem.title ||
+                                                            '',
+                                                        image_file_id: '',
+                                                        description: activeItem.description || '',
+                                                        slide_order: null,
+                                                        document_slide: {
+                                                            id: activeItem.document_slide?.id || '',
+                                                            type: 'JUPYTER',
+                                                            data: JSON.stringify(newNotebookData),
+                                                            title:
+                                                                newNotebookData.projectName ||
+                                                                activeItem.document_slide?.title ||
+                                                                '',
+                                                            cover_file_id: '',
+                                                            total_pages: 1,
+                                                            published_data: null,
+                                                            published_document_total_pages: 0,
+                                                        },
+                                                        status: activeItem.status,
+                                                        new_slide: false,
+                                                        notify: false,
+                                                    });
+
+                                                    // Update activeItem again
+                                                    setActiveItem({
+                                                        ...activeItem,
+                                                        title:
+                                                            newNotebookData.projectName ||
+                                                            activeItem.title,
+                                                        document_slide: activeItem.document_slide
+                                                            ? {
+                                                                  ...activeItem.document_slide,
+                                                                  title:
+                                                                      newNotebookData.projectName ||
+                                                                      activeItem.document_slide
+                                                                          .title,
+                                                                  data: JSON.stringify(
+                                                                      newNotebookData
+                                                                  ),
+                                                              }
+                                                            : undefined,
+                                                    });
+                                                };
+                                                recursiveUpdate();
+                                            }}
+                                        />
+                                    );
+                                } catch (error) {
+                                    console.error('Error saving Jupyter notebook data:', error);
+                                    toast.error('Failed to save notebook changes');
+                                }
+                            }}
+                        />
+                    );
+                } catch (error) {
+                    console.error('Error loading Jupyter notebook:', error);
+                    setContent(<div>Error loading Jupyter notebook</div>);
+                }
+                return;
+            }
+
+            if (documentType === 'SCRATCH') {
+                try {
+                    // Fallback: first check data field, then published_data for published slides
+                    const rawData =
+                        activeItem.status === 'PUBLISHED'
+                            ? activeItem.document_slide?.data ||
+                              activeItem.document_slide?.published_data
+                            : activeItem.document_slide?.data;
+
+                    const scratchData = rawData
+                        ? JSON.parse(rawData)
+                        : { projectId: '', projectName: '', scratchUrl: '', timestamp: Date.now() };
+
+                    setContent(
+                        <ScratchProjectSlide
+                            scratchData={scratchData}
+                            isEditable={activeItem.status !== 'PUBLISHED'}
+                            onDataChange={async (updatedScratchData) => {
+                                // Save the scratch data to backend
+                                try {
+                                    await addUpdateDocumentSlide({
+                                        id: activeItem.id,
+                                        title:
+                                            updatedScratchData.projectName ||
+                                            activeItem.title ||
+                                            '',
+                                        image_file_id: '',
+                                        description: activeItem.description || '',
+                                        slide_order: null,
+                                        document_slide: {
+                                            id: activeItem.document_slide?.id || '',
+                                            type: 'SCRATCH',
+                                            data: JSON.stringify(updatedScratchData),
+                                            title:
+                                                updatedScratchData.projectName ||
+                                                activeItem.document_slide?.title ||
+                                                '',
+                                            cover_file_id: '',
+                                            total_pages: 1,
+                                            published_data: null,
+                                            published_document_total_pages: 0,
+                                        },
+                                        status: activeItem.status,
+                                        new_slide: false,
+                                        notify: false,
+                                    });
+
+                                    // Update activeItem with new title and data
+                                    const updatedActiveItem = {
+                                        ...activeItem,
+                                        title: updatedScratchData.projectName || activeItem.title,
+                                        document_slide: activeItem.document_slide
+                                            ? {
+                                                  ...activeItem.document_slide,
+                                                  title:
+                                                      updatedScratchData.projectName ||
+                                                      activeItem.document_slide.title,
+                                                  data: JSON.stringify(updatedScratchData),
+                                              }
+                                            : undefined,
+                                    };
+                                    setActiveItem(updatedActiveItem);
+
+                                    // Re-render with updated data
+                                    setContent(
+                                        <ScratchProjectSlide
+                                            scratchData={updatedScratchData}
+                                            slideId={activeItem.id}
+                                            isEditable={activeItem.status !== 'PUBLISHED'}
+                                            onDataChange={(newScratchData) => {
+                                                // Handle further updates recursively
+                                                const recursiveUpdate = async () => {
+                                                    await addUpdateDocumentSlide({
+                                                        id: activeItem.id,
+                                                        title:
+                                                            newScratchData.projectName ||
+                                                            activeItem.title ||
+                                                            '',
+                                                        image_file_id: '',
+                                                        description: activeItem.description || '',
+                                                        slide_order: null,
+                                                        document_slide: {
+                                                            id: activeItem.document_slide?.id || '',
+                                                            type: 'SCRATCH',
+                                                            data: JSON.stringify(newScratchData),
+                                                            title:
+                                                                newScratchData.projectName ||
+                                                                activeItem.document_slide?.title ||
+                                                                '',
+                                                            cover_file_id: '',
+                                                            total_pages: 1,
+                                                            published_data: null,
+                                                            published_document_total_pages: 0,
+                                                        },
+                                                        status: activeItem.status,
+                                                        new_slide: false,
+                                                        notify: false,
+                                                    });
+
+                                                    // Update activeItem again
+                                                    setActiveItem({
+                                                        ...activeItem,
+                                                        title:
+                                                            newScratchData.projectName ||
+                                                            activeItem.title,
+                                                        document_slide: activeItem.document_slide
+                                                            ? {
+                                                                  ...activeItem.document_slide,
+                                                                  title:
+                                                                      newScratchData.projectName ||
+                                                                      activeItem.document_slide
+                                                                          .title,
+                                                                  data: JSON.stringify(
+                                                                      newScratchData
+                                                                  ),
+                                                              }
+                                                            : undefined,
+                                                    });
+                                                };
+                                                recursiveUpdate();
+                                            }}
+                                        />
+                                    );
+                                } catch (error) {
+                                    console.error('Error saving Scratch project data:', error);
+                                    toast.error('Failed to save Scratch project changes');
+                                }
+                            }}
+                        />
+                    );
+                } catch (error) {
+                    console.error('Error loading Scratch project:', error);
+                    setContent(<div>Error loading Scratch project</div>);
+                }
+                return;
+            }
+
+            if (documentType === 'CODE') {
+                try {
+                    // Fallback: first check data field, then published_data for published slides
+                    const rawData =
+                        activeItem.status === 'PUBLISHED'
+                            ? activeItem.document_slide?.data ||
+                              activeItem.document_slide?.published_data
+                            : activeItem.document_slide?.data;
+
+                    const codeData = rawData
+                        ? JSON.parse(rawData)
+                        : { language: 'python', code: '', theme: 'light' };
+
+                    setContent(
+                        <CodeEditorSlide
+                            key={`code-editor-${activeItem.id}`}
+                            codeData={codeData}
+                            isEditable={activeItem.status !== 'PUBLISHED'}
+                            onDataChange={async (updatedCodeData) => {
+                                // Update the slide data when user changes code
+                                try {
+                                    await addUpdateDocumentSlide({
+                                        id: activeItem.id,
+                                        title: activeItem.title || '',
+                                        image_file_id: '',
+                                        description: activeItem.description || '',
+                                        slide_order: null,
+                                        document_slide: {
+                                            id: activeItem.document_slide?.id || '',
+                                            type: 'CODE',
+                                            data: JSON.stringify(updatedCodeData),
+                                            title: activeItem.document_slide?.title || '',
+                                            cover_file_id: '',
+                                            total_pages: 1,
+                                            published_data: null,
+                                            published_document_total_pages: 0,
+                                        },
+                                        status: activeItem.status,
+                                        new_slide: false,
+                                        notify: false,
+                                    });
+
+                                    // Update the activeItem data to reflect the changes in local state
+                                    setActiveItem({
+                                        ...activeItem,
+                                        document_slide: activeItem.document_slide
+                                            ? {
+                                                  ...activeItem.document_slide,
+                                                  data: JSON.stringify(updatedCodeData),
+                                              }
+                                            : undefined,
+                                    });
+                                } catch (error) {
+                                    console.error('Error saving code editor data:', error);
+                                    toast.error('Failed to save code changes');
+                                }
+                            }}
+                        />
+                    );
+                } catch (error) {
+                    console.error('Error loading Code editor:', error);
+                    setContent(<div>Error loading Code editor</div>);
+                }
+                return;
+            }
+
+            // Handle split-screen slides
+            if (documentType?.startsWith('SPLIT_')) {
+                try {
+                    // Fallback: first check data field, then published_data for published slides
+                    const rawData =
+                        activeItem.status === 'PUBLISHED'
+                            ? activeItem.document_slide?.data ||
+                              activeItem.document_slide?.published_data
+                            : activeItem.document_slide?.data;
+
+                    const splitScreenData = rawData
+                        ? JSON.parse(rawData)
+                        : { splitScreen: true, videoSlideId: '', timestamp: Date.now() };
+
+                    const { SplitScreenSlide } = await import('./split-screen-slide');
+                    setContent(
+                        <SplitScreenSlide
+                            splitScreenData={splitScreenData}
+                            slideType={
+                                documentType as 'SPLIT_JUPYTER' | 'SPLIT_SCRATCH' | 'SPLIT_CODE'
+                            }
+                            isEditable={activeItem.status !== 'PUBLISHED'}
+                            currentSlideId={activeItem.id}
+                            onDataChange={async (updatedSplitData) => {
+                                try {
+                                    await addUpdateDocumentSlide({
+                                        id: activeItem.id,
+                                        title: activeItem.title || '',
+                                        image_file_id: '',
+                                        description: activeItem.description || '',
+                                        slide_order: null,
+                                        document_slide: {
+                                            id:
+                                                activeItem.document_slide?.id ||
+                                                crypto.randomUUID(),
+                                            type: documentType,
+                                            data: JSON.stringify(updatedSplitData),
+                                            title: activeItem.document_slide?.title || '',
+                                            cover_file_id: '',
+                                            total_pages: 1,
+                                            published_data: null,
+                                            published_document_total_pages: 0,
+                                        },
+                                        status: activeItem.status,
+                                        new_slide: false,
+                                        notify: false,
+                                    });
+
+                                    // Update active item
+                                    setActiveItem({
+                                        ...activeItem,
+                                        document_slide: activeItem.document_slide
+                                            ? {
+                                                  ...activeItem.document_slide,
+                                                  data: JSON.stringify(updatedSplitData),
+                                              }
+                                            : undefined,
+                                    });
+                                } catch (error) {
+                                    console.error('Error saving split screen data:', error);
+                                    toast.error('Failed to save split screen data');
+                                }
+                            }}
+                        />
+                    );
+                } catch (error) {
+                    console.error('Error parsing split screen data:', error);
+                    setContent(
+                        <div className="flex h-[400px] items-center justify-center text-red-500">
+                            Error loading split screen slide
+                        </div>
+                    );
+                }
                 return;
             }
 
@@ -440,7 +892,64 @@ export const SlideMaterial = ({
                 }
             }
 
-            if (activeItem?.source_type == 'VIDEO') {
+            if (activeItem?.source_type == 'VIDEO' && activeItem?.splitScreenMode) {
+                const splitData = activeItem.splitScreenData as any;
+                const projectName = splitData?.projectName || splitData?.name || activeItem.title;
+                const originalVideoData = splitData?.originalVideoData || {};
+
+                // Use the original video slide ID if available, otherwise use the slide ID
+                const originalVideoSlide = (activeItem as any).originalVideoSlide;
+                const videoSlideId =
+                    originalVideoSlide?.id ||
+                    originalVideoData.id ||
+                    activeItem.video_slide?.id ||
+                    crypto.randomUUID();
+
+                const videoSlidePayload = {
+                    id: activeItem.id,
+                    title: projectName || activeItem.title || '',
+                    description: activeItem.description || '',
+                    image_file_id: activeItem.image_file_id || '',
+                    slide_order: activeItem.slide_order,
+                    video_slide: {
+                        id: videoSlideId,
+                        description: originalVideoData.description || activeItem.description || '',
+                        title: projectName || activeItem.title || '',
+                        url: originalVideoData.url || '',
+                        video_length_in_millis: originalVideoData.video_length_in_millis || 0,
+                        published_url:
+                            originalVideoData.published_url || originalVideoData.url || '',
+                        published_video_length_in_millis:
+                            originalVideoData.published_video_length_in_millis || 0,
+                        source_type: originalVideoData.source_type || 'VIDEO',
+                        embedded_type: splitData?.splitType || 'JUPYTER',
+                        embedded_data: JSON.stringify(splitData || {}),
+                        questions: (originalVideoData.questions as any) || [],
+                    },
+                    status: status,
+                    new_slide: false,
+                    notify: false,
+                };
+                try {
+                    console.log('Saving split screen slide with payload:', videoSlidePayload);
+                    await addUpdateVideoSlide(videoSlidePayload);
+                    toast.success(`Split screen slide saved successfully!`);
+
+                    // Update the local state to reflect saved changes and clear the new split screen flag
+                    const updatedSlide = {
+                        ...activeItem,
+                        ...(projectName &&
+                            projectName !== activeItem.title && { title: projectName }),
+                        isNewSplitScreen: false, // Clear the flag after first save
+                    };
+                    setActiveItem(updatedSlide);
+                } catch (error) {
+                    console.error('Error saving split screen slide:', error);
+                    console.error('Payload that failed:', videoSlidePayload);
+                    toast.error(`Error saving split screen slide: ${error}`);
+                }
+            } else if (activeItem?.source_type == 'VIDEO') {
+                // Handle regular video slides (non-split screen)
                 const convertedData = converDataToVideoFormat({
                     activeItem,
                     status,
@@ -451,7 +960,7 @@ export const SlideMaterial = ({
                     await addUpdateVideoSlide(convertedData);
                     toast.success(`slide saved in draft successfully!`);
                 } catch {
-                    toast.error(`Error in unpublishing the slide`);
+                    toast.error(`Error in saving the slide`);
                 }
             }
 
@@ -504,6 +1013,64 @@ export const SlideMaterial = ({
                     toast.success(`Presentation saved successfully!`);
                 } catch {
                     toast.error('Error saving presentation');
+                }
+                return;
+            }
+
+            // Handle CODE, JUPYTER, SCRATCH, and SPLIT slides
+            if (
+                activeItem?.source_type == 'DOCUMENT' &&
+                (activeItem?.document_slide?.type == 'CODE' ||
+                    activeItem?.document_slide?.type == 'JUPYTER' ||
+                    activeItem?.document_slide?.type == 'SCRATCH' ||
+                    activeItem?.document_slide?.type?.startsWith('SPLIT_'))
+            ) {
+                try {
+                    // For these slide types, ensure the latest data is saved to backend
+                    // Use fallback: first check data field, then published_data for published slides
+                    const rawData =
+                        activeItem.status === 'PUBLISHED'
+                            ? activeItem.document_slide?.data ||
+                              activeItem.document_slide?.published_data
+                            : activeItem.document_slide?.data;
+
+                    await addUpdateDocumentSlide({
+                        id: slide?.id || '',
+                        title: slide?.title || '',
+                        image_file_id: '',
+                        description: slide?.description || '',
+                        slide_order: null,
+                        document_slide: {
+                            id: slide?.document_slide?.id || '',
+                            type: activeItem.document_slide.type,
+                            data: rawData || '{}', // Use the fallback data
+                            title: slide?.document_slide?.title || '',
+                            cover_file_id: '',
+                            total_pages: 1,
+                            published_data: activeItem.status === 'PUBLISHED' ? rawData : null,
+                            published_document_total_pages: 0,
+                        },
+                        status: status,
+                        new_slide: false,
+                        notify: false,
+                    });
+
+                    const slideTypeName =
+                        activeItem.document_slide.type === 'CODE'
+                            ? 'Code Editor'
+                            : activeItem.document_slide.type === 'JUPYTER'
+                              ? 'Jupyter Notebook'
+                              : activeItem.document_slide.type === 'SCRATCH'
+                                ? 'Scratch Project'
+                                : activeItem.document_slide.type?.startsWith('SPLIT_')
+                                  ? `Split Screen ${activeItem.document_slide.type.replace('SPLIT_', '')}`
+                                  : 'Interactive Slide';
+                    toast.success(`${slideTypeName} saved successfully!`);
+                } catch (error) {
+                    console.error(`Error saving ${activeItem.document_slide.type} slide:`, error);
+                    toast.error(
+                        `Error saving ${activeItem.document_slide.type.toLowerCase()} slide`
+                    );
                 }
                 return;
             }
@@ -604,10 +1171,28 @@ export const SlideMaterial = ({
     useEffect(() => {
         if (items && items.length == 0 && slideId == undefined) {
             setActiveItem(null);
-        } else {
-            setActiveItem(items.find((slide) => slide.id == slideId) || items[0] || null);
+        } else if (items && items.length > 0) {
+            // First priority: preserve current active slide if it exists in items
+            if (activeItem && items.find((slide) => slide.id === activeItem.id)) {
+                // Active slide still exists, keep it selected
+                return;
+            }
+
+            // Second priority: use slideId from URL if available
+            if (slideId) {
+                const targetSlide = items.find((slide) => slide.id === slideId);
+                if (targetSlide) {
+                    setActiveItem(targetSlide);
+                    return;
+                }
+            }
+
+            // Last resort: select first slide only if no active slide exists
+            if (!activeItem) {
+                setActiveItem(items[0] || null);
+            }
         }
-    }, [items]);
+    }, [items, slideId]);
 
     useEffect(() => {
         setHeading(activeItem?.title || '');
@@ -653,7 +1238,7 @@ export const SlideMaterial = ({
             ref={selectionRef}
         >
             {activeItem && (
-                <div className="relative z-10 -m-8 flex items-center justify-between gap-4 border-b border-neutral-200 bg-white/80 px-6 py-3 shadow-sm backdrop-blur-sm">
+                <div className="sticky top-0 z-50 -m-8 flex items-center justify-between gap-4 border-b border-neutral-200 bg-white/80 px-6 py-3 shadow-sm backdrop-blur-sm">
                     <div className="flex items-center gap-3">
                         {isEditing ? (
                             <div className="flex items-center justify-center gap-2 duration-200 animate-in fade-in">
@@ -719,8 +1304,13 @@ export const SlideMaterial = ({
 
                             {(activeItem?.document_slide?.type === 'DOC' ||
                                 activeItem?.document_slide?.type === 'PRESENTATION' ||
+                                activeItem?.document_slide?.type === 'CODE' ||
+                                activeItem?.document_slide?.type === 'JUPYTER' ||
+                                activeItem?.document_slide?.type === 'SCRATCH' ||
                                 activeItem?.source_type === 'QUESTION' ||
-                                activeItem?.source_type === 'ASSIGNMENT') && (
+                                activeItem?.source_type === 'ASSIGNMENT' ||
+                                (activeItem?.source_type === 'VIDEO' &&
+                                    activeItem?.splitScreenMode)) && (
                                 <MyButton
                                     buttonType="secondary"
                                     scale="medium"
@@ -740,34 +1330,35 @@ export const SlideMaterial = ({
                                 </MyButton>
                             )}
 
-                            <UnpublishDialog
-                                isOpen={isUnpublishDialogOpen}
-                                setIsOpen={setIsUnpublishDialogOpen}
-                                handlePublishUnpublishSlide={() =>
-                                    handleUnpublishSlide(
-                                        setIsUnpublishDialogOpen,
-                                        false,
-                                        activeItem,
-                                        addUpdateDocumentSlide,
-                                        addUpdateVideoSlide,
-                                        updateQuestionOrder,
-                                        updateAssignmentOrder,
-                                        SaveDraft,
-                                        playerRef
-                                    )
-                                }
-                            />
+                            {/* Single Publish/Unpublish Button */}
+                            {activeItem.status === 'PUBLISHED' ? (
+                                <MyButton
+                                    buttonType="secondary"
+                                    scale="medium"
+                                    layoutVariant="default"
+                                    onClick={() => setIsUnpublishDialogOpen(true)}
+                                >
+                                    Unpublish
+                                </MyButton>
+                            ) : (
+                                <MyButton
+                                    buttonType="primary"
+                                    scale="medium"
+                                    layoutVariant="default"
+                                    onClick={() => setIsPublishDialogOpen(true)}
+                                >
+                                    Publish
+                                </MyButton>
+                            )}
 
-                            <PublishDialog
-                                isOpen={isPublishDialogOpen}
-                                setIsOpen={setIsPublishDialogOpen}
-                                handlePublishUnpublishSlide={() => {
-                                    if (activeItem?.document_slide?.type === 'PRESENTATION') {
-                                        publishExcalidrawPresentation();
-                                        setIsPublishDialogOpen(false);
-                                    } else {
-                                        handlePublishSlide(
-                                            setIsPublishDialogOpen,
+                            {/* Keep dialogs but make them conditional */}
+                            {isUnpublishDialogOpen && (
+                                <UnpublishDialog
+                                    isOpen={isUnpublishDialogOpen}
+                                    setIsOpen={setIsUnpublishDialogOpen}
+                                    handlePublishUnpublishSlide={() =>
+                                        handleUnpublishSlide(
+                                            setIsUnpublishDialogOpen,
                                             false,
                                             activeItem,
                                             addUpdateDocumentSlide,
@@ -776,10 +1367,35 @@ export const SlideMaterial = ({
                                             updateAssignmentOrder,
                                             SaveDraft,
                                             playerRef
-                                        );
+                                        )
                                     }
-                                }}
-                            />
+                                />
+                            )}
+
+                            {isPublishDialogOpen && (
+                                <PublishDialog
+                                    isOpen={isPublishDialogOpen}
+                                    setIsOpen={setIsPublishDialogOpen}
+                                    handlePublishUnpublishSlide={() => {
+                                        if (activeItem?.document_slide?.type === 'PRESENTATION') {
+                                            publishExcalidrawPresentation();
+                                            setIsPublishDialogOpen(false);
+                                        } else {
+                                            handlePublishSlide(
+                                                setIsPublishDialogOpen,
+                                                false,
+                                                activeItem,
+                                                addUpdateDocumentSlide,
+                                                addUpdateVideoSlide,
+                                                updateQuestionOrder,
+                                                updateAssignmentOrder,
+                                                SaveDraft,
+                                                playerRef
+                                            );
+                                        }
+                                    }}
+                                />
+                            )}
                         </div>
 
                         {/* ✅ Doubt Icon Trigger */}

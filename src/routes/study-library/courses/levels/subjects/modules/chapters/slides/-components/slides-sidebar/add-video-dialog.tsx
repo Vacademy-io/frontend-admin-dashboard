@@ -36,7 +36,7 @@ export const AddVideoDialog = ({
 }) => {
     const { getPackageSessionId } = useInstituteDetailsStore();
     const { courseId, levelId, chapterId, moduleId, subjectId, sessionId } = Route.useSearch();
-    const { addUpdateVideoSlide } = useSlides(
+    const { addUpdateVideoSlide, updateSlideOrder } = useSlides(
         chapterId || '',
         moduleId || '',
         subjectId || '',
@@ -46,7 +46,7 @@ export const AddVideoDialog = ({
             sessionId: sessionId || '',
         }) || ''
     );
-    const { setActiveItem, getSlideById } = useContentStore();
+    const { setActiveItem, getSlideById, items } = useContentStore();
     const [isAPIReady, setIsAPIReady] = useState(false);
     const [isValidUrl, setIsValidUrl] = useState(false);
     const [videoPreview, setVideoPreview] = useState<{ title: string; thumbnail: string } | null>(
@@ -163,7 +163,7 @@ export const AddVideoDialog = ({
                 title: data.videoName,
                 description: null,
                 image_file_id: null,
-                slide_order: 0,
+                slide_order: 0, // Always insert at top
                 video_slide: {
                     id: crypto.randomUUID(),
                     description: '',
@@ -179,18 +179,52 @@ export const AddVideoDialog = ({
                 notify: false,
             });
 
-            toast.success('Video added successfully!');
-            form.reset();
-            setVideoPreview(null);
-            setIsValidUrl(false);
-            openState?.(false);
-            setActiveItem(getSlideById(response));
-            await queryClient.invalidateQueries({ queryKey: ['slides'] });
-            queryClient.getQueryData(['slides']);
+            if (response) {
+                // Reorder slides and set as active
+                await reorderSlidesAfterNewSlide(response);
+                openState?.(false);
+                toast.success('Video added successfully!');
+            }
         } catch (error) {
             toast.error('Failed to add video');
         } finally {
             setIsVideoUploading(false);
+        }
+    };
+
+    // Function to reorder slides after adding a new one at the top
+    const reorderSlidesAfterNewSlide = async (newSlideId: string) => {
+        try {
+            // Get current slides and reorder them
+            const currentSlides = items || [];
+            const newSlide = currentSlides.find((slide) => slide.id === newSlideId);
+
+            if (!newSlide) return;
+
+            // Create new order: new slide at top (order 0), then existing slides
+            const reorderedSlides = [
+                { slide_id: newSlideId, slide_order: 0 },
+                ...currentSlides
+                    .filter((slide) => slide.id !== newSlideId)
+                    .map((slide, index) => ({
+                        slide_id: slide.id,
+                        slide_order: index + 1,
+                    })),
+            ];
+
+            // Update slide order in backend
+            await updateSlideOrder({
+                chapterId: chapterId || '',
+                slideOrderPayload: reorderedSlides,
+            });
+
+            // Set the new slide as active
+            setTimeout(() => {
+                setActiveItem(getSlideById(newSlideId));
+            }, 500);
+        } catch (error) {
+            console.error('Error reordering slides:', error);
+            toast.error('Slide created but reordering failed');
         }
     };
 
