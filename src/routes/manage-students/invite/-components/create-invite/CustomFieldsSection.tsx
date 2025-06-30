@@ -61,14 +61,10 @@ export const CustomFieldsSection = ({
                                     <h1 className="text-sm">
                                         {field.name}
                                         {field.oldKey && (
-                                            <span className="text-subtitle text-danger-600">
-                                                *
-                                            </span>
+                                            <span className="text-subtitle text-danger-600">*</span>
                                         )}
                                         {!field.oldKey && field.isRequired && (
-                                            <span className="text-subtitle text-danger-600">
-                                                *
-                                            </span>
+                                            <span className="text-subtitle text-danger-600">*</span>
                                         )}
                                     </h1>
                                     <div className="flex items-center gap-6">
@@ -108,21 +104,27 @@ export const CustomFieldsSection = ({
                 </div>
             </Sortable>
             <div className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-3">
-                {!customFields.filter((field) => field.status === 'ACTIVE')?.some((field) => field.name === 'Gender') && (
+                {!customFields
+                    .filter((field) => field.status === 'ACTIVE')
+                    ?.some((field) => field.name === 'Gender') && (
                     <MyButton
                         type="button"
                         scale="medium"
                         buttonType="secondary"
-                        onClick={() => handleAddOpenFieldValues('dropdown', 'Gender', false, [
-                            { id: 0, value: 'MALE', disabled: false },
-                            { id: 1, value: 'FEMALE', disabled: false },
-                            { id: 2, value: 'OTHER', disabled: false },
-                        ])}
+                        onClick={() =>
+                            handleAddOpenFieldValues('dropdown', 'Gender', false, [
+                                { id: 0, value: 'MALE', disabled: false },
+                                { id: 1, value: 'FEMALE', disabled: false },
+                                { id: 2, value: 'OTHER', disabled: false },
+                            ])
+                        }
                     >
                         <Plus size={32} /> Add Gender
                     </MyButton>
                 )}
-                {!customFields.filter((field) => field.status === 'ACTIVE')?.some((field) => field.name === 'State') && (
+                {!customFields
+                    .filter((field) => field.status === 'ACTIVE')
+                    ?.some((field) => field.name === 'State') && (
                     <MyButton
                         type="button"
                         scale="medium"
@@ -132,7 +134,9 @@ export const CustomFieldsSection = ({
                         <Plus size={32} /> Add State
                     </MyButton>
                 )}
-                {!customFields.filter((field) => field.status === 'ACTIVE')?.some((field) => field.name === 'City') && (
+                {!customFields
+                    .filter((field) => field.status === 'ACTIVE')
+                    ?.some((field) => field.name === 'City') && (
                     <MyButton
                         type="button"
                         scale="medium"
@@ -142,7 +146,9 @@ export const CustomFieldsSection = ({
                         <Plus size={32} /> Add City
                     </MyButton>
                 )}
-                {!customFields.filter((field) => field.status === 'ACTIVE')?.some((field) => field.name === 'School/College') && (
+                {!customFields
+                    .filter((field) => field.status === 'ACTIVE')
+                    ?.some((field) => field.name === 'School/College') && (
                     <MyButton
                         type="button"
                         scale="medium"
@@ -154,7 +160,9 @@ export const CustomFieldsSection = ({
                         <Plus size={32} /> Add School/College
                     </MyButton>
                 )}
-                {!customFields.filter((field) => field.status === 'ACTIVE')?.some((field) => field.name === 'Address') && (
+                {!customFields
+                    .filter((field) => field.status === 'ACTIVE')
+                    ?.some((field) => field.name === 'Address') && (
                     <MyButton
                         type="button"
                         scale="medium"
@@ -164,7 +172,9 @@ export const CustomFieldsSection = ({
                         <Plus size={32} /> Add Address
                     </MyButton>
                 )}
-                {!customFields.filter((field) => field.status === 'ACTIVE')?.some((field) => field.name === 'Pincode') && (
+                {!customFields
+                    .filter((field) => field.status === 'ACTIVE')
+                    ?.some((field) => field.name === 'Pincode') && (
                     <MyButton
                         type="button"
                         scale="medium"
@@ -174,7 +184,9 @@ export const CustomFieldsSection = ({
                         <Plus size={32} /> Pincode
                     </MyButton>
                 )}
-                {!customFields.filter((field) => field.status === 'ACTIVE')?.some((field) => field.name === 'Father Name') && (
+                {!customFields
+                    .filter((field) => field.status === 'ACTIVE')
+                    ?.some((field) => field.name === 'Father Name') && (
                     <MyButton
                         type="button"
                         scale="medium"
@@ -184,7 +196,9 @@ export const CustomFieldsSection = ({
                         <Plus size={32} /> Father Name
                     </MyButton>
                 )}
-                {!customFields.filter((field) => field.status === 'ACTIVE')?.some((field) => field.name === 'Mother Name') && (
+                {!customFields
+                    .filter((field) => field.status === 'ACTIVE')
+                    ?.some((field) => field.name === 'Mother Name') && (
                     <MyButton
                         type="button"
                         scale="medium"
@@ -194,7 +208,9 @@ export const CustomFieldsSection = ({
                         <Plus size={32} /> Mother Name
                     </MyButton>
                 )}
-                {!customFields.filter((field) => field.status === 'ACTIVE')?.some((field) => field.name === 'Parent Phone Number') && (
+                {!customFields
+                    .filter((field) => field.status === 'ACTIVE')
+                    ?.some((field) => field.name === 'Parent Phone Number') && (
                     <MyButton
                         type="button"
                         scale="medium"
@@ -206,7 +222,9 @@ export const CustomFieldsSection = ({
                         <Plus size={32} /> Parent Phone Number
                     </MyButton>
                 )}
-                {!customFields.filter((field) => field.status === 'ACTIVE')?.some((field) => field.name === 'Parent Email') && (
+                {!customFields
+                    .filter((field) => field.status === 'ACTIVE')
+                    ?.some((field) => field.name === 'Parent Email') && (
                     <MyButton
                         type="button"
                         scale="medium"

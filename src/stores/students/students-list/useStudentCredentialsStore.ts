@@ -1,5 +1,5 @@
-import { create } from "zustand";
-import { StudentCredentialsType } from "@/services/student-list-section/getStudentCredentails";
+import { create } from 'zustand';
+import { StudentCredentialsType } from '@/services/student-list-section/getStudentCredentails';
 
 interface StudentCredentialsStore {
     credentialsMap: Record<string, StudentCredentialsType>;

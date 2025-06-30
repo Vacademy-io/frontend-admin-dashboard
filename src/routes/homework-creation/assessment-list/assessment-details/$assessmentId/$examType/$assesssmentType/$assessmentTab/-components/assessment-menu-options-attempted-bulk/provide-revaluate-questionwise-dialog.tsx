@@ -1,22 +1,22 @@
-import { ReactNode, useEffect, useState } from "react";
-import { MyDialog } from "@/components/design-system/dialog";
-import { MyButton } from "@/components/design-system/button";
-import { getInstituteId } from "@/constants/helper";
-import { Route } from "../..";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
-import { getAssessmentDetails } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-services/assessment-services";
+import { ReactNode, useEffect, useState } from 'react';
+import { MyDialog } from '@/components/design-system/dialog';
+import { MyButton } from '@/components/design-system/button';
+import { getInstituteId } from '@/constants/helper';
+import { Route } from '../..';
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
+import { getAssessmentDetails } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-services/assessment-services';
 import {
     getRevaluateStudentResult,
     handleGetQuestionInsightsData,
-} from "../../-services/assessment-details-services";
+} from '../../-services/assessment-details-services';
 import {
     transformQuestionInsightsQuestionsData,
     transformQuestionsDataToRevaluateAPI,
-} from "../../-utils/helper";
+} from '../../-utils/helper';
 import {
     AssessmentRevaluateQuestionWiseInterface,
     SelectedFilterRevaluateInterface,
-} from "@/types/assessments/assessment-revaluate-question-wise";
+} from '@/types/assessments/assessment-revaluate-question-wise';
 import {
     Table,
     TableBody,
@@ -24,11 +24,11 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Checkbox } from "@/components/ui/checkbox";
-import { useSubmissionsBulkActionsDialogStoreAttempted } from "../bulk-actions-zustand-store/useSubmissionsBulkActionsDialogStoreAttempted";
-import { toast } from "sonner";
+} from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Checkbox } from '@/components/ui/checkbox';
+import { useSubmissionsBulkActionsDialogStoreAttempted } from '../bulk-actions-zustand-store/useSubmissionsBulkActionsDialogStoreAttempted';
+import { toast } from 'sonner';
 
 interface ProvideDialogDialogProps {
     trigger: ReactNode;
@@ -43,7 +43,7 @@ export const ProvideRevaluateQuestionWiseDialogContent = () => {
     const [selectedFilter] = useState<SelectedFilterRevaluateInterface>({
         questions: [
             {
-                section_id: "",
+                section_id: '',
                 question_ids: [],
             },
         ],
@@ -54,7 +54,7 @@ export const ProvideRevaluateQuestionWiseDialogContent = () => {
     const { assessmentId, examType } = Route.useParams();
 
     const { data: assessmentDetails } = useSuspenseQuery(
-        getAssessmentDetails({ assessmentId, instituteId, type: examType }),
+        getAssessmentDetails({ assessmentId, instituteId, type: examType })
     );
 
     const sectionsInfo = assessmentDetails[1]?.saved_data.sections?.map((section) => ({
@@ -62,14 +62,14 @@ export const ProvideRevaluateQuestionWiseDialogContent = () => {
         id: section.id,
     }));
 
-    const [selectedSection, setSelectedSection] = useState(sectionsInfo ? sectionsInfo[0]?.id : "");
+    const [selectedSection, setSelectedSection] = useState(sectionsInfo ? sectionsInfo[0]?.id : '');
 
     const { data } = useSuspenseQuery(
-        handleGetQuestionInsightsData({ instituteId, assessmentId, sectionId: selectedSection }),
+        handleGetQuestionInsightsData({ instituteId, assessmentId, sectionId: selectedSection })
     );
 
     const [selectedSectionData, setSelectedSectionData] = useState(
-        transformQuestionInsightsQuestionsData(data?.question_insight_dto),
+        transformQuestionInsightsQuestionsData(data?.question_insight_dto)
     );
 
     // Maintain selected questions state
@@ -88,7 +88,7 @@ export const ProvideRevaluateQuestionWiseDialogContent = () => {
     };
     const handleSelectAllForSection = (
         sectionId: string,
-        questions: AssessmentRevaluateQuestionWiseInterface[],
+        questions: AssessmentRevaluateQuestionWiseInterface[]
     ) => {
         setSelectedQuestions((prev) => {
             const isAllSelected = prev[sectionId]?.length === questions.length;
@@ -118,11 +118,11 @@ export const ProvideRevaluateQuestionWiseDialogContent = () => {
         }) => getRevaluateStudentResult(assessmentId, instituteId, methodType, selectedFilter),
         onSuccess: () => {
             toast.success(
-                "Your attempt for this assessment has been revaluated for the selected students. Please check your email!",
+                'Your attempt for this assessment has been revaluated for the selected students. Please check your email!',
                 {
-                    className: "success-toast",
+                    className: 'success-toast',
                     duration: 4000,
-                },
+                }
             );
             closeAllDialogs();
         },
@@ -133,21 +133,21 @@ export const ProvideRevaluateQuestionWiseDialogContent = () => {
 
     const handleSubmit = () => {
         if (isBulkAction && bulkActionInfo?.selectedStudents) {
-            console.log("bulk actions");
+            console.log('bulk actions');
             getRevaluateResultMutation.mutate({
                 assessmentId,
                 instituteId,
-                methodType: "PARTICIPANTS_AND_QUESTIONS",
+                methodType: 'PARTICIPANTS_AND_QUESTIONS',
                 selectedFilter: {
                     ...selectedFilter,
                     questions: transformQuestionsDataToRevaluateAPI(selectedQuestions),
                     attempt_ids: bulkActionInfo.selectedStudents.map(
-                        (student) => student.attempt_id,
+                        (student) => student.attempt_id
                     ),
                 },
             });
         } else if (selectedStudent) {
-            console.log("individual student");
+            console.log('individual student');
         }
     };
 
@@ -166,13 +166,13 @@ export const ProvideRevaluateQuestionWiseDialogContent = () => {
                                 value={section.id}
                                 className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
                                     selectedSection === section.id
-                                        ? "rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50"
-                                        : "border-none bg-transparent"
+                                        ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                        : 'border-none bg-transparent'
                                 }`}
                             >
                                 <span
                                     className={
-                                        selectedSection === section.id ? "text-primary-500" : ""
+                                        selectedSection === section.id ? 'text-primary-500' : ''
                                     }
                                 >
                                     {section.name}
@@ -182,7 +182,7 @@ export const ProvideRevaluateQuestionWiseDialogContent = () => {
                     </TabsList>
                 </div>
                 <TabsContent
-                    value={selectedSection || ""}
+                    value={selectedSection || ''}
                     className="max-h-[calc(100vh-120px)] overflow-y-auto"
                 >
                     <Table>
@@ -200,7 +200,7 @@ export const ProvideRevaluateQuestionWiseDialogContent = () => {
                                         onCheckedChange={() =>
                                             handleSelectAllForSection(
                                                 selectedSection!,
-                                                selectedSectionData,
+                                                selectedSectionData
                                             )
                                         }
                                     />
@@ -215,7 +215,7 @@ export const ProvideRevaluateQuestionWiseDialogContent = () => {
                                         dangerouslySetInnerHTML={{
                                             __html:
                                                 question.assessment_question_preview_dto
-                                                    .questionName || "",
+                                                    .questionName || '',
                                         }}
                                     />
                                     <TableCell>
@@ -223,14 +223,14 @@ export const ProvideRevaluateQuestionWiseDialogContent = () => {
                                             checked={
                                                 selectedQuestions[selectedSection!]?.includes(
                                                     question.assessment_question_preview_dto
-                                                        .questionId ?? "",
+                                                        .questionId ?? ''
                                                 ) || false
                                             }
                                             onCheckedChange={() =>
                                                 handleCheckboxChange(
                                                     question.assessment_question_preview_dto
-                                                        .questionId ?? "",
-                                                    selectedSection!,
+                                                        .questionId ?? '',
+                                                    selectedSection!
                                                 )
                                             }
                                         />

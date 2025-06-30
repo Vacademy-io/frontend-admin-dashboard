@@ -1,14 +1,14 @@
-import { isQuillContentEmpty } from "@/routes/assessment/question-papers/-utils/helper";
-import { z } from "zod";
+import { isQuillContentEmpty } from '@/routes/assessment/question-papers/-utils/helper';
+import { z } from 'zod';
 
 export const videoPlayerQuestionSchema = z.object({
     id: z.string().optional(),
     questionId: z.string().optional(),
     questionName: z.string().refine((val) => !isQuillContentEmpty(val), {
-        message: "Question name is required",
+        message: 'Question name is required',
     }),
     explanation: z.string().optional(),
-    questionType: z.string().default("MCQS"),
+    questionType: z.string().default('MCQS'),
     questionPenalty: z.string(),
     questionDuration: z.object({
         hrs: z.string(),
@@ -21,7 +21,7 @@ export const videoPlayerQuestionSchema = z.object({
                 id: z.string().optional(),
                 name: z.string().optional(),
                 isSelected: z.boolean().optional(),
-            }),
+            })
         )
         .optional(),
     multipleChoiceOptions: z
@@ -30,7 +30,7 @@ export const videoPlayerQuestionSchema = z.object({
                 id: z.string().optional(),
                 name: z.string().optional(),
                 isSelected: z.boolean().optional(),
-            }),
+            })
         )
         .optional(),
     csingleChoiceOptions: z
@@ -39,7 +39,7 @@ export const videoPlayerQuestionSchema = z.object({
                 id: z.string().optional(),
                 name: z.string().optional(),
                 isSelected: z.boolean().optional(),
-            }),
+            })
         )
         .optional(),
     cmultipleChoiceOptions: z
@@ -48,7 +48,7 @@ export const videoPlayerQuestionSchema = z.object({
                 id: z.string().optional(),
                 name: z.string().optional(),
                 isSelected: z.boolean().optional(),
-            }),
+            })
         )
         .optional(),
     trueFalseOptions: z
@@ -57,7 +57,7 @@ export const videoPlayerQuestionSchema = z.object({
                 id: z.string().optional(),
                 name: z.string().optional(),
                 isSelected: z.boolean().optional(),
-            }),
+            })
         )
         .optional(),
     parentRichTextContent: z.union([z.string(), z.null()]).optional(),

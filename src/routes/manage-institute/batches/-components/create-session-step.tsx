@@ -52,7 +52,9 @@ export const CreateSessionStep = () => {
                 name="sessionCreationType"
                 render={({ field }: any) => (
                     <FormItem className="space-y-3">
-                        <FormLabel className="text-base font-medium text-neutral-700">Session Selection</FormLabel>
+                        <FormLabel className="text-base font-medium text-neutral-700">
+                            Session Selection
+                        </FormLabel>
                         <FormControl>
                             <RadioGroup
                                 className="flex gap-6 pt-1"
@@ -67,7 +69,10 @@ export const CreateSessionStep = () => {
                                     <FormControl>
                                         <RadioGroupItem value="existing" id="existing-session" />
                                     </FormControl>
-                                    <FormLabel htmlFor="existing-session" className="font-normal text-neutral-600 cursor-pointer">
+                                    <FormLabel
+                                        htmlFor="existing-session"
+                                        className="cursor-pointer font-normal text-neutral-600"
+                                    >
                                         Select existing session
                                     </FormLabel>
                                 </FormItem>
@@ -75,7 +80,10 @@ export const CreateSessionStep = () => {
                                     <FormControl>
                                         <RadioGroupItem value="new" id="new-session" />
                                     </FormControl>
-                                    <FormLabel htmlFor="new-session" className="font-normal text-neutral-600 cursor-pointer">
+                                    <FormLabel
+                                        htmlFor="new-session"
+                                        className="cursor-pointer font-normal text-neutral-600"
+                                    >
                                         Create new session
                                     </FormLabel>
                                 </FormItem>
@@ -116,8 +124,8 @@ export const CreateSessionStep = () => {
 
             {form.watch('sessionCreationType') === 'new' &&
                 (newSessionName !== '' && newSessionStartDate !== '' ? (
-                    <div className="flex items-center gap-3 p-3 rounded-md border border-neutral-200 bg-neutral-50">
-                        <div className="flex flex-col flex-grow">
+                    <div className="flex items-center gap-3 rounded-md border border-neutral-200 bg-neutral-50 p-3">
+                        <div className="flex grow flex-col">
                             <p className="text-sm font-medium text-neutral-700">{newSessionName}</p>
                             <p className="text-xs text-neutral-500">
                                 Start Date: {newSessionStartDate}
@@ -131,8 +139,8 @@ export const CreateSessionStep = () => {
                                 form.setValue('selectedStartDate', null);
                             }}
                             layoutVariant="icon"
-                            buttonType='text'
-                            className="text-neutral-500 hover:text-danger-600 hover:bg-danger-50 p-1"
+                            buttonType="text"
+                            className="p-1 text-neutral-500 hover:bg-danger-50 hover:text-danger-600"
                             scale="small"
                         >
                             <X size={18} />

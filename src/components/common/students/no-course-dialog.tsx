@@ -1,13 +1,13 @@
-import { Dialog, DialogContent, DialogHeader, DialogTrigger } from "@/components/ui/dialog";
-import { MyButton } from "@/components/design-system/button";
-import { useNavigate } from "@tanstack/react-router";
+import { Dialog, DialogContent, DialogHeader, DialogTrigger } from '@/components/ui/dialog';
+import { MyButton } from '@/components/design-system/button';
+import { useNavigate } from '@tanstack/react-router';
 
 export const NoCourseDialog = ({
     isOpen,
     setIsOpen,
     type,
     content,
-    trigger
+    trigger,
 }: {
     isOpen: boolean;
     setIsOpen: (isOpen: boolean) => void;
@@ -33,7 +33,7 @@ export const NoCourseDialog = ({
                         buttonType="primary"
                         onClick={() => {
                             navigate({
-                                to: "/study-library/courses",
+                                to: '/study-library/courses',
                             });
                         }}
                     >

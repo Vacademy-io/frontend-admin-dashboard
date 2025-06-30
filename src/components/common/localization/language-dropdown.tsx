@@ -1,13 +1,13 @@
-import { useState } from "react";
-import { useLanguageStore } from "@/stores/localization/useLanguageStore";
+import { useState } from 'react';
+import { useLanguageStore } from '@/stores/localization/useLanguageStore';
 import {
     DropdownMenu,
     DropdownMenuTrigger,
     DropdownMenuContent,
     DropdownMenuItem,
-} from "../../ui/dropdown-menu";
-import { CaretUp, CaretDown, Check } from "@phosphor-icons/react";
-import { useSyncLanguage } from "@/hooks/useSyncLanguage";
+} from '../../ui/dropdown-menu';
+import { CaretUp, CaretDown, Check } from '@phosphor-icons/react';
+import { useSyncLanguage } from '@/hooks/useSyncLanguage';
 
 export const LanguageDropdown = () => {
     useSyncLanguage();
@@ -30,17 +30,17 @@ export const LanguageDropdown = () => {
                 <DropdownMenuContent className="w-48 border border-neutral-300 bg-neutral-50 p-0 text-neutral-600 outline-none">
                     <DropdownMenuItem
                         className="flex items-center justify-between px-3 hover:cursor-pointer focus:bg-primary-100 focus:text-neutral-600"
-                        onClick={() => handleChangeLanguage("English")}
+                        onClick={() => handleChangeLanguage('English')}
                     >
                         <div>English</div>
-                        {language === "English" && <Check className="text-primary-400" />}
+                        {language === 'English' && <Check className="text-primary-400" />}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                         className="flex items-center justify-between px-3 hover:cursor-pointer focus:bg-primary-100 focus:text-neutral-600"
-                        onClick={() => handleChangeLanguage("हिन्दी")}
+                        onClick={() => handleChangeLanguage('हिन्दी')}
                     >
                         <div>हिन्दी</div>
-                        {language === "हिन्दी" && <Check className="text-primary-400" />}
+                        {language === 'हिन्दी' && <Check className="text-primary-400" />}
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>

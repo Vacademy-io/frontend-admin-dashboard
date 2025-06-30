@@ -6,10 +6,10 @@ import {
     PaginationLink,
     PaginationNext,
     PaginationPrevious,
-} from "@/components/ui/pagination";
-import { MyInput } from "./input";
-import { useState } from "react";
-import { KeyReturn, XCircle } from "@phosphor-icons/react";
+} from '@/components/ui/pagination';
+import { MyInput } from './input';
+import { useState } from 'react';
+import { KeyReturn, XCircle } from '@phosphor-icons/react';
 
 interface PaginationProps {
     currentPage: number;
@@ -18,12 +18,12 @@ interface PaginationProps {
 }
 
 export function MyPagination({ currentPage, totalPages, onPageChange }: PaginationProps) {
-    const [pageInput, setPageInput] = useState("");
-    const [submittedPage, setSubmittedPage] = useState("");
+    const [pageInput, setPageInput] = useState('');
+    const [submittedPage, setSubmittedPage] = useState('');
 
     const handlePageInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const input = event.target.value;
-        const numericValue = input.replace(/[^0-9]/g, ""); // Remove non-numeric characters
+        const numericValue = input.replace(/[^0-9]/g, ''); // Remove non-numeric characters
         setPageInput(numericValue);
     };
 
@@ -36,8 +36,8 @@ export function MyPagination({ currentPage, totalPages, onPageChange }: Paginati
     };
 
     const handleClearPageInput = () => {
-        setPageInput("");
-        setSubmittedPage("");
+        setPageInput('');
+        setSubmittedPage('');
     };
 
     const handlePreviousPage = () => {
@@ -61,8 +61,8 @@ export function MyPagination({ currentPage, totalPages, onPageChange }: Paginati
                             onClick={handlePreviousPage}
                             className={
                                 currentPage === 0
-                                    ? "pointer-events-none opacity-50"
-                                    : "cursor-pointer"
+                                    ? 'pointer-events-none opacity-50'
+                                    : 'cursor-pointer'
                             }
                         />
                     </PaginationItem>
@@ -124,8 +124,8 @@ export function MyPagination({ currentPage, totalPages, onPageChange }: Paginati
                             onClick={handleNextPage}
                             className={
                                 currentPage === totalPages - 1
-                                    ? "pointer-events-none opacity-50"
-                                    : "cursor-pointer"
+                                    ? 'pointer-events-none opacity-50'
+                                    : 'cursor-pointer'
                             }
                         />
                     </PaginationItem>
@@ -147,16 +147,16 @@ export function MyPagination({ currentPage, totalPages, onPageChange }: Paginati
                             className={`absolute right-2 top-1/4 size-[18px] cursor-pointer text-primary-500 ${
                                 (pageInput.length || (submittedPage.length && !pageInput.length)) &&
                                 submittedPage !== pageInput
-                                    ? "visible"
-                                    : "hidden"
+                                    ? 'visible'
+                                    : 'hidden'
                             }`}
                             onClick={handlePageInputSubmit}
                         />
                         <XCircle
                             className={`absolute right-2 top-1/4 size-[18px] cursor-pointer text-neutral-400 ${
-                                pageInput === submittedPage && pageInput !== ""
-                                    ? "visible"
-                                    : "hidden"
+                                pageInput === submittedPage && pageInput !== ''
+                                    ? 'visible'
+                                    : 'hidden'
                             }`}
                             onClick={handleClearPageInput}
                         />

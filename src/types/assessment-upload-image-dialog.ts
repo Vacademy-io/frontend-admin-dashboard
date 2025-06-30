@@ -1,6 +1,6 @@
-import { sectionsEditQuestionFormSchema } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-utils/sections-edit-question-form-schema";
-import { UseFormReturn } from "react-hook-form";
-import { z } from "zod";
+import { sectionsEditQuestionFormSchema } from '@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-utils/sections-edit-question-form-schema';
+import { UseFormReturn } from 'react-hook-form';
+import { z } from 'zod';
 
 // Infer the form type from the schema
 type AssessmentQuestionFormSchemaType = z.infer<typeof sectionsEditQuestionFormSchema>;

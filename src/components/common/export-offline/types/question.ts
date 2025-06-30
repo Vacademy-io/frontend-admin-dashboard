@@ -27,7 +27,7 @@ export interface Question {
     question_order: number;
 }
 
-export type CustomFieldType = "blank" | "blocks" | "input" | "checkbox";
+export type CustomFieldType = 'blank' | 'blocks' | 'input' | 'checkbox';
 export interface CustomField {
     label: string;
     enabled: boolean;

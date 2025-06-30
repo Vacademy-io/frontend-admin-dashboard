@@ -1,17 +1,17 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useEffect, useState } from "react";
-import { getInstituteId } from "@/constants/helper";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
-import { getAssessmentDetails } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-services/assessment-services";
-import { Route } from "../..";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useEffect, useState } from 'react';
+import { getInstituteId } from '@/constants/helper';
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
+import { getAssessmentDetails } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-services/assessment-services';
+import { Route } from '../..';
 import {
     getRevaluateStudentResult,
     handleGetQuestionInsightsData,
-} from "../../-services/assessment-details-services";
+} from '../../-services/assessment-details-services';
 import {
     transformQuestionInsightsQuestionsData,
     transformQuestionsDataToRevaluateAPI,
-} from "../../-utils/helper";
+} from '../../-utils/helper';
 import {
     Table,
     TableBody,
@@ -19,15 +19,15 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table";
-import { Checkbox } from "@/components/ui/checkbox";
-import { MyButton } from "@/components/design-system/button";
+} from '@/components/ui/table';
+import { Checkbox } from '@/components/ui/checkbox';
+import { MyButton } from '@/components/design-system/button';
 import {
     AssessmentRevaluateQuestionWiseInterface,
     SelectedFilterRevaluateInterface,
-} from "@/types/assessments/assessment-revaluate-question-wise";
-import { toast } from "sonner";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+} from '@/types/assessments/assessment-revaluate-question-wise';
+import { toast } from 'sonner';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 
 export function AssessmentGlobalLevelRevaluateQuestionWise() {
     const [openDialog, setOpenDialog] = useState(false);
@@ -35,7 +35,7 @@ export function AssessmentGlobalLevelRevaluateQuestionWise() {
     const [selectedFilter] = useState<SelectedFilterRevaluateInterface>({
         questions: [
             {
-                section_id: "",
+                section_id: '',
                 question_ids: [],
             },
         ],
@@ -44,7 +44,7 @@ export function AssessmentGlobalLevelRevaluateQuestionWise() {
     const { assessmentId, examType } = Route.useParams();
 
     const { data: assessmentDetails } = useSuspenseQuery(
-        getAssessmentDetails({ assessmentId, instituteId, type: examType }),
+        getAssessmentDetails({ assessmentId, instituteId, type: examType })
     );
 
     const sectionsInfo = assessmentDetails[1]?.saved_data.sections?.map((section) => ({
@@ -52,14 +52,14 @@ export function AssessmentGlobalLevelRevaluateQuestionWise() {
         id: section.id,
     }));
 
-    const [selectedSection, setSelectedSection] = useState(sectionsInfo ? sectionsInfo[0]?.id : "");
+    const [selectedSection, setSelectedSection] = useState(sectionsInfo ? sectionsInfo[0]?.id : '');
 
     const { data } = useSuspenseQuery(
-        handleGetQuestionInsightsData({ instituteId, assessmentId, sectionId: selectedSection }),
+        handleGetQuestionInsightsData({ instituteId, assessmentId, sectionId: selectedSection })
     );
 
     const [selectedSectionData, setSelectedSectionData] = useState(
-        transformQuestionInsightsQuestionsData(data?.question_insight_dto),
+        transformQuestionInsightsQuestionsData(data?.question_insight_dto)
     );
 
     // Maintain selected questions state
@@ -78,7 +78,7 @@ export function AssessmentGlobalLevelRevaluateQuestionWise() {
     };
     const handleSelectAllForSection = (
         sectionId: string,
-        questions: AssessmentRevaluateQuestionWiseInterface[],
+        questions: AssessmentRevaluateQuestionWiseInterface[]
     ) => {
         setSelectedQuestions((prev) => {
             const isAllSelected = prev[sectionId]?.length === questions.length;
@@ -108,11 +108,11 @@ export function AssessmentGlobalLevelRevaluateQuestionWise() {
         }) => getRevaluateStudentResult(assessmentId, instituteId, methodType, selectedFilter),
         onSuccess: () => {
             toast.success(
-                "Attempt for this assessment has been revaluated for all students. Participants need to check their email!",
+                'Attempt for this assessment has been revaluated for all students. Participants need to check their email!',
                 {
-                    className: "success-toast",
+                    className: 'success-toast',
                     duration: 4000,
-                },
+                }
             );
             setOpenDialog(false);
         },
@@ -125,7 +125,7 @@ export function AssessmentGlobalLevelRevaluateQuestionWise() {
         getRevaluateResultMutation.mutate({
             assessmentId,
             instituteId,
-            methodType: "ENTIRE_ASSESSMENT",
+            methodType: 'ENTIRE_ASSESSMENT',
             selectedFilter: {
                 ...selectedFilter,
                 questions: transformQuestionsDataToRevaluateAPI(selectedQuestions),
@@ -165,15 +165,15 @@ export function AssessmentGlobalLevelRevaluateQuestionWise() {
                                         value={section.id}
                                         className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
                                             selectedSection === section.id
-                                                ? "rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50"
-                                                : "border-none bg-transparent"
+                                                ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                                : 'border-none bg-transparent'
                                         }`}
                                     >
                                         <span
                                             className={
                                                 selectedSection === section.id
-                                                    ? "text-primary-500"
-                                                    : ""
+                                                    ? 'text-primary-500'
+                                                    : ''
                                             }
                                         >
                                             {section.name}
@@ -183,7 +183,7 @@ export function AssessmentGlobalLevelRevaluateQuestionWise() {
                             </TabsList>
                         </div>
                         <TabsContent
-                            value={selectedSection || ""}
+                            value={selectedSection || ''}
                             className="max-h-[calc(100vh-120px)] overflow-y-auto"
                         >
                             <Table>
@@ -201,7 +201,7 @@ export function AssessmentGlobalLevelRevaluateQuestionWise() {
                                                 onCheckedChange={() =>
                                                     handleSelectAllForSection(
                                                         selectedSection!,
-                                                        selectedSectionData,
+                                                        selectedSectionData
                                                     )
                                                 }
                                             />
@@ -222,7 +222,7 @@ export function AssessmentGlobalLevelRevaluateQuestionWise() {
                                                     dangerouslySetInnerHTML={{
                                                         __html:
                                                             question.assessment_question_preview_dto
-                                                                .questionName || "",
+                                                                .questionName || '',
                                                     }}
                                                 />
                                                 <TableCell>
@@ -233,15 +233,15 @@ export function AssessmentGlobalLevelRevaluateQuestionWise() {
                                                             ]?.includes(
                                                                 question
                                                                     .assessment_question_preview_dto
-                                                                    .questionId ?? "",
+                                                                    .questionId ?? ''
                                                             ) || false
                                                         }
                                                         onCheckedChange={() =>
                                                             handleCheckboxChange(
                                                                 question
                                                                     .assessment_question_preview_dto
-                                                                    .questionId ?? "",
-                                                                selectedSection!,
+                                                                    .questionId ?? '',
+                                                                selectedSection!
                                                             )
                                                         }
                                                     />

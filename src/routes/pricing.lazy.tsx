@@ -11,11 +11,14 @@ export const Route = createLazyFileRoute('/pricing')({
         <div className="bg-white" style={{ width: '100%', position: 'static' }}>
             <Helmet>
                 <title>Pricing - {PRODUCT_NAME}</title>
-                <meta name="description" content={`See our flexible pricing plans for ${PRODUCT_NAME}.`} />
+                <meta
+                    name="description"
+                    content={`See our flexible pricing plans for ${PRODUCT_NAME}.`}
+                />
             </Helmet>
             <Header />
             <PricingPage />
             <Footer />
         </div>
     ),
-}); 
+});

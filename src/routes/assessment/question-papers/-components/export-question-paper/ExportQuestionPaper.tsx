@@ -1,19 +1,19 @@
 import {
     ExportSettingsProvider,
     useExportSettings,
-} from "@/components/common/export-offline/contexts/export-settings-context";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Settings, Trash2 } from "lucide-react";
-import { ArrowSquareOut, Upload } from "phosphor-react";
-import { PaperSetQuestions } from "./PaperSetQuestions";
-import { ExportHandlerQuestionPaper } from "./ExportHandlerQuestionPaper";
-import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { ExportQuestionPaperSettingsDialog } from "./export-question-paper-dialog/export-question-paper-setting-dialog";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { handleGetQuestionPaperById } from "../../-utils/question-paper-services";
-import { convertQuestionsToExportSchema } from "../../-utils/helper";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
+} from '@/components/common/export-offline/contexts/export-settings-context';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Settings, Trash2 } from 'lucide-react';
+import { ArrowSquareOut, Upload } from 'phosphor-react';
+import { PaperSetQuestions } from './PaperSetQuestions';
+import { ExportHandlerQuestionPaper } from './ExportHandlerQuestionPaper';
+import { Dialog, DialogClose, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { ExportQuestionPaperSettingsDialog } from './export-question-paper-dialog/export-question-paper-setting-dialog';
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { handleGetQuestionPaperById } from '../../-utils/question-paper-services';
+import { convertQuestionsToExportSchema } from '../../-utils/helper';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
 
 const ExportQuestionPaper = ({ questionPaperId }: { questionPaperId: string }) => {
     return (
@@ -32,12 +32,12 @@ const ExportQuestionPaper = ({ questionPaperId }: { questionPaperId: string }) =
 
 function PreviewWithSettings({ questionPaperId }: { questionPaperId: string }) {
     const { data: questionsData, isLoading } = useSuspenseQuery(
-        handleGetQuestionPaperById(questionPaperId),
+        handleGetQuestionPaperById(questionPaperId)
     );
 
     // @ts-expect-error : Object is possibly 'undefined'
     const convertedQuestions: Question[] = convertQuestionsToExportSchema(
-        questionsData.question_dtolist,
+        questionsData.question_dtolist
     );
     const [showSettings, setShowSettings] = useState(false);
     const { settings, updateSettings } = useExportSettings();
@@ -77,7 +77,7 @@ function PreviewWithSettings({ questionPaperId }: { questionPaperId: string }) {
     if (isLoading) return <DashboardLoader />;
 
     return (
-        <div className="min-h-screen w-full bg-slate-50/50" style={{ boxSizing: "border-box" }}>
+        <div className="min-h-screen w-full bg-slate-50/50" style={{ boxSizing: 'border-box' }}>
             <div className="no-print sticky top-0 z-10 border-b bg-white">
                 <div className="flex items-center justify-between p-4">
                     <Button
@@ -106,7 +106,7 @@ function PreviewWithSettings({ questionPaperId }: { questionPaperId: string }) {
                                 <Button
                                     variant="outline"
                                     onClick={() =>
-                                        document.getElementById("letterhead-upload")?.click()
+                                        document.getElementById('letterhead-upload')?.click()
                                     }
                                 >
                                     <Upload />

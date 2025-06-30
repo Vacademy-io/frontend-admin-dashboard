@@ -1,17 +1,17 @@
-import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
-import { Sliders, X } from "phosphor-react";
-import { Checkbox } from "@/components/ui/checkbox";
-import "react-quill/dist/quill.snow.css";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { PopoverClose } from "@radix-ui/react-popover";
-import SelectField from "@/components/design-system/select-field";
-import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
-import { QuestionPaperTemplateFormProps } from "../../../-utils/question-paper-template-form";
-import { formatStructure } from "../../../-utils/helper";
-import { QUESTION_TYPES } from "@/constants/dummy-data";
-import { useEffect } from "react";
-import { Badge } from "@/components/ui/badge";
+import { FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
+import { Sliders, X } from 'phosphor-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import 'react-quill/dist/quill.snow.css';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { PopoverClose } from '@radix-ui/react-popover';
+import SelectField from '@/components/design-system/select-field';
+import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
+import { QuestionPaperTemplateFormProps } from '../../../-utils/question-paper-template-form';
+import { formatStructure } from '../../../-utils/helper';
+import { QUESTION_TYPES } from '@/constants/dummy-data';
+import { useEffect } from 'react';
+import { Badge } from '@/components/ui/badge';
 
 export const TrueFalseQuestionPaperTemplateMainView = ({
     form,
@@ -19,38 +19,38 @@ export const TrueFalseQuestionPaperTemplateMainView = ({
     className,
 }: QuestionPaperTemplateFormProps) => {
     const { control, getValues, setValue } = form;
-    const answersType = getValues("answersType") || "Answer:";
-    const explanationsType = getValues("explanationsType") || "Explanation:";
-    const optionsType = getValues("optionsType") || "";
-    const questionsType = getValues("questionsType") || "";
-    const allQuestions = getValues("questions") || [];
+    const answersType = getValues('answersType') || 'Answer:';
+    const explanationsType = getValues('explanationsType') || 'Explanation:';
+    const optionsType = getValues('optionsType') || '';
+    const questionsType = getValues('questionsType') || '';
+    const allQuestions = getValues('questions') || [];
 
     const option1 = getValues(`questions.${currentQuestionIndex}.trueFalseOptions.${0}`);
     const option2 = getValues(`questions.${currentQuestionIndex}.trueFalseOptions.${1}`);
     const tags = getValues(`questions.${currentQuestionIndex}.tags`) || [];
-    const level = getValues(`questions.${currentQuestionIndex}.level`) || "";
+    const level = getValues(`questions.${currentQuestionIndex}.level`) || '';
 
     const handleOptionChange = (optionIndex: number) => {
         const options = [0, 1];
 
         // Check current state of the selected option
         const isCurrentlySelected = getValues(
-            `questions.${currentQuestionIndex}.trueFalseOptions.${optionIndex}.isSelected`,
+            `questions.${currentQuestionIndex}.trueFalseOptions.${optionIndex}.isSelected`
         );
 
         options.forEach((option) => {
             setValue(
                 `questions.${currentQuestionIndex}.trueFalseOptions.${option}.isSelected`,
                 option === optionIndex ? !isCurrentlySelected : false,
-                { shouldDirty: true, shouldValidate: true },
+                { shouldDirty: true, shouldValidate: true }
             );
         });
         form.trigger(`questions.${currentQuestionIndex}.trueFalseOptions`);
     };
 
     useEffect(() => {
-        setValue(`questions.${currentQuestionIndex}.trueFalseOptions.${0}.name`, "True");
-        setValue(`questions.${currentQuestionIndex}.trueFalseOptions.${1}.name`, "False");
+        setValue(`questions.${currentQuestionIndex}.trueFalseOptions.${0}.name`, 'True');
+        setValue(`questions.${currentQuestionIndex}.trueFalseOptions.${1}.name`, 'False');
     }, [currentQuestionIndex, setValue]);
 
     if (allQuestions.length === 0) {
@@ -135,13 +135,13 @@ export const TrueFalseQuestionPaperTemplateMainView = ({
                 <div className="flex gap-4">
                     <div
                         className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
-                            option1?.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                            option1?.isSelected ? 'border border-primary-300 bg-primary-50' : ''
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">
                             <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
                                 <span className="!p-0 text-sm">
-                                    {optionsType ? formatStructure(optionsType, "a") : "(a.)"}
+                                    {optionsType ? formatStructure(optionsType, 'a') : '(a.)'}
                                 </span>
                             </div>
                             <div>True</div>
@@ -170,8 +170,8 @@ export const TrueFalseQuestionPaperTemplateMainView = ({
                                                 onCheckedChange={() => handleOptionChange(0)}
                                                 className={`mt-1 size-5 rounded-xl border-2 shadow-none ${
                                                     field.value
-                                                        ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
-                                                        : "" // Default styles when unchecked
+                                                        ? 'border-none bg-green-500 text-white' // Blue background and red tick when checked
+                                                        : '' // Default styles when unchecked
                                                 }`}
                                             />
                                         </FormControl>
@@ -183,13 +183,13 @@ export const TrueFalseQuestionPaperTemplateMainView = ({
                     </div>
                     <div
                         className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
-                            option2?.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                            option2?.isSelected ? 'border border-primary-300 bg-primary-50' : ''
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">
                             <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
                                 <span className="!p-0 text-sm">
-                                    {optionsType ? formatStructure(optionsType, "b") : "(b.)"}
+                                    {optionsType ? formatStructure(optionsType, 'b') : '(b.)'}
                                 </span>
                             </div>
                             <div>False</div>
@@ -217,8 +217,8 @@ export const TrueFalseQuestionPaperTemplateMainView = ({
                                                 onCheckedChange={() => handleOptionChange(1)}
                                                 className={`mt-1 size-5 rounded-xl border-2 shadow-none ${
                                                     field.value
-                                                        ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
-                                                        : "" // Default styles when unchecked
+                                                        ? 'border-none bg-green-500 text-white' // Blue background and red tick when checked
+                                                        : '' // Default styles when unchecked
                                                 }`}
                                             />
                                         </FormControl>

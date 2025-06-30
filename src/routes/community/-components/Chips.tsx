@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { TagResponse } from "@/types/community/filters/types";
-import { useFilterStore } from "../-store/useFilterOptions";
+import { useState } from 'react';
+import { TagResponse } from '@/types/community/filters/types';
+import { useFilterStore } from '../-store/useFilterOptions';
 
 interface ChipProps {
     tag: TagResponse;
@@ -20,7 +20,7 @@ export function Chip({ tag }: ChipProps) {
     return (
         <div
             className={`rounded-md border ${
-                selected ? "border-primary-500 bg-primary-100" : ""
+                selected ? 'border-primary-500 bg-primary-100' : ''
             } cursor-pointer px-3 py-2 text-body`}
             onClick={onSelected}
         >

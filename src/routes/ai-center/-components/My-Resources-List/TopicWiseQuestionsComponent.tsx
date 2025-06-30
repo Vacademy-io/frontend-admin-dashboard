@@ -115,7 +115,7 @@ const TopicWiseQuestionsComponent = ({ fileId }: { fileId: string }) => {
                                 layoutVariant="default"
                                 className="text-sm"
                             >
-                                <DashboardLoader/>
+                                <DashboardLoader />
                             </MyButton>
                         ) : (
                             <MyButton

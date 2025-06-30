@@ -1,4 +1,4 @@
-import { create } from "zustand";
+import { create } from 'zustand';
 
 interface FormValues {
     name: string;
@@ -17,11 +17,11 @@ interface FormStore {
 
 export const useAddOrgStore = create<FormStore>((set) => ({
     formDataAddOrg: {
-        name: "",
-        username: "",
-        email: "",
-        password: "",
-        confirmPassword: "",
+        name: '',
+        username: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
         roleType: [],
     },
     setFormDataAddOrg: (data) =>
@@ -31,11 +31,11 @@ export const useAddOrgStore = create<FormStore>((set) => ({
     resetAddOrgForm: () =>
         set({
             formDataAddOrg: {
-                name: "",
-                username: "",
-                email: "",
-                password: "",
-                confirmPassword: "",
+                name: '',
+                username: '',
+                email: '',
+                password: '',
+                confirmPassword: '',
                 roleType: [],
             },
         }),

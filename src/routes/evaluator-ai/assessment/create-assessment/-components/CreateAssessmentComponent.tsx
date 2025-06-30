@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
-import { MainStepComponent } from "./MainStepComponent";
-import { CheckCircle } from "phosphor-react";
-import { Helmet } from "react-helmet";
-import { useSidebar } from "@/components/ui/sidebar";
-import { useNavigate } from "@tanstack/react-router";
-import { LayoutContainer } from "@/routes/evaluator-ai/-components/layout-container/layout-container";
+import { useEffect, useState } from 'react';
+import { MainStepComponent } from './MainStepComponent';
+import { CheckCircle } from 'phosphor-react';
+import { Helmet } from 'react-helmet';
+import { useSidebar } from '@/components/ui/sidebar';
+import { useNavigate } from '@tanstack/react-router';
+import { LayoutContainer } from '@/routes/evaluator-ai/-components/layout-container/layout-container';
 // Define interfaces for props
 interface CreateAssessmentSidebarProps {
     steps: {
@@ -32,17 +32,17 @@ const CreateAssessmentSidebar: React.FC<CreateAssessmentSidebarProps> = ({
                     id={step.id}
                     className={`mx-6 flex items-center justify-between px-6 py-3 ${
                         index <= currentStep || completedSteps[index - 1]
-                            ? "cursor-pointer"
-                            : "cursor-not-allowed"
+                            ? 'cursor-pointer'
+                            : 'cursor-not-allowed'
                     } ${
                         currentStep === index
-                            ? "rounded-lg border-2 bg-white !text-primary-500"
+                            ? 'rounded-lg border-2 bg-white !text-primary-500'
                             : completedSteps[index]
-                              ? "bg-transparent text-black"
+                              ? 'bg-transparent text-black'
                               : `bg-transparent ${
                                     index > 0 && completedSteps[index - 1]
-                                        ? "text-black"
-                                        : "text-gray-300"
+                                        ? 'text-black'
+                                        : 'text-gray-300'
                                 } `
                     } focus:outline-none`}
                 >
@@ -68,12 +68,12 @@ const CreateAssessmentComponent = () => {
 
     const steps = [
         {
-            label: "Basic Info",
-            id: "basic-info",
+            label: 'Basic Info',
+            id: 'basic-info',
         },
         {
-            label: "Add Question",
-            id: "add-question",
+            label: 'Add Question',
+            id: 'add-question',
         },
     ];
     const [currentStep, setCurrentStep] = useState(0);
@@ -88,7 +88,7 @@ const CreateAssessmentComponent = () => {
             setCurrentStep((prev) => prev + 1);
             // Update URL `currentStep` without reloading
             navigate({
-                to: "/evaluator-ai/assessment/create-assessment",
+                to: '/evaluator-ai/assessment/create-assessment',
             });
         }
     };

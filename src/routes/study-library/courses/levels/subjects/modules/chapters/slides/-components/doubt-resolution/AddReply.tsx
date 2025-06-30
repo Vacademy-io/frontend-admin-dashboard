@@ -50,7 +50,7 @@ export const AddReply = ({ parent, refetch }: { parent: DoubtType; refetch: () =
             />
             <MyButton
                 layoutVariant="icon"
-                buttonType='primary'
+                buttonType="primary"
                 className="absolute bottom-3 right-2 rounded-full p-1.5 shadow-md transition-shadow hover:shadow-lg"
                 onClick={submitReply}
                 disabled={!teacherReply.trim()}

@@ -67,44 +67,53 @@ export const TeacherSelection = ({
         );
     }, [teacherOptions, doubt?.all_doubt_assignee]);
 
-    const handleTeacherSelection = (newlySelectedTeachers: { id: string | number; name: string }[]) => {
+    const handleTeacherSelection = (
+        newlySelectedTeachers: { id: string | number; name: string }[]
+    ) => {
         setSelectedTeachers(newlySelectedTeachers);
         if (canChange) {
             debouncedSubmitReply(newlySelectedTeachers);
         }
     };
 
-    const submitReply = useCallback(async (currentSelectedTeachers: { id: string | number; name: string }[]) => {
-        const replyData: DoubtType = {
-            id: doubt.id,
-            user_id: doubt.user_id,
-            name: doubt.name,
-            source: doubt.source,
-            source_id: doubt.source_id,
-            raised_time: doubt.raised_time,
-            resolved_time: doubt.resolved_time,
-            content_position: doubt.content_position,
-            content_type: doubt.content_type,
-            html_text: doubt.html_text,
-            status: doubt.status,
-            parent_id: doubt.parent_id,
-            parent_level: doubt.parent_level,
-            doubt_assignee_request_user_ids: currentSelectedTeachers
-                .filter(
-                    (teacher) =>
-                        !doubt.all_doubt_assignee.some((assignee) => assignee.source_id === teacher.id)
-                )
-                .map((teacher) => String(teacher.id)),
-            all_doubt_assignee: doubt.all_doubt_assignee,
-            delete_assignee_request: doubt.all_doubt_assignee
-                .filter(
-                    (assignee) =>
-                        !currentSelectedTeachers.some((teacher) => teacher.id === assignee.source_id)
-                )
-                .map((assignee) => assignee.id),
-        };
-        await handleAddReply({ replyData, addReply, id: doubt.id });
-    }, [doubt, addReply]);
+    const submitReply = useCallback(
+        async (currentSelectedTeachers: { id: string | number; name: string }[]) => {
+            const replyData: DoubtType = {
+                id: doubt.id,
+                user_id: doubt.user_id,
+                name: doubt.name,
+                source: doubt.source,
+                source_id: doubt.source_id,
+                raised_time: doubt.raised_time,
+                resolved_time: doubt.resolved_time,
+                content_position: doubt.content_position,
+                content_type: doubt.content_type,
+                html_text: doubt.html_text,
+                status: doubt.status,
+                parent_id: doubt.parent_id,
+                parent_level: doubt.parent_level,
+                doubt_assignee_request_user_ids: currentSelectedTeachers
+                    .filter(
+                        (teacher) =>
+                            !doubt.all_doubt_assignee.some(
+                                (assignee) => assignee.source_id === teacher.id
+                            )
+                    )
+                    .map((teacher) => String(teacher.id)),
+                all_doubt_assignee: doubt.all_doubt_assignee,
+                delete_assignee_request: doubt.all_doubt_assignee
+                    .filter(
+                        (assignee) =>
+                            !currentSelectedTeachers.some(
+                                (teacher) => teacher.id === assignee.source_id
+                            )
+                    )
+                    .map((assignee) => assignee.id),
+            };
+            await handleAddReply({ replyData, addReply, id: doubt.id });
+        },
+        [doubt, addReply]
+    );
 
     const debouncedSubmitReply = useDebounce(submitReply, 1000);
 
@@ -123,7 +132,7 @@ export const TeacherSelection = ({
                     options={teacherOptions}
                     selected={selectedTeachers}
                     onChange={handleTeacherSelection}
-                    placeholder={hasAssignedTeachers ? "Change Assignee" : "+ Assign Teacher"}
+                    placeholder={hasAssignedTeachers ? 'Change Assignee' : '+ Assign Teacher'}
                     className="min-w-[160px] text-xs"
                 />
             ) : hasAssignedTeachers ? (
@@ -138,7 +147,7 @@ export const TeacherSelection = ({
                     ))}
                 </div>
             ) : (
-                showCanAssign && <p className="text-neutral-500 italic">None</p>
+                showCanAssign && <p className="italic text-neutral-500">None</p>
             )}
         </div>
     );

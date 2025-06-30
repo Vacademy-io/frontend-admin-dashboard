@@ -52,7 +52,7 @@ export const DeleteDoubt = ({
                         : 'text-neutral-500 hover:text-danger-500'
                 }`}
                 onClick={() => setIsDialogOpen(true)}
-                data-delete-doubt 
+                data-delete-doubt
             >
                 <Trash size={showText ? 18 : 16} />
                 {showText && <p className="text-sm font-medium">Delete</p>}
@@ -65,21 +65,19 @@ export const DeleteDoubt = ({
                 content={
                     <div className="py-4">
                         <p className="text-sm text-neutral-600">
-                            Are you sure you want to delete this doubt? This action cannot be undone.
+                            Are you sure you want to delete this doubt? This action cannot be
+                            undone.
                         </p>
                     </div>
                 }
                 footer={
                     <div className="flex justify-end gap-2 pt-2">
-                        <MyButton
-                            buttonType="secondary"
-                            onClick={() => setIsDialogOpen(false)}
-                        >
+                        <MyButton buttonType="secondary" onClick={() => setIsDialogOpen(false)}>
                             Cancel
                         </MyButton>
-                        <MyButton 
+                        <MyButton
                             buttonType="primary"
-                            className="bg-danger-500 hover:bg-danger-600 text-white"
+                            className="bg-danger-500 text-white hover:bg-danger-600"
                             onClick={submitReply}
                         >
                             Delete

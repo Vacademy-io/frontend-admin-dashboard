@@ -1,7 +1,7 @@
-import { CheckCircle, FileSearch, Loader2, Scale, Timer } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { CheckCircle, FileSearch, Loader2, Scale, Timer } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-type Status = "EXTRACTING_ANSWER" | "EVALUATING" | "EVALUATION_COMPLETED" | "WAITING";
+type Status = 'EXTRACTING_ANSWER' | 'EVALUATING' | 'EVALUATION_COMPLETED' | 'WAITING';
 
 interface StatusIndicatorProps {
     status: Status;
@@ -11,31 +11,31 @@ interface StatusIndicatorProps {
 export default function StatusIndicator({ status, className }: StatusIndicatorProps) {
     const statusConfig = {
         EXTRACTING_ANSWER: {
-            label: "Extracting answers",
+            label: 'Extracting answers',
             icon: FileSearch,
-            color: "text-blue-500",
-            bgColor: "bg-blue-100",
+            color: 'text-blue-500',
+            bgColor: 'bg-blue-100',
             loading: true,
         },
         EVALUATING: {
-            label: "Evaluating",
+            label: 'Evaluating',
             icon: Scale,
-            color: "text-amber-500",
-            bgColor: "bg-amber-100",
+            color: 'text-amber-500',
+            bgColor: 'bg-amber-100',
             loading: true,
         },
         EVALUATION_COMPLETED: {
-            label: "Completed",
+            label: 'Completed',
             icon: CheckCircle,
-            color: "text-green-500",
-            bgColor: "bg-green-100",
+            color: 'text-green-500',
+            bgColor: 'bg-green-100',
             loading: false,
         },
         WAITING: {
-            label: "Queued",
+            label: 'Queued',
             icon: Timer,
-            color: "text-gray-500",
-            bgColor: "bg-gray-100",
+            color: 'text-gray-500',
+            bgColor: 'bg-gray-100',
             loading: false,
         },
     };
@@ -45,24 +45,24 @@ export default function StatusIndicator({ status, className }: StatusIndicatorPr
     return (
         <div
             className={cn(
-                "inline-flex items-center gap-2 rounded-full px-2.5 py-1.5",
+                'inline-flex items-center gap-2 rounded-full px-2.5 py-1.5',
                 currentStatus.bgColor,
-                className,
+                className
             )}
         >
             <div className="relative flex items-center justify-center">
                 {currentStatus.loading && (
-                    <Loader2 className={cn("absolute h-4 w-4 animate-spin", currentStatus.color)} />
+                    <Loader2 className={cn('absolute h-4 w-4 animate-spin', currentStatus.color)} />
                 )}
                 <currentStatus.icon
                     className={cn(
-                        "h-4 w-4",
+                        'h-4 w-4',
                         currentStatus.color,
-                        currentStatus.loading && "opacity-0",
+                        currentStatus.loading && 'opacity-0'
                     )}
                 />
             </div>
-            <span className={cn("text-xs font-medium", currentStatus.color)}>
+            <span className={cn('text-xs font-medium', currentStatus.color)}>
                 {currentStatus.label}
             </span>
         </div>

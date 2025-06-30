@@ -1,5 +1,5 @@
 // stores/activity-stats-store.ts
-import { create } from "zustand";
+import { create } from 'zustand';
 
 interface ActivityStatsStore {
     isOpen: boolean;

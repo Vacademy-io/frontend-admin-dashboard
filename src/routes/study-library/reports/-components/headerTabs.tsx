@@ -1,13 +1,13 @@
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { useState, useEffect } from "react";
-import BatchReports from "./batch/batchReports";
-import StudentReports from "./student/studentReports";
-import { MyButton } from "@/components/design-system/button";
-import { MyDialog } from "@/components/design-system/dialog";
-import { Checkbox } from "@/components/ui/checkbox";
-import { useSearch } from "@tanstack/react-router";
-import { Route } from "@/routes/study-library/reports";
-import { fetchInstituteSetting, updateInstituteReportSetting } from "../../reports/-services/utils";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { useState, useEffect } from 'react';
+import BatchReports from './batch/batchReports';
+import StudentReports from './student/studentReports';
+import { MyButton } from '@/components/design-system/button';
+import { MyDialog } from '@/components/design-system/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import { useSearch } from '@tanstack/react-router';
+import { Route } from '@/routes/study-library/reports';
+import { fetchInstituteSetting, updateInstituteReportSetting } from '../../reports/-services/utils';
 import {
     InstituteSettingResponse,
     RoleSetting,
@@ -15,12 +15,12 @@ import {
     CommunicationTypeEnum,
     ReportDurationEnum,
     ReportTypeEnum,
-} from "../../reports/-types/types";
-import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
-import { TokenKey } from "@/constants/auth/tokens";
-import { useMutation } from "@tanstack/react-query";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { toast } from "sonner";
+} from '../../reports/-types/types';
+import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
+import { useMutation } from '@tanstack/react-query';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { toast } from 'sonner';
 
 const reportTypes = [
     ReportDurationEnum.DAILY,
@@ -32,7 +32,7 @@ export default function HeaderTabs() {
     const search = useSearch({ from: Route.id });
 
     const [selectedTab, setSelectedTab] = useState(
-        search.studentReport ? search.studentReport.tab : "BATCH",
+        search.studentReport ? search.studentReport.tab : 'BATCH'
     );
     const [settingDialogState, setSettingDialogState] = useState(false);
     const [settingDetails, setSettingDetails] = useState<InstituteSettingResponse>();
@@ -47,23 +47,23 @@ export default function HeaderTabs() {
 
     const isCommTypeEnabled = (
         setting: RoleSetting | undefined,
-        type: CommunicationTypeEnum.EMAIL | CommunicationTypeEnum.WHATSAPP,
+        type: CommunicationTypeEnum.EMAIL | CommunicationTypeEnum.WHATSAPP
     ) => {
         if (!setting) return false;
-        else return setting.comma_separated_communication_types?.split(",").includes(type);
+        else return setting.comma_separated_communication_types?.split(',').includes(type);
     };
 
     const toggleCommType = (
         role: RoleSettingEnum.LEARNER | RoleSettingEnum.PARENT,
         type: CommunicationTypeEnum.EMAIL | CommunicationTypeEnum.WHATSAPP,
-        checked: boolean,
+        checked: boolean
     ) => {
         setSettingDetails((prev) => {
             if (!prev) return prev;
             const updated = { ...prev };
             const setting = updated[role];
 
-            let commTypes = setting.comma_separated_communication_types?.split(",") || [];
+            let commTypes = setting.comma_separated_communication_types?.split(',') || [];
 
             if (checked) {
                 if (!commTypes.includes(type)) commTypes.push(type);
@@ -71,7 +71,7 @@ export default function HeaderTabs() {
                 commTypes = commTypes.filter((t) => t !== type);
             }
 
-            setting.comma_separated_communication_types = commTypes.join(",");
+            setting.comma_separated_communication_types = commTypes.join(',');
             return updated;
         });
     };
@@ -80,7 +80,7 @@ export default function HeaderTabs() {
         role: RoleSettingEnum.LEARNER | RoleSettingEnum.PARENT,
         reportType: ReportTypeEnum.LEARNER_PROGRESS | ReportTypeEnum.BATCH_PROGRESS,
         duration: ReportDurationEnum,
-        value: boolean,
+        value: boolean
     ) => {
         const currentSetting = settingDetails?.[role];
         if (!currentSetting) return;
@@ -102,7 +102,7 @@ export default function HeaderTabs() {
     const renderProgressReportSection = (
         roleKey: RoleSettingEnum.LEARNER | RoleSettingEnum.PARENT,
         settingKey: ReportTypeEnum.LEARNER_PROGRESS | ReportTypeEnum.BATCH_PROGRESS,
-        title: string,
+        title: string
     ) => (
         <div className="flex flex-col items-start gap-4">
             <div className="text-subtitle font-[600]">{title}</div>
@@ -125,11 +125,11 @@ export default function HeaderTabs() {
     const handleSave = () => {
         if (!settingDetails) return;
 
-        console.log("Saving updated settings:", settingDetails);
+        console.log('Saving updated settings:', settingDetails);
 
         updateSettingsMutation.mutate(settingDetails, {
-            onSuccess: () => toast.success("Settings updated!"),
-            onError: () => toast.error("Failed to update"),
+            onSuccess: () => toast.success('Settings updated!'),
+            onError: () => toast.error('Failed to update'),
         });
     };
 
@@ -139,13 +139,13 @@ export default function HeaderTabs() {
             const tokenData = getTokenDecodedData(accessToken);
             const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
 
-            settingsMutation.mutate(INSTITUTE_ID || "", {
+            settingsMutation.mutate(INSTITUTE_ID || '', {
                 onSuccess: (data) => {
                     console.log(data);
                     setSettingDetails(data);
                 },
                 onError: (error) => {
-                    console.error("Error:", error);
+                    console.error('Error:', error);
                 },
             });
         }
@@ -155,23 +155,23 @@ export default function HeaderTabs() {
         <div>
             <Tabs value={selectedTab} onValueChange={handleTabChange}>
                 <div className="flex flex-row justify-between">
-                    <TabsList className="inline-flex h-auto justify-start gap-4 rounded-none border-b-[1px] !bg-transparent p-0">
+                    <TabsList className="inline-flex h-auto justify-start gap-4 rounded-none border-b !bg-transparent p-0">
                         <TabsTrigger
                             value="BATCH"
-                            className={`flex gap-1.5 rounded-none pb-2 pl-12 pr-12 pt-2 !shadow-none ${
-                                selectedTab === "BATCH"
-                                    ? "border-4px rounded-tl-sm rounded-tr-sm border !border-b-0 border-primary-200 !bg-primary-50"
-                                    : "border-none bg-transparent"
+                            className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
+                                selectedTab === 'BATCH'
+                                    ? 'border-4px rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                    : 'border-none bg-transparent'
                             }`}
                         >
                             Batch
                         </TabsTrigger>
                         <TabsTrigger
                             value="STUDENT"
-                            className={`flex gap-1.5 rounded-none pb-2 pl-12 pr-12 pt-2 !shadow-none ${
-                                selectedTab === "STUDENT"
-                                    ? "border-4px rounded-tl-sm rounded-tr-sm border !border-b-0 border-primary-200 !bg-primary-50"
-                                    : "border-none bg-transparent"
+                            className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
+                                selectedTab === 'STUDENT'
+                                    ? 'border-4px rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                    : 'border-none bg-transparent'
                             }`}
                         >
                             Student
@@ -208,13 +208,13 @@ export default function HeaderTabs() {
                                     <Checkbox
                                         checked={isCommTypeEnabled(
                                             settingDetails?.learner_setting,
-                                            CommunicationTypeEnum.EMAIL,
+                                            CommunicationTypeEnum.EMAIL
                                         )}
                                         onCheckedChange={(checked) =>
                                             toggleCommType(
                                                 RoleSettingEnum.LEARNER,
                                                 CommunicationTypeEnum.EMAIL,
-                                                !!checked,
+                                                !!checked
                                             )
                                         }
                                     />
@@ -226,13 +226,13 @@ export default function HeaderTabs() {
                                     <Checkbox
                                         checked={isCommTypeEnabled(
                                             settingDetails?.learner_setting,
-                                            CommunicationTypeEnum.WHATSAPP,
+                                            CommunicationTypeEnum.WHATSAPP
                                         )}
                                         onCheckedChange={(checked) =>
                                             toggleCommType(
                                                 RoleSettingEnum.LEARNER,
                                                 CommunicationTypeEnum.WHATSAPP,
-                                                !!checked,
+                                                !!checked
                                             )
                                         }
                                     />
@@ -243,12 +243,12 @@ export default function HeaderTabs() {
                                 {renderProgressReportSection(
                                     RoleSettingEnum.LEARNER,
                                     ReportTypeEnum.LEARNER_PROGRESS,
-                                    "Student Learning Progress Report",
+                                    'Student Learning Progress Report'
                                 )}
                                 {renderProgressReportSection(
                                     RoleSettingEnum.LEARNER,
                                     ReportTypeEnum.BATCH_PROGRESS,
-                                    "Batch Learning Progress Report",
+                                    'Batch Learning Progress Report'
                                 )}
                             </div>
                             <div className="border"></div>
@@ -257,13 +257,13 @@ export default function HeaderTabs() {
                                     <Checkbox
                                         checked={isCommTypeEnabled(
                                             settingDetails?.parent_setting,
-                                            CommunicationTypeEnum.EMAIL,
+                                            CommunicationTypeEnum.EMAIL
                                         )}
                                         onCheckedChange={(checked) =>
                                             toggleCommType(
                                                 RoleSettingEnum.PARENT,
                                                 CommunicationTypeEnum.EMAIL,
-                                                !!checked,
+                                                !!checked
                                             )
                                         }
                                     />
@@ -275,13 +275,13 @@ export default function HeaderTabs() {
                                     <Checkbox
                                         checked={isCommTypeEnabled(
                                             settingDetails?.parent_setting,
-                                            CommunicationTypeEnum.WHATSAPP,
+                                            CommunicationTypeEnum.WHATSAPP
                                         )}
                                         onCheckedChange={(checked) =>
                                             toggleCommType(
                                                 RoleSettingEnum.PARENT,
                                                 CommunicationTypeEnum.WHATSAPP,
-                                                !!checked,
+                                                !!checked
                                             )
                                         }
                                     />
@@ -292,12 +292,12 @@ export default function HeaderTabs() {
                                 {renderProgressReportSection(
                                     RoleSettingEnum.PARENT,
                                     ReportTypeEnum.LEARNER_PROGRESS,
-                                    "Student Learning Progress Report",
+                                    'Student Learning Progress Report'
                                 )}
                                 {renderProgressReportSection(
                                     RoleSettingEnum.PARENT,
                                     ReportTypeEnum.BATCH_PROGRESS,
-                                    "Batch Learning Progress Report",
+                                    'Batch Learning Progress Report'
                                 )}
                             </div>
                         </div>

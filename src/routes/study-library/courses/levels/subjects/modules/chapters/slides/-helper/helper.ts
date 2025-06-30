@@ -249,7 +249,7 @@ export function convertStudyLibraryQuestion(question: MyQuestion) {
             text: {
                 id: null, // Assuming no direct mapping for option text ID
                 type: 'HTML', // Assuming option content is HTML
-                content: opt?.name?.replace(/<\/?p>/g, ''), // Remove <p> tags from content
+                content: idx === 0 ? 'TRUE' : 'FALSE', // First option is TRUE, second is FALSE
             },
             explanation_text: {
                 id: null, // Assuming no direct mapping for explanation text ID
@@ -480,9 +480,9 @@ export const converDataToAssignmentFormat = ({
         video_slide: null,
         document_slide: null,
         question_slide: null,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
-        assignment_slide: convertToAssignmentSlideBackendFormat(activeItem.assignment_slide),
+        assignment_slide: activeItem.assignment_slide
+            ? convertToAssignmentSlideBackendFormat(activeItem.assignment_slide as any)
+            : null,
         is_loaded: true,
         new_slide: newSlide,
         notify,
@@ -508,12 +508,12 @@ export function convertToQuestionSlideFormat(question: MyQuestion, sourceId?: st
             },
         }));
     } else if (question?.questionType === QuestionType.TRUE_FALSE) {
-        options = question?.trueFalseOptions?.map((opt) => ({
+        options = question?.trueFalseOptions?.map((opt, idx) => ({
             id: opt.id, // Assuming no direct mapping for option ID
             text: {
                 id: null, // Assuming no direct mapping for option text ID
                 type: 'HTML', // Assuming option content is HTML
-                content: opt?.name?.replace(/<\/?p>/g, ''), // Remove <p> tags from content
+                content: idx === 0 ? 'TRUE' : 'FALSE', // First option is TRUE, second is FALSE
             },
             explanation_text: {
                 id: null, // Assuming no direct mapping for explanation text ID
@@ -646,12 +646,9 @@ export function convertToQuestionBackendSlideFormat({
         slide_order: 0,
         video_slide: null,
         document_slide: null,
-        question_slide: convertToQuestionSlideFormat(
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
-            activeItem.question_slide,
-            activeItem?.source_id
-        ),
+        question_slide: activeItem.question_slide
+            ? convertToQuestionSlideFormat(activeItem.question_slide as any, activeItem?.source_id)
+            : null,
         assignment_slide: null,
         is_loaded: true,
         new_slide: newSlide,

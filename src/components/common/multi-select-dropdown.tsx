@@ -86,7 +86,7 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
             <div>
                 <button
                     type="button"
-                    className={`flex active:border-none focus:border-none flex-wrap items-center gap-2 rounded bg-white  text-left transition-all  ${disabled ? 'cursor-not-allowed bg-neutral-100' : ''}`}
+                    className={`flex flex-wrap items-center gap-2 rounded bg-white text-left transition-all  focus:border-none active:border-none  ${disabled ? 'cursor-not-allowed bg-neutral-100' : ''}`}
                     onClick={() => !disabled && setIsOpen((open) => !open)}
                     disabled={disabled}
                 >

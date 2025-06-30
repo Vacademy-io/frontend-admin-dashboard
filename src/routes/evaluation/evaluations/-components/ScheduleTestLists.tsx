@@ -1,8 +1,8 @@
-import { TabsContent } from "@/components/ui/tabs";
-import { EmptyScheduleTest } from "@/svgs";
-import { MyPagination } from "@/components/design-system/pagination";
-import { ScheduleTestListsProps } from "@/types/assessments/schedule-test-list";
-import ScheduleTestDetails from "./ScheduleTestDetails";
+import { TabsContent } from '@/components/ui/tabs';
+import { EmptyScheduleTest } from '@/svgs';
+import { MyPagination } from '@/components/design-system/pagination';
+import { ScheduleTestListsProps } from '@/types/assessments/schedule-test-list';
+import ScheduleTestDetails from './ScheduleTestDetails';
 
 const ScheduleTestLists: React.FC<ScheduleTestListsProps> = ({
     tab,

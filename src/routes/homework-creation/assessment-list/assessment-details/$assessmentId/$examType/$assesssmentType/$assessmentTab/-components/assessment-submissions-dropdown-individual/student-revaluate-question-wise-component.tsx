@@ -1,19 +1,19 @@
-import { DialogContent } from "@/components/ui/dialog";
-import { AssessmentRevaluateStudentInterface } from "@/types/assessments/assessment-overview";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useEffect, useState } from "react";
-import { getInstituteId } from "@/constants/helper";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
-import { getAssessmentDetails } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-services/assessment-services";
-import { Route } from "../..";
+import { DialogContent } from '@/components/ui/dialog';
+import { AssessmentRevaluateStudentInterface } from '@/types/assessments/assessment-overview';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useEffect, useState } from 'react';
+import { getInstituteId } from '@/constants/helper';
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
+import { getAssessmentDetails } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-services/assessment-services';
+import { Route } from '../..';
 import {
     getRevaluateStudentResult,
     handleGetQuestionInsightsData,
-} from "../../-services/assessment-details-services";
+} from '../../-services/assessment-details-services';
 import {
     transformQuestionInsightsQuestionsData,
     transformQuestionsDataToRevaluateAPI,
-} from "../../-utils/helper";
+} from '../../-utils/helper';
 import {
     Table,
     TableBody,
@@ -21,14 +21,14 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table";
-import { Checkbox } from "@/components/ui/checkbox";
-import { MyButton } from "@/components/design-system/button";
+} from '@/components/ui/table';
+import { Checkbox } from '@/components/ui/checkbox';
+import { MyButton } from '@/components/design-system/button';
 import {
     AssessmentRevaluateQuestionWiseInterface,
     SelectedFilterRevaluateInterface,
-} from "@/types/assessments/assessment-revaluate-question-wise";
-import { toast } from "sonner";
+} from '@/types/assessments/assessment-revaluate-question-wise';
+import { toast } from 'sonner';
 
 export function StudentRevaluateQuestionWiseComponent({
     student,
@@ -41,7 +41,7 @@ export function StudentRevaluateQuestionWiseComponent({
     const [selectedFilter] = useState<SelectedFilterRevaluateInterface>({
         questions: [
             {
-                section_id: "",
+                section_id: '',
                 question_ids: [],
             },
         ],
@@ -50,7 +50,7 @@ export function StudentRevaluateQuestionWiseComponent({
     const { assessmentId, examType } = Route.useParams();
 
     const { data: assessmentDetails } = useSuspenseQuery(
-        getAssessmentDetails({ assessmentId, instituteId, type: examType }),
+        getAssessmentDetails({ assessmentId, instituteId, type: examType })
     );
 
     const sectionsInfo = assessmentDetails[1]?.saved_data.sections?.map((section) => ({
@@ -58,14 +58,14 @@ export function StudentRevaluateQuestionWiseComponent({
         id: section.id,
     }));
 
-    const [selectedSection, setSelectedSection] = useState(sectionsInfo ? sectionsInfo[0]?.id : "");
+    const [selectedSection, setSelectedSection] = useState(sectionsInfo ? sectionsInfo[0]?.id : '');
 
     const { data } = useSuspenseQuery(
-        handleGetQuestionInsightsData({ instituteId, assessmentId, sectionId: selectedSection }),
+        handleGetQuestionInsightsData({ instituteId, assessmentId, sectionId: selectedSection })
     );
 
     const [selectedSectionData, setSelectedSectionData] = useState(
-        transformQuestionInsightsQuestionsData(data?.question_insight_dto),
+        transformQuestionInsightsQuestionsData(data?.question_insight_dto)
     );
 
     // Maintain selected questions state
@@ -84,7 +84,7 @@ export function StudentRevaluateQuestionWiseComponent({
     };
     const handleSelectAllForSection = (
         sectionId: string,
-        questions: AssessmentRevaluateQuestionWiseInterface[],
+        questions: AssessmentRevaluateQuestionWiseInterface[]
     ) => {
         setSelectedQuestions((prev) => {
             const isAllSelected = prev[sectionId]?.length === questions.length;
@@ -114,11 +114,11 @@ export function StudentRevaluateQuestionWiseComponent({
         }) => getRevaluateStudentResult(assessmentId, instituteId, methodType, selectedFilter),
         onSuccess: () => {
             toast.success(
-                "Your attempt for this assessment has been revaluated. Please check your email!",
+                'Your attempt for this assessment has been revaluated. Please check your email!',
                 {
-                    className: "success-toast",
+                    className: 'success-toast',
                     duration: 4000,
-                },
+                }
             );
             onClose();
         },
@@ -131,7 +131,7 @@ export function StudentRevaluateQuestionWiseComponent({
         getRevaluateResultMutation.mutate({
             assessmentId,
             instituteId,
-            methodType: "PARTICIPANTS_AND_QUESTIONS",
+            methodType: 'PARTICIPANTS_AND_QUESTIONS',
             selectedFilter: {
                 ...selectedFilter,
                 questions: transformQuestionsDataToRevaluateAPI(selectedQuestions),
@@ -158,13 +158,13 @@ export function StudentRevaluateQuestionWiseComponent({
                                     value={section.id}
                                     className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
                                         selectedSection === section.id
-                                            ? "rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50"
-                                            : "border-none bg-transparent"
+                                            ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                            : 'border-none bg-transparent'
                                     }`}
                                 >
                                     <span
                                         className={
-                                            selectedSection === section.id ? "text-primary-500" : ""
+                                            selectedSection === section.id ? 'text-primary-500' : ''
                                         }
                                     >
                                         {section.name}
@@ -174,7 +174,7 @@ export function StudentRevaluateQuestionWiseComponent({
                         </TabsList>
                     </div>
                     <TabsContent
-                        value={selectedSection || ""}
+                        value={selectedSection || ''}
                         className="max-h-[calc(100vh-120px)] overflow-y-auto"
                     >
                         <Table>
@@ -192,7 +192,7 @@ export function StudentRevaluateQuestionWiseComponent({
                                             onCheckedChange={() =>
                                                 handleSelectAllForSection(
                                                     selectedSection!,
-                                                    selectedSectionData,
+                                                    selectedSectionData
                                                 )
                                             }
                                         />
@@ -209,7 +209,7 @@ export function StudentRevaluateQuestionWiseComponent({
                                             dangerouslySetInnerHTML={{
                                                 __html:
                                                     question.assessment_question_preview_dto
-                                                        .questionName || "",
+                                                        .questionName || '',
                                             }}
                                         />
                                         <TableCell>
@@ -217,14 +217,14 @@ export function StudentRevaluateQuestionWiseComponent({
                                                 checked={
                                                     selectedQuestions[selectedSection!]?.includes(
                                                         question.assessment_question_preview_dto
-                                                            .questionId ?? "",
+                                                            .questionId ?? ''
                                                     ) || false
                                                 }
                                                 onCheckedChange={() =>
                                                     handleCheckboxChange(
                                                         question.assessment_question_preview_dto
-                                                            .questionId ?? "",
-                                                        selectedSection!,
+                                                            .questionId ?? '',
+                                                        selectedSection!
                                                     )
                                                 }
                                             />

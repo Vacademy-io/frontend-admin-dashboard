@@ -1,22 +1,22 @@
-import { useState } from "react";
+import { useState } from 'react';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { MyButton } from "@/components/design-system/button";
-import { DotsThree, WarningCircle } from "phosphor-react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { AssessmentRevaluateStudentInterface } from "@/types/assessments/assessment-overview";
+} from '@/components/ui/dropdown-menu';
+import { MyButton } from '@/components/design-system/button';
+import { DotsThree, WarningCircle } from 'phosphor-react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { AssessmentRevaluateStudentInterface } from '@/types/assessments/assessment-overview';
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select";
-import { timeLimit } from "@/constants/dummy-data";
+} from '@/components/ui/select';
+import { timeLimit } from '@/constants/dummy-data';
 
 const CloseSubmissionComponent = ({
     student,
@@ -34,7 +34,7 @@ const CloseSubmissionComponent = ({
                     <WarningCircle size={18} />
                 </div>
                 <h1>
-                    Are you sure you want to close Assessment submission of{" "}
+                    Are you sure you want to close Assessment submission of{' '}
                     <span className="text-primary-500">{student.full_name}</span>?
                 </h1>
                 <div className="flex justify-end">
@@ -70,7 +70,7 @@ const IncreaseAssessmentTimeComponent = ({
             <h1 className="rounded-md bg-primary-50 p-4 text-primary-500">
                 Increase Assessment Time
             </h1>
-            {distributionDuration === "ASSESSMENT" && (
+            {distributionDuration === 'ASSESSMENT' && (
                 <div className="flex max-h-[60vh] flex-col gap-2 overflow-y-auto p-4">
                     <h1>Entire Assessment</h1>
                     <h3>Increase By</h3>
@@ -99,7 +99,7 @@ const IncreaseAssessmentTimeComponent = ({
                     </div>
                 </div>
             )}
-            {distributionDuration === "SECTION" && (
+            {distributionDuration === 'SECTION' && (
                 <div className="flex max-h-[60vh] flex-col gap-2 overflow-y-auto p-4">
                     <h1>Section 1</h1>
                     <h3>Increase By</h3>
@@ -142,7 +142,7 @@ const IncreaseAssessmentTimeComponent = ({
                     </div>
                 </div>
             )}
-            {distributionDuration === "QUESTION" && (
+            {distributionDuration === 'QUESTION' && (
                 <div className="flex max-h-[60vh] flex-col gap-2 overflow-y-auto p-4">
                     <h1>Question 1</h1>
                     <h3>Increase By</h3>
@@ -214,13 +214,13 @@ const StudentOngoingDropdown = ({ student }: { student: AssessmentRevaluateStude
                 <DropdownMenuContent>
                     <DropdownMenuItem
                         className="cursor-pointer"
-                        onClick={() => handleMenuOptionsChange("Increase Submission Time")}
+                        onClick={() => handleMenuOptionsChange('Increase Submission Time')}
                     >
                         Increase Submission Time
                     </DropdownMenuItem>
                     <DropdownMenuItem
                         className="cursor-pointer"
-                        onClick={() => handleMenuOptionsChange("Close Submission")}
+                        onClick={() => handleMenuOptionsChange('Close Submission')}
                     >
                         Close Submission
                     </DropdownMenuItem>
@@ -228,14 +228,14 @@ const StudentOngoingDropdown = ({ student }: { student: AssessmentRevaluateStude
             </DropdownMenu>
             {/* Dialog should be controlled by openDialog state */}
             <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-                {selectedOption === "Increase Submission Time" && (
+                {selectedOption === 'Increase Submission Time' && (
                     <IncreaseAssessmentTimeComponent
                         student={student}
                         distributionDuration="ASSESSMENT"
                         onClose={() => setOpenDialog(false)}
                     />
                 )}
-                {selectedOption === "Close Submission" && (
+                {selectedOption === 'Close Submission' && (
                     <CloseSubmissionComponent
                         student={student}
                         onClose={() => setOpenDialog(false)}

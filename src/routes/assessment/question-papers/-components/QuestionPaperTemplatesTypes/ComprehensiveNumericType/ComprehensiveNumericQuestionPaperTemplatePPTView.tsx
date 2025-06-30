@@ -1,16 +1,16 @@
-import { FormControl, FormField, FormItem } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
-import { DotsThree } from "phosphor-react";
-import { useState } from "react";
+import { FormControl, FormField, FormItem } from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
+import { DotsThree } from 'phosphor-react';
+import { useState } from 'react';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import "react-quill/dist/quill.snow.css";
-import { PPTViewQuillEditor } from "@/components/quill/PPTViewQuillEditor";
-import { QuestionPaperTemplateFormProps } from "../../../-utils/question-paper-template-form";
+} from '@/components/ui/dropdown-menu';
+import 'react-quill/dist/quill.snow.css';
+import { PPTViewQuillEditor } from '@/components/quill/PPTViewQuillEditor';
+import { QuestionPaperTemplateFormProps } from '../../../-utils/question-paper-template-form';
 
 export const ComprehensiveNumericQuestionPaperTemplatePPTView = ({
     form,
@@ -23,7 +23,7 @@ export const ComprehensiveNumericQuestionPaperTemplatePPTView = ({
     const [isDropdownVisible, setIsDropdownVisible] = useState(false); // State to track dropdown visibility
     const [isDropdownOpen, setIsDropdownOpen] = useState(false); // State for dropdown open state
 
-    const allQuestions = getValues("questions") || [];
+    const allQuestions = getValues('questions') || [];
 
     const handleDeleteSlide = () => {
         // If this is the last question, decrease the current question index
@@ -31,7 +31,7 @@ export const ComprehensiveNumericQuestionPaperTemplatePPTView = ({
             setCurrentQuestionIndex(currentQuestionIndex - 1);
         }
         allQuestions.splice(currentQuestionIndex, 1);
-        setValue("questions", allQuestions);
+        setValue('questions', allQuestions);
         form.trigger();
     };
 
@@ -40,14 +40,14 @@ export const ComprehensiveNumericQuestionPaperTemplatePPTView = ({
         if (questionToDuplicate) {
             const duplicatedQuestion = {
                 ...questionToDuplicate,
-                questionId: questionToDuplicate.questionId || "",
-                questionName: questionToDuplicate.questionName || "",
-                explanation: questionToDuplicate.explanation || "",
+                questionId: questionToDuplicate.questionId || '',
+                questionName: questionToDuplicate.questionName || '',
+                explanation: questionToDuplicate.explanation || '',
                 // imageDetails: questionToDuplicate.imageDetails || [],
                 singleChoiceOptions: questionToDuplicate.singleChoiceOptions || [],
             };
             allQuestions.splice(currentQuestionIndex, 0, duplicatedQuestion);
-            setValue("questions", allQuestions);
+            setValue('questions', allQuestions);
         }
     };
 

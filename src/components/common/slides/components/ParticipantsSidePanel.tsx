@@ -62,7 +62,7 @@ export const ParticipantsSidePanel: React.FC<ParticipantsSidePanelProps> = ({
     onClose,
     topOffset = '0px',
     participants, // Now from props
-    sseStatus,    // Now from props
+    sseStatus, // Now from props
 }) => {
     // Removed local state for participants and sseStatus
     // Removed eventSourceRef
@@ -138,15 +138,15 @@ export const ParticipantsSidePanel: React.FC<ParticipantsSidePanelProps> = ({
                         </div>
                     )}
                     {/* ... rest of the rendering logic for participants ... */}
-                     {sseStatus === 'disconnected' && participants.length === 0 && (
-                            <div className="flex flex-col items-center justify-center rounded-md border border-red-200 bg-red-50 p-4 text-center text-red-500">
-                                <WifiOff size={28} className="mb-2" />
-                                <p className="text-sm font-medium">Connection lost</p>
-                                <p className="text-xs">
-                                    Attempting to reconnect to participant updates.
-                                </p>
-                            </div>
-                        )}
+                    {sseStatus === 'disconnected' && participants.length === 0 && (
+                        <div className="flex flex-col items-center justify-center rounded-md border border-red-200 bg-red-50 p-4 text-center text-red-500">
+                            <WifiOff size={28} className="mb-2" />
+                            <p className="text-sm font-medium">Connection lost</p>
+                            <p className="text-xs">
+                                Attempting to reconnect to participant updates.
+                            </p>
+                        </div>
+                    )}
                     {sseStatus === 'connected' && participants.length === 0 && (
                         <div className="px-4 py-10 text-center">
                             <Users size={36} className="mx-auto mb-3 text-slate-400" />

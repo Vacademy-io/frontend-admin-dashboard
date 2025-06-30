@@ -1,10 +1,10 @@
-import { Canvas, Textbox, IText, Rect, Circle, PencilBrush } from "fabric";
-import { useState } from "react";
-import { toast } from "sonner";
+import { Canvas, Textbox, IText, Rect, Circle, PencilBrush } from 'fabric';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 const useFabric = (fabricCanvas: Canvas | null) => {
     const [isDrawingMode, setIsDrawingMode] = useState(false);
-    const [penColor, setPenColor] = useState("black");
+    const [penColor, setPenColor] = useState('black');
     const addSymbol = async (symbol: string, color: string): Promise<void> => {
         if (!fabricCanvas) return;
         const text = new IText(symbol, {
@@ -21,22 +21,22 @@ const useFabric = (fabricCanvas: Canvas | null) => {
 
     const addTextBox = async (): Promise<void> => {
         if (!fabricCanvas) return;
-        const textbox = new Textbox("Add Comment", {
+        const textbox = new Textbox('Add Comment', {
             left: 100,
             top: window.scrollY ?? 100,
             width: 100,
             fontSize: 20,
-            fill: "black",
-            backgroundColor: "#f2eeed",
+            fill: 'black',
+            backgroundColor: '#f2eeed',
             selectable: true,
         });
         fabricCanvas.add(textbox);
         fabricCanvas.requestRenderAll();
     };
 
-    const addPenTool = async (color: string = "black"): Promise<void> => {
+    const addPenTool = async (color: string = 'black'): Promise<void> => {
         if (!fabricCanvas) return;
-        console.log("drawing mode");
+        console.log('drawing mode');
         setIsDrawingMode(() => true);
         fabricCanvas.isDrawingMode = true;
         fabricCanvas.freeDrawingBrush = new PencilBrush(fabricCanvas);
@@ -56,7 +56,7 @@ const useFabric = (fabricCanvas: Canvas | null) => {
         if (!fabricCanvas) return;
         fabricCanvas.isDrawingMode = false;
         setIsDrawingMode(false);
-        setPenColor("black");
+        setPenColor('black');
     };
 
     const addNumber = async (num: string): Promise<void> => {
@@ -65,7 +65,7 @@ const useFabric = (fabricCanvas: Canvas | null) => {
             left: 100,
             top: window.scrollY ?? 100,
             fontSize: 50,
-            fill: "blue",
+            fill: 'blue',
             selectable: true,
             editable: false,
         });
@@ -80,8 +80,8 @@ const useFabric = (fabricCanvas: Canvas | null) => {
             width: 100,
             height: 50,
             angle: 0,
-            fill: "transparent",
-            stroke: "black",
+            fill: 'transparent',
+            stroke: 'black',
             strokeWidth: 2,
             selectable: true,
             editable: false,
@@ -95,8 +95,8 @@ const useFabric = (fabricCanvas: Canvas | null) => {
             left: 100,
             top: window.scrollY ?? 100,
             radius: 50,
-            fill: "transparent",
-            stroke: "red",
+            fill: 'transparent',
+            stroke: 'red',
             strokeWidth: 2,
             selectable: true,
             editable: false,
@@ -112,8 +112,8 @@ const useFabric = (fabricCanvas: Canvas | null) => {
             fabricCanvas.discardActiveObject();
             fabricCanvas.renderAll();
         } else {
-            toast.error("Please select an item to delete");
-            console.log("No shape selected to delete.");
+            toast.error('Please select an item to delete');
+            console.log('No shape selected to delete.');
         }
     }
 

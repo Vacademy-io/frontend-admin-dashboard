@@ -1,14 +1,14 @@
-import { useState } from "react";
+import { useState } from 'react';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { MyButton } from "@/components/design-system/button";
-import { DotsThree, WarningCircle } from "phosphor-react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { AssessmentRevaluateStudentInterface } from "@/types/assessments/assessment-overview";
+} from '@/components/ui/dropdown-menu';
+import { MyButton } from '@/components/design-system/button';
+import { DotsThree, WarningCircle } from 'phosphor-react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { AssessmentRevaluateStudentInterface } from '@/types/assessments/assessment-overview';
 
 const SendReminderComponent = ({
     student,
@@ -26,7 +26,7 @@ const SendReminderComponent = ({
                     <WarningCircle size={18} />
                 </div>
                 <h1>
-                    A reminder will be sent to{" "}
+                    A reminder will be sent to{' '}
                     <span className="text-primary-500">{student.full_name}</span> who hasn’t yet
                     appeared for the Assessment
                 </h1>
@@ -62,7 +62,7 @@ const RemoveParticipantComponent = ({
                     <WarningCircle size={18} />
                 </div>
                 <h1>
-                    Are you sure you want remove{" "}
+                    Are you sure you want remove{' '}
                     <span className="text-primary-500">{student.full_name}</span> from this
                     Assessment?
                 </h1>
@@ -106,13 +106,13 @@ const StudentPendingDropdown = ({ student }: { student: AssessmentRevaluateStude
                 <DropdownMenuContent>
                     <DropdownMenuItem
                         className="cursor-pointer"
-                        onClick={() => handleMenuOptionsChange("Send Reminder")}
+                        onClick={() => handleMenuOptionsChange('Send Reminder')}
                     >
                         Send Reminder
                     </DropdownMenuItem>
                     <DropdownMenuItem
                         className="cursor-pointer"
-                        onClick={() => handleMenuOptionsChange("Remove Participants")}
+                        onClick={() => handleMenuOptionsChange('Remove Participants')}
                     >
                         Remove Participants
                     </DropdownMenuItem>
@@ -120,10 +120,10 @@ const StudentPendingDropdown = ({ student }: { student: AssessmentRevaluateStude
             </DropdownMenu>
             {/* Dialog should be controlled by openDialog state */}
             <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-                {selectedOption === "Send Reminder" && (
+                {selectedOption === 'Send Reminder' && (
                     <SendReminderComponent student={student} onClose={() => setOpenDialog(false)} />
                 )}
-                {selectedOption === "Remove Participants" && (
+                {selectedOption === 'Remove Participants' && (
                     <RemoveParticipantComponent
                         student={student}
                         onClose={() => setOpenDialog(false)}

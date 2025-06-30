@@ -1,13 +1,13 @@
-import { LayoutContainer } from "@/components/common/layout-container/layout-container";
-import { createFileRoute } from "@tanstack/react-router";
-import { ScheduleTestMainComponent } from "./-components/ScheduleTestMainComponent";
-import { z } from "zod";
+import { LayoutContainer } from '@/components/common/layout-container/layout-container';
+import { createFileRoute } from '@tanstack/react-router';
+import { ScheduleTestMainComponent } from './-components/ScheduleTestMainComponent';
+import { z } from 'zod';
 
 export const assessmentListParamsSchema = z.object({
     selectedTab: z.string().optional(),
 });
 
-export const Route = createFileRoute("/homework-creation/assessment-list/")({
+export const Route = createFileRoute('/homework-creation/assessment-list/')({
     validateSearch: assessmentListParamsSchema,
     component: () => (
         <LayoutContainer>

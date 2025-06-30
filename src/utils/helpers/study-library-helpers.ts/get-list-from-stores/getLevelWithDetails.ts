@@ -2,7 +2,7 @@
 import {
     useStudyLibraryStore,
     LevelWithDetailsType,
-} from "@/stores/study-library/use-study-library-store";
+} from '@/stores/study-library/use-study-library-store';
 
 export const getCourseLevels = (courseId: string, sessionId: string): LevelWithDetailsType[] => {
     const studyLibraryData = useStudyLibraryStore.getState().studyLibraryData;

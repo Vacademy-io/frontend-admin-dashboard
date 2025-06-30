@@ -1,7 +1,7 @@
 import {
     StudyLibrarySessionType,
     useStudyLibraryStore,
-} from "@/stores/study-library/use-study-library-store";
+} from '@/stores/study-library/use-study-library-store';
 
 export const getSubjectSessions = (subjectId: string): StudyLibrarySessionType[] => {
     const studyLibraryData = useStudyLibraryStore.getState().studyLibraryData;
@@ -17,7 +17,7 @@ export const getSubjectSessions = (subjectId: string): StudyLibrarySessionType[]
         courseData.sessions.forEach((session) => {
             if (
                 session.level_with_details.some((level) =>
-                    level.subjects.some((subject) => subject.id === subjectId),
+                    level.subjects.some((subject) => subject.id === subjectId)
                 ) &&
                 !sessionIds.has(session.session_dto.id)
             ) {

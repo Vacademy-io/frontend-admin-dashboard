@@ -1,37 +1,37 @@
-"use client";
+'use client';
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import { useCallback, useState } from "react";
-import { Plus } from "lucide-react";
-import { Minus } from "phosphor-react";
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { useCallback, useState } from 'react';
+import { Plus } from 'lucide-react';
+import { Minus } from 'phosphor-react';
 import {
     Accordion,
     AccordionItem,
     AccordionTrigger,
     AccordionContent,
-} from "@/components/ui/accordion";
+} from '@/components/ui/accordion';
 import {
     CustomField,
     CustomFieldType,
     Question,
-} from "@/components/common/export-offline/types/question";
+} from '@/components/common/export-offline/types/question';
 import {
     ExportSettings,
     useExportSettings,
-} from "@/components/common/export-offline/contexts/export-settings-context";
-import { AnswerSpacingQuestionPaperDialogAI } from "./answer-spacing-question-paper-dialog-ai";
+} from '@/components/common/export-offline/contexts/export-settings-context';
+import { AnswerSpacingQuestionPaperDialogAI } from './answer-spacing-question-paper-dialog-ai';
 
 interface ExportSettingsDialogProps {
     open: boolean;
@@ -51,10 +51,10 @@ export function ExportQuestionPaperSettingsDialogAI({
         (key: keyof ExportSettings, value) => {
             updateSettings({ [key]: value });
         },
-        [updateSettings],
+        [updateSettings]
     );
 
-    const [newFieldLabel, setNewFieldLabel] = useState("");
+    const [newFieldLabel, setNewFieldLabel] = useState('');
     const [isAnswerSpacingDialogOpen, setIsAnswerSpacingDialogOpen] = useState(false);
 
     const handleCustomFieldChange = (index: number, field: Partial<CustomField>) => {
@@ -68,12 +68,12 @@ export function ExportQuestionPaperSettingsDialogAI({
         const newField = {
             label: newFieldLabel,
             enabled: true,
-            type: "blank" as CustomFieldType,
+            type: 'blank' as CustomFieldType,
         };
         updateSettings({
             customFields: [...(settings.customFields || []), newField],
         });
-        setNewFieldLabel("");
+        setNewFieldLabel('');
     };
 
     return (
@@ -102,11 +102,8 @@ export function ExportQuestionPaperSettingsDialogAI({
                                                     size="icon"
                                                     onClick={() =>
                                                         handleSettingChange(
-                                                            "columnsPerPage",
-                                                            Math.max(
-                                                                1,
-                                                                settings.columnsPerPage - 1,
-                                                            ),
+                                                            'columnsPerPage',
+                                                            Math.max(1, settings.columnsPerPage - 1)
                                                         )
                                                     }
                                                     disabled={settings.columnsPerPage <= 1}
@@ -121,11 +118,11 @@ export function ExportQuestionPaperSettingsDialogAI({
                                                     value={settings.columnsPerPage}
                                                     onChange={(e) => {
                                                         const value = Number.parseInt(
-                                                            e.target.value,
+                                                            e.target.value
                                                         );
                                                         handleSettingChange(
-                                                            "columnsPerPage",
-                                                            Math.min(Math.max(1, value), 3),
+                                                            'columnsPerPage',
+                                                            Math.min(Math.max(1, value), 3)
                                                         );
                                                     }}
                                                 />
@@ -135,11 +132,8 @@ export function ExportQuestionPaperSettingsDialogAI({
                                                     size="icon"
                                                     onClick={() =>
                                                         handleSettingChange(
-                                                            "columnsPerPage",
-                                                            Math.min(
-                                                                3,
-                                                                settings.columnsPerPage + 1,
-                                                            ),
+                                                            'columnsPerPage',
+                                                            Math.min(3, settings.columnsPerPage + 1)
                                                         )
                                                     }
                                                     disabled={settings.columnsPerPage >= 3}
@@ -156,8 +150,8 @@ export function ExportQuestionPaperSettingsDialogAI({
                                             value={settings.spaceForRoughWork}
                                             onValueChange={(value) =>
                                                 handleSettingChange(
-                                                    "spaceForRoughWork",
-                                                    value as "none" | "bottom" | "right",
+                                                    'spaceForRoughWork',
+                                                    value as 'none' | 'bottom' | 'right'
                                                 )
                                             }
                                             className="flex gap-4"
@@ -179,8 +173,8 @@ export function ExportQuestionPaperSettingsDialogAI({
                                             value={settings.roughWorkSize}
                                             onValueChange={(value) =>
                                                 handleSettingChange(
-                                                    "roughWorkSize",
-                                                    value as "small" | "medium" | "large",
+                                                    'roughWorkSize',
+                                                    value as 'small' | 'medium' | 'large'
                                                 )
                                             }
                                             className="flex gap-4"
@@ -221,8 +215,8 @@ export function ExportQuestionPaperSettingsDialogAI({
                                             value={settings.pagePadding}
                                             onValueChange={(value) =>
                                                 handleSettingChange(
-                                                    "pagePadding",
-                                                    value as "low" | "medium" | "high",
+                                                    'pagePadding',
+                                                    value as 'low' | 'medium' | 'high'
                                                 )
                                             }
                                             className="flex gap-4"
@@ -253,8 +247,8 @@ export function ExportQuestionPaperSettingsDialogAI({
                                             value={settings.fontSize}
                                             onValueChange={(value) =>
                                                 handleSettingChange(
-                                                    "fontSize",
-                                                    value as "small" | "medium" | "large",
+                                                    'fontSize',
+                                                    value as 'small' | 'medium' | 'large'
                                                 )
                                             }
                                             className="flex gap-4"
@@ -277,7 +271,7 @@ export function ExportQuestionPaperSettingsDialogAI({
                                         <Label>Image Size</Label>
                                         <div className="flex items-center space-x-2">
                                             <Checkbox
-                                                id={"maintainImageAspectRatio"}
+                                                id={'maintainImageAspectRatio'}
                                                 checked={settings.maintainImageAspectRatio}
                                                 onCheckedChange={(checked) =>
                                                     updateSettings({
@@ -301,30 +295,30 @@ export function ExportQuestionPaperSettingsDialogAI({
                             <AccordionContent>
                                 <div className="flex flex-col gap-y-2">
                                     {[
-                                        ["showInstitutionLetterhead", "Show Institute Letterhead"],
+                                        ['showInstitutionLetterhead', 'Show Institute Letterhead'],
                                         [
-                                            "showFirstPageInstructions",
-                                            "Show Instructions on First Page",
+                                            'showFirstPageInstructions',
+                                            'Show Instructions on First Page',
                                         ],
                                         [
-                                            "showAdaptiveMarkingRules",
-                                            "Show Adaptive Marking Rules - Entire Assessment",
+                                            'showAdaptiveMarkingRules',
+                                            'Show Adaptive Marking Rules - Entire Assessment',
                                         ],
                                         [
-                                            "showSectionInstructions",
-                                            "Show Section-wise Instructions",
+                                            'showSectionInstructions',
+                                            'Show Section-wise Instructions',
                                         ],
-                                        ["showSectionDuration", "Show Section-wise Duration"],
-                                        ["showMarksPerQuestion", "Show Marks per Question"],
+                                        ['showSectionDuration', 'Show Section-wise Duration'],
+                                        ['showMarksPerQuestion', 'Show Marks per Question'],
                                         [
-                                            "showAdaptiveMarkingRulesSection",
-                                            "Show Adaptive Marking Rules - Section-wise",
+                                            'showAdaptiveMarkingRulesSection',
+                                            'Show Adaptive Marking Rules - Section-wise',
                                         ],
                                         [
-                                            "showCheckboxesBeforeOptions",
-                                            "Show Checkboxes before Options",
+                                            'showCheckboxesBeforeOptions',
+                                            'Show Checkboxes before Options',
                                         ],
-                                        ["showPageNumbers", "Show Page Numbers"],
+                                        ['showPageNumbers', 'Show Page Numbers'],
                                     ].map(([key, label]) => (
                                         <div key={key} className="flex items-center gap-4">
                                             <Checkbox
@@ -335,7 +329,7 @@ export function ExportQuestionPaperSettingsDialogAI({
                                                 onCheckedChange={(checked) =>
                                                     handleSettingChange(
                                                         key as keyof ExportSettings,
-                                                        checked,
+                                                        checked
                                                     )
                                                 }
                                             />
@@ -360,8 +354,8 @@ export function ExportQuestionPaperSettingsDialogAI({
                                                 size="icon"
                                                 onClick={() =>
                                                     handleSettingChange(
-                                                        "questionPaperSets",
-                                                        Math.max(1, settings.questionPaperSets - 1),
+                                                        'questionPaperSets',
+                                                        Math.max(1, settings.questionPaperSets - 1)
                                                     )
                                                 }
                                                 disabled={settings.questionPaperSets <= 1}
@@ -377,8 +371,8 @@ export function ExportQuestionPaperSettingsDialogAI({
                                                 onChange={(e) => {
                                                     const value = Number.parseInt(e.target.value);
                                                     handleSettingChange(
-                                                        "questionPaperSets",
-                                                        Math.min(Math.max(1, value), 3),
+                                                        'questionPaperSets',
+                                                        Math.min(Math.max(1, value), 3)
                                                     );
                                                 }}
                                             />
@@ -388,8 +382,8 @@ export function ExportQuestionPaperSettingsDialogAI({
                                                 size="icon"
                                                 onClick={() =>
                                                     handleSettingChange(
-                                                        "questionPaperSets",
-                                                        Math.min(3, settings.questionPaperSets + 1),
+                                                        'questionPaperSets',
+                                                        Math.min(3, settings.questionPaperSets + 1)
                                                     )
                                                 }
                                                 disabled={settings.questionPaperSets >= 3}
@@ -405,8 +399,8 @@ export function ExportQuestionPaperSettingsDialogAI({
                                             checked={settings.includeQuestionSetCode}
                                             onCheckedChange={(checked) =>
                                                 handleSettingChange(
-                                                    "includeQuestionSetCode",
-                                                    checked,
+                                                    'includeQuestionSetCode',
+                                                    checked
                                                 )
                                             }
                                         />
@@ -420,7 +414,7 @@ export function ExportQuestionPaperSettingsDialogAI({
                                             id="randomizeQuestions"
                                             checked={settings.randomizeQuestions}
                                             onCheckedChange={(checked) =>
-                                                handleSettingChange("randomizeQuestions", checked)
+                                                handleSettingChange('randomizeQuestions', checked)
                                             }
                                         />
                                         <label htmlFor="randomizeQuestions">
@@ -433,7 +427,7 @@ export function ExportQuestionPaperSettingsDialogAI({
                                             id="randomizeOptions"
                                             checked={settings.randomizeOptions}
                                             onCheckedChange={(checked) =>
-                                                handleSettingChange("randomizeOptions", checked)
+                                                handleSettingChange('randomizeOptions', checked)
                                             }
                                         />
                                         <label htmlFor="randomizeOptions">Randomize Options</label>
@@ -516,7 +510,7 @@ export function ExportQuestionPaperSettingsDialogAI({
                                                                 </SelectItem>
                                                             </SelectContent>
                                                         </Select>
-                                                        {field.type === "blocks" && (
+                                                        {field.type === 'blocks' && (
                                                             <div className="col-span-5 flex items-center space-x-2">
                                                                 <Input
                                                                     type="number"
@@ -532,9 +526,9 @@ export function ExportQuestionPaperSettingsDialogAI({
                                                                                 numberOfBlocks:
                                                                                     Number(
                                                                                         e.target
-                                                                                            .value,
+                                                                                            .value
                                                                                     ),
-                                                                            },
+                                                                            }
                                                                         )
                                                                     }
                                                                     className="w-fit"

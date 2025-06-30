@@ -1,7 +1,7 @@
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
-import { useSidebarStore } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/global-states";
-import { SidebarSimple } from "@phosphor-icons/react";
+import { SidebarTrigger } from '@/components/ui/sidebar';
+import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
+import { useSidebarStore } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/global-states';
+import { SidebarSimple } from '@phosphor-icons/react';
 
 export function Navbar() {
     const { navHeading } = useNavHeadingStore();

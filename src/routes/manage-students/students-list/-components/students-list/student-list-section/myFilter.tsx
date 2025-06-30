@@ -79,7 +79,7 @@ export const Filters = ({
     }, [selectedFilterList[filterId], filterDetails.label]);
 
     return (
-        <div className="group transition-all duration-200 hover:scale-102">
+        <div className="hover:scale-102 group transition-all duration-200">
             <FilterChips
                 label={filterDetails.label}
                 filterList={filterDetails.filters}

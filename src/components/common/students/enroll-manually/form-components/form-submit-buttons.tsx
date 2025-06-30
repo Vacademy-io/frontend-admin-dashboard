@@ -1,6 +1,6 @@
-import { MyButton } from "@/components/design-system/button";
-import { DialogFooter } from "@/components/ui/dialog";
-import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
+import { MyButton } from '@/components/design-system/button';
+import { DialogFooter } from '@/components/ui/dialog';
+import { useFormStore } from '@/stores/students/enroll-students-manually/enroll-manually-form-store';
 
 export const FormSubmitButtons = ({
     stepNumber,

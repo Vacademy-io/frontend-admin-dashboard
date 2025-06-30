@@ -1,22 +1,22 @@
-"use client";
+'use client';
 
-import { useState, useMemo } from "react";
-import { Button } from "@/components/ui/button";
-import { Settings, Upload } from "lucide-react";
-import { PaperSet } from "./preview/paper-set";
-import { ExportHandler } from "./preview/export-handler";
-import { ExportSettingsDialog } from "./dialog/export-settings-dialog";
-import { ExportSettingsProvider, useExportSettings } from "./contexts/export-settings-context";
-import { Toaster as Sonner } from "sonner";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { getQuestionDataForSection } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-services/assessment-services";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Loader2 } from "lucide-react";
-import { Question } from "./types/question";
-import { Trash2 } from "lucide-react";
+import { useState, useMemo } from 'react';
+import { Button } from '@/components/ui/button';
+import { Settings, Upload } from 'lucide-react';
+import { PaperSet } from './preview/paper-set';
+import { ExportHandler } from './preview/export-handler';
+import { ExportSettingsDialog } from './dialog/export-settings-dialog';
+import { ExportSettingsProvider, useExportSettings } from './contexts/export-settings-context';
+import { Toaster as Sonner } from 'sonner';
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { getQuestionDataForSection } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-services/assessment-services';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import { Question } from './types/question';
+import { Trash2 } from 'lucide-react';
 // eslint-disable-next-line
 import { Instructions, Section, Steps } from "@/types/assessments/assessment-data-type";
-import { parseHtmlToString } from "./utils/utils";
+import { parseHtmlToString } from './utils/utils';
 
 function shuffleArray<T>(array: T[]): T[] {
     const newArray = [...array];
@@ -46,18 +46,18 @@ function PreviewWithSettings({
     const [currentSetIndex, setCurrentSetIndex] = useState(0);
     const { settings, updateSettings } = useExportSettings();
     const { data: questionData, isLoading } = useSuspenseQuery(
-        getQuestionDataForSection({ assessmentId, sectionIds: sectionIds.join(",") }),
+        getQuestionDataForSection({ assessmentId, sectionIds: sectionIds.join(',') })
     );
 
     // Determine padding based on settings
     const getPadding = () => {
         switch (settings.pagePadding) {
-            case "low":
-                return "10mm";
-            case "high":
-                return "30mm";
+            case 'low':
+                return '10mm';
+            case 'high':
+                return '30mm';
             default:
-                return "20mm"; // medium
+                return '20mm'; // medium
         }
     };
 
@@ -65,9 +65,9 @@ function PreviewWithSettings({
     const sections = useMemo(() => {
         return Object.entries(questionData).map(([sectionId, questions]) => ({
             id: sectionId,
-            title: allSections.find((section) => section.id === sectionId)?.name || "",
+            title: allSections.find((section) => section.id === sectionId)?.name || '',
             description: parseHtmlToString(
-                allSections.find((section) => section.id === sectionId)?.description?.content ?? "",
+                allSections.find((section) => section.id === sectionId)?.description?.content ?? ''
             ),
             totalMarks: allSections.find((section) => section.id === sectionId)?.total_marks || 0,
             duration: allSections.find((section) => section.id === sectionId)?.duration || 0,
@@ -139,7 +139,7 @@ function PreviewWithSettings({
     }
 
     return (
-        <div className="min-h-screen min-w-full bg-slate-50/50" style={{ boxSizing: "border-box" }}>
+        <div className="min-h-screen min-w-full bg-slate-50/50" style={{ boxSizing: 'border-box' }}>
             <style>{`
                 .page {
                     width: 210mm;
@@ -202,7 +202,7 @@ function PreviewWithSettings({
                                 <Button
                                     variant="outline"
                                     onClick={() =>
-                                        document.getElementById("letterhead-upload")?.click()
+                                        document.getElementById('letterhead-upload')?.click()
                                     }
                                 >
                                     <Upload />

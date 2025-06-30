@@ -1,7 +1,7 @@
-import { MyButton } from "@/components/design-system/button";
-import { MyInput } from "@/components/design-system/input";
-import { Plus, X } from "@phosphor-icons/react";
-import { Dispatch, SetStateAction, useState } from "react";
+import { MyButton } from '@/components/design-system/button';
+import { MyInput } from '@/components/design-system/input';
+import { Plus, X } from '@phosphor-icons/react';
+import { Dispatch, SetStateAction, useState } from 'react';
 
 interface AddLevelInputProps {
     newLevelName: string;
@@ -39,7 +39,7 @@ export const AddLevelInput = ({
                             inputType="number"
                             inputPlaceholder="Eg. 365 days"
                             className="w-[200px]"
-                            input={newLevelDuration?.toString() || ""}
+                            input={newLevelDuration?.toString() || ''}
                             onChangeFunction={(e) =>
                                 setNewLevelDuration(Math.floor(Number(e.target.value)))
                             }
@@ -55,7 +55,7 @@ export const AddLevelInput = ({
                                 if (newLevelName) {
                                     handleAddLevel(newLevelName, newLevelDuration);
                                     if (!batchCreation) {
-                                        setNewLevelName("");
+                                        setNewLevelName('');
                                         setNewLevelDuration(null);
                                         setShowNewLevelInput(false);
                                     }

@@ -1,13 +1,13 @@
-import { MyButton } from "@/components/design-system/button";
-import { MyDialog } from "@/components/design-system/dialog";
-import { MyDropdown } from "@/components/design-system/dropdown";
-import { DotsThree } from "phosphor-react";
-import { useState } from "react";
-import { dropdownList } from "@/constants/study-library/chapter-menu-options-list";
-import { MoveToDialog } from "./move-dialog";
-import { CopyToDialog } from "./copy-dialog";
-import { AddChapterForm } from "../add-chapters/add-chapter-form";
-import { ChapterWithSlides } from "@/stores/study-library/use-modules-with-chapters-store";
+import { MyButton } from '@/components/design-system/button';
+import { MyDialog } from '@/components/design-system/dialog';
+import { MyDropdown } from '@/components/design-system/dropdown';
+import { DotsThree } from 'phosphor-react';
+import { useState } from 'react';
+import { dropdownList } from '@/constants/study-library/chapter-menu-options-list';
+import { MoveToDialog } from './move-dialog';
+import { CopyToDialog } from './copy-dialog';
+import { AddChapterForm } from '../add-chapters/add-chapter-form';
+import { ChapterWithSlides } from '@/stores/study-library/use-modules-with-chapters-store';
 
 interface ChapterMenuOptionsProps {
     chapter: ChapterWithSlides;
@@ -20,25 +20,25 @@ export const ChapterMenuOptions = ({
     onDelete,
     viewChapterDetails,
 }: ChapterMenuOptionsProps) => {
-    const [openDialog, setOpenDialog] = useState<"copy" | "move" | "delete" | "edit" | null>(null);
+    const [openDialog, setOpenDialog] = useState<'copy' | 'move' | 'delete' | 'edit' | null>(null);
     const [openDeleteChapterDialog, setOpenDeleteChapterDialog] = useState(false);
 
     const handleSelect = (value: string) => {
         switch (value) {
-            case "view":
+            case 'view':
                 viewChapterDetails();
                 break;
-            case "edit":
-                setOpenDialog("edit");
+            case 'edit':
+                setOpenDialog('edit');
                 break;
-            case "delete":
+            case 'delete':
                 setOpenDeleteChapterDialog(true);
                 break;
-            case "copy":
-                setOpenDialog("copy");
+            case 'copy':
+                setOpenDialog('copy');
                 break;
-            case "move":
-                setOpenDialog("move");
+            case 'move':
+                setOpenDialog('move');
                 break;
         }
     };
@@ -64,7 +64,7 @@ export const ChapterMenuOptions = ({
             <MyDialog
                 heading="Edit Chapter"
                 dialogWidth="min-w-[800px]"
-                open={openDialog === "edit"}
+                open={openDialog === 'edit'}
                 onOpenChange={() => setOpenDialog(null)}
             >
                 <AddChapterForm

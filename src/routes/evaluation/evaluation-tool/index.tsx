@@ -1,11 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
-import PDFEvaluator from "./-components/pdf-editor";
-import { LayoutContainer } from "@/components/common/layout-container/layout-container";
-import { Helmet } from "react-helmet";
-import { useEffect } from "react";
-import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
+import { createFileRoute } from '@tanstack/react-router';
+import PDFEvaluator from './-components/pdf-editor';
+import { LayoutContainer } from '@/components/common/layout-container/layout-container';
+import { Helmet } from 'react-helmet';
+import { useEffect } from 'react';
+import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
 
-export const Route = createFileRoute("/evaluation/evaluation-tool/")({
+export const Route = createFileRoute('/evaluation/evaluation-tool/')({
     component: RouteComponent,
 });
 

@@ -1,21 +1,21 @@
-import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
-import { Sliders, X, Plus } from "phosphor-react";
-import { Checkbox } from "@/components/ui/checkbox";
-import "react-quill/dist/quill.snow.css";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { PopoverClose } from "@radix-ui/react-popover";
-import SelectField from "@/components/design-system/select-field";
-import CustomInput from "@/components/design-system/custom-input";
-import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
-import { QuestionPaperTemplateFormProps } from "../../../-utils/question-paper-template-form";
-import { formatStructure } from "../../../-utils/helper";
-import { QUESTION_TYPES, NUMERIC_TYPES } from "@/constants/dummy-data";
-import { MyInput } from "@/components/design-system/input";
-import { useState, useEffect } from "react";
-import { CollapsibleQuillEditor } from "../CollapsibleQuillEditor";
-import { useWatch } from "react-hook-form";
-import { Badge } from "@/components/ui/badge";
+import { FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
+import { Sliders, X, Plus } from 'phosphor-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import 'react-quill/dist/quill.snow.css';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { PopoverClose } from '@radix-ui/react-popover';
+import SelectField from '@/components/design-system/select-field';
+import CustomInput from '@/components/design-system/custom-input';
+import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
+import { QuestionPaperTemplateFormProps } from '../../../-utils/question-paper-template-form';
+import { formatStructure } from '../../../-utils/helper';
+import { QUESTION_TYPES, NUMERIC_TYPES } from '@/constants/dummy-data';
+import { MyInput } from '@/components/design-system/input';
+import { useState, useEffect } from 'react';
+import { CollapsibleQuillEditor } from '../CollapsibleQuillEditor';
+import { useWatch } from 'react-hook-form';
+import { Badge } from '@/components/ui/badge';
 
 export const NumericQuestionPaperTemplateMainView = ({
     form,
@@ -30,11 +30,11 @@ export const NumericQuestionPaperTemplateMainView = ({
     const validAnswers = watch(`questions.${currentQuestionIndex}.validAnswers`);
 
     useWatch({ control });
-    const answersType = getValues("answersType") || "Answer:";
-    const explanationsType = getValues("explanationsType") || "Explanation:";
-    const questionsType = getValues("questionsType") || "";
+    const answersType = getValues('answersType') || 'Answer:';
+    const explanationsType = getValues('explanationsType') || 'Explanation:';
+    const questionsType = getValues('questionsType') || '';
     const tags = getValues(`questions.${currentQuestionIndex}.tags`) || [];
-    const level = getValues(`questions.${currentQuestionIndex}.level`) || "";
+    const level = getValues(`questions.${currentQuestionIndex}.level`) || '';
 
     useEffect(() => {
         const validAnswrs = form.getValues(`questions.${currentQuestionIndex}.validAnswers`);
@@ -180,7 +180,7 @@ export const NumericQuestionPaperTemplateMainView = ({
                                                     // If unchecked, keep only the first answer
                                                     form.setValue(
                                                         `questions.${currentQuestionIndex}.validAnswers`,
-                                                        field.value ? [field.value[0] || 0] : [0],
+                                                        field.value ? [field.value[0] || 0] : [0]
                                                     );
                                                 }
                                             }}
@@ -224,8 +224,8 @@ export const NumericQuestionPaperTemplateMainView = ({
                                                         onClick={() => {
                                                             field.onChange(
                                                                 field.value?.filter(
-                                                                    (_, i) => i !== index,
-                                                                ),
+                                                                    (_, i) => i !== index
+                                                                )
                                                             );
                                                         }}
                                                     >

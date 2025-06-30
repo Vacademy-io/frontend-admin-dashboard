@@ -1,5 +1,5 @@
-import { Helmet } from "react-helmet";
-import { DashboardLoader } from "./dashboard-loader";
+import { Helmet } from 'react-helmet';
+import { DashboardLoader } from './dashboard-loader';
 
 function RootPendingComponent() {
     return (

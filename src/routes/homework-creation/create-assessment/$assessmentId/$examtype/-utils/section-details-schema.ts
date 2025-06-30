@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 const sectionDetailsSchema = z.object({
     status: z.string(),
@@ -56,9 +56,9 @@ const sectionDetailsSchema = z.object({
                         hrs: z.string(),
                         min: z.string(),
                     }),
-                }),
+                })
             ),
-        }),
+        })
     ),
 });
 

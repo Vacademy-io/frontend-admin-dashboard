@@ -1,5 +1,5 @@
 // components/ui/custom-toast.tsx
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from '@/hooks/use-toast';
 import {
     Toast,
     ToastClose,
@@ -7,9 +7,9 @@ import {
     ToastProvider,
     ToastTitle,
     ToastViewport,
-} from "@/components/ui/toast";
-import { toast } from "@/hooks/use-toast";
-import { WarningCircle } from "phosphor-react";
+} from '@/components/ui/toast';
+import { toast } from '@/hooks/use-toast';
+import { WarningCircle } from 'phosphor-react';
 
 export function CustomToaster() {
     const { toasts } = useToast();
@@ -23,7 +23,7 @@ export function CustomToaster() {
                             {title && (
                                 <ToastTitle className="flex items-center gap-2 text-danger-600">
                                     <div>{title}</div>
-                                    <WarningCircle className="h-5 w-5" />
+                                    <WarningCircle className="size-5" />
                                 </ToastTitle>
                             )}
                             {description && (
@@ -46,7 +46,7 @@ export function CustomToaster() {
 
 export const showErrorToast = (description: string) => {
     toast({
-        title: "Error",
+        title: 'Error',
         description: description,
     });
 };

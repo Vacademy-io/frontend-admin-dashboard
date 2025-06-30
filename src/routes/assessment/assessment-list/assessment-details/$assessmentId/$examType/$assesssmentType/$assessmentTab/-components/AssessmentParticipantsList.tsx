@@ -1,22 +1,22 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
-import { useState } from "react";
-import { getBatchDetailsListOfStudents } from "../-services/assessment-details-services";
-import { getInstituteId } from "@/constants/helper";
-import { MyTable } from "@/components/design-system/table";
-import { step3ParticipantsListColumn } from "../-utils/student-columns";
-import { OnChangeFn, RowSelectionState } from "@tanstack/react-table";
-import { MyPagination } from "@/components/design-system/pagination";
-import { getAssessmentStep3ParticipantsListWithBatchName } from "../-utils/helper";
-import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { AssessmentDetailsSearchComponent } from "./SearchComponent";
-import { MyFilterOption } from "@/types/assessments/my-filter";
-import { ScheduleTestFilters } from "@/routes/assessment/assessment-list/-components/ScheduleTestFilters";
-import { MyButton } from "@/components/design-system/button";
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { getBatchDetailsListOfStudents } from '../-services/assessment-details-services';
+import { getInstituteId } from '@/constants/helper';
+import { MyTable } from '@/components/design-system/table';
+import { step3ParticipantsListColumn } from '../-utils/student-columns';
+import { OnChangeFn, RowSelectionState } from '@tanstack/react-table';
+import { MyPagination } from '@/components/design-system/pagination';
+import { getAssessmentStep3ParticipantsListWithBatchName } from '../-utils/helper';
+import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { AssessmentDetailsSearchComponent } from './SearchComponent';
+import { MyFilterOption } from '@/types/assessments/my-filter';
+import { ScheduleTestFilters } from '@/routes/assessment/assessment-list/-components/ScheduleTestFilters';
+import { MyButton } from '@/components/design-system/button';
 
 export interface AssessmentParticipantsInterface {
     name: string;
@@ -34,9 +34,9 @@ export const AssessmentParticipantsList = ({ batchId }: { batchId: string }) => 
     const [pageNo, setPageNo] = useState(0);
     const [rowSelections, setRowSelections] = useState<Record<number, Record<string, boolean>>>({});
     const currentPageSelection = rowSelections[pageNo] || {};
-    const [searchText, setSearchText] = useState("");
+    const [searchText, setSearchText] = useState('');
     const [selectedFilter, setSelectedFilter] = useState<AssessmentParticipantsInterface>({
-        name: "",
+        name: '',
         statuses: [],
         institute_ids: [instituteId!],
         package_session_ids: [batchId],
@@ -91,7 +91,7 @@ export const AssessmentParticipantsList = ({ batchId }: { batchId: string }) => 
 
     const handleRowSelectionChange: OnChangeFn<RowSelectionState> = (updaterOrValue) => {
         const newSelection =
-            typeof updaterOrValue === "function"
+            typeof updaterOrValue === 'function'
                 ? updaterOrValue(rowSelections[pageNo] || {})
                 : updaterOrValue;
 
@@ -114,14 +114,14 @@ export const AssessmentParticipantsList = ({ batchId }: { batchId: string }) => 
     };
 
     const clearSearch = () => {
-        setSearchText("");
-        selectedFilter["name"] = "";
+        setSearchText('');
+        selectedFilter['name'] = '';
         getParticipantsData.mutate({
             pageNo,
             pageSize: 10,
             selectedFilter: {
                 ...selectedFilter,
-                name: "",
+                name: '',
             },
         });
     };
@@ -136,16 +136,16 @@ export const AssessmentParticipantsList = ({ batchId }: { batchId: string }) => 
     const handleResetFilters = () => {
         setSelectedFilter((prevFilter) => ({
             ...prevFilter,
-            name: "",
+            name: '',
             gender: [],
         }));
-        setSearchText("");
+        setSearchText('');
         getParticipantsData.mutate({
             pageNo,
             pageSize: 10,
             selectedFilter: {
                 ...selectedFilter,
-                name: "",
+                name: '',
                 gender: [],
             },
         });
@@ -175,7 +175,7 @@ export const AssessmentParticipantsList = ({ batchId }: { batchId: string }) => 
                 <h1 className="rounded-t-lg bg-primary-100 p-4 font-semibold text-primary-500">
                     Participants List
                 </h1>
-                {getParticipantsData.status === "pending" ? (
+                {getParticipantsData.status === 'pending' ? (
                     <DashboardLoader />
                 ) : (
                     <div className="flex flex-col gap-6 px-4">
@@ -192,8 +192,8 @@ export const AssessmentParticipantsList = ({ batchId }: { batchId: string }) => 
                                     id: String(idx),
                                     name: gender,
                                 }))}
-                                selectedItems={selectedFilter["gender"] || []}
-                                onSelectionChange={(items) => handleFilterChange("gender", items)}
+                                selectedItems={selectedFilter['gender'] || []}
+                                onSelectionChange={(items) => handleFilterChange('gender', items)}
                             />
                             <Step3ParticipantsFilterButtons
                                 selectedQuestionPaperFilters={selectedFilter}
@@ -205,7 +205,7 @@ export const AssessmentParticipantsList = ({ batchId }: { batchId: string }) => 
                             data={{
                                 content: getAssessmentStep3ParticipantsListWithBatchName(
                                     participantsData.content,
-                                    initData?.batches_for_sessions || [],
+                                    initData?.batches_for_sessions || []
                                 ),
                                 total_pages: participantsData.total_pages,
                                 page_no: pageNo,

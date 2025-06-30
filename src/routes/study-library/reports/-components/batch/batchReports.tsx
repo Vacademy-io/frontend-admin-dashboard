@@ -1,14 +1,14 @@
-import { useState } from "react";
-import TimelineReports from "./timelineReports";
-import ProgressReports from "./progressReports";
+import { useState } from 'react';
+import TimelineReports from './timelineReports';
+import ProgressReports from './progressReports';
 
 export default function BatchReports() {
-    const [learningData, setLearningData] = useState("TIMELINE");
+    const [learningData, setLearningData] = useState('TIMELINE');
     const renderLearningData = () => {
         switch (learningData) {
-            case "TIMELINE":
+            case 'TIMELINE':
                 return <TimelineReports></TimelineReports>;
-            case "PROGRESS":
+            case 'PROGRESS':
                 return <ProgressReports></ProgressReports>;
 
             default:
@@ -20,24 +20,24 @@ export default function BatchReports() {
             <div className="w-fit rounded-sm border border-neutral-500 text-body">
                 <button
                     className={`border-r border-neutral-500 px-3 py-[10px] ${
-                        learningData === "TIMELINE"
-                            ? "bg-primary-100 font-[600] text-neutral-600"
-                            : ""
+                        learningData === 'TIMELINE'
+                            ? 'bg-primary-100 font-[600] text-neutral-600'
+                            : ''
                     }`}
                     onClick={() => {
-                        setLearningData("TIMELINE");
+                        setLearningData('TIMELINE');
                     }}
                 >
                     Learning Timeline
                 </button>
                 <button
                     className={`border-l border-neutral-500 px-3 py-[10px] ${
-                        learningData === "PROGRESS"
-                            ? "bg-primary-100 font-[600] text-neutral-600"
-                            : ""
+                        learningData === 'PROGRESS'
+                            ? 'bg-primary-100 font-[600] text-neutral-600'
+                            : ''
                     }`}
                     onClick={() => {
-                        setLearningData("PROGRESS");
+                        setLearningData('PROGRESS');
                     }}
                 >
                     Learning Progress

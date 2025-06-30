@@ -1,15 +1,15 @@
-import { LayoutContainer } from "@/components/common/layout-container/layout-container";
-import { useEffect, useState } from "react";
-import { MainStepComponent } from "./StepComponents/MainStepComponent";
-import { CheckCircle } from "phosphor-react";
-import { Helmet } from "react-helmet";
-import { useSidebar } from "@/components/ui/sidebar";
-import { Route } from "..";
-import { useNavigate } from "@tanstack/react-router";
-import { useFilterDataForAssesment } from "@/routes/assessment/assessment-list/-utils.ts/useFiltersData";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
-import { NoCourseDialog } from "@/components/common/students/no-course-dialog";
+import { LayoutContainer } from '@/components/common/layout-container/layout-container';
+import { useEffect, useState } from 'react';
+import { MainStepComponent } from './StepComponents/MainStepComponent';
+import { CheckCircle } from 'phosphor-react';
+import { Helmet } from 'react-helmet';
+import { useSidebar } from '@/components/ui/sidebar';
+import { Route } from '..';
+import { useNavigate } from '@tanstack/react-router';
+import { useFilterDataForAssesment } from '@/routes/assessment/assessment-list/-utils.ts/useFiltersData';
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
+import { NoCourseDialog } from '@/components/common/students/no-course-dialog';
 // Define interfaces for props
 interface CreateAssessmentSidebarProps {
     steps: {
@@ -37,17 +37,17 @@ const CreateAssessmentSidebar: React.FC<CreateAssessmentSidebarProps> = ({
                     id={step.id}
                     className={`mx-6 flex items-center justify-between px-6 py-3 ${
                         index <= currentStep || completedSteps[index - 1]
-                            ? "cursor-pointer"
-                            : "cursor-not-allowed"
+                            ? 'cursor-pointer'
+                            : 'cursor-not-allowed'
                     } ${
                         currentStep === index
-                            ? "rounded-lg border-2 bg-white !text-primary-500"
+                            ? 'rounded-lg border-2 bg-white !text-primary-500'
                             : completedSteps[index]
-                              ? "bg-transparent text-black"
+                              ? 'bg-transparent text-black'
                               : `bg-transparent ${
                                     index > 0 && completedSteps[index - 1]
-                                        ? "text-black"
-                                        : "text-gray-300"
+                                        ? 'text-black'
+                                        : 'text-gray-300'
                                 } `
                     } focus:outline-none`}
                 >
@@ -78,20 +78,20 @@ const CreateAssessmentComponent = () => {
 
     const steps = [
         {
-            label: "Basic Info",
-            id: "basic-info",
+            label: 'Basic Info',
+            id: 'basic-info',
         },
         {
-            label: "Add Question",
-            id: "add-question",
+            label: 'Add Question',
+            id: 'add-question',
         },
         {
-            label: "Add Participants",
-            id: "add-participants",
+            label: 'Add Participants',
+            id: 'add-participants',
         },
         {
-            label: "Access Control",
-            id: "access-control",
+            label: 'Access Control',
+            id: 'access-control',
         },
     ];
     const [currentStep, setCurrentStep] = useState(presentStep);
@@ -106,7 +106,7 @@ const CreateAssessmentComponent = () => {
             setCurrentStep((prev) => prev + 1);
             // Update URL `currentStep` without reloading
             navigate({
-                to: "/homework-creation/create-assessment/$assessmentId/$examtype",
+                to: '/homework-creation/create-assessment/$assessmentId/$examtype',
                 params: {
                     assessmentId: assessmentId,
                     examtype: examtype,

@@ -44,7 +44,7 @@ export function OnboardingComponent() {
     //             // Optional: redirect or halt progress
     //         } else {
     //             console.error('❌ OAuth Callback Failed or Skipped.');
-                
+
     //         }
     //     };
 

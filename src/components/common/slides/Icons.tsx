@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 
 export const ExportIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg aria-hidden="true" focusable="false" role="img" viewBox="0 0 448 512" {...props}>

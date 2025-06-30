@@ -1,6 +1,6 @@
 export enum EvaluationAIKey {
-    dashboard = "evaluationAIDashboardFirstVisit",
-    students = "evaluationAIStudentsFirstVisit",
-    assessment = "evaluationAIAssessmentsFirstVisit",
-    evaluation = "evaluationAIEvaluationFirstVisit",
+    dashboard = 'evaluationAIDashboardFirstVisit',
+    students = 'evaluationAIStudentsFirstVisit',
+    assessment = 'evaluationAIAssessmentsFirstVisit',
+    evaluation = 'evaluationAIEvaluationFirstVisit',
 }

@@ -1,13 +1,13 @@
-import { useEffect, useState } from "react";
-import introJs from "intro.js";
-import "intro.js/introjs.css";
-import useLocalStorage from "./use-local-storage";
+import { useEffect, useState } from 'react';
+import introJs from 'intro.js';
+import 'intro.js/introjs.css';
+import useLocalStorage from './use-local-storage';
 
 export interface Step {
     element: string;
     title: string;
     intro: string;
-    position?: "left" | "right" | "top" | "bottom";
+    position?: 'left' | 'right' | 'top' | 'bottom';
     subStep?: Step[];
 }
 
@@ -42,12 +42,12 @@ const useIntroJsTour = ({
                 showBullets: false,
                 exitOnOverlayClick: false,
                 keyboardNavigation: true,
-                nextLabel: "Next",
-                prevLabel: "Previous",
-                highlightClass: "custom-highlight",
+                nextLabel: 'Next',
+                prevLabel: 'Previous',
+                highlightClass: 'custom-highlight',
                 tooltipClass: `custom-tooltip ${className}`,
                 steps,
-                doneLabel: "Done",
+                doneLabel: 'Done',
                 exitOnEsc: true,
             });
 
@@ -55,10 +55,10 @@ const useIntroJsTour = ({
 
             instance.onafterchange((targetElement) => {
                 if (lastTarget) {
-                    lastTarget.removeEventListener("click", handleTargetClick);
+                    lastTarget.removeEventListener('click', handleTargetClick);
                 }
 
-                targetElement.addEventListener("click", handleTargetClick);
+                targetElement.addEventListener('click', handleTargetClick);
                 lastTarget = targetElement;
             });
 
@@ -78,7 +78,7 @@ const useIntroJsTour = ({
                 if (onTourExit) onTourExit();
             });
             setTimeout(() => {
-                console.log("starting tour...");
+                console.log('starting tour...');
                 instance.start();
             }, 300);
 

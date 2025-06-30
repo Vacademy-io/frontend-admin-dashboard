@@ -1,5 +1,5 @@
-import { Dispatch, SetStateAction } from "react";
-import { QuestionType as QuestionTypeList } from "@/constants/dummy-data";
+import { Dispatch, SetStateAction } from 'react';
+import { QuestionType as QuestionTypeList } from '@/constants/dummy-data';
 
 export interface CollapsibleQuillEditorProps {
     value: string | null | undefined;

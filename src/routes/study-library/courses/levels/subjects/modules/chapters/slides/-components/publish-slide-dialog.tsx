@@ -1,15 +1,15 @@
 // publish-dialog.tsx
-import { MyButton } from "@/components/design-system/button";
-import { MyDialog } from "@/components/design-system/dialog";
-import { useContentStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store";
-import { Dispatch, SetStateAction, useState } from "react";
+import { MyButton } from '@/components/design-system/button';
+import { MyDialog } from '@/components/design-system/dialog';
+import { useContentStore } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
+import { Dispatch, SetStateAction, useState } from 'react';
 
 interface PublishDialogProps {
     isOpen: boolean;
     setIsOpen: Dispatch<SetStateAction<boolean>>;
     handlePublishUnpublishSlide: (
         setIsOpen: Dispatch<SetStateAction<boolean>>,
-        notify: boolean,
+        notify: boolean
     ) => void;
 }
 interface NotifyDialogProps {
@@ -69,7 +69,7 @@ export const PublishDialog = ({
             buttonType="primary"
             scale="medium"
             layoutVariant="default"
-            disable={activeItem?.status == "PUBLISHED"}
+            disable={activeItem?.status == 'PUBLISHED'}
         >
             Publish
         </MyButton>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState } from 'react';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -7,22 +7,22 @@ import {
     DropdownMenuSub,
     DropdownMenuSubTrigger,
     DropdownMenuSubContent,
-} from "@/components/ui/dropdown-menu";
-import { MyButton } from "@/components/design-system/button";
-import { DotsThree, WarningCircle } from "phosphor-react";
-import { AssessmentRevaluateStudentInterface } from "@/types/assessments/assessment-overview";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { StudentRevaluateQuestionWiseComponent } from "./student-revaluate-question-wise-component";
-import { useMutation } from "@tanstack/react-query";
-import { SelectedFilterRevaluateInterface } from "@/types/assessments/assessment-revaluate-question-wise";
+} from '@/components/ui/dropdown-menu';
+import { MyButton } from '@/components/design-system/button';
+import { DotsThree, WarningCircle } from 'phosphor-react';
+import { AssessmentRevaluateStudentInterface } from '@/types/assessments/assessment-overview';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { StudentRevaluateQuestionWiseComponent } from './student-revaluate-question-wise-component';
+import { useMutation } from '@tanstack/react-query';
+import { SelectedFilterRevaluateInterface } from '@/types/assessments/assessment-revaluate-question-wise';
 import {
     getReleaseStudentResult,
     getRevaluateStudentResult,
-} from "../../-services/assessment-details-services";
-import { Route } from "../..";
-import { getInstituteId } from "@/constants/helper";
-import { toast } from "sonner";
-import { SelectedReleaseResultFilterInterface } from "../AssessmentSubmissionsTab";
+} from '../../-services/assessment-details-services';
+import { Route } from '../..';
+import { getInstituteId } from '@/constants/helper';
+import { toast } from 'sonner';
+import { SelectedReleaseResultFilterInterface } from '../AssessmentSubmissionsTab';
 
 const ProvideReattemptComponent = ({
     student,
@@ -40,7 +40,7 @@ const ProvideReattemptComponent = ({
                     <WarningCircle size={18} />
                 </div>
                 <h1>
-                    Are you sure you want to provide a reattempt opportunity to{" "}
+                    Are you sure you want to provide a reattempt opportunity to{' '}
                     <span className="text-primary-500">{student.full_name}</span>?
                 </h1>
                 <div className="flex justify-end">
@@ -82,11 +82,11 @@ const ReleaseResultComponent = ({
         }) => getReleaseStudentResult(assessmentId, instituteId, methodType, selectedFilter),
         onSuccess: () => {
             toast.success(
-                "Your attempt for this assessment has been revaluated. Please check your email!",
+                'Your attempt for this assessment has been revaluated. Please check your email!',
                 {
-                    className: "success-toast",
+                    className: 'success-toast',
                     duration: 4000,
-                },
+                }
             );
             onClose();
         },
@@ -99,7 +99,7 @@ const ReleaseResultComponent = ({
         getReleaseResultMutation.mutate({
             assessmentId,
             instituteId,
-            methodType: "ENTIRE_ASSESSMENT_PARTICIPANTS",
+            methodType: 'ENTIRE_ASSESSMENT_PARTICIPANTS',
             selectedFilter: {
                 attempt_ids: [student.attempt_id],
             },
@@ -114,7 +114,7 @@ const ReleaseResultComponent = ({
                     <WarningCircle size={18} />
                 </div>
                 <h1>
-                    Are you sure you want to release result for{" "}
+                    Are you sure you want to release result for{' '}
                     <span className="text-primary-500">{student.full_name}</span>?
                 </h1>
                 <div className="flex justify-end">
@@ -145,7 +145,7 @@ const StudentRevaluateForEntireAssessmentComponent = ({
     const [selectedFilter] = useState<SelectedFilterRevaluateInterface>({
         questions: [
             {
-                section_id: "",
+                section_id: '',
                 question_ids: [],
             },
         ],
@@ -165,11 +165,11 @@ const StudentRevaluateForEntireAssessmentComponent = ({
         }) => getRevaluateStudentResult(assessmentId, instituteId, methodType, selectedFilter),
         onSuccess: () => {
             toast.success(
-                "Your attempt for this assessment has been revaluated. Please check your email!",
+                'Your attempt for this assessment has been revaluated. Please check your email!',
                 {
-                    className: "success-toast",
+                    className: 'success-toast',
                     duration: 4000,
-                },
+                }
             );
             onClose();
         },
@@ -182,12 +182,12 @@ const StudentRevaluateForEntireAssessmentComponent = ({
         getRevaluateResultMutation.mutate({
             assessmentId,
             instituteId,
-            methodType: "ENTIRE_ASSESSMENT_PARTICIPANTS",
+            methodType: 'ENTIRE_ASSESSMENT_PARTICIPANTS',
             selectedFilter: {
                 ...selectedFilter,
                 questions: [
                     {
-                        section_id: "",
+                        section_id: '',
                         question_ids: [],
                     },
                 ],
@@ -206,7 +206,7 @@ const StudentRevaluateForEntireAssessmentComponent = ({
                     <WarningCircle size={18} />
                 </div>
                 <h1>
-                    Are you sure you want to revaluate for{" "}
+                    Are you sure you want to revaluate for{' '}
                     <span className="text-primary-500">{student.full_name}</span> for the entire
                     assessment?
                 </h1>
@@ -251,7 +251,7 @@ const StudentAttemptDropdown = ({ student }: { student: AssessmentRevaluateStude
                 <DropdownMenuContent>
                     <DropdownMenuItem
                         className="cursor-pointer"
-                        onClick={() => handleProvideReattempt("Provide Reattempt")}
+                        onClick={() => handleProvideReattempt('Provide Reattempt')}
                     >
                         Provide Reattempt
                     </DropdownMenuItem>
@@ -262,13 +262,13 @@ const StudentAttemptDropdown = ({ student }: { student: AssessmentRevaluateStude
                         <DropdownMenuSubContent>
                             <DropdownMenuItem
                                 className="cursor-pointer"
-                                onClick={() => handleProvideReattempt("Question Wise")}
+                                onClick={() => handleProvideReattempt('Question Wise')}
                             >
                                 Question Wise
                             </DropdownMenuItem>
                             <DropdownMenuItem
                                 className="cursor-pointer"
-                                onClick={() => handleProvideReattempt("Entire Assessment")}
+                                onClick={() => handleProvideReattempt('Entire Assessment')}
                             >
                                 Entire Assessment
                             </DropdownMenuItem>
@@ -276,7 +276,7 @@ const StudentAttemptDropdown = ({ student }: { student: AssessmentRevaluateStude
                     </DropdownMenuSub>
                     <DropdownMenuItem
                         className="cursor-pointer"
-                        onClick={() => handleProvideReattempt("Release Result")}
+                        onClick={() => handleProvideReattempt('Release Result')}
                     >
                         Release Result
                     </DropdownMenuItem>
@@ -285,25 +285,25 @@ const StudentAttemptDropdown = ({ student }: { student: AssessmentRevaluateStude
 
             {/* Dialog should be controlled by openDialog state */}
             <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-                {selectedOption === "Provide Reattempt" && (
+                {selectedOption === 'Provide Reattempt' && (
                     <ProvideReattemptComponent
                         student={student}
                         onClose={() => setOpenDialog(false)}
                     />
                 )}
-                {selectedOption === "Question Wise" && (
+                {selectedOption === 'Question Wise' && (
                     <StudentRevaluateQuestionWiseComponent
                         student={student}
                         onClose={() => setOpenDialog(false)}
                     />
                 )}
-                {selectedOption === "Entire Assessment" && (
+                {selectedOption === 'Entire Assessment' && (
                     <StudentRevaluateForEntireAssessmentComponent
                         student={student}
                         onClose={() => setOpenDialog(false)}
                     />
                 )}
-                {selectedOption === "Release Result" && (
+                {selectedOption === 'Release Result' && (
                     <ReleaseResultComponent
                         student={student}
                         onClose={() => setOpenDialog(false)}

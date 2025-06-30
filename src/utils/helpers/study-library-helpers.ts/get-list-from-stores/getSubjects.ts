@@ -1,10 +1,10 @@
 // utils/study-library/getCourseSubjects.ts
-import { useStudyLibraryStore, SubjectType } from "@/stores/study-library/use-study-library-store";
+import { useStudyLibraryStore, SubjectType } from '@/stores/study-library/use-study-library-store';
 
 export const getCourseSubjects = (
     courseId: string,
     sessionId: string,
-    levelId: string,
+    levelId: string
 ): SubjectType[] => {
     const studyLibraryData = useStudyLibraryStore.getState().studyLibraryData;
 

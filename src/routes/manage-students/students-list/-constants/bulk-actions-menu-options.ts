@@ -10,4 +10,6 @@ export const BulkActionDropdownList = [
     'Re-register for Next Session',
     'Terminate Registration',
     'Share Credentials',
+    'Send WhatsApp Message',
+    'Send Email',
 ];

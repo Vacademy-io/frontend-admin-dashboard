@@ -1,27 +1,27 @@
-"use client";
+'use client';
 
-import axios from "axios";
-import { createFileRoute } from "@tanstack/react-router";
-import { LayoutContainer } from "../-components/layout-container/layout-container";
-import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
-import { useEffect, useState } from "react";
-import { MyButton } from "@/components/design-system/button";
-import { Examination } from "@/svgs";
-import { useNavigate } from "@tanstack/react-router";
-import { CalendarBlank } from "phosphor-react";
-import { EVALUATION_TOOL_GET_QUESTION } from "@/constants/urls";
+import axios from 'axios';
+import { createFileRoute } from '@tanstack/react-router';
+import { LayoutContainer } from '../-components/layout-container/layout-container';
+import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
+import { useEffect, useState } from 'react';
+import { MyButton } from '@/components/design-system/button';
+import { Examination } from '@/svgs';
+import { useNavigate } from '@tanstack/react-router';
+import { CalendarBlank } from 'phosphor-react';
+import { EVALUATION_TOOL_GET_QUESTION } from '@/constants/urls';
 import {
     Accordion,
     AccordionContent,
     AccordionItem,
     AccordionTrigger,
-} from "@/components/ui/accordion";
+} from '@/components/ui/accordion';
 // import { MarkingCriteriaDialog } from "./create-assessment/-components/marking-criteria-dialog";
-import EditCriteriaDialog from "./create-assessment/-components/edit-criteria-dialog";
-import { useMutation } from "@tanstack/react-query";
-import { handleUpdateCriteria } from "./create-assessment/-services/assessment-services";
-import { SectionResponse } from "./create-assessment/-hooks/getQuestionsDataForSection";
-import { Loader2 } from "lucide-react";
+import EditCriteriaDialog from './create-assessment/-components/edit-criteria-dialog';
+import { useMutation } from '@tanstack/react-query';
+import { handleUpdateCriteria } from './create-assessment/-services/assessment-services';
+import { SectionResponse } from './create-assessment/-hooks/getQuestionsDataForSection';
+import { Loader2 } from 'lucide-react';
 
 interface Assessment {
     assessmentId: string;
@@ -55,7 +55,7 @@ interface AssessmentDetails {
     }>;
 }
 
-export const Route = createFileRoute("/evaluator-ai/assessment/")({
+export const Route = createFileRoute('/evaluator-ai/assessment/')({
     component: () => (
         <LayoutContainer>
             <RouteComponent />
@@ -87,14 +87,14 @@ function RouteComponent() {
 
     useEffect(() => {
         setNavHeading(<h1 className="text-lg">Assessment</h1>);
-        const storedData = localStorage.getItem("assessments");
+        const storedData = localStorage.getItem('assessments');
         if (storedData) {
             try {
                 const parsed = JSON.parse(storedData);
                 setAssessments(parsed);
-                console.log("Parsed assessment:", parsed);
+                console.log('Parsed assessment:', parsed);
             } catch (err) {
-                console.error("Error parsing assessment:", err);
+                console.error('Error parsing assessment:', err);
             }
         }
     }, []);
@@ -106,13 +106,13 @@ function RouteComponent() {
 
         try {
             const response = await axios.get(`${EVALUATION_TOOL_GET_QUESTION}/${assessmentId}`);
-            console.log("Fetched questions for assessment:", assessmentId, response.data);
+            console.log('Fetched questions for assessment:', assessmentId, response.data);
             setAssessmentDetails((prev) => ({
                 ...prev,
                 [assessmentId]: response.data,
             }));
         } catch {
-            console.error("Error fetching assessment details:");
+            console.error('Error fetching assessment details:');
         } finally {
             setLoadingAssessments((prev) => ({ ...prev, [assessmentId]: false }));
         }
@@ -131,7 +131,7 @@ function RouteComponent() {
                                 layoutVariant="default"
                                 className="ml-auto"
                                 onClick={() =>
-                                    navigate({ to: "/evaluator-ai/assessment/create-assessment" })
+                                    navigate({ to: '/evaluator-ai/assessment/create-assessment' })
                                 }
                             >
                                 <CalendarBlank size={32} />
@@ -235,7 +235,7 @@ function RouteComponent() {
                                                                                 const updatedSections =
                                                                                     sectionData?.map(
                                                                                         (
-                                                                                            section,
+                                                                                            section
                                                                                         ) => ({
                                                                                             ...section,
                                                                                             new_section:
@@ -243,7 +243,7 @@ function RouteComponent() {
                                                                                             questions:
                                                                                                 section.questions.map(
                                                                                                     (
-                                                                                                        q,
+                                                                                                        q
                                                                                                     ) =>
                                                                                                         q.id ===
                                                                                                         question.id
@@ -258,9 +258,9 @@ function RouteComponent() {
                                                                                                                   ...q,
                                                                                                                   new_question:
                                                                                                                       false,
-                                                                                                              },
+                                                                                                              }
                                                                                                 ),
-                                                                                        }),
+                                                                                        })
                                                                                     );
 
                                                                                 updateCriteriaMutation.mutate(
@@ -269,11 +269,11 @@ function RouteComponent() {
                                                                                             assessment.assessmentId,
                                                                                         sectionDetails:
                                                                                             updatedSections as SectionResponse[],
-                                                                                    },
+                                                                                    }
                                                                                 );
                                                                                 console.log(
-                                                                                    "Updated marking json:",
-                                                                                    updated,
+                                                                                    'Updated marking json:',
+                                                                                    updated
                                                                                 );
                                                                             }}
                                                                         />
@@ -291,21 +291,21 @@ function RouteComponent() {
                                                             e.stopPropagation();
                                                             if (
                                                                 confirm(
-                                                                    "Are you sure you want to delete this assessment? ",
+                                                                    'Are you sure you want to delete this assessment? '
                                                                 )
                                                             ) {
                                                                 const updatedAssessments =
                                                                     assessments.filter(
                                                                         (a) =>
                                                                             a.assessmentId !==
-                                                                            assessment.assessmentId,
+                                                                            assessment.assessmentId
                                                                     );
                                                                 setAssessments(updatedAssessments);
                                                                 localStorage.setItem(
-                                                                    "assessments",
+                                                                    'assessments',
                                                                     JSON.stringify(
-                                                                        updatedAssessments,
-                                                                    ),
+                                                                        updatedAssessments
+                                                                    )
                                                                 );
                                                             }
                                                         }}
@@ -334,7 +334,7 @@ function RouteComponent() {
                             layoutVariant="default"
                             className="mx-auto"
                             onClick={() =>
-                                navigate({ to: "/evaluator-ai/assessment/create-assessment" })
+                                navigate({ to: '/evaluator-ai/assessment/create-assessment' })
                             }
                         >
                             <CalendarBlank size={32} />
@@ -350,10 +350,10 @@ function RouteComponent() {
 function ExplanationPreview({ explanation }: { explanation: string }) {
     const [expanded, setExpanded] = useState(false);
 
-    const explanationHtml = explanation || "No answer available";
-    const plainText = explanationHtml.replace(/<[^>]+>/g, "").trim();
+    const explanationHtml = explanation || 'No answer available';
+    const plainText = explanationHtml.replace(/<[^>]+>/g, '').trim();
     const words = plainText.split(/\s+/);
-    const preview = words.slice(0, 10).join(" ");
+    const preview = words.slice(0, 10).join(' ');
     const hasMore = words.length > 10;
 
     return (
@@ -361,14 +361,14 @@ function ExplanationPreview({ explanation }: { explanation: string }) {
             <span>{expanded ? plainText : preview}</span>
             {hasMore && (
                 <>
-                    {" "}
+                    {' '}
                     <button
                         className="text-primary-500 underline"
                         onClick={() => {
                             setExpanded((prev) => !prev);
                         }}
                     >
-                        {expanded ? "View Less" : "View More"}
+                        {expanded ? 'View Less' : 'View More'}
                     </button>
                 </>
             )}

@@ -18,14 +18,14 @@ import { useInstituteQuery } from '@/services/student-list-section/getInstituteD
 import { AssessmentReportStudentInterface } from '@/types/assessments/assessment-overview';
 import { getAssessmentDetailsData } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-services/assessment-services';
 import { Steps } from '@/types/assessments/assessment-data-type';
-import { 
-    Shield, 
-    Warning, 
-    X, 
-    ArrowClockwise, 
-    FileX, 
+import {
+    Shield,
+    Warning,
+    X,
+    ArrowClockwise,
+    FileX,
     ShieldCheck,
-    Info
+    Info,
 } from '@phosphor-icons/react';
 
 export interface StudentReportFilterInterface {
@@ -35,12 +35,12 @@ export interface StudentReportFilterInterface {
 }
 
 // Enhanced Error Component
-const ErrorDisplay = ({ 
-    error, 
-    onRetry, 
-    context = "data"
-}: { 
-    error: any; 
+const ErrorDisplay = ({
+    error,
+    onRetry,
+    context = 'data',
+}: {
+    error: any;
     onRetry: () => void;
     context?: string;
 }) => {
@@ -49,12 +49,12 @@ const ErrorDisplay = ({
     const isNetworkError = !error?.response;
 
     return (
-        <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-            <div className={`mb-4 p-4 rounded-full ${
-                isUnauthorized ? 'bg-orange-100' : 
-                isServerError ? 'bg-red-100' : 
-                'bg-gray-100'
-            }`}>
+        <div className="flex flex-col items-center justify-center px-4 py-12 text-center">
+            <div
+                className={`mb-4 rounded-full p-4 ${
+                    isUnauthorized ? 'bg-orange-100' : isServerError ? 'bg-red-100' : 'bg-gray-100'
+                }`}
+            >
                 {isUnauthorized ? (
                     <Shield className="size-8 text-orange-600" />
                 ) : isServerError ? (
@@ -63,22 +63,23 @@ const ErrorDisplay = ({
                     <Warning className="size-8 text-gray-600" />
                 )}
             </div>
-            
-            <h3 className="text-lg font-semibold text-neutral-800 mb-2">
-                {isUnauthorized ? 'Access Restricted' : 
-                 isServerError ? 'Server Error' : 
-                 'Unable to Load Data'}
+
+            <h3 className="mb-2 text-lg font-semibold text-neutral-800">
+                {isUnauthorized
+                    ? 'Access Restricted'
+                    : isServerError
+                      ? 'Server Error'
+                      : 'Unable to Load Data'}
             </h3>
-            
-            <p className="text-sm text-neutral-600 mb-4 max-w-md">
-                {isUnauthorized ? 
-                    `You don't have permission to view ${context}. Please contact your administrator for access.` :
-                    isServerError ? 
-                    `There's a problem with our servers. Please try again later.` :
-                    `We're having trouble loading the ${context}. Please check your connection and try again.`
-                }
+
+            <p className="mb-4 max-w-md text-sm text-neutral-600">
+                {isUnauthorized
+                    ? `You don't have permission to view ${context}. Please contact your administrator for access.`
+                    : isServerError
+                      ? `There's a problem with our servers. Please try again later.`
+                      : `We're having trouble loading the ${context}. Please check your connection and try again.`}
             </p>
-            
+
             {!isUnauthorized && (
                 <MyButton
                     onClick={onRetry}
@@ -90,14 +91,17 @@ const ErrorDisplay = ({
                     Try Again
                 </MyButton>
             )}
-            
+
             {isUnauthorized && (
-                <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-lg max-w-md">
+                <div className="mt-4 max-w-md rounded-lg border border-orange-200 bg-orange-50 p-3">
                     <div className="flex items-start gap-2">
-                        <Info className="size-4 text-orange-600 mt-0.5 flex-shrink-0" />
+                        <Info className="mt-0.5 size-4 shrink-0 text-orange-600" />
                         <div className="text-xs text-orange-700">
-                            <p className="font-medium mb-1">Need access?</p>
-                            <p>Contact your system administrator to grant permissions for viewing test records.</p>
+                            <p className="mb-1 font-medium">Need access?</p>
+                            <p>
+                                Contact your system administrator to grant permissions for viewing
+                                test records.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -109,11 +113,11 @@ const ErrorDisplay = ({
 // Empty State Component
 const EmptyState = () => (
     <div className="flex flex-col items-center justify-center py-12 text-center">
-        <div className="mb-4 p-4 rounded-full bg-neutral-100">
+        <div className="mb-4 rounded-full bg-neutral-100 p-4">
             <FileX className="size-8 text-neutral-400" />
         </div>
-        <h3 className="text-lg font-semibold text-neutral-700 mb-2">No Test Records</h3>
-        <p className="text-sm text-neutral-500 max-w-md">
+        <h3 className="mb-2 text-lg font-semibold text-neutral-700">No Test Records</h3>
+        <p className="max-w-md text-sm text-neutral-500">
             This student hasn't taken any assessments yet, or the test records are not available.
         </p>
     </div>
@@ -129,11 +133,11 @@ export const StudentTestRecord = ({
     isStudentList?: boolean;
 }) => {
     // Institute data with error handling
-    const { 
-        data: instituteDetails, 
-        isLoading: instituteLoading, 
+    const {
+        data: instituteDetails,
+        isLoading: instituteLoading,
         error: instituteError,
-        refetch: refetchInstitute
+        refetch: refetchInstitute,
     } = useQuery(useInstituteQuery());
 
     const [searchText, setSearchText] = useState('');
@@ -154,13 +158,13 @@ export const StudentTestRecord = ({
 
     const [pageNo, setPageNo] = useState(0);
     const instituteId = getInstituteId();
-    
+
     // Student report data with error handling
-    const { 
-        data, 
-        isLoading, 
+    const {
+        data,
+        isLoading,
         error: reportError,
-        refetch: refetchReport
+        refetch: refetchReport,
     } = useQuery({
         ...handleStudentReportData({
             studentId: selectedStudent?.id,
@@ -175,10 +179,12 @@ export const StudentTestRecord = ({
             // Retry up to 2 times for other errors
             return failureCount < 2;
         },
-        retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
+        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     });
-    
-    const [studentReportData, setStudentReportData] = useState(data || { content: [], total_pages: 0 });
+
+    const [studentReportData, setStudentReportData] = useState(
+        data || { content: [], total_pages: 0 }
+    );
 
     const [selectedTest, setSelectedTest] = useState(null);
     const [assessmentDetails, setAssessmentDetails] = useState<Steps | null>(null);
@@ -313,8 +319,8 @@ export const StudentTestRecord = ({
     // Show institute error
     if (instituteError) {
         return (
-            <ErrorDisplay 
-                error={instituteError} 
+            <ErrorDisplay
+                error={instituteError}
                 onRetry={handleRetryInstitute}
                 context="institute details"
             />
@@ -324,20 +330,16 @@ export const StudentTestRecord = ({
     // Show report error
     if (reportError) {
         return (
-            <ErrorDisplay 
-                error={reportError} 
-                onRetry={handleRetryReport}
-                context="test records"
-            />
+            <ErrorDisplay error={reportError} onRetry={handleRetryReport} context="test records" />
         );
     }
 
     return (
-        <div className="flex flex-col gap-6 animate-fadeIn">
+        <div className="animate-fadeIn flex flex-col gap-6">
             {/* Enhanced header with better styling */}
-            <div className="flex justify-between items-center">
+            <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <ShieldCheck className="size-5 text-primary-600" />
+                    <ShieldCheck className="text-primary-600 size-5" />
                     <h3 className="text-lg font-semibold text-neutral-800">Test Records</h3>
                 </div>
                 <AssessmentDetailsSearchComponent
@@ -355,14 +357,14 @@ export const StudentTestRecord = ({
                     studentReportData.content.map(
                         (studentReport: AssessmentReportStudentInterface, index: number) => (
                             <div
-                                className="group flex w-full flex-col gap-4 rounded-xl border border-neutral-200 p-4 hover:border-primary-200 hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-white to-neutral-50/30"
+                                className="group flex w-full flex-col gap-4 rounded-xl border border-neutral-200 bg-gradient-to-br from-white to-neutral-50/30 p-4 transition-all duration-300 hover:border-primary-200 hover:shadow-lg"
                                 key={index}
                             >
-                                <div className="flex w-full gap-4 items-start">
-                                    <div className="text-base font-medium text-neutral-800 flex-1 group-hover:text-primary-700 transition-colors duration-300">
+                                <div className="flex w-full items-start gap-4">
+                                    <div className="group-hover:text-primary-700 flex-1 text-base font-medium text-neutral-800 transition-colors duration-300">
                                         {studentReport.assessment_name}
                                     </div>
-                                    <div className="transform transition-all duration-300 group-hover:scale-105">
+                                    <div className="transition-all duration-300 group-hover:scale-105">
                                         <StatusChips
                                             status={
                                                 studentReport.attempt_status === 'PENDING'
@@ -374,10 +376,10 @@ export const StudentTestRecord = ({
                                         />
                                     </div>
                                 </div>
-                                
+
                                 {studentReport.attempt_status === 'ENDED' ? (
                                     <div className="flex w-full flex-col gap-4">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                        <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2">
                                             <div className="flex items-center gap-2">
                                                 <span className="text-neutral-600">Subject:</span>
                                                 <span className="font-medium text-neutral-800">
@@ -390,23 +392,32 @@ export const StudentTestRecord = ({
                                             <div className="flex items-center gap-2">
                                                 <span className="text-neutral-600">Attempted:</span>
                                                 <span className="font-medium text-neutral-800">
-                                                    {extractDateTime(
-                                                        convertToLocalDateTime(
-                                                            studentReport.attempt_date
-                                                        )
-                                                    ).date}
+                                                    {
+                                                        extractDateTime(
+                                                            convertToLocalDateTime(
+                                                                studentReport.attempt_date
+                                                            )
+                                                        ).date
+                                                    }
                                                 </span>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <span className="text-neutral-600">Marks:</span>
-                                                <span className="font-semibold text-primary-600">
+                                                <span className="text-primary-600 font-semibold">
                                                     {studentReport.total_marks.toFixed(2)}
                                                 </span>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <span className="text-neutral-600">Duration:</span>
                                                 <span className="font-medium text-neutral-800">
-                                                    {Math.floor(studentReport.duration_in_seconds / 60)} min {(studentReport.duration_in_seconds % 60).toFixed(0)} sec
+                                                    {Math.floor(
+                                                        studentReport.duration_in_seconds / 60
+                                                    )}{' '}
+                                                    min{' '}
+                                                    {(
+                                                        studentReport.duration_in_seconds % 60
+                                                    ).toFixed(0)}{' '}
+                                                    sec
                                                 </span>
                                             </div>
                                         </div>
@@ -422,7 +433,7 @@ export const StudentTestRecord = ({
                                                         studentReport
                                                     )
                                                 }
-                                                className="hover:scale-105 transition-transform duration-200"
+                                                className="transition-transform duration-200 hover:scale-105"
                                             >
                                                 📊 View Report
                                             </MyButton>
@@ -455,8 +466,12 @@ export const StudentTestRecord = ({
                                             <div className="flex items-center gap-2">
                                                 <span className="text-neutral-600">Schedule:</span>
                                                 <span className="font-medium text-neutral-800">
-                                                    {convertToLocalDateTime(studentReport.start_time)}
-                                                    <span className="text-neutral-500 mx-2">to</span>
+                                                    {convertToLocalDateTime(
+                                                        studentReport.start_time
+                                                    )}
+                                                    <span className="mx-2 text-neutral-500">
+                                                        to
+                                                    </span>
                                                     {convertToLocalDateTime(studentReport.end_time)}
                                                 </span>
                                             </div>
@@ -467,7 +482,7 @@ export const StudentTestRecord = ({
                                                     scale="medium"
                                                     buttonType="secondary"
                                                     layoutVariant="default"
-                                                    className="hover:scale-105 transition-transform duration-200"
+                                                    className="transition-transform duration-200 hover:scale-105"
                                                 >
                                                     🔔 Send Reminder
                                                 </MyButton>

@@ -1,6 +1,6 @@
-import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-import { SessionType } from "@/schemas/student/student-list/institute-schema";
-import { useMemo } from "react";
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { SessionType } from '@/schemas/student/student-list/institute-schema';
+import { useMemo } from 'react';
 
 interface BatchObject {
     id: string;
@@ -72,7 +72,7 @@ export const useBatchSessionManagementForManualEnroll = () => {
 
         // Filter all batches that match both levelId and packageId
         const matchingBatches = batches.filter(
-            (batch) => batch.level.id === levelId && batch.package_dto.id === packageId,
+            (batch) => batch.level.id === levelId && batch.package_dto.id === packageId
         );
 
         // Extract and return unique sessions

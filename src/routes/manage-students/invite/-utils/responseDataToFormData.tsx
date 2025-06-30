@@ -20,14 +20,14 @@ export const responseToFormCustomField = (responseCustomField: CustomFieldType):
         disabled: false,
     }));
     const formCustomField: CustomField = {
-        id:  Math.floor(Math.random() * 100000),
+        id: Math.floor(Math.random() * 100000),
         _id: responseCustomField.id || '',
         type: responseCustomField.field_type,
         name: responseCustomField.field_name,
         oldKey: false,
         isRequired: responseCustomField.is_mandatory,
         options: requiredOptionsFormat,
-        status: responseCustomField.status === 'ACTIVE' ? 'ACTIVE' : 'DELETED'
+        status: responseCustomField.status === 'ACTIVE' ? 'ACTIVE' : 'DELETED',
     };
 
     return formCustomField;

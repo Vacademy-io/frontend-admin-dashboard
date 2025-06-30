@@ -1,19 +1,34 @@
 // components/LiveSessionActionBar.tsx
 import React, { useState, useEffect, useRef } from 'react'; // Added useEffect, useRef
 import { Button } from '@/components/ui/button';
-import { Users, Tv2, X, Edit3, Copy, Loader2, Wifi, WifiOff, Mic, MicOff, PauseCircle, PlayCircle as PlayIcon, Download, Settings2, ChevronDown, QrCodeIcon, MessageSquareText, FileText } from 'lucide-react'; // Added QrCodeIcon
+import {
+    Users,
+    Tv2,
+    X,
+    Edit3,
+    Copy,
+    Loader2,
+    Wifi,
+    WifiOff,
+    Mic,
+    MicOff,
+    PauseCircle,
+    PlayCircle as PlayIcon,
+    Download,
+    Settings2,
+    ChevronDown,
+    QrCodeIcon,
+    MessageSquareText,
+    FileText,
+} from 'lucide-react'; // Added QrCodeIcon
 import { toast } from 'sonner';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover"; // Import Popover components
+} from '@/components/ui/dropdown-menu';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'; // Import Popover components
 import QRCodeStyling from 'qr-code-styling'; // Import QRCodeStyling
 import { PRODUCT_NAME } from '@/config/branding';
 
@@ -24,12 +39,10 @@ const qrCodeInstance = new QRCodeStyling({
     type: 'svg',
     dotsOptions: { color: '#1E293B', type: 'rounded' }, // Darker dots for better contrast on potentially light popover
     backgroundOptions: { color: 'transparent' }, // Transparent background
-    imageOptions: { crossOrigin: 'anonymous', margin: 4, imageSize: 0.2 }, 
+    imageOptions: { crossOrigin: 'anonymous', margin: 4, imageSize: 0.2 },
     cornersSquareOptions: { type: 'extra-rounded', color: '#F97316' }, // Orange accents
     cornersDotOptions: { type: 'dot', color: '#EA580C' },
 });
-
-
 
 interface LiveSessionActionBarProps {
     inviteCode: string;
@@ -75,7 +88,7 @@ export const LiveSessionActionBar: React.FC<LiveSessionActionBarProps> = ({
     onEndSession,
     isEndingSession,
     sseStatus,
-    onGenerateTranscript, 
+    onGenerateTranscript,
     isTranscribing,
     hasTranscript,
     isAudioRecording,
@@ -103,10 +116,10 @@ export const LiveSessionActionBar: React.FC<LiveSessionActionBarProps> = ({
             if (qrRefPopover.current) {
                 try {
                     qrCodeInstance.update({ data: invitationLink });
-                    qrRefPopover.current.innerHTML = ''; 
+                    qrRefPopover.current.innerHTML = '';
                     qrCodeInstance.append(qrRefPopover.current);
                 } catch (error) {
-                    console.error("Error during QR code generation/append:", error);
+                    console.error('Error during QR code generation/append:', error);
                 }
             }
         }, 0); // 0ms timeout pushes to end of event loop
@@ -144,45 +157,58 @@ export const LiveSessionActionBar: React.FC<LiveSessionActionBarProps> = ({
                 <span className="hidden text-xs font-medium sm:text-sm md:inline">
                     Live {PRODUCT_NAME}
                 </span>
-                <div className="ml-1"> <SseStatusIndicator /></div>
+                <div className="ml-1">
+                    {' '}
+                    <SseStatusIndicator />
+                </div>
                 {isAudioRecording && (
                     <div className="flex items-center gap-1 rounded-full bg-red-500 px-2 py-0.5 text-xs font-semibold">
                         <Mic size={12} />
                         <span>REC</span>
-                        <span className="ml-1 font-mono tabular-nums">{formatDuration(recordingDuration)}</span>
+                        <span className="ml-1 font-mono tabular-nums">
+                            {formatDuration(recordingDuration)}
+                        </span>
                         {isAudioPaused && <span className="ml-1">(Paused)</span>}
                     </div>
                 )}
                 <Popover open={isQrPopoverOpen} onOpenChange={setIsQrPopoverOpen}>
                     <PopoverTrigger asChild>
-                        <Button 
-                            variant="ghost" 
-                            className="flex items-center rounded-full bg-slate-700 px-2 py-1 text-xs text-slate-200 hover:bg-slate-600 hover:text-orange-400 h-auto group"
+                        <Button
+                            variant="ghost"
+                            className="group flex h-auto items-center rounded-full bg-slate-700 px-2 py-1 text-xs text-slate-200 hover:bg-slate-600 hover:text-orange-400"
                             title="Show Invite QR Code / Copy Link"
                         >
-                    <span className="mr-1 hidden sm:inline">Code:</span>
-                    <span className="font-mono tracking-wider">{inviteCode}</span>
-                            <QrCodeIcon size={14} className="ml-1.5 text-slate-400 group-hover:text-orange-300 transition-colors" />
+                            <span className="mr-1 hidden sm:inline">Code:</span>
+                            <span className="font-mono tracking-wider">{inviteCode}</span>
+                            <QrCodeIcon
+                                size={14}
+                                className="ml-1.5 text-slate-400 transition-colors group-hover:text-orange-300"
+                            />
                         </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto bg-slate-50 p-3 shadow-xl border-slate-300" align="start">
-                        <div className="text-center text-sm font-medium text-slate-700 mb-2">Scan to Join Session</div>
-                        <div 
-                            ref={qrRefPopover} 
-                            className="rounded-md overflow-hidden border-2 border-orange-400 bg-white p-1 shadow-inner mx-auto"
-                            style={{ 
-                                width: `${qrCodeInstance._options.width}px`, 
-                                height: `${qrCodeInstance._options.height}px` 
+                    <PopoverContent
+                        className="w-auto border-slate-300 bg-slate-50 p-3 shadow-xl"
+                        align="start"
+                    >
+                        <div className="mb-2 text-center text-sm font-medium text-slate-700">
+                            Scan to Join Session
+                        </div>
+                        <div
+                            ref={qrRefPopover}
+                            className="mx-auto overflow-hidden rounded-md border-2 border-orange-400 bg-white p-1 shadow-inner"
+                            style={{
+                                width: `${qrCodeInstance._options.width}px`,
+                                height: `${qrCodeInstance._options.height}px`,
                             }}
                         />
-                    <Button
+                        <Button
                             variant="outline"
                             size="sm"
-                            className="w-full mt-3 border-slate-300 text-slate-600 hover:bg-slate-200 hover:text-slate-800"
-                        onClick={handleCopyInvite}
-                    >
+                            className="mt-3 w-full border-slate-300 text-slate-600 hover:bg-slate-200 hover:text-slate-800"
+                            onClick={handleCopyInvite}
+                        >
                             <Copy size={14} className="mr-1.5" /> Copy Invite Link
-                    </Button>
+                        </Button>
                     </PopoverContent>
                 </Popover>
             </div>
@@ -197,56 +223,87 @@ export const LiveSessionActionBar: React.FC<LiveSessionActionBarProps> = ({
             {/* Right Section: Action Buttons */}
             <div className="flex items-center gap-1 sm:gap-2">
                 {/* Audio Controls Menu */}
-                {isAudioRecording && (onPauseAudio || onResumeAudio || (audioBlobUrl && onDownloadAudio)) && (
-                     <DropdownMenu open={isAudioMenuOpen} onOpenChange={setIsAudioMenuOpen}>
-                        <DropdownMenuTrigger asChild>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="text-sky-400 hover:bg-slate-700 hover:text-sky-300"
-                                title="Audio Options"
+                {isAudioRecording &&
+                    (onPauseAudio || onResumeAudio || (audioBlobUrl && onDownloadAudio)) && (
+                        <DropdownMenu open={isAudioMenuOpen} onOpenChange={setIsAudioMenuOpen}>
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="text-sky-400 hover:bg-slate-700 hover:text-sky-300"
+                                    title="Audio Options"
+                                >
+                                    <Settings2 size={18} />
+                                    {/* <ChevronDown size={16} className=\"ml-1 opacity-70\" /> */}
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                                align="end"
+                                className="border-slate-600 bg-slate-700 text-white"
                             >
-                                <Settings2 size={18} />
-                                {/* <ChevronDown size={16} className=\"ml-1 opacity-70\" /> */}
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-slate-700 border-slate-600 text-white">
-                            {isAudioRecording && !isAudioPaused && onPauseAudio && (
-                                <DropdownMenuItem onClick={onPauseAudio} className="hover:!bg-slate-600 focus:!bg-slate-600 cursor-pointer">
-                                    <PauseCircle size={16} className="mr-2 text-yellow-400" /> Pause Recording
-                                </DropdownMenuItem>
-                            )}
-                            {isAudioRecording && isAudioPaused && onResumeAudio && (
-                                <DropdownMenuItem onClick={onResumeAudio} className="hover:!bg-slate-600 focus:!bg-slate-600 cursor-pointer">
-                                    <PlayIcon size={16} className="mr-2 text-green-400" /> Resume Recording
-                                </DropdownMenuItem>
-                            )}
-                            {/* Show download if a download function is provided and recording is active/has been active */}
-                            {isAudioRecording && onDownloadAudio && (
-                                <>
-                                    <DropdownMenuItem onClick={() => onDownloadAudio('webm')} className="hover:!bg-slate-600 focus:!bg-slate-600 cursor-pointer">
-                                        <Download size={16} className="mr-2 text-blue-400" /> Download as WebM
+                                {isAudioRecording && !isAudioPaused && onPauseAudio && (
+                                    <DropdownMenuItem
+                                        onClick={onPauseAudio}
+                                        className="cursor-pointer hover:!bg-slate-600 focus:!bg-slate-600"
+                                    >
+                                        <PauseCircle size={16} className="mr-2 text-yellow-400" />{' '}
+                                        Pause Recording
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => onDownloadAudio('mp3')} className="hover:!bg-slate-600 focus:!bg-slate-600 cursor-pointer">
-                                        <Download size={16} className="mr-2 text-purple-400" /> Download as MP3
-                                    </DropdownMenuItem>
-                                </>    
-                            )}
-                            {isAudioRecording && onGenerateTranscript && (
-                                <DropdownMenuItem onClick={onGenerateTranscript} disabled={isTranscribing} className="hover:!bg-slate-600 focus:!bg-slate-600 cursor-pointer">
-                                {isTranscribing ? (
-                                    <Loader2 size={16} className="mr-2 animate-spin" />
-                                ) : hasTranscript ? (
-                                    <FileText size={16} className="mr-2 text-green-400" />
-                                ) : (
-                                    <MessageSquareText size={16} className="mr-2 text-teal-400" />
                                 )}
-                                {isTranscribing ? 'Transcribing...' : hasTranscript ? 'View Transcript' : 'Generate Transcript'}
-                            </DropdownMenuItem>
-                            )}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                )}
+                                {isAudioRecording && isAudioPaused && onResumeAudio && (
+                                    <DropdownMenuItem
+                                        onClick={onResumeAudio}
+                                        className="cursor-pointer hover:!bg-slate-600 focus:!bg-slate-600"
+                                    >
+                                        <PlayIcon size={16} className="mr-2 text-green-400" />{' '}
+                                        Resume Recording
+                                    </DropdownMenuItem>
+                                )}
+                                {/* Show download if a download function is provided and recording is active/has been active */}
+                                {isAudioRecording && onDownloadAudio && (
+                                    <>
+                                        <DropdownMenuItem
+                                            onClick={() => onDownloadAudio('webm')}
+                                            className="cursor-pointer hover:!bg-slate-600 focus:!bg-slate-600"
+                                        >
+                                            <Download size={16} className="mr-2 text-blue-400" />{' '}
+                                            Download as WebM
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem
+                                            onClick={() => onDownloadAudio('mp3')}
+                                            className="cursor-pointer hover:!bg-slate-600 focus:!bg-slate-600"
+                                        >
+                                            <Download size={16} className="mr-2 text-purple-400" />{' '}
+                                            Download as MP3
+                                        </DropdownMenuItem>
+                                    </>
+                                )}
+                                {isAudioRecording && onGenerateTranscript && (
+                                    <DropdownMenuItem
+                                        onClick={onGenerateTranscript}
+                                        disabled={isTranscribing}
+                                        className="cursor-pointer hover:!bg-slate-600 focus:!bg-slate-600"
+                                    >
+                                        {isTranscribing ? (
+                                            <Loader2 size={16} className="mr-2 animate-spin" />
+                                        ) : hasTranscript ? (
+                                            <FileText size={16} className="mr-2 text-green-400" />
+                                        ) : (
+                                            <MessageSquareText
+                                                size={16}
+                                                className="mr-2 text-teal-400"
+                                            />
+                                        )}
+                                        {isTranscribing
+                                            ? 'Transcribing...'
+                                            : hasTranscript
+                                              ? 'View Transcript'
+                                              : 'Generate Transcript'}
+                                    </DropdownMenuItem>
+                                )}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    )}
 
                 {/* Original Buttons */}
                 <Button
@@ -276,17 +333,27 @@ export const LiveSessionActionBar: React.FC<LiveSessionActionBarProps> = ({
                         onClick={onGenerateTranscript}
                         disabled={isTranscribing}
                         className="text-slate-200 hover:bg-slate-700 hover:text-white"
-                        title={isTranscribing ? "Transcribing..." : hasTranscript ? "View Transcript" : "Generate Transcript"}
+                        title={
+                            isTranscribing
+                                ? 'Transcribing...'
+                                : hasTranscript
+                                  ? 'View Transcript'
+                                  : 'Generate Transcript'
+                        }
                     >
                         {isTranscribing ? (
-                            <Loader2 size={16} className="mr-0 sm:mr-1.5 animate-spin" />
+                            <Loader2 size={16} className="mr-0 animate-spin sm:mr-1.5" />
                         ) : hasTranscript ? (
-                            <FileText size={16} className="mr-0 sm:mr-1.5 text-green-400" />
+                            <FileText size={16} className="mr-0 text-green-400 sm:mr-1.5" />
                         ) : (
-                            <MessageSquareText size={16} className="mr-0 sm:mr-1.5 text-teal-400" />
+                            <MessageSquareText size={16} className="mr-0 text-teal-400 sm:mr-1.5" />
                         )}
                         <span className="hidden sm:inline">
-                            {isTranscribing ? "Transcribing..." : hasTranscript ? "View Transcript" : "Generate Transcript"}
+                            {isTranscribing
+                                ? 'Transcribing...'
+                                : hasTranscript
+                                  ? 'View Transcript'
+                                  : 'Generate Transcript'}
                         </span>
                     </Button>
                 )}
@@ -318,7 +385,7 @@ const LiveSessionActionBarWithQRCodeLogic: React.FC<LiveSessionActionBarProps> =
     const qrRefPopover = useRef<HTMLDivElement>(null); // This ref is local to this wrapper
     const [localIsQrPopoverOpen, setLocalIsQrPopoverOpen] = useState(false);
 
-    const invitationLink = 
+    const invitationLink =
         typeof window !== 'undefined'
             ? `${window.location.origin}/engage/${inviteCode}`
             : `/engage/${inviteCode}`;
@@ -335,11 +402,11 @@ const LiveSessionActionBarWithQRCodeLogic: React.FC<LiveSessionActionBarProps> =
     // A cleaner way might involve context or lifting state further, but for this isolated change:
     const ActionBarWithPassedRefs = React.cloneElement(<LiveSessionActionBar {...props} />, {
         // @ts-ignore
-        qrRefPopover: qrRefPopover, 
+        qrRefPopover: qrRefPopover,
         // @ts-ignore
-        isQrPopoverOpen: localIsQrPopoverOpen, 
+        isQrPopoverOpen: localIsQrPopoverOpen,
         // @ts-ignore
-        setIsQrPopoverOpen: setLocalIsQrPopoverOpen 
+        setIsQrPopoverOpen: setLocalIsQrPopoverOpen,
     });
 
     // The issue is that LiveSessionActionBar is defined above, and we can't directly put the useEffect inside it
@@ -350,13 +417,13 @@ const LiveSessionActionBarWithQRCodeLogic: React.FC<LiveSessionActionBarProps> =
     // Let's correct the initial implementation by moving the useEffect into LiveSessionActionBar and ensuring it uses its OWN ref.
 
     return <LiveSessionActionBar {...props} />;
-}; 
+};
 
-// The above wrapper `LiveSessionActionBarWithQRCodeLogic` is not ideal. 
+// The above wrapper `LiveSessionActionBarWithQRCodeLogic` is not ideal.
 // The useEffect for QR code generation should be directly within LiveSessionActionBar itself, triggered by popover state changes.
 // The provided diff for LiveSessionActionBar already added a local qrRefPopover and isQrPopoverOpen state.
 // I will now ensure the useEffect that uses these is directly within LiveSessionActionBar.
 
 // Corrected LiveSessionActionBar.tsx (Conceptual - the tool will apply to the original definition)
-// The tool will apply the changes to the existing LiveSessionActionBar. 
+// The tool will apply the changes to the existing LiveSessionActionBar.
 // The useEffect for QR Code generation will be added to it.

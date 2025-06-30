@@ -6,7 +6,7 @@ import { MyButton } from '@/components/design-system/button';
 import { Copy, Plus } from 'phosphor-react';
 import { InviteForm } from '../../-schema/InviteFormSchema';
 import formDataToRequestData from '../../-utils/formDataToRequestData';
-import {  LearnerInvitationType} from '../../-types/create-invitation-types';
+import { LearnerInvitationType } from '../../-types/create-invitation-types';
 import { toast } from 'sonner';
 import createInviteLink from '../../-utils/createInviteLink';
 import { useInviteFormContext } from '../../-context/useInviteFormContext';

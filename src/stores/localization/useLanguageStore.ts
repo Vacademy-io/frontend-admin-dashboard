@@ -1,4 +1,4 @@
-import { create } from "zustand";
+import { create } from 'zustand';
 
 interface LanguageState {
     language: string;
@@ -6,6 +6,6 @@ interface LanguageState {
 }
 
 export const useLanguageStore = create<LanguageState>((set) => ({
-    language: "English", // default language
+    language: 'English', // default language
     setLanguage: (language) => set({ language }),
 }));

@@ -52,8 +52,8 @@ export const Reply = ({ reply, refetch }: { reply: Doubt; refetch: () => void })
                         </p>
                     </div>
                 </div>
-                 {/* Render DeleteDoubt more subtly if the user is the author of the reply */}
-                 {reply.user_id === userId && (
+                {/* Render DeleteDoubt more subtly if the user is the author of the reply */}
+                {reply.user_id === userId && (
                     <DeleteDoubt doubt={reply} refetch={refetch} showText={false} />
                 )}
             </div>

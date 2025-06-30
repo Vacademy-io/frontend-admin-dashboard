@@ -1,7 +1,7 @@
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { MyButton } from "../design-system/button";
-import { Export } from "phosphor-react";
-import { DashboardLoader } from "../core/dashboard-loader";
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { MyButton } from '../design-system/button';
+import { Export } from 'phosphor-react';
+import { DashboardLoader } from '../core/dashboard-loader';
 
 const ExportDialogPDFCSV = ({
     handleExportPDF,
@@ -44,7 +44,7 @@ const ExportDialogPDFCSV = ({
                             className="font-medium"
                             onClick={handleExportPDF}
                         >
-                            {isPDFLoading ? <DashboardLoader /> : "PDF"}
+                            {isPDFLoading ? <DashboardLoader /> : 'PDF'}
                         </MyButton>
                     )}
                     {isEnableCSV && (
@@ -55,7 +55,7 @@ const ExportDialogPDFCSV = ({
                             className="font-medium"
                             onClick={handleExportCSV}
                         >
-                            {isCSVLoading ? <DashboardLoader /> : "CSV"}
+                            {isCSVLoading ? <DashboardLoader /> : 'CSV'}
                         </MyButton>
                     )}
                 </div>

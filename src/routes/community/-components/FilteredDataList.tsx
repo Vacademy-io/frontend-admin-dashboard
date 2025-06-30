@@ -1,18 +1,18 @@
-import { DataCard } from "./DataCard";
-import { useMutation } from "@tanstack/react-query";
-import { getFilteredEntityData, mapFiltersToTags } from "../-services/utils";
+import { DataCard } from './DataCard';
+import { useMutation } from '@tanstack/react-query';
+import { getFilteredEntityData, mapFiltersToTags } from '../-services/utils';
 // import { FilterOption } from "@/types/assessments/question-paper-filter";
-import { useState, useEffect } from "react";
-import { MyPagination } from "@/components/design-system/pagination";
+import { useState, useEffect } from 'react';
+import { MyPagination } from '@/components/design-system/pagination';
 import {
     QuestionEntityData,
     QuestionPaperEntityData,
     Entity,
     FilterRequest,
-} from "@/types/community/filters/types";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { useSelectedFilterStore } from "../-store/useSlectedFilterOption";
-import { useFilterStore } from "../-store/useFilterOptions";
+} from '@/types/community/filters/types';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { useSelectedFilterStore } from '../-store/useSlectedFilterOption';
+import { useFilterStore } from '../-store/useFilterOptions';
 
 export function FilteredDataList() {
     const [questionPaperList, setQuestionPaperList] = useState<
@@ -57,7 +57,7 @@ export function FilteredDataList() {
     useEffect(() => {
         setIsLoading(true);
         const timeoutId = setTimeout(() => {
-            getFilteredEntityData(0, pageSize, { type: "QUESTION_PAPER" })
+            getFilteredEntityData(0, pageSize, { type: 'QUESTION_PAPER' })
                 .then((data) => {
                     setQuestionPaperList(data.content);
                     setTotalPages(data.totalPages);
@@ -75,7 +75,7 @@ export function FilteredDataList() {
     }, []);
 
     function renderDataCard(entity: Entity<QuestionEntityData> | Entity<QuestionPaperEntityData>) {
-        if (entity.entityType === "QUESTION_PAPER") {
+        if (entity.entityType === 'QUESTION_PAPER') {
             const questionPaperData = entity.entityData as QuestionPaperEntityData;
             return (
                 <DataCard
@@ -84,9 +84,9 @@ export function FilteredDataList() {
                     title={questionPaperData.title}
                 />
             );
-        } else if (entity.entityType === "QUESTION") {
+        } else if (entity.entityType === 'QUESTION') {
             const questionData = entity.entityData as QuestionEntityData;
-            return <DataCard key={questionData.id} data={questionData} title={""} />;
+            return <DataCard key={questionData.id} data={questionData} title={''} />;
         } else return <></>;
     }
     if (isLoading) return <DashboardLoader />;

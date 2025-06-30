@@ -1,21 +1,21 @@
 // add-subject-form.tsx
-import { SubjectDefaultImage } from "@/assets/svgs";
-import { MyButton } from "@/components/design-system/button";
-import { MyInput } from "@/components/design-system/input";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { useRef, useState } from "react";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { SubjectType } from "@/stores/study-library/use-study-library-store";
-import { useFileUpload } from "@/hooks/use-file-upload";
-import { FileUploadComponent } from "@/components/design-system/file-upload";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
-import { TokenKey } from "@/constants/auth/tokens";
+import { SubjectDefaultImage } from '@/assets/svgs';
+import { MyButton } from '@/components/design-system/button';
+import { MyInput } from '@/components/design-system/input';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
+import { useRef, useState } from 'react';
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
+import { SubjectType } from '@/stores/study-library/use-study-library-store';
+import { useFileUpload } from '@/hooks/use-file-upload';
+import { FileUploadComponent } from '@/components/design-system/file-upload';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
 
 const formSchema = z.object({
-    subjectName: z.string().min(1, "Subject name is required"),
+    subjectName: z.string().min(1, 'Subject name is required'),
     imageFile: z.any().optional(),
 });
 
@@ -39,7 +39,7 @@ export const AddSubjectForm = ({ onSubmitSuccess, initialValues }: AddSubjectFor
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            subjectName: initialValues?.subject_name || "",
+            subjectName: initialValues?.subject_name || '',
             imageFile: null,
         },
     });
@@ -50,9 +50,9 @@ export const AddSubjectForm = ({ onSubmitSuccess, initialValues }: AddSubjectFor
             const uploadedFileId = await uploadFile({
                 file,
                 setIsUploading,
-                userId: "your-user-id",
+                userId: 'your-user-id',
                 source: INSTITUTE_ID,
-                sourceId: "SUBJECTS",
+                sourceId: 'SUBJECTS',
             });
 
             if (uploadedFileId) {
@@ -62,7 +62,7 @@ export const AddSubjectForm = ({ onSubmitSuccess, initialValues }: AddSubjectFor
                 setPreviewUrl(publicUrl);
             }
         } catch (error) {
-            console.error("Upload failed:", error);
+            console.error('Upload failed:', error);
         } finally {
             setIsUploading(false);
         }
@@ -72,7 +72,7 @@ export const AddSubjectForm = ({ onSubmitSuccess, initialValues }: AddSubjectFor
         const newSubject: SubjectType = {
             id: initialValues?.id || crypto.randomUUID(),
             subject_name: data.subjectName,
-            subject_code: "",
+            subject_code: '',
             credit: 0,
             thumbnail_id: fileId, // Use fileId instead of URL
             created_at: initialValues?.created_at || new Date().toISOString(),
@@ -112,14 +112,14 @@ export const AddSubjectForm = ({ onSubmitSuccess, initialValues }: AddSubjectFor
                 <div className="flex flex-col gap-6">
                     <div className="relative flex w-full flex-col items-center justify-center gap-3">
                         {isUploading ? (
-                            <div className="inset-0 flex h-[200px] w-[200px] items-center justify-center bg-white">
+                            <div className="inset-0 flex size-[200px] items-center justify-center bg-white">
                                 <DashboardLoader />
                             </div>
                         ) : previewUrl ? (
                             <img
                                 src={previewUrl}
                                 alt="Subject"
-                                className="h-[200px] w-[200px] rounded-lg object-cover"
+                                className="size-[200px] rounded-lg object-cover"
                             />
                         ) : (
                             <SubjectDefaultImage />
@@ -133,7 +133,7 @@ export const AddSubjectForm = ({ onSubmitSuccess, initialValues }: AddSubjectFor
                         />
                         <div
                             className={`flex w-full flex-col items-center gap-3 ${
-                                isUploading ? "hidden" : "visible"
+                                isUploading ? 'hidden' : 'visible'
                             }`}
                         >
                             {/* <div className="w-full flex gap-6 items-end">
@@ -177,7 +177,7 @@ export const AddSubjectForm = ({ onSubmitSuccess, initialValues }: AddSubjectFor
                         layoutVariant="default"
                         scale="large"
                     >
-                        {initialValues ? "Save Changes" : "Add"}
+                        {initialValues ? 'Save Changes' : 'Add'}
                     </MyButton>
                 </div>
             </form>

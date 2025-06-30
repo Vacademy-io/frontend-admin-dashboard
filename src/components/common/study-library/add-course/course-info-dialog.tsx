@@ -1,7 +1,7 @@
-import { MyDialog } from "@/components/design-system/dialog";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Info } from "@phosphor-icons/react";
+import { MyDialog } from '@/components/design-system/dialog';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { Info } from '@phosphor-icons/react';
 
 const CourseInfoData: {
     name: string;
@@ -9,18 +9,18 @@ const CourseInfoData: {
     example: string;
 }[] = [
     {
-        name: "Courses",
+        name: 'Courses',
         answer: "Courses represent the top-level study material and can be named according to the institute's preferences. They define the broad category under which learning is structured.",
         example: `"Premium Batch," "Electrical Engineering," "Primary Education," "2024 Enroll for Corporate Training."`,
     },
     {
-        name: "Sessions",
-        answer: "Sessions define the specific time frame during which the course material is available or relevant. They help in organizing batches based on academic years or training periods.",
+        name: 'Sessions',
+        answer: 'Sessions define the specific time frame during which the course material is available or relevant. They help in organizing batches based on academic years or training periods.',
         example: `"2024-2025," "2023-2022."`,
     },
     {
-        name: "Levels (Optional)",
-        answer: "Levels categorize courses further into subcategories, such as grade levels, difficulty tiers, or specific sections. Institutes may choose to use them or skip them entirely.",
+        name: 'Levels (Optional)',
+        answer: 'Levels categorize courses further into subcategories, such as grade levels, difficulty tiers, or specific sections. Institutes may choose to use them or skip them entirely.',
         example: `"9th Class," "8th Class," "Beginner Level," "Advanced Module."`,
     },
 ];

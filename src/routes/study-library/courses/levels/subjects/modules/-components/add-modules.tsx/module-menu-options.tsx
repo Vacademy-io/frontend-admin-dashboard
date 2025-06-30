@@ -1,6 +1,6 @@
-import { MyButton } from "@/components/design-system/button";
-import { MyDropdown } from "@/components/design-system/dropdown";
-import { DotsThree } from "phosphor-react";
+import { MyButton } from '@/components/design-system/button';
+import { MyDropdown } from '@/components/design-system/dropdown';
+import { DotsThree } from 'phosphor-react';
 
 interface MenuOptionsProps {
     onDelete: () => void;
@@ -8,12 +8,12 @@ interface MenuOptionsProps {
 }
 
 export const MenuOptions = ({ onDelete, onEdit }: MenuOptionsProps) => {
-    const DropdownList = ["Edit Module", "Delete Module"];
+    const DropdownList = ['Edit Module', 'Delete Module'];
 
     const handleMenuOptionsChange = (value: string) => {
-        if (value === "Delete Module") {
+        if (value === 'Delete Module') {
             onDelete();
-        } else if (value === "Edit Module") {
+        } else if (value === 'Edit Module') {
             onEdit();
         }
     };

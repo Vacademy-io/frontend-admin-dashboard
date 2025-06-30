@@ -1,28 +1,28 @@
-import { Pie, PieChart } from "recharts";
+import { Pie, PieChart } from 'recharts';
 import {
     ChartConfig,
     ChartContainer,
     ChartTooltip,
     ChartTooltipContent,
-} from "@/components/ui/chart";
-import { QuestionInsightsQuestionStatus } from "../-utils/assessment-details-interface";
+} from '@/components/ui/chart';
+import { QuestionInsightsQuestionStatus } from '../-utils/assessment-details-interface';
 
 const chartConfig = {
     correct: {
-        label: "Correct",
-        color: "hsl(var(--chart-1))",
+        label: 'Correct',
+        color: 'hsl(var(--chart-1))',
     },
     partiallyCorrect: {
-        label: "Partially Correct",
-        color: "hsl(var(--chart-2))",
+        label: 'Partially Correct',
+        color: 'hsl(var(--chart-2))',
     },
     wrongResponse: {
-        label: "Wrong Response",
-        color: "hsl(var(--chart-3))",
+        label: 'Wrong Response',
+        color: 'hsl(var(--chart-3))',
     },
     skipped: {
-        label: "Skipped",
-        color: "hsl(var(--chart-4))",
+        label: 'Skipped',
+        color: 'hsl(var(--chart-4))',
     },
 } satisfies ChartConfig;
 
@@ -35,24 +35,24 @@ export function QuestionInsightsAnalysisChartComponent({
 }) {
     const chartData = [
         {
-            responseType: "correct",
+            responseType: 'correct',
             value: questionStatus?.correctAttempt,
-            fill: "#97D4B4",
+            fill: '#97D4B4',
         },
         {
-            responseType: "partiallyCorrect",
+            responseType: 'partiallyCorrect',
             value: questionStatus?.partialCorrectAttempt,
-            fill: "#FFDD82",
+            fill: '#FFDD82',
         },
         {
-            responseType: "wrongResponse",
+            responseType: 'wrongResponse',
             value: questionStatus?.incorrectAttempt,
-            fill: "#F49898",
+            fill: '#F49898',
         },
         {
-            responseType: "skipped",
+            responseType: 'skipped',
             value: skipped,
-            fill: "#EEE",
+            fill: '#EEE',
         },
     ];
     return (

@@ -1,16 +1,16 @@
-import { FormControl, FormField, FormItem } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
-import { DotsThree } from "phosphor-react";
-import { useState } from "react";
+import { FormControl, FormField, FormItem } from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
+import { DotsThree } from 'phosphor-react';
+import { useState } from 'react';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import "react-quill/dist/quill.snow.css";
-import { PPTViewQuillEditor } from "@/components/quill/PPTViewQuillEditor";
-import { QuestionPaperTemplateFormProps } from "../MainViewComponentFactory";
+} from '@/components/ui/dropdown-menu';
+import 'react-quill/dist/quill.snow.css';
+import { PPTViewQuillEditor } from '@/components/quill/PPTViewQuillEditor';
+import { QuestionPaperTemplateFormProps } from '../MainViewComponentFactory';
 
 export const LongAnswerQuestionPaperTemplatePPTView = ({
     form,
@@ -22,11 +22,11 @@ export const LongAnswerQuestionPaperTemplatePPTView = ({
     const [isDropdownVisible, setIsDropdownVisible] = useState(false); // State to track dropdown visibility
     const [isDropdownOpen, setIsDropdownOpen] = useState(false); // State for dropdown open state
 
-    const allQuestions = getValues("questions") || [];
+    const allQuestions = getValues('questions') || [];
 
     const handleDeleteSlide = () => {
         allQuestions.splice(currentQuestionIndex, 1);
-        setValue("questions", allQuestions);
+        setValue('questions', allQuestions);
     };
 
     const handleDuplicateSlide = () => {
@@ -34,13 +34,13 @@ export const LongAnswerQuestionPaperTemplatePPTView = ({
         if (questionToDuplicate) {
             const duplicatedQuestion = {
                 ...questionToDuplicate,
-                questionId: questionToDuplicate.questionId || "",
-                questionName: questionToDuplicate.questionName || "",
-                explanation: questionToDuplicate.explanation || "",
+                questionId: questionToDuplicate.questionId || '',
+                questionName: questionToDuplicate.questionName || '',
+                explanation: questionToDuplicate.explanation || '',
                 singleChoiceOptions: questionToDuplicate.singleChoiceOptions || [],
             };
             allQuestions.splice(currentQuestionIndex, 0, duplicatedQuestion);
-            setValue("questions", allQuestions);
+            setValue('questions', allQuestions);
         }
     };
 

@@ -1,15 +1,15 @@
 // chapters.tsx
-import { EmptyChaptersImage } from "@/assets/svgs";
-import { ChapterCard } from "./chapter-card";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { Sortable, SortableItem } from "@/components/ui/sortable";
-import { useFieldArray, UseFormReturn } from "react-hook-form";
-import { FormValues } from "../chapter-material";
-import { ChapterWithSlides } from "@/stores/study-library/use-modules-with-chapters-store";
-import { useRouter } from "@tanstack/react-router";
-import { useGetPackageSessionId } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionId";
-import { useSelectedSessionStore } from "@/stores/study-library/selected-session-store";
-import { orderChapterPayloadType } from "@/routes/study-library/courses/-types/order-payload";
+import { EmptyChaptersImage } from '@/assets/svgs';
+import { ChapterCard } from './chapter-card';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { Sortable, SortableItem } from '@/components/ui/sortable';
+import { useFieldArray, UseFormReturn } from 'react-hook-form';
+import { FormValues } from '../chapter-material';
+import { ChapterWithSlides } from '@/stores/study-library/use-modules-with-chapters-store';
+import { useRouter } from '@tanstack/react-router';
+import { useGetPackageSessionId } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionId';
+import { useSelectedSessionStore } from '@/stores/study-library/selected-session-store';
+import { orderChapterPayloadType } from '@/routes/study-library/courses/-types/order-payload';
 
 interface ChaptersProps {
     chapters?: ChapterWithSlides[];
@@ -26,22 +26,22 @@ export const Chapters = ({
     form, // Add form prop
 }: ChaptersProps) => {
     const route = useRouter();
-    const { courseId = "", levelId = "" } = route.state.location.search;
+    const { courseId = '', levelId = '' } = route.state.location.search;
     const { selectedSession } = useSelectedSessionStore();
 
     const packageSessionId =
-        useGetPackageSessionId(courseId, selectedSession?.id || "", levelId) || "";
+        useGetPackageSessionId(courseId, selectedSession?.id || '', levelId) || '';
 
     const { fields, move } = useFieldArray({
         control: form.control,
-        name: "chapters",
+        name: 'chapters',
     });
 
     const handleMove = ({ activeIndex, overIndex }: { activeIndex: number; overIndex: number }) => {
         move(activeIndex, overIndex);
 
         // Create order payload after move
-        const updatedFields = form.getValues("chapters");
+        const updatedFields = form.getValues('chapters');
 
         // Create order payload with the updated order
         const orderPayload = updatedFields.map((chapter, index) => ({
@@ -49,13 +49,13 @@ export const Chapters = ({
             package_session_id: packageSessionId,
             chapter_order: index + 1,
         }));
-        console.log("order payload: ", orderPayload);
+        console.log('order payload: ', orderPayload);
 
         // Call onOrderChange with the updated order
         onOrderChange?.(orderPayload);
     };
 
-    if (courseId == "" || levelId == "") {
+    if (courseId == '' || levelId == '') {
         return <div>Missing course or level details parameters</div>;
     }
 
@@ -64,7 +64,7 @@ export const Chapters = ({
     }
 
     return (
-        <div className="h-full w-full">
+        <div className="size-full">
             {!fields.length && (
                 <div className="flex w-full flex-col items-center justify-center gap-8 rounded-lg py-10">
                     <EmptyChaptersImage />
