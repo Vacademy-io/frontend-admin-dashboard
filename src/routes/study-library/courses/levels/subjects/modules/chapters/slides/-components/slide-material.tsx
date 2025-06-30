@@ -712,6 +712,7 @@ export const SlideMaterial = ({
 
                     setContent(
                         <CodeEditorSlide
+                            key={`code-editor-${activeItem.id}`}
                             codeData={codeData}
                             isEditable={activeItem.status !== 'PUBLISHED'}
                             onDataChange={async (updatedCodeData) => {
@@ -738,41 +739,16 @@ export const SlideMaterial = ({
                                         notify: false,
                                     });
 
-                                    // Re-render with updated data
-                                    setContent(
-                                        <CodeEditorSlide
-                                            codeData={updatedCodeData}
-                                            isEditable={activeItem.status !== 'PUBLISHED'}
-                                            onDataChange={(newCodeData) => {
-                                                // Handle further updates recursively
-                                                const recursiveUpdate = async () => {
-                                                    await addUpdateDocumentSlide({
-                                                        id: activeItem.id,
-                                                        title: activeItem.title || '',
-                                                        image_file_id: '',
-                                                        description: activeItem.description || '',
-                                                        slide_order: null,
-                                                        document_slide: {
-                                                            id: activeItem.document_slide?.id || '',
-                                                            type: 'CODE',
-                                                            data: JSON.stringify(newCodeData),
-                                                            title:
-                                                                activeItem.document_slide?.title ||
-                                                                '',
-                                                            cover_file_id: '',
-                                                            total_pages: 1,
-                                                            published_data: null,
-                                                            published_document_total_pages: 0,
-                                                        },
-                                                        status: activeItem.status,
-                                                        new_slide: false,
-                                                        notify: false,
-                                                    });
-                                                };
-                                                recursiveUpdate();
-                                            }}
-                                        />
-                                    );
+                                    // Update the activeItem data to reflect the changes in local state
+                                    setActiveItem({
+                                        ...activeItem,
+                                        document_slide: activeItem.document_slide
+                                            ? {
+                                                  ...activeItem.document_slide,
+                                                  data: JSON.stringify(updatedCodeData),
+                                              }
+                                            : undefined,
+                                    });
                                 } catch (error) {
                                     console.error('Error saving code editor data:', error);
                                     toast.error('Failed to save code changes');
@@ -1219,10 +1195,28 @@ export const SlideMaterial = ({
     useEffect(() => {
         if (items && items.length == 0 && slideId == undefined) {
             setActiveItem(null);
-        } else {
-            setActiveItem(items.find((slide) => slide.id == slideId) || items[0] || null);
+        } else if (items && items.length > 0) {
+            // First priority: preserve current active slide if it exists in items
+            if (activeItem && items.find((slide) => slide.id === activeItem.id)) {
+                // Active slide still exists, keep it selected
+                return;
+            }
+
+            // Second priority: use slideId from URL if available
+            if (slideId) {
+                const targetSlide = items.find((slide) => slide.id === slideId);
+                if (targetSlide) {
+                    setActiveItem(targetSlide);
+                    return;
+                }
+            }
+
+            // Last resort: select first slide only if no active slide exists
+            if (!activeItem) {
+                setActiveItem(items[0] || null);
+            }
         }
-    }, [items]);
+    }, [items, slideId]);
 
     useEffect(() => {
         setHeading(activeItem?.title || '');
@@ -1358,34 +1352,35 @@ export const SlideMaterial = ({
                                 </MyButton>
                             )}
 
-                            <UnpublishDialog
-                                isOpen={isUnpublishDialogOpen}
-                                setIsOpen={setIsUnpublishDialogOpen}
-                                handlePublishUnpublishSlide={() =>
-                                    handleUnpublishSlide(
-                                        setIsUnpublishDialogOpen,
-                                        false,
-                                        activeItem,
-                                        addUpdateDocumentSlide,
-                                        addUpdateVideoSlide,
-                                        updateQuestionOrder,
-                                        updateAssignmentOrder,
-                                        SaveDraft,
-                                        playerRef
-                                    )
-                                }
-                            />
+                            {/* Single Publish/Unpublish Button */}
+                            {activeItem.status === 'PUBLISHED' ? (
+                                <MyButton
+                                    buttonType="secondary"
+                                    scale="medium"
+                                    layoutVariant="default"
+                                    onClick={() => setIsUnpublishDialogOpen(true)}
+                                >
+                                    Unpublish
+                                </MyButton>
+                            ) : (
+                                <MyButton
+                                    buttonType="primary"
+                                    scale="medium"
+                                    layoutVariant="default"
+                                    onClick={() => setIsPublishDialogOpen(true)}
+                                >
+                                    Publish
+                                </MyButton>
+                            )}
 
-                            <PublishDialog
-                                isOpen={isPublishDialogOpen}
-                                setIsOpen={setIsPublishDialogOpen}
-                                handlePublishUnpublishSlide={() => {
-                                    if (activeItem?.document_slide?.type === 'PRESENTATION') {
-                                        publishExcalidrawPresentation();
-                                        setIsPublishDialogOpen(false);
-                                    } else {
-                                        handlePublishSlide(
-                                            setIsPublishDialogOpen,
+                            {/* Keep dialogs but make them conditional */}
+                            {isUnpublishDialogOpen && (
+                                <UnpublishDialog
+                                    isOpen={isUnpublishDialogOpen}
+                                    setIsOpen={setIsUnpublishDialogOpen}
+                                    handlePublishUnpublishSlide={() =>
+                                        handleUnpublishSlide(
+                                            setIsUnpublishDialogOpen,
                                             false,
                                             activeItem,
                                             addUpdateDocumentSlide,
@@ -1394,10 +1389,35 @@ export const SlideMaterial = ({
                                             updateAssignmentOrder,
                                             SaveDraft,
                                             playerRef
-                                        );
+                                        )
                                     }
-                                }}
-                            />
+                                />
+                            )}
+
+                            {isPublishDialogOpen && (
+                                <PublishDialog
+                                    isOpen={isPublishDialogOpen}
+                                    setIsOpen={setIsPublishDialogOpen}
+                                    handlePublishUnpublishSlide={() => {
+                                        if (activeItem?.document_slide?.type === 'PRESENTATION') {
+                                            publishExcalidrawPresentation();
+                                            setIsPublishDialogOpen(false);
+                                        } else {
+                                            handlePublishSlide(
+                                                setIsPublishDialogOpen,
+                                                false,
+                                                activeItem,
+                                                addUpdateDocumentSlide,
+                                                addUpdateVideoSlide,
+                                                updateQuestionOrder,
+                                                updateAssignmentOrder,
+                                                SaveDraft,
+                                                playerRef
+                                            );
+                                        }
+                                    }}
+                                />
+                            )}
                         </div>
 
                         {/* ✅ Doubt Icon Trigger */}

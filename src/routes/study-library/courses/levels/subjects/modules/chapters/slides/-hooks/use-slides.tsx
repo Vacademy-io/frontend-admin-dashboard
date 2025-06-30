@@ -63,6 +63,8 @@ export interface VideoSlide {
     published_url: string;
     published_video_length_in_millis: number;
     source_type: string;
+    embedded_type?: string;
+    embedded_data?: string;
     questions: VideoQuestion[];
 }
 

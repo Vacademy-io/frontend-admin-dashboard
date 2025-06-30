@@ -27,6 +27,26 @@ interface FormValues {
     slides: Slide[];
 }
 
+// Function to get the display text for slide type
+const getSlideTypeDisplay = (slide: Slide): string => {
+    // For DOCUMENT slides with specific sub-types (not DOC), show just the sub-type
+    if (
+        slide.source_type === 'DOCUMENT' &&
+        slide.document_slide?.type &&
+        slide.document_slide.type !== 'DOC'
+    ) {
+        return slide.document_slide.type.toLowerCase().replace('_', ' ');
+    }
+
+    // For VIDEO slides with embedded_type, show the embedded_type
+    if (slide.source_type === 'VIDEO' && slide.video_slide?.embedded_type) {
+        return `${slide.source_type.toLowerCase().replace('_', ' ')} - ${slide.video_slide.embedded_type.toLowerCase().replace('_', ' ')}`;
+    }
+
+    // For all other cases, show the main source_type
+    return slide.source_type.toLowerCase().replace('_', ' ');
+};
+
 export const getIcon = (
     source_type: string,
     document_slide_type: string | undefined,
@@ -172,7 +192,7 @@ const SlideItem = ({
                                             {truncateString(getSlideTitle(), 18)}
                                         </p>
                                         <p className="mt-0.5 text-xs capitalize leading-tight text-neutral-400">
-                                            {slide.source_type.toLowerCase().replace('_', ' ')}
+                                            {getSlideTypeDisplay(slide)}
                                         </p>
                                     </div>
 
@@ -289,6 +309,18 @@ export const ChapterSidebarSlides = ({
             form.reset({ slides });
             setItems(slides as Slide[]);
 
+            // Preserve the current active slide if it still exists in the updated slides
+            if (activeItem) {
+                const existingActiveSlide = slides.find((slide) => slide.id === activeItem.id) as
+                    | Slide
+                    | undefined;
+                if (existingActiveSlide) {
+                    setActiveItem(existingActiveSlide);
+                    return;
+                }
+            }
+
+            // If there's a slideId in URL, try to select that slide
             if (slideId) {
                 const targetSlide = slides.find((item) => item.id === slideId) as Slide | undefined;
                 if (targetSlide) {
@@ -297,7 +329,10 @@ export const ChapterSidebarSlides = ({
                 }
             }
 
-            setActiveItem(slides[0] as Slide);
+            // Only fallback to first slide if there's no active slide at all
+            if (!activeItem) {
+                setActiveItem(slides[0] as Slide);
+            }
         } else {
             if (slideId == undefined) {
                 setActiveItem(null);
@@ -320,7 +355,7 @@ export const ChapterSidebarSlides = ({
                 });
             }
         }
-    }, [slides]);
+    }, [slides, activeItem?.id, slideId]);
 
     if (isLoading) {
         return (

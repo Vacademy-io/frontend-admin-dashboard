@@ -31,6 +31,11 @@ interface CodeEditorData {
     code: string;
     theme: 'light' | 'dark';
     viewMode: 'view' | 'edit';
+    // Add support for both languages' data
+    allLanguagesData?: {
+        python: { code: string; lastEdited?: number };
+        javascript: { code: string; lastEdited?: number };
+    };
 }
 
 interface SplitScreenData {
@@ -61,6 +66,11 @@ interface SplitScreenData {
     fontSize?: number;
     timestamp?: number;
     viewMode?: string;
+    // Support for both languages' data in split screen
+    allLanguagesData?: {
+        python: { code: string; lastEdited?: number };
+        javascript: { code: string; lastEdited?: number };
+    };
     [key: string]: unknown;
 }
 
@@ -202,12 +212,14 @@ export const SplitScreenSlide: React.FC<SplitScreenSlideProps> = ({
             case 'SPLIT_CODE':
                 return (
                     <CodeEditorSlide
+                        key={`split-code-editor-${currentSlideId || 'default'}`}
                         codeData={{
                             language:
                                 (splitScreenData.language as 'python' | 'javascript') || 'python',
                             code: splitScreenData.code || '',
                             theme: (splitScreenData.theme as 'light' | 'dark') || 'light',
                             viewMode: (splitScreenData.viewMode as 'view' | 'edit') || 'edit',
+                            allLanguagesData: splitScreenData.allLanguagesData,
                         }}
                         isEditable={isEditable}
                         onDataChange={handleCodeDataChange}

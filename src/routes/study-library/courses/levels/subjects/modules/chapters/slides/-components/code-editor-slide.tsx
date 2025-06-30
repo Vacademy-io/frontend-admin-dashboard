@@ -23,52 +23,19 @@ import {
     ChevronDown,
 } from 'lucide-react';
 import Editor from '@monaco-editor/react';
+import { toast } from 'sonner';
 
-interface CodeEditorData {
-    language: 'python' | 'javascript';
-    code: string;
-    theme: 'light' | 'dark';
-    viewMode: 'view' | 'edit';
-}
-
-interface CodeEditorSlideProps {
-    codeData?: CodeEditorData;
-    isEditable: boolean;
-    onDataChange?: (newData: CodeEditorData) => void;
-}
-
-const DEFAULT_CODE = {
-    python: `# Welcome to Python Code Editor
-print("Hello, World!")
-
-# Try some basic operations
-numbers = [1, 2, 3, 4, 5]
-sum_numbers = sum(numbers)
-print(f"Sum of numbers: {sum_numbers}")
-
-# Uncomment below lines to test interactive input:
-# name = input("Enter your name: ")
-# print(f"Hello, {name}! Welcome to coding!")`,
-
-    javascript: `// Welcome to JavaScript Code Editor
-console.log("Hello, World!");
-
-// Try some basic operations
-const numbers = [1, 2, 3, 4, 5];
-const sum = numbers.reduce((a, b) => a + b, 0);
-console.log(\`Sum of numbers: \${sum}\`);
-
-// Example function
-function greet(name) {
-    return \`Hello, \${name}!\`;
-}
-
-console.log(greet("Coder"));
-
-// Uncomment below lines to test interactive input:
-// const name = prompt("Enter your name:");
-// console.log(\`Hello, \${name}! Welcome to coding!\`);`,
-};
+// Import constants, types, and utilities
+import { DEFAULT_CODE } from './constants/code-editor';
+import { CodeEditorData, CodeEditorSlideProps, AllLanguagesData } from './utils/code-editor-types';
+import {
+    copyCodeToClipboard,
+    downloadCodeAsFile,
+    handleUserInputSubmission,
+    executeCode,
+    initializeLanguageStates,
+    initializeCurrentData,
+} from './utils/code-editor-utils';
 
 export const CodeEditorSlide: React.FC<CodeEditorSlideProps> = ({
     codeData,
@@ -76,208 +43,274 @@ export const CodeEditorSlide: React.FC<CodeEditorSlideProps> = ({
     onDataChange,
 }) => {
     const editorRef = useRef<unknown>(null);
-    const [currentData, setCurrentData] = useState<CodeEditorData>(() => ({
-        language: codeData?.language || 'python',
-        code: codeData?.code || DEFAULT_CODE.python,
-        theme: codeData?.theme || 'light',
-        viewMode: codeData?.viewMode || 'edit',
-        ...codeData,
-    }));
-
-    // Update local state when props change (for different slides)
-    useEffect(() => {
-        if (codeData) {
-            setCurrentData({
-                ...codeData,
-                language: codeData.language || 'python',
-                code: codeData.code || DEFAULT_CODE[codeData.language || 'python'],
-                theme: codeData.theme || 'light',
-                viewMode: codeData.viewMode || 'edit',
-            });
-        }
-    }, [codeData]);
-
+    const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [output, setOutput] = useState<string>('');
     const [isRunning, setIsRunning] = useState(false);
     const [waitingForInput, setWaitingForInput] = useState(false);
     const [inputValue, setInputValue] = useState<string>('');
     const [activeTab, setActiveTab] = useState<string>('editor');
 
-    const updateData = useCallback(
-        (updates: Partial<CodeEditorData>) => {
-            const newData = { ...currentData, ...updates };
-            setCurrentData(newData);
+    // Store code for each language separately using utility function
+    const [languageStates, setLanguageStates] = useState<AllLanguagesData>(() =>
+        initializeLanguageStates(codeData)
+    );
+
+    // Initialize current data using utility function
+    const [currentData, setCurrentData] = useState<CodeEditorData>(() =>
+        initializeCurrentData(codeData, languageStates)
+    );
+
+    useEffect(() => {
+        if (codeData) {
+            // Update language states using utility function
+            const newLanguageStates = initializeLanguageStates(codeData);
+            setLanguageStates(newLanguageStates);
+
+            // Update current data using utility function
+            const newCurrentData = initializeCurrentData(codeData, newLanguageStates);
+            setCurrentData(newCurrentData);
+        }
+    }, [codeData]);
+
+    // Force save function for immediate actions
+    const forceSave = useCallback(
+        (data: CodeEditorData) => {
+            if (saveTimeoutRef.current) {
+                clearTimeout(saveTimeoutRef.current);
+                saveTimeoutRef.current = null;
+            }
             if (onDataChange && isEditable) {
-                onDataChange(newData);
+                // Use provided allLanguagesData if available, otherwise use current languageStates
+                const dataWithAllLanguages = {
+                    ...data,
+                    allLanguagesData: data.allLanguagesData || languageStates,
+                };
+                onDataChange(dataWithAllLanguages);
             }
         },
-        [currentData, onDataChange, isEditable]
+        [onDataChange, isEditable, languageStates]
+    );
+
+    // Debounced save function for API calls
+    const debouncedSave = useCallback(
+        (data: CodeEditorData) => {
+            if (saveTimeoutRef.current) {
+                clearTimeout(saveTimeoutRef.current);
+            }
+
+            saveTimeoutRef.current = setTimeout(() => {
+                if (onDataChange && isEditable) {
+                    // Use provided allLanguagesData if available, otherwise use current languageStates
+                    const dataWithAllLanguages = {
+                        ...data,
+                        allLanguagesData: data.allLanguagesData || languageStates,
+                    };
+                    onDataChange(dataWithAllLanguages);
+                }
+            }, 1500); // 1.5 second delay
+        },
+        [onDataChange, isEditable, languageStates]
+    );
+
+    // Immediate update function for non-code changes (theme, viewMode, language)
+    const updateDataImmediate = useCallback(
+        (updates: Partial<CodeEditorData>) => {
+            const newData = {
+                ...currentData,
+                ...updates,
+                // Always include both languages' data in the update
+                allLanguagesData: languageStates,
+            };
+            setCurrentData(newData);
+
+            // Force save immediately for UI changes
+            forceSave(newData);
+        },
+        [currentData, forceSave, languageStates]
+    );
+
+    // Debounced update function for code changes only
+    const updateCodeDebounced = useCallback(
+        (code: string) => {
+            // Create updated language states with the latest code
+            const updatedLanguageStates = {
+                ...languageStates,
+                [currentData.language]: {
+                    code: code,
+                    lastEdited: Date.now(),
+                },
+            };
+
+            const newData = {
+                ...currentData,
+                code,
+                // Always include both languages' data with the latest code
+                allLanguagesData: updatedLanguageStates,
+            };
+            setCurrentData(newData);
+
+            // Use debounced save for code changes
+            debouncedSave(newData);
+        },
+        [currentData, debouncedSave, languageStates]
     );
 
     const handleLanguageChange = useCallback(
         (language: 'python' | 'javascript') => {
-            const newCode = DEFAULT_CODE[language];
-            updateData({ language, code: newCode });
+            // Get current code from editor for most accurate state
+            let currentCode = currentData.code;
+            if (
+                editorRef.current &&
+                typeof editorRef.current === 'object' &&
+                'getValue' in editorRef.current
+            ) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                currentCode = (editorRef.current as any).getValue() || '';
+            }
+
+            // Force save current code before switching languages
+            const currentDataWithLatestCode = { ...currentData, code: currentCode };
+            forceSave(currentDataWithLatestCode);
+
+            // Create updated language states with current code
+            const updatedLanguageStates = {
+                ...languageStates,
+                [currentData.language]: {
+                    code: currentCode,
+                    lastEdited: Date.now(),
+                },
+            };
+
+            // Update language states
+            setLanguageStates(updatedLanguageStates);
+
+            // Get the stored code for the target language
+            const targetLanguageCode = updatedLanguageStates[language].code;
+
+            // Use stored code if it exists and has been edited, otherwise use default
+            const newCode = updatedLanguageStates[language].lastEdited
+                ? targetLanguageCode
+                : DEFAULT_CODE[language];
+
+            // Update immediately for smooth transition - don't use updateData for language switching
+            const newData = {
+                ...currentData,
+                language,
+                code: newCode,
+                allLanguagesData: updatedLanguageStates, // Include both languages' data with latest updates
+            };
+            setCurrentData(newData);
+
+            // Force save the new language data immediately
+            forceSave(newData);
         },
-        [updateData]
+        [currentData, languageStates, setLanguageStates, forceSave]
     );
 
     const handleThemeChange = useCallback(() => {
         const newTheme = currentData.theme === 'light' ? 'dark' : 'light';
-        updateData({ theme: newTheme });
-    }, [currentData.theme, updateData]);
+        updateDataImmediate({ theme: newTheme });
+    }, [currentData.theme, updateDataImmediate]);
 
     const handleViewModeChange = useCallback(
         (viewMode: 'view' | 'edit') => {
-            updateData({ viewMode });
+            updateDataImmediate({ viewMode });
         },
-        [updateData]
+        [updateDataImmediate]
     );
 
     const handleCodeChange = useCallback(
         (value: string | undefined) => {
             if (value !== undefined) {
-                updateData({ code: value });
+                // Update language state store for persistence
+                setLanguageStates((prev) => ({
+                    ...prev,
+                    [currentData.language]: {
+                        code: value,
+                        lastEdited: Date.now(),
+                    },
+                }));
+
+                // Update current data with debounced save for code changes
+                updateCodeDebounced(value);
             }
         },
-        [updateData]
+        [updateCodeDebounced, currentData.language, setLanguageStates]
     );
 
-    const copyCode = useCallback(() => {
-        navigator.clipboard.writeText(currentData.code);
-    }, [currentData.code]);
+    const handleCopyCode = useCallback(() => {
+        const currentCode = getCurrentCodeFromEditor();
 
-    const downloadCode = useCallback(() => {
-        const extension = currentData.language === 'python' ? 'py' : 'js';
-        const blob = new Blob([currentData.code], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `code.${extension}`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    }, [currentData.code, currentData.language]);
+        try {
+            copyCodeToClipboard(currentCode);
+            toast.success('Code copied to clipboard!', {
+                description: `${currentData.language} code has been copied successfully.`,
+                duration: 2000,
+            });
+        } catch (error) {
+            console.error('Failed to copy code:', error);
+            toast.error('Failed to copy code', {
+                description: 'Please try again or copy manually.',
+                duration: 3000,
+            });
+        }
+    }, [currentData.language]);
+
+    const handleDownloadCode = useCallback(() => {
+        const currentCode = getCurrentCodeFromEditor();
+
+        try {
+            downloadCodeAsFile(currentCode, currentData.language);
+            toast.success('Code downloaded successfully!', {
+                description: `${currentData.language} code has been saved to your downloads.`,
+                duration: 2000,
+            });
+        } catch (error) {
+            console.error('Failed to download code:', error);
+            toast.error('Failed to download code', {
+                description: 'Please try again or save manually.',
+                duration: 3000,
+            });
+        }
+    }, [currentData.language]);
 
     const handleInputSubmit = useCallback(() => {
         if (inputValue.trim()) {
-            const userInput = inputValue.trim();
-            setOutput((prev) => prev + userInput + '\n');
-
-            // Continue Python simulation after input
-            if (currentData.language === 'python') {
-                setTimeout(() => {
-                    setOutput(
-                        (prev) =>
-                            prev +
-                            `Hello, ${userInput}! Welcome to coding!\nSum of numbers: 15\n\nNote: This is a Python simulation. For real Python execution, you would need a Python interpreter.`
-                    );
-                }, 500);
-            }
-
+            const newOutput = handleUserInputSubmission(inputValue, currentData.language, output);
+            setOutput(newOutput);
             setInputValue('');
             setWaitingForInput(false);
         }
-    }, [inputValue, currentData.language]);
+    }, [inputValue, currentData.language, output]);
+
+    // Helper function to get the current code from the editor
+    const getCurrentCodeFromEditor = useCallback((): string => {
+        if (
+            editorRef.current &&
+            typeof editorRef.current === 'object' &&
+            'getValue' in editorRef.current
+        ) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            return (editorRef.current as any).getValue() || '';
+        }
+        // Fallback to current data or language state
+        return currentData.code || languageStates[currentData.language].code;
+    }, [currentData.code, currentData.language, languageStates]);
 
     const runCode = useCallback(async () => {
+        // Get the most current code from the editor before running
+        const currentCode = getCurrentCodeFromEditor();
+
         setIsRunning(true);
-        setOutput('Running code...\n');
+        setActiveTab('output');
+        setOutput('Running code...');
 
-        // Switch to output tab with a small delay for better UX
-        setTimeout(() => {
-            setActiveTab('output');
-        }, 100);
-
-        try {
-            if (currentData.language === 'javascript') {
-                // Create a safe environment for JavaScript execution
-                const originalConsoleLog = console.log;
-                const logs: string[] = [];
-
-                console.log = (...args) => {
-                    logs.push(
-                        args
-                            .map((arg) =>
-                                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
-                            )
-                            .join(' ')
-                    );
-                };
-
-                // Check if code contains prompt() before enabling input
-                const codeContainsPrompt = currentData.code.includes('prompt(');
-                const originalPrompt = window.prompt;
-
-                if (codeContainsPrompt) {
-                    window.prompt = (message?: string): string | null => {
-                        const promptMessage = message || 'Enter input:';
-                        logs.push(promptMessage);
-                        setOutput(logs.join('\n') + '\n');
-                        setWaitingForInput(true);
-
-                        // Return placeholder text
-                        return '[User will provide input below]';
-                    };
-                }
-
-                try {
-                    // Execute the code in a try-catch to handle errors
-                    const func = new Function(currentData.code);
-                    func();
-
-                    // Only set final output if we're not waiting for input
-                    if (!codeContainsPrompt || !waitingForInput) {
-                        setOutput(
-                            logs.length > 0
-                                ? logs.join('\n')
-                                : 'Code executed successfully (no output)'
-                        );
-                    }
-                } catch (error: unknown) {
-                    const errorMessage =
-                        error instanceof Error ? error.message : 'Unknown error occurred';
-                    setOutput(`Error: ${errorMessage}`);
-                } finally {
-                    console.log = originalConsoleLog;
-                    if (codeContainsPrompt) {
-                        window.prompt = originalPrompt;
-                    }
-                }
-            } else {
-                // For Python, check if code contains input() before showing interactive input
-                const codeContainsInput = currentData.code.includes('input(');
-
-                setOutput(`[PYTHON SIMULATION]
-Running your Python code...
-
-Hello, World!`);
-
-                // Only simulate input prompt if code contains input()
-                if (codeContainsInput) {
-                    setTimeout(() => {
-                        setOutput((prev) => prev + '\nEnter your name: ');
-                        setWaitingForInput(true);
-                    }, 1000);
-                } else {
-                    // Complete the simulation without input
-                    setTimeout(() => {
-                        setOutput(
-                            (prev) =>
-                                prev +
-                                '\nSum of numbers: 15\n\nNote: This is a Python simulation. For real Python execution, you would need a Python interpreter.'
-                        );
-                    }, 1000);
-                }
-            }
-        } catch (error: unknown) {
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-            setOutput(`Error: ${errorMessage}`);
-        } finally {
+        executeCode(currentCode, currentData.language).then(({ output, needsInput }) => {
+            setOutput(output);
+            setWaitingForInput(needsInput);
             setIsRunning(false);
-        }
-    }, [currentData]);
+        });
+    }, [currentData.language, getCurrentCodeFromEditor]);
 
     const handleEditorDidMount = (editor: unknown) => {
         editorRef.current = editor;
@@ -299,6 +332,15 @@ Hello, World!`);
             document.removeEventListener('keydown', handleKeyDown);
         };
     }, [isRunning, isEditable, runCode]);
+
+    // Cleanup timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (saveTimeoutRef.current) {
+                clearTimeout(saveTimeoutRef.current);
+            }
+        };
+    }, []);
 
     return (
         <div className="h-full p-1">
@@ -397,12 +439,12 @@ Hello, World!`);
 
                                     <DropdownMenuSeparator />
 
-                                    <DropdownMenuItem onClick={copyCode}>
+                                    <DropdownMenuItem onClick={handleCopyCode}>
                                         <Copy className="mr-2 size-4" />
                                         Copy Code
                                     </DropdownMenuItem>
 
-                                    <DropdownMenuItem onClick={downloadCode}>
+                                    <DropdownMenuItem onClick={handleDownloadCode}>
                                         <Download className="mr-2 size-4" />
                                         Download Code
                                     </DropdownMenuItem>
@@ -450,6 +492,9 @@ Hello, World!`);
                                             horizontalScrollbarSize: 8,
                                         },
                                         padding: { top: 16 },
+                                        // Optimize for smooth language switching
+                                        quickSuggestions: true,
+                                        suggestOnTriggerCharacters: true,
                                     }}
                                 />
                             </div>

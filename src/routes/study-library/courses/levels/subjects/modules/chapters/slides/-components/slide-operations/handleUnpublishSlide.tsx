@@ -69,7 +69,10 @@ export const handleUnpublishSlide = async (
             await SaveDraft(activeItem);
         }
 
-        const draftData = activeItem.document_slide?.data;
+        // For unpublishing, preserve the data from published_data if it exists, then fallback to data
+        // This ensures we don't lose content when unpublishing published slides
+        const draftData =
+            activeItem.document_slide?.published_data || activeItem.document_slide?.data;
 
         try {
             await addUpdateDocumentSlide({
@@ -81,11 +84,11 @@ export const handleUnpublishSlide = async (
                 document_slide: {
                     id: activeItem.document_slide?.id || '',
                     type: activeItem.document_slide?.type || '',
-                    data: draftData || null,
+                    data: draftData || null, // Move published_data back to data field
                     title: activeItem.document_slide?.title || '',
                     cover_file_id: activeItem.document_slide?.cover_file_id || '',
                     total_pages: activeItem.document_slide?.total_pages || 0,
-                    published_data: null,
+                    published_data: null, // Clear published_data since we're unpublishing
                     published_document_total_pages: 0,
                 },
                 status,
