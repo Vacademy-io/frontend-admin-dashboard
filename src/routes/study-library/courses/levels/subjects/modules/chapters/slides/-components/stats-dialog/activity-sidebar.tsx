@@ -87,8 +87,8 @@ export const ActivityStatsSidebar = () => {
                     Activity Stats
                 </MyButton>
             </DialogTrigger>
-            <DialogContent className="w-[800px] max-w-[800px] p-0 font-normal">
-                <DialogHeader className="flex flex-col gap-3">
+            <DialogContent className="w-[700px] max-w-[95vw] h-[600px] max-h-[90vh] p-0 font-normal flex flex-col">
+                <DialogHeader className="flex flex-col gap-3 flex-shrink-0">
                     <div className="rounded-t-lg bg-primary-50 px-6 py-4 text-h3 font-semibold text-primary-500">
                         Activity Stats
                     </div>
@@ -144,34 +144,41 @@ export const ActivityStatsSidebar = () => {
                             />
                         </div> */}
                     </div>
-                    <div className="no-scrollbar flex w-full flex-col gap-10 overflow-y-scroll">
-                        <div className="flex w-full flex-col gap-6 p-6">
-                            {tableData.content.length == 0 ? (
-                                <p className="text-primary-500">No student activity found</p>
-                            ) : (
-                                <div>
-                                    <MyTable<ActivityStatsColumnsType>
-                                        data={tableData}
-                                        columns={ActivityStatsColumns}
-                                        isLoading={isLoading}
-                                        error={error}
-                                        columnWidths={ACTIVITY_STATS_COLUMN_WIDTHS}
-                                        currentPage={page}
-                                    />
-
-                                    <div className="mt-6">
-                                        <MyPagination
-                                            currentPage={page}
-                                            totalPages={tableData.total_pages}
-                                            onPageChange={handlePageChange}
-                                        />
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                    <ActivityLogDialog />
                 </DialogHeader>
+                
+                <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+                    <div className="flex-1 overflow-y-auto px-6 pb-6">
+                        {tableData.content.length == 0 ? (
+                            <div className="flex items-center justify-center h-32">
+                                <p className="text-primary-500">No student activity found</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-6">
+                                <MyTable<ActivityStatsColumnsType>
+                                    data={tableData}
+                                    columns={ActivityStatsColumns}
+                                    isLoading={isLoading}
+                                    error={error}
+                                    columnWidths={ACTIVITY_STATS_COLUMN_WIDTHS}
+                                    currentPage={page}
+                                    enableColumnResizing={true}
+                                    enableColumnPinning={false}
+                                    className="activity-stats-table"
+                                />
+
+                                <div className="flex justify-center">
+                                    <MyPagination
+                                        currentPage={page}
+                                        totalPages={tableData.total_pages}
+                                        onPageChange={handlePageChange}
+                                    />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    
+                    <ActivityLogDialog />
+                </div>
             </DialogContent>
         </Dialog>
     );

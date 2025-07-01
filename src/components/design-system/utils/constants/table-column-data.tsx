@@ -484,6 +484,10 @@ export const ActivityStatsColumns: ColumnDef<ActivityStatsColumnsType>[] = [
     {
         accessorKey: 'details',
         header: 'Details',
+        size: 70,
+        minSize: 60,
+        maxSize: 90,
+        enableResizing: false,
         cell: ({ row }) => {
             // Create a regular function to handle the click
             const handleClick = () => {
@@ -502,14 +506,23 @@ export const ActivityStatsColumns: ColumnDef<ActivityStatsColumnsType>[] = [
     {
         accessorKey: 'full_name',
         header: 'Learner Name',
+        size: 220,
+        minSize: 180,
+        maxSize: 280,
     },
     {
         accessorKey: 'time_spent',
         header: 'Time Spent',
+        size: 130,
+        minSize: 110,
+        maxSize: 160,
     },
     {
         accessorKey: 'last_active',
         header: 'Last Active',
+        size: 200,
+        minSize: 160,
+        maxSize: 240,
     },
 ];
 

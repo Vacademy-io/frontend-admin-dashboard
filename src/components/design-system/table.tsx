@@ -112,6 +112,7 @@ interface MyTableProps<T> {
     onColumnSizingChange?: (sizing: any) => void;
     minColumnWidth?: number;
     maxColumnWidth?: number;
+    enableColumnPinning?: boolean;
 }
 
 export function MyTable<T>({
@@ -133,13 +134,28 @@ export function MyTable<T>({
     onColumnSizingChange,
     minColumnWidth = 50,
     maxColumnWidth = 1000,
+    enableColumnPinning = true,
 }: MyTableProps<T>) {
     // State for column resizing
     const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
 
-    // State for column pinning - pin the first 3 columns by default
+    // State for column pinning - determine which columns to pin based on available columns
+    const getDefaultPinnedColumns = () => {
+        if (!enableColumnPinning) return [];
+        
+        const columnIds = columns.map(col => col.id || (col as any).accessorKey);
+        const commonPinnedColumns = ['checkbox', 'details', 'full_name'];
+        
+        // Only pin columns that actually exist in the table
+        const availablePinnedColumns = commonPinnedColumns.filter(colId => 
+            columnIds.includes(colId)
+        );
+        
+        return availablePinnedColumns;
+    };
+
     const [columnPinning, setColumnPinning] = useState<ColumnPinningState>({
-        left: ['checkbox', 'details', 'full_name'],
+        left: getDefaultPinnedColumns(),
     });
 
     // Handle column sizing changes
@@ -169,7 +185,7 @@ export function MyTable<T>({
         },
         enableRowSelection: true,
         enableColumnResizing,
-        enableColumnPinning: true,
+        enableColumnPinning,
         columnResizeMode,
         onColumnSizingChange: handleColumnSizingChange,
         defaultColumn: {
