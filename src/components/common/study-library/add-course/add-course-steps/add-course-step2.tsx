@@ -108,10 +108,14 @@ export const AddCourseStep2 = ({
     onBack,
     onSubmit,
     initialData,
+    isLoading = false,
+    disableCreate = false,
 }: {
     onBack: () => void;
     onSubmit: (data: Step2Data) => void;
     initialData?: Step2Data;
+    isLoading?: boolean;
+    disableCreate?: boolean;
 }) => {
     const instituteId = getInstituteId();
     const [hasLevels, setHasLevels] = useState(initialData?.hasLevels || 'yes');
@@ -1342,9 +1346,19 @@ export const AddCourseStep2 = ({
                                     e.preventDefault();
                                     handleSubmit(form.getValues());
                                 }}
+                                disable={disableCreate}
                             >
-                                <Plus />
-                                Create
+                                {isLoading ? (
+                                    <span className="flex items-center gap-2">
+                                        <span className="size-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                                        Creating...
+                                    </span>
+                                ) : (
+                                    <>
+                                        <Plus />
+                                        Create
+                                    </>
+                                )}
                             </MyButton>
                         </div>
                     </div>

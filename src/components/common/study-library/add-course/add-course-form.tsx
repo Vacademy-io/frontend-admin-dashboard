@@ -45,6 +45,7 @@ export const AddCourseForm = () => {
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState<Partial<CourseFormData>>({});
     const [isOpen, setIsOpen] = useState(false);
+    const [isCreating, setIsCreating] = useState(false);
 
     const handleStep1Submit = (data: Step1Data) => {
         console.log('Step 1 data:', data);
@@ -58,9 +59,10 @@ export const AddCourseForm = () => {
     }
 
     const handleStep2Submit = (data: Step2Data) => {
+        setIsCreating(true);
         const newSubject: SubjectType = {
             id: '', // Let backend assign ID
-            subject_name: '',
+            subject_name: 'DEFAULT',
             subject_code: '',
             credit: 0,
             thumbnail_id: '',
@@ -71,7 +73,7 @@ export const AddCourseForm = () => {
 
         const newModule = {
             id: '',
-            module_name: '',
+            module_name: 'DEFAULT',
             description: '',
             status: '',
             thumbnail_id: '',
@@ -79,7 +81,7 @@ export const AddCourseForm = () => {
 
         const newChapter = {
             id: '', // Let backend assign ID
-            chapter_name: '',
+            chapter_name: 'DEFAULT',
             status: 'ACTIVE',
             file_id: '',
             description: '',
@@ -99,41 +101,66 @@ export const AddCourseForm = () => {
             { requestData: formattedData },
             {
                 onSuccess: async (response) => {
-                    const instituteDetails = await fetchInstituteDetails();
+                    try {
+                        const instituteDetails = await fetchInstituteDetails();
 
-                    const packageSessionId = findIdByPackageId(
-                        instituteDetails?.batches_for_sessions || [],
-                        response.data
-                    );
+                        const packageSessionId = findIdByPackageId(
+                            instituteDetails?.batches_for_sessions || [],
+                            response.data
+                        );
 
-                    const subjectResponse = await addSubjectMutation.mutateAsync({
-                        subject: newSubject,
-                        packageSessionIds: packageSessionId,
-                    });
+                        if (formattedData.course_depth === 2) {
+                            const subjectResponse = await addSubjectMutation.mutateAsync({
+                                subject: newSubject,
+                                packageSessionIds: packageSessionId,
+                            });
 
-                    const moduleResponse = await addModuleMutation.mutateAsync({
-                        subjectId: subjectResponse.data.id,
-                        packageSessionIds: packageSessionId,
-                        module: newModule,
-                    });
+                            const moduleResponse = await addModuleMutation.mutateAsync({
+                                subjectId: subjectResponse.data.id,
+                                packageSessionIds: packageSessionId,
+                                module: newModule,
+                            });
 
-                    await addChapterMutation.mutateAsync({
-                        subjectId: subjectResponse.data.id,
-                        moduleId: moduleResponse.data.id,
-                        commaSeparatedPackageSessionIds: packageSessionId,
-                        chapter: newChapter,
-                    });
+                            await addChapterMutation.mutateAsync({
+                                subjectId: subjectResponse.data.id,
+                                moduleId: moduleResponse.data.id,
+                                commaSeparatedPackageSessionIds: packageSessionId,
+                                chapter: newChapter,
+                            });
+                        } else if (formattedData.course_depth === 3) {
+                            const subjectResponse = await addSubjectMutation.mutateAsync({
+                                subject: newSubject,
+                                packageSessionIds: packageSessionId,
+                            });
 
-                    toast.success('Course created successfully');
-                    setIsOpen(false);
-                    setStep(1);
-                    setFormData({});
-                    navigate({
-                        to: `/study-library/courses/course-details?courseId=${response.data}`,
-                    });
+                            await addModuleMutation.mutateAsync({
+                                subjectId: subjectResponse.data.id,
+                                packageSessionIds: packageSessionId,
+                                module: newModule,
+                            });
+                        } else if (formattedData.course_depth === 4) {
+                            await addSubjectMutation.mutateAsync({
+                                subject: newSubject,
+                                packageSessionIds: packageSessionId,
+                            });
+                        }
+
+                        toast.success('Course created successfully');
+                        setIsOpen(false);
+                        setStep(1);
+                        setFormData({});
+                        navigate({
+                            to: `/study-library/courses/course-details?courseId=${response.data}`,
+                        });
+                    } catch (err) {
+                        toast.error('Failed to create course');
+                    } finally {
+                        setIsCreating(false);
+                    }
                 },
                 onError: () => {
                     toast.error('Failed to create course');
+                    setIsCreating(false);
                 },
             }
         );
@@ -172,6 +199,8 @@ export const AddCourseForm = () => {
                             onBack={handleBack}
                             onSubmit={handleStep2Submit}
                             initialData={formData as Step2Data}
+                            isLoading={isCreating}
+                            disableCreate={isCreating}
                         />
                     )}
                 </div>
