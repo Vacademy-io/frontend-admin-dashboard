@@ -291,14 +291,27 @@ export const useSlides = (
                 `${ADD_UPDATE_VIDEO_SLIDE}?chapterId=${chapterId}&instituteId=${INSTITUTE_ID}&packageSessionId=${packageSessionId}&moduleId=${moduleId}&subjectId=${subjectId}`,
                 payload
             );
-            return response.data;
+            return { data: response.data, isNewSlide: payload.new_slide };
         },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['slides'] });
+        onSuccess: async (result) => {
+            // Invalidate and wait for slides query to refetch
+            await queryClient.invalidateQueries({ queryKey: ['slides'] });
             queryClient.invalidateQueries({ queryKey: ['GET_MODULES_WITH_CHAPTERS'] });
             queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
             queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SUBJECTS_PROGRESS'] });
             queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SLIDES_PROGRESS'] });
+
+            // If this was a new slide creation, set first slide as active after refetch completes
+            if (result.isNewSlide) {
+                // Wait for the slides query to actually refetch and update the store
+                setTimeout(() => {
+                    const { setActiveItem, items } = useContentStore.getState();
+
+                    if (items && items.length > 0) {
+                        setActiveItem(items[0] as Slide);
+                    }
+                }, 1000); // Increased timeout to ensure refetch completes
+            }
         },
     });
 
@@ -308,14 +321,27 @@ export const useSlides = (
                 `${ADD_UPDATE_DOCUMENT_SLIDE}?chapterId=${chapterId}&moduleId=${moduleId}&subjectId=${subjectId}&packageSessionId=${packageSessionId}&instituteId=${INSTITUTE_ID}`,
                 payload
             );
-            return response.data;
+            return { data: response.data, isNewSlide: payload.new_slide };
         },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['slides'] });
+        onSuccess: async (result) => {
+            // Invalidate and wait for slides query to refetch
+            await queryClient.invalidateQueries({ queryKey: ['slides'] });
             queryClient.invalidateQueries({ queryKey: ['GET_MODULES_WITH_CHAPTERS'] });
             queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
             queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SUBJECTS_PROGRESS'] });
             queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SLIDES_PROGRESS'] });
+
+            // If this was a new slide creation, set first slide as active after refetch completes
+            if (result.isNewSlide) {
+                // Wait for the slides query to actually refetch and update the store
+                setTimeout(() => {
+                    const { setActiveItem, items } = useContentStore.getState();
+
+                    if (items && items.length > 0) {
+                        setActiveItem(items[0] as Slide);
+                    }
+                }, 1000); // Increased timeout to ensure refetch completes
+            }
         },
     });
 
@@ -356,14 +382,27 @@ export const useSlides = (
                 `${UPDATE_QUESTION_ORDER}?chapterId=${chapterId}&instituteId=${INSTITUTE_ID}&packageSessionId=${packageSessionId}&moduleId=${moduleId}&subjectId=${subjectId}`,
                 payload
             );
-            return response.data;
+            return { data: response.data, isNewSlide: payload.new_slide };
         },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['slides'] });
+        onSuccess: async (result) => {
+            // Invalidate and wait for slides query to refetch
+            await queryClient.invalidateQueries({ queryKey: ['slides'] });
             queryClient.invalidateQueries({ queryKey: ['GET_MODULES_WITH_CHAPTERS'] });
             queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
             queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SUBJECTS_PROGRESS'] });
             queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SLIDES_PROGRESS'] });
+
+            // If this was a new slide creation, set first slide as active after refetch completes
+            if (result.isNewSlide) {
+                // Wait for the slides query to actually refetch and update the store
+                setTimeout(() => {
+                    const { setActiveItem, items } = useContentStore.getState();
+
+                    if (items && items.length > 0) {
+                        setActiveItem(items[0] as Slide);
+                    }
+                }, 1000); // Increased timeout to ensure refetch completes
+            }
         },
     });
 
@@ -373,14 +412,27 @@ export const useSlides = (
                 `${UPDATE_ASSIGNMENT_ORDER}?chapterId=${chapterId}&instituteId=${INSTITUTE_ID}&packageSessionId=${packageSessionId}&subjectId=${subjectId}&moduleId=${moduleId}`,
                 payload
             );
-            return response.data;
+            return { data: response.data, isNewSlide: payload.new_slide };
         },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['slides'] });
+        onSuccess: async (result) => {
+            // Invalidate and wait for slides query to refetch
+            await queryClient.invalidateQueries({ queryKey: ['slides'] });
             queryClient.invalidateQueries({ queryKey: ['GET_MODULES_WITH_CHAPTERS'] });
             queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
             queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SUBJECTS_PROGRESS'] });
             queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SLIDES_PROGRESS'] });
+
+            // If this was a new slide creation, set first slide as active after refetch completes
+            if (result.isNewSlide) {
+                // Wait for the slides query to actually refetch and update the store
+                setTimeout(() => {
+                    const { setActiveItem, items } = useContentStore.getState();
+
+                    if (items && items.length > 0) {
+                        setActiveItem(items[0] as Slide);
+                    }
+                }, 1000); // Increased timeout to ensure refetch completes
+            }
         },
     });
 
@@ -389,13 +441,17 @@ export const useSlides = (
         isLoading: getSlidesQuery.isLoading,
         error: getSlidesQuery.error,
         refetch: getSlidesQuery.refetch,
-        addUpdateVideoSlide: addUpdateVideoSlideMutation.mutateAsync,
+        addUpdateVideoSlide: (payload: VideoSlidePayload) =>
+            addUpdateVideoSlideMutation.mutateAsync(payload).then((result) => result.data),
 
-        addUpdateDocumentSlide: addUpdateDocumentSlideMutation.mutateAsync,
+        addUpdateDocumentSlide: (payload: DocumentSlidePayload) =>
+            addUpdateDocumentSlideMutation.mutateAsync(payload).then((result) => result.data),
         updateSlideStatus: updateSlideStatus.mutateAsync,
         updateSlideOrder: updateSlideOrderMutation.mutateAsync,
-        updateQuestionOrder: updateQuestionSlideMutation.mutateAsync,
-        updateAssignmentOrder: updateAssignmentSlideMutation.mutateAsync,
+        updateQuestionOrder: (payload: SlideQuestionsDataInterface) =>
+            updateQuestionSlideMutation.mutateAsync(payload).then((result) => result.data),
+        updateAssignmentOrder: (payload: SlideQuestionsDataInterface) =>
+            updateAssignmentSlideMutation.mutateAsync(payload).then((result) => result.data),
         addUpdateExcalidrawSlide,
         isUpdating:
             addUpdateVideoSlideMutation.isPending ||

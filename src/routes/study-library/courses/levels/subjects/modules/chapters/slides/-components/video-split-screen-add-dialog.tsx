@@ -4,6 +4,9 @@ import { MyButton } from '@/components/design-system/button';
 import { BookOpen, Gamepad2, Code, Split, PlayCircle } from 'lucide-react';
 import { useContentStore } from '../-stores/chapter-sidebar-store';
 import { toast } from 'sonner';
+import { useSlides } from '../-hooks/use-slides';
+import { Route } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/index';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 interface SplitScreenData {
     splitScreen: boolean;
@@ -44,6 +47,20 @@ export const VideoSplitScreenAddDialog: React.FC<VideoSplitScreenAddDialogProps>
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
 
+    // Add these hooks for auto-save functionality
+    const { courseId, levelId, chapterId, moduleId, subjectId, sessionId } = Route.useSearch();
+    const { getPackageSessionId } = useInstituteDetailsStore();
+    const { addUpdateVideoSlide } = useSlides(
+        chapterId || '',
+        moduleId || '',
+        subjectId || '',
+        getPackageSessionId({
+            courseId: courseId || '',
+            levelId: levelId || '',
+            sessionId: sessionId || '',
+        }) || ''
+    );
+
     const splitScreenOptions: SplitScreenOption[] = [
         {
             icon: <BookOpen className="size-6 text-violet-600" />,
@@ -68,7 +85,7 @@ export const VideoSplitScreenAddDialog: React.FC<VideoSplitScreenAddDialogProps>
         },
     ];
 
-    const handleAddSplitScreen = (type: 'JUPYTER' | 'SCRATCH' | 'CODE') => {
+    const handleAddSplitScreen = async (type: 'JUPYTER' | 'SCRATCH' | 'CODE') => {
         try {
             setIsCreating(true);
 
@@ -155,8 +172,52 @@ export const VideoSplitScreenAddDialog: React.FC<VideoSplitScreenAddDialogProps>
                     : null,
             };
 
-            // Update the active item locally
+            // Automatically save the split screen to the backend first
+            const videoSlidePayload = {
+                id: currentSlide.id,
+                title: currentSlide.title,
+                description: currentSlide.description,
+                image_file_id: currentSlide.image_file_id,
+                slide_order: null,
+                video_slide: {
+                    id: currentSlide.video_slide?.id || '',
+                    description: currentSlide.video_slide?.description || '',
+                    title: currentSlide.title,
+                    url: currentSlide.video_slide?.url || '',
+                    video_length_in_millis: currentSlide.video_slide?.video_length_in_millis || 0,
+                    published_url: currentSlide.video_slide?.published_url || '',
+                    published_video_length_in_millis:
+                        currentSlide.video_slide?.published_video_length_in_millis || 0,
+                    source_type: currentSlide.video_slide?.source_type || 'VIDEO',
+                    embedded_type: type,
+                    embedded_data: JSON.stringify(data),
+                    questions: currentSlide.video_slide?.questions || [],
+                },
+                status: currentSlide.status === 'PUBLISHED' ? 'UNSYNC' : 'DRAFT',
+                new_slide: false,
+                notify: false,
+            };
+
+            await addUpdateVideoSlide(videoSlidePayload);
+
+            // Update the active item locally after successful save
+            // This ensures the newly created split screen becomes the active slide
             setActiveItem(updatedSlide);
+
+            // Add a small delay to ensure the slide remains active after query refetch
+            setTimeout(() => {
+                const refreshedSlide = getSlideById(currentSlide.id);
+                if (refreshedSlide) {
+                    // Reconstruct split screen properties for the refreshed slide
+                    const updatedRefreshedSlide = {
+                        ...refreshedSlide,
+                        splitScreenMode: true,
+                        splitScreenData: data,
+                        splitScreenType: `SPLIT_${type}`,
+                    };
+                    setActiveItem(updatedRefreshedSlide);
+                }
+            }, 500);
 
             toast.success(`Video converted to split-screen ${type.toLowerCase()} successfully!`);
             setIsDialogOpen(false);

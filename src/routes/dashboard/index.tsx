@@ -13,7 +13,7 @@ import {
     Lightning,
     PencilSimpleLine,
 } from 'phosphor-react';
-import { CreateAssessmentDashboardLogo, DashboardCreateCourse, IndianYogaLogo } from '@/svgs';
+import { CreateAssessmentDashboardLogo, DashboardCreateCourse } from '@/svgs';
 import { Badge } from '@/components/ui/badge';
 import { CompletionStatusComponent } from './-components/CompletionStatusComponent';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
@@ -540,7 +540,11 @@ export function DashboardComponent() {
                                     </div>
                                     <div className="mt-4 flex flex-col gap-4 md:flex-row">
                                         <CardDescription>
-                                            <IndianYogaLogo className="h-auto w-full max-w-[180px] sm:max-w-[200px]" />
+                                            <img
+                                                src="/yoga.png"
+                                                alt="yoga"
+                                                className="h-auto w-full max-w-[180px] sm:max-w-[200px]"
+                                            />
                                         </CardDescription>
 
                                         <CardDescription className="flex-1 space-y-3">
