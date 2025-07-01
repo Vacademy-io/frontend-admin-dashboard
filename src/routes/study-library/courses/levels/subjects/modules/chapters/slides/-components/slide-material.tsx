@@ -21,6 +21,7 @@ import {
 } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides';
 import { toast } from 'sonner';
 import { Check, DownloadSimple, PencilSimpleLine } from 'phosphor-react';
+import { AlertCircle } from 'lucide-react';
 import {
     converDataToAssignmentFormat,
     converDataToVideoFormat,
@@ -45,6 +46,7 @@ import { useSidebar } from '@/components/ui/sidebar';
 import { JupyterNotebookSlide } from './jupyter-notebook-slide';
 import { ScratchProjectSlide } from './scratch-project-slide';
 import { CodeEditorSlide } from './code-editor-slide';
+import { SplitScreenSlide } from './split-screen-slide';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { getTokenFromCookie, getTokenDecodedData } from '@/lib/auth/sessionUtility';
 import { UploadFileInS3 } from '@/services/upload_file';
@@ -356,36 +358,30 @@ export const SlideMaterial = ({
         if (activeItem.source_type === 'VIDEO') {
             // Check if this video slide is in split-screen mode
             if (activeItem.splitScreenMode && activeItem.splitScreenData) {
-                try {
-                    const { SplitScreenSlide } = await import('./split-screen-slide');
-                    setContent(
-                        <SplitScreenSlide
-                            splitScreenData={activeItem.splitScreenData as any}
-                            slideType={
-                                activeItem.splitScreenType as
-                                    | 'SPLIT_JUPYTER'
-                                    | 'SPLIT_SCRATCH'
-                                    | 'SPLIT_CODE'
-                            }
-                            isEditable={activeItem.status !== 'PUBLISHED'}
-                            currentSlideId={activeItem.id}
-                            onDataChange={(updatedSplitData) => {
-                                // Update split-screen data locally and handle title changes
-                                const projectName =
-                                    updatedSplitData.projectName || updatedSplitData.name;
-                                const updatedSlide = {
-                                    ...activeItem,
-                                    title: projectName || activeItem.title,
-                                    splitScreenData: updatedSplitData,
-                                };
-                                setActiveItem(updatedSlide as any);
-                            }}
-                        />
-                    );
-                } catch (error) {
-                    console.error('Error loading split screen component:', error);
-                    setContent(<VideoSlidePreview activeItem={activeItem} />);
-                }
+                setContent(
+                    <SplitScreenSlide
+                        splitScreenData={activeItem.splitScreenData as any}
+                        slideType={
+                            activeItem.splitScreenType as
+                                | 'SPLIT_JUPYTER'
+                                | 'SPLIT_SCRATCH'
+                                | 'SPLIT_CODE'
+                        }
+                        isEditable={activeItem.status !== 'PUBLISHED'}
+                        currentSlideId={activeItem.id}
+                        onDataChange={(updatedSplitData) => {
+                            // Update split-screen data locally and handle title changes
+                            const projectName =
+                                updatedSplitData.projectName || updatedSplitData.name;
+                            const updatedSlide = {
+                                ...activeItem,
+                                title: projectName || activeItem.title,
+                                splitScreenData: updatedSplitData,
+                            };
+                            setActiveItem(updatedSlide as any);
+                        }}
+                    />
+                );
             } else {
                 setContent(<VideoSlidePreview activeItem={activeItem} />);
             }
@@ -810,7 +806,7 @@ export const SlideMaterial = ({
                         ? JSON.parse(rawData)
                         : { splitScreen: true, videoSlideId: '', timestamp: Date.now() };
 
-                    const { SplitScreenSlide } = await import('./split-screen-slide');
+                    // Use regular import since it's already imported at the top
                     setContent(
                         <SplitScreenSlide
                             splitScreenData={splitScreenData}
@@ -863,9 +859,42 @@ export const SlideMaterial = ({
                     );
                 } catch (error) {
                     console.error('Error parsing split screen data:', error);
+                    // Show error message with option to retry
                     setContent(
-                        <div className="flex h-[400px] items-center justify-center text-red-500">
-                            Error loading split screen slide
+                        <div className="flex h-full items-center justify-center p-6">
+                            <div className="text-center">
+                                <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-red-100">
+                                    <AlertCircle className="size-8 text-red-600" />
+                                </div>
+                                <h3 className="mb-2 text-lg font-semibold">
+                                    Split Screen Loading Error
+                                </h3>
+                                <p className="mb-4 text-gray-600">
+                                    Failed to load the split screen component. This is usually a
+                                    temporary issue.
+                                </p>
+                                <MyButton
+                                    buttonType="primary"
+                                    scale="medium"
+                                    onClick={() => loadContent()}
+                                    className="mr-2"
+                                >
+                                    Retry
+                                </MyButton>
+                                <MyButton
+                                    buttonType="secondary"
+                                    scale="medium"
+                                    onClick={() =>
+                                        setContent(
+                                            <div className="flex h-[400px] items-center justify-center text-gray-500">
+                                                Split screen component unavailable
+                                            </div>
+                                        )
+                                    }
+                                >
+                                    Show Fallback
+                                </MyButton>
+                            </div>
                         </div>
                     );
                 }
@@ -1300,28 +1329,50 @@ export const SlideMaterial = ({
     }, [activeItem]);
 
     useEffect(() => {
-        if (items && items.length == 0 && slideId == undefined) {
+        console.log(
+            '🔄 Active slide management - items length:',
+            items?.length,
+            'activeItem:',
+            activeItem?.id,
+            'slideId:',
+            slideId
+        );
+
+        if (items && items.length === 0 && slideId === undefined) {
+            console.log('📭 No slides available, setting activeItem to null');
             setActiveItem(null);
-        } else if (items && items.length > 0) {
-            // First priority: preserve current active slide if it exists in items
-            if (activeItem && items.find((slide) => slide.id === activeItem.id)) {
+            return;
+        }
+
+        if (items && items.length > 0) {
+            // Check if current active slide still exists in items
+            const activeSlideStillExists =
+                activeItem && items.find((slide) => slide.id === activeItem.id);
+
+            if (activeSlideStillExists) {
                 // Active slide still exists, keep it selected
+                console.log('✅ Current active slide still exists:', activeItem.title);
                 return;
             }
 
-            // Second priority: use slideId from URL if available
+            // Active slide no longer exists (deleted) OR no active slide
+            console.log('🔄 Active slide missing or null, finding new active slide...');
+
+            // Priority 1: Use slideId from URL if available
             if (slideId) {
                 const targetSlide = items.find((slide) => slide.id === slideId);
                 if (targetSlide) {
+                    console.log('🎯 Setting slide from URL as active:', targetSlide.title);
                     setActiveItem(targetSlide);
                     return;
                 }
             }
 
-            // Last resort: select first slide only if no active slide exists
-            if (!activeItem) {
-                setActiveItem(items[0] || null);
-            }
+            // Priority 2: Always set first available slide as active
+            // This handles both new slide creation and slide deletion scenarios
+            const firstSlide = items[0];
+            console.log('📌 Setting first slide as active:', firstSlide?.title);
+            setActiveItem(firstSlide || null);
         }
     }, [items, slideId]);
 
@@ -1330,7 +1381,13 @@ export const SlideMaterial = ({
         // Only reload content if the slide ID, source type, or document type changes
         // Ignore changes to data field to prevent infinite loops from auto-save
         loadContent();
-    }, [activeItem?.id, activeItem?.source_type, activeItem?.document_slide?.type, activeItem?.status, items]); // Prevent reload on auto-save data changes
+    }, [
+        activeItem?.id,
+        activeItem?.source_type,
+        activeItem?.document_slide?.type,
+        activeItem?.status,
+        items,
+    ]); // Prevent reload on auto-save data changes
 
     useEffect(() => {
         let intervalId: NodeJS.Timeout | null = null;

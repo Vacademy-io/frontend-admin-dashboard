@@ -1,7 +1,7 @@
 import QRCode from 'react-qr-code';
 import { Copy, DownloadSimple, DotsThree } from 'phosphor-react';
 import { MyButton } from '@/components/design-system/button';
-import { BASE_URL_LEARNER_DASHBOARD } from '@/constants/urls';
+import { BASE_URL_LEARNER_DASHBOARD, HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
 import { copyToClipboard } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/helper';
 import {
     DropdownMenu,
@@ -15,6 +15,7 @@ import { useLiveSessionStore } from '../schedule/-store/sessionIdstore';
 import { useNavigate } from '@tanstack/react-router';
 import { useSessionDetailsStore } from '../-store/useSessionDetailsStore';
 import { useQueryClient } from '@tanstack/react-query';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 interface DraftSessionCardProps {
     session: DraftSession;
@@ -29,6 +30,7 @@ export default function DraftSessionCard({ session }: DraftSessionCardProps) {
     const navigate = useNavigate();
     const { setSessionId } = useLiveSessionStore();
     const { setSessionDetails } = useSessionDetailsStore();
+    const { showForInstitutes } = useInstituteDetailsStore();
 
     const handleEditSession = async () => {
         try {
@@ -99,6 +101,7 @@ export default function DraftSessionCard({ session }: DraftSessionCardProps) {
             </div>
 
             <div className="flex w-full items-center justify-start gap-8 text-sm text-neutral-500">
+                {!showForInstitutes([HOLISTIC_INSTITUTE_ID])}
                 <div className="flex items-center gap-2">
                     <span className="text-black">Subject:</span>
                     <span>{session.subject}</span>

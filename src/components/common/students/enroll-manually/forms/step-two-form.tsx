@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { FormStepHeading } from '../form-components/form-step-heading';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { FormItemWrapper } from '../form-components/form-item-wrapper';
@@ -23,6 +24,7 @@ import { AddSessionDataType } from '@/routes/manage-institute/sessions/-componen
 import { useAddSession } from '@/services/study-library/session-management/addSession';
 import { AddLevelData } from '@/routes/study-library/courses/levels/-components/add-level-form';
 import { useAddLevel } from '@/routes/study-library/courses/levels/-services/add-level';
+import { HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
 
 export const StepTwoForm = ({
     initialValues,
@@ -40,6 +42,7 @@ export const StepTwoForm = ({
         getSessionFromPackage,
         getLevelsFromPackage,
         getDetailsFromPackageSessionId,
+        showForInstitutes,
     } = useInstituteDetailsStore();
 
     const [courseList, setCourseList] = useState<DropdownItemType[]>(getCourseFromPackage());
@@ -431,37 +434,41 @@ export const StepTwoForm = ({
                                     </FormItem>
                                 )}
                             />
-                            <FormField
-                                control={form.control}
-                                name="course"
-                                render={({ field: { value } }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <div className="flex flex-col gap-1">
-                                                <div>
-                                                    Course
-                                                    <span className="text-subtitle text-danger-600">
-                                                        *
-                                                    </span>
+                            {!showForInstitutes([HOLISTIC_INSTITUTE_ID]) && (
+                                <FormField
+                                    control={form.control}
+                                    name="course"
+                                    render={({ field: { value } }) => (
+                                        <FormItem>
+                                            <FormControl>
+                                                <div className="flex flex-col gap-1">
+                                                    <div>
+                                                        Course
+                                                        <span className="text-subtitle text-danger-600">
+                                                            *
+                                                        </span>
+                                                    </div>
+                                                    <MyDropdown
+                                                        currentValue={value.name}
+                                                        dropdownList={courseList}
+                                                        handleChange={handleCourseChange}
+                                                        placeholder="Select Course"
+                                                        error={
+                                                            form.formState.errors.course?.id
+                                                                ?.message ||
+                                                            form.formState.errors.course?.name
+                                                                ?.message
+                                                        }
+                                                        required={true}
+                                                        showAddCourseButton={true}
+                                                        onAddCourse={handleAddCourse}
+                                                    />
                                                 </div>
-                                                <MyDropdown
-                                                    currentValue={value.name}
-                                                    dropdownList={courseList}
-                                                    handleChange={handleCourseChange}
-                                                    placeholder="Select Course"
-                                                    error={
-                                                        form.formState.errors.course?.id?.message ||
-                                                        form.formState.errors.course?.name?.message
-                                                    }
-                                                    required={true}
-                                                    showAddCourseButton={true}
-                                                    onAddCourse={handleAddCourse}
-                                                />
-                                            </div>
-                                        </FormControl>
-                                    </FormItem>
-                                )}
-                            />
+                                            </FormControl>
+                                        </FormItem>
+                                    )}
+                                />
+                            )}
 
                             <FormField
                                 control={form.control}
@@ -629,28 +636,31 @@ export const StepTwoForm = ({
                                     </FormItem>
                                 )}
                             />
-
-                            <FormField
-                                control={form.control}
-                                name="collegeName"
-                                render={({ field: { onChange, value, ...field } }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <MyInput
-                                                inputType="text"
-                                                label="College/School Name"
-                                                inputPlaceholder="Enter Student's College/School Name"
-                                                input={value}
-                                                onChangeFunction={onChange}
-                                                error={form.formState.errors.collegeName?.message}
-                                                size="large"
-                                                className="w-full"
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                    </FormItem>
-                                )}
-                            />
+                            {!showForInstitutes([HOLISTIC_INSTITUTE_ID]) && (
+                                <FormField
+                                    control={form.control}
+                                    name="collegeName"
+                                    render={({ field: { onChange, value, ...field } }) => (
+                                        <FormItem>
+                                            <FormControl>
+                                                <MyInput
+                                                    inputType="text"
+                                                    label="College/School Name"
+                                                    inputPlaceholder="Enter Student's College/School Name"
+                                                    input={value}
+                                                    onChangeFunction={onChange}
+                                                    error={
+                                                        form.formState.errors.collegeName?.message
+                                                    }
+                                                    size="large"
+                                                    className="w-full"
+                                                    {...field}
+                                                />
+                                            </FormControl>
+                                        </FormItem>
+                                    )}
+                                />
+                            )}
                         </div>
                     </form>
                 </Form>

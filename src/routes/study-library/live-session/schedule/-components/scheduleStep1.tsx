@@ -39,6 +39,8 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { useSessionDetailsStore } from '../../-store/useSessionDetailsStore';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
 // Constants
 const WAITING_ROOM_OPTIONS = [
     { value: '15', label: '15 minutes', _id: 1 },
@@ -64,6 +66,7 @@ export default function ScheduleStep1() {
 
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
     const { SubjectFilterData } = useFilterDataForAssesment(instituteDetails);
+    const { showForInstitutes } = useInstituteDetailsStore();
 
     // Form Setup
     const form = useForm<z.infer<typeof sessionFormSchema>>({
@@ -383,21 +386,23 @@ export default function ScheduleStep1() {
                         </FormItem>
                     )}
                 />
-                <SelectField
-                    label="Subject"
-                    name="subject"
-                    labelStyle="font-thin"
-                    options={[
-                        { value: 'none', label: 'Select Subject', _id: -1 },
-                        ...SubjectFilterData.map((option, index) => ({
-                            value: option.name,
-                            label: option.name,
-                            _id: index,
-                        })),
-                    ]}
-                    control={form.control}
-                    className="mt-[8px] w-56 font-thin"
-                />
+                {!showForInstitutes([HOLISTIC_INSTITUTE_ID]) && (
+                    <SelectField
+                        label="Subject"
+                        name="subject"
+                        labelStyle="font-thin"
+                        options={[
+                            { value: 'none', label: 'Select Subject', _id: -1 },
+                            ...SubjectFilterData.map((option, index) => ({
+                                value: option.name,
+                                label: option.name,
+                                _id: index,
+                            })),
+                        ]}
+                        control={form.control}
+                        className="mt-[8px] w-56 font-thin"
+                    />
+                )}
             </div>
 
             <div className="flex h-[280px] flex-col gap-6">

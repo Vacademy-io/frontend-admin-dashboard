@@ -338,18 +338,16 @@ export const ChapterSidebarSlides = ({
             
             console.log(`[ChapterSidebarSlides] 🏪 Store updated with ${slides.length} slides`);
 
-            // Preserve the current active slide if it still exists in the updated slides
-            if (activeItem) {
-                const existingActiveSlide = slides.find((slide) => slide.id === activeItem.id) as
-                    | Slide
-                    | undefined;
-                if (existingActiveSlide) {
-                    setActiveItem(existingActiveSlide);
-                    return;
-                }
+            // Check if current active slide still exists in updated slides
+            const activeSlideStillExists =
+                activeItem && slides.find((slide) => slide.id === activeItem.id);
+
+            if (activeSlideStillExists) {
+                setActiveItem(activeSlideStillExists as Slide);
+                return;
             }
 
-            // If there's a slideId in URL, try to select that slide
+            // Priority 1: Use slideId from URL if available
             if (slideId) {
                 const targetSlide = slides.find((item) => item.id === slideId) as Slide | undefined;
                 if (targetSlide) {
@@ -358,14 +356,15 @@ export const ChapterSidebarSlides = ({
                 }
             }
 
-            // Only fallback to first slide if there's no active slide at all
-            if (!activeItem) {
-                setActiveItem(slides[0] as Slide);
-            }
+            // Priority 2: Always set first slide as active (handles creation/deletion)
+            const firstSlide = slides[0] as Slide;
+            setActiveItem(firstSlide);
         } else {
-            if (slideId == undefined) {
+            setItems([]);
+            if (slideId === undefined) {
                 setActiveItem(null);
             } else {
+                // Create placeholder slide for URL slideId
                 setActiveItem({
                     id: slideId,
                     source_id: '',
@@ -384,7 +383,7 @@ export const ChapterSidebarSlides = ({
                 });
             }
         }
-    }, [slides, activeItem?.id, slideId]);
+    }, [slides, slideId]); // Removed activeItem?.id to prevent circular dependency
 
     // ===== RENDER DEBUGGING =====
     console.log(`[ChapterSidebarSlides] 🎯 Pre-render decision state:`, {

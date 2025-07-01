@@ -36,6 +36,14 @@ import {
 } from '../../-helper/slide-naming-utils';
 import { toast } from 'sonner';
 
+// Simple utility function for setting first slide as active (used as fallback)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const setFirstSlideAsActive = (setActiveItem: (slide: any) => void, items: any[]) => {
+    if (items && items.length > 0) {
+        setActiveItem(items[0]);
+    }
+};
+
 export const ChapterSidebarAddButton = () => {
     const { open } = useSidebar();
     const route = useRouter();
@@ -52,7 +60,7 @@ export const ChapterSidebarAddButton = () => {
             sessionId: sessionId || '',
         }) || ''
     );
-    const { setActiveItem, getSlideById, items } = useContentStore();
+    const { items } = useContentStore();
 
     // Use the Zustand store instead of useState
     const {
@@ -101,11 +109,6 @@ export const ChapterSidebarAddButton = () => {
                 chapterId: chapterId || '',
                 slideOrderPayload: reorderedSlides,
             });
-
-            // Set the new slide as active
-            setTimeout(() => {
-                setActiveItem(getSlideById(newSlideId));
-            }, 500);
         } catch (error) {
             console.error('Error reordering slides:', error);
             toast.error('Slide created but reordering failed');

@@ -74,7 +74,6 @@ export const executeCodeWithPiston = async (code: string, language: string) => {
 
         // Check for compilation stage (for languages that need it)
         if (result.compile) {
-            console.log('[CodeEditor] Compile stage:', result.compile);
             if (result.compile.code !== 0) {
                 // Compilation error
                 output =
@@ -86,7 +85,6 @@ export const executeCodeWithPiston = async (code: string, language: string) => {
 
         // Check for runtime stage
         if (result.run) {
-            console.log('[CodeEditor] Run stage:', result.run);
             if (result.run.code !== 0) {
                 // Runtime error
                 output =

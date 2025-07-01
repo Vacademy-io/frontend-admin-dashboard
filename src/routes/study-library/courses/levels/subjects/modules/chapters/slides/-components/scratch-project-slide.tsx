@@ -30,6 +30,7 @@ export const ScratchProjectSlide: React.FC<ScratchProjectSlideProps> = ({
     const [showForm, setShowForm] = useState(!scratchData?.projectId);
     const [embedError, setEmbedError] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [isSaving, setIsSaving] = useState(false);
 
     // Update local state when props change (for different slides)
     React.useEffect(() => {
@@ -38,6 +39,7 @@ export const ScratchProjectSlide: React.FC<ScratchProjectSlideProps> = ({
         setShowForm(!scratchData?.projectId);
         setEmbedError(false);
         setIsLoading(true);
+        setIsSaving(false);
     }, [scratchData]);
 
     const validateProjectId = (id: string): boolean => {
@@ -69,6 +71,10 @@ export const ScratchProjectSlide: React.FC<ScratchProjectSlideProps> = ({
             return;
         }
 
+        // Set saving state and hide form immediately to prevent flickering
+        setIsSaving(true);
+        setShowForm(false);
+
         // Create properly structured data for backend
         const updatedData: ScratchData = {
             ...scratchData,
@@ -80,7 +86,6 @@ export const ScratchProjectSlide: React.FC<ScratchProjectSlideProps> = ({
 
         // Save to backend via onDataChange
         onDataChange?.(updatedData);
-        setShowForm(false);
         toast.success('Scratch project configuration saved successfully!');
     };
 
@@ -132,10 +137,10 @@ export const ScratchProjectSlide: React.FC<ScratchProjectSlideProps> = ({
                                 buttonType="primary"
                                 scale="medium"
                                 onClick={handleSubmit}
-                                disabled={!projectId.trim()}
+                                disabled={!projectId.trim() || isSaving}
                                 className="flex-1"
                             >
-                                Load Scratch Project
+                                {isSaving ? 'Loading...' : 'Load Scratch Project'}
                             </MyButton>
                         </div>
                     </CardContent>
@@ -144,7 +149,7 @@ export const ScratchProjectSlide: React.FC<ScratchProjectSlideProps> = ({
         );
     }
 
-    if (!scratchData?.projectId) {
+    if (!scratchData?.projectId && !isSaving) {
         return (
             <div className="flex h-full items-center justify-center p-6">
                 <Card className="w-full max-w-md text-center">
@@ -167,6 +172,21 @@ export const ScratchProjectSlide: React.FC<ScratchProjectSlideProps> = ({
                                 Configure Project
                             </MyButton>
                         )}
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
+
+    // Show loading state while saving
+    if (isSaving) {
+        return (
+            <div className="flex h-full items-center justify-center p-6">
+                <Card className="w-full max-w-md text-center">
+                    <CardContent className="p-6">
+                        <div className="mx-auto mb-4 size-8 animate-spin rounded-full border-4 border-orange-200 border-t-orange-600"></div>
+                        <h3 className="mb-2 text-lg font-semibold">Loading Scratch Project...</h3>
+                        <p className="text-gray-600">Setting up your project configuration.</p>
                     </CardContent>
                 </Card>
             </div>
