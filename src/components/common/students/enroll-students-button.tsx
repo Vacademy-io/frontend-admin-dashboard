@@ -8,8 +8,9 @@ import { cn } from '@/lib/utils';
 import { useBulkDialog } from '@/routes/manage-students/students-list/-context/bulk-dialog-context';
 import { useRouter } from '@tanstack/react-router';
 import { ButtonScale } from '@/components/design-system/utils/types/button-types';
+import { HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
 export const EnrollStudentsButton = ({ scale = 'large' }: { scale?: ButtonScale }) => {
-    const { getCourseFromPackage } = useInstituteDetailsStore();
+    const { getCourseFromPackage, showForInstitutes } = useInstituteDetailsStore();
     const { enrollStudentDialogOpen, setEnrollStudentDialogOpen } = useBulkDialog();
     const router = useRouter();
 
@@ -27,13 +28,17 @@ export const EnrollStudentsButton = ({ scale = 'large' }: { scale?: ButtonScale 
                     layoutVariant="default"
                     id="enroll-students"
                 >
-                    Enroll Learner
+                    {showForInstitutes([HOLISTIC_INSTITUTE_ID])
+                        ? 'Enroll Member'
+                        : 'Enroll Learner'}
                 </MyButton>
             </DialogTrigger>
             <DialogContent className="p-0 font-normal">
                 <DialogTitle>
                     <div className="bg-primary-50 px-6 py-4 text-h3 font-semibold text-primary-500">
-                        Enroll Learner
+                        {showForInstitutes([HOLISTIC_INSTITUTE_ID])
+                            ? 'Enroll Member'
+                            : 'Enroll Learner'}
                     </div>
                     <DialogDescription className="flex flex-col items-center justify-center gap-6 p-6 text-neutral-600">
                         <EnrollManuallyButton />

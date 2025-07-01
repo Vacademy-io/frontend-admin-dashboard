@@ -39,6 +39,7 @@ export const DeleteDialog = ({ openDialog, setOpenDialog }: DeleteProps) => {
             toast.success('Slide deleted successfully!');
             setOpenDialog(null);
         } catch (error) {
+            console.error('Error deleting slide:', error);
             toast.error('Failed to delete the slide');
         }
     };

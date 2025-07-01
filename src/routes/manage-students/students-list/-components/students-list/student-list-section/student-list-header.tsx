@@ -14,6 +14,7 @@ import { useInstituteDetailsStore } from '@/stores/students/students-list/useIns
 import { NoCourseDialog } from '@/components/common/students/no-course-dialog';
 import { cn } from '@/lib/utils';
 import { UserPlus, ArrowRight, Users, GraduationCap, Calendar } from '@phosphor-icons/react';
+import { HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
 
 const InviteLinksDialog = ({
     currentSession,
@@ -161,7 +162,7 @@ export const StudentListHeader = ({
     titleSize?: string;
 }) => {
     const [openInviteLinksDialog, setOpenInviteLinksDialog] = useState(false);
-    const { instituteDetails } = useInstituteDetailsStore();
+    const { instituteDetails, showForInstitutes } = useInstituteDetailsStore();
     const [isOpen, setIsOpen] = useState(false);
 
     const handleOpenChange = () => {
@@ -173,7 +174,7 @@ export const StudentListHeader = ({
             {/* Compact professional title */}
             <div className="flex items-center gap-2.5">
                 <div className="rounded-lg bg-gradient-to-br from-primary-100 to-primary-200 p-1.5 shadow-sm">
-                    <Users className="text-primary-600 size-4" />
+                    <Users className="size-4 text-primary-500" />
                 </div>
                 <div className="flex flex-col">
                     <h1
@@ -182,9 +183,11 @@ export const StudentListHeader = ({
                             titleSize ? titleSize : 'text-lg lg:text-xl'
                         )}
                     >
-                        Learner Management
+                        {showForInstitutes([HOLISTIC_INSTITUTE_ID])
+                            ? 'Member Management'
+                            : 'Learner Management'}
                     </h1>
-                    <div className="to-primary-600 h-0.5 w-8 rounded-full bg-gradient-to-r from-primary-500"></div>
+                    <div className="h-0.5 w-8 rounded-full bg-gradient-to-r from-primary-400 to-primary-500"></div>
                 </div>
             </div>
 
@@ -194,7 +197,7 @@ export const StudentListHeader = ({
                     onClick={() => setOpenInviteLinksDialog(true)}
                     scale="small"
                     buttonType="secondary"
-                    className="hover:scale-102 group flex items-center gap-1.5 border border-blue-200 bg-white text-xs text-blue-700 transition-all duration-200 hover:border-blue-300 hover:bg-blue-50"
+                    className="group flex items-center gap-1.5 border border-blue-200 bg-white text-xs text-blue-700 transition-all duration-200 hover:scale-100 hover:border-blue-300 hover:bg-blue-50"
                 >
                     <UserPlus className="size-3.5 transition-transform duration-200 group-hover:scale-110" />
                     <span className="hidden sm:inline">Invite</span>
