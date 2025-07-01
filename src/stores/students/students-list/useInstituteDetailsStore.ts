@@ -52,6 +52,7 @@ interface InstituteDetailsStore {
         packageSessionId: string;
     }) => BatchForSessionType | null;
     getSessionNameById: (sessionId: string) => string | null;
+    showForInstitutes: (instituteIds: string[]) => boolean;
 }
 
 export const useInstituteDetailsStore = create<InstituteDetailsStore>((set, get) => ({
@@ -324,5 +325,10 @@ export const useInstituteDetailsStore = create<InstituteDetailsStore>((set, get)
 
         const session = instituteDetails.sessions.find((session) => session.id === sessionId);
         return session?.session_name || null;
+    },
+    showForInstitutes: (instituteIds: string[]) => {
+        const { instituteDetails } = get();
+        if (!instituteDetails) return false;
+        return instituteIds.includes(instituteDetails.id);
     },
 }));

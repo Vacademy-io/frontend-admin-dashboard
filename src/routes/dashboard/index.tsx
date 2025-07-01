@@ -11,8 +11,9 @@ import {
     FilePdf,
     LightbulbFilament,
     Lightning,
+    PencilSimpleLine,
 } from 'phosphor-react';
-import { CreateAssessmentDashboardLogo, DashboardCreateCourse } from '@/svgs';
+import { CreateAssessmentDashboardLogo, DashboardCreateCourse, IndianYogaLogo } from '@/svgs';
 import { Badge } from '@/components/ui/badge';
 import { CompletionStatusComponent } from './-components/CompletionStatusComponent';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
@@ -26,7 +27,7 @@ import {
     getInstituteDashboardData,
 } from './-services/dashboard-services';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
-import { SSDC_INSTITUTE_ID } from '@/constants/urls';
+import { HOLISTIC_INSTITUTE_ID, SSDC_INSTITUTE_ID } from '@/constants/urls';
 import { Helmet } from 'react-helmet';
 import { getModuleFlags } from '@/components/common/layout-container/sidebar/helper';
 import RoleTypeComponent from './-components/RoleTypeComponent';
@@ -34,6 +35,7 @@ import useLocalStorage from '@/hooks/use-local-storage';
 import EditDashboardProfileComponent from './-components/EditDashboardProfileComponent';
 import { handleGetAdminDetails } from '@/services/student-list-section/getAdminDetails';
 import { motion } from 'framer-motion';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 export const Route = createFileRoute('/dashboard/')({
     component: DashboardPage,
@@ -101,6 +103,7 @@ export function DashboardComponent() {
         useSuspenseQuery(useInstituteQuery());
     const { data: adminDetails } = useSuspenseQuery(handleGetAdminDetails());
     const subModules = getModuleFlags(instituteDetails?.sub_modules);
+    const { showForInstitutes } = useInstituteDetailsStore();
 
     const { data, isLoading: isDashboardLoading } = useSuspenseQuery(
         getInstituteDashboardData(instituteDetails?.id)
@@ -186,7 +189,7 @@ export function DashboardComponent() {
                         Welcome aboard! We&apos;re excited to have you here. Let&apos;s set up your
                         admin dashboard and make learning seamless and engaging.
                     </p>
-                    {instituteDetails?.id !== SSDC_INSTITUTE_ID && (
+                    {!showForInstitutes([HOLISTIC_INSTITUTE_ID, SSDC_INSTITUTE_ID]) && (
                         <iframe
                             className="m-auto mt-4 h-[35vh] w-full rounded-lg md:h-[60vh] md:w-[65%]" // Reduced margin, height, width
                             src="https://www.youtube.com/embed/s2z1xbCWwRE?si=cgJvdMCJ8xg32lZ7" // Placeholder URL
@@ -199,7 +202,6 @@ export function DashboardComponent() {
             )}
             {/* Main content - Reduced top margin and gap */}
             <div className="mt-5 flex w-full flex-col gap-4">
-                {' '}
                 {/* Reduced mt-8 to mt-5, gap-6 to gap-4 */}
                 <Card className="grow bg-neutral-50 shadow-none">
                     <CardHeader className="p-4">
@@ -223,61 +225,66 @@ export function DashboardComponent() {
                     </CardHeader>
                 </Card>
                 {/* AI Features Card - Compacted Internals */}
-                <Card
-                    className="grow cursor-pointer bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg transition-all hover:scale-[1.01] hover:shadow-md" // slightly reduced hover shadow
-                    onClick={handleAICenterNavigation}
-                >
-                    <CardHeader className="p-4 sm:p-5">
-                        {' '}
-                        {/* Reduced padding */}
-                        <div className="flex items-center justify-between">
-                            <CardTitle className="mb-0.5 flex items-center gap-1.5 text-base font-semibold">
+                {!showForInstitutes([HOLISTIC_INSTITUTE_ID]) && (
+                    <Card
+                        className="grow cursor-pointer bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg transition-all hover:scale-[1.01] hover:shadow-md" // slightly reduced hover shadow
+                        onClick={handleAICenterNavigation}
+                    >
+                        <CardHeader className="p-4 sm:p-5">
+                            {/* Reduced padding */}
+                            <div className="flex items-center justify-between">
+                                <CardTitle className="mb-0.5 flex items-center gap-1.5 text-base font-semibold">
+                                    {' '}
+                                    {/* Reduced gap, mb */}
+                                    <Sparkle size={22} weight="fill" />{' '}
+                                    {/* Slightly smaller icon */}
+                                    Try New AI Features!
+                                </CardTitle>
+                                <ArrowSquareOut size={18} className="text-purple-200" />{' '}
+                                {/* Slightly smaller icon */}
+                            </div>
+                            <CardDescription className="text-xs text-purple-100">
                                 {' '}
-                                {/* Reduced gap, mb */}
-                                <Sparkle size={22} weight="fill" /> {/* Slightly smaller icon */}
-                                Try New AI Features!
-                            </CardTitle>
-                            <ArrowSquareOut size={18} className="text-purple-200" />{' '}
-                            {/* Slightly smaller icon */}
-                        </div>
-                        <CardDescription className="text-xs text-purple-100">
-                            {' '}
-                            {/* Smaller text */}
-                            Explore cutting-edge AI tools to enhance your teaching
-                        </CardDescription>
-                        {/* Compacted feature blurbs */}
-                        <div className="mt-3 flex flex-wrap justify-start gap-2 sm:gap-2.5">
-                            {' '}
-                            {/* Reduced margin-top and gap */}
-                            {[
-                                { icon: FilePdf, text: 'Questions from PDF' },
-                                { icon: LightbulbFilament, text: 'Questions From Lecture Audio' },
-                                { icon: LightbulbFilament, text: 'Sort Questions Topic wise' },
-                                { icon: LightbulbFilament, text: 'Questions From Image' },
-                                { icon: LightbulbFilament, text: 'Get Feedback of Lecture' },
-                                { icon: LightbulbFilament, text: 'Plan Your Lecture' },
-                            ].map((item, index) => (
-                                <div
-                                    key={index}
-                                    className="flex h-auto min-h-10 w-32 flex-col items-center justify-center rounded-md border border-purple-300/70 bg-white/10 p-1.5 text-center shadow-sm backdrop-blur-sm transition-colors hover:bg-white/20 sm:w-32" // Compacted size, padding
-                                >
-                                    <item.icon size={18} className="mb-0.5 text-purple-200" />{' '}
-                                    {/* Smaller icon, margin */}
+                                {/* Smaller text */}
+                                Explore cutting-edge AI tools to enhance your teaching
+                            </CardDescription>
+                            {/* Compacted feature blurbs */}
+                            <div className="mt-3 flex flex-wrap justify-start gap-2 sm:gap-2.5">
+                                {' '}
+                                {/* Reduced margin-top and gap */}
+                                {[
+                                    { icon: FilePdf, text: 'Questions from PDF' },
+                                    {
+                                        icon: LightbulbFilament,
+                                        text: 'Questions From Lecture Audio',
+                                    },
+                                    { icon: LightbulbFilament, text: 'Sort Questions Topic wise' },
+                                    { icon: LightbulbFilament, text: 'Questions From Image' },
+                                    { icon: LightbulbFilament, text: 'Get Feedback of Lecture' },
+                                    { icon: LightbulbFilament, text: 'Plan Your Lecture' },
+                                ].map((item, index) => (
+                                    <div
+                                        key={index}
+                                        className="flex h-auto min-h-10 w-32 flex-col items-center justify-center rounded-md border border-purple-300/70 bg-white/10 p-1.5 text-center shadow-sm backdrop-blur-sm transition-colors hover:bg-white/20 sm:w-32" // Compacted size, padding
+                                    >
+                                        <item.icon size={18} className="mb-0.5 text-purple-200" />{' '}
+                                        {/* Smaller icon, margin */}
+                                        <span className="text-[11px] font-normal leading-tight text-white">
+                                            {' '}
+                                            {/* Smaller text, tighter leading */}
+                                            {item.text}
+                                        </span>
+                                    </div>
+                                ))}
+                                <div className="flex h-auto min-h-10 w-32 flex-col items-center justify-center rounded-md border border-purple-300/70 bg-white/10 p-1.5 text-center shadow-sm backdrop-blur-sm transition-colors hover:bg-white/20 sm:w-32">
                                     <span className="text-[11px] font-normal leading-tight text-white">
-                                        {' '}
-                                        {/* Smaller text, tighter leading */}
-                                        {item.text}
+                                        Many More
                                     </span>
                                 </div>
-                            ))}
-                            <div className="flex h-auto min-h-10 w-32 flex-col items-center justify-center rounded-md border border-purple-300/70 bg-white/10 p-1.5 text-center shadow-sm backdrop-blur-sm transition-colors hover:bg-white/20 sm:w-32">
-                                <span className="text-[11px] font-normal leading-tight text-white">
-                                    Many More
-                                </span>
                             </div>
-                        </div>
-                    </CardHeader>
-                </Card>
+                        </CardHeader>
+                    </Card>
+                )}
                 {/* End of AI Features Card */}
                 <div
                     className={`flex flex-col ${subModules.assess ? 'lg:flex-col' : 'lg:flex-row'} gap-4`} // Reduced gap
@@ -312,20 +319,26 @@ export function DashboardComponent() {
                                                 textCol: 'text-blue-700',
                                                 borderCol: 'border-blue-200',
                                             },
-                                            {
-                                                label: 'Course Creator',
-                                                count: roleTypeCount['COURSE CREATOR'],
-                                                bg: 'bg-[#E6FCEF]',
-                                                textCol: 'text-green-700',
-                                                borderCol: 'border-green-200',
-                                            },
-                                            {
-                                                label: 'Assessment Creator',
-                                                count: roleTypeCount['ASSESSMENT CREATOR'],
-                                                bg: 'bg-[#FCE6E7]',
-                                                textCol: 'text-red-700',
-                                                borderCol: 'border-red-200',
-                                            },
+                                            ...(!showForInstitutes([HOLISTIC_INSTITUTE_ID])
+                                                ? [
+                                                      {
+                                                          label: 'Course Creator',
+                                                          count: roleTypeCount['COURSE CREATOR'],
+                                                          bg: 'bg-[#E6FCEF]',
+                                                          textCol: 'text-green-700',
+                                                          borderCol: 'border-green-200',
+                                                      },
+                                                      {
+                                                          label: 'Assessment Creator',
+                                                          count: roleTypeCount[
+                                                              'ASSESSMENT CREATOR'
+                                                          ],
+                                                          bg: 'bg-[#FCE6E7]',
+                                                          textCol: 'text-red-700',
+                                                          borderCol: 'border-red-200',
+                                                      },
+                                                  ]
+                                                : []),
                                         ].map((role) => (
                                             <>
                                                 <Badge
@@ -339,37 +352,39 @@ export function DashboardComponent() {
                                             </>
                                         ))}
                                     </div>
-                                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                                        {' '}
-                                        {/* Reduced gap */}
-                                        {[
-                                            {
-                                                label: 'Teacher',
-                                                count: roleTypeCount['TEACHER'],
-                                                bg: 'bg-[#FCE6E7]',
-                                                textCol: 'text-red-700',
-                                                borderCol: 'border-red-200',
-                                            }, // Example color, adjust as needed
-                                            {
-                                                label: 'Evaluator',
-                                                count: roleTypeCount.EVALUATOR,
-                                                bg: 'bg-[#F0E6FC]',
-                                                textCol: 'text-purple-700',
-                                                borderCol: 'border-purple-200',
-                                            },
-                                        ].map((role) => (
-                                            <>
-                                                <Badge
-                                                    className={`whitespace-nowrap rounded border px-1.5 py-0.5 text-[11px] font-normal shadow-none ${role.bg} ${role.textCol} ${role.borderCol}`}
-                                                >
-                                                    {role.label}
-                                                </Badge>
-                                                <span className="text-xs font-medium text-primary-500">
-                                                    {role.count}
-                                                </span>
-                                            </>
-                                        ))}
-                                    </div>
+                                    {!showForInstitutes([HOLISTIC_INSTITUTE_ID]) && (
+                                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                            {' '}
+                                            {/* Reduced gap */}
+                                            {[
+                                                {
+                                                    label: 'Teacher',
+                                                    count: roleTypeCount['TEACHER'],
+                                                    bg: 'bg-[#FCE6E7]',
+                                                    textCol: 'text-red-700',
+                                                    borderCol: 'border-red-200',
+                                                }, // Example color, adjust as needed
+                                                {
+                                                    label: 'Evaluator',
+                                                    count: roleTypeCount.EVALUATOR,
+                                                    bg: 'bg-[#F0E6FC]',
+                                                    textCol: 'text-purple-700',
+                                                    borderCol: 'border-purple-200',
+                                                },
+                                            ].map((role) => (
+                                                <>
+                                                    <Badge
+                                                        className={`whitespace-nowrap rounded border px-1.5 py-0.5 text-[11px] font-normal shadow-none ${role.bg} ${role.textCol} ${role.borderCol}`}
+                                                    >
+                                                        {role.label}
+                                                    </Badge>
+                                                    <span className="text-xs font-medium text-primary-500">
+                                                        {role.count}
+                                                    </span>
+                                                </>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             </CardHeader>
                         </Card>
@@ -434,83 +449,161 @@ export function DashboardComponent() {
                         </Card>
                     </div>
                     <div className="flex flex-1 flex-col gap-4 md:flex-row">
-                        {' '}
-                        {/* Reduced gap */}
-                        <Card className="flex-1 bg-neutral-50 shadow-none">
-                            <CardHeader className="p-4">
-                                {' '}
-                                {/* Reduced padding */}
-                                <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
-                                    <CardTitle className="text-sm font-semibold sm:mb-0">
-                                        Learning Center
-                                    </CardTitle>{' '}
-                                    {/* Smaller title */}
-                                    <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-                                        <MyButton
-                                            type="submit"
-                                            scale="small" // Adjusted scale
-                                            id="first-course"
-                                            buttonType="secondary"
-                                            layoutVariant="default"
-                                            className="w-full px-3 py-1.5 text-xs sm:w-auto" // Custom class
-                                        >
-                                            <Plus size={16} /> {/* Smaller icon */}
-                                            Create Course
-                                        </MyButton>
-                                        <MyButton
-                                            type="submit"
-                                            scale="small" // Adjusted scale
-                                            id="add-study-slides"
-                                            buttonType="secondary"
-                                            layoutVariant="default"
-                                            className="w-full px-3 py-1.5 text-xs sm:w-auto" // Custom class
-                                        >
-                                            <Plus size={16} /> {/* Smaller icon */}
-                                            Add Study Slides
-                                        </MyButton>
-                                    </div>
-                                </div>
-                                <CardDescription className="flex flex-col gap-1 py-2 text-xs text-neutral-600 sm:flex-row sm:items-center sm:gap-3 sm:py-3">
-                                    {' '}
-                                    {/* Reduced padding, gap, text size */}
-                                    <div
-                                        className="flex cursor-pointer items-center gap-1"
-                                        onClick={() => navigate({ to: '/study-library/courses' })}
-                                    >
-                                        <div className="flex items-center gap-0.5">
-                                            {' '}
-                                            {/* Reduced gap */}
-                                            <span>Courses</span>
-                                            <ArrowSquareOut size={14} /> {/* Smaller icon */}
+                        {!showForInstitutes([HOLISTIC_INSTITUTE_ID]) && (
+                            <Card className="flex-1 bg-neutral-50 shadow-none">
+                                <CardHeader className="p-4">
+                                    <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                        <CardTitle className="text-sm font-semibold sm:mb-0">
+                                            Learning Center
+                                        </CardTitle>
+                                        {/* Smaller title */}
+                                        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+                                            <MyButton
+                                                type="submit"
+                                                scale="small" // Adjusted scale
+                                                id="first-course"
+                                                buttonType="secondary"
+                                                layoutVariant="default"
+                                                className="w-full px-3 py-1.5 text-xs sm:w-auto" // Custom class
+                                            >
+                                                <Plus size={16} /> {/* Smaller icon */}
+                                                Create Course
+                                            </MyButton>
+                                            <MyButton
+                                                type="submit"
+                                                scale="small" // Adjusted scale
+                                                id="add-study-slides"
+                                                buttonType="secondary"
+                                                layoutVariant="default"
+                                                className="w-full px-3 py-1.5 text-xs sm:w-auto" // Custom class
+                                            >
+                                                <Plus size={16} /> {/* Smaller icon */}
+                                                Add Study Slides
+                                            </MyButton>
                                         </div>
-                                        <span className="font-medium text-primary-500">
-                                            {data.course_count}
-                                        </span>
                                     </div>
-                                    <div className="flex items-center gap-1">
-                                        <span>Level</span>
-                                        <span className="font-medium text-primary-500">
-                                            {instituteDetails?.levels?.length}
-                                        </span>
+                                    <CardDescription className="flex flex-col gap-1 py-2 text-xs text-neutral-600 sm:flex-row sm:items-center sm:gap-3 sm:py-3">
+                                        {' '}
+                                        {/* Reduced padding, gap, text size */}
+                                        <div
+                                            className="flex cursor-pointer items-center gap-1"
+                                            onClick={() =>
+                                                navigate({ to: '/study-library/courses' })
+                                            }
+                                        >
+                                            <div className="flex items-center gap-0.5">
+                                                {' '}
+                                                {/* Reduced gap */}
+                                                <span>Courses</span>
+                                                <ArrowSquareOut size={14} /> {/* Smaller icon */}
+                                            </div>
+                                            <span className="font-medium text-primary-500">
+                                                {data.course_count}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <span>Level</span>
+                                            <span className="font-medium text-primary-500">
+                                                {instituteDetails?.levels?.length}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <span>Subjects</span>
+                                            <span className="font-medium text-primary-500">
+                                                {instituteDetails?.subjects?.length}
+                                            </span>
+                                        </div>
+                                    </CardDescription>
+                                    <CardDescription className="mt-1 flex justify-center">
+                                        <DashboardCreateCourse className="h-auto w-full max-w-[180px] sm:max-w-[200px]" />
+                                    </CardDescription>
+                                </CardHeader>
+                            </Card>
+                        )}
+                        {showForInstitutes([HOLISTIC_INSTITUTE_ID]) && (
+                            <Card className="flex-1 border border-gray-200 bg-neutral-50 shadow-sm">
+                                <CardHeader className="p-4">
+                                    <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                        <CardTitle className="text-sm font-semibold sm:mb-0">
+                                            Live Classes
+                                        </CardTitle>
+                                        <MyButton
+                                            type="submit"
+                                            scale="small"
+                                            buttonType="secondary"
+                                            layoutVariant="default"
+                                            className="w-full px-3 py-1.5 text-xs sm:w-auto"
+                                        >
+                                            <Plus size={16} />
+                                            Add Live Class
+                                        </MyButton>
                                     </div>
-                                    <div className="flex items-center gap-1">
-                                        <span>Subjects</span>
-                                        <span className="font-medium text-primary-500">
-                                            {instituteDetails?.subjects?.length}
-                                        </span>
+                                    <div className="mt-4 flex flex-col gap-4 md:flex-row">
+                                        <CardDescription>
+                                            <IndianYogaLogo className="h-auto w-full max-w-[180px] sm:max-w-[200px]" />
+                                        </CardDescription>
+
+                                        <CardDescription className="flex-1 space-y-3">
+                                            <div className="flex items-center justify-around rounded-lg border bg-gray-50 p-2">
+                                                <div className="flex flex-col items-center gap-3">
+                                                    <span className="text-xs">Upcoming</span>
+                                                    <span className="mt-1 text-sm font-medium text-primary-500">
+                                                        6:00 am
+                                                    </span>
+                                                </div>
+                                                <div className="flex flex-col items-center gap-2">
+                                                    <span className="font-medium text-gray-900">
+                                                        Morning Batch 1
+                                                    </span>
+                                                    <div className="flex gap-x-2">
+                                                        <span className="rounded border p-2 text-xs">
+                                                            https://live/789xy
+                                                        </span>
+                                                        <button className="rounded border p-1 hover:bg-gray-200">
+                                                            <PencilSimpleLine
+                                                                size={16}
+                                                                className="text-gray-600"
+                                                            />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center justify-around rounded-lg border bg-gray-50 p-2">
+                                                <div className="flex flex-col items-center gap-3">
+                                                    <span className="text-xs">Upcoming</span>
+                                                    <span className="mt-1 text-sm font-medium text-primary-500">
+                                                        7:00 am
+                                                    </span>
+                                                </div>
+                                                <div className="flex flex-col items-center gap-2">
+                                                    <span className="font-medium text-gray-900">
+                                                        Morning Batch 1
+                                                    </span>
+                                                    <div className="flex gap-x-2">
+                                                        <span className="rounded border p-2 text-xs">
+                                                            https://live/789xy
+                                                        </span>
+                                                        <button className="rounded border p-1 hover:bg-gray-200">
+                                                            <PencilSimpleLine
+                                                                size={16}
+                                                                className="text-gray-600"
+                                                            />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* More classes indicator */}
+                                            <div className="py-2 text-center">
+                                                <span className="text-sm text-gray-500">
+                                                    +4 More
+                                                </span>
+                                            </div>
+                                        </CardDescription>
                                     </div>
-                                </CardDescription>
-                                <CardDescription className="mt-1 flex justify-center">
-                                    {' '}
-                                    {/* Reduced margin */}
-                                    {/* {getInstituteId() === HOLISTIC_INSTITUTE_ID ? (
-                                        <IndianYogaLogo className="h-auto w-full max-w-[180px] sm:max-w-[200px]" />
-                                    ) : (
-                                    )} */}
-                                    <DashboardCreateCourse className="h-auto w-full max-w-[180px] sm:max-w-[200px]" />
-                                </CardDescription>
-                            </CardHeader>
-                        </Card>
+                                </CardHeader>
+                            </Card>
+                        )}
                         {subModules.assess && (
                             <Card className="flex-1 grow bg-neutral-50 shadow-none">
                                 <CardHeader className="p-4">

@@ -10,6 +10,8 @@ import { useLiveSessionReport } from '../-hooks/useLiveSessionReport';
 import { reportColumns, REPORT_WIDTH } from '../-constants/reportTable';
 import { LiveSessionReport } from '../-services/utils';
 import { MyPieChart } from '@/components/design-system/charts/MyPieChart';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
 
 interface PreviousSessionCardProps {
     session: LiveSession;
@@ -21,6 +23,7 @@ export default function PreviousSessionCard({ session }: PreviousSessionCardProp
         useState<SessionDetailsResponse | null>(null);
 
     const { mutate: fetchReport, data: reportResponse, isPending, error } = useLiveSessionReport();
+    const { showForInstitutes } = useInstituteDetailsStore();
 
     const fetchSessionDetail = async () => {
         const response = await fetchSessionDetails(session.schedule_id);
@@ -118,10 +121,12 @@ export default function PreviousSessionCard({ session }: PreviousSessionCardProp
             </div>
 
             <div className="flex w-full items-center justify-start gap-8 text-sm text-neutral-500">
-                <div className="flex items-center gap-2">
-                    <span className="text-black">Subject:</span>
-                    <span>{session.subject}</span>
-                </div>
+                {!showForInstitutes([HOLISTIC_INSTITUTE_ID]) && (
+                    <div className="flex items-center gap-2">
+                        <span className="text-black">Subject:</span>
+                        <span>{session.subject}</span>
+                    </div>
+                )}
 
                 <div className="flex items-center gap-2">
                     <span className="text-black">Start Date & Time:</span>

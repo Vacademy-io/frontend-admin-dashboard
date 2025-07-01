@@ -289,6 +289,7 @@ export const myColumns: ColumnDef<StudentTable>[] = [
         maxSize: 300,
         header: 'College/School',
         cell: ({ row }) => <CreateClickableCell row={row} columnId="linked_institute_name" />,
+        enableHiding: true,
     },
     {
         accessorKey: 'gender',
@@ -321,6 +322,7 @@ export const myColumns: ColumnDef<StudentTable>[] = [
         maxSize: 220,
         header: "Father's Name",
         cell: ({ row }) => <CreateClickableCell row={row} columnId="father_name" />,
+        enableHiding: true,
     },
     {
         accessorKey: 'mother_name',
@@ -329,6 +331,7 @@ export const myColumns: ColumnDef<StudentTable>[] = [
         maxSize: 220,
         header: "Mother's Name",
         cell: ({ row }) => <CreateClickableCell row={row} columnId="mother_name" />,
+        enableHiding: true,
     },
     {
         accessorKey: 'guardian_name',
@@ -337,6 +340,7 @@ export const myColumns: ColumnDef<StudentTable>[] = [
         maxSize: 220,
         header: "Guardian's Name",
         cell: ({ row }) => <CreateClickableCell row={row} columnId="guardian_name" />,
+        enableHiding: true,
     },
     {
         accessorKey: 'parents_mobile_number',
@@ -345,6 +349,7 @@ export const myColumns: ColumnDef<StudentTable>[] = [
         maxSize: 280,
         header: "Father/Male Guardian's Mobile Number",
         cell: ({ row }) => <CreateClickableCell row={row} columnId="parents_mobile_number" />,
+        enableHiding: true,
     },
     {
         accessorKey: 'parents_email',
@@ -353,6 +358,7 @@ export const myColumns: ColumnDef<StudentTable>[] = [
         maxSize: 350,
         header: "Father/Male Guardian's Email ID",
         cell: ({ row }) => <CreateClickableCell row={row} columnId="parents_email" />,
+        enableHiding: true,
     },
     {
         accessorKey: 'parents_to_mother_mobile_number',
@@ -363,6 +369,7 @@ export const myColumns: ColumnDef<StudentTable>[] = [
         cell: ({ row }) => (
             <CreateClickableCell row={row} columnId="parents_to_mother_mobile_number" />
         ),
+        enableHiding: true,
     },
     {
         accessorKey: 'parents_to_mother_email',
@@ -371,6 +378,7 @@ export const myColumns: ColumnDef<StudentTable>[] = [
         maxSize: 350,
         header: "Mother/Female Guardian's Email ID",
         cell: ({ row }) => <CreateClickableCell row={row} columnId="parents_to_mother_email" />,
+        enableHiding: true,
     },
     {
         accessorKey: 'city',
@@ -379,6 +387,7 @@ export const myColumns: ColumnDef<StudentTable>[] = [
         maxSize: 180,
         header: 'City',
         cell: ({ row }) => <CreateClickableCell row={row} columnId="city" />,
+        enableHiding: true,
     },
     {
         accessorKey: 'region',
@@ -387,6 +396,52 @@ export const myColumns: ColumnDef<StudentTable>[] = [
         maxSize: 180,
         header: 'State',
         cell: ({ row }) => <CreateClickableCell row={row} columnId="region" />,
+        enableHiding: true,
+    },
+    {
+        accessorKey: 'attendance',
+        size: 120,
+        minSize: 100,
+        maxSize: 180,
+        header: 'Attendance',
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="attendance" />,
+        enableHiding: true,
+    },
+    {
+        accessorKey: 'country',
+        size: 120,
+        minSize: 100,
+        maxSize: 180,
+        header: 'Country',
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="country" />,
+        enableHiding: true,
+    },
+    {
+        accessorKey: 'plan_type',
+        size: 120,
+        minSize: 100,
+        maxSize: 180,
+        header: 'Plan Type',
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="plan_type" />,
+        enableHiding: true,
+    },
+    {
+        accessorKey: 'amount_paid',
+        size: 120,
+        minSize: 100,
+        maxSize: 180,
+        header: 'Amount Paid',
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="amount_paid" />,
+        enableHiding: true,
+    },
+    {
+        accessorKey: 'preffered_batch',
+        size: 120,
+        minSize: 100,
+        maxSize: 180,
+        header: 'Preferred Batch',
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="preffered_batch" />,
+        enableHiding: true,
     },
     {
         accessorKey: 'expiry_date',
