@@ -2,7 +2,6 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ThumbsUp, ThumbsDown, Trash, Star } from 'phosphor-react';
 import { StarRatingComponent } from '@/components/common/star-rating-component';
-import { Progress } from '@/components/ui/progress';
 import { useState } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { MyButton } from '@/components/design-system/button';
@@ -18,6 +17,7 @@ import {
 } from '../-services/rating-services';
 import { useRouter } from '@tanstack/react-router';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { ProgressBar } from '@/components/ui/custom-progress-bar';
 
 // Types for API Response
 interface User {
@@ -336,7 +336,7 @@ export function CourseDetailsRatingsComponent({
                     <div className="flex w-full flex-col gap-4">
                         <div className="flex w-1/2 items-center gap-2">
                             <span>5</span>
-                            <Progress value={overallRatingData?.percent_five_star ?? 0} />
+                            <ProgressBar value={overallRatingData?.percent_five_star ?? 0} />
                             <span>
                                 {overallRatingData?.percent_five_star !== null &&
                                 overallRatingData?.percent_five_star !== undefined
@@ -346,7 +346,7 @@ export function CourseDetailsRatingsComponent({
                         </div>
                         <div className="flex w-1/2 items-center gap-2">
                             <span>4</span>
-                            <Progress value={overallRatingData?.percent_four_star ?? 0} />
+                            <ProgressBar value={overallRatingData?.percent_four_star ?? 0} />
                             <span>
                                 {overallRatingData?.percent_four_star !== null &&
                                 overallRatingData?.percent_four_star !== undefined
@@ -356,7 +356,7 @@ export function CourseDetailsRatingsComponent({
                         </div>
                         <div className="flex w-1/2 items-center gap-2">
                             <span>3</span>
-                            <Progress value={overallRatingData?.percent_three_star ?? 0} />
+                            <ProgressBar value={overallRatingData?.percent_three_star ?? 0} />
                             <span>
                                 {overallRatingData?.percent_three_star !== null &&
                                 overallRatingData?.percent_three_star !== undefined
@@ -366,7 +366,7 @@ export function CourseDetailsRatingsComponent({
                         </div>
                         <div className="flex w-1/2 items-center gap-2">
                             <span>2</span>
-                            <Progress value={overallRatingData?.percent_two_star ?? 0} />
+                            <ProgressBar value={overallRatingData?.percent_two_star ?? 0} />
                             <span>
                                 {overallRatingData?.percent_two_star !== null &&
                                 overallRatingData?.percent_two_star !== undefined
@@ -376,7 +376,7 @@ export function CourseDetailsRatingsComponent({
                         </div>
                         <div className="flex w-1/2 items-center gap-2">
                             <span>1</span>
-                            <Progress value={overallRatingData?.percent_one_star ?? 0} />
+                            <ProgressBar value={overallRatingData?.percent_one_star ?? 0} />
                             <span>
                                 {overallRatingData?.percent_one_star !== null &&
                                 overallRatingData?.percent_one_star !== undefined
