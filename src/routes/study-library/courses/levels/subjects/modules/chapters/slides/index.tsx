@@ -8,7 +8,7 @@ import { StudyLibraryIntroKey } from '@/constants/storage/introKey';
 import {
     Slide,
     slideOrderPayloadType,
-    useSlides,
+    useSlidesMutations,
 } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides';
 import useIntroJsTour from '@/hooks/use-intro';
 import { InitStudyLibraryProvider } from '@/providers/study-library/init-study-library-provider';
@@ -66,7 +66,7 @@ function RouteComponent() {
     const [subjectName, setSubjectName] = useState('');
     const [moduleName, setModuleName] = useState('');
     const chapterName = useChapterName(chapterId);
-    const { updateSlideOrder } = useSlides(chapterId);
+    const { updateSlideOrder } = useSlidesMutations(chapterId);
     const { setNavHeading } = useNavHeadingStore();
 
     useIntroJsTour({

@@ -1,7 +1,7 @@
 import { MyButton } from '@/components/design-system/button';
 import { MyDialog } from '@/components/design-system/dialog';
 import { TokenKey } from '@/constants/auth/tokens';
-import { useSlides } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides';
+import { useSlidesMutations } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { useRouter } from '@tanstack/react-router';
 import { Dispatch, SetStateAction } from 'react';
@@ -19,7 +19,7 @@ export const DeleteDialog = ({ openDialog, setOpenDialog }: DeleteProps) => {
     const chapterId: string = searchParams.chapterId || '';
     const { activeItem } = useContentStore();
     const slideId: string = activeItem?.id || '';
-    const { updateSlideStatus, refetch } = useSlides(chapterId);
+    const { updateSlideStatus } = useSlidesMutations(chapterId);
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const data = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
@@ -32,9 +32,6 @@ export const DeleteDialog = ({ openDialog, setOpenDialog }: DeleteProps) => {
                 status: 'DELETED',
                 instituteId: INSTITUTE_ID || '',
             });
-
-            // Refresh the slides state with new data
-            await refetch();
 
             toast.success('Slide deleted successfully!');
             setOpenDialog(null);

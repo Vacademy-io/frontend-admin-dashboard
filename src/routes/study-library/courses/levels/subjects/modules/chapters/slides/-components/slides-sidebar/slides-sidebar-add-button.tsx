@@ -28,6 +28,12 @@ import { formatHTMLString } from '../slide-operations/formatHtmlString';
 import AddAssignmentDialog from './add-assignment-dialog';
 import { createPresentationSlidePayload } from '../create-presentation-slide';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { 
+    generateUniqueDocumentSlideTitle,
+    generateUniqueVideoSlideTitle,
+    generateUniqueQuestionSlideTitle,
+    generateUniqueAssignmentSlideTitle 
+} from '../../-helper/slide-naming-utils';
 import { toast } from 'sonner';
 
 export const ChapterSidebarAddButton = () => {
@@ -199,9 +205,10 @@ export const ChapterSidebarAddButton = () => {
                 try {
                     const documentData = formatHTMLString('');
                     const slideId = crypto.randomUUID();
+                    const uniqueTitle = generateUniqueDocumentSlideTitle(items || [], 'DOC');
                     const response = await addUpdateDocumentSlide({
                         id: slideId,
-                        title: 'New Doc',
+                        title: uniqueTitle,
                         image_file_id: '',
                         description: '',
                         slide_order: 0, // Always insert at top
@@ -209,7 +216,7 @@ export const ChapterSidebarAddButton = () => {
                             id: crypto.randomUUID(),
                             type: 'DOC',
                             data: documentData,
-                            title: 'New Doc',
+                            title: uniqueTitle,
                             cover_file_id: '',
                             total_pages: 1,
                             published_data: null,
@@ -251,7 +258,7 @@ export const ChapterSidebarAddButton = () => {
                         name: 'Text',
                         slides: null,
                     };
-                    const payload = createPresentationSlidePayload(slideTypeObj);
+                    const payload = createPresentationSlidePayload(slideTypeObj, items || []);
                     payload.slide_order = 0; // Always insert at top
                     console.log('payload', payload);
                     const response = await addUpdateDocumentSlide(payload);
@@ -286,9 +293,10 @@ export const ChapterSidebarAddButton = () => {
                 try {
                     // Create a Jupyter notebook slide as a document with special type
                     const slideId = crypto.randomUUID();
+                    const uniqueTitle = generateUniqueDocumentSlideTitle(items || [], 'JUPYTER');
                     const response = await addUpdateDocumentSlide({
                         id: slideId,
-                        title: 'Jupyter Notebook',
+                        title: uniqueTitle,
                         image_file_id: '',
                         description: 'Interactive Jupyter notebook environment',
                         slide_order: 0, // Always insert at top
@@ -304,7 +312,7 @@ export const ChapterSidebarAddButton = () => {
                                 editorType: 'jupyterEditor',
                                 timestamp: Date.now(),
                             }),
-                            title: 'Jupyter Notebook',
+                            title: uniqueTitle,
                             cover_file_id: '',
                             total_pages: 1,
                             published_data: null,
@@ -329,9 +337,10 @@ export const ChapterSidebarAddButton = () => {
                 try {
                     // Create a Scratch project slide as a document with special type
                     const slideId = crypto.randomUUID();
+                    const uniqueTitle = generateUniqueDocumentSlideTitle(items || [], 'SCRATCH');
                     const response = await addUpdateDocumentSlide({
                         id: slideId,
-                        title: 'Scratch Project',
+                        title: uniqueTitle,
                         image_file_id: '',
                         description: 'Interactive Scratch programming environment',
                         slide_order: 0, // Always insert at top
@@ -347,7 +356,7 @@ export const ChapterSidebarAddButton = () => {
                                 editorType: 'scratchEditor',
                                 timestamp: Date.now(),
                             }),
-                            title: 'Scratch Project',
+                            title: uniqueTitle,
                             cover_file_id: '',
                             total_pages: 1,
                             published_data: null,
@@ -372,9 +381,10 @@ export const ChapterSidebarAddButton = () => {
                 try {
                     // Create a code editor slide as a document with special type
                     const slideId = crypto.randomUUID();
+                    const uniqueTitle = generateUniqueDocumentSlideTitle(items || [], 'CODE');
                     const response = await addUpdateDocumentSlide({
                         id: slideId,
-                        title: 'Code Editor',
+                        title: uniqueTitle,
                         image_file_id: '',
                         description: 'Interactive code editing environment',
                         slide_order: 0, // Always insert at top
@@ -391,7 +401,7 @@ export const ChapterSidebarAddButton = () => {
                                 editorType: 'codeEditor',
                                 timestamp: Date.now(),
                             }),
-                            title: 'Code Editor',
+                            title: uniqueTitle,
                             cover_file_id: '',
                             total_pages: 1,
                             published_data: null,

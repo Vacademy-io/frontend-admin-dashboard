@@ -17,7 +17,7 @@ import { PublishDialog } from './publish-slide-dialog';
 import { UnpublishDialog } from './unpublish-slide-dialog';
 import {
     type Slide,
-    useSlides,
+    useSlidesMutations,
 } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides';
 import { toast } from 'sonner';
 import { Check, DownloadSimple, PencilSimpleLine } from 'phosphor-react';
@@ -46,6 +46,9 @@ import { JupyterNotebookSlide } from './jupyter-notebook-slide';
 import { ScratchProjectSlide } from './scratch-project-slide';
 import { CodeEditorSlide } from './code-editor-slide';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { getTokenFromCookie, getTokenDecodedData } from '@/lib/auth/sessionUtility';
+import { UploadFileInS3 } from '@/services/upload_file';
+import { TokenKey } from '@/constants/auth/tokens';
 
 // Inside your component
 // this toggles the DoubtResolutionSidebar
@@ -70,43 +73,17 @@ export const SlideMaterial = ({
     const router = useRouter();
     const [content, setContent] = useState<JSX.Element | null>(null);
     const isAutoSavingRef = useRef(false);
+    const getCurrentExcalidrawStateRef = useRef<(() => { elements: any[], appState: any, files: any }) | null>(null);
+    const isExcalidrawBusyRef = useRef(false); // Track if Excalidraw is performing intensive operations
+    const pendingStateUpdateRef = useRef<any>(null); // Store pending state updates
+    const stableKeyRef = useRef<string>(''); // Stable key during operations
 
     const { courseId, levelId, chapterId, slideId, moduleId, subjectId, sessionId } =
         router.state.location.search;
     const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
     const [isUnpublishDialogOpen, setIsUnpublishDialogOpen] = useState(false);
     const { getPackageSessionId } = useInstituteDetailsStore();
-    const { addUpdateDocumentSlide } = useSlides(
-        chapterId || '',
-        moduleId || '',
-        subjectId || '',
-        getPackageSessionId({
-            courseId: courseId || '',
-            levelId: levelId || '',
-            sessionId: sessionId || '',
-        }) || ''
-    );
-    const { addUpdateVideoSlide } = useSlides(
-        chapterId || '',
-        moduleId || '',
-        subjectId || '',
-        getPackageSessionId({
-            courseId: courseId || '',
-            levelId: levelId || '',
-            sessionId: sessionId || '',
-        }) || ''
-    );
-    const { updateQuestionOrder } = useSlides(
-        chapterId || '',
-        moduleId || '',
-        subjectId || '',
-        getPackageSessionId({
-            courseId: courseId || '',
-            levelId: levelId || '',
-            sessionId: sessionId || '',
-        }) || ''
-    );
-    const { updateAssignmentOrder } = useSlides(
+    const { addUpdateDocumentSlide, addUpdateVideoSlide, updateQuestionOrder, updateAssignmentOrder } = useSlidesMutations(
         chapterId || '',
         moduleId || '',
         subjectId || '',
@@ -262,6 +239,14 @@ export const SlideMaterial = ({
         async (elements: any[], appState: any, files: any, fileId?: string) => {
             if (!activeItem || activeItem.document_slide?.type !== 'PRESENTATION') return;
 
+            console.log(`[SlideMaterial] handleExcalidrawChange called:`, {
+                slideId: activeItem.id,
+                currentFileId: activeItem.document_slide?.data,
+                newFileId: fileId,
+                hasNewFileId: !!fileId,
+                elementsCount: elements?.length || 0
+            });
+
             // Only update database if we have a new fileId from auto-save
             if (fileId && fileId !== activeItem.document_slide?.data) {
                 // Prevent infinite loops by tracking auto-save state
@@ -272,8 +257,20 @@ export const SlideMaterial = ({
 
                 isAutoSavingRef.current = true;
 
-                // For presentations, keep the current status (don't change PUBLISHED to DRAFT/UNSYNC)
-                const currentStatus = activeItem.status || 'DRAFT';
+                // Determine the correct status based on current state
+                let newStatus = activeItem.status || 'DRAFT';
+                
+                // If the slide is PUBLISHED and being edited, change status to UNSYNC
+                if (activeItem.status === 'PUBLISHED') {
+                    newStatus = 'UNSYNC';
+                }
+
+                console.log(`[SlideMaterial] Updating slide in database:`, {
+                    slideId: activeItem.id,
+                    oldStatus: activeItem.status,
+                    newStatus: newStatus,
+                    fileId: fileId
+                });
 
                 try {
                     await addUpdateDocumentSlide({
@@ -285,18 +282,44 @@ export const SlideMaterial = ({
                         document_slide: {
                             id: activeItem.document_slide?.id || '',
                             type: 'PRESENTATION',
-                            data: fileId, // Store S3 file ID
+                            data: fileId, // Store S3 file ID in data field
                             title: activeItem.document_slide?.title || '',
                             cover_file_id: '',
                             total_pages: 1,
-                            published_data: activeItem.document_slide?.published_data || null,
+                            published_data: activeItem.document_slide?.published_data || null, // Keep published_data unchanged
                             published_document_total_pages: 0,
                         },
-                        status: currentStatus, // Keep existing status (PUBLISHED stays PUBLISHED)
+                        status: newStatus, // Use the determined status
                         new_slide: false,
                         notify: false,
                     });
-                    console.log('Excalidraw auto-saved with fileId:', fileId);
+                    
+                    // Update local activeItem state with the new fileId and status
+                    // Only update if Excalidraw is not performing intensive operations
+                    if (!isExcalidrawBusyRef.current) {
+                        const updatedActiveItem = {
+                            ...activeItem,
+                            status: newStatus,
+                            document_slide: activeItem.document_slide ? {
+                                ...activeItem.document_slide,
+                                data: fileId, // Update local state with new fileId
+                            } : undefined,
+                        };
+                        setActiveItem(updatedActiveItem);
+                    } else {
+                        console.log('[SlideMaterial] Excalidraw is busy, storing pending state update...');
+                        // Store the pending update to be applied when operation completes
+                        pendingStateUpdateRef.current = {
+                            ...activeItem,
+                            status: newStatus,
+                            document_slide: activeItem.document_slide ? {
+                                ...activeItem.document_slide,
+                                data: fileId,
+                            } : undefined,
+                        };
+                    }
+                    
+                    console.log('Excalidraw auto-saved successfully:', { fileId, status: newStatus });
                 } catch (error) {
                     console.error('Error auto-saving Excalidraw:', error);
                 } finally {
@@ -380,10 +403,16 @@ export const SlideMaterial = ({
                         ? activeItem.document_slide?.published_data
                         : activeItem.document_slide?.data;
 
+                // Create a truly stable key that never changes for this slide
+                // This prevents all unnecessary component rebuilds
+                if (!stableKeyRef.current) {
+                    stableKeyRef.current = `slide-editor-${activeItem.id}-${Date.now()}`;
+                }
+
                 setContent(
                     <div className="relative z-30 size-full">
                         <SlideEditor
-                            key={`slide-editor-${activeItem.id}-${activeItem.status}`}
+                            key={stableKeyRef.current} // Use stable key during operations
                             slideId={activeItem.id}
                             initialData={{
                                 elements: [],
@@ -394,6 +423,23 @@ export const SlideMaterial = ({
                             onChange={handleExcalidrawChange}
                             editable={activeItem.status !== 'PUBLISHED'}
                             isSaving={isSaving}
+                            onEditorReady={(state) => {
+                                getCurrentExcalidrawStateRef.current = state;
+                            }}
+                            onBusyStateChange={(isBusy) => {
+                                const wasBusy = isExcalidrawBusyRef.current;
+                                isExcalidrawBusyRef.current = isBusy;
+                                console.log(`[SlideMaterial] Excalidraw busy state changed:`, isBusy);
+                                
+                                // If operation just completed and we have a pending update, apply it
+                                if (wasBusy && !isBusy && pendingStateUpdateRef.current) {
+                                    console.log('[SlideMaterial] Operation completed, applying pending state update');
+                                    const pendingUpdate = pendingStateUpdateRef.current;
+                                    setActiveItem(pendingUpdate);
+                                    pendingStateUpdateRef.current = null;
+                                    // Keep stable key unchanged to prevent component rebuilds
+                                }
+                            }}
                         />
                     </div>
                 );
@@ -863,17 +909,24 @@ export const SlideMaterial = ({
         setIsSaving(true);
         try {
             const slide = slideToSave ? slideToSave : activeItem;
-            // For presentations, preserve the current status (PUBLISHED stays PUBLISHED)
-            // For other slide types, use the original logic
-            const status = slide?.source_type === 'DOCUMENT' && slide?.document_slide?.type === 'PRESENTATION'
-                ? slide?.status || 'DRAFT' // Keep current status for presentations
-                : slide
-                ? slide.status == 'PUBLISHED'
-                    ? 'UNSYNC'
-                    : slide.status == 'UNSYNC'
-                      ? 'UNSYNC'
-                      : 'DRAFT'
-                : 'DRAFT';
+            // Determine the correct status based on slide type and current state
+            let status: string;
+            if (slide?.source_type === 'DOCUMENT' && slide?.document_slide?.type === 'PRESENTATION') {
+                // For presentations, use the same logic as auto-save
+                status = slide?.status || 'DRAFT';
+                if (slide?.status === 'PUBLISHED') {
+                    status = 'UNSYNC';
+                }
+            } else {
+                // For other slide types, use the original logic
+                status = slide
+                    ? slide.status == 'PUBLISHED'
+                        ? 'UNSYNC'
+                        : slide.status == 'UNSYNC'
+                          ? 'UNSYNC'
+                          : 'DRAFT'
+                    : 'DRAFT';
+            }
 
             if (activeItem?.source_type == 'ASSIGNMENT') {
                 const convertedData = converDataToAssignmentFormat({
@@ -987,8 +1040,21 @@ export const SlideMaterial = ({
                 activeItem?.document_slide?.type == 'PRESENTATION'
             ) {
                 try {
-                    // For presentations, keep the current status (don't change PUBLISHED to DRAFT)
-                    const presentationStatus = slide?.status || 'DRAFT';
+                    // For presentations, use the same status logic as auto-save
+                    let presentationStatus = slide?.status || 'DRAFT';
+                    
+                    // If the slide is PUBLISHED and being edited, change status to UNSYNC
+                    if (slide?.status === 'PUBLISHED') {
+                        presentationStatus = 'UNSYNC';
+                    }
+
+                    console.log(`[SaveDraft] Saving presentation slide:`, {
+                        slideId: slide?.id,
+                        oldStatus: slide?.status,
+                        newStatus: presentationStatus,
+                        data: slide?.document_slide?.data,
+                        published_data: slide?.document_slide?.published_data
+                    });
 
                     await addUpdateDocumentSlide({
                         id: slide?.id || '',
@@ -1006,11 +1072,23 @@ export const SlideMaterial = ({
                             published_data: slide?.document_slide?.published_data || null,
                             published_document_total_pages: 0,
                         },
-                        status: presentationStatus, // Keep existing status (PUBLISHED stays PUBLISHED)
+                        status: presentationStatus, // Use the correct status logic
                         new_slide: false,
                         notify: false,
                     });
-                    toast.success(`Presentation saved successfully!`);
+                    // Update local activeItem state with the new status
+                    if (slide?.id === activeItem?.id) {
+                        const updatedActiveItem = {
+                            ...activeItem,
+                            status: presentationStatus as any,
+                        };
+                        setActiveItem(updatedActiveItem);
+                    }
+
+                    const successMessage = slide?.status === 'PUBLISHED' 
+                        ? 'Presentation saved as draft (unsync from published version)!'
+                        : 'Presentation saved successfully!';
+                    toast.success(successMessage);
                 } catch {
                     toast.error('Error saving presentation');
                 }
@@ -1114,15 +1192,56 @@ export const SlideMaterial = ({
         if (!activeItem || activeItem.document_slide?.type !== 'PRESENTATION') return;
 
         try {
-            // For publish, copy the current data file_id to published_data
-            const currentDataFileId = activeItem.document_slide?.data;
-
-            if (!currentDataFileId) {
-                toast.error('No presentation data to publish');
+            // Step 1: Get current state from Excalidraw editor
+            if (!getCurrentExcalidrawStateRef.current) {
+                toast.error('Editor not ready. Please try again.');
                 return;
             }
 
-            // Update slide with published_data
+            const currentState = getCurrentExcalidrawStateRef.current();
+            
+            if (!currentState.elements || currentState.elements.length === 0) {
+                toast.error('No content to publish. Please add some content first.');
+                return;
+            }
+
+            // Step 2: Prepare Excalidraw data for S3 upload
+            const excalidrawData = {
+                isExcalidraw: true,
+                elements: currentState.elements,
+                files: currentState.files || {},
+                appState: currentState.appState || {},
+                lastModified: Date.now(),
+            };
+
+            // Step 3: Upload current state to S3
+            const jsonBlob = new Blob([JSON.stringify(excalidrawData)], { type: 'application/json' });
+            const fileName = `excalidraw_${activeItem.id}_published_${Date.now()}.json`;
+            const jsonFile = new File([jsonBlob], fileName, {
+                type: 'application/json',
+            });
+
+            // Get user and institute info for S3 upload
+            const accessToken = getTokenFromCookie(TokenKey.accessToken);
+            const tokenData = getTokenDecodedData(accessToken);
+            const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
+            const USER_ID = tokenData?.sub;
+
+            const publishedFileId = await UploadFileInS3(
+                jsonFile,
+                () => {}, // No progress callback needed
+                USER_ID || '',
+                INSTITUTE_ID,
+                'ADMIN',
+                true // public URL
+            );
+
+            if (!publishedFileId) {
+                toast.error('Failed to upload presentation data');
+                return;
+            }
+
+            // Step 4: Update slide with both data and published_data set to the new file_id
             await addUpdateDocumentSlide({
                 id: activeItem.id,
                 title: activeItem.title || '',
@@ -1132,17 +1251,29 @@ export const SlideMaterial = ({
                 document_slide: {
                     id: activeItem.document_slide?.id || '',
                     type: 'PRESENTATION',
-                    data: currentDataFileId, // Keep current data
+                    data: publishedFileId, // Set data to new file_id
                     title: activeItem.document_slide?.title || '',
                     cover_file_id: '',
                     total_pages: 1,
-                    published_data: currentDataFileId, // Copy data to published_data
+                    published_data: publishedFileId, // Set published_data to same file_id
                     published_document_total_pages: 0,
                 },
                 status: 'PUBLISHED',
                 new_slide: false,
                 notify: false,
             });
+
+            // Update local activeItem state with the new published data
+            const updatedActiveItem = {
+                ...activeItem,
+                status: 'PUBLISHED' as any,
+                document_slide: activeItem.document_slide ? {
+                    ...activeItem.document_slide,
+                    data: publishedFileId,
+                    published_data: publishedFileId,
+                } : undefined,
+            };
+            setActiveItem(updatedActiveItem);
 
             toast.success('Presentation published successfully!');
         } catch (error) {

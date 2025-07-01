@@ -4,7 +4,7 @@ import { MyButton } from '@/components/design-system/button';
 import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, Video, AlertTriangle } from 'lucide-react';
 import { useContentStore } from '../-stores/chapter-sidebar-store';
-import { useSlides, VideoQuestion } from '../-hooks/use-slides';
+import { useSlidesMutations, VideoQuestion } from '../-hooks/use-slides';
 import { Route } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/index';
 import { toast } from 'sonner';
 
@@ -44,7 +44,7 @@ export const ExitSplitScreenDialog: React.FC<ExitSplitScreenDialogProps> = ({
 }) => {
     const { setActiveItem, getSlideById } = useContentStore();
     const { chapterId } = Route.useSearch();
-    const { addUpdateVideoSlide } = useSlides(chapterId);
+    const { addUpdateVideoSlide } = useSlidesMutations(chapterId);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isConverting, setIsConverting] = useState(false);
 

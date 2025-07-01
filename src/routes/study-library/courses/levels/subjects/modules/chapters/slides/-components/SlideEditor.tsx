@@ -20,6 +20,8 @@ interface SlideEditorProps {
     onChange?: (elements: any[], appState: AppState, files: BinaryFiles, fileId?: string) => void;
     editable?: boolean;
     isSaving?: boolean;
+    onEditorReady?: (getCurrentState: () => { elements: any[], appState: any, files: any }) => void;
+    onBusyStateChange?: (isBusy: boolean) => void; // New prop to track busy state
 }
 
 const SlideEditor: React.FC<SlideEditorProps> = ({
@@ -29,6 +31,8 @@ const SlideEditor: React.FC<SlideEditorProps> = ({
     onChange,
     editable = true,
     isSaving = false,
+    onEditorReady,
+    onBusyStateChange,
 }) => {
     const excalidrawRef = useRef<ExcalidrawImperativeAPI | null>(null);
     const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -38,6 +42,7 @@ const SlideEditor: React.FC<SlideEditorProps> = ({
     const [lastLoadedFileId, setLastLoadedFileId] = useState<string | undefined>(undefined);
     const [isAutoSaving, setIsAutoSaving] = useState(false);
     const [hasLoadedInitialData, setHasLoadedInitialData] = useState(false);
+    const lastFileIdRef = useRef<string | undefined>(undefined);
 
     // Get user and institute info for S3 uploads
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
@@ -75,24 +80,17 @@ const SlideEditor: React.FC<SlideEditorProps> = ({
         }
     }, [slideId, USER_ID, INSTITUTE_ID]);
 
-    // Load data from S3 using fileId - only on initial mount
+    // Load data from S3 using fileId
     useEffect(() => {
-        // Only load data once when component first mounts with initial fileId
-        if (hasLoadedInitialData) {
-            console.log(`[SlideEditor ${slideId}] Already loaded data, skipping reload for fileId: ${fileId}`);
-            return;
-        }
-
         const loadData = async () => {
-            const initialFileId = fileId; // Capture the current fileId at mount time
-            console.log(`[SlideEditor ${slideId}] Initial load with fileId: ${initialFileId}`);
+            console.log(`[SlideEditor ${slideId}] Loading data with fileId: ${fileId}`);
             setIsLoading(true);
             setError(null);
 
             try {
-                if (initialFileId) {
-                    console.log(`[SlideEditor ${slideId}] Loading from S3 fileId: ${initialFileId}`);
-                    const publicUrl = await getPublicUrl(initialFileId);
+                if (fileId) {
+                    console.log(`[SlideEditor ${slideId}] Loading from S3 fileId: ${fileId}`);
+                    const publicUrl = await getPublicUrl(fileId);
                     const response = await fetch(publicUrl);
 
                     if (!response.ok) {
@@ -101,7 +99,7 @@ const SlideEditor: React.FC<SlideEditorProps> = ({
 
                     const excalidrawData = await response.json();
                     setLoadedData(excalidrawData);
-                    setLastLoadedFileId(initialFileId);
+                    setLastLoadedFileId(fileId);
                     console.log(`[SlideEditor ${slideId}] S3 data loaded:`, excalidrawData);
                 } else {
                     console.log(`[SlideEditor ${slideId}] No fileId provided, showing empty state`);
@@ -118,8 +116,19 @@ const SlideEditor: React.FC<SlideEditorProps> = ({
             }
         };
 
-        loadData();
-    }, [slideId]); // Remove fileId from dependency array to prevent loop
+        // Reset hasLoadedInitialData if fileId has changed significantly
+        if (fileId !== lastLoadedFileId) {
+            console.log(`[SlideEditor ${slideId}] FileId changed from ${lastLoadedFileId} to ${fileId}, reloading...`);
+            setHasLoadedInitialData(false);
+            // Track the previous fileId to prevent emergency saves during normal operations
+            lastFileIdRef.current = lastLoadedFileId;
+        }
+
+        // Only load if we haven't loaded this specific fileId before
+        if (!hasLoadedInitialData || fileId !== lastLoadedFileId) {
+            loadData();
+        }
+    }, [slideId, fileId]); // Include fileId in dependency array
 
     const saveToS3 = useCallback(
         (elements: readonly OrderedExcalidrawElement[], appState: AppState, files: BinaryFiles) => {
@@ -127,7 +136,40 @@ const SlideEditor: React.FC<SlideEditorProps> = ({
                 clearTimeout(debounceTimeoutRef.current);
             }
 
+            // Use longer delay if intensive operations are detected
+            const hasIntensiveOperations = 
+                appState.isLoading || 
+                (appState as any).pendingImageElementId !== null ||
+                elements.some(element => element.type === 'image') ||
+                Object.keys(files).length > 0;
+            
+            const delay = hasIntensiveOperations ? 5000 : 2000; // 5s for intensive ops, 2s otherwise
+
             debounceTimeoutRef.current = setTimeout(async () => {
+                // Check if Excalidraw is still performing intensive operations before saving
+                const isPerformingIntensiveOperation = 
+                    appState.isLoading || // General loading state
+                    (appState as any).pendingImageElementId !== null || // Image being processed
+                    elements.some(element => 
+                        element.type === 'image' && 
+                        (('status' in element && (element as any).status === 'pending') ||
+                         ('fileId' in element && !(element as any).fileId))
+                    ) || // Image elements being processed or without fileId
+                    Object.values(files).some(file => 
+                        file && typeof file === 'object' && 
+                        (('dataURL' in file && !file.dataURL) || 
+                         ('created' in file && Date.now() - (file as any).created < 3000))
+                    ); // Files being loaded or recently created
+
+                if (isPerformingIntensiveOperation) {
+                    console.log(`[SlideEditor ${slideId}] Skipping auto-save - intensive operation in progress`);
+                    // Reschedule the save for later
+                    setTimeout(() => {
+                        saveToS3(elements, appState, files);
+                    }, 2000); // Check again in 2 seconds
+                    return;
+                }
+
                 setIsAutoSaving(true);
                 
                 const excalidrawData = {
@@ -137,6 +179,12 @@ const SlideEditor: React.FC<SlideEditorProps> = ({
                     appState,
                     lastModified: Date.now(),
                 };
+
+                console.log(`[SlideEditor ${slideId}] Auto-saving data:`, {
+                    elementsCount: elements.length,
+                    hasFiles: Object.keys(files).length > 0,
+                    excalidrawData: excalidrawData
+                });
 
                 try {
                     // Try to update existing file first, otherwise create new
@@ -153,27 +201,101 @@ const SlideEditor: React.FC<SlideEditorProps> = ({
                 } finally {
                     setIsAutoSaving(false);
                 }
-            }, 5000); // Auto-save after 5 seconds of inactivity to reduce frequency
+            }, delay); // Use dynamic delay
         },
         [slideId, uploadToS3, onChange, fileId]
     );
 
     const handleChange = useCallback(
         (elements: readonly OrderedExcalidrawElement[], appState: AppState, files: BinaryFiles) => {
+            console.log(`[SlideEditor ${slideId}] Change detected:`, {
+                elementsCount: elements.length,
+                editable: editable,
+                hasFiles: Object.keys(files).length > 0
+            });
+            
+            // Detect if Excalidraw is performing intensive operations
+            const isPerformingIntensiveOperation = 
+                appState.isLoading || // General loading state
+                (appState as any).pendingImageElementId !== null || // Image being processed
+                elements.some(element => 
+                    element.type === 'image' && 
+                    (('status' in element && (element as any).status === 'pending') ||
+                     ('fileId' in element && !(element as any).fileId))
+                ) || // Image elements being processed or without fileId
+                Object.values(files).some(file => 
+                    file && typeof file === 'object' && 
+                    (('dataURL' in file && !file.dataURL) || 
+                     ('created' in file && Date.now() - (file as any).created < 3000))
+                ); // Files being loaded or recently created
+            
+            // Report busy state to parent component
+            if (onBusyStateChange) {
+                onBusyStateChange(isPerformingIntensiveOperation);
+            }
+            
             if (editable) {
                 saveToS3(elements, appState, files);
             }
         },
-        [editable, saveToS3]
+        [saveToS3, slideId, onBusyStateChange]
     );
 
     useEffect(() => {
         return () => {
             if (debounceTimeoutRef.current) {
                 clearTimeout(debounceTimeoutRef.current);
+                
+                // Only run emergency save if:
+                // 1. Not already auto-saving
+                // 2. FileId hasn't recently changed (indicating normal operation)
+                // 3. This appears to be actual navigation, not a rebuild
+                const fileIdRecentlyChanged = lastFileIdRef.current !== fileId && 
+                                            lastFileIdRef.current !== undefined;
+                
+                if (excalidrawRef.current && editable && !isAutoSaving && !fileIdRecentlyChanged) {
+                    try {
+                        const elements = excalidrawRef.current.getSceneElements();
+                        const appState = excalidrawRef.current.getAppState();
+                        const files = excalidrawRef.current.getFiles();
+                        
+                        if (elements.length > 0) {
+                            console.log(`[SlideEditor ${slideId}] Component unmounting, saving immediately:`, {
+                                elementsCount: elements.length
+                            });
+                            
+                            const excalidrawData = {
+                                isExcalidraw: true,
+                                elements,
+                                files,
+                                appState,
+                                lastModified: Date.now(),
+                            };
+                            
+                            // Immediate save without debounce
+                            uploadToS3(excalidrawData, fileId).then((uploadedFileId) => {
+                                if (uploadedFileId) {
+                                    console.log(`[SlideEditor ${slideId}] Emergency save completed:`, uploadedFileId);
+                                    onChange?.(elements as any[], appState, files, uploadedFileId);
+                                }
+                            }).catch((error) => {
+                                console.error(`[SlideEditor ${slideId}] Emergency save failed:`, error);
+                            });
+                        }
+                    } catch (error) {
+                        console.error(`[SlideEditor ${slideId}] Error during emergency save:`, error);
+                    }
+                } else {
+                    console.log(`[SlideEditor ${slideId}] Skipping emergency save:`, {
+                        hasRef: !!excalidrawRef.current,
+                        editable,
+                        isAutoSaving,
+                        fileIdRecentlyChanged
+                    });
+                }
             }
         };
-    }, []);
+    }, [slideId, uploadToS3, onChange, fileId]);
 
     // Create properly structured initial data
     const getInitialData = () => {
@@ -206,6 +328,24 @@ const SlideEditor: React.FC<SlideEditorProps> = ({
         console.log(`[SlideEditor ${slideId}] Initial data prepared:`, finalData);
         return finalData;
     };
+
+    // Function to get current state from Excalidraw
+    const getCurrentState = useCallback((): { elements: any[], appState: any, files: any } => {
+        if (!excalidrawRef.current) {
+            return { elements: [], appState: {}, files: {} };
+        }
+        
+        try {
+            const elements = excalidrawRef.current.getSceneElements() as any[];
+            const appState = excalidrawRef.current.getAppState() as any;
+            const files = excalidrawRef.current.getFiles() as any;
+            
+            return { elements, appState, files };
+        } catch (error) {
+            console.error('Error getting current state from Excalidraw:', error);
+            return { elements: [], appState: {}, files: {} };
+        }
+    }, []);
 
     // Show loading state
     if (isLoading) {
@@ -258,6 +398,11 @@ const SlideEditor: React.FC<SlideEditorProps> = ({
                     key={`excalidraw-${slideId}`}
                     excalidrawAPI={(api) => {
                         excalidrawRef.current = api;
+                        // Trigger onEditorReady immediately when API is available
+                        if (onEditorReady) {
+                            console.log(`[SlideEditor ${slideId}] API callback triggered, calling onEditorReady`);
+                            onEditorReady(getCurrentState);
+                        }
                     }}
                     initialData={{
                         elements: [],
@@ -299,6 +444,11 @@ const SlideEditor: React.FC<SlideEditorProps> = ({
                 key={`excalidraw-${slideId}`}
                 excalidrawAPI={(api) => {
                     excalidrawRef.current = api;
+                    // Trigger onEditorReady immediately when API is available
+                    if (onEditorReady) {
+                        console.log(`[SlideEditor ${slideId}] API callback triggered, calling onEditorReady`);
+                        onEditorReady(getCurrentState);
+                    }
                 }}
                 initialData={getInitialData()}
                 onChange={handleChange}

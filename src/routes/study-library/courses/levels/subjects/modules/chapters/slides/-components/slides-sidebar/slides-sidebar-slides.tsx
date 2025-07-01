@@ -14,7 +14,7 @@ import { ReactNode, useEffect } from 'react';
 import {
     Slide,
     slideOrderPayloadType,
-    useSlides,
+    useSlidesQuery,
 } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { useRouter } from '@tanstack/react-router';
@@ -236,10 +236,29 @@ export const ChapterSidebarSlides = ({
 }: {
     handleSlideOrderChange: (slideOrderPayload: slideOrderPayloadType) => void;
 }) => {
+    console.log(`[ChapterSidebarSlides] 🎬 Component rendered at:`, new Date().toISOString());
+    
     const { setItems, activeItem, setActiveItem, items } = useContentStore();
     const router = useRouter();
     const { chapterId, slideId } = router.state.location.search;
-    const { slides, isLoading, refetch } = useSlides(chapterId || '');
+    
+    console.log(`[ChapterSidebarSlides] 📍 Router state:`, { chapterId, slideId });
+    console.log(`[ChapterSidebarSlides] 🏪 Store state:`, {
+        itemsCount: items?.length || 0,
+        activeItemId: activeItem?.id || 'none',
+        activeItemTitle: activeItem?.title || 'none'
+    });
+    
+    const { slides, isLoading, refetch } = useSlidesQuery(chapterId || '');
+    
+    console.log(`[ChapterSidebarSlides] 🎣 Hook response:`, {
+        slidesCount: slides?.length || 0,
+        isLoading,
+        slidesType: typeof slides,
+        isArray: Array.isArray(slides),
+        firstSlide: slides?.[0]?.title || 'N/A'
+    });
+    
     const { getCurrentEditorHTMLContent, saveDraft } = useSaveDraft();
 
     useEffect(() => {
@@ -305,9 +324,19 @@ export const ChapterSidebarSlides = ({
     }, [items]);
 
     useEffect(() => {
+        console.log(`[ChapterSidebarSlides] 📋 useEffect[slides] triggered:`, {
+            slidesLength: slides?.length || 0,
+            slidesData: slides?.slice(0, 3) || [], // Show first 3 slides for debugging
+            currentStoreItemsCount: items?.length || 0
+        });
+        
         if (slides?.length) {
+            console.log(`[ChapterSidebarSlides] ✅ Processing ${slides.length} slides`);
+            
             form.reset({ slides });
             setItems(slides as Slide[]);
+            
+            console.log(`[ChapterSidebarSlides] 🏪 Store updated with ${slides.length} slides`);
 
             // Preserve the current active slide if it still exists in the updated slides
             if (activeItem) {
@@ -357,7 +386,19 @@ export const ChapterSidebarSlides = ({
         }
     }, [slides, activeItem?.id, slideId]);
 
+    // ===== RENDER DEBUGGING =====
+    console.log(`[ChapterSidebarSlides] 🎯 Pre-render decision state:`, {
+        isLoading,
+        itemsExists: !!items,
+        itemsLength: items?.length || 0,
+        slidesExists: !!slides,
+        slidesLength: slides?.length || 0,
+        renderDecision: isLoading ? 'LOADING' : 
+                       (!items || items.length === 0) ? 'NO_SLIDES' : 'SHOW_SLIDES'
+    });
+
     if (isLoading) {
+        console.log(`[ChapterSidebarSlides] ⏳ Rendering loader`);
         return (
             <div className="flex items-center justify-center py-6 duration-500 animate-in fade-in">
                 <DashboardLoader />
@@ -366,6 +407,7 @@ export const ChapterSidebarSlides = ({
     }
 
     if (!items || items.length === 0) {
+        console.log(`[ChapterSidebarSlides] 📭 Rendering "No slides" message`);
         return (
             <div className="flex flex-col items-center justify-center px-3 py-8 text-center duration-700 animate-in fade-in slide-in-from-bottom-4">
                 <div className="mb-3 flex size-12 animate-pulse items-center justify-center rounded-full bg-neutral-100">
@@ -378,6 +420,8 @@ export const ChapterSidebarSlides = ({
             </div>
         );
     }
+
+    console.log(`[ChapterSidebarSlides] 📄 Rendering ${items.length} slides`);
 
     return (
         <div className="duration-500 animate-in fade-in slide-in-from-bottom-2">
