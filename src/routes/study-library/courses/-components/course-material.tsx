@@ -111,7 +111,10 @@ export const CourseMaterial = () => {
 
     const { data: accessControlUsers, isLoading: isUsersLoading } = useSuspenseQuery(
         handleGetInstituteUsersForAccessControl(instituteDetails?.id, {
-            roles: [{ id: '5', name: 'TEACHER' }],
+            roles: [
+                { id: '1', name: 'ADMIN' },
+                { id: '5', name: 'TEACHER' },
+            ],
             status: [{ id: '1', name: 'ACTIVE' }],
         })
     );
