@@ -73,9 +73,11 @@ export type SubjectModulesMap = { [subjectId: string]: ModuleWithChapters[] };
 export const CourseStructureDetails = ({
     selectedSession,
     selectedLevel,
+    courseStructure,
 }: {
     selectedSession: string;
     selectedLevel: string;
+    courseStructure: number;
 }) => {
     const router = useRouter();
     const searchParams = router.state.location.search;
@@ -292,18 +294,23 @@ export const CourseStructureDetails = ({
         addSubjectMutation.mutate({ subject: newSubject, packageSessionIds });
     };
 
-    const navigateTo = (pathname: string, searchParamsObj: Record<string, string | undefined>) =>
-        router.navigate({ to: pathname, search: searchParamsObj });
-
-    const handleChapterNavigation = (subjectId: string, moduleId: string, chapterId: string) =>
-        navigateTo(`${router.state.location.pathname}/modules/chapters/slides`, {
-            courseId,
-            levelId,
+    const handleChapterNavigation = (subjectId: string, moduleId: string, chapterId: string) => {
+        const navigationParams = {
+            courseId: router.state.location.search.courseId ?? '',
+            levelId: selectedLevel,
             subjectId,
             moduleId,
             chapterId,
-            sessionId: currentSession?.id,
+            slideId: '', // Empty for new slide
+            sessionId: selectedSession,
+        };
+
+        router.navigate({
+            to: '/study-library/courses/course-details/subjects/modules/chapters/slides',
+            search: navigationParams,
         });
+    };
+
     const handleSlideNavigation = (
         subjectId: string,
         moduleId: string,
@@ -368,59 +375,595 @@ export const CourseStructureDetails = ({
         [TabType.OUTLINE]: (
             <div className="space-y-4">
                 <div className="max-w-3xl space-y-1 rounded-lg border border-gray-200 px-2">
-                    <AddSubjectButton isTextButton onAddSubject={handleAddSubject} />
+                    {courseStructure === 5 && (
+                        <AddSubjectButton isTextButton onAddSubject={handleAddSubject} />
+                    )}
+                    {courseStructure === 5 &&
+                        subjects.map((subject, idx) => {
+                            const isSubjectOpen = openSubjects.has(subject.id);
 
-                    {subjects.map((subject, idx) => {
-                        const isSubjectOpen = openSubjects.has(subject.id);
-
-                        return (
-                            <Collapsible
-                                key={subject.id}
-                                open={isSubjectOpen}
-                                onOpenChange={() => toggleSubject(subject.id)}
-                                className="group"
-                            >
-                                <CollapsibleTrigger className="flex w-full items-center rounded-md px-2 py-2 text-left text-sm font-semibold text-gray-800 transition-colors duration-150 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
-                                    <div className="flex flex-1 items-center gap-2.5">
-                                        {isSubjectOpen ? (
-                                            <CaretDown
-                                                size={18}
-                                                weight="bold"
-                                                className="shrink-0 text-gray-500"
+                            return (
+                                <Collapsible
+                                    key={subject.id}
+                                    open={isSubjectOpen}
+                                    onOpenChange={() => toggleSubject(subject.id)}
+                                    className="group"
+                                >
+                                    <CollapsibleTrigger className="flex w-full items-center rounded-md p-2 text-left text-sm font-semibold text-gray-800 transition-colors duration-150 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
+                                        <div className="flex flex-1 items-center gap-2.5">
+                                            {isSubjectOpen ? (
+                                                <CaretDown
+                                                    size={18}
+                                                    weight="bold"
+                                                    className="shrink-0 text-gray-500"
+                                                />
+                                            ) : (
+                                                <CaretRight
+                                                    size={18}
+                                                    weight="bold"
+                                                    className="shrink-0 text-gray-500"
+                                                />
+                                            )}
+                                            <Folder
+                                                size={20}
+                                                weight="duotone"
+                                                className="shrink-0 text-primary-500"
                                             />
-                                        ) : (
-                                            <CaretRight
-                                                size={18}
-                                                weight="bold"
-                                                className="shrink-0 text-gray-500"
-                                            />
-                                        )}
-                                        <Folder
-                                            size={20}
-                                            weight="duotone"
-                                            className="shrink-0 text-primary-500"
-                                        />
-                                        <span className="w-7 shrink-0 rounded-md bg-gray-100 py-0.5 text-center font-mono text-xs font-medium text-gray-600 group-hover:bg-white">
-                                            S{idx + 1}
-                                        </span>
-                                        <span className="truncate" title={subject.subject_name}>
-                                            {subject.subject_name}
-                                        </span>
-                                    </div>
-                                </CollapsibleTrigger>
-                                <CollapsibleContent className="py-1 pl-8">
-                                    <div className="relative space-y-1.5 border-l-2 border-dashed border-gray-200 pl-6">
-                                        <div className="absolute -left-[13px] top-0 h-full">
-                                            <div className="sticky top-0 flex h-full flex-col items-center" />
+                                            <span className="w-7 shrink-0 rounded-md bg-gray-100 py-0.5 text-center font-mono text-xs font-medium text-gray-600 group-hover:bg-white">
+                                                S{idx + 1}
+                                            </span>
+                                            <span className="truncate" title={subject.subject_name}>
+                                                {subject.subject_name}
+                                            </span>
                                         </div>
+                                    </CollapsibleTrigger>
+                                    <CollapsibleContent className="py-1 pl-8">
+                                        <div className="relative space-y-1.5 border-l-2 border-dashed border-gray-200 pl-6">
+                                            <div className="absolute -left-[13px] top-0 h-full">
+                                                <div className="sticky top-0 flex h-full flex-col items-center" />
+                                            </div>
 
-                                        <AddModulesButton
-                                            isTextButton
-                                            subjectId={subject.id}
-                                            onAddModuleBySubjectId={handleAddModule}
-                                        />
-                                        {(subjectModulesMap[subject.id] ?? []).map(
-                                            (mod, modIdx) => {
+                                            <AddModulesButton
+                                                isTextButton
+                                                subjectId={subject.id}
+                                                onAddModuleBySubjectId={handleAddModule}
+                                            />
+                                            {(subjectModulesMap[subject.id] ?? []).map(
+                                                (mod, modIdx) => {
+                                                    const isModuleOpen = openModules.has(
+                                                        mod.module.id
+                                                    );
+
+                                                    return (
+                                                        <Collapsible
+                                                            key={mod.module.id}
+                                                            open={isModuleOpen}
+                                                            onOpenChange={() =>
+                                                                toggleModule(mod.module.id)
+                                                            }
+                                                            className="group/module"
+                                                        >
+                                                            <CollapsibleTrigger className="flex w-full items-center rounded-md px-2 py-1.5 text-left text-sm font-medium text-gray-700 transition-colors duration-150 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
+                                                                <div className="flex flex-1 items-center gap-2.5">
+                                                                    {isModuleOpen ? (
+                                                                        <CaretDown
+                                                                            size={16}
+                                                                            className="shrink-0 text-gray-500"
+                                                                        />
+                                                                    ) : (
+                                                                        <CaretRight
+                                                                            size={16}
+                                                                            className="shrink-0 text-gray-500"
+                                                                        />
+                                                                    )}
+                                                                    <FileText
+                                                                        size={18}
+                                                                        weight="duotone"
+                                                                        className="shrink-0 text-blue-600"
+                                                                    />
+                                                                    <span className="w-7 shrink-0 rounded-md bg-gray-100 py-0.5 text-center font-mono text-xs font-medium text-gray-500 group-hover/module:bg-white">
+                                                                        M{modIdx + 1}
+                                                                    </span>
+                                                                    <span
+                                                                        className="truncate"
+                                                                        title={
+                                                                            mod.module.module_name
+                                                                        }
+                                                                    >
+                                                                        {mod.module.module_name}
+                                                                    </span>
+                                                                </div>
+                                                            </CollapsibleTrigger>
+                                                            <CollapsibleContent className="py-1 pl-8">
+                                                                <div className="relative space-y-1.5 border-l-2 border-dashed border-gray-200 pl-6">
+                                                                    <AddChapterButton
+                                                                        moduleId={mod.module.id}
+                                                                        sessionId={
+                                                                            currentSession?.id
+                                                                        }
+                                                                        isTextButton
+                                                                    />
+                                                                    {(mod.chapters ?? []).map(
+                                                                        (ch, chIdx) => {
+                                                                            const isChapterOpen =
+                                                                                openChapters.has(
+                                                                                    ch.chapter.id
+                                                                                );
+                                                                            return (
+                                                                                <Collapsible
+                                                                                    key={
+                                                                                        ch.chapter
+                                                                                            .id
+                                                                                    }
+                                                                                    open={
+                                                                                        isChapterOpen
+                                                                                    }
+                                                                                    onOpenChange={() =>
+                                                                                        toggleChapter(
+                                                                                            ch
+                                                                                                .chapter
+                                                                                                .id
+                                                                                        )
+                                                                                    }
+                                                                                    className="group/chapter"
+                                                                                >
+                                                                                    <CollapsibleTrigger className="flex w-full items-center rounded-md px-2 py-1 text-left text-xs font-medium text-gray-600 transition-colors duration-150 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
+                                                                                        <div className="flex flex-1 items-center gap-2">
+                                                                                            {isChapterOpen ? (
+                                                                                                <CaretDown
+                                                                                                    size={
+                                                                                                        14
+                                                                                                    }
+                                                                                                    className="shrink-0 text-gray-500"
+                                                                                                />
+                                                                                            ) : (
+                                                                                                <CaretRight
+                                                                                                    size={
+                                                                                                        14
+                                                                                                    }
+                                                                                                    className="shrink-0 text-gray-500"
+                                                                                                />
+                                                                                            )}
+                                                                                            <PresentationChart
+                                                                                                size={
+                                                                                                    16
+                                                                                                }
+                                                                                                weight="duotone"
+                                                                                                className="shrink-0 text-green-600"
+                                                                                            />
+                                                                                            <span className="w-7 shrink-0 rounded-md bg-gray-100 py-0.5 text-center font-mono text-xs text-gray-500 group-hover/chapter:bg-white">
+                                                                                                C
+                                                                                                {chIdx +
+                                                                                                    1}
+                                                                                            </span>
+                                                                                            <span
+                                                                                                className="truncate"
+                                                                                                title={
+                                                                                                    ch
+                                                                                                        .chapter
+                                                                                                        .chapter_name
+                                                                                                }
+                                                                                            >
+                                                                                                {
+                                                                                                    ch
+                                                                                                        .chapter
+                                                                                                        .chapter_name
+                                                                                                }
+                                                                                            </span>
+                                                                                        </div>
+                                                                                    </CollapsibleTrigger>
+                                                                                    <CollapsibleContent className="py-1 pl-8">
+                                                                                        <div className="relative space-y-1.5 border-l-2 border-dashed border-gray-200 pl-6">
+                                                                                            <MyButton
+                                                                                                buttonType="text"
+                                                                                                onClick={(
+                                                                                                    e
+                                                                                                ) => {
+                                                                                                    e.stopPropagation();
+                                                                                                    handleChapterNavigation(
+                                                                                                        subject.id,
+                                                                                                        mod
+                                                                                                            .module
+                                                                                                            .id,
+                                                                                                        ch
+                                                                                                            .chapter
+                                                                                                            .id
+                                                                                                    );
+                                                                                                }}
+                                                                                                className="!m-0 flex w-fit cursor-pointer flex-row items-center justify-start gap-2 px-0 pl-2 text-primary-500"
+                                                                                            >
+                                                                                                <Plus
+                                                                                                    size={
+                                                                                                        14
+                                                                                                    }
+                                                                                                    weight="bold"
+                                                                                                    className="text-primary-400 group-hover:text-primary-500"
+                                                                                                />
+                                                                                                <span className="font-medium">
+                                                                                                    Add
+                                                                                                    Slide
+                                                                                                </span>
+                                                                                            </MyButton>
+
+                                                                                            {(
+                                                                                                chapterSlidesMap[
+                                                                                                    ch
+                                                                                                        .chapter
+                                                                                                        .id
+                                                                                                ] ??
+                                                                                                []
+                                                                                            )
+                                                                                                .length ===
+                                                                                            0 ? (
+                                                                                                <div className="px-2 py-1 text-xs text-gray-400">
+                                                                                                    No
+                                                                                                    slides
+                                                                                                    in
+                                                                                                    this
+                                                                                                    chapter.
+                                                                                                </div>
+                                                                                            ) : (
+                                                                                                (
+                                                                                                    chapterSlidesMap[
+                                                                                                        ch
+                                                                                                            .chapter
+                                                                                                            .id
+                                                                                                    ] ??
+                                                                                                    []
+                                                                                                ).map(
+                                                                                                    (
+                                                                                                        slide,
+                                                                                                        sIdx
+                                                                                                    ) => (
+                                                                                                        <div
+                                                                                                            key={
+                                                                                                                slide.id
+                                                                                                            }
+                                                                                                            className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-xs text-gray-600 hover:bg-gray-100"
+                                                                                                            onClick={() => {
+                                                                                                                handleSlideNavigation(
+                                                                                                                    subject.id,
+                                                                                                                    mod
+                                                                                                                        .module
+                                                                                                                        .id,
+                                                                                                                    ch
+                                                                                                                        .chapter
+                                                                                                                        .id,
+                                                                                                                    slide.id
+                                                                                                                );
+                                                                                                            }}
+                                                                                                        >
+                                                                                                            <span className="w-7 shrink-0 text-center font-mono text-xs text-gray-400">
+                                                                                                                S
+                                                                                                                {sIdx +
+                                                                                                                    1}
+                                                                                                            </span>
+                                                                                                            {getIcon(
+                                                                                                                slide.source_type,
+                                                                                                                slide
+                                                                                                                    .document_slide
+                                                                                                                    ?.type,
+                                                                                                                '3'
+                                                                                                            )}
+                                                                                                            <span
+                                                                                                                className="truncate"
+                                                                                                                title={
+                                                                                                                    slide.title
+                                                                                                                }
+                                                                                                            >
+                                                                                                                {
+                                                                                                                    slide.title
+                                                                                                                }
+                                                                                                            </span>
+                                                                                                        </div>
+                                                                                                    )
+                                                                                                )
+                                                                                            )}
+                                                                                        </div>
+                                                                                    </CollapsibleContent>
+                                                                                </Collapsible>
+                                                                            );
+                                                                        }
+                                                                    )}
+                                                                </div>
+                                                            </CollapsibleContent>
+                                                        </Collapsible>
+                                                    );
+                                                }
+                                            )}
+                                        </div>
+                                    </CollapsibleContent>
+                                </Collapsible>
+                            );
+                        })}
+                    {courseStructure === 4 &&
+                        subjects.map((subject) => {
+                            const isSubjectOpen = openSubjects.has(subject.id);
+
+                            return (
+                                <Collapsible
+                                    key={subject.id}
+                                    open={isSubjectOpen}
+                                    onOpenChange={() => toggleSubject(subject.id)}
+                                    className="group"
+                                >
+                                    <CollapsibleContent className="py-1">
+                                        <div className="relative space-y-1.5 border-gray-200">
+                                            <div className="absolute -left-[13px] top-0 h-full">
+                                                <div className="sticky top-0 flex h-full flex-col items-center" />
+                                            </div>
+
+                                            <AddModulesButton
+                                                isTextButton
+                                                subjectId={subject.id}
+                                                onAddModuleBySubjectId={handleAddModule}
+                                            />
+                                            {(subjectModulesMap[subject.id] ?? []).map(
+                                                (mod, modIdx) => {
+                                                    const isModuleOpen = openModules.has(
+                                                        mod.module.id
+                                                    );
+
+                                                    return (
+                                                        <Collapsible
+                                                            key={mod.module.id}
+                                                            open={isModuleOpen}
+                                                            onOpenChange={() =>
+                                                                toggleModule(mod.module.id)
+                                                            }
+                                                            className="group/module"
+                                                        >
+                                                            <CollapsibleTrigger className="flex w-full items-center rounded-md px-2 py-1.5 text-left text-sm font-medium text-gray-700 transition-colors duration-150 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
+                                                                <div className="flex flex-1 items-center gap-2.5">
+                                                                    {isModuleOpen ? (
+                                                                        <CaretDown
+                                                                            size={16}
+                                                                            className="shrink-0 text-gray-500"
+                                                                        />
+                                                                    ) : (
+                                                                        <CaretRight
+                                                                            size={16}
+                                                                            className="shrink-0 text-gray-500"
+                                                                        />
+                                                                    )}
+                                                                    <FileText
+                                                                        size={18}
+                                                                        weight="duotone"
+                                                                        className="shrink-0 text-blue-600"
+                                                                    />
+                                                                    <span className="w-7 shrink-0 rounded-md bg-gray-100 py-0.5 text-center font-mono text-xs font-medium text-gray-500 group-hover/module:bg-white">
+                                                                        M{modIdx + 1}
+                                                                    </span>
+                                                                    <span
+                                                                        className="truncate"
+                                                                        title={
+                                                                            mod.module.module_name
+                                                                        }
+                                                                    >
+                                                                        {mod.module.module_name}
+                                                                    </span>
+                                                                </div>
+                                                            </CollapsibleTrigger>
+                                                            <CollapsibleContent className="py-1 pl-8">
+                                                                <div className="relative space-y-1.5 border-l-2 border-dashed border-gray-200 pl-6">
+                                                                    <AddChapterButton
+                                                                        moduleId={mod.module.id}
+                                                                        sessionId={
+                                                                            currentSession?.id
+                                                                        }
+                                                                        isTextButton
+                                                                    />
+                                                                    {(mod.chapters ?? []).map(
+                                                                        (ch, chIdx) => {
+                                                                            const isChapterOpen =
+                                                                                openChapters.has(
+                                                                                    ch.chapter.id
+                                                                                );
+                                                                            return (
+                                                                                <Collapsible
+                                                                                    key={
+                                                                                        ch.chapter
+                                                                                            .id
+                                                                                    }
+                                                                                    open={
+                                                                                        isChapterOpen
+                                                                                    }
+                                                                                    onOpenChange={() =>
+                                                                                        toggleChapter(
+                                                                                            ch
+                                                                                                .chapter
+                                                                                                .id
+                                                                                        )
+                                                                                    }
+                                                                                    className="group/chapter"
+                                                                                >
+                                                                                    <CollapsibleTrigger className="flex w-full items-center rounded-md px-2 py-1 text-left text-xs font-medium text-gray-600 transition-colors duration-150 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
+                                                                                        <div className="flex flex-1 items-center gap-2">
+                                                                                            {isChapterOpen ? (
+                                                                                                <CaretDown
+                                                                                                    size={
+                                                                                                        14
+                                                                                                    }
+                                                                                                    className="shrink-0 text-gray-500"
+                                                                                                />
+                                                                                            ) : (
+                                                                                                <CaretRight
+                                                                                                    size={
+                                                                                                        14
+                                                                                                    }
+                                                                                                    className="shrink-0 text-gray-500"
+                                                                                                />
+                                                                                            )}
+                                                                                            <PresentationChart
+                                                                                                size={
+                                                                                                    16
+                                                                                                }
+                                                                                                weight="duotone"
+                                                                                                className="shrink-0 text-green-600"
+                                                                                            />
+                                                                                            <span className="w-7 shrink-0 rounded-md bg-gray-100 py-0.5 text-center font-mono text-xs text-gray-500 group-hover/chapter:bg-white">
+                                                                                                C
+                                                                                                {chIdx +
+                                                                                                    1}
+                                                                                            </span>
+                                                                                            <span
+                                                                                                className="truncate"
+                                                                                                title={
+                                                                                                    ch
+                                                                                                        .chapter
+                                                                                                        .chapter_name
+                                                                                                }
+                                                                                            >
+                                                                                                {
+                                                                                                    ch
+                                                                                                        .chapter
+                                                                                                        .chapter_name
+                                                                                                }
+                                                                                            </span>
+                                                                                        </div>
+                                                                                    </CollapsibleTrigger>
+                                                                                    <CollapsibleContent className="py-1 pl-8">
+                                                                                        <div className="relative space-y-1.5 border-l-2 border-dashed border-gray-200 pl-6">
+                                                                                            <MyButton
+                                                                                                buttonType="text"
+                                                                                                onClick={(
+                                                                                                    e
+                                                                                                ) => {
+                                                                                                    e.stopPropagation();
+                                                                                                    handleChapterNavigation(
+                                                                                                        subject.id,
+                                                                                                        mod
+                                                                                                            .module
+                                                                                                            .id,
+                                                                                                        ch
+                                                                                                            .chapter
+                                                                                                            .id
+                                                                                                    );
+                                                                                                }}
+                                                                                                className="!m-0 flex w-fit cursor-pointer flex-row items-center justify-start gap-2 px-0 pl-2 text-primary-500"
+                                                                                            >
+                                                                                                <Plus
+                                                                                                    size={
+                                                                                                        14
+                                                                                                    }
+                                                                                                    weight="bold"
+                                                                                                    className="text-primary-400 group-hover:text-primary-500"
+                                                                                                />
+                                                                                                <span className="font-medium">
+                                                                                                    Add
+                                                                                                    Slide
+                                                                                                </span>
+                                                                                            </MyButton>
+
+                                                                                            {(
+                                                                                                chapterSlidesMap[
+                                                                                                    ch
+                                                                                                        .chapter
+                                                                                                        .id
+                                                                                                ] ??
+                                                                                                []
+                                                                                            )
+                                                                                                .length ===
+                                                                                            0 ? (
+                                                                                                <div className="px-2 py-1 text-xs text-gray-400">
+                                                                                                    No
+                                                                                                    slides
+                                                                                                    in
+                                                                                                    this
+                                                                                                    chapter.
+                                                                                                </div>
+                                                                                            ) : (
+                                                                                                (
+                                                                                                    chapterSlidesMap[
+                                                                                                        ch
+                                                                                                            .chapter
+                                                                                                            .id
+                                                                                                    ] ??
+                                                                                                    []
+                                                                                                ).map(
+                                                                                                    (
+                                                                                                        slide,
+                                                                                                        sIdx
+                                                                                                    ) => (
+                                                                                                        <div
+                                                                                                            key={
+                                                                                                                slide.id
+                                                                                                            }
+                                                                                                            className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-xs text-gray-600 hover:bg-gray-100"
+                                                                                                            onClick={() => {
+                                                                                                                handleSlideNavigation(
+                                                                                                                    subject.id,
+                                                                                                                    mod
+                                                                                                                        .module
+                                                                                                                        .id,
+                                                                                                                    ch
+                                                                                                                        .chapter
+                                                                                                                        .id,
+                                                                                                                    slide.id
+                                                                                                                );
+                                                                                                            }}
+                                                                                                        >
+                                                                                                            <span className="w-7 shrink-0 text-center font-mono text-xs text-gray-400">
+                                                                                                                S
+                                                                                                                {sIdx +
+                                                                                                                    1}
+                                                                                                            </span>
+                                                                                                            {getIcon(
+                                                                                                                slide.source_type,
+                                                                                                                slide
+                                                                                                                    .document_slide
+                                                                                                                    ?.type,
+                                                                                                                '3'
+                                                                                                            )}
+                                                                                                            <span
+                                                                                                                className="truncate"
+                                                                                                                title={
+                                                                                                                    slide.title
+                                                                                                                }
+                                                                                                            >
+                                                                                                                {
+                                                                                                                    slide.title
+                                                                                                                }
+                                                                                                            </span>
+                                                                                                        </div>
+                                                                                                    )
+                                                                                                )
+                                                                                            )}
+                                                                                        </div>
+                                                                                    </CollapsibleContent>
+                                                                                </Collapsible>
+                                                                            );
+                                                                        }
+                                                                    )}
+                                                                </div>
+                                                            </CollapsibleContent>
+                                                        </Collapsible>
+                                                    );
+                                                }
+                                            )}
+                                        </div>
+                                    </CollapsibleContent>
+                                </Collapsible>
+                            );
+                        })}
+                    {courseStructure === 3 &&
+                        subjects.map((subject) => {
+                            const isSubjectOpen = openSubjects.has(subject.id);
+
+                            return (
+                                <Collapsible
+                                    key={subject.id}
+                                    open={isSubjectOpen}
+                                    onOpenChange={() => toggleSubject(subject.id)}
+                                    className="group"
+                                >
+                                    <CollapsibleContent className="py-1">
+                                        <div className="relative space-y-1.5 border-gray-200">
+                                            <div className="absolute -left-[13px] top-0 h-full">
+                                                <div className="sticky top-0 flex h-full flex-col items-center" />
+                                            </div>
+
+                                            {(subjectModulesMap[subject.id] ?? []).map((mod) => {
                                                 const isModuleOpen = openModules.has(mod.module.id);
 
                                                 return (
@@ -432,37 +975,8 @@ export const CourseStructureDetails = ({
                                                         }
                                                         className="group/module"
                                                     >
-                                                        <CollapsibleTrigger className="flex w-full items-center rounded-md px-2 py-1.5 text-left text-sm font-medium text-gray-700 transition-colors duration-150 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
-                                                            <div className="flex flex-1 items-center gap-2.5">
-                                                                {isModuleOpen ? (
-                                                                    <CaretDown
-                                                                        size={16}
-                                                                        className="shrink-0 text-gray-500"
-                                                                    />
-                                                                ) : (
-                                                                    <CaretRight
-                                                                        size={16}
-                                                                        className="shrink-0 text-gray-500"
-                                                                    />
-                                                                )}
-                                                                <FileText
-                                                                    size={18}
-                                                                    weight="duotone"
-                                                                    className="shrink-0 text-blue-600"
-                                                                />
-                                                                <span className="w-7 shrink-0 rounded-md bg-gray-100 py-0.5 text-center font-mono text-xs font-medium text-gray-500 group-hover/module:bg-white">
-                                                                    M{modIdx + 1}
-                                                                </span>
-                                                                <span
-                                                                    className="truncate"
-                                                                    title={mod.module.module_name}
-                                                                >
-                                                                    {mod.module.module_name}
-                                                                </span>
-                                                            </div>
-                                                        </CollapsibleTrigger>
-                                                        <CollapsibleContent className="py-1 pl-8">
-                                                            <div className="relative space-y-1.5 border-l-2 border-dashed border-gray-200 pl-6">
+                                                        <CollapsibleContent className="py-1">
+                                                            <div className="relative space-y-1.5  border-gray-200">
                                                                 <AddChapterButton
                                                                     moduleId={mod.module.id}
                                                                     sessionId={currentSession?.id}
@@ -646,18 +1160,178 @@ export const CourseStructureDetails = ({
                                                         </CollapsibleContent>
                                                     </Collapsible>
                                                 );
-                                            }
-                                        )}
-                                    </div>
-                                </CollapsibleContent>
-                            </Collapsible>
-                        );
-                    })}
-                    {subjects.length === 0 && (
-                        <div className="rounded-md border border-dashed border-gray-200 bg-gray-50 py-6 text-center text-sm text-gray-500">
-                            No subjects available. Start by adding a new subject.
-                        </div>
-                    )}
+                                            })}
+                                        </div>
+                                    </CollapsibleContent>
+                                </Collapsible>
+                            );
+                        })}
+
+                    {courseStructure === 2 &&
+                        subjects.map((subject) => {
+                            const isSubjectOpen = openSubjects.has(subject.id);
+
+                            return (
+                                <Collapsible
+                                    key={subject.id}
+                                    open={isSubjectOpen}
+                                    onOpenChange={() => toggleSubject(subject.id)}
+                                    className="group"
+                                >
+                                    <CollapsibleContent className="py-1 ">
+                                        <div className="relative space-y-1.5  border-gray-200 ">
+                                            <div className="absolute -left-[13px] top-0 h-full">
+                                                <div className="sticky top-0 flex h-full flex-col items-center" />
+                                            </div>
+
+                                            {(subjectModulesMap[subject.id] ?? []).map((mod) => {
+                                                const isModuleOpen = openModules.has(mod.module.id);
+
+                                                return (
+                                                    <Collapsible
+                                                        key={mod.module.id}
+                                                        open={isModuleOpen}
+                                                        onOpenChange={() =>
+                                                            toggleModule(mod.module.id)
+                                                        }
+                                                        className="group/module"
+                                                    >
+                                                        <CollapsibleContent className="py-1">
+                                                            <div className="relative space-y-1.5 border-gray-200">
+                                                                {(mod.chapters ?? []).map((ch) => {
+                                                                    const isChapterOpen =
+                                                                        openChapters.has(
+                                                                            ch.chapter.id
+                                                                        );
+                                                                    return (
+                                                                        <Collapsible
+                                                                            key={ch.chapter.id}
+                                                                            open={isChapterOpen}
+                                                                            onOpenChange={() =>
+                                                                                toggleChapter(
+                                                                                    ch.chapter.id
+                                                                                )
+                                                                            }
+                                                                            className="group/chapter"
+                                                                        >
+                                                                            <CollapsibleContent className="py-1">
+                                                                                <div className="relative space-y-1.5  border-gray-200 ">
+                                                                                    <MyButton
+                                                                                        buttonType="text"
+                                                                                        onClick={(
+                                                                                            e
+                                                                                        ) => {
+                                                                                            e.stopPropagation();
+                                                                                            handleChapterNavigation(
+                                                                                                subject.id,
+                                                                                                mod
+                                                                                                    .module
+                                                                                                    .id,
+                                                                                                ch
+                                                                                                    .chapter
+                                                                                                    .id
+                                                                                            );
+                                                                                        }}
+                                                                                        className="!m-0 flex w-fit cursor-pointer flex-row items-center justify-start gap-2 px-0 pl-2 text-primary-500"
+                                                                                    >
+                                                                                        <Plus
+                                                                                            size={
+                                                                                                14
+                                                                                            }
+                                                                                            weight="bold"
+                                                                                            className="text-primary-400 group-hover:text-primary-500"
+                                                                                        />
+                                                                                        <span className="font-medium">
+                                                                                            Add
+                                                                                            Slide
+                                                                                        </span>
+                                                                                    </MyButton>
+
+                                                                                    {(
+                                                                                        chapterSlidesMap[
+                                                                                            ch
+                                                                                                .chapter
+                                                                                                .id
+                                                                                        ] ?? []
+                                                                                    ).length ===
+                                                                                    0 ? (
+                                                                                        <div className="px-2 py-1 text-xs text-gray-400">
+                                                                                            No
+                                                                                            slides
+                                                                                            in this
+                                                                                            chapter.
+                                                                                        </div>
+                                                                                    ) : (
+                                                                                        (
+                                                                                            chapterSlidesMap[
+                                                                                                ch
+                                                                                                    .chapter
+                                                                                                    .id
+                                                                                            ] ?? []
+                                                                                        ).map(
+                                                                                            (
+                                                                                                slide,
+                                                                                                sIdx
+                                                                                            ) => (
+                                                                                                <div
+                                                                                                    key={
+                                                                                                        slide.id
+                                                                                                    }
+                                                                                                    className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-xs text-gray-600 hover:bg-gray-100"
+                                                                                                    onClick={() => {
+                                                                                                        handleSlideNavigation(
+                                                                                                            subject.id,
+                                                                                                            mod
+                                                                                                                .module
+                                                                                                                .id,
+                                                                                                            ch
+                                                                                                                .chapter
+                                                                                                                .id,
+                                                                                                            slide.id
+                                                                                                        );
+                                                                                                    }}
+                                                                                                >
+                                                                                                    <span className="w-7 shrink-0 text-center font-mono text-xs text-gray-400">
+                                                                                                        S
+                                                                                                        {sIdx +
+                                                                                                            1}
+                                                                                                    </span>
+                                                                                                    {getIcon(
+                                                                                                        slide.source_type,
+                                                                                                        slide
+                                                                                                            .document_slide
+                                                                                                            ?.type,
+                                                                                                        '3'
+                                                                                                    )}
+                                                                                                    <span
+                                                                                                        className="truncate"
+                                                                                                        title={
+                                                                                                            slide.title
+                                                                                                        }
+                                                                                                    >
+                                                                                                        {
+                                                                                                            slide.title
+                                                                                                        }
+                                                                                                    </span>
+                                                                                                </div>
+                                                                                            )
+                                                                                        )
+                                                                                    )}
+                                                                                </div>
+                                                                            </CollapsibleContent>
+                                                                        </Collapsible>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        </CollapsibleContent>
+                                                    </Collapsible>
+                                                );
+                                            })}
+                                        </div>
+                                    </CollapsibleContent>
+                                </Collapsible>
+                            );
+                        })}
                 </div>
             </div>
         ),
@@ -691,24 +1365,6 @@ export const CourseStructureDetails = ({
             </div>
         ),
     };
-
-    if (courseId === '' || levelId === '') {
-        console.log('courseId: ', courseId);
-        console.log('levelId: ', levelId);
-        return (
-            <div className="flex h-full items-center justify-center p-4">
-                <div className="max-w-md rounded-lg bg-white p-6 text-center shadow-lg">
-                    <h2 className="mb-1.5 text-lg font-semibold text-red-600">
-                        Missing Information
-                    </h2>
-                    <p className="text-sm text-gray-600">
-                        Course ID or Level ID is missing. Please ensure these are provided to
-                        proceed.
-                    </p>
-                </div>
-            </div>
-        );
-    }
 
     const isLoading =
         addSubjectMutation.isPending ||

@@ -477,6 +477,7 @@ export const CourseDetailsPage = () => {
                         <CourseStructureDetails
                             selectedSession={selectedSession}
                             selectedLevel={selectedLevel}
+                            courseStructure={form.getValues('courseData.courseStructure')}
                         />
 
                         {/* What You'll Learn Section */}
