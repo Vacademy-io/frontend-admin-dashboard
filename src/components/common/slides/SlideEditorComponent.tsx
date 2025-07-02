@@ -1836,7 +1836,7 @@ const SlidesEditorComponent = ({
                     }}
                 />
                 <Dialog open={isFinishModalOpen} onOpenChange={(isOpen) => !isTranscribingOnFinish && setIsFinishModalOpen(isOpen)}>
-                    <DialogContent>
+                    <DialogContent className="!w-[600px] !max-w-[95vw] !p-0" style={{ width: '600px', maxWidth: '95vw', padding: '0' }}>
                         {isTranscribingOnFinish ? (
                             <AiGeneratingLoader
                                 title="Finalizing Session..."
@@ -1845,41 +1845,41 @@ const SlidesEditorComponent = ({
                             />
                         ) : (
                             <>
-                                <DialogHeader className="border-b border-slate-200/50 p-6 pb-4 bg-white/80 backdrop-blur-sm">
-                                    <DialogTitle className="flex items-center text-2xl lg:text-3xl font-bold text-slate-800">
-                                        <div className="p-2 mr-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl shadow-lg">
-                                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <DialogHeader className="!border-b !border-slate-200/50 !p-6 !bg-white/80 !backdrop-blur-sm" style={{ padding: '1.5rem', borderBottom: '1px solid rgb(226 232 240 / 0.5)' }}>
+                                    <DialogTitle className="!flex !items-start !gap-3 !text-lg !font-bold !text-slate-800 !leading-tight" style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', fontSize: '1.125rem', fontWeight: '700' }}>
+                                        <div className="p-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl shadow-lg flex-shrink-0">
+                                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                             </svg>
                                         </div>
-                                        <span className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                                        <span className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent leading-tight">
                                             Finish Session & Generate Summary
                                         </span>
                                     </DialogTitle>
-                                    <DialogDescription className="mt-2 text-slate-600 leading-relaxed">
+                                    <DialogDescription className="mt-3 text-slate-600 leading-relaxed">
                                         This session has an audio recording. Would you like to generate a transcript and send a summary report to participants?
                                     </DialogDescription>
                                 </DialogHeader>
-                                <DialogFooter className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end p-6 border-t border-slate-200/50 bg-white/80 backdrop-blur-sm">
+                                <DialogFooter className="!flex !flex-col !gap-3 sm:!flex-row sm:!justify-end !p-6 !border-t !border-slate-200/50 !bg-white/80 !backdrop-blur-sm" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: '1.5rem', borderTop: '1px solid rgb(226 232 240 / 0.5)' }}>
                                     <MyButton
                                         type="button"
                                         buttonType="secondary"
                                         onClick={() => cleanupAndExitSession(true)}
-                                        className="w-full sm:w-auto bg-white/80 backdrop-blur-sm border-slate-300 hover:bg-white hover:border-red-400 text-slate-700 hover:text-red-700 font-semibold transition-all duration-200 hover:scale-105 rounded-xl"
+                                        className="w-full sm:w-auto text-sm px-4 py-2"
                                     >
                                         Exit Without Summary
                                     </MyButton>
                                     <MyButton
                                         type="button"
                                         onClick={() => processAndFinishSession(true)}
-                                        className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/25 transition-all duration-300 hover:scale-105 border border-blue-500/30"
+                                        className="w-full sm:w-auto text-sm px-4 py-2 bg-blue-600 hover:bg-blue-700"
                                     >
                                         Finish in Background
                                     </MyButton>
                                     <MyButton
                                         type="submit"
                                         onClick={() => processAndFinishSession(false)}
-                                        className="w-full sm:w-auto bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 text-white font-semibold rounded-xl shadow-lg shadow-green-500/25 transition-all duration-300 hover:scale-105 border border-green-500/30"
+                                        className="w-full sm:w-auto text-sm px-4 py-2"
                                     >
                                         Finish and Generate
                                     </MyButton>
