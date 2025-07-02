@@ -417,7 +417,7 @@ export const CourseStructureDetails = ({
                                             </span>
                                         </div>
                                     </CollapsibleTrigger>
-                                    <CollapsibleContent className="py-1 pl-8">
+                                    <CollapsibleContent className="py-1 pl-11">
                                         <div className="relative space-y-1.5 border-l-2 border-dashed border-gray-200 pl-6">
                                             <div className="absolute -left-[13px] top-0 h-full">
                                                 <div className="sticky top-0 flex h-full flex-col items-center" />
@@ -474,7 +474,7 @@ export const CourseStructureDetails = ({
                                                                     </span>
                                                                 </div>
                                                             </CollapsibleTrigger>
-                                                            <CollapsibleContent className="py-1 pl-8">
+                                                            <CollapsibleContent className="py-1 pl-10">
                                                                 <div className="relative space-y-1.5 border-l-2 border-dashed border-gray-200 pl-6">
                                                                     <AddChapterButton
                                                                         moduleId={mod.module.id}
@@ -552,7 +552,7 @@ export const CourseStructureDetails = ({
                                                                                             </span>
                                                                                         </div>
                                                                                     </CollapsibleTrigger>
-                                                                                    <CollapsibleContent className="py-1 pl-8">
+                                                                                    <CollapsibleContent className="py-1 pl-9">
                                                                                         <div className="relative space-y-1.5 border-l-2 border-dashed border-gray-200 pl-6">
                                                                                             <MyButton
                                                                                                 buttonType="text"
@@ -744,7 +744,7 @@ export const CourseStructureDetails = ({
                                                                     </span>
                                                                 </div>
                                                             </CollapsibleTrigger>
-                                                            <CollapsibleContent className="py-1 pl-8">
+                                                            <CollapsibleContent className="py-1 pl-10">
                                                                 <div className="relative space-y-1.5 border-l-2 border-dashed border-gray-200 pl-6">
                                                                     <AddChapterButton
                                                                         moduleId={mod.module.id}
@@ -822,7 +822,7 @@ export const CourseStructureDetails = ({
                                                                                             </span>
                                                                                         </div>
                                                                                     </CollapsibleTrigger>
-                                                                                    <CollapsibleContent className="py-1 pl-8">
+                                                                                    <CollapsibleContent className="py-1 pl-9">
                                                                                         <div className="relative space-y-1.5 border-l-2 border-dashed border-gray-200 pl-6">
                                                                                             <MyButton
                                                                                                 buttonType="text"
@@ -1045,7 +1045,7 @@ export const CourseStructureDetails = ({
                                                                                         </span>
                                                                                     </div>
                                                                                 </CollapsibleTrigger>
-                                                                                <CollapsibleContent className="py-1 pl-8">
+                                                                                <CollapsibleContent className="py-1 pl-9">
                                                                                     <div className="relative space-y-1.5 border-l-2 border-dashed border-gray-200 pl-6">
                                                                                         <MyButton
                                                                                             buttonType="text"
