@@ -717,80 +717,80 @@ export function cleanVideoQuestions(data: Slide[]) {
 
     const cleanedData = sortedData.map((item, index) => {
         try {
-            if (item.source_type === 'VIDEO' && item.video_slide) {
-                // Check if this is a split screen video slide
-                const videoSlide = item.video_slide as any;
-                if (videoSlide.embedded_type && videoSlide.embedded_data) {
-                    try {
-                        // Parse the embedded data to reconstruct split screen slide
-                        const splitScreenData = JSON.parse(videoSlide.embedded_data);
+        if (item.source_type === 'VIDEO' && item.video_slide) {
+            // Check if this is a split screen video slide
+            const videoSlide = item.video_slide as any;
+            if (videoSlide.embedded_type && videoSlide.embedded_data) {
+                try {
+                    // Parse the embedded data to reconstruct split screen slide
+                    const splitScreenData = JSON.parse(videoSlide.embedded_data);
 
-                        return {
-                            ...item,
-                            splitScreenMode: true,
-                            splitScreenData: splitScreenData,
-                            splitScreenType: `SPLIT_${videoSlide.embedded_type}`,
-                            isNewSplitScreen: false, // Existing slides loaded from backend are not new
-                            originalVideoSlide: {
-                                ...videoSlide,
-                                // Remove embedded fields from the original video slide
-                                embedded_type: undefined,
-                                embedded_data: undefined,
-                            },
-                            video_slide: {
-                                ...videoSlide,
-                                questions: transformResponseDataToMyQuestionsSchema(
+                    return {
+                        ...item,
+                        splitScreenMode: true,
+                        splitScreenData: splitScreenData,
+                        splitScreenType: `SPLIT_${videoSlide.embedded_type}`,
+                        isNewSplitScreen: false, // Existing slides loaded from backend are not new
+                        originalVideoSlide: {
+                            ...videoSlide,
+                            // Remove embedded fields from the original video slide
+                            embedded_type: undefined,
+                            embedded_data: undefined,
+                        },
+                        video_slide: {
+                            ...videoSlide,
+                            questions: transformResponseDataToMyQuestionsSchema(
                                     videoSlide.questions || []
-                                ),
-                            },
-                        };
-                    } catch (error) {
-                        console.error('Error parsing split screen data:', error);
-                        // Fall back to regular video slide if parsing fails
-                        return {
-                            ...item,
-                            video_slide: {
-                                ...item.video_slide,
-                                questions: transformResponseDataToMyQuestionsSchema(
+                            ),
+                        },
+                    };
+                } catch (error) {
+                    console.error('Error parsing split screen data:', error);
+                    // Fall back to regular video slide if parsing fails
+                    return {
+                        ...item,
+                        video_slide: {
+                            ...item.video_slide,
+                            questions: transformResponseDataToMyQuestionsSchema(
                                     item.video_slide.questions as any || []
-                                ),
-                            },
-                        };
-                    }
+                            ),
+                        },
+                    };
                 }
+            }
 
-                // Regular video slide processing
-                return {
-                    ...item,
-                    video_slide: {
-                        ...item.video_slide,
-                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                        // @ts-expect-error
+            // Regular video slide processing
+            return {
+                ...item,
+                video_slide: {
+                    ...item.video_slide,
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-expect-error
                         questions: transformResponseDataToMyQuestionsSchema(item.video_slide.questions || []),
-                    },
-                };
-            }
-            if (item.source_type === 'QUESTION') {
-                return {
-                    ...item,
-                    question_slide: transformResponseDataToMyQuestionsSchemaSingleQuestion(
-                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                        // @ts-expect-error
-                        item.question_slide
-                    ),
-                };
-            }
-            if (item.source_type === 'ASSIGNMENT') {
-                return {
-                    ...item,
-                    assignment_slide: transformAssignmentSlide(
-                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                        // @ts-expect-error
-                        item.assignment_slide
-                    ),
-                };
-            }
-            return item;
+                },
+            };
+        }
+        if (item.source_type === 'QUESTION') {
+            return {
+                ...item,
+                question_slide: transformResponseDataToMyQuestionsSchemaSingleQuestion(
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-expect-error
+                    item.question_slide
+                ),
+            };
+        }
+        if (item.source_type === 'ASSIGNMENT') {
+            return {
+                ...item,
+                assignment_slide: transformAssignmentSlide(
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-expect-error
+                    item.assignment_slide
+                ),
+            };
+        }
+        return item;
         } catch (error) {
             console.error(`[cleanVideoQuestions] ❌ Error processing slide at index ${index}:`, {
                 error: error instanceof Error ? error.message : String(error),

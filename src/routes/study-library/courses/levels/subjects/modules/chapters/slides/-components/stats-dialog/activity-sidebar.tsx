@@ -148,34 +148,34 @@ export const ActivityStatsSidebar = () => {
                 
                 <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
                     <div className="flex-1 overflow-y-auto px-6 pb-6">
-                        {tableData.content.length == 0 ? (
+                            {tableData.content.length == 0 ? (
                             <div className="flex items-center justify-center h-32">
                                 <p className="text-primary-500">No student activity found</p>
                             </div>
-                        ) : (
+                            ) : (
                             <div className="space-y-6">
-                                <MyTable<ActivityStatsColumnsType>
-                                    data={tableData}
-                                    columns={ActivityStatsColumns}
-                                    isLoading={isLoading}
-                                    error={error}
-                                    columnWidths={ACTIVITY_STATS_COLUMN_WIDTHS}
-                                    currentPage={page}
+                                    <MyTable<ActivityStatsColumnsType>
+                                        data={tableData}
+                                        columns={ActivityStatsColumns}
+                                        isLoading={isLoading}
+                                        error={error}
+                                        columnWidths={ACTIVITY_STATS_COLUMN_WIDTHS}
+                                        currentPage={page}
                                     enableColumnResizing={true}
                                     enableColumnPinning={false}
                                     className="activity-stats-table"
-                                />
+                                    />
 
                                 <div className="flex justify-center">
-                                    <MyPagination
-                                        currentPage={page}
-                                        totalPages={tableData.total_pages}
-                                        onPageChange={handlePageChange}
-                                    />
+                                        <MyPagination
+                                            currentPage={page}
+                                            totalPages={tableData.total_pages}
+                                            onPageChange={handlePageChange}
+                                        />
+                                    </div>
                                 </div>
-                            </div>
-                        )}
-                    </div>
+                            )}
+                        </div>
                     
                     <ActivityLogDialog />
                 </div>

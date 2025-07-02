@@ -126,7 +126,7 @@ const SlideEditor: React.FC<SlideEditorProps> = ({
 
         // Only load if we haven't loaded this specific fileId before
         if (!hasLoadedInitialData || fileId !== lastLoadedFileId) {
-            loadData();
+        loadData();
         }
     }, [slideId, fileId]); // Include fileId in dependency array
 

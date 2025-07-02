@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { BarChart, Trophy, Loader2, PieChart, Cloud } from 'lucide-react';
+import { BarChart, Trophy, Loader2, PieChart, Cloud, Activity, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 import { LeaderboardModal } from './LeaderboardModal';
@@ -82,46 +82,62 @@ export const ResponseOverlay: React.FC<ResponseOverlayProps> = ({ sessionId, sli
 
     return (
         <>
-            <div className="absolute bottom-14 left-1/2 z-[1002] flex -translate-x-1/2 items-center gap-2 rounded-lg bg-slate-800/80 p-2 text-white shadow-lg backdrop-blur-sm">
-                <div className="flex items-center gap-2 border-r border-slate-600 pr-2">
-                    <BarChart size={20} className="text-sky-400" />
-                    <span className="font-medium">Responses:</span>
+            <div className="absolute bottom-14 left-1/2 z-[1005] flex -translate-x-1/2 items-center gap-3 rounded-2xl bg-black/30 backdrop-blur-xl border border-white/10 p-3 text-white shadow-2xl transition-all duration-300 ease-in-out">
+                {/* Enhanced background effects */}
+                <div className="absolute inset-0 bg-gradient-to-r from-slate-900/20 via-transparent to-slate-900/20 rounded-2xl pointer-events-none" />
+                
+                {/* Response counter section */}
+                <div className="relative flex items-center gap-3 border-r border-white/20 pr-4">
+                    <div className="p-2 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl shadow-lg">
+                        <Activity size={20} className="text-white" />
+                    </div>
+                    <div className="flex flex-col">
+                        <span className="text-xs text-white/60 font-medium">Live Responses</span>
+                        <div className="flex items-center gap-2">
                     {isLoading ? (
-                        <Loader2 size={18} className="animate-spin" />
+                                <Loader2 size={18} className="animate-spin text-blue-400" />
                     ) : (
-                        <span className="text-lg font-bold">{responses.length}</span>
+                                <span className="text-xl font-bold text-white">{responses.length}</span>
                     )}
+                            <Users size={16} className="text-white/60" />
+                        </div>
+                    </div>
                 </div>
+                
+                {/* Action buttons */}
+                <div className="relative flex items-center gap-2">
                 <Button
                     variant="outline"
                     size="sm"
-                    className="border-orange-400 bg-transparent text-orange-400 hover:bg-orange-400 hover:text-white"
+                        className="h-10 px-4 border-orange-400/50 bg-orange-500/10 text-orange-300 hover:bg-orange-500/20 hover:text-orange-200 hover:border-orange-400 backdrop-blur-sm transition-all duration-300 ease-out hover:scale-105 shadow-lg rounded-xl font-semibold"
                     onClick={() => setIsLeaderboardOpen(true)}
                 >
                     <Trophy size={16} className="mr-2" />
-                    Leaderboard
+                        <span className="hidden sm:inline">Leaderboard</span>
                 </Button>
+                    
                 {isMcqQuestion ? (
                     <Button
                         variant="outline"
                         size="sm"
-                        className="border-sky-400 bg-transparent text-sky-400 hover:bg-sky-400 hover:text-white"
+                            className="h-10 px-4 border-blue-400/50 bg-blue-500/10 text-blue-300 hover:bg-blue-500/20 hover:text-blue-200 hover:border-blue-400 backdrop-blur-sm transition-all duration-300 ease-out hover:scale-105 shadow-lg rounded-xl font-semibold"
                         onClick={() => setIsDistributionOpen(true)}
                     >
                         <PieChart size={16} className="mr-2" />
-                        Distribution
+                            <span className="hidden sm:inline">Distribution</span>
                     </Button>
                 ) : (
                     <Button
                         variant="outline"
                         size="sm"
-                        className="border-teal-400 bg-transparent text-teal-400 hover:bg-teal-400 hover:text-white"
+                            className="h-10 px-4 border-teal-400/50 bg-teal-500/10 text-teal-300 hover:bg-teal-500/20 hover:text-teal-200 hover:border-teal-400 backdrop-blur-sm transition-all duration-300 ease-out hover:scale-105 shadow-lg rounded-xl font-semibold"
                         onClick={() => setIsWordCloudOpen(true)}
                     >
                         <Cloud size={16} className="mr-2" />
-                        Word Cloud
+                            <span className="hidden sm:inline">Word Cloud</span>
                     </Button>
                 )}
+                </div>
             </div>
             <LeaderboardModal
                 isOpen={isLeaderboardOpen}

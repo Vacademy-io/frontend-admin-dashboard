@@ -10,6 +10,9 @@ import type {
 } from '././utils/types'; // Assuming types.ts is in the same directory or path is adjusted
 import type { ExcalidrawElement } from '@excalidraw/excalidraw/element/types';
 
+// Global state to track centered slides across component remounts
+const centeredSlides = new Set<string>();
+
 import type {
     AppState as ExcalidrawAppStateOriginal,
     BinaryFiles,
@@ -38,19 +41,60 @@ const ExcalidrawWrapper: React.FC<ExcalidrawWrapperProps> = ({
     const [excalidrawAPI, setExcalidrawAPI] = useState<ExcalidrawAPIRefValue | null>(null);
     const [isLaserActive, setIsLaserActive] = useState(false);
 
+    // Track the current slide ID to only center when switching slides
+    const currentSlideIdRef = useRef<string | null>(null);
+    const hasInitialCenteringHappenedRef = useRef<boolean>(false);
+
+    // Separate effect for slide ID changes (without API dependency)
     useEffect(() => {
-        if (excalidrawAPI) {
-            console.log(`[ExcalidrawWrapper] useEffect: Slide data or API changed for slide ${initialData.id}, re-centering content.`);
-            excalidrawAPI.scrollToContent();
-        } else {
-            console.error('[ExcalidrawWrapper] Excalidraw API is not available in state.');
+        const isNewSlide = currentSlideIdRef.current !== initialData.id;
+        const hasBeenCentered = centeredSlides.has(initialData.id);
+        
+        console.log(`[ExcalidrawWrapper] Slide ID effect:`, {
+            slideId: initialData.id,
+            isNewSlide,
+            hasBeenCentered,
+            currentSlideIdRef: currentSlideIdRef.current,
+            hasInitialCenteringHappened: hasInitialCenteringHappenedRef.current
+        });
+        
+        if (isNewSlide) {
+            currentSlideIdRef.current = initialData.id;
+            hasInitialCenteringHappenedRef.current = false; // Reset for new slide
         }
-    }, [initialData, excalidrawAPI]);
+    }, [initialData.id]);
+
+    // Separate effect for API availability (only centers if needed)
+    useEffect(() => {
+        if (excalidrawAPI && !hasInitialCenteringHappenedRef.current) {
+            const hasBeenCentered = centeredSlides.has(initialData.id);
+            
+            console.log(`[ExcalidrawWrapper] API ready effect:`, {
+                slideId: initialData.id,
+                hasBeenCentered,
+                hasInitialCenteringHappened: hasInitialCenteringHappenedRef.current
+            });
+            
+            if (!hasBeenCentered) {
+                console.log(`[ExcalidrawWrapper] CENTERING: First time for slide ${initialData.id}`);
+                setTimeout(() => {
+            excalidrawAPI.scrollToContent();
+                    centeredSlides.add(initialData.id);
+                    hasInitialCenteringHappenedRef.current = true;
+                }, 100);
+        } else {
+                console.log(`[ExcalidrawWrapper] SKIPPING: Slide ${initialData.id} already centered globally`);
+                hasInitialCenteringHappenedRef.current = true;
+            }
+        }
+    }, [excalidrawAPI]); // Only depend on API, not slide ID
 
     const handleCenterView = () => {
         console.log('[ExcalidrawWrapper] Center view button clicked.');
         if (excalidrawAPI) {
             excalidrawAPI.scrollToContent();
+            centeredSlides.add(initialData.id); // Mark as centered when manually centered
+            hasInitialCenteringHappenedRef.current = true; // Update local ref too
             console.log('[ExcalidrawWrapper] Manually centered content via API from state.');
         } else {
             console.error('[ExcalidrawWrapper] Excalidraw API is not available in state.');

@@ -78,7 +78,7 @@ interface SlideRendererProps {
     editMode: boolean; // In editor, this will be true. In PresentationView, SlideEditor gets editMode=false
 }
 
-export default function SlidesEditorComponent({
+const SlidesEditorComponent = ({
     metaData,
     presentationId,
     isEdit, 
@@ -88,16 +88,8 @@ export default function SlidesEditorComponent({
     presentationId: string;
     isEdit: boolean;
     autoStartLive?: string;
-}) {
-    console.log(
-        '[SlideEditorComponent] Props received on render:',
-        JSON.stringify({
-            metaData,
-            presentationId,
-            isEdit,
-            autoStartLive,
-        })
-    );
+}) => {
+    // Removed verbose prop logging for better performance
     const {
         slides,
         currentSlideId,
@@ -1853,33 +1845,41 @@ export default function SlidesEditorComponent({
                             />
                         ) : (
                             <>
-                                <DialogHeader>
-                                    <DialogTitle className="text-xl font-semibold">Finish Session & Generate Summary</DialogTitle>
-                                    <DialogDescription className="mt-2 text-neutral-600">
+                                <DialogHeader className="border-b border-slate-200/50 p-6 pb-4 bg-white/80 backdrop-blur-sm">
+                                    <DialogTitle className="flex items-center text-2xl lg:text-3xl font-bold text-slate-800">
+                                        <div className="p-2 mr-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl shadow-lg">
+                                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </div>
+                                        <span className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                                            Finish Session & Generate Summary
+                                        </span>
+                                    </DialogTitle>
+                                    <DialogDescription className="mt-2 text-slate-600 leading-relaxed">
                                         This session has an audio recording. Would you like to generate a transcript and send a summary report to participants?
                                     </DialogDescription>
                                 </DialogHeader>
-                                <DialogFooter className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-end">
+                                <DialogFooter className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end p-6 border-t border-slate-200/50 bg-white/80 backdrop-blur-sm">
                                     <MyButton
                                         type="button"
                                         buttonType="secondary"
                                         onClick={() => cleanupAndExitSession(true)}
-                                        className="w-full sm:w-auto"
-
+                                        className="w-full sm:w-auto bg-white/80 backdrop-blur-sm border-slate-300 hover:bg-white hover:border-red-400 text-slate-700 hover:text-red-700 font-semibold transition-all duration-200 hover:scale-105 rounded-xl"
                                     >
                                         Exit Without Summary
                                     </MyButton>
                                     <MyButton
                                         type="button"
                                         onClick={() => processAndFinishSession(true)}
-                                        className="w-full sm:w-auto"
+                                        className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/25 transition-all duration-300 hover:scale-105 border border-blue-500/30"
                                     >
                                         Finish in Background
                                     </MyButton>
                                     <MyButton
                                         type="submit"
                                         onClick={() => processAndFinishSession(false)}
-                                        className="w-full sm:w-auto"
+                                        className="w-full sm:w-auto bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 text-white font-semibold rounded-xl shadow-lg shadow-green-500/25 transition-all duration-300 hover:scale-105 border border-green-500/30"
                                     >
                                         Finish and Generate
                                     </MyButton>
@@ -2279,4 +2279,15 @@ export default function SlidesEditorComponent({
             </Dialog>
         </div>
     );
-}
+};
+
+// Memoize the main component for better performance
+export default React.memo(SlidesEditorComponent, (prevProps, nextProps) => {
+    return (
+        prevProps.presentationId === nextProps.presentationId &&
+        prevProps.isEdit === nextProps.isEdit &&
+        prevProps.autoStartLive === nextProps.autoStartLive &&
+        prevProps.metaData.title === nextProps.metaData.title &&
+        prevProps.metaData.description === nextProps.metaData.description
+    );
+});

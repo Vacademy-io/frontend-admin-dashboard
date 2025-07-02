@@ -32,7 +32,7 @@ export function createPresentationSlidePayload(
             cover_file_id: '',
             total_pages: 1,
             published_data: null,
-            published_document_total_pages: 0,
+            published_document_total_pages: 1,
         },
         status: 'DRAFT',
         new_slide: true,
