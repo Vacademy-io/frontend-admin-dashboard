@@ -3,7 +3,6 @@ import { useRouter } from '@tanstack/react-router';
 import { useMutation } from '@tanstack/react-query';
 // Assuming AddSubjectButton, Subjects are correctly handling their own styling including roundness
 import { AddSubjectButton } from './add-subject.tsx/add-subject-button';
-import { Subjects } from './add-subject.tsx/subjects';
 import { useEffect, useState } from 'react';
 import { SubjectType, useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
 import { useAddSubject } from '@/routes/study-library/courses/course-details/subjects/-services/addSubject';
@@ -13,7 +12,6 @@ import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { getCourseSubjects } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSubjects';
 import { useGetPackageSessionId } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionId';
 import { useUpdateSubjectOrder } from '@/routes/study-library/courses/course-details/subjects/-services/updateSubjectOrder';
-import { orderSubjectPayloadType } from '@/routes/study-library/courses/-types/order-payload';
 import useIntroJsTour from '@/hooks/use-intro';
 import { StudyLibraryIntroKey } from '@/constants/storage/introKey';
 import { studyLibrarySteps } from '@/constants/intro/steps';
@@ -87,7 +85,7 @@ export type SubjectModulesMap = { [subjectId: string]: ModuleWithChapters[] };
 export const SubjectMaterial = () => {
     const router = useRouter();
     const searchParams = router.state.location.search;
-    const { getSessionFromPackage, getPackageSessionId } = useInstituteDetailsStore();
+    const { getSessionFromPackage } = useInstituteDetailsStore();
     const { studyLibraryData } = useStudyLibraryStore();
     const { setActiveItem } = useContentStore();
 
@@ -280,22 +278,6 @@ export const SubjectMaterial = () => {
         }
         addSubjectMutation.mutate({ subject: newSubject, packageSessionIds });
     };
-    const handleDeleteSubject = (subjectId: string) => {
-        deleteSubjectMutation.mutate({
-            subjectId: subjectId,
-            commaSeparatedPackageSessionIds:
-                getPackageSessionId({
-                    courseId: courseId,
-                    levelId: levelId,
-                    sessionId: currentSession?.id || '',
-                }) || '',
-        });
-    };
-
-    const handleEditSubject = (subjectId: string, updatedSubject: SubjectType) =>
-        updateSubjectMutation.mutate({ subjectId, updatedSubject });
-    const handleSubjectOrderChange = (updatedOrder: orderSubjectPayloadType[]) =>
-        updateSubjectOrderMutation.mutate({ orderedSubjects: updatedOrder });
 
     const navigateTo = (pathname: string, searchParamsObj: Record<string, string | undefined>) =>
         router.navigate({ to: pathname, search: searchParamsObj });
@@ -375,8 +357,7 @@ export const SubjectMaterial = () => {
     const toggleSubject = (id: string) => toggleOpenState(id, setOpenSubjects);
     const toggleModule = (id: string) => toggleOpenState(id, setOpenModules);
     const toggleChapter = (id: string) => toggleOpenState(id, setOpenChapters);
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
+
     const tabContent: Record<TabType, React.ReactNode> = {
         [TabType.OUTLINE]: (
             <div className="space-y-3">
@@ -714,36 +695,6 @@ export const SubjectMaterial = () => {
                         </div>
                     )}
                 </div>
-            </div>
-        ),
-        [TabType.SUBJECTS]: (
-            <div className="space-y-3">
-                <div className="flex flex-col items-start justify-between gap-2 md:flex-row md:items-center">
-                    <div className="flex-1">
-                        <h2 className="text-base font-semibold text-gray-800">
-                            Manage Batch Subjects
-                        </h2>
-                        <p className="mt-0.5 text-xs text-gray-500">
-                            Explore, manage, and organize resources for the batch.
-                        </p>
-                    </div>
-                    <AddSubjectButton onAddSubject={handleAddSubject} />
-                </div>
-                <div className="w-full max-w-[260px]">
-                    <MyDropdown
-                        currentValue={currentSession ?? undefined}
-                        dropdownList={sessionList}
-                        placeholder="Select Session"
-                        handleChange={handleSessionChange}
-                    />
-                </div>
-                <Subjects
-                    subjects={subjects}
-                    onDeleteSubject={handleDeleteSubject}
-                    onEditSubject={handleEditSubject}
-                    packageSessionIds={packageSessionIds}
-                    onOrderChange={handleSubjectOrderChange}
-                />
             </div>
         ),
         [TabType.STUDENT]: (
