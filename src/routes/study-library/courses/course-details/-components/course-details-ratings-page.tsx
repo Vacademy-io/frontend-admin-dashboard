@@ -46,24 +46,6 @@ interface PaginatedResponse {
     size: number;
 }
 
-interface SessionDetails {
-    id: string;
-    session_name: string;
-    status: string;
-    start_date: string;
-}
-
-interface Level {
-    id: string;
-    name: string;
-    duration_in_days: number;
-}
-
-interface Session {
-    sessionDetails: SessionDetails;
-    levelDetails: Level[];
-}
-
 // Type for transformed review data
 interface Review {
     id: string;
@@ -109,8 +91,8 @@ export function CourseDetailsRatingsComponent({
     currentSession,
     currentLevel,
 }: {
-    currentSession: Session;
-    currentLevel: Level;
+    currentSession: string;
+    currentLevel: string;
 }) {
     const queryClient = useQueryClient();
     const router = useRouter();
@@ -130,8 +112,8 @@ export function CourseDetailsRatingsComponent({
                 source_id:
                     getPackageSessionId({
                         courseId: courseId || '',
-                        levelId: currentLevel ? currentLevel.id : '',
-                        sessionId: currentSession ? currentSession.sessionDetails.id : '',
+                        levelId: currentLevel || '',
+                        sessionId: currentSession || '',
                     }) || '',
                 source_type: 'PACKAGE_SESSION',
             },
@@ -143,8 +125,8 @@ export function CourseDetailsRatingsComponent({
             source_id:
                 getPackageSessionId({
                     courseId: courseId || '',
-                    levelId: currentLevel ? currentLevel.id : '',
-                    sessionId: currentSession ? currentSession.sessionDetails.id : '',
+                    levelId: currentLevel || '',
+                    sessionId: currentSession || '',
                 }) || '',
         })
     );
@@ -209,8 +191,8 @@ export function CourseDetailsRatingsComponent({
             source_id:
                 getPackageSessionId({
                     courseId: courseId,
-                    levelId: currentLevel.id,
-                    sessionId: currentSession.sessionDetails.id,
+                    levelId: currentLevel,
+                    sessionId: currentSession,
                 }) || '',
         });
     };
@@ -448,8 +430,8 @@ export function CourseDetailsRatingsComponent({
                                                 source_id:
                                                     getPackageSessionId({
                                                         courseId: courseId || '',
-                                                        levelId: currentLevel.id,
-                                                        sessionId: currentSession.sessionDetails.id,
+                                                        levelId: currentLevel,
+                                                        sessionId: currentSession,
                                                     }) || '',
                                                 status: 'ACTIVE',
                                                 likes: review.likes + 1,
@@ -471,8 +453,8 @@ export function CourseDetailsRatingsComponent({
                                                 source_id:
                                                     getPackageSessionId({
                                                         courseId: courseId || '',
-                                                        levelId: currentLevel.id,
-                                                        sessionId: currentSession.sessionDetails.id,
+                                                        levelId: currentLevel,
+                                                        sessionId: currentSession,
                                                     }) || '',
                                                 status: 'ACTIVE',
                                                 likes: review.likes,
@@ -494,8 +476,8 @@ export function CourseDetailsRatingsComponent({
                                                 source_id:
                                                     getPackageSessionId({
                                                         courseId: courseId || '',
-                                                        levelId: currentLevel.id,
-                                                        sessionId: currentSession.sessionDetails.id,
+                                                        levelId: currentLevel,
+                                                        sessionId: currentSession,
                                                     }) || '',
                                                 status: 'DELETED',
                                                 likes: review.likes,
