@@ -478,9 +478,9 @@ export const CourseStructureDetails = ({
                                                                 <div className="relative space-y-1.5 border-l-2 border-dashed border-gray-200 pl-6">
                                                                     <AddChapterButton
                                                                         moduleId={mod.module.id}
-                                                                        sessionId={
-                                                                            currentSession?.id
-                                                                        }
+                                                                        sessionId={selectedSession}
+                                                                        levelId={selectedLevel}
+                                                                        subjectId={subject.id}
                                                                         isTextButton
                                                                     />
                                                                     {(mod.chapters ?? []).map(
@@ -748,9 +748,9 @@ export const CourseStructureDetails = ({
                                                                 <div className="relative space-y-1.5 border-l-2 border-dashed border-gray-200 pl-6">
                                                                     <AddChapterButton
                                                                         moduleId={mod.module.id}
-                                                                        sessionId={
-                                                                            currentSession?.id
-                                                                        }
+                                                                        sessionId={selectedSession}
+                                                                        levelId={selectedLevel}
+                                                                        subjectId={subject.id}
                                                                         isTextButton
                                                                     />
                                                                     {(mod.chapters ?? []).map(
@@ -979,7 +979,9 @@ export const CourseStructureDetails = ({
                                                             <div className="relative space-y-1.5  border-gray-200">
                                                                 <AddChapterButton
                                                                     moduleId={mod.module.id}
-                                                                    sessionId={currentSession?.id}
+                                                                    sessionId={selectedSession}
+                                                                    levelId={selectedLevel}
+                                                                    subjectId={subject.id}
                                                                     isTextButton
                                                                 />
                                                                 {(mod.chapters ?? []).map(

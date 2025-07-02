@@ -8,18 +8,19 @@ interface AddChapterButtonProps {
     isTextButton?: boolean;
     moduleId?: string;
     sessionId?: string;
+    levelId?: string;
+    subjectId?: string;
 }
 
 export const AddChapterButton = ({
     isTextButton = false,
     moduleId,
     sessionId,
+    levelId,
+    subjectId,
 }: AddChapterButtonProps) => {
     const [openDialog, setOpenDialog] = useState(false);
     const triggerButton = isTextButton ? (
-        // <div className="m-0 flex w-fit cursor-pointer flex-row items-center gap-2 text-primary-500">
-        //     <Plus /> Add Chapter
-        // </div>
         <MyButton
             scale="large"
             buttonType="text"
@@ -46,13 +47,15 @@ export const AddChapterButton = ({
         <MyDialog
             trigger={triggerButton}
             heading="Add Chapter"
-            dialogWidth="min-w-[800px]"
+            dialogWidth="min-w-[400px]"
             open={openDialog}
             onOpenChange={handleOpenChange}
         >
             <AddChapterForm
                 module_id={moduleId}
                 session_id={sessionId}
+                level_id={levelId}
+                subject_id={subjectId}
                 onSubmitSuccess={handleSubmitSuccess}
                 mode="create"
             />
