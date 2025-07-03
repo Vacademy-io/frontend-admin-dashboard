@@ -1,4 +1,5 @@
 import QRCode from 'react-qr-code';
+import { MyDialog } from '@/components/design-system/dialog';
 import { Copy, DownloadSimple, LockSimple, DotsThree } from 'phosphor-react';
 import { Badge } from '@/components/ui/badge';
 import { MyButton } from '@/components/design-system/button';
@@ -13,6 +14,13 @@ import {
 import { deleteLiveSession, LiveSession } from '../schedule/-services/utils';
 import { handleDownloadQRCode } from '@/routes/homework-creation/create-assessment/$assessmentId/$examtype/-utils/helper';
 import { useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
+import { fetchSessionDetails, SessionDetailsResponse } from '../-hooks/useSessionDetails';
+import { useLiveSessionReport } from '../-hooks/useLiveSessionReport';
+import { useLiveSessionStore } from '../schedule/-store/sessionIdstore';
+import { useNavigate } from '@tanstack/react-router';
+import { useSessionDetailsStore } from '../-store/useSessionDetailsStore';
+import { DraftSession, getSessionBySessionId } from '../-services/utils';
 
 interface LiveSessionCardProps {
     session: LiveSession;
@@ -20,11 +28,33 @@ interface LiveSessionCardProps {
 }
 
 export default function LiveSessionCard({ session, isDraft = false }: LiveSessionCardProps) {
+    const [openDialog, setOpenDialog] = useState<boolean>(false);
+    const [scheduledSessionDetails, setScheduleSessionDetails] =
+        useState<SessionDetailsResponse | null>(null);
     const queryClient = useQueryClient();
+    const { mutate: fetchReport, data: reportResponse, isPending, error } = useLiveSessionReport();
+
     const joinLink =
         session.registration_form_link_for_public_sessions ||
         `${BASE_URL_LEARNER_DASHBOARD}/register/live-class?sessionId=${session.session_id}`;
     const formattedDateTime = `${session.meeting_date} ${session.start_time}`;
+
+    const navigate = useNavigate();
+    const { setSessionId , setIsEdit} = useLiveSessionStore();
+    const { setSessionDetails } = useSessionDetailsStore();
+
+    const handleEditSession = async () => {
+        try {
+            const details = await getSessionBySessionId(session?.session_id || '');
+            setSessionId(details.sessionId);
+            setSessionDetails(details);
+            setIsEdit(true);
+            console.log('Session Details:', details);
+            navigate({ to: `/study-library/live-session/schedule/step1` });
+        } catch (error) {
+            console.error('Failed to fetch session details:', error);
+        }
+    };
 
     const handleDelete = async (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -35,6 +65,20 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
         } catch (error) {
             console.error('Error deleting session:', error);
         }
+    };
+
+    const fetchSessionDetail = async () => {
+        const response = await fetchSessionDetails(session.schedule_id);
+        setScheduleSessionDetails(response);
+        fetchReport({
+            sessionId: session.session_id,
+            scheduleId: session.schedule_id,
+            accessType: session.access_level,
+        });
+    };
+    const handleOpenDialog = () => {
+        fetchSessionDetail();
+        setOpenDialog(!openDialog);
     };
 
     return (
@@ -49,10 +93,6 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
                 </div>
 
                 <div className="flex items-center gap-4">
-                    {/* <Badge className="rounded-md border border-primary-200 bg-primary-50 py-1.5 shadow-none">
-                        {batchIdsList[0]}
-                    </Badge> */}
-
                     <DropdownMenu>
                         <DropdownMenuTrigger>
                             <MyButton
@@ -65,18 +105,20 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
                             </MyButton>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                            {isDraft && (
-                                <DropdownMenuItem
-                                    className="cursor-pointer"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                    }}
-                                >
-                                    Edit Live Session
-                                </DropdownMenuItem>
-                            )}
                             <DropdownMenuItem className="cursor-pointer" onClick={handleDelete}>
                                 Delete Live Session
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="cursor-pointer" onClick={() => {}}>
+                                View Registration List
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                                className="cursor-pointer"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEditSession();
+                                }}
+                            >
+                                Edit Live Session
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
@@ -142,6 +184,27 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
                     </MyButton>
                 </div>
             </div>
+            <MyDialog
+                heading="Attendance Report"
+                open={openDialog}
+                onOpenChange={handleOpenDialog}
+                className="w-[80vw] max-w-4xl"
+            >
+                <div className="flex flex-col gap-3 p-4 text-sm">
+                    {/* <div className="mt-4 rounded-lg">
+                        <h3 className="mb-2 text-lg font-semibold">Attendance</h3>
+                        <MyTable
+                            data={tableData}
+                            columns={reportColumns}
+                            isLoading={isPending}
+                            error={error as Error | null}
+                            columnWidths={REPORT_WIDTH}
+                            currentPage={0}
+                            // className="!h-full"
+                        />
+                    </div> */}
+                </div>
+            </MyDialog>
         </div>
     );
 }
