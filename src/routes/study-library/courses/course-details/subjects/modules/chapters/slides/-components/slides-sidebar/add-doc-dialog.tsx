@@ -4,7 +4,7 @@ import { DialogFooter } from '@/components/ui/dialog';
 import { useState, useRef } from 'react';
 import { Progress } from '@/components/ui/progress';
 import { FileUploadComponent } from '@/components/design-system/file-upload';
-import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
+import { Form } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { FileType } from '@/types/common/file-upload';
@@ -12,7 +12,6 @@ import { convertDocToHtml } from './utils/doc-to-html';
 import { useRouter } from '@tanstack/react-router';
 import { useReplaceBase64ImagesWithNetworkUrls } from '@/utils/helpers/study-library-helpers.ts/slides/replaceBase64ToNetworkUrl';
 import { useContentStore } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
-import { MyInput } from '@/components/design-system/input';
 import { convertHtmlToPdf } from '../../-helper/helper';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { useSlidesMutations } from '../../-hooks/use-slides';
@@ -32,10 +31,12 @@ export const AddDocDialog = ({
     const [uploadProgress, setUploadProgress] = useState(0);
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
+
     const route = useRouter();
     const { getPackageSessionId } = useInstituteDetailsStore();
     const { courseId, levelId, chapterId, moduleId, subjectId, sessionId } =
         route.state.location.search;
+
     const { addUpdateDocumentSlide, updateSlideOrder } = useSlidesMutations(
         chapterId || '',
         moduleId || '',
@@ -46,6 +47,7 @@ export const AddDocDialog = ({
             sessionId: sessionId || '',
         }) || ''
     );
+
     const replaceBase64ImagesWithNetworkUrls = useReplaceBase64ImagesWithNetworkUrls();
     const { setActiveItem, getSlideById, items } = useContentStore();
 
@@ -56,16 +58,12 @@ export const AddDocDialog = ({
         },
     });
 
-    // Function to reorder slides after adding a new one at the top
     const reorderSlidesAfterNewSlide = async (newSlideId: string) => {
         try {
-            // Get current slides and reorder them
             const currentSlides = items || [];
             const newSlide = currentSlides.find((slide) => slide.id === newSlideId);
-
             if (!newSlide) return;
 
-            // Create new order: new slide at top (order 0), then existing slides
             const reorderedSlides = [
                 { slide_id: newSlideId, slide_order: 0 },
                 ...currentSlides
@@ -76,13 +74,11 @@ export const AddDocDialog = ({
                     })),
             ];
 
-            // Update slide order in backend
             await updateSlideOrder({
                 chapterId: chapterId || '',
                 slideOrderPayload: reorderedSlides,
             });
 
-            // Set the new slide as active
             setTimeout(() => {
                 setActiveItem(getSlideById(newSlideId));
             }, 500);
@@ -106,10 +102,15 @@ export const AddDocDialog = ({
         setError(null);
         setFile(selectedFile);
         form.setValue('docFile', [selectedFile] as unknown as FileList);
-        toast.success('File selected successfully');
+
+        // Auto-fill title from file name
+        const title = selectedFile.name.replace(/\.[^/.]+$/, '');
+        form.setValue('docTitle', title);
+
+        toast.success('Document selected successfully');
     };
 
-    const useHandleUpload = async (data: FormData) => {
+    const useHandleUpload = async () => {
         if (!file) {
             toast.error('Please select a file first');
             return;
@@ -128,17 +129,18 @@ export const AddDocDialog = ({
             const processedHtml = await replaceBase64ImagesWithNetworkUrls(HTMLContent);
             const { totalPages } = await convertHtmlToPdf(processedHtml);
             const slideId = crypto.randomUUID();
+
             const response = await addUpdateDocumentSlide({
                 id: slideId,
-                title: data.docTitle,
+                title: form.getValues('docTitle'),
                 image_file_id: '',
                 description: null,
-                slide_order: 0, // Always insert at top
+                slide_order: 0,
                 document_slide: {
                     id: crypto.randomUUID(),
                     type: 'DOC',
                     data: processedHtml,
-                    title: data.docTitle,
+                    title: form.getValues('docTitle'),
                     cover_file_id: '',
                     total_pages: totalPages,
                     published_data: null,
@@ -150,7 +152,6 @@ export const AddDocDialog = ({
             });
 
             if (response) {
-                // Reorder slides and set as active
                 await reorderSlidesAfterNewSlide(response);
                 openState?.(false);
                 toast.success('Document uploaded successfully!');
@@ -158,10 +159,8 @@ export const AddDocDialog = ({
 
             setUploadProgress(100);
             toast.success('Document converted successfully!');
-
             setFile(null);
             form.reset();
-            openState && openState(false);
         } catch (err) {
             console.error('Upload handling error:', err);
             const errorMessage =
@@ -213,50 +212,43 @@ export const AddDocDialog = ({
                     </div>
                 </FileUploadComponent>
 
-                <FormField
-                    control={form.control}
-                    name="docTitle"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormControl>
-                                <MyInput
-                                    {...field}
-                                    label="Title"
-                                    required={true}
-                                    input={field.value}
-                                    inputType="text"
-                                    inputPlaceholder="File name"
-                                    onChangeFunction={field.onChange}
-                                    className="w-full"
-                                />
-                            </FormControl>
-                        </FormItem>
-                    )}
-                />
                 {isUploading && (
-                    <>
-                        <div>
-                            <Progress
-                                value={uploadProgress}
-                                className="h-2 bg-neutral-200 [&>div]:bg-primary-500"
-                            />
-                            <p className="mt-2 text-sm text-neutral-600">
-                                This may take a few moments...
-                            </p>
+                    <div className="space-y-3 duration-300 animate-in fade-in slide-in-from-bottom-2">
+                        <Progress
+                            value={uploadProgress}
+                            className="[&>div]:to-primary-600 h-2 bg-neutral-200 [&>div]:bg-gradient-to-r [&>div]:from-primary-500"
+                        />
+                        <div className="text-sm text-neutral-600">
+                            This may take a few moments...
                         </div>
-                    </>
+                    </div>
                 )}
 
-                <DialogFooter className="flex w-full items-center justify-center">
+                <DialogFooter className="flex w-full items-center justify-center pt-4">
                     <MyButton
                         buttonType="primary"
                         scale="large"
                         layoutVariant="default"
                         type="submit"
                         disabled={!file || isUploading}
-                        className="mx-auto"
+                        className={`
+              w-full
+              transition-all duration-300 ease-in-out
+              ${
+                  !file || isUploading
+                      ? 'cursor-not-allowed opacity-50'
+                      : 'shadow-lg hover:scale-105 hover:shadow-xl active:scale-95'
+              }
+            `}
                     >
-                        {isUploading ? 'Converting...' : 'Convert Document'}
+                        {isUploading ? (
+                            <div className="flex items-center justify-center gap-2">
+                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                                Uploading...
+                            </div>
+                        ) : (
+                            'Upload Document'
+                        )}
                     </MyButton>
                 </DialogFooter>
             </form>

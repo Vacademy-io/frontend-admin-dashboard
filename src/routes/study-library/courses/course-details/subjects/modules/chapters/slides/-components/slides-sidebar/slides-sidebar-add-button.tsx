@@ -25,11 +25,13 @@ import { useDialogStore } from '@/routes/study-library/courses/-stores/slide-add
 import AddQuestionDialog from './add-question-dialog';
 import { File, GameController } from 'phosphor-react';
 import { formatHTMLString } from '../slide-operations/formatHtmlString';
-import AddAssignmentDialog from './add-assignment-dialog';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
-import { createPresentationSlidePayload } from '../create-presentation-slide';
-import { generateUniqueDocumentSlideTitle } from '../../-helper/slide-naming-utils';
+import {
+    generateUniqueDocumentSlideTitle,
+    generateUniqueAssignmentSlideTitle,
+} from '../../-helper/slide-naming-utils';
 import { toast } from 'sonner';
+import { createPresentationSlidePayload } from '../create-presentation-slide';
 
 // Simple utility function for setting first slide as active (used as fallback)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -65,7 +67,7 @@ export const ChapterSidebarAddButton = () => {
         isVideoDialogOpen,
         isVideoFileDialogOpen,
         isQuestionDialogOpen,
-        isAssignmentDialogOpen,
+
         openPdfDialog,
         closePdfDialog,
         openDocUploadDialog,
@@ -76,8 +78,6 @@ export const ChapterSidebarAddButton = () => {
         closeVideoFileDialog,
         openQuestionDialog,
         closeQuestionDialog,
-        openAssignmentDialog,
-        closeAssignmentDialog,
     } = useDialogStore();
 
     // Function to reorder slides after adding a new one at the top
@@ -245,9 +245,60 @@ export const ChapterSidebarAddButton = () => {
             case 'question':
                 openQuestionDialog();
                 break;
-            case 'assignment':
-                openAssignmentDialog();
+
+            case 'assignment': {
+                try {
+                    const slideId = crypto.randomUUID();
+                    const title = generateUniqueAssignmentSlideTitle(items || []);
+
+                    const response = await addUpdateDocumentSlide({
+                        id: slideId,
+                        title: title,
+                        image_file_id: '',
+                        description: 'Assignment for student response',
+                        slide_order: 0,
+                        document_slide: {
+                            id: crypto.randomUUID(),
+                            type: 'ASSIGNMENT',
+                            data: JSON.stringify({
+                                parent_rich_text: {
+                                    id: null,
+                                    type: '',
+                                    content: '',
+                                },
+                                text_data: {
+                                    id: null,
+                                    type: '',
+                                    content: '',
+                                },
+                                live_date: '',
+                                end_date: '',
+                                re_attempt_count: 0,
+                                comma_separated_media_ids: '',
+                                timestamp: Date.now(),
+                            }),
+                            title: title,
+                            cover_file_id: '',
+                            total_pages: 1,
+                            published_data: null,
+                            published_document_total_pages: 0,
+                        },
+                        status: 'DRAFT',
+                        new_slide: true,
+                        notify: false,
+                    });
+
+                    if (response) {
+                        await reorderSlidesAfterNewSlide(slideId);
+                        toast.success('Assignment created successfully!');
+                    }
+                } catch (err) {
+                    console.error('Error creating assignment:', err);
+                    toast.error('Failed to create assignment');
+                }
                 break;
+            }
+
             case 'presentation': {
                 console.log('presentation payload text');
                 try {
@@ -520,18 +571,6 @@ export const ChapterSidebarAddButton = () => {
             >
                 <div className="duration-300 animate-in fade-in slide-in-from-bottom-4">
                     <AddQuestionDialog openState={(open) => !open && closeQuestionDialog()} />
-                </div>
-            </MyDialog>
-
-            <MyDialog
-                trigger={<></>}
-                heading="Create Assignment"
-                dialogWidth="min-w-[500px]"
-                open={isAssignmentDialogOpen}
-                onOpenChange={closeAssignmentDialog}
-            >
-                <div className="duration-300 animate-in fade-in slide-in-from-bottom-4">
-                    <AddAssignmentDialog openState={(open) => !open && closeAssignmentDialog()} />
                 </div>
             </MyDialog>
         </div>

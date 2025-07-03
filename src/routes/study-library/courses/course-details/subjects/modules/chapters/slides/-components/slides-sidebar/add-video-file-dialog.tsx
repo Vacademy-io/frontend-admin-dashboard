@@ -3,7 +3,6 @@
 import type React from 'react';
 
 import { MyButton } from '@/components/design-system/button';
-import { MyInput } from '@/components/design-system/input';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -23,14 +22,9 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-// Declare INSTITUTE_ID here or import it from a config file
-const INSTITUTE_ID = 'your-institute-id'; // Replace with your actual institute ID
+const INSTITUTE_ID = 'your-institute-id'; // Replace this in real usage
 
-export const AddVideoFileDialog = ({
-    openState,
-}: {
-    openState?: ((open: boolean) => void) | undefined;
-}) => {
+export const AddVideoFileDialog = ({ openState }: { openState?: (open: boolean) => void }) => {
     const { getPackageSessionId } = useInstituteDetailsStore();
     const { courseId, levelId, chapterId, moduleId, subjectId, sessionId } = Route.useSearch();
     const { addUpdateVideoSlide, updateSlideOrder } = useSlidesMutations(
@@ -43,103 +37,10 @@ export const AddVideoFileDialog = ({
             sessionId: sessionId || '',
         }) || ''
     );
+
     const { setActiveItem, getSlideById, items } = useContentStore();
     const [isUploading, setIsUploading] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
-
-    // Function to reorder slides after adding a new one at the top
-    const reorderSlidesAfterNewSlide = async (newSlideId: string) => {
-        try {
-            // Get current slides and reorder them
-            const currentSlides = items || [];
-            const newSlide = currentSlides.find((slide) => slide.id === newSlideId);
-
-            if (!newSlide) return;
-
-            // Create new order: new slide at top (order 0), then existing slides
-            const reorderedSlides = [
-                { slide_id: newSlideId, slide_order: 0 },
-                ...currentSlides
-                    .filter((slide) => slide.id !== newSlideId)
-                    .map((slide, index) => ({
-                        slide_id: slide.id,
-                        slide_order: index + 1,
-                    })),
-            ];
-
-            // Update slide order in backend
-            await updateSlideOrder({
-                chapterId: chapterId || '',
-                slideOrderPayload: reorderedSlides,
-            });
-
-            // Set the new slide as active
-            setTimeout(() => {
-                setActiveItem(getSlideById(newSlideId));
-            }, 500);
-        } catch (error) {
-            console.error('Error reordering slides:', error);
-            toast.error('Slide created but reordering failed');
-        }
-    };
-
-    const handleSubmit = async (data: FormValues) => {
-        try {
-            setIsUploading(true);
-
-            // Upload file to S3
-            const fileId = await UploadFileInS3(
-                data.videoFile,
-                (progress) => {
-                    // You can handle progress updates here if needed
-                    console.log(`Upload progress: ${progress}%`);
-                },
-                'your-user-id',
-                INSTITUTE_ID,
-                'ADMIN',
-                true
-            );
-
-            // Create the slide with the file ID in the URL field
-            const slideId = crypto.randomUUID();
-            const response: string = await addUpdateVideoSlide({
-                id: slideId,
-                title: data.videoName,
-                description: null,
-                image_file_id: null,
-                slide_order: 0, // Always insert at top
-                video_slide: {
-                    id: crypto.randomUUID(),
-                    description: '',
-                    url: fileId ?? null, // Store the file ID or fallback to null
-                    title: data.videoName,
-                    video_length_in_millis: 0,
-                    published_url: null,
-                    published_video_length_in_millis: 0,
-                    source_type: 'FILE_ID',
-                },
-                status: 'DRAFT',
-                new_slide: true,
-                notify: false,
-            });
-            console.log('Response:', response, 'source_type', 'FILE_ID');
-
-            if (response) {
-                // Reorder slides and set as active
-                await reorderSlidesAfterNewSlide(response);
-                openState?.(false);
-                toast.success('Video uploaded successfully!');
-            }
-
-            form.reset();
-            setSelectedFile(null);
-        } catch (error) {
-            console.error('Error uploading video:', error);
-            toast.error('Failed to upload video');
-        } finally {
-            setIsUploading(false);
-        }
-    };
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -153,6 +54,7 @@ export const AddVideoFileDialog = ({
         if (file) {
             setSelectedFile(file);
             form.setValue('videoFile', file);
+            form.setValue('videoName', file.name.replace(/\.[^/.]+$/, '')); // remove extension
         }
     };
 
@@ -162,11 +64,93 @@ export const AddVideoFileDialog = ({
         if (file) {
             setSelectedFile(file);
             form.setValue('videoFile', file);
+            form.setValue('videoName', file.name.replace(/\.[^/.]+$/, ''));
         }
     };
 
     const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
+    };
+
+    const reorderSlidesAfterNewSlide = async (newSlideId: string) => {
+        try {
+            const currentSlides = items || [];
+            const newSlide = currentSlides.find((slide) => slide.id === newSlideId);
+            if (!newSlide) return;
+
+            const reorderedSlides = [
+                { slide_id: newSlideId, slide_order: 0 },
+                ...currentSlides
+                    .filter((slide) => slide.id !== newSlideId)
+                    .map((slide, index) => ({
+                        slide_id: slide.id,
+                        slide_order: index + 1,
+                    })),
+            ];
+
+            await updateSlideOrder({
+                chapterId: chapterId || '',
+                slideOrderPayload: reorderedSlides,
+            });
+
+            setTimeout(() => {
+                setActiveItem(getSlideById(newSlideId));
+            }, 500);
+        } catch (error) {
+            toast.error('Slide created but reordering failed');
+        }
+    };
+
+    const handleSubmit = async (data: FormValues) => {
+        try {
+            setIsUploading(true);
+
+            const fileId = await UploadFileInS3(
+                data.videoFile,
+                (progress) => {
+                    console.log(`Upload progress: ${progress}%`);
+                },
+                'your-user-id',
+                INSTITUTE_ID,
+                'ADMIN',
+                true
+            );
+
+            const slideId = crypto.randomUUID();
+            const response = await addUpdateVideoSlide({
+                id: slideId,
+                title: data.videoName,
+                description: null,
+                image_file_id: null,
+                slide_order: 0,
+                video_slide: {
+                    id: crypto.randomUUID(),
+                    description: '',
+                    url: fileId ?? null,
+                    title: data.videoName,
+                    video_length_in_millis: 0,
+                    published_url: null,
+                    published_video_length_in_millis: 0,
+                    source_type: 'FILE_ID',
+                },
+                status: 'DRAFT',
+                new_slide: true,
+                notify: false,
+            });
+
+            if (response) {
+                await reorderSlidesAfterNewSlide(response);
+                openState?.(false);
+                toast.success('Video uploaded successfully!');
+            }
+
+            form.reset();
+            setSelectedFile(null);
+        } catch (error) {
+            toast.error('Failed to upload video');
+        } finally {
+            setIsUploading(false);
+        }
     };
 
     return (
@@ -216,33 +200,42 @@ export const AddVideoFileDialog = ({
                     />
                 </div>
 
+                {/* Hidden input for Zod validation */}
                 <FormField
                     control={form.control}
-                    name="videoName"
-                    render={({ field }) => (
-                        <FormItem>
+                    name="videoFile"
+                    render={() => (
+                        <FormItem className="hidden">
                             <FormControl>
-                                <MyInput
-                                    label="Video Title"
-                                    required={true}
-                                    input={field.value}
-                                    inputType="text"
-                                    inputPlaceholder="File name"
-                                    onChangeFunction={field.onChange}
-                                    className="w-full"
-                                />
+                                <input type="file" />
                             </FormControl>
                         </FormItem>
                     )}
                 />
+
                 <MyButton
                     type="submit"
                     buttonType="primary"
                     scale="large"
                     layoutVariant="default"
-                    disabled={isUploading}
+                    disabled={isUploading || !selectedFile}
+                    className={`
+            w-full transition-all duration-300 ease-in-out
+            ${
+                isUploading || !selectedFile
+                    ? 'cursor-not-allowed opacity-50'
+                    : 'shadow-lg hover:scale-105 hover:shadow-xl active:scale-95'
+            }
+          `}
                 >
-                    {isUploading ? 'Uploading...' : 'Upload Video'}
+                    {isUploading ? (
+                        <div className="flex items-center justify-center gap-2">
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                            Uploading...
+                        </div>
+                    ) : (
+                        'Upload Video'
+                    )}
                 </MyButton>
             </form>
         </Form>
