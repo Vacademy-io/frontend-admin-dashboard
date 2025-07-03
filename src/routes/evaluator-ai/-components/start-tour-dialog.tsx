@@ -1,14 +1,14 @@
-import { useState } from "react";
-import { MyButton } from "@/components/design-system/button";
-import { MyDialog } from "@/components/design-system/dialog";
-import { ArrowRight } from "phosphor-react";
-import useLocalStorage from "../-hooks/useLocalStorage";
-import { EvaluationAIKey } from "../-constants/intro-keys";
+import { useState } from 'react';
+import { MyButton } from '@/components/design-system/button';
+import { MyDialog } from '@/components/design-system/dialog';
+import { ArrowRight } from 'phosphor-react';
+import useLocalStorage from '../-hooks/useLocalStorage';
+import { EvaluationAIKey } from '../-constants/intro-keys';
 
 const StartTourDialog = ({ onStartTour }: { onStartTour: () => void }) => {
     const [firstVisit, setFirstVisit] = useLocalStorage<boolean>(
         EvaluationAIKey.dashboard,
-        false,
+        false
     ) as [boolean, (val: boolean) => void];
     const [isOpen, setIsOpen] = useState(!firstVisit);
     return (

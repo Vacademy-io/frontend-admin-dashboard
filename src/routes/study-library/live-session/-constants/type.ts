@@ -1,5 +1,5 @@
 export type WeekDay = {
-    label: string; // for display
+    label: 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
     value: 'Mon' | 'Tue' | 'Wed' | 'Thu' | 'Fri' | 'Sat' | 'Sun'; // lowercase values
 };
 

@@ -11,6 +11,7 @@ import { useAICenter } from '../../../-contexts/useAICenterContext';
 import AITasksList from '@/routes/ai-center/-components/AITasksList';
 import { UseFormReturn } from 'react-hook-form';
 import { SectionFormType } from '@/types/assessments/assessment-steps';
+import { getRandomTaskName } from '@/routes/ai-center/-utils/helper';
 
 const GenerateAiQuestionPaperComponent = ({
     form,
@@ -20,7 +21,6 @@ const GenerateAiQuestionPaperComponent = ({
     currentSectionIndex?: number;
 }) => {
     const queryClient = useQueryClient();
-    const [taskName, setTaskName] = useState('');
     const instituteId = getInstituteId();
     const { setLoader, key, setKey } = useAICenter();
     const { uploadFile } = useFileUpload();
@@ -85,7 +85,7 @@ const GenerateAiQuestionPaperComponent = ({
         generateAssessmentMutation.mutate({
             pdfId: pdfId || '',
             userPrompt: prompt || '',
-            taskName,
+            taskName: getRandomTaskName(),
             taskId,
         });
     };
@@ -106,8 +106,6 @@ const GenerateAiQuestionPaperComponent = ({
                 cardDescription="Upload PDF/DOCX/PPT"
                 inputFormat=".pdf,.doc,.docx,.ppt,.pptx,.html"
                 keyProp="question"
-                taskName={taskName}
-                setTaskName={setTaskName}
                 pollGenerateAssessment={pollGenerateAssessment}
                 sectionsForm={form}
                 currentSectionIndex={currentSectionIndex}

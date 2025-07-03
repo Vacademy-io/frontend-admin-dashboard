@@ -6,7 +6,7 @@ interface EvaluationData {
     response_id: string;
     section_wise_ans_extracted: SectionWiseAnsExtracted[];
     evaluation_result: EvaluationResult;
-    status: "EXTRACTING_ANSWER" | "EVALUATING" | "EVALUATION_COMPLETED";
+    status: 'EXTRACTING_ANSWER' | 'EVALUATING' | 'EVALUATION_COMPLETED';
 }
 
 export interface SectionWiseAnsExtracted {
@@ -63,7 +63,7 @@ export interface Student {
     assessment: string | null;
     assessmentId: string;
     responseId: string;
-    status: "EXTRACTING_ANSWER" | "EVALUATING" | "EVALUATION_COMPLETED" | "WAITING";
+    status: 'EXTRACTING_ANSWER' | 'EVALUATING' | 'EVALUATION_COMPLETED' | 'WAITING';
     marks: string | null;
     extracted: SectionWiseAnsExtracted[];
 }
@@ -73,23 +73,23 @@ export function parseEvaluationResults(data: ApiResponse): EvaluationData[] {
         const parsed = JSON.parse(data.response);
         return parsed.evaluation_data as EvaluationData[];
     } catch (error) {
-        console.error("Failed to parse evaluation results:", error);
+        console.error('Failed to parse evaluation results:', error);
         return [];
     }
 }
 
 export function transformEvaluationData(
     pasrsedData: EvaluationData[],
-    assessmentId: string,
+    assessmentId: string
 ): Student[] {
     if (!pasrsedData) return [];
 
     return pasrsedData.map((result, index) => {
         return {
             id: result.user_id || `temp-${index + 1}`,
-            name: result.name || "Unknown Student",
+            name: result.name || 'Unknown Student',
             enrollmentId: result.user_id || `enroll-${index + 1}`,
-            assessment: "Section 1",
+            assessment: 'Section 1',
             responseId: result.response_id,
             assessmentId: assessmentId,
             status: result.status,

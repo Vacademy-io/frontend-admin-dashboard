@@ -1,7 +1,7 @@
-import * as React from "react";
-import * as ProgressPrimitive from "@radix-ui/react-progress";
+import * as React from 'react';
+import * as ProgressPrimitive from '@radix-ui/react-progress';
 
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils';
 
 const Progress = React.forwardRef<
     React.ElementRef<typeof ProgressPrimitive.Root>,
@@ -9,7 +9,7 @@ const Progress = React.forwardRef<
 >(({ className, value, ...props }, ref) => (
     <ProgressPrimitive.Root
         ref={ref}
-        className={cn("relative h-4 w-full overflow-hidden rounded-full !bg-white", className)}
+        className={cn('relative h-4 w-full overflow-hidden rounded-full !bg-white', className)}
         {...props}
     >
         <ProgressPrimitive.Indicator
@@ -27,8 +27,8 @@ const ReverseProgressBar = React.forwardRef<
     <ProgressPrimitive.Root
         ref={ref}
         className={cn(
-            "bg-primary relative h-4 w-full overflow-hidden rounded-full border",
-            className,
+            'bg-primary relative h-4 w-full overflow-hidden rounded-full border',
+            className
         )}
         {...props}
     >

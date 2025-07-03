@@ -1,33 +1,34 @@
-import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-import { useState, useEffect } from "react";
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { useState, useEffect } from 'react';
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select";
-import { LevelType } from "@/schemas/student/student-list/institute-schema";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { MyButton } from "@/components/design-system/button";
-import { fetchSubjectWiseProgress } from "../../-services/utils";
+} from '@/components/ui/select';
+import { LevelType } from '@/schemas/student/student-list/institute-schema';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { MyButton } from '@/components/design-system/button';
+import { fetchSubjectWiseProgress } from '../../-services/utils';
 import {
     SubjectProgressResponse,
     SubjectOverviewBatchColumns,
     SUBJECT_OVERVIEW_BATCH_WIDTH,
     SubjectOverviewBatchColumnType,
-} from "../../-types/types";
-import { useMutation } from "@tanstack/react-query";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { MyTable } from "@/components/design-system/table";
-import { usePacageDetails } from "../../-store/usePacageDetails";
+} from '../../-types/types';
+import { useMutation } from '@tanstack/react-query';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { MyTable } from '@/components/design-system/table';
+import { usePacageDetails } from '../../-store/usePacageDetails';
+import { formatToTwoDecimalPlaces } from '../../-services/helper';
 
 const formSchema = z.object({
-    course: z.string().min(1, "Course is required"),
-    session: z.string().min(1, "Session is required"),
-    level: z.string().min(1, "Level is required"),
+    course: z.string().min(1, 'Course is required'),
+    session: z.string().min(1, 'Session is required'),
+    level: z.string().min(1, 'Level is required'),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -48,24 +49,24 @@ export default function ProgressReports() {
     const { register, handleSubmit, setValue, watch, trigger } = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            course: "",
-            session: "",
-            level: "",
+            course: '',
+            session: '',
+            level: '',
         },
     });
-    const selectedCourse = watch("course");
-    const selectedSession = watch("session");
-    const selectedLevel = watch("level");
+    const selectedCourse = watch('course');
+    const selectedSession = watch('session');
+    const selectedLevel = watch('level');
     const transformToSubjectOverview = (
-        data: SubjectProgressResponse,
+        data: SubjectProgressResponse
     ): SubjectOverviewBatchColumnType[] => {
         return data.flatMap((subject) => {
             return subject.modules.map((module, index) => ({
-                subject: index === 0 ? subject.subject_name : "", // Only first row gets the subject name
+                subject: index === 0 ? subject.subject_name : '', // Only first row gets the subject name
                 module: module.module_name,
                 module_id: module.module_id,
-                module_completed_by_batch: `${module.module_completion_percentage}%`,
-                average_time_spent_by_batch: `${module.avg_time_spent_minutes.toFixed(2)} min`,
+                module_completed_by_batch: `${formatToTwoDecimalPlaces(module.module_completion_percentage)}%`,
+                average_time_spent_by_batch: `${formatToTwoDecimalPlaces(module.avg_time_spent_minutes)} min`,
             }));
         });
     };
@@ -87,19 +88,19 @@ export default function ProgressReports() {
     useEffect(() => {
         if (selectedCourse) {
             setSessionList(getSessionFromPackage({ courseId: selectedCourse }));
-            setValue("session", "");
+            setValue('session', '');
         } else {
             setSessionList([]);
         }
     }, [selectedCourse]);
 
     useEffect(() => {
-        if (selectedSession === "") {
-            setValue("level", "");
+        if (selectedSession === '') {
+            setValue('level', '');
             setLevelList([]);
         } else if (selectedCourse && selectedSession) {
             setLevelList(
-                getLevelsFromPackage2({ courseId: selectedCourse, sessionId: selectedSession }),
+                getLevelsFromPackage2({ courseId: selectedCourse, sessionId: selectedSession })
             );
         }
     }, [selectedSession]);
@@ -113,26 +114,26 @@ export default function ProgressReports() {
                         courseId: data.course,
                         sessionId: data.session,
                         levelId: data.level,
-                    }) || "",
+                    }) || '',
             },
             {
                 onSuccess: (data) => {
                     setSubjectReportData(data);
                 },
                 onError: (error) => {
-                    console.error("Error:", error);
+                    console.error('Error:', error);
                 },
-            },
+            }
         );
-        setCourse(courseList.find((course) => (course.id = data.course))?.name || "");
-        setSession(sessionList.find((course) => (course.id = data.session))?.name || "");
-        setLevel(levelList.find((course) => (course.id = data.level))?.level_name || "");
+        setCourse(courseList.find((course) => (course.id = data.course))?.name || '');
+        setSession(sessionList.find((course) => (course.id = data.session))?.name || '');
+        setLevel(levelList.find((course) => (course.id = data.level))?.level_name || '');
         setPacageSessionId(
             getPackageSessionId({
                 courseId: data.course,
                 sessionId: data.session,
                 levelId: data.level,
-            }) || "",
+            }) || ''
         );
     };
 
@@ -144,9 +145,9 @@ export default function ProgressReports() {
                         <div>Course</div>
                         <Select
                             onValueChange={(value) => {
-                                setValue("course", value);
+                                setValue('course', value);
                             }}
-                            {...register("course")}
+                            {...register('course')}
                             defaultValue=""
                         >
                             <SelectTrigger className="h-[40px] w-[320px]">
@@ -166,9 +167,9 @@ export default function ProgressReports() {
                         <div>Session</div>
                         <Select
                             onValueChange={(value) => {
-                                setValue("session", value);
+                                setValue('session', value);
                             }}
-                            {...register("session")}
+                            {...register('session')}
                             defaultValue=""
                             value={selectedSession}
                             disabled={!sessionList.length}
@@ -190,13 +191,13 @@ export default function ProgressReports() {
                         <div>Level</div>
                         <Select
                             onValueChange={(value) => {
-                                setValue("level", value);
-                                trigger("level");
+                                setValue('level', value);
+                                trigger('level');
                             }}
                             defaultValue=""
                             value={selectedLevel}
                             disabled={!levelList.length}
-                            {...register("level")}
+                            {...register('level')}
                         >
                             <SelectTrigger className="h-[40px] w-[320px]">
                                 <SelectValue placeholder="Select a Level" />
@@ -219,7 +220,7 @@ export default function ProgressReports() {
                 </div>
                 {/* <FormMessage/> */}
             </form>
-            {isPending && <DashboardLoader height="10vh" />}
+            {isPending && <DashboardLoader />}
             {subjectReportData && !isPending && <div className="border"></div>}
             {subjectReportData && (
                 <div className="flex flex-col gap-10">

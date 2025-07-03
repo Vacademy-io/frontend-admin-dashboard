@@ -1,7 +1,7 @@
-import { MyButton } from "@/components/design-system/button";
-import { MyInput } from "@/components/design-system/input";
-import { Plus, X } from "@phosphor-icons/react";
-import { Dispatch, SetStateAction, useState } from "react";
+import { MyButton } from '@/components/design-system/button';
+import { MyInput } from '@/components/design-system/input';
+import { Plus, X } from '@phosphor-icons/react';
+import { Dispatch, SetStateAction, useState } from 'react';
 
 interface AddSessionInputProps {
     newSessionName: string;
@@ -48,8 +48,8 @@ export const AddSessionInput = ({
                             onClick={() => {
                                 if (newSessionName && newSessionStartDate) {
                                     handleAddSession(newSessionName, newSessionStartDate);
-                                    setNewSessionName("");
-                                    setNewSessionStartDate("");
+                                    setNewSessionName('');
+                                    setNewSessionStartDate('');
                                     setShowNewSessionInput(false);
                                 }
                             }}

@@ -116,6 +116,16 @@ export type AssignmentSlide = {
     end_date: string;
     re_attempt_count: number;
     comma_separated_media_ids: string;
+    questions: AssignmentQuestion[];
+};
+
+export type AssignmentQuestion = {
+    id: string;
+    text_data: RichTextData;
+    question_order: number;
+    status: string;
+    new_question: boolean;
+    question_type: string;
 };
 
 export type Slide = {

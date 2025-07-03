@@ -1,11 +1,11 @@
 export function parseHtmlToString(html: string) {
-    const doc = new DOMParser().parseFromString(html, "text/html");
-    return doc.body.textContent || doc.body.innerText || "";
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    return doc.body.textContent || doc.body.innerText || '';
 }
 
 export function extractImagesFromHtml(html: string) {
-    const doc = new DOMParser().parseFromString(html, "text/html");
-    const images = Array.from(doc.body.querySelectorAll("img")).map((img) => img);
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const images = Array.from(doc.body.querySelectorAll('img')).map((img) => img);
     return images;
 }
 
@@ -15,10 +15,10 @@ export function extractImagesFromHtml(html: string) {
  * @returns An array of content items (text or image)
  */
 export function processHtmlString(html: string | undefined) {
-    if (!html) return [{ type: "text", content: "" }];
+    if (!html) return [{ type: 'text', content: '' }];
 
     const parser = new DOMParser();
-    const doc = parser.parseFromString(html, "text/html");
+    const doc = parser.parseFromString(html, 'text/html');
     const result: { type: string; content: string }[] = [];
 
     // Helper function to process nodes recursively
@@ -26,26 +26,26 @@ export function processHtmlString(html: string | undefined) {
         if (node.nodeType === Node.TEXT_NODE) {
             const text = node.textContent?.trim();
             if (text) {
-                result.push({ type: "text", content: text });
+                result.push({ type: 'text', content: text });
             }
         } else if (node.nodeType === Node.ELEMENT_NODE) {
             const element = node as Element;
 
             // Handle images
-            if (element.tagName === "IMG") {
-                const src = element.getAttribute("src");
+            if (element.tagName === 'IMG') {
+                const src = element.getAttribute('src');
                 if (src) {
-                    result.push({ type: "image", content: src });
+                    result.push({ type: 'image', content: src });
                 }
             }
             // Handle KaTeX/math formula spans
             else if (
-                element.classList.contains("ql-formula") ||
-                element.querySelector(".katex, .katex-html, .katex-mathml")
+                element.classList.contains('ql-formula') ||
+                element.querySelector('.katex, .katex-html, .katex-mathml')
             ) {
                 // Preserve the entire formula HTML
                 result.push({
-                    type: "formula",
+                    type: 'formula',
                     content: element.outerHTML,
                 });
             }
@@ -67,8 +67,8 @@ export function processHtmlString(html: string | undefined) {
 }
 
 export function makeid() {
-    let text = "";
-    const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let text = '';
+    const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
     for (let i = 0; i < 5; i++)
         text += possible.charAt(Math.floor(Math.random() * possible.length));
@@ -83,13 +83,13 @@ const pendingRequests = new Map<number, (value: string) => void>();
 
 // Initialize the worker once
 function getImageWorker() {
-    if (!imageWorker && typeof Worker !== "undefined") {
+    if (!imageWorker && typeof Worker !== 'undefined') {
         try {
             imageWorker = new Worker(
-                new URL("../../../../worker/image-worker.ts", import.meta.url),
+                new URL('../../../../worker/image-worker.ts', import.meta.url),
                 {
-                    type: "module",
-                },
+                    type: 'module',
+                }
             );
             imageWorker.onmessage = (event) => {
                 const { id, base64Url } = event.data;
@@ -101,10 +101,10 @@ function getImageWorker() {
             };
 
             imageWorker.onerror = (error) => {
-                console.error("Worker error:", error);
+                console.error('Worker error:', error);
             };
         } catch (error) {
-            console.error("Failed to create image worker:", error);
+            console.error('Failed to create image worker:', error);
             imageWorker = null;
         }
     }
@@ -117,7 +117,7 @@ const base64Cache = new Map<string, string>();
 export async function getBase64FromUrl(url: string) {
     // Check cache first
     if (base64Cache.has(url)) {
-        console.log("return from cachec");
+        console.log('return from cachec');
         return base64Cache.get(url);
     }
 
@@ -131,7 +131,7 @@ export async function getBase64FromUrl(url: string) {
                 // Add a timeout to prevent hanging requests
                 const timeoutId = setTimeout(() => {
                     pendingRequests.delete(id);
-                    reject(new Error("Worker timeout"));
+                    reject(new Error('Worker timeout'));
                 }, 10000); // 10 seconds timeout
 
                 pendingRequests.set(id, (result) => {
@@ -152,21 +152,21 @@ export async function getBase64FromUrl(url: string) {
                 // Fall through to the fallback implementation
             }
         } catch (error) {
-            console.error("Worker communication failed:", error);
+            console.error('Worker communication failed:', error);
             // Fall through to the fallback implementation
         }
     }
 
     // Fallback implementation (original code)
     // Check if the URL is an SVG
-    if (url.toLowerCase().endsWith(".svg")) {
+    if (url.toLowerCase().endsWith('.svg')) {
         try {
             const requestOptions: RequestInit = {
-                method: "GET",
-                mode: "cors",
-                cache: "no-cache",
-                credentials: "same-origin",
-                redirect: "follow",
+                method: 'GET',
+                mode: 'cors',
+                cache: 'no-cache',
+                credentials: 'same-origin',
+                redirect: 'follow',
             };
 
             // Timeout to prevent hanging
@@ -200,16 +200,16 @@ export async function getBase64FromUrl(url: string) {
 
     // Existing non-SVG image handling
     const img = new Image();
-    img.crossOrigin = "anonymous";
+    img.crossOrigin = 'anonymous';
     img.src = `${url}?__v=${Date.now()}`;
     return new Promise((resolve) => {
         img.onload = function () {
-            const canvas = document.createElement("canvas");
+            const canvas = document.createElement('canvas');
             canvas.width = img.width;
             canvas.height = img.height;
-            const ctx = canvas.getContext("2d");
+            const ctx = canvas.getContext('2d');
             ctx?.drawImage(img, 0, 0);
-            const base64String = canvas.toDataURL("image/png");
+            const base64String = canvas.toDataURL('image/png');
             base64Cache.set(url, base64String);
             resolve(base64String);
         };

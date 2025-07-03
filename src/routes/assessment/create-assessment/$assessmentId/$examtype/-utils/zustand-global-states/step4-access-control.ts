@@ -1,4 +1,4 @@
-import { create } from "zustand";
+import { create } from 'zustand';
 
 // Define the type for roles and users
 interface Role {
@@ -29,7 +29,7 @@ interface AccessControlState {
 // ✅ Define the initial empty state (excluding functions)
 const initialState: Omit<
     AccessControlState,
-    "setAccessControlData" | "getAccessControlData" | "reset"
+    'setAccessControlData' | 'getAccessControlData' | 'reset'
 > = {
     status: undefined,
     assessment_creation_access: undefined,

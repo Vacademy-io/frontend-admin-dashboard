@@ -13,7 +13,7 @@ import { MyButton } from '@/components/design-system/button';
 import { useState } from 'react';
 import { useContentStore } from '../../-stores/chapter-sidebar-store';
 import { toast } from 'sonner';
-import { useSlides } from '../../-hooks/use-slides';
+import { useSlidesMutations } from '../../-hooks/use-slides';
 import { Route } from '../..';
 import { convertToQuestionSlideFormat } from '../../-helper/helper';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
@@ -38,7 +38,7 @@ const AddQuestionDialog = ({
     openState?: ((open: boolean) => void) | undefined;
 }) => {
     const { getPackageSessionId } = useInstituteDetailsStore();
-    const { setActiveItem, getSlideById } = useContentStore();
+    const { setActiveItem, getSlideById, items } = useContentStore();
     const form = useForm<UploadQuestionPaperFormType>({
         resolver: zodResolver(uploadQuestionPaperFormSchema),
         mode: 'onChange',
@@ -59,7 +59,7 @@ const AddQuestionDialog = ({
     });
 
     const { courseId, levelId, chapterId, moduleId, subjectId, sessionId } = Route.useSearch();
-    const { updateQuestionOrder } = useSlides(
+    const { updateQuestionOrder, updateSlideOrder } = useSlidesMutations(
         chapterId || '',
         moduleId || '',
         subjectId || '',
@@ -72,6 +72,42 @@ const AddQuestionDialog = ({
     const [title, setTitle] = useState('');
     const [localReattempts, setLocalReattempts] = useState('');
     const [activeQuestionDialog, setActiveQuestionDialog] = useState<QuestionTypeList | null>(null);
+
+    // Function to reorder slides after adding a new one at the top
+    const reorderSlidesAfterNewSlide = async (newSlideId: string) => {
+        try {
+            // Get current slides and reorder them
+            const currentSlides = items || [];
+            const newSlide = currentSlides.find((slide) => slide.id === newSlideId);
+
+            if (!newSlide) return;
+
+            // Create new order: new slide at top (order 0), then existing slides
+            const reorderedSlides = [
+                { slide_id: newSlideId, slide_order: 0 },
+                ...currentSlides
+                    .filter((slide) => slide.id !== newSlideId)
+                    .map((slide, index) => ({
+                        slide_id: slide.id,
+                        slide_order: index + 1,
+                    })),
+            ];
+
+            // Update slide order in backend
+            await updateSlideOrder({
+                chapterId: chapterId || '',
+                slideOrderPayload: reorderedSlides,
+            });
+
+            // Set the new slide as active
+            setTimeout(() => {
+                setActiveItem(getSlideById(newSlideId));
+            }, 500);
+        } catch (error) {
+            console.error('Error reordering slides:', error);
+            toast.error('Slide created but reordering failed');
+        }
+    };
 
     const QuestionType = ({ icon, text, type = QuestionTypeList.MCQS }: QuestionTypeProps) => {
         return (
@@ -152,7 +188,7 @@ const AddQuestionDialog = ({
                 image_file_id: '',
                 description: '',
                 status: 'DRAFT',
-                slide_order: 0,
+                slide_order: 0, // Always insert at top
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-expect-error
                 question_slide: convertToQuestionSlideFormat(responseData),
@@ -160,10 +196,14 @@ const AddQuestionDialog = ({
                 new_slide: true,
             });
 
-            toast.success('Question added successfully!');
+            if (response) {
+                // Reorder slides and set as active
+                await reorderSlidesAfterNewSlide(response);
+                openState?.(false);
+                toast.success('Question added successfully!');
+            }
+
             form.reset();
-            openState?.(false);
-            setActiveItem(getSlideById(response));
         } catch (error) {
             toast.error('Failed to add question');
         } finally {
@@ -313,7 +353,7 @@ const AddQuestionDialog = ({
                                     buttonType="primary"
                                     className="font-medium"
                                 >
-                                    <DashboardLoader size={18} color="#ffffff" />
+                                    <DashboardLoader />
                                 </MyButton>
                             ) : (
                                 <MyButton

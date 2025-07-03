@@ -54,29 +54,34 @@ const getSignedURLPublic = async (
     source_id: string
 ) => {
     const requestBody = {
-        file_name: file_name,
-        file_type: file_type,
-        source: source,
-        source_id: source_id,
+        file_name,
+        file_type,
+        source,
+        source_id,
     };
     const response = await axios.post(GET_SIGNED_URL_PUBLIC, requestBody);
     return response.data;
 };
 
+// ✅ Updated to accept signupData and pass it to the converter
 export const handleSignupInstitute = async ({
     searchParams,
     formData,
     formDataOrg,
+    signupData,
 }: {
     searchParams: Record<string, boolean>;
     formData: FormValuesStep1Signup;
     formDataOrg: z.infer<typeof organizationDetailsSignupStep1>;
+    signupData?: Record<string, any>;
 }) => {
-    const convertedData = convertedSignupData({ searchParams, formData, formDataOrg });
+    const convertedData = convertedSignupData({ searchParams, formData, formDataOrg, signupData });
+
     const response = await axios({
         method: 'POST',
         url: SIGNUP_URL,
         data: convertedData,
     });
+
     return response.data;
 };

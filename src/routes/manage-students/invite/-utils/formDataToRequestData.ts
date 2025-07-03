@@ -143,16 +143,16 @@ export const fetchBatchOptions = (data: InviteForm): string => {
 };
 
 export const fetchCustomFields = (data: InviteForm): CustomFieldType[] => {
-    console.log('data.custom_fields: ', data.custom_fields);
     const customFields: CustomFieldType[] =
         data.custom_fields?.map((field) => ({
-            id: field.id.toString(),
+            id: field._id || crypto.randomUUID(),
             field_name: field.name,
             field_type: field.type == 'dropdown' ? 'DROPDOWN' : 'TEXT',
             default_value: null,
             description: '',
             is_mandatory: field.isRequired,
             comma_separated_options: field.options?.map((option) => option.value).join(',') || '',
+            status: field.status,
         })) || [];
     return customFields;
 };
@@ -188,7 +188,9 @@ export default function formDataToRequestData(
             name: data.inviteLink,
             status: data.activeStatus ? 'ACTIVE' : 'INACTIVE',
             date_generated: null,
-            expiry_date: new Date(new Date().setDate(new Date().getDate() + 7)).toISOString(),
+            expiry_date: new Date(
+                new Date().setDate(new Date().getDate() + data.studentExpiryDays)
+            ).toISOString(),
             institute_id: INSTITUTE_ID || '',
             invite_code: null,
             batch_options_json: JSON.stringify(batchOptionJson),

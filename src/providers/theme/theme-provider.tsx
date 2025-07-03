@@ -4,6 +4,8 @@ import type React from 'react';
 import { createContext, useContext, useEffect, useState } from 'react';
 import convert from 'color-convert';
 import themeData from '@/constants/themes/theme.json';
+import { getInstituteId } from '@/constants/helper';
+import { HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
 
 type ThemeContextType = {
     primaryColor: string;
@@ -104,6 +106,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
     // Initialize theme from localStorage if available
     useEffect(() => {
+        const instituteId = getInstituteId();
+
+        // Check if institute ID matches and set holistic theme
+        if (instituteId === HOLISTIC_INSTITUTE_ID) {
+            setPrimaryColor('holistic');
+            return;
+        }
+
+        // Only check localStorage if not the specific institute
         const savedThemeCode = localStorage.getItem('theme-code');
         const savedCustomColor = localStorage.getItem('theme-custom-color');
 
@@ -112,7 +123,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         } else if (savedCustomColor) {
             setPrimaryColor(savedCustomColor);
         }
-    }, []);
+    }, [primaryColor]);
 
     return (
         <ThemeContext.Provider value={{ primaryColor, setPrimaryColor, getPrimaryColorCode }}>

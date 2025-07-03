@@ -1,16 +1,16 @@
-import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
-import { Sliders, X } from "phosphor-react";
-import "react-quill/dist/quill.snow.css";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { PopoverClose } from "@radix-ui/react-popover";
-import SelectField from "@/components/design-system/select-field";
-import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
-import { QUESTION_TYPES } from "@/constants/dummy-data";
-import { useEffect } from "react";
-import { SectionQuestionPaperFormProps } from "../../../-utils/assessment-question-paper";
-import { CollapsibleQuillEditor } from "@/routes/assessment/question-papers/-components/QuestionPaperTemplatesTypes/CollapsibleQuillEditor";
-import { formatStructure } from "@/routes/assessment/question-papers/-utils/helper";
+import { FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
+import { Sliders, X } from 'phosphor-react';
+import 'react-quill/dist/quill.snow.css';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { PopoverClose } from '@radix-ui/react-popover';
+import SelectField from '@/components/design-system/select-field';
+import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
+import { QUESTION_TYPES } from '@/constants/dummy-data';
+import { useEffect } from 'react';
+import { SectionQuestionPaperFormProps } from '../../../-utils/assessment-question-paper';
+import { CollapsibleQuillEditor } from '@/routes/assessment/question-papers/-components/QuestionPaperTemplatesTypes/CollapsibleQuillEditor';
+import { formatStructure } from '@/routes/assessment/question-papers/-utils/helper';
 
 export const LongAnswerQuestionPaperTemplateMainView = ({
     form,
@@ -19,17 +19,17 @@ export const LongAnswerQuestionPaperTemplateMainView = ({
     selectedSectionIndex,
 }: SectionQuestionPaperFormProps) => {
     const { control, getValues } = form;
-    const explanationsType = "Explanation:";
-    const questionsType = "";
+    const explanationsType = 'Explanation:';
+    const questionsType = '';
 
     useEffect(() => {
         const validAnswrs = form.getValues(
-            `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.validAnswers`,
+            `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.validAnswers`
         );
         if (!validAnswrs) {
             form.setValue(
                 `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.validAnswers`,
-                [0],
+                [0]
             );
         }
     }, []);
@@ -68,7 +68,7 @@ export const LongAnswerQuestionPaperTemplateMainView = ({
                 </Popover>
             </div>
             {getValues(
-                `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.parentRichTextContent`,
+                `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.parentRichTextContent`
             ) && (
                 <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
                     <span>Comprehension Text</span>

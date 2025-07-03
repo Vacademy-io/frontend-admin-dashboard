@@ -9,11 +9,11 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { GenerateCard } from '../../../-components/GenerateCard';
 import { useAICenter } from '../../../-contexts/useAICenterContext';
 import AITasksList from '@/routes/ai-center/-components/AITasksList';
+import { getRandomTaskName } from '@/routes/ai-center/-utils/helper';
 
 const SortTopicQuestions = () => {
     const [prompt, setPrompt] = useState('');
     const queryClient = useQueryClient();
-    const [taskName, setTaskName] = useState('');
     const instituteId = getInstituteId();
     const { setLoader, key, setKey } = useAICenter();
     const { uploadFile } = useFileUpload();
@@ -75,11 +75,14 @@ const SortTopicQuestions = () => {
 
     const handleGenerateQuestionsForAssessment = (
         pdfId = uploadedFilePDFId,
-        userPrompt = prompt,
-        name = taskName
+        userPrompt = prompt
     ) => {
         // Use pdfId in your mutation call
-        generateAssessmentMutation.mutate({ pdfId: pdfId, userPrompt: userPrompt, taskName: name });
+        generateAssessmentMutation.mutate({
+            pdfId: pdfId,
+            userPrompt: userPrompt,
+            taskName: getRandomTaskName(),
+        });
     };
 
     useEffect(() => {
@@ -104,8 +107,6 @@ const SortTopicQuestions = () => {
                 cardDescription="Upload PDF/DOCX/PPT"
                 inputFormat=".pdf,.doc,.docx,.ppt,.pptx,.html"
                 keyProp="sortTopicsPdf"
-                taskName={taskName}
-                setTaskName={setTaskName}
                 prompt={prompt}
                 setPrompt={setPrompt}
                 handleGenerateQuestionsForAssessment={handleGenerateQuestionsForAssessment}

@@ -6,5 +6,12 @@
         "*.css": "tailwindcss"
     },
     "typescript.tsdk": "node_modules/typescript/lib",
-    "files.autoSave": "afterDelay"
+    "files.autoSave": "afterDelay",
+    "workbench.editor.enablePreviewFromCodeNavigation": false,
+    "workbench.editor.enablePreview": false,
+    "workbench.colorCustomizations": {
+        "activityBar.background": "#041E86",
+        "titleBar.activeBackground": "#062ABC",
+        "titleBar.activeForeground": "#F8FAFF"
+    }
 }

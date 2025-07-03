@@ -21,7 +21,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Separator } from '../ui/separator';
 import { ActivityStatus } from './utils/types/chips-types';
 
-const ChipsWrapper = ({ children, className }: ChipsWrapperProps) => {
+export const ChipsWrapper = ({ children, className }: ChipsWrapperProps) => {
     return (
         <div
             className={cn(
@@ -216,6 +216,11 @@ export const StatusChips = ({
               : (status as ActivityStatus);
 
     const statusData = ActivityStatusData[normalizedStatus];
+
+    if (!statusData) {
+        return null;
+    }
+
     const StatusIcon = statusData.icon;
 
     return (

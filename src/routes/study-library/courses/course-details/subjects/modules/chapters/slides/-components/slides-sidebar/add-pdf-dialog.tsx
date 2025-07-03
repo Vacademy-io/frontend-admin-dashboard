@@ -1,4 +1,3 @@
-import { ImportFileImage } from '@/assets/svgs';
 import { MyButton } from '@/components/design-system/button';
 import { DialogFooter } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
@@ -8,7 +7,7 @@ import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
 import { FileUploadComponent } from '@/components/design-system/file-upload';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
-import { useSlides } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-hooks/use-slides';
+import { useSlidesMutations } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-hooks/use-slides';
 import { useRouter } from '@tanstack/react-router';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
@@ -16,6 +15,7 @@ import { useContentStore } from '@/routes/study-library/courses/course-details/s
 import { MyInput } from '@/components/design-system/input';
 import * as pdfjs from 'pdfjs-dist';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { CheckCircle, FilePdf } from 'phosphor-react';
 
 // Set the workerSrc for pdfjs
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
@@ -37,12 +37,13 @@ export const AddPdfDialog = ({
     const [error, setError] = useState<string | null>(null);
     const [uploadProgress, setUploadProgress] = useState(0);
     const [isUploading, setIsUploading] = useState(false);
+    const [pdfPageCount, setPdfPageCount] = useState<number | null>(null);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const route = useRouter();
     const { courseId, levelId, chapterId, moduleId, subjectId, sessionId } =
         route.state.location.search;
     const { getPackageSessionId } = useInstituteDetailsStore();
-    const { addUpdateDocumentSlide } = useSlides(
+    const { addUpdateDocumentSlide, updateSlideOrder } = useSlidesMutations(
         chapterId || '',
         moduleId || '',
         subjectId || '',
@@ -52,9 +53,7 @@ export const AddPdfDialog = ({
             sessionId: sessionId || '',
         }) || ''
     );
-    const { setActiveItem, getSlideById } = useContentStore();
-
-    const [fileUrl, setFileUrl] = useState<string | null>(null);
+    const { setActiveItem, getSlideById, items } = useContentStore();
 
     const form = useForm<FormData>({
         defaultValues: {
@@ -63,7 +62,43 @@ export const AddPdfDialog = ({
         },
     });
 
-    const { uploadFile, getPublicUrl } = useFileUpload();
+    const { uploadFile } = useFileUpload();
+
+    // Function to reorder slides after adding a new one at the top
+    const reorderSlidesAfterNewSlide = async (newSlideId: string) => {
+        try {
+            // Get current slides and reorder them
+            const currentSlides = items || [];
+            const newSlide = currentSlides.find((slide) => slide.id === newSlideId);
+
+            if (!newSlide) return;
+
+            // Create new order: new slide at top (order 0), then existing slides
+            const reorderedSlides = [
+                { slide_id: newSlideId, slide_order: 0 },
+                ...currentSlides
+                    .filter((slide) => slide.id !== newSlideId)
+                    .map((slide, index) => ({
+                        slide_id: slide.id,
+                        slide_order: index + 1,
+                    })),
+            ];
+
+            // Update slide order in backend
+            await updateSlideOrder({
+                chapterId: chapterId || '',
+                slideOrderPayload: reorderedSlides,
+            });
+
+            // Set the new slide as active
+            setTimeout(() => {
+                setActiveItem(getSlideById(newSlideId));
+            }, 500);
+        } catch (error) {
+            console.error('Error reordering slides:', error);
+            toast.error('Slide created but reordering failed');
+        }
+    };
 
     const handleFileSubmit = async (selectedFile: File) => {
         if (!selectedFile.type.includes('pdf')) {
@@ -75,15 +110,23 @@ export const AddPdfDialog = ({
         setFile(selectedFile);
         form.setValue('pdfFile', [selectedFile] as unknown as FileList);
 
+        // Auto-populate title from filename
+        const fileName = selectedFile.name.replace(/\.[^/.]+$/, ''); // Remove extension
+        form.setValue('pdfTitle', fileName);
+
         // Get PDF page count
         try {
             const arrayBuffer = await selectedFile.arrayBuffer();
             const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
             const numPages = pdf.numPages;
-            toast.success(`File selected successfully. Total pages: ${numPages}`);
+            setPdfPageCount(numPages);
+            toast.success(
+                `PDF selected successfully. ${numPages} page${numPages > 1 ? 's' : ''} detected.`
+            );
         } catch (err) {
             console.error('Error reading PDF:', err);
-            toast.success('File selected successfully');
+            setPdfPageCount(null);
+            toast.success('PDF selected successfully');
         }
     };
 
@@ -116,8 +159,6 @@ export const AddPdfDialog = ({
             });
 
             if (fileId) {
-                const url = await getPublicUrl(fileId);
-                setFileUrl(url);
                 setFile(null);
                 form.reset();
                 const slideId = crypto.randomUUID();
@@ -127,7 +168,7 @@ export const AddPdfDialog = ({
                     title: data.pdfTitle,
                     image_file_id: '',
                     description: null,
-                    slide_order: null,
+                    slide_order: 0, // Always insert at top
                     document_slide: {
                         id: crypto.randomUUID(),
                         type: 'PDF',
@@ -144,15 +185,15 @@ export const AddPdfDialog = ({
                 });
 
                 if (response) {
-                    setTimeout(() => {
-                        setActiveItem(getSlideById(response));
-                    }, 500);
+                    // Reorder slides and set as active
+                    await reorderSlidesAfterNewSlide(response);
                     openState?.(false);
                     toast.success('PDF uploaded successfully!');
                 }
             }
 
             clearInterval(progressInterval);
+            setUploadProgress(100);
             openState && openState(false);
         } catch (err) {
             const errorMessage =
@@ -168,61 +209,102 @@ export const AddPdfDialog = ({
         setFile(null);
         setError(null);
         setUploadProgress(0);
-        setFileUrl(null);
+        setPdfPageCount(null);
         form.reset();
     }, []);
 
     return (
-        // <DialogContent onCloseAutoFocus={handleClose}>
         <Form {...form}>
             <form onSubmit={form.handleSubmit(handleUpload)} className="flex flex-col gap-6 p-6">
-                <FileUploadComponent
-                    fileInputRef={fileInputRef}
-                    onFileSubmit={handleFileSubmit}
-                    control={form.control}
-                    name="pdfFile"
-                    acceptedFileTypes={['application/pdf']}
-                    isUploading={isUploading}
-                    error={error}
-                    className="flex flex-col items-center rounded-lg border-2 border-dashed border-primary-500 px-5 pb-6 focus:outline-none"
-                >
-                    <div className="pointer-events-none flex flex-col items-center gap-6">
-                        <ImportFileImage />
-                        <div className="text-center">
+                {/* Enhanced File Upload Area */}
+                <div className="space-y-4">
+                    <FileUploadComponent
+                        fileInputRef={fileInputRef}
+                        onFileSubmit={handleFileSubmit}
+                        control={form.control}
+                        name="pdfFile"
+                        acceptedFileTypes={['application/pdf']}
+                        isUploading={isUploading}
+                        error={error}
+                        className={`
+                            flex flex-col items-center rounded-xl border-2 border-dashed px-6 py-8
+                            transition-all duration-300 ease-in-out
+                            ${
+                                file
+                                    ? 'border-green-300 bg-green-50/50'
+                                    : 'border-primary-300 bg-primary-50/30 hover:border-primary-400 hover:bg-primary-50/50'
+                            }
+                            focus:outline-none focus:ring-2 focus:ring-primary-500/20
+                        `}
+                    >
+                        <div className="pointer-events-none flex flex-col items-center gap-4">
                             {file ? (
-                                <>
-                                    <p className="text-primary-600 text-wrap font-medium">
-                                        {file.name}
-                                    </p>
-                                    <p className="text-sm text-gray-500">
-                                        {(file.size / (1024 * 1024)).toFixed(2)} MB
-                                    </p>
-                                </>
+                                <div className="flex items-center gap-3 duration-500 animate-in fade-in slide-in-from-bottom-2">
+                                    <div className="rounded-full bg-green-100 p-3">
+                                        <CheckCircle className="h-6 w-6 text-green-600" />
+                                    </div>
+                                    <div>
+                                        <p className="text-wrap font-medium text-green-700">
+                                            {file.name}
+                                        </p>
+                                        <div className="flex items-center gap-2 text-sm text-green-600">
+                                            <span>{(file.size / (1024 * 1024)).toFixed(2)} MB</span>
+                                            {pdfPageCount && (
+                                                <>
+                                                    <span>•</span>
+                                                    <span>
+                                                        {pdfPageCount} page
+                                                        {pdfPageCount > 1 ? 's' : ''}
+                                                    </span>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
                             ) : (
-                                <div className="flex flex-col gap-2">
-                                    <p className="text-neutral-600">
-                                        Drag and drop a PDF file here, or click to select
-                                    </p>
+                                <div className="space-y-3 text-center">
+                                    <div className="mx-auto w-fit animate-pulse rounded-full bg-primary-100 p-4">
+                                        <FilePdf className="text-primary-600 h-8 w-8" />
+                                    </div>
+                                    <div>
+                                        <p className="mb-1 font-medium text-neutral-700">
+                                            Drop your PDF here, or click to browse
+                                        </p>
+                                        <p className="text-sm text-neutral-500">
+                                            Supports PDF files up to 10MB
+                                        </p>
+                                    </div>
                                 </div>
                             )}
                         </div>
-                    </div>
-                </FileUploadComponent>
+                    </FileUploadComponent>
 
-                {fileUrl && !isUploading && (
-                    <>
-                        <div>
-                            <Progress
-                                value={uploadProgress}
-                                className="h-2 bg-neutral-200 [&>div]:bg-primary-500"
-                            />
-                            <p className="mt-2 text-sm text-neutral-600">
-                                Uploading... {uploadProgress}%
+                    {/* Error Display */}
+                    {error && (
+                        <div className="rounded-lg border border-red-200 bg-red-50 p-3 duration-300 animate-in fade-in slide-in-from-top-2">
+                            <p className="flex items-center gap-2 text-sm text-red-600">
+                                <span className="h-2 w-2 rounded-full bg-red-500"></span>
+                                {error}
                             </p>
                         </div>
-                    </>
+                    )}
+                </div>
+
+                {/* Progress Display */}
+                {isUploading && (
+                    <div className="space-y-3 duration-300 animate-in fade-in slide-in-from-bottom-2">
+                        <Progress
+                            value={uploadProgress}
+                            className="[&>div]:to-primary-600 h-2 bg-neutral-200 [&>div]:bg-gradient-to-r [&>div]:from-primary-500"
+                        />
+                        <div className="flex items-center justify-between text-sm">
+                            <span className="text-neutral-600">Uploading PDF...</span>
+                            <span className="text-primary-600 font-medium">{uploadProgress}%</span>
+                        </div>
+                    </div>
                 )}
 
+                {/* Title Input */}
                 <FormField
                     control={form.control}
                     name="pdfTitle"
@@ -231,11 +313,11 @@ export const AddPdfDialog = ({
                             <FormControl>
                                 <MyInput
                                     {...field}
-                                    label="Title"
+                                    label="Document Title"
                                     required={true}
                                     input={field.value}
                                     inputType="text"
-                                    inputPlaceholder="File name"
+                                    inputPlaceholder="Enter a descriptive title"
                                     onChangeFunction={field.onChange}
                                     className="w-full"
                                 />
@@ -244,20 +326,42 @@ export const AddPdfDialog = ({
                     )}
                 />
 
-                <DialogFooter className="flex w-full items-center justify-center">
+                {/* Enhanced Footer */}
+                <DialogFooter className="flex w-full items-center justify-between border-t border-neutral-100 pt-4">
+                    <div className="text-xs text-neutral-500">
+                        {file && (
+                            <span className="flex items-center gap-1">
+                                <FilePdf className="h-3 w-3" />
+                                Ready to upload
+                            </span>
+                        )}
+                    </div>
                     <MyButton
                         buttonType="primary"
                         scale="large"
                         layoutVariant="default"
                         type="submit"
-                        disabled={!file || isUploading}
-                        className="mx-auto"
+                        disabled={!file || isUploading || !form.watch('pdfTitle')}
+                        className={`
+                            transition-all duration-300 ease-in-out
+                            ${
+                                !file || isUploading || !form.watch('pdfTitle')
+                                    ? 'cursor-not-allowed opacity-50'
+                                    : 'shadow-lg hover:scale-105 hover:shadow-xl active:scale-95'
+                            }
+                        `}
                     >
-                        {isUploading ? 'Uploading...' : 'Upload PDF'}
+                        {isUploading ? (
+                            <div className="flex items-center gap-2">
+                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                                Uploading...
+                            </div>
+                        ) : (
+                            'Upload PDF'
+                        )}
                     </MyButton>
                 </DialogFooter>
             </form>
         </Form>
-        // </DialogContent>
     );
 };

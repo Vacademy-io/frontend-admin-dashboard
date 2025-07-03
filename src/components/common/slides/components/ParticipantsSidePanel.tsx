@@ -1,163 +1,274 @@
 // components/ParticipantsSidePanel.tsx
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
-import { X, Users, Loader2, WifiOff } from 'lucide-react'; // Added Loader2, WifiOff
-import { ScrollArea } from '@/components/ui/scroll-area'; // For scrollable list
+import { X, Users, Loader2, WifiOff, Wifi, Clock, UserCheck, UserX } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
+// Participant interface should ideally be imported from a shared types file if used elsewhere,
+// or defined in the parent component (ActualPresentationDisplay) that fetches the data.
+// For this refactor, assuming ActualPresentationDisplay will pass typed participants.
 interface Participant {
     username: string;
-    user_id?: string | null; // Optional, if available
-    name?: string | null; // Optional
-    email?: string | null; // Optional
-    status: string; // e.g., 'ACTIVE', 'JOINED', 'LEFT'
-    joined_at?: string; // Optional
+    user_id?: string | null;
+    name?: string | null;
+    email?: string | null;
+    status: string;
+    joined_at?: string; // ISO string
+    last_active_at?: string; // ISO string, for INACTIVE participants
 }
 
 interface ParticipantsSidePanelProps {
-    sessionId: string;
+    sessionId: string; // Still needed for context, potentially for actions within the panel
     isOpen: boolean;
     onClose: () => void;
-    topOffset?: string; // e.g., '3.5rem' or '56px' to position below a fixed header
+    topOffset?: string;
+    participants: Participant[]; // Received from parent
+    sseStatus: 'connecting' | 'connected' | 'disconnected'; // Received from parent
 }
 
+// const ADMIN_SSE_URL_BASE_PARTICIPANTS = ...; // Removed, SSE logic is now in parent
+
+// Helper to format date/time (can remain if not duplicated elsewhere)
+const formatDateTime = (isoString?: string) => {
+    if (!isoString) return 'N/A';
+    try {
+        const date = new Date(isoString);
+        const today = new Date();
+        if (
+            date.getFullYear() === today.getFullYear() &&
+            date.getMonth() === today.getMonth() &&
+            date.getDate() === today.getDate()
+        ) {
+            return date.toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true,
+            });
+        }
+        return (
+            date.toLocaleDateString([], { month: 'short', day: 'numeric' }) +
+            ' ' +
+            date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
+        );
+    } catch (e) {
+        console.warn('Failed to format date:', isoString, e);
+        return 'Invalid Date';
+    }
+};
+
 export const ParticipantsSidePanel: React.FC<ParticipantsSidePanelProps> = ({
-    sessionId,
+    sessionId, // Retained for now, might be removed if no participant-specific actions need it directly
     isOpen,
     onClose,
     topOffset = '0px',
+    participants, // Now from props
+    sseStatus, // Now from props
 }) => {
-    const [participants, setParticipants] = useState<Participant[]>([]);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [isSseConnected, setIsSseConnected] = useState<boolean>(true); // Assume connected initially
-
-    useEffect(() => {
-        if (!isOpen || !sessionId) {
-            setParticipants([]); // Clear when closed or no session ID
-            setIsLoading(false);
-            return;
-        }
-
-        setIsLoading(true);
-        // console.log(`[ParticipantsPanel] Effect run. isOpen: ${isOpen}, sessionId: ${sessionId}`);
-        const sseUrl = `https://backend-stage.vacademy.io/community-service/engage/admin/${sessionId}`;
-        // console.log(`[ParticipantsPanel] SSE connecting to: ${sseUrl}`);
-        const eventSource = new EventSource(sseUrl, { withCredentials: true });
-
-        eventSource.onopen = () => {
-            // console.log("[ParticipantsPanel] SSE Connection Established.");
-            setIsLoading(false);
-            setIsSseConnected(true);
-            // toast.success("Participant updates active.", { duration: 1500 });
-        };
-
-        eventSource.addEventListener('participants', (event: MessageEvent) => {
-            // console.log("[ParticipantsPanel] Received 'participants' event data:", event.data);
-            try {
-                const parsedData = JSON.parse(event.data);
-                if (Array.isArray(parsedData)) {
-                    setParticipants(parsedData);
-                } else {
-                    // console.warn("[ParticipantsPanel] 'participants' data received is not an array:", parsedData);
-                }
-            } catch (error) {
-                console.error("[ParticipantsPanel] Error parsing 'participants' data:", error);
-            }
-            setIsLoading(false); // Stop loading indicator once data (or empty array) is received
-        });
-
-        eventSource.onerror = (error) => {
-            console.error('[ParticipantsPanel] SSE Error:', error);
-            setIsLoading(false);
-            setIsSseConnected(false);
-            // toast.error("Participant updates disconnected.", { duration: 2000 });
-            eventSource.close(); // Close on error to prevent excessive retries if server issue
-        };
-
-        return () => {
-            // console.log("[ParticipantsPanel] Closing SSE Connection.");
-            eventSource.close();
-            setParticipants([]); // Clear participants on close
-            setIsLoading(false);
-        };
-    }, [isOpen, sessionId]);
+    // Removed local state for participants and sseStatus
+    // Removed eventSourceRef
+    // Removed SSE connection useEffect
 
     if (!isOpen) return null;
 
+    const StatusIndicator = () => {
+        // Uses sseStatus from props
+        if (sseStatus === 'connecting') {
+            return (
+                <div className="flex items-center gap-1.5 bg-yellow-500/20 border border-yellow-400/30 rounded-lg px-2 py-1 backdrop-blur-sm">
+                    <Loader2 size={14} className="animate-spin text-yellow-400" />
+                    <span className="text-xs font-medium text-yellow-300 hidden lg:inline">Connecting</span>
+                </div>
+            );
+        }
+        if (sseStatus === 'connected') {
+            return (
+                <div className="flex items-center gap-1.5 bg-green-500/20 border border-green-400/30 rounded-lg px-2 py-1 backdrop-blur-sm">
+                    <Wifi size={14} className="text-green-400" />
+                    <span className="text-xs font-medium text-green-300 hidden lg:inline">Live</span>
+                </div>
+            );
+        }
+        return (
+            <div className="flex items-center gap-1.5 bg-red-500/20 border border-red-400/30 rounded-lg px-2 py-1 backdrop-blur-sm">
+                <WifiOff size={14} className="text-red-400" />
+                <span className="text-xs font-medium text-red-300 hidden lg:inline">Offline</span>
+            </div>
+        );
+    };
+
     return (
         <div
-            className="fixed right-0 top-0 z-[1000] flex h-screen w-72 flex-col border-l border-slate-200 bg-slate-50 shadow-xl transition-transform duration-300 ease-in-out sm:w-80"
-            // Adjust top based on topOffset to sit below action bar
+            className="fixed right-0 top-0 z-[1000] flex h-screen w-80 sm:w-96 flex-col border-l border-white/20 bg-black/20 backdrop-blur-xl shadow-2xl transition-transform duration-500 ease-out"
             style={{
                 transform: isOpen ? 'translateX(0)' : 'translateX(100%)',
-                paddingTop: topOffset, // Dynamic padding for content area
-                height: `calc(100vh - ${topOffset})`, // Adjust height if topOffset is applied to the main div
+                height: `calc(100vh - ${topOffset})`, // Adjusted to use topOffset correctly if header is outside
+                top: topOffset, // Position panel below any fixed header
             }}
         >
-            {/* Panel Header */}
-            <div className="flex shrink-0 items-center justify-between border-b border-slate-200 bg-white p-3">
-                <h3 className="text-md flex items-center font-semibold text-slate-700">
-                    <Users size={18} className="mr-2 text-orange-500" /> Participants (
-                    {participants.length})
+            {/* Enhanced background effects */}
+            <div className="absolute inset-0 bg-gradient-to-b from-slate-900/50 via-slate-800/30 to-slate-900/50 pointer-events-none" />
+            <div className="absolute top-1/4 right-0 w-32 h-64 bg-blue-500/5 blur-2xl" />
+            <div className="absolute bottom-1/4 left-0 w-32 h-64 bg-purple-500/5 blur-2xl" />
+            
+            {/* Enhanced header */}
+            <div className="relative z-10 flex shrink-0 items-center justify-between border-b border-white/10 bg-white/10 backdrop-blur-sm p-4 shadow-lg">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-lg">
+                        <Users size={20} className="text-white" />
+                    </div>
+                    <div>
+                        <h3 className="font-bold text-white text-lg flex items-center gap-2">
+                            Participants
+                            <span className="px-2 py-1 bg-white/20 backdrop-blur-sm rounded-lg text-sm font-mono">
+                    {sseStatus === 'connected' ? (
+                        participants.length
+                    ) : (
+                        <span className="text-xs font-normal italic">...</span>
+                    )}
+                    </span>
                 </h3>
+                        <div className="mt-1">
+                            <StatusIndicator />
+                        </div>
+                    </div>
+                </div>
                 <Button
                     variant="ghost"
                     size="icon"
                     onClick={onClose}
-                    className="rounded-full text-slate-500 hover:bg-slate-200 hover:text-slate-700"
+                    className="rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-all duration-200 hover:scale-105"
                 >
                     <X size={20} />
                 </Button>
             </div>
 
-            {/* Participant List */}
-            <ScrollArea className="grow">
-                {' '}
-                {/* Content area scrolls */}
-                <div className="space-y-2 p-3">
-                    {!isSseConnected && !isLoading && (
-                        <div className="flex flex-col items-center justify-center rounded-md border border-red-200 bg-red-50 p-4 text-center text-red-500">
-                            <WifiOff size={24} className="mb-2" />
-                            <p className="text-sm font-medium">Connection lost</p>
-                            <p className="text-xs">Participant updates are paused.</p>
+            <ScrollArea className="grow relative z-10">
+                <div className="space-y-3 p-4">
+                    {/* Enhanced loading state */}
+                    {sseStatus === 'connecting' && participants.length === 0 && (
+                        <div className="flex flex-col items-center justify-center py-12 text-center">
+                            <div className="relative mb-4">
+                                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
+                                    <Loader2 className="animate-spin text-white" size={24} />
+                                </div>
+                                <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-xl animate-pulse" />
+                            </div>
+                            <p className="text-white font-medium mb-1">Loading participants...</p>
+                            <p className="text-white/60 text-sm">Connecting to live session</p>
                         </div>
                     )}
-                    {isLoading ? (
-                        <div className="flex items-center justify-center py-10">
-                            <Loader2 className="size-6 animate-spin text-orange-500" />
-                        </div>
-                    ) : participants.length === 0 ? (
-                        <div className="px-4 py-10 text-center">
-                            <Users size={32} className="mx-auto mb-3 text-slate-400" />
-                            <p className="text-sm text-slate-500">
-                                No participants have joined yet.
+                    
+                    {/* Enhanced disconnected state */}
+                    {sseStatus === 'disconnected' && participants.length === 0 && (
+                        <div className="flex flex-col items-center justify-center rounded-2xl border border-red-400/30 bg-red-500/10 backdrop-blur-sm p-6 text-center shadow-lg">
+                            <div className="relative mb-4">
+                                <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-red-600 rounded-full flex items-center justify-center shadow-lg">
+                                    <WifiOff size={24} className="text-white" />
+                                </div>
+                                <div className="absolute inset-0 bg-red-500/20 rounded-full blur-xl" />
+                            </div>
+                            <p className="text-red-300 font-semibold mb-2">Connection Lost</p>
+                            <p className="text-red-200/80 text-sm leading-relaxed">
+                                Attempting to reconnect to participant updates...
                             </p>
                         </div>
-                    ) : (
+                    )}
+                    
+                    {/* Enhanced empty state */}
+                    {sseStatus === 'connected' && participants.length === 0 && (
+                        <div className="flex flex-col items-center justify-center py-12 text-center">
+                            <div className="relative mb-4">
+                                <div className="w-16 h-16 bg-gradient-to-r from-slate-600 to-slate-700 rounded-2xl flex items-center justify-center shadow-xl">
+                                    <Users size={32} className="text-white/80" />
+                                </div>
+                                <div className="absolute inset-0 bg-slate-500/10 rounded-2xl blur-xl" />
+                            </div>
+                            <p className="text-white font-medium mb-2">Waiting for participants</p>
+                            <p className="text-white/60 text-sm leading-relaxed max-w-xs">
+                                Share the session code for participants to join this live session.
+                            </p>
+                        </div>
+                    )}
+                    
+                    {/* Enhanced participant list */}
+                    {participants.length > 0 &&
                         participants.map((p, index) => (
                             <div
                                 key={p.user_id || p.username + index}
-                                className="flex items-center justify-between rounded-md border border-slate-200 bg-white p-2.5 text-sm transition-colors hover:bg-slate-50"
+                                className="group relative rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-4 shadow-lg transition-all duration-300 hover:bg-white/10 hover:border-white/20 hover:shadow-xl hover:scale-[1.02]"
                             >
-                                <span
-                                    className="truncate font-medium text-slate-700"
-                                    title={p.username}
-                                >
-                                    {p.name || p.username}
-                                </span>
-                                <span
-                                    className={`rounded-full px-2 py-0.5 text-xs font-semibold capitalize
-                                        ${
-                                            p.status?.toLowerCase() === 'active' ||
-                                            p.status?.toLowerCase() === 'joined'
-                                                ? 'border border-green-200 bg-green-100 text-green-700'
-                                                : 'border border-yellow-200 bg-yellow-100 text-yellow-700'
-                                        }`}
-                                >
-                                    {p.status ? p.status.toLowerCase() : 'Joined'}
-                                </span>
+                                {/* Subtle gradient overlay */}
+                                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-transparent to-purple-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                
+                                <div className="relative flex flex-col">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="flex items-center gap-3">
+                                            {/* Avatar */}
+                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white shadow-lg ${
+                                                p.status?.toLowerCase() === 'active' 
+                                                    ? 'bg-gradient-to-r from-green-500 to-green-600' 
+                                                    : 'bg-gradient-to-r from-slate-500 to-slate-600'
+                                            }`}>
+                                                {(p.name || p.username).charAt(0).toUpperCase()}
+                                            </div>
+                                            
+                                            <div className="flex-1 min-w-0">
+                                    <span
+                                                    className="block font-semibold text-white text-sm truncate"
+                                        title={p.username}
+                                    >
+                                        {p.name || p.username}
+                                    </span>
+                                                {p.email && (
+                                                    <span className="block text-white/60 text-xs truncate">
+                                                        {p.email}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                        
+                                        {/* Enhanced status badge */}
+                                        <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border backdrop-blur-sm ${
+                                                p.status?.toLowerCase() === 'active'
+                                                ? 'border-green-400/30 bg-green-500/20 text-green-300'
+                                                    : p.status?.toLowerCase() === 'inactive' ||
+                                                    p.status?.toLowerCase() === 'inactive_disconnected'
+                                                  ? 'border-yellow-400/30 bg-yellow-500/20 text-yellow-300'
+                                                  : 'border-slate-400/30 bg-slate-500/20 text-slate-300'
+                                        }`}>
+                                            {p.status?.toLowerCase() === 'active' ? (
+                                                <UserCheck size={12} />
+                                            ) : (
+                                                <UserX size={12} />
+                                            )}
+                                            <span className="capitalize tracking-wide">
+                                                {p.status ? p.status.toLowerCase().replace('_', ' ') : 'Unknown'}
+                                    </span>
+                                </div>
+                                    </div>
+                                    
+                                    {/* Enhanced time information */}
+                                {(p.status?.toLowerCase() === 'inactive' ||
+                                    p.status?.toLowerCase() === 'inactive_disconnected') &&
+                                    p.last_active_at && (
+                                            <div className="flex items-center gap-2 mt-2 px-3 py-2 bg-white/5 backdrop-blur-sm rounded-lg border border-white/10">
+                                                <Clock size={12} className="text-yellow-400 flex-shrink-0" />
+                                                <span className="text-white/70 text-xs">
+                                                    Last active: <span className="font-medium text-white/90">{formatDateTime(p.last_active_at)}</span>
+                                                </span>
+                                            </div>
+                                        )}
+                                    {p.status?.toLowerCase() === 'active' && p.joined_at && (
+                                        <div className="flex items-center gap-2 mt-2 px-3 py-2 bg-white/5 backdrop-blur-sm rounded-lg border border-white/10">
+                                            <UserCheck size={12} className="text-green-400 flex-shrink-0" />
+                                            <span className="text-white/70 text-xs">
+                                                Joined: <span className="font-medium text-white/90">{formatDateTime(p.joined_at)}</span>
+                                            </span>
+                                        </div>
+                                    )}
+                                    </div>
                             </div>
-                        ))
-                    )}
+                        ))}
                 </div>
             </ScrollArea>
         </div>

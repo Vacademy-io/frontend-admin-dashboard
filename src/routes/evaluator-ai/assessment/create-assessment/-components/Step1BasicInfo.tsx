@@ -1,18 +1,18 @@
-import { StepContentProps } from "@/types/assessments/step-content-props";
-import { FormProvider, useForm } from "react-hook-form";
-import { z } from "zod";
-import { BasicInfoFormSchema } from "../-utils/basic-info-form-schema";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { FormControl, FormField, FormItem } from "@/components/ui/form";
-import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
-import { Separator } from "@/components/ui/separator";
-import { MyInput } from "@/components/design-system/input";
-import { MyButton } from "@/components/design-system/button";
-import { useMutation } from "@tanstack/react-query";
-import { handlePostStep1Data } from "../-services/assessment-services";
-import { toast } from "sonner";
-import { useSavedAssessmentStore } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/global-states";
-import { AxiosError } from "axios";
+import { StepContentProps } from '@/types/assessments/step-content-props';
+import { FormProvider, useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { BasicInfoFormSchema } from '../-utils/basic-info-form-schema';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { FormControl, FormField, FormItem } from '@/components/ui/form';
+import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
+import { Separator } from '@/components/ui/separator';
+import { MyInput } from '@/components/design-system/input';
+import { MyButton } from '@/components/design-system/button';
+import { useMutation } from '@tanstack/react-query';
+import { handlePostStep1Data } from '../-services/assessment-services';
+import { toast } from 'sonner';
+import { useSavedAssessmentStore } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/global-states';
+import { AxiosError } from 'axios';
 
 const Step1BasicInfo: React.FC<StepContentProps> = ({
     currentStep,
@@ -23,29 +23,29 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
     const form = useForm<z.infer<typeof BasicInfoFormSchema>>({
         resolver: zodResolver(BasicInfoFormSchema),
         defaultValues: {
-            status: completedSteps[currentStep] ? "COMPLETE" : "INCOMPLETE",
+            status: completedSteps[currentStep] ? 'COMPLETE' : 'INCOMPLETE',
             testCreation: {
-                assessmentName: "",
-                subject: "",
-                assessmentInstructions: "",
+                assessmentName: '',
+                subject: '',
+                assessmentInstructions: '',
                 liveDateRange: {
-                    startDate: "2025-04-16T10:00:00Z",
-                    endDate: "2025-04-20T18:00:00Z", // Default end date
+                    startDate: '2025-04-16T10:00:00Z',
+                    endDate: '2025-04-20T18:00:00Z', // Default end date
                 },
             },
             assessmentPreview: {
                 checked: true, // Default to true, // Default preview time
-                previewTimeLimit: "1 min",
+                previewTimeLimit: '1 min',
             },
-            reattemptCount: "1",
-            submissionType: "",
-            durationDistribution: "",
-            evaluationType: "",
+            reattemptCount: '1',
+            submissionType: '',
+            durationDistribution: '',
+            evaluationType: '',
             switchSections: true, // Default to false
             raiseReattemptRequest: true, // Default to true
             raiseTimeIncreaseRequest: true, // Default to false
         },
-        mode: "onChange", // Validate as user types
+        mode: 'onChange', // Validate as user types
     });
 
     const { handleSubmit, control, getValues } = form;
@@ -57,9 +57,9 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
         onSuccess: async (data) => {
             console.log(data);
             setSavedAssessmentId(data);
-            setSavedAssessmentName(getValues("testCreation.assessmentName"));
-            toast.success("Step 1 data has been saved successfully!", {
-                className: "success-toast",
+            setSavedAssessmentName(getValues('testCreation.assessmentName'));
+            toast.success('Step 1 data has been saved successfully!', {
+                className: 'success-toast',
                 duration: 2000,
             });
             handleCompleteCurrentStep();
@@ -67,12 +67,12 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
         onError: (error: unknown) => {
             if (error instanceof AxiosError) {
                 toast.error(error.message, {
-                    className: "error-toast",
+                    className: 'error-toast',
                     duration: 2000,
                 });
             } else {
                 // Handle non-Axios errors if necessary
-                console.error("Unexpected error:", error);
+                console.error('Unexpected error:', error);
             }
         },
     });
@@ -82,7 +82,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
             ...data,
             testCreation: {
                 ...data.testCreation,
-                subject: "", //TODO: Add subject input field value here
+                subject: '', //TODO: Add subject input field value here
             },
         };
         handleSubmitStep1Form.mutate({
@@ -105,13 +105,13 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                         buttonType="primary"
                         onClick={handleSubmit(onSubmit, onInvalid)}
                     >
-                        {"Next"}
+                        {'Next'}
                     </MyButton>
                 </div>
                 <Separator className="my-4" />
                 <div className="flex flex-col gap-6">
                     <div className="flex w-full items-start justify-start gap-4">
-                        <div className="" id={"assessment-details"}>
+                        <div className="" id={'assessment-details'}>
                             <FormField
                                 control={control}
                                 name="testCreation.assessmentName"

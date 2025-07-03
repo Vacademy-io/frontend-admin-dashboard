@@ -6,7 +6,6 @@ import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore
 import { CaretLeft } from 'phosphor-react';
 import { useNavigate } from '@tanstack/react-router';
 import ScheduleStep1 from '../-components/scheduleStep1';
-
 export const Route = createFileRoute('/study-library/live-session/schedule/step1/')({
     component: RouteComponent,
 });

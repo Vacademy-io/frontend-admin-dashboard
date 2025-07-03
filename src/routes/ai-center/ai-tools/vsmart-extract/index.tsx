@@ -1,12 +1,12 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import GenerateAiQuestionPaperComponent from "./-components/GenerateQuestionPaper";
-import { AICenterProvider } from "@/routes/ai-center/-contexts/useAICenterContext";
-import { LayoutContainer } from "@/components/common/layout-container/layout-container";
-import { useEffect } from "react";
-import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
-import { CaretLeft } from "phosphor-react";
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import GenerateAiQuestionPaperComponent from './-components/GenerateQuestionPaper';
+import { AICenterProvider } from '@/routes/ai-center/-contexts/useAICenterContext';
+import { LayoutContainer } from '@/components/common/layout-container/layout-container';
+import { useEffect } from 'react';
+import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
+import { CaretLeft } from 'phosphor-react';
 
-export const Route = createFileRoute("/ai-center/ai-tools/vsmart-extract/")({
+export const Route = createFileRoute('/ai-center/ai-tools/vsmart-extract/')({
     component: RouteComponent,
 });
 
@@ -20,7 +20,7 @@ function RouteComponent() {
                 <CaretLeft
                     onClick={() => {
                         navigate({
-                            to: "/ai-center",
+                            to: '/ai-center',
                         });
                     }}
                     className="cursor-pointer"

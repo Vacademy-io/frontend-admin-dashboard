@@ -1,7 +1,7 @@
-import { ReactNode } from "react";
-import { MyDialog } from "@/components/design-system/dialog";
-import { MyButton } from "@/components/design-system/button";
-import { useSubmissionsBulkActionsDialogStorePending } from "../bulk-actions-zustand-store/useSubmissionsBulkActionsDialogStorePending";
+import { ReactNode } from 'react';
+import { MyDialog } from '@/components/design-system/dialog';
+import { MyButton } from '@/components/design-system/button';
+import { useSubmissionsBulkActionsDialogStorePending } from '../bulk-actions-zustand-store/useSubmissionsBulkActionsDialogStorePending';
 
 interface ProvideDialogDialogProps {
     trigger: ReactNode;
@@ -17,9 +17,9 @@ const SendReminderDialogContent = () => {
 
     const handleSubmit = () => {
         if (isBulkAction && bulkActionInfo?.selectedStudents) {
-            console.log("bulk actions");
+            console.log('bulk actions');
         } else if (selectedStudent) {
-            console.log("individual student");
+            console.log('individual student');
         }
         closeAllDialogs();
     };

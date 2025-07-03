@@ -1,5 +1,4 @@
-import React from 'react';
-import { OrganizationOnboardingProps, Route } from '..';
+import React, { useEffect, useState } from 'react';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -42,31 +41,76 @@ export const organizationDetailsSignupStep1 = z
         message: 'Passwords do not match',
         path: ['confirmPassword'],
     });
+
 type FormValues = z.infer<typeof organizationDetailsSignupStep1>;
 
-const Step3AddOrgDetails: React.FC<OrganizationOnboardingProps> = ({
-    currentStep,
-    handleCompleteCurrentStep,
-    completedSteps,
-}) => {
+interface SignupData {
+    full_name: string;
+    user_name: string;
+    email: string;
+    password: string;
+    user_roles: string[];
+    subject_id?: string;
+    vendor_id?: string;
+    [key: string]: any;
+}
+
+export function Step3AddOrgDetails() {
     const queryClient = useQueryClient();
-    const searchParams = Route.useSearch();
+    const navigate = useNavigate();
     const { formDataAddOrg, setFormDataAddOrg, resetAddOrgForm } = useAddOrgStore();
     const { formData, resetForm } = useOrganizationStore();
-    console.log(currentStep, completedSteps);
-    const navigate = useNavigate();
+    const [signupData, setSignupData] = useState<SignupData | null>(null);
+
     const form = useForm<FormValues>({
         resolver: zodResolver(organizationDetailsSignupStep1),
         defaultValues: {
-            name: formDataAddOrg.name || '',
-            username: formDataAddOrg.username || '',
-            email: formDataAddOrg.email || '',
-            password: formDataAddOrg.password || '',
-            confirmPassword: formDataAddOrg.confirmPassword || '',
+            name: '',
+            username: '',
+            email: '',
+            password: '',
+            confirmPassword: '',
             roleType: ['ADMIN'],
         },
         mode: 'onChange',
     });
+
+    useEffect(() => {
+        const url = new URL(window.location.href);
+        const signupDataParam = url.searchParams.get('signupData');
+
+        if (signupDataParam) {
+            try {
+                const decoded = decodeURIComponent(signupDataParam);
+                const parsed = JSON.parse(atob(decoded));
+
+                const enrichedSignupData: SignupData = {
+                    full_name: parsed.name || '',
+                    user_name: parsed.name?.toLowerCase().replace(/\s/g, '') || '',
+                    email: parsed.email || '',
+                    password: parsed.password || '',
+                    user_roles: ['ADMIN'],
+                    subject_id: parsed.sub ?? '',
+                    vendor_id: parsed.provider ?? '',
+                    ...parsed,
+                };
+
+                setSignupData(enrichedSignupData);
+
+                form.reset({
+                    name: enrichedSignupData.full_name,
+                    username: enrichedSignupData.user_name,
+                    email: enrichedSignupData.email,
+                    password: enrichedSignupData.password,
+                    confirmPassword: enrichedSignupData.password,
+                    roleType: enrichedSignupData.user_roles,
+                });
+            } catch (e) {
+                console.error('Failed to decode signupData:', e);
+            }
+        }
+    }, []);
+
     const { getValues } = form;
     const isValid =
         !!getValues('name') &&
@@ -80,23 +124,31 @@ const Step3AddOrgDetails: React.FC<OrganizationOnboardingProps> = ({
             searchParams,
             formData,
             formDataOrg,
+            signupData,
         }: {
             searchParams: Record<string, boolean>;
             formData: FormValuesStep1Signup;
             formDataOrg: z.infer<typeof organizationDetailsSignupStep1>;
+            signupData?: Record<string, any>;
         }) => {
-            return handleSignupInstitute({ searchParams, formData, formDataOrg });
+            return handleSignupInstitute({
+                searchParams,
+                formData,
+                formDataOrg,
+                signupData: {
+                    ...signupData,
+                    subject_id: signupData?.subject_id ?? '',
+                    vendor_id: signupData?.vendor_id ?? '',
+                },
+            });
         },
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
-            handleCompleteCurrentStep();
             setAuthorizationCookie(TokenKey.accessToken, data.accessToken);
             setAuthorizationCookie(TokenKey.refreshToken, data.refreshToken);
             resetForm();
             resetAddOrgForm();
-            navigate({
-                to: '/dashboard',
-            });
+            navigate({ to: '/dashboard' });
         },
         onError: (error: unknown) => {
             if (error instanceof AxiosError) {
@@ -112,10 +164,16 @@ const Step3AddOrgDetails: React.FC<OrganizationOnboardingProps> = ({
 
     function onSubmit(values: FormValues) {
         setFormDataAddOrg({ ...values });
+
+        const url = new URL(window.location.href);
         handleSignupInstituteMutation.mutate({
-            searchParams,
+            searchParams: {
+                assess: url.searchParams.get('assess') === 'true',
+                lms: url.searchParams.get('lms') === 'true',
+            },
             formData,
             formDataOrg: values,
+            signupData: signupData || undefined,
         });
     }
 
@@ -124,6 +182,8 @@ const Step3AddOrgDetails: React.FC<OrganizationOnboardingProps> = ({
             <form>
                 <div className="my-6 flex flex-col items-center justify-center gap-8">
                     <h1 className="text-[1.6rem]">Create your profile in the organization</h1>
+
+                    {/* Full Name */}
                     <FormField
                         control={form.control}
                         name="name"
@@ -135,7 +195,7 @@ const Step3AddOrgDetails: React.FC<OrganizationOnboardingProps> = ({
                                         inputPlaceholder="Full name (First and Last)"
                                         input={value}
                                         onChangeFunction={onChange}
-                                        required={true}
+                                        required
                                         error={form.formState.errors.name?.message}
                                         size="large"
                                         label="Full Name"
@@ -146,6 +206,8 @@ const Step3AddOrgDetails: React.FC<OrganizationOnboardingProps> = ({
                             </FormItem>
                         )}
                     />
+
+                    {/* Username */}
                     <FormField
                         control={form.control}
                         name="username"
@@ -157,7 +219,7 @@ const Step3AddOrgDetails: React.FC<OrganizationOnboardingProps> = ({
                                         inputPlaceholder="Enter Username"
                                         input={value}
                                         onChangeFunction={onChange}
-                                        required={true}
+                                        required
                                         error={form.formState.errors.username?.message}
                                         size="large"
                                         label="Username"
@@ -168,6 +230,8 @@ const Step3AddOrgDetails: React.FC<OrganizationOnboardingProps> = ({
                             </FormItem>
                         )}
                     />
+
+                    {/* Email */}
                     <FormField
                         control={form.control}
                         name="email"
@@ -179,17 +243,20 @@ const Step3AddOrgDetails: React.FC<OrganizationOnboardingProps> = ({
                                         inputPlaceholder="Enter Email"
                                         input={value}
                                         onChangeFunction={onChange}
-                                        required={true}
+                                        required
                                         error={form.formState.errors.email?.message}
                                         size="large"
                                         label="Email"
                                         {...field}
                                         className="w-96"
+                                        disabled={!!signupData?.email}
                                     />
                                 </FormControl>
                             </FormItem>
                         )}
                     />
+
+                    {/* Password */}
                     <FormField
                         control={form.control}
                         name="password"
@@ -201,7 +268,7 @@ const Step3AddOrgDetails: React.FC<OrganizationOnboardingProps> = ({
                                         inputPlaceholder="******"
                                         input={value}
                                         onChangeFunction={onChange}
-                                        required={true}
+                                        required
                                         error={form.formState.errors.password?.message}
                                         size="large"
                                         label="Password"
@@ -212,6 +279,8 @@ const Step3AddOrgDetails: React.FC<OrganizationOnboardingProps> = ({
                             </FormItem>
                         )}
                     />
+
+                    {/* Confirm Password */}
                     <FormField
                         control={form.control}
                         name="confirmPassword"
@@ -223,7 +292,7 @@ const Step3AddOrgDetails: React.FC<OrganizationOnboardingProps> = ({
                                         inputPlaceholder="******"
                                         input={value}
                                         onChangeFunction={onChange}
-                                        required={true}
+                                        required
                                         error={form.formState.errors.confirmPassword?.message}
                                         size="large"
                                         label="Confirm Password"
@@ -234,6 +303,8 @@ const Step3AddOrgDetails: React.FC<OrganizationOnboardingProps> = ({
                             </FormItem>
                         )}
                     />
+
+                    {/* Submit Button */}
                     <MyButton
                         type="button"
                         scale="large"
@@ -249,6 +320,6 @@ const Step3AddOrgDetails: React.FC<OrganizationOnboardingProps> = ({
             </form>
         </FormProvider>
     );
-};
+}
 
 export default Step3AddOrgDetails;

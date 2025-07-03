@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 import {
     Table,
     TableBody,
@@ -8,27 +8,27 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table";
-import { useRouter } from "@tanstack/react-router";
-import { ArrowUpDown, ExternalLink, FileText, Loader2 } from "lucide-react";
-import { toast } from "sonner";
-import { GET_PUBLIC_URL } from "@/constants/urls";
-import { SectionWiseAnsExtracted, Student } from "../-utils/utils";
-import StatusIndicator from "./status-indicator";
-import { isNullOrEmptyOrUndefined } from "@/lib/utils";
-import { MyDialog } from "@/components/design-system/dialog";
+} from '@/components/ui/table';
+import { useRouter } from '@tanstack/react-router';
+import { ArrowUpDown, ExternalLink, FileText, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { GET_PUBLIC_URL } from '@/constants/urls';
+import { SectionWiseAnsExtracted, Student } from '../-utils/utils';
+import StatusIndicator from './status-indicator';
+import { isNullOrEmptyOrUndefined } from '@/lib/utils';
+import { MyDialog } from '@/components/design-system/dialog';
 import {
     Accordion,
     AccordionContent,
     AccordionItem,
     AccordionTrigger,
-} from "@/components/ui/accordion";
-import axios from "axios";
-import { MyButton } from "@/components/design-system/button";
+} from '@/components/ui/accordion';
+import axios from 'axios';
+import { MyButton } from '@/components/design-system/button';
 
 // Default token for authorization
 const DEFAULT_ACCESS_TOKEN =
-    "eyJhbGciOiJIUzI1NiJ9.eyJmdWxsbmFtZSI6IkRvZSBXYWxrZXIiLCJ1c2VyIjoiOTE3YjI1YWMtZjZhZi00ZjM5LTkwZGYtYmQxZDIxZTQyNTkzIiwiZW1haWwiOiJkb2VAZXhhbXBsZS5jb20iLCJpc19yb290X3VzZXIiOmZhbHNlLCJhdXRob3JpdGllcyI6eyI5ZDNmNGNjYi1hN2Y2LTQyM2YtYmM0Zi03NWM2ZDYxNzYzNDYiOnsicGVybWlzc2lvbnMiOltdLCJyb2xlcyI6WyJTVFVERU5UIl19fSwidXNlcm5hbWUiOiJkb2V3NjA2OSIsInN1YiI6ImRvZXc2MDY5IiwiaWF0IjoxNzQ1MzI2ODI2LCJleHAiOjE3NDU5MzE2MjZ9._O0T3Q0kxXLE9JnwC79IQCpwl-sAdFqR8nHa3MTpE5U";
+    'eyJhbGciOiJIUzI1NiJ9.eyJmdWxsbmFtZSI6IkRvZSBXYWxrZXIiLCJ1c2VyIjoiOTE3YjI1YWMtZjZhZi00ZjM5LTkwZGYtYmQxZDIxZTQyNTkzIiwiZW1haWwiOiJkb2VAZXhhbXBsZS5jb20iLCJpc19yb290X3VzZXIiOmZhbHNlLCJhdXRob3JpdGllcyI6eyI5ZDNmNGNjYi1hN2Y2LTQyM2YtYmM0Zi03NWM2ZDYxNzYzNDYiOnsicGVybWlzc2lvbnMiOltdLCJyb2xlcyI6WyJTVFVERU5UIl19fSwidXNlcm5hbWUiOiJkb2V3NjA2OSIsInN1YiI6ImRvZXc2MDY5IiwiaWF0IjoxNzQ1MzI2ODI2LCJleHAiOjE3NDU5MzE2MjZ9._O0T3Q0kxXLE9JnwC79IQCpwl-sAdFqR8nHa3MTpE5U';
 
 // Helper function to get public URL
 const getPublicUrl = async (fileId: string | undefined | null): Promise<string> => {
@@ -65,14 +65,14 @@ export default function StudentEvaluationTable({
 
     // Load enrolled students from localStorage
     useEffect(() => {
-        const savedStudents = JSON.parse(localStorage.getItem("students") || "[]");
+        const savedStudents = JSON.parse(localStorage.getItem('students') || '[]');
         setEnrolledStudents(savedStudents);
     }, []);
 
     // Find fileId by matching enrollmentId with enrollId
     const findFileIdByEnrollmentId = (enrollmentId: string): string | undefined => {
         const matchedStudent = enrolledStudents.find(
-            (student) => student.enrollId === enrollmentId,
+            (student) => student.enrollId === enrollmentId
         );
         return matchedStudent?.fileId;
     };
@@ -82,7 +82,7 @@ export default function StudentEvaluationTable({
         const fileId = findFileIdByEnrollmentId(enrollmentId);
 
         if (!fileId) {
-            toast.error("No PDF submission found for this student");
+            toast.error('No PDF submission found for this student');
             return;
         }
 
@@ -92,13 +92,13 @@ export default function StudentEvaluationTable({
 
             if (url) {
                 // Open in new tab
-                window.open(url, "_blank");
+                window.open(url, '_blank');
             } else {
-                toast.error("Could not retrieve PDF URL");
+                toast.error('Could not retrieve PDF URL');
             }
         } catch (error) {
-            console.error("Error fetching PDF URL:", error);
-            toast.error("Failed to retrieve PDF");
+            console.error('Error fetching PDF URL:', error);
+            toast.error('Failed to retrieve PDF');
         } finally {
             setLoadingPdf((prev) => ({ ...prev, [enrollmentId]: false }));
         }
@@ -164,7 +164,7 @@ export default function StudentEvaluationTable({
                                         )}
                                     </TableCell>
                                     <TableCell className="">
-                                        {student.status === "EVALUATION_COMPLETED" &&
+                                        {student.status === 'EVALUATION_COMPLETED' &&
                                         !isProcessing ? (
                                             <div
                                                 onClick={() => {
@@ -183,7 +183,7 @@ export default function StudentEvaluationTable({
                                     </TableCell>
                                     <TableCell className="flex items-center gap-x-2">
                                         <StatusIndicator status={student.status} />
-                                        {student.status === "EVALUATING" &&
+                                        {student.status === 'EVALUATING' &&
                                             !isNullOrEmptyOrUndefined(student.extracted) && (
                                                 <ExternalLink
                                                     className="cursor-pointer"
@@ -244,8 +244,8 @@ export default function StudentEvaluationTable({
                                                             __html:
                                                                 question.question_text.replace(
                                                                     /^\[\[(.*)\]\]$/s,
-                                                                    "$1",
-                                                                ) ?? "",
+                                                                    '$1'
+                                                                ) ?? '',
                                                         }}
                                                     />
                                                 </div>
@@ -257,8 +257,8 @@ export default function StudentEvaluationTable({
                                                     __html:
                                                         question.answer_html?.replace(
                                                             /^\[\[(.*)\]\]$/s,
-                                                            "$1",
-                                                        ) ?? "",
+                                                            '$1'
+                                                        ) ?? '',
                                                 }}
                                             />
                                         </AccordionContent>

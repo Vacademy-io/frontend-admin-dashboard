@@ -1,6 +1,6 @@
 // 1. Create a new file called save-draft-context.tsx
-import { createContext, useContext } from "react";
-import { Slide } from "@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-hooks/use-slides";
+import { createContext, useContext } from 'react';
+import { Slide } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-hooks/use-slides';
 
 interface SaveDraftContextType {
     getCurrentEditorHTMLContent: () => string;
@@ -8,7 +8,7 @@ interface SaveDraftContextType {
 }
 
 const SaveDraftContext = createContext<SaveDraftContextType>({
-    getCurrentEditorHTMLContent: () => "",
+    getCurrentEditorHTMLContent: () => '',
     saveDraft: async () => {},
 });
 

@@ -1,6 +1,8 @@
-import { MyButton } from "@/components/design-system/button";
-import { DialogFooter } from "@/components/ui/dialog";
-import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
+import { MyButton } from '@/components/design-system/button';
+import { DialogFooter } from '@/components/ui/dialog';
+import { useFormStore } from '@/stores/students/enroll-students-manually/enroll-manually-form-store';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
 
 export const FormSubmitButtons = ({
     stepNumber,
@@ -11,12 +13,16 @@ export const FormSubmitButtons = ({
     finishButtonDisable?: boolean;
     onNext?: () => void;
 }) => {
-    const { prevStep, skipStep } = useFormStore();
+    const { prevStep, skipStep, setStep } = useFormStore();
+    const { showForInstitutes } = useInstituteDetailsStore();
 
     // Define the handleFirstButton function
     const handleFirstButton = () => {
         if (stepNumber === 1) {
             skipStep();
+        } else if (stepNumber === 5 && showForInstitutes([HOLISTIC_INSTITUTE_ID])) {
+            // For holistic institute, go directly to step 3 when clicking back from step 5
+            setStep(3);
         } else {
             prevStep();
         }

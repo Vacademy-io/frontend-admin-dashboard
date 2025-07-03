@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState, useMemo } from "react";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"; // Assuming you have a Tabs component
+import { useState, useMemo } from 'react';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'; // Assuming you have a Tabs component
 import {
     Table,
     TableBody,
@@ -9,14 +9,14 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
-import { MyDialog } from "@/components/design-system/dialog";
-import { useTimerStore } from "@/stores/evaluation/timer-store";
-import { useMarksStore } from "@/stores/evaluation/marks-store";
-import { ArrowSquareOut } from "phosphor-react";
+} from '@/components/ui/table';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
+import { MyDialog } from '@/components/design-system/dialog';
+import { useTimerStore } from '@/stores/evaluation/timer-store';
+import { useMarksStore } from '@/stores/evaluation/marks-store';
+import { ArrowSquareOut } from 'phosphor-react';
 
 interface QuestionData {
     question_id: string;
@@ -35,15 +35,15 @@ interface EvaluationProps {
 }
 
 export default function Evaluation({ questionData, totalPages, pagesVisited }: EvaluationProps) {
-    const [activeSection, setActiveSection] = useState<string>(Object.keys(questionData)[0] || "");
+    const [activeSection, setActiveSection] = useState<string>(Object.keys(questionData)[0] || '');
     const { elapsedTime } = useTimerStore();
     const { addOrUpdateMark, marksData } = useMarksStore();
-    const [previewQuestionContent, setPreviewQuestionContent] = useState<string>("");
+    const [previewQuestionContent, setPreviewQuestionContent] = useState<string>('');
     const pageData = {
         totalPages,
         pagesVisited: new Set(pagesVisited),
         pagesNotVisited: Array.from({ length: totalPages }, (_, i) => i + 1).filter(
-            (page) => !pagesVisited.includes(page),
+            (page) => !pagesVisited.includes(page)
         ),
     };
     const sections = useMemo(() => {
@@ -52,13 +52,13 @@ export default function Evaluation({ questionData, totalPages, pagesVisited }: E
             questions: questions.map((question) => {
                 const existingMark = marksData.find(
                     (mark) =>
-                        mark.section_id === sectionId && mark.question_id === question.question_id,
+                        mark.section_id === sectionId && mark.question_id === question.question_id
                 );
 
                 return {
                     questionId: question.question_id,
                     questionNo: question.question_order,
-                    scoredMarks: existingMark?.marks.toString() || "0",
+                    scoredMarks: existingMark?.marks.toString() || '0',
                     maxMarks: JSON.parse(question.marking_json).data.totalMark,
                     content: question.question.content,
                 };
@@ -71,14 +71,14 @@ export default function Evaluation({ questionData, totalPages, pagesVisited }: E
         if (section) {
             const question = section.questions.find((q) => q.questionNo === questionNo);
             if (question && parseFloat(value) > question.maxMarks) {
-                window.alert("Scored marks cannot exceed maximum marks.");
+                window.alert('Scored marks cannot exceed maximum marks.');
                 return;
             }
             // Update the store with the new marks
             addOrUpdateMark({
                 section_id: sectionId,
-                question_id: question?.questionId || "",
-                status: "evaluated", // You can adjust this status as needed
+                question_id: question?.questionId || '',
+                status: 'evaluated', // You can adjust this status as needed
                 marks: parseFloat(value) || 0,
             });
         }
@@ -142,7 +142,7 @@ export default function Evaluation({ questionData, totalPages, pagesVisited }: E
                                                         handleScoreChange(
                                                             section.sectionId,
                                                             question.questionNo,
-                                                            e.target.value,
+                                                            e.target.value
                                                         )
                                                     }
                                                     className="mx-auto w-fit p-0.5 text-center"
@@ -171,14 +171,14 @@ export default function Evaluation({ questionData, totalPages, pagesVisited }: E
                 <div className="space-y-2">
                     <div className="text-sm text-muted-foreground">Pages visited</div>
                     <div className="rounded bg-muted/50 p-2 text-sm">
-                        {Array.from(pageData.pagesVisited).join(", ")}
+                        {Array.from(pageData.pagesVisited).join(', ')}
                     </div>
                 </div>
 
                 <div className="space-y-2">
                     <div className="text-sm text-muted-foreground">Pages not visited</div>
                     <div className="rounded bg-muted/50 p-2 text-sm">
-                        {pageData.pagesNotVisited.join(", ")}
+                        {pageData.pagesNotVisited.join(', ')}
                     </div>
                 </div>
             </div>
@@ -194,7 +194,7 @@ export default function Evaluation({ questionData, totalPages, pagesVisited }: E
             <MyDialog
                 heading="Preview Question"
                 open={!!previewQuestionContent}
-                onOpenChange={() => setPreviewQuestionContent("")}
+                onOpenChange={() => setPreviewQuestionContent('')}
             >
                 <strong className="-mt-10">Question :</strong>
                 <div

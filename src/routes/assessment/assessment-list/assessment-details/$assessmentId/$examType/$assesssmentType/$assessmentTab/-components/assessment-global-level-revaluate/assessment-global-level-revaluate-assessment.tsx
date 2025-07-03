@@ -1,13 +1,13 @@
-import { SelectedFilterRevaluateInterface } from "@/types/assessments/assessment-revaluate-question-wise";
-import { useMutation } from "@tanstack/react-query";
-import { useState } from "react";
-import { getRevaluateStudentResult } from "../../-services/assessment-details-services";
-import { toast } from "sonner";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { Route } from "../..";
-import { getInstituteId } from "@/constants/helper";
-import { MyButton } from "@/components/design-system/button";
-import { WarningCircle } from "phosphor-react";
+import { SelectedFilterRevaluateInterface } from '@/types/assessments/assessment-revaluate-question-wise';
+import { useMutation } from '@tanstack/react-query';
+import { useState } from 'react';
+import { getRevaluateStudentResult } from '../../-services/assessment-details-services';
+import { toast } from 'sonner';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Route } from '../..';
+import { getInstituteId } from '@/constants/helper';
+import { MyButton } from '@/components/design-system/button';
+import { WarningCircle } from 'phosphor-react';
 
 const AssessmentGlobalLevelRevaluateAssessment = () => {
     const [openDialog, setOpenDialog] = useState(false);
@@ -16,7 +16,7 @@ const AssessmentGlobalLevelRevaluateAssessment = () => {
     const [selectedRevaluateFilter] = useState<SelectedFilterRevaluateInterface>({
         questions: [
             {
-                section_id: "",
+                section_id: '',
                 question_ids: [],
             },
         ],
@@ -36,11 +36,11 @@ const AssessmentGlobalLevelRevaluateAssessment = () => {
         }) => getRevaluateStudentResult(assessmentId, instituteId, methodType, selectedFilter),
         onSuccess: () => {
             toast.success(
-                "Attempt for this assessment has been revaluated for all students. Participants need to check their email!",
+                'Attempt for this assessment has been revaluated for all students. Participants need to check their email!',
                 {
-                    className: "success-toast",
+                    className: 'success-toast',
                     duration: 4000,
-                },
+                }
             );
             setOpenDialog(false);
         },
@@ -53,7 +53,7 @@ const AssessmentGlobalLevelRevaluateAssessment = () => {
         getRevaluateResultMutation.mutate({
             assessmentId,
             instituteId,
-            methodType: "ENTIRE_ASSESSMENT",
+            methodType: 'ENTIRE_ASSESSMENT',
             selectedFilter: selectedRevaluateFilter,
         });
     };

@@ -14,8 +14,8 @@ import { myColumns } from '@/components/design-system/utils/constants/table-colu
 import { STUDENT_LIST_COLUMN_WIDTHS } from '@/components/design-system/utils/constants/table-layout';
 import { BulkActions } from './bulk-actions/bulk-actions';
 import { OnChangeFn, RowSelectionState } from '@tanstack/react-table';
-import { useSuspenseQuery } from '@tanstack/react-query';
-import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { useQuery } from '@tanstack/react-query';
+import { DashboardLoader, ErrorBoundary } from '@/components/core/dashboard-loader';
 import RootErrorComponent from '@/components/core/deafult-error';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { StudentSidebar } from '../student-side-view/student-side-view';
@@ -31,15 +31,24 @@ import { useUsersCredentials } from '../../../-services/usersCredentials';
 import { DropdownItemType } from '@/components/common/students/enroll-manually/dropdownTypesForPackageItems';
 import { ShareCredentialsDialog } from './bulk-actions/share-credentials-dialog';
 import { IndividualShareCredentialsDialog } from './bulk-actions/individual-share-credentials-dialog';
+import { SendMessageDialog } from './bulk-actions/send-message-dialog';
+import { SendEmailDialog } from './bulk-actions/send-email-dialog';
 import { InviteFormProvider } from '@/routes/manage-students/invite/-context/useInviteFormContext';
+import { Users, FileMagnifyingGlass } from '@phosphor-icons/react';
+import { HOLISTIC_HIDE_COLUMNS, HOLISTIC_NEW_COLUMNS } from '@/constants/institute-data';
+import { HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
 
 export const StudentsListSection = () => {
     const { setNavHeading } = useNavHeadingStore();
-    const { isError, isLoading } = useSuspenseQuery(useInstituteQuery());
+    const { isError, isLoading } = useQuery(useInstituteQuery());
     const [isOpen, setIsOpen] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const { getCourseFromPackage, instituteDetails, getDetailsFromPackageSessionId } =
-        useInstituteDetailsStore();
+    const {
+        getCourseFromPackage,
+        instituteDetails,
+        getDetailsFromPackageSessionId,
+        showForInstitutes,
+    } = useInstituteDetailsStore();
     const tableRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -218,107 +227,172 @@ export const StudentsListSection = () => {
     if (isLoading) return <DashboardLoader />;
     if (isError) return <RootErrorComponent />;
 
-    return (
-        <section className="flex max-w-full flex-col gap-8 overflow-visible">
-            <div className="flex flex-col gap-4">
+    // Enhanced empty state component
+    const EmptyState = () => (
+        <div className="animate-fadeIn flex flex-col items-center justify-center px-4 py-16 text-center">
+            <div className="mb-6 rounded-full bg-gradient-to-br from-neutral-100 to-neutral-200 p-6 shadow-inner">
+                <EmptyStudentListImage className="size-16 opacity-50" />
+            </div>
+            <h3 className="mb-3 text-xl font-semibold text-neutral-700">No Students Found</h3>
+            <p className="mb-6 max-w-md text-sm leading-relaxed text-neutral-500">
+                No student data matches your current filters. Try adjusting your search criteria or
+                add new students to get started.
+            </p>
+            <div className="flex flex-col items-center gap-3 sm:flex-row">
                 <InviteFormProvider>
-                    <StudentListHeader currentSession={currentSession} />
+                    <button className="to-primary-600 hover:from-primary-600 hover:to-primary-700 group flex items-center gap-2 rounded-lg bg-gradient-to-r from-primary-500 px-4 py-2 text-white shadow-md transition-all duration-200 hover:scale-105">
+                        <Users className="size-4 transition-transform duration-200 group-hover:scale-110" />
+                        Invite Students
+                    </button>
                 </InviteFormProvider>
-                <StudentFilters
-                    currentSession={currentSession}
-                    filters={filters}
-                    searchInput={searchInput}
-                    searchFilter={searchFilter}
-                    columnFilters={columnFilters}
-                    clearFilters={clearFilters}
-                    getActiveFiltersState={getActiveFiltersState}
-                    onSessionChange={handleSessionChange}
-                    onSearchChange={handleSearchInputChange}
-                    onSearchEnter={handleSearchEnter}
-                    onClearSearch={handleClearSearch}
-                    onFilterChange={handleFilterChange}
-                    onFilterClick={handleFilterClick}
-                    onClearFilters={handleClearFilters}
-                    appliedFilters={appliedFilters}
-                    page={page}
-                    pageSize={10}
-                    totalElements={studentTableData?.total_elements || 0}
-                    sessionList={sessionList}
-                />
-                {loadingData ? (
-                    <div className="flex w-full flex-col items-center gap-3 text-neutral-600">
-                        <DashboardLoader />
-                    </div>
-                ) : !studentTableData || studentTableData.content.length == 0 ? (
-                    <div className="flex w-full flex-col items-center gap-3 text-neutral-600">
-                        <EmptyStudentListImage />
-                        <p>No student data available</p>
-                    </div>
-                ) : (
-                    <div className="flex flex-col gap-5">
-                        <div className="h-auto max-w-full">
-                            <div className="max-w-full" ref={tableRef}>
-                                <SidebarProvider
-                                    style={{ ['--sidebar-width' as string]: '565px' }}
-                                    defaultOpen={false}
-                                    open={isSidebarOpen}
-                                    onOpenChange={setIsSidebarOpen}
-                                >
-                                    <MyTable<StudentTable>
-                                        data={{
-                                            content: studentTableData.content.map((student) => ({
-                                                ...student,
-                                                id: student.user_id,
-                                            })),
-                                            total_pages: studentTableData.total_pages,
-                                            page_no: studentTableData.page_no,
-                                            page_size: studentTableData.page_size,
-                                            total_elements: studentTableData.total_elements,
-                                            last: studentTableData.last,
-                                        }}
-                                        columns={myColumns}
-                                        isLoading={loadingData}
-                                        error={loadingError}
-                                        onSort={handleSort}
-                                        columnWidths={STUDENT_LIST_COLUMN_WIDTHS}
-                                        rowSelection={currentPageSelection}
-                                        onRowSelectionChange={handleRowSelectionChange}
-                                        currentPage={page}
-                                    />
-                                    <div>
-                                        <StudentSidebar
-                                            selectedTab={'ENDED,PENDING,LIVE'}
-                                            examType={'EXAM'}
-                                            isStudentList={true}
+                <button
+                    onClick={handleClearFilters}
+                    className="group flex items-center gap-2 rounded-lg bg-neutral-100 px-4 py-2 text-neutral-700 transition-all duration-200 hover:scale-105 hover:bg-neutral-200"
+                >
+                    <FileMagnifyingGlass className="size-4 transition-transform duration-200 group-hover:scale-110" />
+                    Clear Filters
+                </button>
+            </div>
+        </div>
+    );
+
+    return (
+        <ErrorBoundary>
+            <section className="animate-fadeIn flex max-w-full flex-col gap-6 overflow-visible">
+                <div className="flex flex-col gap-5">
+                    <InviteFormProvider>
+                        <StudentListHeader currentSession={currentSession} />
+                    </InviteFormProvider>
+
+                    <StudentFilters
+                        currentSession={currentSession}
+                        filters={filters}
+                        searchInput={searchInput}
+                        searchFilter={searchFilter}
+                        columnFilters={columnFilters}
+                        clearFilters={clearFilters}
+                        getActiveFiltersState={getActiveFiltersState}
+                        onSessionChange={handleSessionChange}
+                        onSearchChange={handleSearchInputChange}
+                        onSearchEnter={handleSearchEnter}
+                        onClearSearch={handleClearSearch}
+                        onFilterChange={handleFilterChange}
+                        onFilterClick={handleFilterClick}
+                        onClearFilters={handleClearFilters}
+                        appliedFilters={appliedFilters}
+                        page={page}
+                        pageSize={10}
+                        totalElements={studentTableData?.total_elements || 0}
+                        sessionList={sessionList}
+                    />
+
+                    {loadingData ? (
+                        <div className="flex w-full flex-col items-center gap-4 py-12">
+                            <DashboardLoader />
+                            <p className="animate-pulse text-sm text-neutral-500">
+                                Loading student data...
+                            </p>
+                        </div>
+                    ) : !studentTableData || studentTableData.content.length == 0 ? (
+                        <EmptyState />
+                    ) : (
+                        <div className="animate-slideInRight flex flex-col gap-4">
+                            {/* Modern table container */}
+                            <div className="overflow-hidden rounded-xl border border-neutral-200/50 bg-gradient-to-br from-white to-neutral-50/30 shadow-sm">
+                                <div className="max-w-full" ref={tableRef}>
+                                    <SidebarProvider
+                                        style={{ ['--sidebar-width' as string]: '565px' }}
+                                        defaultOpen={false}
+                                        open={isSidebarOpen}
+                                        onOpenChange={setIsSidebarOpen}
+                                    >
+                                        <MyTable<StudentTable>
+                                            data={{
+                                                content: studentTableData.content.map(
+                                                    (student) => ({
+                                                        ...student,
+                                                        id: student.user_id,
+                                                    })
+                                                ),
+                                                total_pages: studentTableData.total_pages,
+                                                page_no: studentTableData.page_no,
+                                                page_size: studentTableData.page_size,
+                                                total_elements: studentTableData.total_elements,
+                                                last: studentTableData.last,
+                                            }}
+                                            columns={myColumns}
+                                            isLoading={loadingData}
+                                            error={loadingError}
+                                            onSort={handleSort}
+                                            tableState={{
+                                                columnVisibility: {
+                                                    ...HOLISTIC_HIDE_COLUMNS.reduce(
+                                                        (acc, column) => {
+                                                            acc[column] = !showForInstitutes([
+                                                                HOLISTIC_INSTITUTE_ID,
+                                                            ]);
+                                                            return acc;
+                                                        },
+                                                        {} as Record<string, boolean>
+                                                    ),
+                                                    ...HOLISTIC_NEW_COLUMNS.reduce(
+                                                        (acc, column) => {
+                                                            acc[column] = showForInstitutes([
+                                                                HOLISTIC_INSTITUTE_ID,
+                                                            ]);
+                                                            return acc;
+                                                        },
+                                                        {} as Record<string, boolean>
+                                                    ),
+                                                },
+                                            }}
+                                            columnWidths={STUDENT_LIST_COLUMN_WIDTHS}
+                                            rowSelection={currentPageSelection}
+                                            onRowSelectionChange={handleRowSelectionChange}
+                                            currentPage={page}
                                         />
-                                    </div>
-                                </SidebarProvider>
+                                        <div>
+                                            <StudentSidebar
+                                                selectedTab={'ENDED,PENDING,LIVE'}
+                                                examType={'EXAM'}
+                                                isStudentList={true}
+                                            />
+                                        </div>
+                                    </SidebarProvider>
+                                </div>
+                            </div>
+
+                            {/* Enhanced footer with bulk actions and pagination */}
+                            <div className="flex flex-col justify-between gap-4 rounded-lg border border-neutral-200/50 bg-gradient-to-r from-neutral-50/50 to-white p-4 lg:flex-row lg:items-center">
+                                <BulkActions
+                                    selectedCount={totalSelectedCount}
+                                    selectedStudentIds={getSelectedStudentIds()}
+                                    selectedStudents={getSelectedStudents()}
+                                    onReset={handleResetSelections}
+                                />
+                                <div className="flex justify-center lg:justify-end">
+                                    <MyPagination
+                                        currentPage={page}
+                                        totalPages={studentTableData?.total_pages || 1}
+                                        onPageChange={handlePageChange}
+                                    />
+                                </div>
                             </div>
                         </div>
-                        <div className="flex">
-                            <BulkActions
-                                selectedCount={totalSelectedCount}
-                                selectedStudentIds={getSelectedStudentIds()}
-                                selectedStudents={getSelectedStudents()}
-                                onReset={handleResetSelections}
-                            />
-                            <MyPagination
-                                currentPage={page}
-                                totalPages={studentTableData?.total_pages || 1}
-                                onPageChange={handlePageChange}
-                            />
-                        </div>
-                    </div>
-                )}
-            </div>
-            <NoCourseDialog
-                isOpen={isOpen}
-                setIsOpen={setIsOpen}
-                type="Enroll Students"
-                content="You need to create a course and add a subject in it before"
-            />
-            <ShareCredentialsDialog />
-            <IndividualShareCredentialsDialog />
-        </section>
+                    )}
+                </div>
+
+                <NoCourseDialog
+                    isOpen={isOpen}
+                    setIsOpen={setIsOpen}
+                    type="Enroll Students"
+                    content="You need to create a course and add a subject in it before"
+                />
+                <ShareCredentialsDialog />
+                <IndividualShareCredentialsDialog />
+                <SendMessageDialog />
+                <SendEmailDialog />
+            </section>
+        </ErrorBoundary>
     );
 };

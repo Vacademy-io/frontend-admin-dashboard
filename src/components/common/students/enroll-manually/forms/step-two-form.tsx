@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { FormStepHeading } from '../form-components/form-step-heading';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { FormItemWrapper } from '../form-components/form-item-wrapper';
@@ -23,6 +24,7 @@ import { AddSessionDataType } from '@/routes/manage-institute/sessions/-componen
 import { useAddSession } from '@/services/study-library/session-management/addSession';
 import { AddLevelData } from '@/routes/study-library/courses/course-details/-components/add-course-details-form';
 import { useAddLevel } from '@/routes/study-library/courses/course-details/-services/add-level';
+import { HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
 
 export const StepTwoForm = ({
     initialValues,
@@ -40,6 +42,7 @@ export const StepTwoForm = ({
         getSessionFromPackage,
         getLevelsFromPackage,
         getDetailsFromPackageSessionId,
+        showForInstitutes,
     } = useInstituteDetailsStore();
 
     const [courseList, setCourseList] = useState<DropdownItemType[]>(getCourseFromPackage());
@@ -55,55 +58,29 @@ export const StepTwoForm = ({
             name: gender as string,
         })) || [];
 
-    console.log('course list', courseList);
-    console.log('session list', sessionList);
-    console.log('level list', levelList);
-    // Update lists when instituteDetails changes
-    useEffect(() => {
-        setCourseList(getCourseFromPackage());
-        form.reset({
-            course: {
-                id: '',
-                name: '',
-            },
-        });
-        setSessionList(getSessionFromPackage());
-        form.reset({
-            session: {
-                id: '',
-                name: '',
-            },
-        });
-        setLevelList(getLevelsFromPackage());
-        form.reset({
-            level: {
-                id: '',
-                name: '',
-            },
-        });
-    }, [instituteDetails]);
-
-    useEffect(() => {
+    // Prepare default form values prioritizing saved stepTwoData, then initialValues, then empty defaults
+    const prepareDefaultValues = (): StepTwoData => {
+        if (stepTwoData && Object.keys(stepTwoData).length > 0) {
+            return stepTwoData;
+        }
         if (initialValues) {
             const details = getDetailsFromPackageSessionId({
                 packageSessionId: initialValues.package_session_id,
             });
-            setInitialBatch(details);
-
             if (details) {
-                form.reset({
+                return {
                     fullName: initialValues?.full_name || '',
                     course: {
-                        id: initialBatch?.package_dto?.id || '',
-                        name: initialBatch?.package_dto?.package_name || '',
+                        id: details?.package_dto?.id || '',
+                        name: details?.package_dto?.package_name || '',
                     },
                     session: {
-                        id: initialBatch?.session?.id || '',
-                        name: initialBatch?.session?.session_name || '',
+                        id: details?.session?.id || '',
+                        name: details?.session?.session_name || '',
                     },
                     level: {
-                        id: initialBatch?.level.id || '',
-                        name: initialBatch?.level.level_name || '',
+                        id: details?.level?.id || '',
+                        name: details?.level?.level_name || '',
                     },
                     accessDays: initialValues?.session_expiry_days?.toString() || '',
                     enrollmentNumber: initialValues?.institute_enrollment_id || '',
@@ -112,42 +89,96 @@ export const StepTwoForm = ({
                         name: initialValues?.gender || '',
                     },
                     collegeName: initialValues?.linked_institute_name || '',
-                });
+                };
             }
+        }
+        return {
+            fullName: '',
+            course: { id: '', name: '' },
+            session: { id: '', name: '' },
+            level: { id: '', name: '' },
+            accessDays: '',
+            enrollmentNumber: '',
+            gender: { id: '', name: '' },
+            collegeName: '',
+        };
+    };
+
+    const form = useForm<StepTwoData>({
+        resolver: zodResolver(stepTwoSchema),
+        defaultValues: prepareDefaultValues(),
+        mode: 'onChange',
+    });
+
+    // Update lists when instituteDetails changes
+    // Removed resetting form here to avoid clearing user input on instituteDetails update
+    useEffect(() => {
+        setCourseList(getCourseFromPackage());
+        setSessionList(getSessionFromPackage());
+        setLevelList(getLevelsFromPackage());
+    }, [instituteDetails]);
+
+    // Keep initialBatch updated when initialValues changes
+    useEffect(() => {
+        if (initialValues) {
+            const details = getDetailsFromPackageSessionId({
+                packageSessionId: initialValues.package_session_id,
+            });
+            setInitialBatch(details);
         } else {
             setInitialBatch(null);
         }
     }, [initialValues]);
 
+    // Initialize form values when initialValues change IF form is not already filled (avoid overwrite)
+    useEffect(() => {
+        if (initialValues) {
+            const currentValues = form.getValues();
+            // Check if form is "empty" before resetting to initialValues
+            const isFormEmpty =
+                !currentValues.fullName &&
+                !currentValues.course?.id &&
+                !currentValues.session?.id &&
+                !currentValues.level?.id &&
+                !currentValues.accessDays &&
+                !currentValues.enrollmentNumber &&
+                (!currentValues.gender || !currentValues.gender.id) &&
+                !currentValues.collegeName;
+
+            if (isFormEmpty) {
+                const details = getDetailsFromPackageSessionId({
+                    packageSessionId: initialValues.package_session_id,
+                });
+                if (details) {
+                    form.reset({
+                        fullName: initialValues?.full_name || '',
+                        course: {
+                            id: details?.package_dto?.id || '',
+                            name: details?.package_dto?.package_name || '',
+                        },
+                        session: {
+                            id: details?.session?.id || '',
+                            name: details?.session?.session_name || '',
+                        },
+                        level: {
+                            id: details?.level?.id || '',
+                            name: details?.level?.level_name || '',
+                        },
+                        accessDays: initialValues?.session_expiry_days?.toString() || '',
+                        enrollmentNumber: initialValues?.institute_enrollment_id || '',
+                        gender: {
+                            id: initialValues?.gender || '',
+                            name: initialValues?.gender || '',
+                        },
+                        collegeName: initialValues?.linked_institute_name || '',
+                    });
+                }
+            }
+        }
+    }, [initialValues]);
+
     // Track which field was most recently changed
     const lastChangedField = useRef<string | null>(null);
-
-    const form = useForm<StepTwoData>({
-        resolver: zodResolver(stepTwoSchema),
-        defaultValues: stepTwoData || {
-            fullName: initialValues?.full_name || '',
-            course: {
-                id: initialBatch?.package_dto.id || '',
-                name: initialBatch?.package_dto.package_name || '',
-            },
-            session: {
-                id: initialBatch?.session?.id || '',
-                name: initialBatch?.session?.session_name || '',
-            },
-            level: {
-                id: initialBatch?.level?.id || '',
-                name: initialBatch?.level?.level_name || '',
-            },
-            accessDays: initialValues?.session_expiry_days?.toString() || '',
-            enrollmentNumber: initialValues?.institute_enrollment_id || '',
-            gender: {
-                id: initialValues?.gender || '',
-                name: initialValues?.gender || '',
-            },
-            collegeName: initialValues?.linked_institute_name || '',
-        },
-        mode: 'onChange',
-    });
 
     const onSubmit = (values: StepTwoData) => {
         setStepTwoData(values);
@@ -155,164 +186,129 @@ export const StepTwoForm = ({
     };
 
     // Custom onChange handlers to track which field changed
-    // eslint-disable-next-line
     const handleCourseChange = (value: any) => {
         lastChangedField.current = 'course';
         form.setValue('course', value);
     };
 
-    // eslint-disable-next-line
     const handleSessionChange = (value: any) => {
         lastChangedField.current = 'session';
         form.setValue('session', value);
     };
 
-    // eslint-disable-next-line
     const handleLevelChange = (value: any) => {
         lastChangedField.current = 'level';
         form.setValue('level', value);
     };
 
-    // Get current values from form
     const courseValue = form.watch('course');
     const sessionValue = form.watch('session');
     const levelValue = form.watch('level');
     const { setValue } = form;
 
-    // When course changes, update session and level lists
     useEffect(() => {
         if (lastChangedField.current === 'course' && courseValue?.id) {
-            // Update the sessions based on selected course
             setSessionList(
                 getSessionFromPackage({
                     courseId: courseValue?.id,
                 })
             );
 
-            // Update the levels based on selected course
             setLevelList(
                 getLevelsFromPackage({
                     courseId: courseValue?.id,
                 })
             );
 
-            // Reset the session and level selections if they're no longer valid
             const currentSession = form.getValues('session');
             const currentLevel = form.getValues('level');
 
-            // Reset session if needed
             const validSessions = getSessionFromPackage({ courseId: courseValue?.id });
             const sessionIsValid = validSessions.some((s) => s?.id === currentSession?.id);
             if (!sessionIsValid && currentSession?.id) {
                 form.setValue('session', { id: '', name: '' });
             }
 
-            // Reset level if needed
             const validLevels = getLevelsFromPackage({ courseId: courseValue?.id });
             const levelIsValid = validLevels.some((l) => l?.id === currentLevel?.id);
             if (!levelIsValid && currentLevel?.id) {
                 form.setValue('level', { id: '', name: '' });
             }
         }
-
-        // Reset the change tracker after handling
         lastChangedField.current = null;
     }, [courseValue, getSessionFromPackage, getLevelsFromPackage]);
 
-    // When session changes, update course and level lists
     useEffect(() => {
-        console.log('course value', sessionValue);
-
         if (lastChangedField.current === 'session' && sessionValue?.id) {
-            // Update the courses based on selected session
             setCourseList(
                 getCourseFromPackage({
                     sessionId: sessionValue?.id,
                 })
             );
 
-            // Update the levels based on selected session
             setLevelList(
                 getLevelsFromPackage({
                     sessionId: sessionValue?.id,
                 })
             );
 
-            // Reset the course and level selections if they're no longer valid
             const currentCourse = form.getValues('course');
             const currentLevel = form.getValues('level');
 
-            // Reset course if needed
             const validCourses = getCourseFromPackage({ sessionId: sessionValue?.id });
             const courseIsValid = validCourses.some((c) => c?.id === currentCourse?.id);
             if (!courseIsValid && currentCourse?.id) {
                 form.setValue('course', { id: '', name: '' });
             }
 
-            // Reset level if needed
             const validLevels = getLevelsFromPackage({ sessionId: sessionValue?.id });
             const levelIsValid = validLevels.some((l) => l?.id === currentLevel?.id);
             if (!levelIsValid && currentLevel?.id) {
                 form.setValue('level', { id: '', name: '' });
             }
         }
-
-        // Reset the change tracker after handling
         lastChangedField.current = null;
     }, [sessionValue, getCourseFromPackage, getLevelsFromPackage]);
 
-    // When level changes, update course and session lists
     useEffect(() => {
-        console.log('course value', levelValue);
         if (lastChangedField.current === 'level' && levelValue?.id) {
-            // Update the courses based on selected level
             setCourseList(
                 getCourseFromPackage({
                     levelId: levelValue?.id,
                 })
             );
 
-            // Update the sessions based on selected level
             setSessionList(
                 getSessionFromPackage({
                     levelId: levelValue?.id,
                 })
             );
 
-            // Reset the course and session selections if they're no longer valid
             const currentCourse = form.getValues('course');
             const currentSession = form.getValues('session');
 
-            // Reset course if needed
             const validCourses = getCourseFromPackage({ levelId: levelValue?.id });
             const courseIsValid = validCourses.some((c) => c?.id === currentCourse?.id);
             if (!courseIsValid && currentCourse?.id) {
                 form.setValue('course', { id: '', name: '' });
             }
 
-            // Reset session if needed
             const validSessions = getSessionFromPackage({ levelId: levelValue?.id });
             const sessionIsValid = validSessions.some((s) => s?.id === currentSession?.id);
             if (!sessionIsValid && currentSession?.id) {
                 form.setValue('session', { id: '', name: '' });
             }
         }
-        // Reset the change tracker after handling
         lastChangedField.current = null;
     }, [levelValue, getCourseFromPackage, getSessionFromPackage]);
 
-    // Add this effect to auto-select single options
     useEffect(() => {
-        // If there's exactly one session and nothing is selected yet
         if (sessionList.length === 1 && !sessionValue?.id) {
             handleSessionChange(sessionList[0]);
         }
-
-        // Similar logic for course and level if needed
         if (courseList.length === 1 && !courseValue?.id) {
             handleCourseChange(courseList[0]);
         }
-
         if (levelList.length === 1 && !levelValue?.id) {
             handleLevelChange(levelList[0]);
         }
@@ -360,7 +356,6 @@ export const StepTwoForm = ({
             })),
         };
 
-        // Use type assertion since we know this is the correct format for the API
         addSessionMutation.mutate(
             { requestData: transformedData as unknown as AddSessionDataType },
             {
@@ -396,10 +391,6 @@ export const StepTwoForm = ({
             }
         );
     };
-
-    useEffect(() => {
-        console.log('gender', form.getValues('gender'));
-    }, [form.watch('gender')]);
 
     useEffect(() => {
         if (submitFn) {
@@ -443,37 +434,41 @@ export const StepTwoForm = ({
                                     </FormItem>
                                 )}
                             />
-                            <FormField
-                                control={form.control}
-                                name="course"
-                                render={({ field: { value } }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <div className="flex flex-col gap-1">
-                                                <div>
-                                                    Course
-                                                    <span className="text-subtitle text-danger-600">
-                                                        *
-                                                    </span>
+                            {!showForInstitutes([HOLISTIC_INSTITUTE_ID]) && (
+                                <FormField
+                                    control={form.control}
+                                    name="course"
+                                    render={({ field: { value } }) => (
+                                        <FormItem>
+                                            <FormControl>
+                                                <div className="flex flex-col gap-1">
+                                                    <div>
+                                                        Course
+                                                        <span className="text-subtitle text-danger-600">
+                                                            *
+                                                        </span>
+                                                    </div>
+                                                    <MyDropdown
+                                                        currentValue={value.name}
+                                                        dropdownList={courseList}
+                                                        handleChange={handleCourseChange}
+                                                        placeholder="Select Course"
+                                                        error={
+                                                            form.formState.errors.course?.id
+                                                                ?.message ||
+                                                            form.formState.errors.course?.name
+                                                                ?.message
+                                                        }
+                                                        required={true}
+                                                        showAddCourseButton={true}
+                                                        onAddCourse={handleAddCourse}
+                                                    />
                                                 </div>
-                                                <MyDropdown
-                                                    currentValue={value.name}
-                                                    dropdownList={courseList}
-                                                    handleChange={handleCourseChange}
-                                                    placeholder="Select Course"
-                                                    error={
-                                                        form.formState.errors.course?.id?.message ||
-                                                        form.formState.errors.course?.name?.message
-                                                    }
-                                                    required={true}
-                                                    showAddCourseButton={true}
-                                                    onAddCourse={handleAddCourse}
-                                                />
-                                            </div>
-                                        </FormControl>
-                                    </FormItem>
-                                )}
-                            />
+                                            </FormControl>
+                                        </FormItem>
+                                    )}
+                                />
+                            )}
 
                             <FormField
                                 control={form.control}
@@ -501,7 +496,7 @@ export const StepTwoForm = ({
                                                     required={true}
                                                     showAddSessionButton={true}
                                                     onAddSession={handleAddSession}
-                                                    disable={!form.getValues('course')?.id}
+                                                    disable={!courseValue?.id}
                                                 />
                                             </div>
                                         </FormControl>
@@ -534,11 +529,9 @@ export const StepTwoForm = ({
                                                     required={true}
                                                     showAddLevelButton={true}
                                                     onAddLevel={handleAddLevel}
-                                                    packageId={form.getValues('course')?.id ?? ''}
-                                                    disableAddLevelButton={
-                                                        form.getValues('course')?.id === ''
-                                                    }
-                                                    disable={!form.getValues('session')?.id}
+                                                    packageId={courseValue?.id ?? ''}
+                                                    disableAddLevelButton={courseValue?.id === ''}
+                                                    disable={!sessionValue?.id}
                                                 />
                                             </div>
                                         </FormControl>
@@ -553,18 +546,16 @@ export const StepTwoForm = ({
                                     <FormItem>
                                         <FormControl>
                                             <MyInput
-                                                inputType="number" // Keep as "number" for input behavior
+                                                inputType="number"
                                                 label="Enter access days"
                                                 inputPlaceholder="Eg. 365"
-                                                input={value} // Display the string value
+                                                input={value}
                                                 onChangeFunction={(e) => {
-                                                    // Convert to number for validation, floor it, then convert back to string
                                                     const numValue = Math.floor(
                                                         Number(e.target.value)
                                                     );
-                                                    // Only update if it's a valid number
                                                     if (!isNaN(numValue)) {
-                                                        onChange(String(numValue)); // Store as string in form
+                                                        onChange(String(numValue));
                                                     }
                                                 }}
                                                 error={form.formState.errors.accessDays?.message}
@@ -574,6 +565,7 @@ export const StepTwoForm = ({
                                                 {...field}
                                                 step="1"
                                                 min="1"
+                                                onWheel={(e) => e.currentTarget.blur()}
                                             />
                                         </FormControl>
                                     </FormItem>
@@ -601,6 +593,7 @@ export const StepTwoForm = ({
                                                         size="large"
                                                         className="w-full"
                                                         {...field}
+                                                        onWheel={(e) => e.currentTarget.blur()}
                                                     />
                                                 </FormControl>
                                             </FormItem>
@@ -643,28 +636,31 @@ export const StepTwoForm = ({
                                     </FormItem>
                                 )}
                             />
-
-                            <FormField
-                                control={form.control}
-                                name="collegeName"
-                                render={({ field: { onChange, value, ...field } }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <MyInput
-                                                inputType="text"
-                                                label="College/School Name"
-                                                inputPlaceholder="Enter Student's College/School Name"
-                                                input={value}
-                                                onChangeFunction={onChange}
-                                                error={form.formState.errors.collegeName?.message}
-                                                size="large"
-                                                className="w-full"
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                    </FormItem>
-                                )}
-                            />
+                            {!showForInstitutes([HOLISTIC_INSTITUTE_ID]) && (
+                                <FormField
+                                    control={form.control}
+                                    name="collegeName"
+                                    render={({ field: { onChange, value, ...field } }) => (
+                                        <FormItem>
+                                            <FormControl>
+                                                <MyInput
+                                                    inputType="text"
+                                                    label="College/School Name"
+                                                    inputPlaceholder="Enter Student's College/School Name"
+                                                    input={value}
+                                                    onChangeFunction={onChange}
+                                                    error={
+                                                        form.formState.errors.collegeName?.message
+                                                    }
+                                                    size="large"
+                                                    className="w-full"
+                                                    {...field}
+                                                />
+                                            </FormControl>
+                                        </FormItem>
+                                    )}
+                                />
+                            )}
                         </div>
                     </form>
                 </Form>

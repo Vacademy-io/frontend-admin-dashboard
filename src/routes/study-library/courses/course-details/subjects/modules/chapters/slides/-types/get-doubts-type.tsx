@@ -2,6 +2,11 @@ import { DoubtType } from './add-doubt-type';
 
 export interface Doubt extends DoubtType {
     id: string;
+    source_name: string;
+    batch_id: string;
+    subject_id: string;
+    chapter_id: string;
+    module_id: string;
     replies: Doubt[]; // Recursive structure for nested replies
 }
 
@@ -27,4 +32,5 @@ export interface DoubtFilter {
     sort_columns: {
         [key: string]: 'ASC' | 'DESC';
     };
+    batch_ids?: string[];
 }

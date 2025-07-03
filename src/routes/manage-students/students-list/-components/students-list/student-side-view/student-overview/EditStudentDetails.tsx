@@ -182,8 +182,12 @@ export const EditStudentDetails = () => {
         <MyDialog
             trigger={
                 <div className="flex w-full items-center justify-center">
-                    <MyButton buttonType="secondary" scale="large" className="w-fit">
-                        Edit Student Details
+                    <MyButton
+                        buttonType="secondary"
+                        scale="medium"
+                        className="text-primary-700 hover:text-primary-800 hover:scale-102 w-fit border-primary-200 bg-gradient-to-r from-primary-50 to-primary-100 px-3 py-1.5 text-xs transition-all duration-200 hover:from-primary-100 hover:to-primary-200"
+                    >
+                        ✏️ Edit Details
                     </MyButton>
                 </div>
             }
@@ -299,7 +303,6 @@ export const EditStudentDetails = () => {
                                             control={form.control}
                                             country="in"
                                             required={true}
-                                            value={form.getValues('contact_number')}
                                         />
                                         <p className="text-subtitle text-danger-600">
                                             {form.formState.errors.contact_number?.message}
@@ -471,7 +474,6 @@ export const EditStudentDetails = () => {
                                             control={form.control}
                                             country="in"
                                             required={false}
-                                            value={form.getValues('parents_mobile_number')}
                                         />
                                         <p className="text-subtitle text-danger-600">
                                             {form.formState.errors.parents_mobile_number?.message}

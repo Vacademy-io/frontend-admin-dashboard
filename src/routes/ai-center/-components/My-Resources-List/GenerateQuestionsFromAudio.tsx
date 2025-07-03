@@ -82,7 +82,7 @@ const GenerateQuestionsFromAudio = ({ fileId }: { fileId: string }) => {
             prompt: values.prompt,
             difficulty: values.difficulty,
             language: values.language,
-            taskName: values.taskName,
+            taskName: getRandomTaskName(),
             taskId: '',
         });
     };
@@ -111,27 +111,6 @@ const GenerateQuestionsFromAudio = ({ fileId }: { fileId: string }) => {
                     <div className="flex flex-col gap-4">
                         <FormProvider {...form}>
                             <form className="flex flex-col gap-4 overflow-y-auto px-6 py-4">
-                                <FormField
-                                    control={form.control}
-                                    name="taskName"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormControl>
-                                                <MyInput
-                                                    input={field.value?.toString() || ''}
-                                                    onChangeFunction={(e) =>
-                                                        field.onChange(e.target.value)
-                                                    }
-                                                    label="Task Name"
-                                                    required={true}
-                                                    inputType="text"
-                                                    inputPlaceholder="Enter your task name"
-                                                    className="w-full"
-                                                />
-                                            </FormControl>
-                                        </FormItem>
-                                    )}
-                                />
                                 <FormField
                                     control={form.control}
                                     name="prompt"
@@ -220,7 +199,7 @@ const GenerateQuestionsFromAudio = ({ fileId }: { fileId: string }) => {
                                             className=""
                                             type="button"
                                         >
-                                            <DashboardLoader size={18} color="#ffffff" />
+                                            <DashboardLoader />
                                         </MyButton>
                                     ) : (
                                         <MyButton

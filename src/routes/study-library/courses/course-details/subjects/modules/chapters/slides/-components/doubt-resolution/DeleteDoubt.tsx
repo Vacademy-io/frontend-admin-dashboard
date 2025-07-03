@@ -1,4 +1,4 @@
-import { TrashSimple } from '@phosphor-icons/react';
+import { Trash } from '@phosphor-icons/react';
 import { Doubt } from '../../-types/get-doubts-type';
 import { useAddReply } from '../../-services/AddReply';
 import { DoubtType } from '../../-types/add-doubt-type';
@@ -6,8 +6,17 @@ import { handleAddReply } from '../../-helper/handleAddReply';
 import { MyDialog } from '@/components/design-system/dialog';
 import { useState } from 'react';
 import { MyButton } from '@/components/design-system/button';
+import React from 'react';
 
-export const DeleteDoubt = ({ doubt, refetch }: { doubt: Doubt; refetch: () => void }) => {
+export const DeleteDoubt = ({
+    doubt,
+    refetch,
+    showText = true,
+}: {
+    doubt: Doubt;
+    refetch: () => void;
+    showText?: boolean;
+}) => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const addReply = useAddReply();
 
@@ -37,11 +46,16 @@ export const DeleteDoubt = ({ doubt, refetch }: { doubt: Doubt; refetch: () => v
     return (
         <>
             <div
-                className="flex cursor-pointer items-center gap-1"
+                className={`flex cursor-pointer items-center gap-1 ${
+                    showText
+                        ? 'rounded-md p-2 text-danger-500 hover:bg-danger-50 hover:text-danger-600'
+                        : 'text-neutral-500 hover:text-danger-500'
+                }`}
                 onClick={() => setIsDialogOpen(true)}
+                data-delete-doubt
             >
-                <TrashSimple className="text-danger-500" />
-                <p className="text-body">Delete</p>
+                <Trash size={showText ? 18 : 16} />
+                {showText && <p className="text-sm font-medium">Delete</p>}
             </div>
 
             <MyDialog
@@ -50,18 +64,24 @@ export const DeleteDoubt = ({ doubt, refetch }: { doubt: Doubt; refetch: () => v
                 heading="Delete Doubt"
                 content={
                     <div className="py-4">
-                        <p>
+                        <p className="text-sm text-neutral-600">
                             Are you sure you want to delete this doubt? This action cannot be
                             undone.
                         </p>
                     </div>
                 }
                 footer={
-                    <div className="flex justify-end gap-2">
+                    <div className="flex justify-end gap-2 pt-2">
                         <MyButton buttonType="secondary" onClick={() => setIsDialogOpen(false)}>
                             Cancel
                         </MyButton>
-                        <MyButton onClick={submitReply}>Delete</MyButton>
+                        <MyButton
+                            buttonType="primary"
+                            className="bg-danger-500 text-white hover:bg-danger-600"
+                            onClick={submitReply}
+                        >
+                            Delete
+                        </MyButton>
                     </div>
                 }
             />

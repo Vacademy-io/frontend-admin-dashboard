@@ -1,7 +1,7 @@
-import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
-import { GET_SESSION_DETAILS } from "@/constants/urls";
-import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
-import { TokenKey } from "@/constants/auth/tokens";
+import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
+import { GET_SESSION_DETAILS } from '@/constants/urls';
+import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
 
 export const getSessionData = async () => {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
@@ -17,7 +17,7 @@ export const getSessionData = async () => {
 
 export const useSessionData = () => {
     return {
-        queryKey: ["GET_SESSION_DATA"],
+        queryKey: ['GET_SESSION_DATA'],
         queryFn: async () => {
             const data = await getSessionData();
             return data;

@@ -1,5 +1,5 @@
-import { SUBMIT_MARKS } from "@/constants/urls";
-import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
+import { SUBMIT_MARKS } from '@/constants/urls';
+import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 
 interface SubimtRequest {
     set_id: string;
@@ -17,10 +17,10 @@ export const submitEvlauationMarks = async (
     assessmentId: string,
     instituteId: string,
     attemptId: string,
-    data: SubimtRequest,
+    data: SubimtRequest
 ) => {
     const response = await authenticatedAxiosInstance({
-        method: "POST",
+        method: 'POST',
         url: `${SUBMIT_MARKS}`,
         params: {
             assessmentId,

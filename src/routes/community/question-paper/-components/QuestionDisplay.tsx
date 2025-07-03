@@ -1,8 +1,8 @@
-import { Question } from "./Question";
-import { useEffect, useState } from "react";
-import { getQuestionPaperById } from "../-service/utils";
-import { Question as QusetionDto } from "@/types/community/filters/questionDto";
-import { useShowAnswer } from "../-store/useShowAnswer";
+import { Question } from './Question';
+import { useEffect, useState } from 'react';
+import { getQuestionPaperById } from '../-service/utils';
+import { Question as QusetionDto } from '@/types/community/filters/questionDto';
+import { useShowAnswer } from '../-store/useShowAnswer';
 
 export function QuestionDisplay({ id }: { id: string }) {
     const [questions, setQuestions] = useState<QusetionDto[]>();
@@ -24,7 +24,7 @@ export function QuestionDisplay({ id }: { id: string }) {
             <div className="flex flex-row justify-between border-b px-8 py-4">
                 <div className="text-h3">Question Number</div>
                 <div className="cursor-pointer text-primary-500" onClick={toggleAnswer}>
-                    {showAnswer ? "Hide answer" : "Show answers"}
+                    {showAnswer ? 'Hide answer' : 'Show answers'}
                 </div>
             </div>
             <div className="my-5 ml-5 flex flex-col gap-6">

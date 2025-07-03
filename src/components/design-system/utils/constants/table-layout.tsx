@@ -54,6 +54,7 @@ export const ACTIVITY_RESPONSE_COLUMN_WIDTHS: ColumnWidthConfig = {
     startTime: 'min-w-[100px]',
     endTime: 'min-w-[100px]',
     duration: 'min-w-[100px]',
+    questionName: 'min-w-[100px]',
     response: 'min-w-[120px]',
     responseStatus: 'min-w-[140px]',
 };
@@ -65,12 +66,10 @@ export const ACTIVITY_RESPONSE_ASSIGNMENT_COLUMN_WIDTHS: ColumnWidthConfig = {
 };
 
 export const ACTIVITY_STATS_COLUMN_WIDTHS: ColumnWidthConfig = {
-    details: 'min-w-[80px] sticky left-0',
-    full_name: 'min-w-[160px] sticky left-[80px]',
-    institute_enrollment_id: 'min-w-[120px]',
-    username: 'min-w-[120px]',
+    details: 'min-w-[80px]',
+    full_name: 'min-w-[180px]',
     time_spent: 'min-w-[120px]',
-    last_active: 'min-w-[120px]',
+    last_active: 'min-w-[160px]',
 };
 
 export const ASSESSMENT_STATUS_STUDENT_ATTEMPTED_COLUMNS_INTERNAL_WIDTH: ColumnWidthConfig = {
@@ -140,4 +139,16 @@ export const QUESTION_WISE_COLUMNS_INTERNAL_OR_CLOSE_WIDTH: ColumnWidthConfig = 
 export const QUESTION_WISE_COLUMNS_EXTERNAL_WIDTH: ColumnWidthConfig = {
     full_name: 'min-w-[180px] sticky',
     response_time_in_seconds: 'min-w-[240px]',
+};
+
+export const DOUBTS_TABLE_COLUMN_WIDTHS: ColumnWidthConfig = {
+    doubt: 'min-w-[200px]',
+    status: 'min-w-[150px]',
+    learner: 'min-w-[200px]',
+    batch: 'min-w-[200px]',
+    type: 'min-w-[150px]',
+    assignedTo: 'min-w-[200px]',
+    raised: 'min-w-[200px]',
+    resolved: 'min-w-[200px]',
+    actions: 'min-w-[120px]',
 };

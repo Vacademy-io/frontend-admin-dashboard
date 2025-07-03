@@ -3,11 +3,11 @@ import {
     FilterSubjectDropdown,
     FilterDifficultiesDropdown,
     FilterTypesDropdown,
-} from "./FilterDropdown";
-import { Chip } from "./Chips";
-import { useState, useRef } from "react";
-import { useSelectedFilterStore } from "../-store/useSlectedFilterOption";
-import { useFilterStore } from "../-store/useFilterOptions";
+} from './FilterDropdown';
+import { Chip } from './Chips';
+import { useState, useRef } from 'react';
+import { useSelectedFilterStore } from '../-store/useSlectedFilterOption';
+import { useFilterStore } from '../-store/useFilterOptions';
 
 export function FiltersTab() {
     const { options } = useFilterStore();
@@ -39,13 +39,13 @@ export function FiltersTab() {
             <div
                 ref={containerRef}
                 className={`relative flex flex-wrap gap-4 pb-6 transition-all duration-300 ${
-                    expanded ? "max-h-[1000px]" : "max-h-[56px] overflow-hidden"
+                    expanded ? 'max-h-[1000px]' : 'max-h-[56px] overflow-hidden'
                 }`}
             >
                 {options?.tags?.map((tag, index) => <Chip key={index} tag={tag} />)}
                 <div className="absolute -bottom-[6px] right-0">
                     <button onClick={() => setExpanded(!expanded)} className="text-primary-500">
-                        {!expanded ? "See More" : "See Less"}
+                        {!expanded ? 'See More' : 'See Less'}
                     </button>
                 </div>
             </div>

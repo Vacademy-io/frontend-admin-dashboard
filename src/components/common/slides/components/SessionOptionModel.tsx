@@ -14,7 +14,8 @@ import { Switch } from '@/components/ui/switch'; // Using Switch for boolean opt
 export interface SessionOptions {
     can_join_in_between: boolean;
     show_results_at_last_slide: boolean;
-    allow_learner_hand_raise: boolean;
+    is_session_recorded: boolean;
+    allow_chat: boolean;
     default_seconds_for_question: number;
     student_attempts: number;
 }
@@ -35,9 +36,10 @@ export const SessionOptionsModal: React.FC<SessionOptionsModalProps> = ({
     const [options, setOptions] = useState<SessionOptions>({
         can_join_in_between: true,
         show_results_at_last_slide: true,
-        allow_learner_hand_raise: true,
         default_seconds_for_question: 60,
         student_attempts: 1,
+        is_session_recorded: false,
+        allow_chat: false,
     });
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -121,19 +123,37 @@ export const SessionOptionsModal: React.FC<SessionOptionsModalProps> = ({
 
                         <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50/50 p-3 transition-colors hover:border-orange-300/70">
                             <Label
-                                htmlFor="allow_learner_hand_raise"
+                                htmlFor="allow_chat"
                                 className="flex-1 cursor-pointer text-sm font-medium text-slate-700"
                             >
-                                Allow Learner Hand Raise
+                                Allow Learners Chat
                             </Label>
                             <Switch
-                                id="allow_learner_hand_raise"
-                                name="allow_learner_hand_raise"
-                                checked={options.allow_learner_hand_raise}
+                                id="allow_chat"
+                                name="allow_chat"
+                                checked={options.allow_chat}
                                 onCheckedChange={(checked) =>
-                                    handleSwitchChange('allow_learner_hand_raise', checked)
+                                    handleSwitchChange('allow_chat', checked)
                                 }
                                 className="data-[state=checked]:bg-orange-500"
+                            />
+                        </div>
+
+                        <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50/50 p-3 transition-colors hover:border-orange-300/70">
+                            <Label
+                                htmlFor="is_session_recorded"
+                                className="flex-1 cursor-pointer text-sm font-medium text-slate-700"
+                            >
+                                Record Presentation Audio
+                            </Label>
+                            <Switch
+                                id="is_session_recorded"
+                                name="is_session_recorded"
+                                checked={options.is_session_recorded}
+                                onCheckedChange={(checked) =>
+                                    handleSwitchChange('is_session_recorded', checked)
+                                }
+                                className="data-[state=checked]:bg-green-500"
                             />
                         </div>
                     </div>

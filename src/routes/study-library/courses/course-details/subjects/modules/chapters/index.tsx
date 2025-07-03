@@ -1,4 +1,3 @@
-// routes/study-library/$class/$subject/$module/$chapter/index.tsx
 import { LayoutContainer } from '@/components/common/layout-container/layout-container';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { ModulesWithChaptersProvider } from '@/providers/study-library/modules-with-chapters-provider';

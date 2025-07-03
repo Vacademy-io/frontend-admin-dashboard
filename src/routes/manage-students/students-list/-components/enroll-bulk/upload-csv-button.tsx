@@ -103,8 +103,10 @@ export const UploadCSVButton = ({
             include_pin_code: csvFormatDetails.pincode,
             include_father_name: csvFormatDetails.fatherName,
             include_mother_name: csvFormatDetails.motherName,
-            include_parents_mobile_number: csvFormatDetails.parentMobile,
-            include_parents_email: csvFormatDetails.parentEmail,
+            include_parents_mobile_number: csvFormatDetails.fatherMobile,
+            include_parents_email: csvFormatDetails.fatherEmail,
+            include_parents_to_mother_email: csvFormatDetails.motherEmail,
+            include_parents_to_mother_mobile: csvFormatDetails.motherMobile,
             include_linked_institute_name: csvFormatDetails.collegeName,
         },
         expiry_and_status_config: {

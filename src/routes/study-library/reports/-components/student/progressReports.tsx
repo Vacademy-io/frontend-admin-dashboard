@@ -31,7 +31,7 @@ import {
 import { useMutation } from '@tanstack/react-query';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { usePacageDetails } from '../../-store/usePacageDetails';
-import { convertMinutesToTimeFormat } from '../../-services/helper';
+import { convertMinutesToTimeFormat, formatToTwoDecimalPlaces } from '../../-services/helper';
 import { useSearch } from '@tanstack/react-router';
 import { Route } from '@/routes/study-library/reports';
 import { toast } from 'sonner';
@@ -203,8 +203,10 @@ export default function ProgressReports() {
                 subject: subject.subject_name,
                 module: module.module_name,
                 module_id: module.module_id,
-                module_completed: `${module.module_completion_percentage}%`,
-                module_completed_by_batch: `${module.module_completion_percentage}%`,
+                module_completed: `${formatToTwoDecimalPlaces(module.module_completion_percentage)}%`,
+                module_completed_by_batch: `${formatToTwoDecimalPlaces(
+                    module.module_completion_percentage
+                )}%`,
                 average_time_spent: `${convertMinutesToTimeFormat(module.avg_time_spent_minutes)}`,
                 average_time_spent_by_batch: `${convertMinutesToTimeFormat(
                     module.avg_time_spent_minutes
@@ -363,7 +365,7 @@ export default function ProgressReports() {
                     </div>
                 )}
             </form>
-            {isPending && <DashboardLoader height="10vh" />}
+            {isPending && <DashboardLoader />}
             {subjectReportData && <div className="border"></div>}
             {subjectReportData && !isPending && (
                 <div className="flex flex-col gap-10">
@@ -385,7 +387,7 @@ export default function ProgressReports() {
                                         handleExportPDF();
                                     }}
                                 >
-                                    {isExporting ? <DashboardLoader size={20} /> : 'Export'}
+                                    {isExporting ? <DashboardLoader /> : 'Export'}
                                 </MyButton>
                             </div>
                         </div>

@@ -41,6 +41,7 @@ export const SessionExcalidrawOverlay: React.FC<SessionExcalidrawOverlayProps> =
     const [files, setFiles] = useState<BinaryFiles>({});
     const [isLoading, setIsLoading] = useState<boolean>(true); // Start true to show loader initially on open
     const [isSaving, setIsSaving] = useState<boolean>(false);
+    const whiteboardStorageKey = useMemo(() => `whiteboard_${sessionId}`, [sessionId]);
 
     // Refs to store previous state for comparison in useCallback
     const elementsRef = useRef(elements);
@@ -74,13 +75,38 @@ export const SessionExcalidrawOverlay: React.FC<SessionExcalidrawOverlayProps> =
 
     useEffect(() => {
         if (isOpen) {
-            initializeFreshWhiteboard();
+            setIsLoading(true);
+            try {
+                const savedDataString = localStorage.getItem(whiteboardStorageKey);
+                if (savedDataString) {
+                    const savedData = JSON.parse(savedDataString);
+
+                    const collaboratorsMap = savedData.appState?.collaborators
+                        ? new Map(savedData.appState.collaborators)
+                        : new Map();
+
+                    setElements(savedData.elements || []);
+                    setAppState({
+                        ...DEFAULT_APP_STATE,
+                        ...(savedData.appState || {}),
+                        collaborators: collaboratorsMap,
+                    });
+                    setFiles(savedData.files || {});
+                    toast.info('Loaded saved whiteboard from your browser.');
+                } else {
+                    initializeFreshWhiteboard();
+                }
+            } catch (error) {
+                console.error('Failed to load whiteboard from localStorage:', error);
+                toast.error('Could not load saved whiteboard. Starting fresh.');
+                initializeFreshWhiteboard();
+            } finally {
+                setTimeout(() => setIsLoading(false), 100);
+            }
         } else {
-            // Optionally clear state when closed if it shouldn't persist across openings
-            // initializeFreshWhiteboard(); // Or set isLoading to true until next open
-            setIsLoading(true); // Set loading for next time it opens
+            setIsLoading(true);
         }
-    }, [isOpen, initializeFreshWhiteboard]);
+    }, [isOpen, sessionId, initializeFreshWhiteboard, whiteboardStorageKey]);
 
     const handleSlideChange = useCallback(
         (
@@ -132,32 +158,38 @@ export const SessionExcalidrawOverlay: React.FC<SessionExcalidrawOverlayProps> =
     const handleSave = async () => {
         if (!sessionId) return;
         setIsSaving(true);
-
-        const finalAppStateToSave: PartialAppState = {
-            ...appStateRef.current, // Use ref for freshest state before async op
-            collaborators:
-                appStateRef.current.collaborators instanceof Map
-                    ? appStateRef.current.collaborators
-                    : new Map<SocketId, Collaborator>(),
-        };
-
-        // console.log("Simulating save for whiteboard:", { elements: elementsRef.current, appState: finalAppStateToSave, files: filesRef.current });
-        await new Promise((resolve) => setTimeout(resolve, 700));
         try {
-            toast.success('Whiteboard changes saved (simulated)!');
+            const collaboratorsArray =
+                appStateRef.current.collaborators instanceof Map
+                    ? Array.from(appStateRef.current.collaborators.entries())
+                    : [];
+
+            const dataToSave = {
+                elements: elementsRef.current,
+                appState: {
+                    ...appStateRef.current,
+                    collaborators: collaboratorsArray,
+                },
+                files: filesRef.current,
+            };
+
+            localStorage.setItem(whiteboardStorageKey, JSON.stringify(dataToSave));
+
+            await new Promise((resolve) => setTimeout(resolve, 500));
+            toast.success('Whiteboard saved!');
         } catch (error: any) {
-            toast.error(error.message || 'Error saving whiteboard (simulated).');
+            toast.error(error.message || 'Error saving whiteboard.');
         } finally {
             setIsSaving(false);
         }
     };
 
     const handleClear = () => {
-        // This will also update the refs via their useEffects
+        localStorage.removeItem(whiteboardStorageKey);
         setElements([]);
         setAppState(DEFAULT_APP_STATE);
         setFiles({});
-        toast.info('Whiteboard cleared. Save to persist changes (simulated).');
+        toast.info('Whiteboard cleared.');
     };
 
     const slideForEditor = useMemo((): ExcalidrawSlideData => {

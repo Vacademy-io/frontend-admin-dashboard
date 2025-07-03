@@ -39,3 +39,11 @@ yarn-error.log*
 .capgo
 
 *storybook.log
+
+
+# Environment
+.env
+.env*.local
+
+# Logs
+npm-debug.log*

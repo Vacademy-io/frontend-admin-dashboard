@@ -1,6 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
-import { GET_LEARNERS_DETAILS } from "@/constants/urls";
-import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
+import { useQuery } from '@tanstack/react-query';
+import { GET_LEARNERS_DETAILS } from '@/constants/urls';
+import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 
 // Define the response type
 interface User {
@@ -14,11 +14,11 @@ export type UserResponse = User[];
 // Fetch function using Axios
 const fetchLearnerDetails = async (
     packageSessionId: string,
-    instituteId: string,
+    instituteId: string
 ): Promise<UserResponse> => {
     const response = await authenticatedAxiosInstance.get(GET_LEARNERS_DETAILS, {
         params: { packageSessionId, instituteId },
-        headers: { accept: "*/*" },
+        headers: { accept: '*/*' },
     });
     return response.data;
 };
@@ -26,7 +26,7 @@ const fetchLearnerDetails = async (
 // Custom hook using React Query
 export const useLearnerDetails = (packageSessionId: string, instituteId: string) => {
     return useQuery({
-        queryKey: ["learnerDetails", packageSessionId, instituteId],
+        queryKey: ['learnerDetails', packageSessionId, instituteId],
         queryFn: () => fetchLearnerDetails(packageSessionId, instituteId),
         enabled: !!packageSessionId && !!instituteId, // Only run if params are valid
     });

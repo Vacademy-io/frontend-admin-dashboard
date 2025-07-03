@@ -1,12 +1,12 @@
-import { ADD_QUESTIONS_URL, CREATE_ASSESSMENT_URL, GET_ASSESSMENT_URL } from "@/constants/urls";
-import { ConvertedCustomField, CustomFields } from "@/types/assessments/assessment-data-type";
-import { z } from "zod";
-import { BasicInfoFormSchema } from "../-utils/basic-info-form-schema";
-import sectionDetailsSchema from "../-utils/section-details-sechma";
-import { classifySections, convertStep2Data } from "../-utils/helper";
-import { ApiResponse, SectionResponse } from "../-hooks/getQuestionsDataForSection";
-import axios from "axios";
-import { toast } from "sonner";
+import { ADD_QUESTIONS_URL, CREATE_ASSESSMENT_URL, GET_ASSESSMENT_URL } from '@/constants/urls';
+import { ConvertedCustomField, CustomFields } from '@/types/assessments/assessment-data-type';
+import { z } from 'zod';
+import { BasicInfoFormSchema } from '../-utils/basic-info-form-schema';
+import sectionDetailsSchema from '../-utils/section-details-sechma';
+import { classifySections, convertStep2Data } from '../-utils/helper';
+import { ApiResponse, SectionResponse } from '../-hooks/getQuestionsDataForSection';
+import axios from 'axios';
+import { toast } from 'sonner';
 
 export const getAssessmentDetailsData = async ({
     assessmentId,
@@ -14,7 +14,7 @@ export const getAssessmentDetailsData = async ({
     assessmentId: string | null | undefined;
 }): Promise<ApiResponse> => {
     const response = await axios({
-        method: "GET",
+        method: 'GET',
         url: `${GET_ASSESSMENT_URL}/${assessmentId}`,
     });
     return response?.data as ApiResponse;
@@ -26,7 +26,7 @@ export const getAssessmentDetails = ({
     assessmentId: string | null | undefined;
 }) => {
     return {
-        queryKey: ["GET_ASSESSMENT_DETAILS", assessmentId],
+        queryKey: ['GET_ASSESSMENT_DETAILS', assessmentId],
         queryFn: () => getAssessmentDetailsData({ assessmentId }),
         staleTime: 60 * 60 * 1000,
         enabled: !!assessmentId,
@@ -42,7 +42,7 @@ export const handleUpdateCriteria = async ({
 }) => {
     try {
         const response = await axios({
-            method: "POST",
+            method: 'POST',
             url: ADD_QUESTIONS_URL,
             params: {
                 assessmentId,
@@ -50,11 +50,11 @@ export const handleUpdateCriteria = async ({
             data: sectionDetails,
         });
         if (response.status === 200) {
-            toast.success("Criteria has been updated");
+            toast.success('Criteria has been updated');
         }
         return response.data;
     } catch (error) {
-        console.log("Error updating criteria", error);
+        console.log('Error updating criteria', error);
         throw error;
     }
 };
@@ -82,7 +82,7 @@ export const handlePostStep1Data = async (data: z.infer<typeof BasicInfoFormSche
         raise_time_increase_request: data.raiseTimeIncreaseRequest,
     };
     const response = await axios({
-        method: "POST",
+        method: 'POST',
         url: CREATE_ASSESSMENT_URL,
         data: transformedData,
         params: {},
@@ -93,7 +93,7 @@ export const handlePostStep1Data = async (data: z.infer<typeof BasicInfoFormSche
 export const handlePostStep2Data = async (
     oldData: z.infer<typeof sectionDetailsSchema>,
     data: z.infer<typeof sectionDetailsSchema>,
-    assessmentId: string | null,
+    assessmentId: string | null
 ) => {
     const convertedOldData = convertStep2Data(oldData);
     const convertedNewData = convertStep2Data(data);
@@ -105,7 +105,7 @@ export const handlePostStep2Data = async (
         deleted_sections: classifiedSections.deleted_sections,
     };
     const response = await axios({
-        method: "POST",
+        method: 'POST',
         url: ADD_QUESTIONS_URL,
         data: convertedData,
         params: {
@@ -124,13 +124,13 @@ export const convertCustomFields = (customFields: CustomFields): ConvertedCustom
             id: field.id,
             name: field.name,
             type: field.type,
-            default_value: "", // Provide a default value, if necessary
-            description: "", // Provide a description, if necessary
+            default_value: '', // Provide a default value, if necessary
+            description: '', // Provide a description, if necessary
             is_mandatory: field.isRequired,
-            key: field.key ?? "", // Use the ID as the key
+            key: field.key ?? '', // Use the ID as the key
             comma_separated_options: field.options
-                ? field.options.map((opt) => opt.value).join(",")
-                : "", // Join options for dropdowns
+                ? field.options.map((opt) => opt.value).join(',')
+                : '', // Join options for dropdowns
         };
     });
     return convertedFields;

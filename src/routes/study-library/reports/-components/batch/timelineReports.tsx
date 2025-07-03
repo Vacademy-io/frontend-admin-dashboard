@@ -1,21 +1,21 @@
-import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-import { useState, useEffect, useRef } from "react";
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { useState, useEffect, useRef } from 'react';
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select";
-import { LevelType } from "@/schemas/student/student-list/institute-schema";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { MyButton } from "@/components/design-system/button";
-import { LineChartComponent } from "./lineChart";
-import { MyTable } from "@/components/design-system/table";
-import { useMutation } from "@tanstack/react-query";
-import { fetchBatchReport, fetchLeaderboardData, exportBatchReport } from "../../-services/utils";
+} from '@/components/ui/select';
+import { LevelType } from '@/schemas/student/student-list/institute-schema';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { MyButton } from '@/components/design-system/button';
+import { LineChartComponent } from './lineChart';
+import { MyTable } from '@/components/design-system/table';
+import { useMutation } from '@tanstack/react-query';
+import { fetchBatchReport, fetchLeaderboardData, exportBatchReport } from '../../-services/utils';
 import {
     DailyLearnerTimeSpent,
     BatchReportResponse,
@@ -24,21 +24,21 @@ import {
     leaderBoardColumns,
     LEADERBOARD_WIDTH,
     LeaderBoardColumnType,
-} from "../../-types/types";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import dayjs from "dayjs";
-import { MyPagination } from "@/components/design-system/pagination";
-import { formatToTwoDecimalPlaces, convertMinutesToTimeFormat } from "../../-services/helper";
-import { usePacageDetails } from "../../-store/usePacageDetails";
-import { toast } from "sonner";
+} from '../../-types/types';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import dayjs from 'dayjs';
+import { MyPagination } from '@/components/design-system/pagination';
+import { formatToTwoDecimalPlaces, convertMinutesToTimeFormat } from '../../-services/helper';
+import { usePacageDetails } from '../../-store/usePacageDetails';
+import { toast } from 'sonner';
 
 const formSchema = z
     .object({
-        course: z.string().min(1, "Course is required"),
-        session: z.string().min(1, "Session is required"),
-        level: z.string().min(1, "Level is required"),
-        startDate: z.string().min(1, "Start Date is required"),
-        endDate: z.string().min(1, "End Date is required"),
+        course: z.string().min(1, 'Course is required'),
+        session: z.string().min(1, 'Session is required'),
+        level: z.string().min(1, 'Level is required'),
+        startDate: z.string().min(1, 'Start Date is required'),
+        endDate: z.string().min(1, 'End Date is required'),
     })
     .refine(
         (data) => {
@@ -49,9 +49,9 @@ const formSchema = z
         },
         {
             message:
-                "The difference between Start Date and End Date should be less than one month.",
-            path: ["startDate"],
-        },
+                'The difference between Start Date and End Date should be less than one month.',
+            path: ['startDate'],
+        }
     );
 
 type FormValues = z.infer<typeof formSchema>;
@@ -95,49 +95,49 @@ export default function TimelineReports() {
     } = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            course: "",
-            session: "",
-            level: "",
-            startDate: "",
-            endDate: "",
+            course: '',
+            session: '',
+            level: '',
+            startDate: '',
+            endDate: '',
         },
     });
 
-    const selectedCourse = watch("course");
-    const selectedSession = watch("session");
-    const selectedLevel = watch("level");
-    const startDate = watch("startDate");
-    const endDate = watch("endDate");
+    const selectedCourse = watch('course');
+    const selectedSession = watch('session');
+    const selectedLevel = watch('level');
+    const startDate = watch('startDate');
+    const endDate = watch('endDate');
 
     useEffect(() => {
         if (selectedCourse) {
             setSessionList(getSessionFromPackage({ courseId: selectedCourse }));
-            setValue("session", "");
+            setValue('session', '');
         } else {
             setSessionList([]);
         }
     }, [selectedCourse]);
 
     useEffect(() => {
-        if (selectedSession === "") {
-            setValue("level", "");
+        if (selectedSession === '') {
+            setValue('level', '');
             setLevelList([]);
         } else if (selectedCourse && selectedSession) {
             setLevelList(
-                getLevelsFromPackage2({ courseId: selectedCourse, sessionId: selectedSession }),
+                getLevelsFromPackage2({ courseId: selectedCourse, sessionId: selectedSession })
             );
         }
     }, [selectedSession]);
     useEffect(() => {
-        if (sessionList?.length === 1 && sessionList[0]?.id === "DEFAULT") {
-            setValue("session", "DEFAULT");
-            setValue("level", "DEFAULT");
+        if (sessionList?.length === 1 && sessionList[0]?.id === 'DEFAULT') {
+            setValue('session', 'DEFAULT');
+            setValue('level', 'DEFAULT');
             setDefaultSessionLevels(true);
         } else {
             setDefaultSessionLevels(false);
-            setValue("session", "select level");
+            setValue('session', 'select level');
             selectRef.current = null;
-            setValue("level", "select level");
+            setValue('level', 'select level');
         }
     }, [sessionList]);
 
@@ -158,10 +158,10 @@ export default function TimelineReports() {
                     setLoading(false);
                 },
                 onError: (error) => {
-                    console.error("Error:", error);
+                    console.error('Error:', error);
                     setLoading(false);
                 },
-            },
+            }
         );
     }, [currPage]);
 
@@ -175,19 +175,19 @@ export default function TimelineReports() {
                         courseId: selectedCourse,
                         sessionId: selectedSession,
                         levelId: selectedLevel,
-                    }) || "",
-                userId: "",
+                    }) || '',
+                userId: '',
             }),
         onSuccess: async (response) => {
             const url = window.URL.createObjectURL(new Blob([response]));
-            const link = document.createElement("a");
+            const link = document.createElement('a');
             link.href = url;
-            link.setAttribute("download", `batch_report.pdf`);
+            link.setAttribute('download', `batch_report.pdf`);
             document.body.appendChild(link);
             link.click();
             link.remove();
             window.URL.revokeObjectURL(url);
-            toast.success("Batch Report PDF exported successfully");
+            toast.success('Batch Report PDF exported successfully');
         },
         onError: (error: unknown) => {
             throw error;
@@ -210,7 +210,7 @@ export default function TimelineReports() {
                         courseId: data.course,
                         sessionId: data.session,
                         levelId: data.level,
-                    }) || "",
+                    }) || '',
             },
             {
                 onSuccess: (data) => {
@@ -218,10 +218,10 @@ export default function TimelineReports() {
                     setLoading(false);
                 },
                 onError: (error) => {
-                    console.error("Error:", error);
+                    console.error('Error:', error);
                     setLoading(false);
                 },
-            },
+            }
         );
         leaderboardMutation.mutate(
             {
@@ -233,7 +233,7 @@ export default function TimelineReports() {
                             courseId: data.course,
                             sessionId: data.session,
                             levelId: data.level,
-                        }) || "",
+                        }) || '',
                 },
                 param: {
                     pageNo: currPage,
@@ -247,17 +247,17 @@ export default function TimelineReports() {
                     setLoading(false);
                 },
                 onError: (error) => {
-                    console.error("Error:", error);
+                    console.error('Error:', error);
                     setLoading(false);
                 },
-            },
+            }
         );
         setPacageSessionId(
             getPackageSessionId({
                 courseId: data.course,
                 sessionId: data.session,
                 levelId: data.level,
-            }) || "",
+            }) || ''
         );
         // api call
     };
@@ -266,7 +266,7 @@ export default function TimelineReports() {
         if (!data) return []; // Return an empty array if data is undefined
 
         return data.map((item) => ({
-            date: dayjs(item.activity_date).format("DD/MM/YYYY"),
+            date: dayjs(item.activity_date).format('DD/MM/YYYY'),
             timeSpent: convertMinutesToTimeFormat(item.avg_daily_time_minutes),
         }));
     };
@@ -325,9 +325,9 @@ export default function TimelineReports() {
                         </div>
                         <Select
                             onValueChange={(value) => {
-                                setValue("course", value);
+                                setValue('course', value);
                             }}
-                            {...register("course")}
+                            {...register('course')}
                             defaultValue=""
                         >
                             <SelectTrigger className="h-[40px] w-[320px]">
@@ -351,7 +351,7 @@ export default function TimelineReports() {
                             <Select
                                 // value={watch("session") === "" ? null : watch("session")}
                                 onValueChange={(value) => {
-                                    setValue("session", value);
+                                    setValue('session', value);
                                 }}
                                 defaultValue=""
                                 value={selectedSession}
@@ -378,7 +378,7 @@ export default function TimelineReports() {
                             </div>
                             <Select
                                 onValueChange={(value) => {
-                                    setValue("level", value);
+                                    setValue('level', value);
                                 }}
                                 defaultValue=""
                                 value={selectedLevel}
@@ -407,7 +407,7 @@ export default function TimelineReports() {
                         <input
                             className="h-[40px] w-[320px] rounded-md border px-3 py-[10px]"
                             type="date"
-                            {...register("startDate")}
+                            {...register('startDate')}
                         />
                     </div>
                     <div>
@@ -417,7 +417,7 @@ export default function TimelineReports() {
                         <input
                             className="h-[40px] w-[320px] rounded-md border px-3 py-[10px]"
                             type="date"
-                            {...register("endDate")}
+                            {...register('endDate')}
                         />
                     </div>
                     <div>
@@ -437,7 +437,7 @@ export default function TimelineReports() {
                     </div>
                 )}
             </form>
-            {loading && <DashboardLoader height="10vh" />}
+            {loading && <DashboardLoader />}
             {reportData && !loading && <div className="border"></div>}
             {reportData && !loading && (
                 <div className="flex flex-col gap-10">
@@ -454,14 +454,14 @@ export default function TimelineReports() {
                                 handleExportPDF();
                             }}
                         >
-                            {isExporting ? <DashboardLoader size={20} /> : "Export"}
+                            {isExporting ? <DashboardLoader /> : 'Export'}
                         </MyButton>
                     </div>
                     <div className="flex flex-row items-center justify-between">
                         <div className="flex flex-col items-center justify-center">
                             <div className="text-h3 font-[600]">Course Completed by batch</div>
                             <div>{`${formatToTwoDecimalPlaces(
-                                reportData?.percentage_course_completed,
+                                reportData?.percentage_course_completed
                             )} %`}</div>
                         </div>
                         <div className="flex flex-col items-center justify-center">
@@ -477,7 +477,7 @@ export default function TimelineReports() {
                                 Concentration score of batch (Avg)
                             </div>
                             <div>{`${formatToTwoDecimalPlaces(
-                                reportData?.percentage_concentration_score || 0,
+                                reportData?.percentage_concentration_score || 0
                             )} %`}</div>
                         </div>
                     </div>

@@ -8,6 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { Presentation } from "../types";
 import { getPublicUrl } from "@/services/upload_file";
+import { SlideTypeEnum } from "../utils/types";
 
 export const fetchPresentation = async (presentationId: string, setSlides: any, setCurrentSlideId: any) => {
 
@@ -31,25 +32,61 @@ export const fetchPresentation = async (presentationId: string, setSlides: any, 
 
         const slidesData = [];
 
-        // 2. Loop over slides and fetch each slide's content using S3
+        // 2. Loop over slides and fetch each slide's content
         for (const slide of sortedSlides) {
             try {
+                if (slide.source === 'question' && slide.added_question) {
+                    const questionData = slide.added_question;
+                    const slideType = (questionData.question_type === 'MCQS' || questionData.question_type === 'MCQM')
+                        ? SlideTypeEnum.Quiz
+                        : SlideTypeEnum.Feedback;
+
+                    const slideContent = {
+                        id: slide.id,
+                        slide_order: slide.slide_order,
+                        type: slideType,
+                        questionId: questionData.id,
+                        elements: {
+                            questionName: questionData.text?.content || '',
+                            singleChoiceOptions: (questionData.options || []).map((opt: any) => ({
+                                id: opt.id, // Use the permanent DB ID for the option
+                                name: opt.text?.content || '',
+                                isSelected: false,
+                            })),
+                            feedbackAnswer: '',
+                            timeLimit: questionData.default_question_time_mins * 60 || 60,
+                        },
+                    };
+                    slidesData.push(slideContent);
+                } else {
+                    // Fallback to S3 for Excalidraw or other slide types
                 const fileId = slide.content;
                 const publicUrl = await getPublicUrl(fileId);
 
                 const s3Response = await axios.get(publicUrl, {
-                    responseType: "json",
-                    headers: { "Cache-Control": "no-cache" }
+                        responseType: 'json',
+                        headers: { 'Cache-Control': 'no-cache' },
                 });
 
-                const slideContent = {
-                    ...s3Response.data,
-                    id: slide.id // Inject original slide ID
-                };
+                    let slideDataFromS3 = s3Response.data || {};
+
+                    const slideContent = {
+                        elements: [],
+                        appState: {},
+                        files: null,
+                        ...slideDataFromS3,
+                        id: slide.id,
+                        slide_order: slide.slide_order,
+                        type: slideDataFromS3.type || SlideTypeEnum.Excalidraw,
+                    };
+
+                    if (!Array.isArray(slideContent.elements)) slideContent.elements = [];
+                    if (typeof slideContent.appState !== 'object' || slideContent.appState === null) slideContent.appState = {};
 
                 slidesData.push(slideContent);
+                }
             } catch (innerErr) {
-                console.error(`Error fetching slide content for slide ID ${slide.id}:`, innerErr);
+                console.error(`Error processing slide content for slide ID ${slide.id}:`, innerErr);
             }
         }
 

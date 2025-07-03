@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { OnboardingComponent } from "./-components/OnboardingComponent";
-import { z } from "zod";
+import { createFileRoute } from '@tanstack/react-router';
+import { OnboardingComponent } from './-components/OnboardingComponent';
+import { z } from 'zod';
 
 export interface OrganizationOnboardingSidebarProps {
     steps: string[];
@@ -16,11 +16,12 @@ export interface OrganizationOnboardingProps {
 }
 
 export const onboardingParamsSchema = z.object({
-    assess: z.boolean(),
-    lms: z.boolean(),
+    assess: z.coerce.boolean().optional(),
+    lms: z.coerce.boolean().optional(),
+    signupData: z.string().optional(),
 });
 
-export const Route = createFileRoute("/signup/onboarding/")({
+export const Route = createFileRoute('/signup/onboarding/')({
     validateSearch: onboardingParamsSchema,
     component: OnboardingComponent,
 });

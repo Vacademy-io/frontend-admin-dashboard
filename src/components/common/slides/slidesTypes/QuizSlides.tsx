@@ -1,6 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import {
     Form,
@@ -14,6 +14,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useSlideStore } from '@/stores/Slides/useSlideStore'; // Adjust path
+import debounce from 'lodash.debounce'; // Import debounce
+import { Button } from '@/components/ui/button';
+import { Plus, Trash2, MessageCircle, CheckCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
 // Assuming QuestionFormData and SlideTypeEnum are from your types file
 import type { QuestionFormData } from '@/components/common/slides/utils/types'; // Import QuestionFormData as type
@@ -36,6 +40,8 @@ export const QuizSlide: React.FC<QuizSlideProps> = ({
 }) => {
     const { updateQuizFeedbackSlide } = useSlideStore();
 
+    // console.log(`[QuizSlide] ID: ${currentSlideId}, PresentationMode: ${isPresentationMode}, Received formdata:`, JSON.parse(JSON.stringify(formdata)));
+
     const form = useForm<QuestionFormData>({
         defaultValues: formdata || {
             questionName: '',
@@ -57,15 +63,30 @@ export const QuizSlide: React.FC<QuizSlideProps> = ({
 
     // Using watch() on the entire form could be expensive.
     // It's better to use useEffect with specific field watches or a debounced submit.
-    // For simplicity, this approach is kept but can be optimized.
     const watchedFormValues = watch();
 
+    // Debounce the function that updates the Zustand store
+    const debouncedUpdateStore = useMemo(
+        () =>
+            debounce((data: QuestionFormData) => {
+                if (!isPresentationMode) {
+                    // console.log("QuizSlide: Debounced update to store for slide", currentSlideId, data);
+                    updateQuizFeedbackSlide(currentSlideId, data);
+                }
+            }, 500), // 500ms delay, adjust as needed
+        [currentSlideId, isPresentationMode, updateQuizFeedbackSlide]
+    );
+
     useEffect(() => {
-        if (!isPresentationMode) {
-            // console.log("QuizSlide: Form values changed, updating store for slide", currentSlideId, watchedFormValues);
-            updateQuizFeedbackSlide(currentSlideId, watchedFormValues);
-        }
-    }, [watchedFormValues, currentSlideId, isPresentationMode, updateQuizFeedbackSlide]);
+        // Call the debounced function when form values change
+        debouncedUpdateStore(watchedFormValues);
+
+        // Cleanup function to cancel any pending debounced calls if the component unmounts
+        // or if the dependencies of debouncedUpdateStore change.
+        return () => {
+            debouncedUpdateStore.cancel();
+        };
+    }, [watchedFormValues, debouncedUpdateStore]);
 
     const handleOptionSelectionChange = (optionIndex: number) => {
         if (isPresentationMode) return;
@@ -84,41 +105,95 @@ export const QuizSlide: React.FC<QuizSlideProps> = ({
         });
     };
 
+    const handleAddOption = () => {
+        const currentOptions = getValues('singleChoiceOptions') || [];
+        if (currentOptions.length >= 5) {
+            toast.info('You can add a maximum of 5 options.');
+            return;
+        }
+        const newOption = {
+            id: `temp-opt-${Date.now()}`,
+            name: '',
+            isSelected: false,
+        };
+        setValue('singleChoiceOptions', [...currentOptions, newOption], {
+            shouldDirty: true,
+            shouldValidate: true,
+        });
+    };
+
+    const handleRemoveOption = (indexToRemove: number) => {
+        const currentOptions = getValues('singleChoiceOptions') || [];
+        if (currentOptions.length <= 2) {
+            toast.info('You need at least 2 options for a quiz.');
+            return;
+        }
+        const updatedOptions = currentOptions.filter((_, index) => index !== indexToRemove);
+        setValue('singleChoiceOptions', updatedOptions, {
+            shouldDirty: true,
+            shouldValidate: true,
+        });
+    };
+
     if (isPresentationMode) {
         const displayData = formdata || {};
+        // console.log(`[QuizSlide] Presentation Mode - ID: ${currentSlideId}, DisplayData:`, JSON.parse(JSON.stringify(displayData)));
+
         return (
             <div
-                className={`flex h-full w-full flex-col items-center justify-center overflow-hidden p-4 text-slate-800 sm:p-6 md:p-8 ${className}`}
+                className={`flex h-full w-full flex-col items-center justify-center overflow-hidden relative ${className}`}
                 style={{ boxSizing: 'border-box' }}
             >
-                <ScrollArea className="h-full w-full">
-                    <div className="px-2 py-4 text-center">
+                {/* Enhanced background with gradient and animated elements */}
+                <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-blue-50/30 pointer-events-none" />
+                <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl animate-pulse" />
+                <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+                
+                <ScrollArea className="h-full w-full relative z-10">
+                    <div className="px-4 py-4 sm:px-6 md:px-8 lg:px-12 text-center">
                         {displayData?.questionName && (
-                            <h2
-                                className="mb-6 text-2xl font-bold leading-tight sm:mb-8 sm:text-3xl md:text-4xl"
+                            <div className="mb-6 lg:mb-8">
+                                <div className="inline-flex items-center gap-2 mb-4 px-3 py-1.5 bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200/50 shadow-lg">
+                                    {questionType === SlideTypeEnum.Quiz ? (
+                                        <CheckCircle className="text-blue-500" size={20} />
+                                    ) : (
+                                        <MessageCircle className="text-purple-500" size={20} />
+                                    )}
+                                    <span className="text-xs font-semibold text-slate-600 tracking-wide">
+                                        {questionType === SlideTypeEnum.Quiz ? 'Interactive Quiz' : 'Feedback Poll'}
+                                    </span>
+                                </div>
+                                <h2
+                                    className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold leading-tight bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 bg-clip-text text-transparent"
                                 dangerouslySetInnerHTML={{ __html: displayData.questionName }}
                             />
+                            </div>
                         )}
-                        {/* ... (rest of presentation mode JSX from your original code, ensure 'SlideType' is SlideTypeEnum) ... */}
+                        
                         {questionType === SlideTypeEnum.Quiz &&
                             displayData?.singleChoiceOptions &&
                             Array.isArray(displayData.singleChoiceOptions) && (
-                                <div className="mx-auto w-full max-w-2xl space-y-3 sm:space-y-4">
+                                <div className="mx-auto w-full max-w-4xl space-y-3 lg:space-y-4">
                                     {displayData.singleChoiceOptions.map(
                                         (option: any, index: number) => (
                                             <div
                                                 key={option.id || `option-${index}`}
-                                                className="group rounded-xl border border-slate-300 bg-slate-50 p-4 text-left text-base transition-all duration-150 ease-in-out hover:border-orange-400 hover:bg-slate-100 sm:text-lg"
+                                                className="group relative rounded-xl lg:rounded-2xl border border-slate-200/50 bg-white/80 backdrop-blur-sm p-3 lg:p-4 text-left shadow-lg hover:shadow-xl transition-all duration-300 ease-out hover:scale-[1.02] hover:border-blue-300/50 cursor-pointer"
                                             >
-                                                <span className="mr-3 font-semibold text-orange-600">
-                                                    {String.fromCharCode(65 + index)}.
+                                                {/* Subtle gradient overlay */}
+                                                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-transparent to-purple-500/5 rounded-xl lg:rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                                
+                                                <div className="relative flex items-center">
+                                                    <span className="mr-3 lg:mr-4 flex-shrink-0 flex items-center justify-center w-7 h-7 lg:w-8 lg:h-8 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-bold text-sm lg:text-base rounded-full shadow-lg group-hover:scale-110 transition-transform duration-200">
+                                                        {String.fromCharCode(65 + index)}
                                                 </span>
                                                 <span
+                                                        className="text-sm lg:text-lg font-medium text-slate-700 group-hover:text-slate-800 transition-colors duration-200"
                                                     dangerouslySetInnerHTML={{
-                                                        __html:
-                                                            option.name || 'Option text missing',
+                                                            __html: option.name || 'Option text missing',
                                                     }}
                                                 />
+                                                </div>
                                             </div>
                                         )
                                     )}
@@ -126,35 +201,51 @@ export const QuizSlide: React.FC<QuizSlideProps> = ({
                             )}
 
                         {questionType === SlideTypeEnum.Feedback && (
-                            <div className="mx-auto mt-6 w-full max-w-2xl">
-                                <p className="mb-4 text-lg italic text-slate-500 sm:text-xl">
+                            <div className="mx-auto mt-6 lg:mt-8 w-full max-w-4xl">
+                                <div className="mb-4 inline-flex items-center gap-2 px-3 py-1.5 bg-purple-100/80 backdrop-blur-sm rounded-lg border border-purple-200/50">
+                                    <MessageCircle className="text-purple-600" size={18} />
+                                    <p className="text-base font-semibold text-purple-700">
                                     Your feedback is valuable!
                                 </p>
-                                {displayData?.feedbackAnswer /* Assuming feedbackAnswer is where collected data is stored */ ? (
-                                    <div className="rounded-lg border bg-blue-50 p-4 text-left shadow-sm">
+                                </div>
+                                {displayData?.feedbackAnswer ? (
+                                    <div className="rounded-xl lg:rounded-2xl border border-purple-200/50 bg-white/90 backdrop-blur-sm p-4 lg:p-6 text-left shadow-xl">
                                         <p
-                                            className="text-base sm:text-lg"
+                                            className="text-sm lg:text-base text-slate-700 leading-relaxed"
                                             dangerouslySetInnerHTML={{
                                                 __html: displayData.feedbackAnswer,
                                             }}
                                         />
                                     </div>
                                 ) : (
-                                    <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
-                                        <p className="text-sm text-slate-400">(Feedback area)</p>
+                                    <div className="rounded-xl lg:rounded-2xl border-2 border-dashed border-purple-300/50 bg-white/60 backdrop-blur-sm p-8 lg:p-12 text-center shadow-lg">
+                                        <MessageCircle className="mx-auto mb-3 text-purple-400" size={40} />
+                                        <p className="text-xs lg:text-sm text-purple-400 font-medium">
+                                            Feedback area - participants can share their thoughts here
+                                        </p>
                                     </div>
                                 )}
                             </div>
                         )}
+                        
                         {!(
                             displayData?.questionName ||
                             (questionType === SlideTypeEnum.Quiz &&
                                 displayData?.singleChoiceOptions?.length > 0) ||
                             (questionType === SlideTypeEnum.Feedback && displayData?.feedbackAnswer)
                         ) && (
-                            <p className="mt-8 italic text-slate-400">
-                                This slide is awaiting content.
+                            <div className="mt-8 lg:mt-12">
+                                <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200/50 shadow-lg">
+                                    {questionType === SlideTypeEnum.Quiz ? (
+                                        <CheckCircle className="text-slate-400" size={20} />
+                                    ) : (
+                                        <MessageCircle className="text-slate-400" size={20} />
+                                    )}
+                                    <p className="text-slate-500 font-medium text-sm">
+                                        This slide is awaiting content
                             </p>
+                                </div>
+                            </div>
                         )}
                     </div>
                 </ScrollArea>
@@ -162,15 +253,27 @@ export const QuizSlide: React.FC<QuizSlideProps> = ({
         );
     }
 
-    // Editor Mode
+    // Editor Mode with enhanced styling
     const currentOptions = watch('singleChoiceOptions') || [];
 
     return (
-        <ScrollArea className="h-full w-full">
+        <div className="h-full w-full relative overflow-hidden">
+            {/* Enhanced background for editor mode */}
+            <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-blue-50/20 pointer-events-none" />
+            <div className="absolute top-0 right-1/4 w-64 h-64 bg-blue-500/3 rounded-full blur-2xl" />
+            <div className="absolute bottom-0 left-1/4 w-64 h-64 bg-purple-500/3 rounded-full blur-2xl" />
+            
+            <ScrollArea className="h-full w-full relative z-10">
             <Form {...form}>
-                <form className={`space-y-6 bg-white p-4 sm:p-6 ${className}`}>
-                    <div>
-                        <FormLabel className="mb-1.5 block text-sm font-medium text-slate-700">
+                    <form className={`space-y-8 p-6 lg:p-8 ${className}`}>
+                        {/* Enhanced question section */}
+                        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200/50 p-6 shadow-lg">
+                            <FormLabel className="mb-4 flex items-center gap-3 text-lg font-semibold text-slate-700">
+                                {questionType === SlideTypeEnum.Quiz ? (
+                                    <CheckCircle className="text-blue-500" size={24} />
+                                ) : (
+                                    <MessageCircle className="text-purple-500" size={24} />
+                                )}
                             Question Title/Prompt
                         </FormLabel>
                         <FormField
@@ -179,11 +282,13 @@ export const QuizSlide: React.FC<QuizSlideProps> = ({
                             render={({ field }) => (
                                 <FormItem className="w-full">
                                     <FormControl>
+                                            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                                         <MainViewQuillEditor
                                             value={field.value || ''}
                                             onChange={field.onChange}
                                             placeholder="Type your question or prompt here..."
                                         />
+                                            </div>
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -192,18 +297,28 @@ export const QuizSlide: React.FC<QuizSlideProps> = ({
                     </div>
 
                     {questionType === SlideTypeEnum.Quiz && (
-                        <div className="space-y-4">
-                            <FormLabel className="mb-1.5 block text-sm font-medium text-slate-700">
+                            <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200/50 p-6 shadow-lg space-y-6">
+                                <FormLabel className="mb-4 flex items-center gap-3 text-lg font-semibold text-slate-700">
+                                    <CheckCircle className="text-blue-500" size={24} />
                                 Answer Options (Mark the correct one)
                             </FormLabel>
                             {Array.isArray(currentOptions) &&
                                 currentOptions.map((option: any, idx: number) => (
                                     <div
                                         key={option?.id || `edit-option-${idx}`}
-                                        className={`flex items-start gap-3 rounded-lg border p-3 transition-colors
-                                        ${option?.isSelected ? 'border-orange-400 bg-orange-50/50 shadow-sm' : 'border-slate-200 bg-slate-50/30 hover:border-slate-300'}`}
+                                            className={`relative group rounded-xl border-2 p-4 transition-all duration-300 ease-out
+                                            ${option?.isSelected 
+                                                ? 'border-blue-400 bg-blue-50/50 shadow-lg shadow-blue-500/10' 
+                                                : 'border-slate-200 bg-white/50 hover:border-slate-300 hover:shadow-md'
+                                            }`}
                                     >
-                                        <div className="flex items-center pt-1">
+                                            {/* Gradient overlay for selected option */}
+                                            {option?.isSelected && (
+                                                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-transparent to-blue-500/5 rounded-xl" />
+                                            )}
+                                            
+                                            <div className="relative flex items-start gap-4">
+                                                <div className="flex items-center pt-2">
                                             <FormField
                                                 control={control}
                                                 name={`singleChoiceOptions.${idx}.isSelected`}
@@ -215,14 +330,14 @@ export const QuizSlide: React.FC<QuizSlideProps> = ({
                                                                 onCheckedChange={() =>
                                                                     handleOptionSelectionChange(idx)
                                                                 }
-                                                                className={`size-5 rounded border-slate-400 focus-visible:ring-orange-400 data-[state=checked]:border-orange-500 data-[state=checked]:bg-orange-500`}
+                                                                        className="size-5 rounded-md border-2 border-slate-400 focus-visible:ring-blue-400 data-[state=checked]:border-blue-500 data-[state=checked]:bg-blue-500 transition-all duration-200"
                                                             />
                                                         </FormControl>
                                                     </FormItem>
                                                 )}
                                             />
-                                            <span className="ml-3 text-sm font-medium text-slate-600">
-                                                {String.fromCharCode(65 + idx)}.
+                                                    <span className="ml-3 flex items-center justify-center w-7 h-7 bg-gradient-to-r from-slate-600 to-slate-700 text-white text-sm font-bold rounded-full shadow-sm">
+                                                        {String.fromCharCode(65 + idx)}
                                             </span>
                                         </div>
                                         <FormField
@@ -231,41 +346,63 @@ export const QuizSlide: React.FC<QuizSlideProps> = ({
                                             render={({ field }) => (
                                                 <FormItem className="flex-1">
                                                     <FormControl>
+                                                                <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
                                                         <MainViewQuillEditor
                                                             value={field.value || ''}
                                                             onChange={field.onChange}
                                                             placeholder={`Option ${String.fromCharCode(65 + idx)} content`}
                                                             className="text-sm"
                                                         />
+                                                                </div>
                                                     </FormControl>
                                                     <FormMessage />
                                                 </FormItem>
                                             )}
                                         />
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="icon"
+                                                    className="mt-2 shrink-0 h-8 w-8 rounded-lg text-slate-400 hover:bg-red-100 hover:text-red-500 transition-all duration-200 hover:scale-105"
+                                            onClick={() => handleRemoveOption(idx)}
+                                            title="Remove Option"
+                                        >
+                                            <Trash2 size={16} />
+                                        </Button>
+                                            </div>
                                     </div>
                                 ))}
-                            {/* Consider adding a button here to "Add Option" if not handled elsewhere */}
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                    className="w-full border-2 border-dashed border-blue-300 hover:border-blue-400 bg-white/50 hover:bg-blue-50/50 text-blue-600 hover:text-blue-700 font-semibold py-3 rounded-xl transition-all duration-200 hover:scale-[1.02]"
+                                onClick={handleAddOption}
+                            >
+                                    <Plus size={16} className="mr-2" /> Add Option
+                            </Button>
                         </div>
                     )}
 
                     {questionType === SlideTypeEnum.Feedback && (
-                        <div>
-                            <FormLabel className="mb-1.5 block text-sm font-medium text-slate-700">
+                            <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200/50 p-6 shadow-lg">
+                                <FormLabel className="mb-4 flex items-center gap-3 text-lg font-semibold text-slate-700">
+                                    <MessageCircle className="text-purple-500" size={24} />
                                 Feedback Area Configuration
                             </FormLabel>
                             <FormField
                                 control={control}
-                                name="feedbackAnswer" // This name might be confusing. Is it a prompt or where answer is stored?
-                                // If it's a prompt for users to fill, "feedbackPrompt" might be better.
-                                // If it's where responses are shown, "feedbackDisplay" or similar.
+                                    name="feedbackAnswer"
                                 render={({ field }) => (
                                     <FormItem className="w-full">
                                         <FormControl>
+                                                <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                                             <MainViewQuillEditor
                                                 value={field.value || ''}
                                                 onChange={field.onChange}
                                                 placeholder="Configure feedback prompt or display area..."
                                             />
+                                                </div>
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -276,5 +413,6 @@ export const QuizSlide: React.FC<QuizSlideProps> = ({
                 </form>
             </Form>
         </ScrollArea>
+        </div>
     );
 };

@@ -35,6 +35,7 @@ export interface ActivityLogType {
         end_time_in_millis: number;
         page_number: number;
     }[];
+    concentrationScore: number;
 }
 
 const BatchCell = ({
@@ -200,6 +201,11 @@ const StatusCell = ({ row }: { row: Row<StudentTable> }) => {
 export const myColumns: ColumnDef<StudentTable>[] = [
     {
         id: 'checkbox',
+        size: 50,
+        minSize: 50,
+        maxSize: 50,
+        enableResizing: false,
+        enablePinning: true,
         header: ({ table }) => (
             <Checkbox
                 checked={table.getIsAllRowsSelected()}
@@ -217,11 +223,19 @@ export const myColumns: ColumnDef<StudentTable>[] = [
     },
     {
         id: 'details',
+        size: 80,
+        minSize: 60,
+        maxSize: 120,
+        enablePinning: true,
         header: 'Details',
         cell: ({ row }) => <DetailsCell row={row} />,
     },
     {
         accessorKey: 'full_name',
+        size: 200,
+        minSize: 150,
+        maxSize: 300,
+        enablePinning: true,
         header: (props) => {
             const meta = props.table.options.meta as CustomTableMeta;
             return (
@@ -246,86 +260,211 @@ export const myColumns: ColumnDef<StudentTable>[] = [
     },
     {
         accessorKey: 'username',
+        size: 150,
+        minSize: 100,
+        maxSize: 250,
         header: 'Username',
         cell: ({ row }) => <CreateClickableCell row={row} columnId="username" />,
     },
     {
         accessorKey: 'package_session_id',
+        size: 180,
+        minSize: 120,
+        maxSize: 280,
         header: 'Batch',
         cell: ({ row }) => <BatchCellComponent row={row} />,
     },
     {
         accessorKey: 'institute_enrollment_id',
+        size: 160,
+        minSize: 120,
+        maxSize: 220,
         header: 'Enrollment Number',
         cell: ({ row }) => <CreateClickableCell row={row} columnId="institute_enrollment_id" />,
     },
     {
         accessorKey: 'linked_institute_name',
+        size: 200,
+        minSize: 150,
+        maxSize: 300,
         header: 'College/School',
         cell: ({ row }) => <CreateClickableCell row={row} columnId="linked_institute_name" />,
+        enableHiding: true,
     },
     {
         accessorKey: 'gender',
+        size: 100,
+        minSize: 80,
+        maxSize: 150,
         header: 'Gender',
         cell: ({ row }) => <CreateClickableCell row={row} columnId="gender" />,
     },
     {
         accessorKey: 'mobile_number',
+        size: 140,
+        minSize: 120,
+        maxSize: 180,
         header: 'Mobile Number',
         cell: ({ row }) => <CreateClickableCell row={row} columnId="mobile_number" />,
     },
     {
         accessorKey: 'email',
+        size: 200,
+        minSize: 150,
+        maxSize: 300,
         header: 'Email ID',
         cell: ({ row }) => <CreateClickableCell row={row} columnId="email" />,
     },
     {
         accessorKey: 'father_name',
+        size: 150,
+        minSize: 120,
+        maxSize: 220,
         header: "Father's Name",
         cell: ({ row }) => <CreateClickableCell row={row} columnId="father_name" />,
+        enableHiding: true,
     },
     {
         accessorKey: 'mother_name',
+        size: 150,
+        minSize: 120,
+        maxSize: 220,
         header: "Mother's Name",
         cell: ({ row }) => <CreateClickableCell row={row} columnId="mother_name" />,
+        enableHiding: true,
     },
     {
         accessorKey: 'guardian_name',
+        size: 150,
+        minSize: 120,
+        maxSize: 220,
         header: "Guardian's Name",
         cell: ({ row }) => <CreateClickableCell row={row} columnId="guardian_name" />,
+        enableHiding: true,
     },
     {
         accessorKey: 'parents_mobile_number',
-        header: "Parent/Guardian's Mobile Number",
+        size: 220,
+        minSize: 180,
+        maxSize: 280,
+        header: "Father/Male Guardian's Mobile Number",
         cell: ({ row }) => <CreateClickableCell row={row} columnId="parents_mobile_number" />,
+        enableHiding: true,
     },
     {
         accessorKey: 'parents_email',
-        header: "Parent/Guardian's Email ID",
+        size: 250,
+        minSize: 200,
+        maxSize: 350,
+        header: "Father/Male Guardian's Email ID",
         cell: ({ row }) => <CreateClickableCell row={row} columnId="parents_email" />,
+        enableHiding: true,
+    },
+    {
+        accessorKey: 'parents_to_mother_mobile_number',
+        size: 220,
+        minSize: 180,
+        maxSize: 280,
+        header: "Mother/Female Guardian's Mobile Number",
+        cell: ({ row }) => (
+            <CreateClickableCell row={row} columnId="parents_to_mother_mobile_number" />
+        ),
+        enableHiding: true,
+    },
+    {
+        accessorKey: 'parents_to_mother_email',
+        size: 250,
+        minSize: 200,
+        maxSize: 350,
+        header: "Mother/Female Guardian's Email ID",
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="parents_to_mother_email" />,
+        enableHiding: true,
     },
     {
         accessorKey: 'city',
+        size: 120,
+        minSize: 100,
+        maxSize: 180,
         header: 'City',
         cell: ({ row }) => <CreateClickableCell row={row} columnId="city" />,
+        enableHiding: true,
     },
     {
         accessorKey: 'region',
+        size: 120,
+        minSize: 100,
+        maxSize: 180,
         header: 'State',
         cell: ({ row }) => <CreateClickableCell row={row} columnId="region" />,
+        enableHiding: true,
+    },
+    {
+        accessorKey: 'attendance',
+        size: 120,
+        minSize: 100,
+        maxSize: 180,
+        header: 'Attendance',
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="attendance" />,
+        enableHiding: true,
+    },
+    {
+        accessorKey: 'country',
+        size: 120,
+        minSize: 100,
+        maxSize: 180,
+        header: 'Country',
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="country" />,
+        enableHiding: true,
+    },
+    {
+        accessorKey: 'plan_type',
+        size: 120,
+        minSize: 100,
+        maxSize: 180,
+        header: 'Plan Type',
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="plan_type" />,
+        enableHiding: true,
+    },
+    {
+        accessorKey: 'amount_paid',
+        size: 120,
+        minSize: 100,
+        maxSize: 180,
+        header: 'Amount Paid',
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="amount_paid" />,
+        enableHiding: true,
+    },
+    {
+        accessorKey: 'preffered_batch',
+        size: 120,
+        minSize: 100,
+        maxSize: 180,
+        header: 'Preferred Batch',
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="preffered_batch" />,
+        enableHiding: true,
     },
     {
         accessorKey: 'expiry_date',
+        size: 120,
+        minSize: 100,
+        maxSize: 160,
         header: 'Session Expiry',
         cell: ({ row }) => <ExpiryDateCell row={row} />,
     },
     {
         accessorKey: 'status',
+        size: 100,
+        minSize: 80,
+        maxSize: 140,
         header: 'Status',
         cell: ({ row }) => <StatusCell row={row} />,
     },
     {
         id: 'options',
+        size: 60,
+        minSize: 50,
+        maxSize: 80,
+        enableResizing: false,
         header: '',
         cell: ({ row }) => <StudentMenuOptions student={row.original} />,
     },
@@ -370,6 +509,10 @@ export const activityLogColumns: ColumnDef<ActivityLogType>[] = [
     {
         accessorKey: 'concentrationScore',
         header: 'Concentration Score',
+        cell: ({ row }) => {
+            const concentrationScore = row.original.concentrationScore;
+            return <div>{concentrationScore.toFixed(2)}</div>;
+        },
     },
     {
         accessorKey: 'lastPageRead',
@@ -396,6 +539,10 @@ export const ActivityStatsColumns: ColumnDef<ActivityStatsColumnsType>[] = [
     {
         accessorKey: 'details',
         header: 'Details',
+        size: 70,
+        minSize: 60,
+        maxSize: 90,
+        enableResizing: false,
         cell: ({ row }) => {
             // Create a regular function to handle the click
             const handleClick = () => {
@@ -414,14 +561,23 @@ export const ActivityStatsColumns: ColumnDef<ActivityStatsColumnsType>[] = [
     {
         accessorKey: 'full_name',
         header: 'Learner Name',
+        size: 220,
+        minSize: 180,
+        maxSize: 280,
     },
     {
         accessorKey: 'time_spent',
         header: 'Time Spent',
+        size: 130,
+        minSize: 110,
+        maxSize: 160,
     },
     {
         accessorKey: 'last_active',
         header: 'Last Active',
+        size: 200,
+        minSize: 160,
+        maxSize: 240,
     },
 ];
 
@@ -431,6 +587,7 @@ export interface ActivityResponseType {
     startTime: string;
     endTime: string;
     duration: string;
+    questionName: string;
     response: string;
     responseStatus: string;
 }
@@ -451,6 +608,19 @@ export const activityResponseTypeColumns: ColumnDef<ActivityResponseType>[] = [
     {
         accessorKey: 'duration',
         header: 'Duration',
+    },
+    {
+        accessorKey: 'questionName',
+        header: 'Question Name',
+        cell: ({ row }) => {
+            return (
+                <p
+                    dangerouslySetInnerHTML={{
+                        __html: row.original.questionName || '',
+                    }}
+                />
+            );
+        },
     },
     {
         accessorKey: 'response',

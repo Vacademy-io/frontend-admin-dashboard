@@ -1,7 +1,7 @@
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 import { InstituteDetailsType } from '@/schemas/student/student-list/institute-schema';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
-import { INIT_INSTITUTE } from '@/constants/urls';
+import { HOLISTIC_INSTITUTE_ID, INIT_INSTITUTE } from '@/constants/urls';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
 import { useTheme } from '@/providers/theme/theme-provider';
@@ -25,7 +25,17 @@ export const useInstituteQuery = () => {
         queryKey: ['GET_INIT_INSTITUTE'],
         queryFn: async () => {
             const data = await fetchInstituteDetails();
-            setPrimaryColor(data?.institute_theme_code || '#ED7424');
+            const accessToken = getTokenFromCookie(TokenKey.accessToken);
+            const tokenData = getTokenDecodedData(accessToken);
+            const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
+
+            // Set holistic theme for specific institute ID
+            if (INSTITUTE_ID === HOLISTIC_INSTITUTE_ID) {
+                setPrimaryColor('holistic');
+            } else {
+                setPrimaryColor(data?.institute_theme_code || '#ED7424');
+            }
+
             setInstituteDetails(data);
             return data;
         },

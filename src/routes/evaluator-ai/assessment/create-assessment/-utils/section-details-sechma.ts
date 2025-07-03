@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 const sectionDetailsSchema = z.object({
     status: z.string(),
@@ -41,12 +41,12 @@ const sectionDetailsSchema = z.object({
                             z.object({
                                 name: z.string(),
                                 marks: z.number(),
-                            }),
+                            })
                         )
                         .optional(),
-                }),
+                })
             ),
-        }),
+        })
     ),
 });
 

@@ -1,17 +1,17 @@
-import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
-import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
-import { useEffect } from "react";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { MyButton } from "@/components/design-system/button";
-import { ArrowSquareOut, Plus } from "phosphor-react";
-import { CreateAssessmentDashboardLogo, EvaluatorAI } from "@/svgs";
-import { CollegeStudentsDashboardLogo } from "@/svgs";
-import { Helmet } from "react-helmet";
-import { LayoutContainer } from "./-components/layout-container/layout-container";
-import useLocalStorage from "./-hooks/useLocalStorage";
+import { createFileRoute, useNavigate, useRouter } from '@tanstack/react-router';
+import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
+import { useEffect } from 'react';
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { MyButton } from '@/components/design-system/button';
+import { ArrowSquareOut, Plus } from 'phosphor-react';
+import { CreateAssessmentDashboardLogo, EvaluatorAI } from '@/svgs';
+import { CollegeStudentsDashboardLogo } from '@/svgs';
+import { Helmet } from 'react-helmet';
+import { LayoutContainer } from './-components/layout-container/layout-container';
+import useLocalStorage from './-hooks/useLocalStorage';
 // import StartTourDialog from "./-components/start-tour-dialog";
 
-export const Route = createFileRoute("/evaluator-ai/")({
+export const Route = createFileRoute('/evaluator-ai/')({
     component: () => (
         <LayoutContainer>
             <EvaluationDashboard />
@@ -20,8 +20,8 @@ export const Route = createFileRoute("/evaluator-ai/")({
 });
 
 export function EvaluationDashboard() {
-    const [assessments] = useLocalStorage("assessments", []);
-    const [students] = useLocalStorage("students", []);
+    const [assessments] = useLocalStorage('assessments', []);
+    const [students] = useLocalStorage('students', []);
 
     const navigate = useNavigate();
     const { setNavHeading } = useNavHeadingStore();
@@ -32,7 +32,7 @@ export function EvaluationDashboard() {
         router.navigate({
             to: `/evaluator-ai/students`,
             search: {
-                q: "enroll",
+                q: 'enroll',
             },
         });
     };
@@ -77,7 +77,7 @@ export function EvaluationDashboard() {
                                         className="flex cursor-pointer items-center gap-1"
                                         onClick={() =>
                                             navigate({
-                                                to: "/evaluator-ai/students",
+                                                to: '/evaluator-ai/students',
                                             })
                                         }
                                     >
@@ -110,7 +110,7 @@ export function EvaluationDashboard() {
                                         className="text-sm"
                                         onClick={() => {
                                             navigate({
-                                                to: "/evaluator-ai/assessment/create-assessment",
+                                                to: '/evaluator-ai/assessment/create-assessment',
                                             });
                                         }}
                                     >
@@ -123,8 +123,8 @@ export function EvaluationDashboard() {
                                         className="flex cursor-pointer items-center gap-1"
                                         onClick={() =>
                                             navigate({
-                                                to: "/evaluator-ai/assessment",
-                                                search: { selectedTab: "liveTests" },
+                                                to: '/evaluator-ai/assessment',
+                                                search: { selectedTab: 'liveTests' },
                                             })
                                         }
                                     >
@@ -157,9 +157,9 @@ export function EvaluationDashboard() {
                                 className="text-sm"
                                 onClick={() => {
                                     navigate({
-                                        to: "/evaluator-ai/evaluation",
+                                        to: '/evaluator-ai/evaluation',
                                         search: {
-                                            q: "evalute",
+                                            q: 'evalute',
                                         },
                                     });
                                 }}

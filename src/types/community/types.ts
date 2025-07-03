@@ -1,4 +1,4 @@
-import { TagResponse } from "@/types/community/filters/types";
+import { TagResponse } from '@/types/community/filters/types';
 export interface Level {
     levelId: string;
     levelName: string;

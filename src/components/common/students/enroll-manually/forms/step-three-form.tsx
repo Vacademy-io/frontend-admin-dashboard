@@ -1,18 +1,20 @@
 // step-three-form.tsx
-import { FormStepHeading } from "../form-components/form-step-heading";
-import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
-import { FormItemWrapper } from "../form-components/form-item-wrapper";
-import { useForm } from "react-hook-form";
-import { MyInput } from "@/components/design-system/input";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
+import { FormStepHeading } from '../form-components/form-step-heading';
+import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
+import { FormItemWrapper } from '../form-components/form-item-wrapper';
+import { useForm } from 'react-hook-form';
+import { MyInput } from '@/components/design-system/input';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useFormStore } from '@/stores/students/enroll-students-manually/enroll-manually-form-store';
 import {
     StepThreeData,
     stepThreeSchema,
-} from "@/schemas/student/student-list/schema-enroll-students-manually";
-import PhoneInputField from "@/components/design-system/phone-input-field";
-import { useEffect, useRef } from "react";
-import { StudentTable } from "@/types/student-table-types";
+} from '@/schemas/student/student-list/schema-enroll-students-manually';
+import PhoneInputField from '@/components/design-system/phone-input-field';
+import { useEffect, useRef } from 'react';
+import { StudentTable } from '@/types/student-table-types';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
 
 export const StepThreeForm = ({
     initialValues,
@@ -21,29 +23,34 @@ export const StepThreeForm = ({
     initialValues?: StudentTable;
     submitFn: (fn: () => void) => void;
 }) => {
-    const { stepThreeData, setStepThreeData, nextStep } = useFormStore();
+    const { stepThreeData, setStepThreeData, nextStep, setStep } = useFormStore();
+    const { showForInstitutes } = useInstituteDetailsStore();
 
     const form = useForm<StepThreeData>({
         resolver: zodResolver(stepThreeSchema),
-        defaultValues: stepThreeData || {
-            mobileNumber: initialValues?.mobile_number || "",
-            email: initialValues?.email || "",
-            addressLine: initialValues?.address_line || "",
-            city: initialValues?.city || "",
-            state: initialValues?.region || "",
-            pincode: initialValues?.pin_code || "",
+        defaultValues: {
+            mobileNumber: stepThreeData?.mobileNumber ?? initialValues?.mobile_number ?? '',
+            email: stepThreeData?.email ?? initialValues?.email ?? '',
+            addressLine: stepThreeData?.addressLine ?? initialValues?.address_line ?? '',
+            city: stepThreeData?.city ?? initialValues?.city ?? '',
+            state: stepThreeData?.state ?? initialValues?.region ?? '',
+            pincode: stepThreeData?.pincode ?? initialValues?.pin_code ?? '',
         },
-        mode: "onChange",
+        mode: 'onChange',
     });
 
     const onSubmit = (values: StepThreeData) => {
         setStepThreeData(values);
-        nextStep();
+
+        // Skip step 4 for holistic institute
+        if (showForInstitutes([HOLISTIC_INSTITUTE_ID])) {
+            setStep(5); // Go directly to step 5
+        } else {
+            nextStep(); // Go to step 4 as normal
+        }
     };
 
-    useEffect(() => {
-        console.log("mobile field: ", form.getValues("mobileNumber"));
-    }, [form.watch("mobileNumber")]);
+    useEffect(() => {}, [form.watch('mobileNumber')]);
 
     const formRef = useRef<HTMLFormElement>(null);
 
@@ -138,68 +145,72 @@ export const StepThreeForm = ({
                                     </FormItem>
                                 )}
                             />
+                            {!showForInstitutes([HOLISTIC_INSTITUTE_ID]) && (
+                                <>
+                                    <FormField
+                                        control={form.control}
+                                        name="city"
+                                        render={({ field: { onChange, value, ...field } }) => (
+                                            <FormItem>
+                                                <FormControl>
+                                                    <MyInput
+                                                        inputType="text"
+                                                        label="City/Village"
+                                                        inputPlaceholder="Eg. Mumbai"
+                                                        input={value}
+                                                        onChangeFunction={onChange}
+                                                        size="large"
+                                                        className="w-full"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                            </FormItem>
+                                        )}
+                                    />
 
-                            <FormField
-                                control={form.control}
-                                name="city"
-                                render={({ field: { onChange, value, ...field } }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <MyInput
-                                                inputType="text"
-                                                label="City/Village"
-                                                inputPlaceholder="Eg. Mumbai"
-                                                input={value}
-                                                onChangeFunction={onChange}
-                                                size="large"
-                                                className="w-full"
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                    </FormItem>
-                                )}
-                            />
+                                    <FormField
+                                        control={form.control}
+                                        name="state"
+                                        render={({ field: { onChange, value, ...field } }) => (
+                                            <FormItem>
+                                                <FormControl>
+                                                    <MyInput
+                                                        inputType="text"
+                                                        label="State"
+                                                        inputPlaceholder="Eg. Maharashtra"
+                                                        input={value}
+                                                        onChangeFunction={onChange}
+                                                        size="large"
+                                                        className="w-full"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                            </FormItem>
+                                        )}
+                                    />
 
-                            <FormField
-                                control={form.control}
-                                name="state"
-                                render={({ field: { onChange, value, ...field } }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <MyInput
-                                                inputType="text"
-                                                label="State"
-                                                inputPlaceholder="Eg. Maharashtra"
-                                                input={value}
-                                                onChangeFunction={onChange}
-                                                size="large"
-                                                className="w-full"
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="pincode"
-                                render={({ field: { onChange, value, ...field } }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <MyInput
-                                                inputType="number"
-                                                label="Pincode"
-                                                inputPlaceholder="Eg.425562"
-                                                input={value}
-                                                onChangeFunction={onChange}
-                                                size="large"
-                                                className="w-full"
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                    </FormItem>
-                                )}
-                            />
+                                    <FormField
+                                        control={form.control}
+                                        name="pincode"
+                                        render={({ field: { onChange, value, ...field } }) => (
+                                            <FormItem>
+                                                <FormControl>
+                                                    <MyInput
+                                                        inputType="number"
+                                                        label="Pincode"
+                                                        inputPlaceholder="Eg. 425562"
+                                                        input={value}
+                                                        onChangeFunction={onChange}
+                                                        size="large"
+                                                        className="w-full"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                            </FormItem>
+                                        )}
+                                    />
+                                </>
+                            )}
                         </div>
                     </form>
                 </Form>

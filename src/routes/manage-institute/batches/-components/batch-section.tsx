@@ -1,18 +1,38 @@
 // batch-section.tsx
+import React, { useState } from 'react';
 import { MyButton } from '@/components/design-system/button';
 import { MyDialog } from '@/components/design-system/dialog';
 import {
     BatchType,
     batchWithStudentDetails,
 } from '@/routes/manage-institute/batches/-types/manage-batches-types';
-import { Plus, TrashSimple } from 'phosphor-react';
-import { useState } from 'react';
+import { Plus, TrashSimple, Users, Copy } from 'phosphor-react';
 import { useNavigate } from '@tanstack/react-router';
 import { useGetStudentBatch } from '@/routes/manage-students/students-list/-hooks/useGetStudentBatch';
 import { EnrollManuallyButton } from '@/components/common/students/enroll-manually/enroll-manually-button';
 import { useDeleteBatches } from '@/routes/manage-institute/batches/-services/delete-batches';
 import { toast } from 'sonner';
-import { InviteLink } from '@/routes/manage-students/-components/InviteLink';
+import { CreateBatchDialog } from './create-batch-dialog';
+import createInviteLink from '@/routes/manage-students/invite/-utils/createInviteLink';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+
+// Locally defined type based on observed structure from useInstituteDetailsStore
+interface BatchForSessionStoreType {
+    id: string; // This is the package_session_id
+    session: {
+        id: string;
+        session_name: string;
+    };
+    level: {
+        id: string;
+        level_name: string;
+    };
+    package_dto: {
+        id: string; // This is courseId / packageId
+        package_name: string;
+    };
+}
+
 interface batchCardProps {
     batch: BatchType;
 }
@@ -24,15 +44,7 @@ const BatchCard = ({ batch }: batchCardProps) => {
     const deleteBatchesMutation = useDeleteBatches();
 
     const handleViewBatch = () => {
-        // Navigate to student list with this batch pre-selected
         const batchName = `${levelName} ${packageName}`;
-        console.log(
-            'Navigating with batch:',
-            batchName,
-            'package_session_id:',
-            batch.package_session_id
-        );
-
         navigate({
             to: '/manage-students/students-list',
             search: {
@@ -57,40 +69,60 @@ const BatchCard = ({ batch }: batchCardProps) => {
         );
     };
 
+    const handleCopyInviteCode = () => {
+        const fullInviteLink = createInviteLink(batch.invite_code);
+        navigator.clipboard.writeText(fullInviteLink);
+        toast.success('Invite link copied to clipboard');
+    };
+
     return (
         <>
-            <div className="flex flex-col gap-8 rounded-lg border border-neutral-300 bg-neutral-50 p-6">
-                <div className="flex flex-col gap-4">
-                    <div className="flex items-center justify-between">
-                        <p className="text-title font-semibold">{batch.batch_name}</p>
-
-                        <TrashSimple
-                            className="cursor-pointer text-danger-400"
+            <div className="flex flex-col justify-between rounded-xl border border-neutral-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
+                <div className="flex flex-col gap-3">
+                    <div className="flex items-start justify-between">
+                        <p className="text-lg font-semibold text-neutral-700">{batch.batch_name}</p>
+                        <MyButton
+                            buttonType="text"
+                            layoutVariant="icon"
+                            className="rounded-full p-1 text-danger-400 hover:bg-danger-50 hover:text-danger-600"
                             onClick={() => setOpenDeleteDialog(true)}
-                        />
+                            scale="medium"
+                        >
+                            <TrashSimple size={20} />
+                        </MyButton>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <p className="text-h1 font-semibold text-primary-500">
-                            {batch.count_students}
+                    <div className="flex items-center gap-2 text-neutral-600">
+                        <Users size={20} />
+                        <p className="text-sm font-medium">
+                            {batch.count_students} Student{batch.count_students !== 1 ? 's' : ''}
                         </p>
-                        <p className="text-subtitle font-semibold">students</p>
                     </div>
-                    <div className="flex items-center gap-2 text-body">
-                        <p>Invite: </p>
-                        <InviteLink inviteCode={batch.invite_code} />
+                    <div className="flex items-center gap-2 text-sm text-neutral-500">
+                        <p className="font-medium">Invite Code:</p>
+                        <span className="rounded bg-neutral-100 px-2 py-1 font-mono text-xs text-neutral-700">
+                            {batch.invite_code}
+                        </span>
+                        <MyButton
+                            layoutVariant="icon"
+                            buttonType="text"
+                            onClick={handleCopyInviteCode}
+                            className="text-neutral-500 hover:text-neutral-700"
+                            scale="small"
+                        >
+                            <Copy size={16} />
+                        </MyButton>
                     </div>
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="mt-5 flex items-center justify-end gap-3 border-t border-neutral-100 pt-4">
                     <EnrollManuallyButton
                         triggerButton={
                             <MyButton
                                 buttonType="text"
                                 layoutVariant="default"
                                 scale="medium"
-                                className="text-primary-500"
+                                className="hover:text-primary-600 text-neutral-700"
                             >
-                                {' '}
-                                <Plus /> Enroll Student
+                                <Plus size={18} className="mr-1" /> Enroll Student
                             </MyButton>
                         }
                     />
@@ -99,6 +131,7 @@ const BatchCard = ({ batch }: batchCardProps) => {
                         layoutVariant="default"
                         scale="medium"
                         onClick={handleViewBatch}
+                        className="bg-neutral-100 text-neutral-700 hover:bg-neutral-200"
                     >
                         View Batch
                     </MyButton>
@@ -108,39 +141,76 @@ const BatchCard = ({ batch }: batchCardProps) => {
                 heading="Delete Batch"
                 open={openDeleteDialog}
                 onOpenChange={() => setOpenDeleteDialog(!openDeleteDialog)}
+                dialogWidth="w-[400px]"
                 footer={
-                    <div className="flex w-full items-center justify-between py-2 text-neutral-600">
-                        <MyButton buttonType="secondary" onClick={() => setOpenDeleteDialog(false)}>
+                    <div className="flex w-full items-center justify-end gap-3 py-2">
+                        <MyButton
+                            buttonType="secondary"
+                            onClick={() => setOpenDeleteDialog(false)}
+                            className="hover:bg-neutral-100"
+                        >
                             Cancel
                         </MyButton>
-                        <MyButton buttonType="primary" onClick={handleDeleteBatch}>
-                            Yes, I am sure
+                        <MyButton
+                            buttonType="secondary"
+                            onClick={handleDeleteBatch}
+                            className="border-danger-300 text-danger-600 hover:border-danger-500 hover:bg-danger-50"
+                        >
+                            Yes, Delete
                         </MyButton>
                     </div>
                 }
             >
-                Are you sure you want to delete {batch.batch_name}?
+                <p className="text-neutral-600">
+                    Are you sure you want to delete the batch "{batch.batch_name}"? This action
+                    cannot be undone.
+                </p>
             </MyDialog>
         </>
     );
 };
 
-export const BatchSection = ({ batch }: { batch: batchWithStudentDetails }) => {
+interface BatchSectionProps {
+    batch: batchWithStudentDetails;
+    currentSessionId?: string;
+}
+
+export const BatchSection = ({ batch, currentSessionId }: BatchSectionProps) => {
+    const { instituteDetails } = useInstituteDetailsStore();
+
+    const filteredBatches =
+        currentSessionId && instituteDetails?.batches_for_sessions
+            ? batch.batches.filter((b) => {
+                  const batchDetail: BatchForSessionStoreType | undefined =
+                      instituteDetails.batches_for_sessions.find(
+                          (detail: BatchForSessionStoreType) => detail.id === b.package_session_id
+                      );
+                  return batchDetail?.session.id === currentSessionId;
+              })
+            : batch.batches;
+
     return (
         <>
-            {batch.batches.length > 0 ? (
-                <div className="flex flex-col gap-4">
-                    <p className="text-title font-semibold">{batch.package_dto.package_name}</p>
-                    <div className="grid grid-cols-3 gap-6">
-                        {batch.batches.map((batchLevel, index) => (
-                            <BatchCard batch={batchLevel} key={index} />
+            {filteredBatches.length > 0 ? (
+                <div className="flex flex-col gap-5">
+                    <p className="text-xl font-semibold text-neutral-700">
+                        {batch.package_dto.package_name}
+                    </p>
+                    <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+                        {filteredBatches.map((batchLevel, index) => (
+                            <BatchCard batch={batchLevel} />
                         ))}
                     </div>
                 </div>
-            ) : (
-                <div className="flex flex-col gap-4">
-                    <p className="text-title font-semibold">{batch.package_dto.package_name}</p>
-                    <p className="text-neutral-400">No batches found</p>
+            ) : currentSessionId && batch.batches.length > 0 ? null : (
+                <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-neutral-300 bg-neutral-50 p-8 text-center">
+                    <p className="text-lg font-semibold text-neutral-700">
+                        {batch.package_dto.package_name}
+                    </p>
+                    <p className="text-neutral-500">
+                        No batches found for this package
+                        {currentSessionId ? ' in the selected session' : ''}.
+                    </p>
                 </div>
             )}
         </>

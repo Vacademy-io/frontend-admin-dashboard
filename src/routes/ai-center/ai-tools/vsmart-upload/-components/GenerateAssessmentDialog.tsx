@@ -35,7 +35,7 @@ export const GenerateAssessmentDialog = ({
                         onClick={handleGenerateCompleteFile}
                     >
                         {allPagesGenerateQuestionsStatus ? (
-                            <DashboardLoader size={18} />
+                            <DashboardLoader />
                         ) : (
                             'Select Questions From All Pages'
                         )}
@@ -49,7 +49,7 @@ export const GenerateAssessmentDialog = ({
                         onClick={handleGeneratePageWise}
                     >
                         {pageWiseGenerateQuestionsStatus ? (
-                            <DashboardLoader size={18} />
+                            <DashboardLoader />
                         ) : (
                             'Select Question From Specific Pages'
                         )}

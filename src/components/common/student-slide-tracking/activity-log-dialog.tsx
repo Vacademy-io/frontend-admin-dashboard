@@ -29,6 +29,7 @@ import { StudentTable } from '@/types/student-table-types';
 import { SlideWithStatusType } from '@/routes/manage-students/students-list/-types/student-slides-progress-type';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { convertToLocalDateTime, extractDateTime } from '@/constants/helper';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
 
 export const ActivityLogDialog = ({
     selectedUser,
@@ -66,7 +67,7 @@ export const ActivityLogDialog = ({
                 pageSize: pageSize,
             });
         }
-        if (activeItem?.video_slide?.url != null) {
+        if (activeItem?.source_type === 'VIDEO') {
             return getUserVideoSlideActivityLogs({
                 userId,
                 slideId,
@@ -147,7 +148,16 @@ export const ActivityLogDialog = ({
                     1000 /
                     60
                 ).toFixed(2)} mins`,
-                response: item.question_slides[0]?.response_json,
+                questionName: item.question_slides[0]?.response_json
+                    ? JSON.parse(item.question_slides[0]?.response_json || '')?.questionName
+                    : '',
+                response: item.question_slides[0]?.response_json
+                    ? JSON.parse(item.question_slides[0]?.response_json || '')
+                          ?.selectedOptions?.map(
+                              (option: { id: string; name: string }) => option.name
+                          )
+                          .join(',')
+                    : '',
                 responseStatus: item.question_slides[0]?.response_status,
             }));
         }
@@ -196,7 +206,16 @@ export const ActivityLogDialog = ({
                     1000 /
                     60
                 ).toFixed(2)} mins`,
-                response: item.video_slides_questions[0]?.response_json,
+                questionName: item.video_slides_questions[0]?.response_json
+                    ? JSON.parse(item.video_slides_questions[0]?.response_json || '')?.questionName
+                    : '',
+                response: item.video_slides_questions[0]?.response_json
+                    ? JSON.parse(item.video_slides_questions[0]?.response_json || '')
+                          ?.selectedOptions?.map(
+                              (option: { id: string; name: string }) => option.name
+                          )
+                          .join(',')
+                    : '',
                 responseStatus: item.video_slides_questions[0]?.response_status,
             })
         );
@@ -220,7 +239,11 @@ export const ActivityLogDialog = ({
                     <h1 className="rounded-t-lg bg-primary-50 p-4 font-semibold text-primary-500">
                         Activity Log
                     </h1>
-                    {tableData.content.length == 0 ? (
+                    {isLoading || isVideoResponseLoading ? (
+                        <div className="flex items-center justify-center p-8">
+                            <DashboardLoader />
+                        </div>
+                    ) : tableData.content.length == 0 ? (
                         <p className="p-4 text-center text-primary-500">No activity found</p>
                     ) : (
                         <>
@@ -293,7 +316,7 @@ export const ActivityLogDialog = ({
                                             <div className="mt-6">
                                                 <MyPagination
                                                     currentPage={page}
-                                                    totalPages={tableData.total_pages}
+                                                    totalPages={tableDataVideoResponse.total_pages}
                                                     onPageChange={handlePageChange}
                                                 />
                                             </div>
@@ -305,14 +328,7 @@ export const ActivityLogDialog = ({
                             {activeItem?.source_type === 'QUESTION' && (
                                 <div className="no-scrollbar mt-6 overflow-x-scroll px-4">
                                     <MyTable
-                                        data={{
-                                            content: [],
-                                            total_pages: 0,
-                                            page_no: 0,
-                                            page_size: pageSize,
-                                            total_elements: 0,
-                                            last: true,
-                                        }}
+                                        data={tableData}
                                         columns={activityResponseTypeColumns}
                                         isLoading={isLoading}
                                         error={error}
@@ -332,14 +348,7 @@ export const ActivityLogDialog = ({
                             {activeItem?.source_type === 'ASSIGNMENT' && (
                                 <div className="no-scrollbar mt-6 overflow-x-scroll px-4">
                                     <MyTable
-                                        data={{
-                                            content: [],
-                                            total_pages: 0,
-                                            page_no: 0,
-                                            page_size: pageSize,
-                                            total_elements: 0,
-                                            last: true,
-                                        }}
+                                        data={tableData}
                                         columns={activityResponseAssignmentColumns}
                                         isLoading={isLoading}
                                         error={error}

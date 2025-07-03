@@ -1,10 +1,10 @@
-import { MyButton } from "@/components/design-system/button";
-import { getTageByQuestionPaperId, addPublicQuestionPaperToPrivate } from "../-service/utils";
-import { useEffect, useState } from "react";
-import { QuestionPaperData } from "@/types/community/filters/types";
-import { getTokenFromCookie, getTokenDecodedData } from "@/lib/auth/sessionUtility";
-import { TokenKey } from "@/constants/auth/tokens";
-import { toast } from "sonner";
+import { MyButton } from '@/components/design-system/button';
+import { getTageByQuestionPaperId, addPublicQuestionPaperToPrivate } from '../-service/utils';
+import { useEffect, useState } from 'react';
+import { QuestionPaperData } from '@/types/community/filters/types';
+import { getTokenFromCookie, getTokenDecodedData } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
+import { toast } from 'sonner';
 
 export function InternalSidebar({ id }: { id: string }) {
     const [data, setData] = useState<QuestionPaperData>();
@@ -22,8 +22,8 @@ export function InternalSidebar({ id }: { id: string }) {
         const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
         let response;
         if (INSTITUTE_ID) response = await addPublicQuestionPaperToPrivate(INSTITUTE_ID, id);
-        if (response) toast.message("Question Paper added in your private collection");
-        else toast.error("Some error Occured");
+        if (response) toast.message('Question Paper added in your private collection');
+        else toast.error('Some error Occured');
     };
     return (
         <div className="sticky top-[72px] flex max-h-[calc(100vh-72px)] w-[300px] flex-col justify-between border-r p-4">

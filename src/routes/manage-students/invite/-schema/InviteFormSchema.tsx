@@ -21,12 +21,40 @@ const levelSchema = z.object({
     packageSessionId: z.string(),
 });
 
-const batchSchema = z.object({
-    maxCourses: z.number(),
-    courseSelectionMode: selectionModeSchema,
-    preSelectedCourses: z.array(BatchForSessionSchema),
-    learnerChoiceCourses: z.array(BatchForSessionSchema),
-});
+const batchSchema = z
+    .object({
+        maxCourses: z.number().or(z.nan()),
+        courseSelectionMode: selectionModeSchema,
+        preSelectedCourses: z.array(BatchForSessionSchema),
+        learnerChoiceCourses: z.array(BatchForSessionSchema),
+    })
+    .superRefine((data, ctx) => {
+        if (data.courseSelectionMode === 'student') {
+            if (isNaN(data.maxCourses)) {
+                ctx.addIssue({
+                    code: 'custom',
+                    message: 'This field is required',
+                    path: ['maxCourses'],
+                });
+            }
+            if (data.learnerChoiceCourses.length === 1) {
+                ctx.addIssue({
+                    code: 'custom',
+                    message: 'invite link for this batch is already present',
+                    path: ['learnerChoiceCourses'],
+                });
+            }
+        }
+        if (data.courseSelectionMode === 'institute') {
+            if (data.preSelectedCourses.length === 1) {
+                ctx.addIssue({
+                    code: 'custom',
+                    message: 'invite link for this batch is already present',
+                    path: ['preSelectedCourses'],
+                });
+            }
+        }
+    });
 
 const customFieldSchema = z.object({
     id: z.number(),
@@ -43,6 +71,8 @@ const customFieldSchema = z.object({
             })
         )
         .optional(),
+    _id: z.string().optional(),
+    status: z.enum(['ACTIVE', 'DELETED']),
 });
 
 // Create schema for form validation
@@ -73,6 +103,7 @@ export const defaultFormValues: Partial<InviteForm> = {
             name: 'Full Name',
             oldKey: true,
             isRequired: true,
+            status: 'ACTIVE',
         },
         {
             id: 1,
@@ -80,6 +111,7 @@ export const defaultFormValues: Partial<InviteForm> = {
             name: 'Email',
             oldKey: true,
             isRequired: true,
+            status: 'ACTIVE',
         },
         {
             id: 2,
@@ -87,6 +119,7 @@ export const defaultFormValues: Partial<InviteForm> = {
             name: 'Phone Number',
             oldKey: true,
             isRequired: true,
+            status: 'ACTIVE',
         },
     ],
     batches: {

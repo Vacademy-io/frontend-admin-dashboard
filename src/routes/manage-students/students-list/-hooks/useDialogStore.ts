@@ -11,6 +11,8 @@ interface DialogStore {
     isDeleteOpen: boolean;
     isShareCredentialsOpen: boolean;
     isIndividualShareCredentialsOpen: boolean;
+    isSendMessageOpen: boolean;
+    isSendEmailOpen: boolean;
     selectedStudent: StudentTable | null;
     bulkActionInfo: BulkActionInfo | null;
     isBulkAction: boolean;
@@ -22,6 +24,8 @@ interface DialogStore {
     openTerminateRegistrationDialog: (student: StudentTable) => void;
     openDeleteDialog: (student: StudentTable) => void;
     openIndividualShareCredentialsDialog: (student: StudentTable) => void;
+    openIndividualSendMessageDialog: (student: StudentTable) => void;
+    openIndividualSendEmailDialog: (student: StudentTable) => void;
 
     // Bulk actions
     openBulkChangeBatchDialog: (info: BulkActionInfo) => void;
@@ -30,6 +34,8 @@ interface DialogStore {
     openBulkTerminateRegistrationDialog: (info: BulkActionInfo) => void;
     openBulkDeleteDialog: (info: BulkActionInfo) => void;
     openBulkShareCredentialsDialog: (info: BulkActionInfo) => void;
+    openBulkSendMessageDialog: (info: BulkActionInfo) => void;
+    openBulkSendEmailDialog: (info: BulkActionInfo) => void;
 
     closeAllDialogs: () => void;
 }
@@ -42,6 +48,8 @@ export const useDialogStore = create<DialogStore>((set) => ({
     isDeleteOpen: false,
     isShareCredentialsOpen: false,
     isIndividualShareCredentialsOpen: false,
+    isSendMessageOpen: false,
+    isSendEmailOpen: false,
     selectedStudent: null,
     bulkActionInfo: null,
     isBulkAction: false,
@@ -83,6 +91,18 @@ export const useDialogStore = create<DialogStore>((set) => ({
             selectedStudent: student,
             isBulkAction: false,
         }),
+    openIndividualSendMessageDialog: (student) =>
+        set({
+            isSendMessageOpen: true,
+            selectedStudent: student,
+            isBulkAction: false,
+        }),
+    openIndividualSendEmailDialog: (student) =>
+        set({
+            isSendEmailOpen: true,
+            selectedStudent: student,
+            isBulkAction: false,
+        }),
 
     // Bulk actions
     openBulkChangeBatchDialog: (info) =>
@@ -121,6 +141,18 @@ export const useDialogStore = create<DialogStore>((set) => ({
             bulkActionInfo: info,
             isBulkAction: true,
         }),
+    openBulkSendMessageDialog: (info) =>
+        set({
+            isSendMessageOpen: true,
+            bulkActionInfo: info,
+            isBulkAction: true,
+        }),
+    openBulkSendEmailDialog: (info) =>
+        set({
+            isSendEmailOpen: true,
+            bulkActionInfo: info,
+            isBulkAction: true,
+        }),
 
     closeAllDialogs: () =>
         set({
@@ -131,6 +163,8 @@ export const useDialogStore = create<DialogStore>((set) => ({
             isDeleteOpen: false,
             isShareCredentialsOpen: false,
             isIndividualShareCredentialsOpen: false,
+            isSendMessageOpen: false,
+            isSendEmailOpen: false,
             selectedStudent: null,
             bulkActionInfo: null,
             isBulkAction: false,

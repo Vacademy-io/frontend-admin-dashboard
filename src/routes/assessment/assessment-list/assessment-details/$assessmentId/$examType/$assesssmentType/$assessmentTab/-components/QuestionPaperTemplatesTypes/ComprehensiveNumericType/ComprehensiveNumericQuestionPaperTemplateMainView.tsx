@@ -1,18 +1,18 @@
-import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
-import { Sliders, X, Plus } from "phosphor-react";
-import { Checkbox } from "@/components/ui/checkbox";
-import "react-quill/dist/quill.snow.css";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { PopoverClose } from "@radix-ui/react-popover";
-import SelectField from "@/components/design-system/select-field";
-import CustomInput from "@/components/design-system/custom-input";
-import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
-import { QUESTION_TYPES, NUMERIC_TYPES } from "@/constants/dummy-data";
-import { MyInput } from "@/components/design-system/input";
-import { useState, useEffect } from "react";
-import { SectionQuestionPaperFormProps } from "../../../-utils/assessment-question-paper";
-import { formatStructure } from "@/routes/assessment/question-papers/-utils/helper";
+import { FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
+import { Sliders, X, Plus } from 'phosphor-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import 'react-quill/dist/quill.snow.css';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { PopoverClose } from '@radix-ui/react-popover';
+import SelectField from '@/components/design-system/select-field';
+import CustomInput from '@/components/design-system/custom-input';
+import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
+import { QUESTION_TYPES, NUMERIC_TYPES } from '@/constants/dummy-data';
+import { MyInput } from '@/components/design-system/input';
+import { useState, useEffect } from 'react';
+import { SectionQuestionPaperFormProps } from '../../../-utils/assessment-question-paper';
+import { formatStructure } from '@/routes/assessment/question-papers/-utils/helper';
 
 export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
     form,
@@ -24,10 +24,10 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
     const { control, getValues, trigger, watch } = form;
 
     const numericType = watch(
-        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.numericType`,
+        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.numericType`
     );
     const validAnswers = watch(
-        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.validAnswers`,
+        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.validAnswers`
     );
     useEffect(() => {
         if (validAnswers && validAnswers?.length > 1) setIsMultipleAnswersAllowed(true);
@@ -36,9 +36,9 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
         trigger(`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.validAnswers`);
     }, [numericType, currentQuestionIndex, trigger]);
 
-    const answersType = "Answer:";
-    const explanationsType = "Explanation:";
-    const questionsType = "";
+    const answersType = 'Answer:';
+    const explanationsType = 'Explanation:';
+    const questionsType = '';
 
     // const imageDetails = getValues(`questions.${currentQuestionIndex}.imageDetails`);
     const allQuestions = getValues(`sections.${selectedSectionIndex}.questions`) || [];
@@ -56,8 +56,8 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
                 {!isExpanded ? (
                     // Render only a single line preview
                     <div className="flex cursor-pointer flex-row gap-1 border bg-primary-100 p-2">
-                        <div className="w-full max-w-[50vw] overflow-hidden text-ellipsis whitespace-nowrap text-body">
-                            {value && value.replace(/<[^>]+>/g, "")}
+                        <div className="w-full max-w-[50vw] truncate text-body">
+                            {value && value.replace(/<[^>]+>/g, '')}
                         </div>
                         <button
                             className="text-body text-blue-500"
@@ -84,12 +84,12 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
 
     useEffect(() => {
         const validAnswrs = form.getValues(
-            `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.validAnswers`,
+            `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.validAnswers`
         );
         if (!validAnswrs) {
             form.setValue(
                 `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.validAnswers`,
-                [0],
+                [0]
             );
         }
     }, []);
@@ -227,7 +227,7 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
                                                     // If unchecked, keep only the first answer
                                                     form.setValue(
                                                         `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.validAnswers`,
-                                                        field.value ? [field.value[0] || 0] : [0],
+                                                        field.value ? [field.value[0] || 0] : [0]
                                                     );
                                                 }
                                             }}
@@ -271,8 +271,8 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
                                                         onClick={() => {
                                                             field.onChange(
                                                                 field.value?.filter(
-                                                                    (_, i) => i !== index,
-                                                                ),
+                                                                    (_, i) => i !== index
+                                                                )
                                                             );
                                                         }}
                                                     >

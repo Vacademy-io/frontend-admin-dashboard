@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { handleGenerateAssessmentQuestions } from '../../-services/ai-center-service';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import AITasksList from '../AITasksList';
+import { getRandomTaskName } from '../../-utils/helper';
 
 const ExtractQuestionsComponent = ({ fileId }: { fileId: string }) => {
     const [prompt, setPrompt] = useState('');
@@ -42,14 +43,10 @@ const ExtractQuestionsComponent = ({ fileId }: { fileId: string }) => {
     });
 
     const handleExtractQuestions = () => {
-        const now = new Date();
-        const formattedDate = now.toLocaleString().replace(', ', '_');
-
-        const taskName = `Task_${formattedDate}`;
         generateAssessmentMutation.mutate({
             pdfId: fileId || '',
             userPrompt: prompt || '',
-            taskName,
+            taskName: getRandomTaskName(),
             taskId: '',
         });
     };
@@ -89,7 +86,7 @@ const ExtractQuestionsComponent = ({ fileId }: { fileId: string }) => {
                                 layoutVariant="default"
                                 className="text-sm"
                             >
-                                <DashboardLoader size={18} color="#ffffff" />
+                                <DashboardLoader />
                             </MyButton>
                         ) : (
                             <MyButton

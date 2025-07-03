@@ -1,17 +1,17 @@
-import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
-import { Sliders, X } from "phosphor-react";
-import { Checkbox } from "@/components/ui/checkbox";
-import "react-quill/dist/quill.snow.css";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { PopoverClose } from "@radix-ui/react-popover";
-import SelectField from "@/components/design-system/select-field";
-import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
-import { QuestionPaperTemplateFormProps } from "../../../-utils/question-paper-template-form";
-import { formatStructure } from "../../../-utils/helper";
-import { QUESTION_TYPES } from "@/constants/dummy-data";
-import { PPTViewQuillEditor } from "@/components/quill/PPTViewQuillEditor";
-import { Badge } from "@/components/ui/badge";
+import { FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
+import { Sliders, X } from 'phosphor-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import 'react-quill/dist/quill.snow.css';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { PopoverClose } from '@radix-ui/react-popover';
+import SelectField from '@/components/design-system/select-field';
+import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
+import { QuestionPaperTemplateFormProps } from '../../../-utils/question-paper-template-form';
+import { formatStructure } from '../../../-utils/helper';
+import { QUESTION_TYPES } from '@/constants/dummy-data';
+import { PPTViewQuillEditor } from '@/components/quill/PPTViewQuillEditor';
+import { Badge } from '@/components/ui/badge';
 
 export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
     form,
@@ -20,19 +20,19 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
 }: QuestionPaperTemplateFormProps) => {
     const { control, getValues } = form;
 
-    const answersType = getValues("answersType") || "Answer:";
-    const explanationsType = getValues("explanationsType") || "Explanation:";
-    const optionsType = getValues("optionsType") || "";
-    const questionsType = getValues("questionsType") || "";
+    const answersType = getValues('answersType') || 'Answer:';
+    const explanationsType = getValues('explanationsType') || 'Explanation:';
+    const optionsType = getValues('optionsType') || '';
+    const questionsType = getValues('questionsType') || '';
 
-    const allQuestions = getValues("questions") || [];
+    const allQuestions = getValues('questions') || [];
 
     const option1 = getValues(`questions.${currentQuestionIndex}.cmultipleChoiceOptions.${0}`);
     const option2 = getValues(`questions.${currentQuestionIndex}.cmultipleChoiceOptions.${1}`);
     const option3 = getValues(`questions.${currentQuestionIndex}.cmultipleChoiceOptions.${2}`);
     const option4 = getValues(`questions.${currentQuestionIndex}.cmultipleChoiceOptions.${3}`);
     const tags = getValues(`questions.${currentQuestionIndex}.tags`) || [];
-    const level = getValues(`questions.${currentQuestionIndex}.level`) || "";
+    const level = getValues(`questions.${currentQuestionIndex}.level`) || '';
 
     if (allQuestions.length === 0) {
         return (
@@ -131,13 +131,13 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
                 <div className="flex gap-4">
                     <div
                         className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
-                            option1?.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                            option1?.isSelected ? 'border border-primary-300 bg-primary-50' : ''
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">
                             <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
                                 <span className="!p-0 text-sm">
-                                    {optionsType ? formatStructure(optionsType, "a") : "(a.)"}
+                                    {optionsType ? formatStructure(optionsType, 'a') : '(a.)'}
                                 </span>
                             </div>
                             <FormField
@@ -168,8 +168,8 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
                                                 onCheckedChange={field.onChange}
                                                 className={`mt-1 size-5 border-2 shadow-none ${
                                                     field.value
-                                                        ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
-                                                        : "" // Default styles when unchecked
+                                                        ? 'border-none bg-green-500 text-white' // Blue background and red tick when checked
+                                                        : '' // Default styles when unchecked
                                                 }`}
                                             />
                                         </FormControl>
@@ -181,13 +181,13 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
                     </div>
                     <div
                         className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
-                            option2?.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                            option2?.isSelected ? 'border border-primary-300 bg-primary-50' : ''
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">
                             <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
                                 <span className="!p-0 text-sm">
-                                    {optionsType ? formatStructure(optionsType, "b") : "(b.)"}
+                                    {optionsType ? formatStructure(optionsType, 'b') : '(b.)'}
                                 </span>
                             </div>
                             <FormField
@@ -218,8 +218,8 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
                                                 onCheckedChange={field.onChange}
                                                 className={`mt-1 size-5 border-2 shadow-none ${
                                                     field.value
-                                                        ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
-                                                        : "" // Default styles when unchecked
+                                                        ? 'border-none bg-green-500 text-white' // Blue background and red tick when checked
+                                                        : '' // Default styles when unchecked
                                                 }`}
                                             />
                                         </FormControl>
@@ -233,13 +233,13 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
                 <div className="flex gap-4">
                     <div
                         className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
-                            option3?.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                            option3?.isSelected ? 'border border-primary-300 bg-primary-50' : ''
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">
                             <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
                                 <span className="!p-0 text-sm">
-                                    {optionsType ? formatStructure(optionsType, "c") : "(c.)"}
+                                    {optionsType ? formatStructure(optionsType, 'c') : '(c.)'}
                                 </span>
                             </div>
                             <FormField
@@ -270,8 +270,8 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
                                                 onCheckedChange={field.onChange}
                                                 className={`mt-1 size-5 border-2 shadow-none ${
                                                     field.value
-                                                        ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
-                                                        : "" // Default styles when unchecked
+                                                        ? 'border-none bg-green-500 text-white' // Blue background and red tick when checked
+                                                        : '' // Default styles when unchecked
                                                 }`}
                                             />
                                         </FormControl>
@@ -283,13 +283,13 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
                     </div>
                     <div
                         className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
-                            option4?.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                            option4?.isSelected ? 'border border-primary-300 bg-primary-50' : ''
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">
                             <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
                                 <span className="!p-0 text-sm">
-                                    {optionsType ? formatStructure(optionsType, "d") : "(d.)"}
+                                    {optionsType ? formatStructure(optionsType, 'd') : '(d.)'}
                                 </span>
                             </div>
                             {
@@ -322,8 +322,8 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
                                                 onCheckedChange={field.onChange}
                                                 className={`mt-1 size-5 border-2 shadow-none ${
                                                     field.value
-                                                        ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
-                                                        : "" // Default styles when unchecked
+                                                        ? 'border-none bg-green-500 text-white' // Blue background and red tick when checked
+                                                        : '' // Default styles when unchecked
                                                 }`}
                                             />
                                         </FormControl>

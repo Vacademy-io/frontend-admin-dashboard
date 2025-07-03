@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { MyButton } from '@/components/design-system/button';
 import { MyInput } from '@/components/design-system/input';
 import { DotsSixVertical, PencilSimple, Plus, TrashSimple } from 'phosphor-react';
+import { CustomField } from '../../-schema/InviteFormSchema';
+import { duplicateKeyCheck } from '../../-utils/inviteLinkKeyChecks';
 
 // Define types for dropdown options
 export interface DropdownOption {
@@ -16,18 +18,24 @@ export interface DropdownOption {
 interface AddCustomFieldDialogProps {
     trigger: React.ReactNode;
     onAddField: (type: string, name: string, oldKey: boolean, options?: DropdownOption[]) => void;
+    customFields: CustomField[];
 }
 
-export const AddCustomFieldDialog = ({ trigger, onAddField }: AddCustomFieldDialogProps) => {
+export const AddCustomFieldDialog = ({
+    trigger,
+    onAddField,
+    customFields,
+}: AddCustomFieldDialogProps) => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [selectedOptionValue, setSelectedOptionValue] = useState('textfield');
     const [textFieldValue, setTextFieldValue] = useState('');
+    const [validTextField, setValidTextField] = useState(false);
     const [dropdownOptions, setDropdownOptions] = useState<DropdownOption[]>([]);
 
     const handleAddDropdownOptions = () => {
         setDropdownOptions((prevOptions) => [
             ...prevOptions,
-            { id: prevOptions.length, value: `option ${prevOptions.length + 1}`, disabled: true },
+            { id: prevOptions.length, value: `option ${prevOptions.length + 1}`, disabled: false },
         ]);
     };
 
@@ -51,9 +59,7 @@ export const AddCustomFieldDialog = ({ trigger, onAddField }: AddCustomFieldDial
         );
     };
 
-    // Function to close the dialog and add the new field
     const handleCloseDialog = () => {
-        // Create the new field and pass to parent component
         onAddField(
             selectedOptionValue,
             textFieldValue,
@@ -61,11 +67,18 @@ export const AddCustomFieldDialog = ({ trigger, onAddField }: AddCustomFieldDial
             selectedOptionValue === 'dropdown' ? dropdownOptions : undefined
         );
 
-        // Reset dialog and temporary values
         setIsDialogOpen(false);
         setTextFieldValue('');
         setDropdownOptions([]);
     };
+
+    useEffect(() => {
+        if (textFieldValue.length > 0 && !duplicateKeyCheck(customFields, textFieldValue)) {
+            setValidTextField(true);
+        } else {
+            setValidTextField(false);
+        }
+    }, [textFieldValue]);
 
     return (
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -102,6 +115,11 @@ export const AddCustomFieldDialog = ({ trigger, onAddField }: AddCustomFieldDial
                                 size="large"
                                 className="w-full"
                             />
+                            {!validTextField && (
+                                <p className="text-caption text-danger-600">
+                                    This field name is already taken
+                                </p>
+                            )}
                         </div>
                     ) : (
                         <div className="flex flex-col gap-1">
@@ -117,11 +135,16 @@ export const AddCustomFieldDialog = ({ trigger, onAddField }: AddCustomFieldDial
                                 size="large"
                                 className="w-full"
                             />
+                            {!validTextField && (
+                                <p className="text-caption text-danger-600">
+                                    This field name is already taken
+                                </p>
+                            )}
                             <h1 className="mt-4">Dropdown Options</h1>
                             <div className="flex flex-col gap-4">
                                 {dropdownOptions.map((option) => (
                                     <div
-                                        className="flex w-full items-center justify-between rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-1"
+                                        className="flex w-[3/4] items-center justify-between rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-1"
                                         key={option.id}
                                     >
                                         <MyInput
@@ -131,9 +154,8 @@ export const AddCustomFieldDialog = ({ trigger, onAddField }: AddCustomFieldDial
                                             onChangeFunction={(e) =>
                                                 handleValueChange(option.id, e.target.value)
                                             }
-                                            size="large"
                                             disabled={option.disabled}
-                                            className="border-none pl-0"
+                                            className="size-fit border-none pl-0"
                                         />
                                         <div className="flex items-center gap-6">
                                             <MyButton
@@ -182,6 +204,7 @@ export const AddCustomFieldDialog = ({ trigger, onAddField }: AddCustomFieldDial
                             buttonType="primary"
                             className="mt-4 w-fit"
                             onClick={handleCloseDialog}
+                            disable={!validTextField}
                         >
                             Done
                         </MyButton>

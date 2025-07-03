@@ -6,7 +6,7 @@ import { MyButton } from '@/components/design-system/button';
 import { Copy, Plus } from 'phosphor-react';
 import { InviteForm } from '../../-schema/InviteFormSchema';
 import formDataToRequestData from '../../-utils/formDataToRequestData';
-import { CreateInvitationRequestType } from '../../-types/create-invitation-types';
+import { LearnerInvitationType } from '../../-types/create-invitation-types';
 import { toast } from 'sonner';
 import createInviteLink from '../../-utils/createInviteLink';
 import { useInviteFormContext } from '../../-context/useInviteFormContext';
@@ -66,10 +66,10 @@ export const CreateInvite = () => {
     const onCreateInvite = async (invite: InviteForm) => {
         const requestData = formDataToRequestData(invite, getPackageSessionId);
         try {
-            const { data: responseData }: { data: CreateInvitationRequestType } =
+            const { data: responseData }: { data: LearnerInvitationType } =
                 await createInviteMutation.mutateAsync({ requestBody: requestData });
             toast.success('invitation created');
-            const link = createInviteLink(responseData?.learner_invitation?.invite_code || '');
+            const link = createInviteLink(responseData?.invite_code || '');
             setInviteLink(link);
             setValue('batches', {
                 maxCourses: 0,
@@ -103,18 +103,10 @@ export const CreateInvite = () => {
                 heading="Invitation Link"
                 open={openInvitationLinkDialog}
                 onOpenChange={setOpenInvitationLinkDialog}
-                footer={
-                    <div className="flex w-full items-center justify-between">
-                        {/* <MyButton buttonType="secondary">Review Invitation</MyButton> */}
-                        <MyButton onClick={() => setOpenInvitationLinkDialog(false)}>
-                            Close
-                        </MyButton>
-                    </div>
-                }
-                dialogWidth="w-[50vw] overflow-x-hidden"
+                dialogWidth="w-[35vw] overflow-x-hidden"
             >
                 <div className="flex w-fit items-center gap-4 overflow-x-hidden">
-                    <p className="w-[50%] truncate rounded-lg border border-neutral-300 p-2 text-neutral-500">
+                    <p className="w-[30vw] truncate rounded-lg border border-neutral-300 p-2 text-neutral-500">
                         {inviteLink}
                     </p>
                     <div className="flex items-center gap-2">

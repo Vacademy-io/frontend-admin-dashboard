@@ -1,15 +1,15 @@
-import { MyButton } from "@/components/design-system/button";
-import CustomInput from "@/components/design-system/custom-input";
-import SelectField from "@/components/design-system/select-field";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-import { PencilSimpleLine } from "phosphor-react";
-import { useForm, SubmitHandler, UseFormReturn } from "react-hook-form";
-import { z } from "zod";
-import { uploadQuestionPaperFormSchema } from "../-utils/upload-question-paper-form-schema";
-import { useFilterDataForAssesment } from "../../assessment-list/-utils.ts/useFiltersData";
-import { useState } from "react";
+import { MyButton } from '@/components/design-system/button';
+import CustomInput from '@/components/design-system/custom-input';
+import SelectField from '@/components/design-system/select-field';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { PencilSimpleLine } from 'phosphor-react';
+import { useForm, SubmitHandler, UseFormReturn } from 'react-hook-form';
+import { z } from 'zod';
+import { uploadQuestionPaperFormSchema } from '../-utils/upload-question-paper-form-schema';
+import { useFilterDataForAssesment } from '../../assessment-list/-utils.ts/useFiltersData';
+import { useState } from 'react';
 
 interface FormData {
     title: string;
@@ -24,17 +24,17 @@ export const QuestionPaperEditDialog = ({ form }: { form: UseFormReturn<Question
     const { YearClassFilterData, SubjectFilterData } = useFilterDataForAssesment(instituteDetails);
     const { control, handleSubmit } = useForm<FormData>({
         defaultValues: {
-            title: form.getValues("title"),
-            yearClass: form.getValues("yearClass"),
-            subject: form.getValues("subject"),
+            title: form.getValues('title'),
+            yearClass: form.getValues('yearClass'),
+            subject: form.getValues('subject'),
         },
     });
     const { setValue } = form;
 
     const onSubmit: SubmitHandler<FormData> = (data) => {
-        setValue("title", data.title);
-        setValue("yearClass", data.yearClass);
-        setValue("subject", data.subject);
+        setValue('title', data.title);
+        setValue('yearClass', data.yearClass);
+        setValue('subject', data.subject);
         setIsDialogOpen(false);
     };
 

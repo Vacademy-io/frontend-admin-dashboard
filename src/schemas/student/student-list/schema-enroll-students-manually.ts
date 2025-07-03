@@ -52,8 +52,10 @@ export const stepFourSchema = z.object({
 
 // Step Five Schema
 export const stepFiveSchema = z.object({
-    username: z.string().min(1, 'Username is required'),
-    password: z.string().min(1, 'password cannot be empty'),
+    username: z.string().nonempty('Username is required'),
+    password: z.string().min(4, {
+        message: 'Password must be at least 4 characters',
+    }),
 });
 
 export type StepOneData = z.infer<typeof stepOneSchema>;

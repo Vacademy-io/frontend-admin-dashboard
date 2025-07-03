@@ -1,8 +1,8 @@
-import { Helmet } from "react-helmet";
-import { QuestionPapersHeading } from "./QuestionPapersHeading";
-import { QuestionPapersTabs } from "./QuestionPapersTabs";
-import { useEffect, useState } from "react";
-import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
+import { Helmet } from 'react-helmet';
+import { QuestionPapersHeading } from './QuestionPapersHeading';
+import { QuestionPapersTabs } from './QuestionPapersTabs';
+import { useEffect, useState } from 'react';
+import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
 
 export function QuestionPapersComponent() {
     const { setNavHeading } = useNavHeadingStore();

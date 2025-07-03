@@ -9,10 +9,10 @@ import {
     handleStartProcessUploadedAudioFile,
 } from '@/routes/ai-center/-services/ai-center-service';
 import AITasksList from '@/routes/ai-center/-components/AITasksList';
+import { getRandomTaskName } from '@/routes/ai-center/-utils/helper';
 
 const EvaluateLectureAI = () => {
     const queryClient = useQueryClient();
-    const [taskName, setTaskName] = useState('');
     const instituteId = getInstituteId();
     const { setLoader, key, setKey } = useAICenter();
     const { uploadFile } = useFileUpload();
@@ -66,7 +66,7 @@ const EvaluateLectureAI = () => {
     const pollGenerateAssessment = (pdfId: string) => {
         generateAssessmentMutation.mutate({
             pdfId: pdfId,
-            taskName,
+            taskName: getRandomTaskName(),
         });
     };
 
@@ -85,8 +85,6 @@ const EvaluateLectureAI = () => {
                 cardDescription="Upload WAV/FLAC/MP3/AAC/M4A"
                 inputFormat=".mp3,.wav,.flac,.aac,.m4a"
                 keyProp="evaluateLecture"
-                taskName={taskName}
-                setTaskName={setTaskName}
             />
             {generateAssessmentMutation.status === 'success' && (
                 <AITasksList heading="Vsmart Feedback" enableDialog={true} />

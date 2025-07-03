@@ -1,4 +1,4 @@
-import { create } from "zustand";
+import { create } from 'zustand';
 
 interface MarkEntry {
     section_id: string;
@@ -19,7 +19,7 @@ export const useMarksStore = create<MarksStore>((set) => ({
         set((state) => {
             const existingIndex = state.marksData.findIndex(
                 (item) =>
-                    item.section_id === entry.section_id && item.question_id === entry.question_id,
+                    item.section_id === entry.section_id && item.question_id === entry.question_id
             );
 
             if (existingIndex !== -1) {

@@ -1,5 +1,5 @@
 // stores/pdfStore.ts
-import { create } from "zustand";
+import { create } from 'zustand';
 
 interface PDFStore {
     pdfUrl: string | null;

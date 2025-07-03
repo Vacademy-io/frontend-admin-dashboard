@@ -1,15 +1,15 @@
-import { Button } from "@/components/ui/button";
-import { Plus, X } from "phosphor-react";
+import { Button } from '@/components/ui/button';
+import { Plus, X } from 'phosphor-react';
 import {
     AlertDialog,
     AlertDialogCancel,
     AlertDialogContent,
     AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { QuestionPaperUpload } from "./QuestionPaperUpload";
-import { useIsMobile } from "@/hooks/use-mobile";
-import useDialogStore from "../-global-states/question-paper-dialogue-close";
-import { Dispatch, SetStateAction } from "react";
+} from '@/components/ui/alert-dialog';
+import { QuestionPaperUpload } from './QuestionPaperUpload';
+import { useIsMobile } from '@/hooks/use-mobile';
+import useDialogStore from '../-global-states/question-paper-dialogue-close';
+import { Dispatch, SetStateAction } from 'react';
 
 interface QuestionPaperHeadingInterface {
     currentQuestionIndex: number;
@@ -33,7 +33,7 @@ export const QuestionPapersHeading = ({
     return (
         <div
             className={`flex items-center justify-between gap-10 ${
-                isMobile ? "flex-wrap gap-4" : ""
+                isMobile ? 'flex-wrap gap-4' : ''
             }`}
         >
             <div className="flex flex-col">

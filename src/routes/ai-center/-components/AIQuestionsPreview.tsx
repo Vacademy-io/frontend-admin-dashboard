@@ -34,17 +34,12 @@ import { SectionFormType } from '@/types/assessments/assessment-steps';
 import { addQuestionPaper } from '@/routes/assessment/question-papers/-utils/question-paper-services';
 import { getQuestionPaperById } from '@/routes/community/question-paper/-service/utils';
 import { useAIQuestionDialogStore } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/zustand-global-states/ai-add-questions-dialog-zustand';
-import { useEffect } from 'react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface AIQuestionsPreviewProps {
     task: AITaskIndividualListInterface;
     pollGenerateAssessment?: (prompt?: string, taskId?: string) => void;
-    handleGenerateQuestionsForAssessment?: (
-        pdfId?: string,
-        prompt?: string,
-        taskName?: string
-    ) => void;
+    handleGenerateQuestionsForAssessment?: (pdfId?: string, prompt?: string) => void;
     pollGenerateQuestionsFromText?: (data: QuestionsFromTextData) => void;
     pollGenerateQuestionsFromAudio?: (data: QuestionsFromTextData, taskId: string) => void;
     heading?: string;
@@ -142,6 +137,7 @@ const AIQuestionsPreview = ({
                 tags: response?.tags,
                 questions: transformQuestionsData,
             });
+            form.trigger();
         },
         onError: (error: unknown) => {
             console.log(error);
@@ -267,11 +263,6 @@ const AIQuestionsPreview = ({
         });
     };
 
-    useEffect(() => {
-        setCurrentQuestionIndex(Math.max(0, questions.length - 1));
-        form.trigger();
-    }, [form.watch(`questions.${currentQuestionIndex}.questionType`)]);
-
     return (
         <>
             <Dialog open={noResponse} onOpenChange={setNoResponse}>
@@ -304,11 +295,7 @@ const AIQuestionsPreview = ({
                             className="border-none text-sm !text-blue-600 shadow-none hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 active:bg-transparent"
                             onClick={() => handleRetryTask(task.id)}
                         >
-                            {getRetryMutation.status === 'pending' ? (
-                                <DashboardLoader size={18} />
-                            ) : (
-                                'Retry'
-                            )}
+                            {getRetryMutation.status === 'pending' ? <DashboardLoader /> : 'Retry'}
                         </MyButton>
                     ) : (
                         <MyButton
@@ -319,7 +306,7 @@ const AIQuestionsPreview = ({
                             onClick={() => handlViewQuestionsList(task.id)}
                         >
                             {getQuestionsListMutation.status === 'pending' ? (
-                                <DashboardLoader size={18} />
+                                <DashboardLoader />
                             ) : (
                                 'View'
                             )}
@@ -356,7 +343,7 @@ const AIQuestionsPreview = ({
                                         {currentSectionIndex !== undefined &&
                                             (handleSubmitFormData.status === 'pending' ? (
                                                 <MyButton type="button">
-                                                    <DashboardLoader size={18} color="#ffffff" />
+                                                    <DashboardLoader />
                                                 </MyButton>
                                             ) : (
                                                 <MyButton

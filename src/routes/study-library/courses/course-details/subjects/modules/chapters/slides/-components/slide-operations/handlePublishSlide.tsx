@@ -1,5 +1,5 @@
 import { Slide } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-hooks/use-slides';
-import { Dispatch, SetStateAction } from 'react';
+import { Dispatch, RefObject, SetStateAction } from 'react';
 import { toast } from 'sonner';
 import { UseMutateAsyncFunction } from '@tanstack/react-query';
 import {
@@ -19,6 +19,10 @@ type SlideResponse = {
     description: string;
     status: string;
 };
+
+export interface YTPlayer {
+    getDuration(): number;
+}
 
 export const handlePublishSlide = async (
     setIsOpen: Dispatch<SetStateAction<boolean>>,
@@ -43,9 +47,11 @@ export const handlePublishSlide = async (
         SlideQuestionsDataInterface,
         unknown
     >,
-    SaveDraft: (activeItem: Slide) => Promise<void>
+    SaveDraft: (activeItem: Slide) => Promise<void>,
+    playerRef?: RefObject<YTPlayer> // Optional YouTube player ref
 ) => {
     const status = 'PUBLISHED';
+
     if (activeItem?.source_type === 'QUESTION') {
         const convertedData = convertToQuestionBackendSlideFormat({
             activeItem,
@@ -58,13 +64,13 @@ export const handlePublishSlide = async (
             // @ts-expect-error
             await updateQuestionOrder(convertedData!);
         } catch {
-            toast.error('error saving slide');
+            toast.error('Error saving slide');
         }
         return;
     }
 
-    if (activeItem?.source_type == 'DOCUMENT') {
-        if (activeItem?.document_slide?.type == 'DOC') await SaveDraft(activeItem);
+    if (activeItem?.source_type === 'DOCUMENT') {
+        if (activeItem?.document_slide?.type === 'DOC') await SaveDraft(activeItem);
         const publishedData = activeItem.document_slide?.data;
         try {
             await addUpdateDocumentSlide({
@@ -72,7 +78,7 @@ export const handlePublishSlide = async (
                 title: activeItem.title || '',
                 image_file_id: activeItem?.image_file_id || '',
                 description: activeItem?.description || '',
-                slide_order: null,
+                slide_order: 0,
                 document_slide: {
                     id: activeItem?.document_slide?.id || '',
                     type: activeItem?.document_slide?.type || '',
@@ -87,30 +93,55 @@ export const handlePublishSlide = async (
                 new_slide: false,
                 notify: notify,
             });
-            toast.success(`slide published successfully!`);
+            toast.success(`Slide published successfully!`);
             setIsOpen(false);
         } catch {
             toast.error(`Error in publishing the slide`);
         }
     }
 
-    if (activeItem?.source_type == 'VIDEO') {
+    if (activeItem?.source_type === 'VIDEO') {
+        if (!activeItem.video_slide) {
+            toast.error('Video slide data is missing.');
+            return;
+        }
+
+        // Use playerRef to get latest duration if available
+        let durationInMillis = 0;
+        if (playerRef?.current?.getDuration) {
+            const durationInSec = playerRef.current.getDuration();
+            durationInMillis = Math.round(durationInSec * 1000);
+        } else {
+            durationInMillis =
+                activeItem.video_slide.video_length_in_millis ||
+                activeItem.video_slide.published_video_length_in_millis ||
+                0;
+        }
+
         const convertedData = converDataToVideoFormat({
-            activeItem,
+            activeItem: {
+                ...activeItem,
+                video_slide: {
+                    ...activeItem.video_slide,
+                    video_length_in_millis: durationInMillis,
+                    published_video_length_in_millis: durationInMillis,
+                },
+            },
             status,
             notify,
             newSlide: false,
         });
+
         try {
             await addUpdateVideoSlide(convertedData);
-            toast.success(`slide published successfully!`);
+            toast.success(`Slide published successfully!`);
             setIsOpen(false);
         } catch {
             toast.error(`Error in publishing the slide`);
         }
     }
 
-    if (activeItem?.source_type == 'ASSIGNMENT') {
+    if (activeItem?.source_type === 'ASSIGNMENT') {
         const convertedData = converDataToAssignmentFormat({
             activeItem,
             status,
@@ -121,7 +152,7 @@ export const handlePublishSlide = async (
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-expect-error
             await updateAssignmentOrder(convertedData!);
-            toast.success(`slide published successfully!`);
+            toast.success(`Slide published successfully!`);
             setIsOpen(false);
         } catch {
             toast.error(`Error in publishing the slide`);

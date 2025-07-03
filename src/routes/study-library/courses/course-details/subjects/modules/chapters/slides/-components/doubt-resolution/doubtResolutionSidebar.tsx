@@ -1,34 +1,29 @@
 import { Sidebar, SidebarContent, SidebarHeader, useSidebar } from '@/components/ui/sidebar';
 import { X } from '@phosphor-icons/react';
-import { Dispatch, SetStateAction, useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useContentStore } from '../../-stores/chapter-sidebar-store';
 import { DoubtFilter } from '../../-types/get-doubts-type';
 import { useGetDoubts } from '../../-services/GetDoubts';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
-import { Doubt } from './doubt';
 import { Doubt as DoubtType } from '../../-types/get-doubts-type';
+import { DoubtList } from './doubtList';
+import { get30DaysAgo, getTomorrow } from '@/utils/dateUtils';
 
 const TabsTriggerClass =
-    'w-full data-[state=active]:shadow-none rounded-none rounded-tl-md rounded-tr-md border-white border-l-[1px] border-r-[1px] border-t-[1px] data-[state=active]:border-primary-200 data-[state=active]:text-primary-500 pt-2';
+    'flex-1 rounded-md px-3 py-1.5 text-sm font-medium text-neutral-600 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-primary-50 data-[state=active]:text-primary-600 data-[state=active]:shadow-sm';
 
-const DoubtResolutionSidebar = ({
-    setDoubtProgressMarkerPdf,
-    setDoubtProgressMarkerVideo,
-}: {
-    setDoubtProgressMarkerPdf: Dispatch<SetStateAction<number | null>>;
-    setDoubtProgressMarkerVideo: Dispatch<SetStateAction<number | null>>;
-}) => {
+const DoubtResolutionSidebar = () => {
     const { open, setOpen } = useSidebar();
     const { activeItem } = useContentStore();
     const observer = useRef<IntersectionObserver | null>(null);
     const [activeTab, setActiveTab] = useState('ALL');
+    const sidebarRef = useRef<HTMLDivElement>(null);
 
     const [filter, setFilter] = useState<DoubtFilter>({
         name: '',
-        start_date:
-            new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] || '',
-        end_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0] || '',
+        start_date: get30DaysAgo(),
+        end_date: getTomorrow(),
         user_ids: [],
         content_positions: [],
         content_types: [
@@ -48,11 +43,13 @@ const DoubtResolutionSidebar = ({
         useGetDoubts(filter);
 
     const [allDoubts, setAllDoubts] = useState<DoubtType[]>(
-        data?.pages.flatMap((page) => page.content) || []
+        (data as any)?.pages?.flatMap((page: { content: DoubtType[] }) => page.content) || []
     );
 
     useEffect(() => {
-        setAllDoubts(data?.pages.flatMap((page) => page.content) || []);
+        setAllDoubts(
+            (data as any)?.pages?.flatMap((page: { content: DoubtType[] }) => page.content) || []
+        );
     }, [data]);
 
     useEffect(() => {
@@ -70,6 +67,42 @@ const DoubtResolutionSidebar = ({
     useEffect(() => {
         refetch();
     }, [filter]);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            // Only handle click outside if sidebar is open
+            if (!open) return;
+
+            const target = event.target as Element;
+
+            // Check if click is outside the sidebar
+            if (sidebarRef.current && !sidebarRef.current.contains(target)) {
+                // Check if the click is on a DeleteDoubt component or its children
+                const isDeleteDoubtClick = target.closest('[data-delete-doubt]');
+
+                // Check if the click is on a dialog or its children
+                const isDialogClick =
+                    target.closest('[role="dialog"]') ||
+                    target.closest('[data-radix-popper-content-wrapper]') ||
+                    target.closest('.radix-dialog-content') ||
+                    target.closest('[data-state="open"]') ||
+                    target.closest('[data-radix-dialog-content]');
+
+                // If it's not a delete doubt click or dialog click, close the sidebar
+                if (!isDeleteDoubtClick && !isDialogClick) {
+                    setOpen(false);
+                }
+            }
+        };
+
+        // Add event listener
+        document.addEventListener('mousedown', handleClickOutside);
+
+        // Cleanup
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [open, setOpen]);
 
     const handleTabChange = (value: string) => {
         setActiveTab(value);
@@ -96,25 +129,30 @@ const DoubtResolutionSidebar = ({
         [isLoading, hasNextPage, isFetchingNextPage, fetchNextPage]
     );
 
-    if (isLoading) return <DashboardLoader />;
+    if (isLoading && !data) return <DashboardLoader />;
     if (isError) return <p>Error fetching doubts</p>;
 
     return (
         <Sidebar
+            ref={sidebarRef}
             side="right"
-            className={`${open ? 'w-[50vw]' : 'w-0'} flex flex-col gap-6 overflow-y-hidden bg-white p-4`}
+            className={`fixed right-0 top-0 z-[9999] h-full ${
+                open ? 'w-[35vw] min-w-[450px]' : 'w-0'
+            } flex flex-col overflow-y-hidden border-l border-neutral-200 bg-white shadow-lg transition-all duration-300 ease-in-out`}
         >
-            <SidebarHeader className="flex w-full items-center justify-between overflow-y-hidden bg-white">
-                <div className="flex w-full items-center justify-between bg-white">
-                    <h1 className="text-lg font-semibold text-primary-500 sm:text-2xl">
-                        Doubt Resolution
-                    </h1>
-                    <X className="hover:cursor-pointer" onClick={() => setOpen(false)} />
+            <SidebarHeader className="flex w-full items-center justify-between border-b border-neutral-200 p-4">
+                <div className="flex w-full items-center justify-between">
+                    <h1 className="text-lg font-semibold text-neutral-800">Doubt Resolution</h1>
+                    <X
+                        size={20}
+                        className="cursor-pointer text-neutral-500 hover:text-neutral-700"
+                        onClick={() => setOpen(false)}
+                    />
                 </div>
             </SidebarHeader>
-            <SidebarContent className="no-scrollbar flex flex-col gap-4 overflow-y-scroll bg-white pt-6">
-                <Tabs value={activeTab} onValueChange={handleTabChange}>
-                    <TabsList className="flex w-full rounded-none border-b border-neutral-300 bg-white p-0">
+            <SidebarContent className="no-scrollbar flex flex-1 flex-col gap-4 overflow-y-auto p-4">
+                <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+                    <TabsList className="grid w-full grid-cols-3 gap-2 rounded-lg bg-neutral-100 p-1">
                         <TabsTrigger value="ALL" className={TabsTriggerClass}>
                             All
                         </TabsTrigger>
@@ -125,59 +163,53 @@ const DoubtResolutionSidebar = ({
                             Unresolved
                         </TabsTrigger>
                     </TabsList>
-                    <TabsContent value="ALL" className="flex flex-col gap-4">
-                        {allDoubts.map((doubt, index) => (
-                            <div
-                                key={doubt.id || index}
-                                ref={
-                                    index === allDoubts.length - 1 ? lastDoubtElementRef : undefined
-                                }
-                            >
-                                <Doubt
-                                    doubt={doubt}
-                                    setDoubtProgressMarkerPdf={setDoubtProgressMarkerPdf}
-                                    setDoubtProgressMarkerVideo={setDoubtProgressMarkerVideo}
-                                    refetch={refetch}
-                                />
-                            </div>
-                        ))}
-                        {isFetchingNextPage && <DashboardLoader />}
+                    <TabsContent
+                        value="ALL"
+                        className="mt-4 flex flex-col data-[state=inactive]:hidden"
+                    >
+                        <DoubtList
+                            allDoubts={allDoubts}
+                            isLoading={
+                                isLoading &&
+                                (!(data as any)?.pages || (data as any).pages.length === 0)
+                            }
+                            lastDoubtElementRef={lastDoubtElementRef}
+                            refetch={refetch}
+                            isFetchingNextPage={isFetchingNextPage}
+                            status={activeTab}
+                        />
                     </TabsContent>
-                    <TabsContent value="RESOLVED" className="flex flex-col gap-4">
-                        {allDoubts.map((doubt, index) => (
-                            <div
-                                key={doubt.id || index}
-                                ref={
-                                    index === allDoubts.length - 1 ? lastDoubtElementRef : undefined
-                                }
-                            >
-                                <Doubt
-                                    doubt={doubt}
-                                    setDoubtProgressMarkerPdf={setDoubtProgressMarkerPdf}
-                                    setDoubtProgressMarkerVideo={setDoubtProgressMarkerVideo}
-                                    refetch={refetch}
-                                />
-                            </div>
-                        ))}
-                        {isFetchingNextPage && <DashboardLoader />}
+                    <TabsContent
+                        value="RESOLVED"
+                        className="mt-4 flex flex-col data-[state=inactive]:hidden"
+                    >
+                        <DoubtList
+                            allDoubts={allDoubts}
+                            isLoading={
+                                isLoading &&
+                                (!(data as any)?.pages || (data as any).pages.length === 0)
+                            }
+                            lastDoubtElementRef={lastDoubtElementRef}
+                            refetch={refetch}
+                            isFetchingNextPage={isFetchingNextPage}
+                            status={activeTab}
+                        />
                     </TabsContent>
-                    <TabsContent value="UNRESOLVED" className="flex flex-col gap-4">
-                        {allDoubts.map((doubt, index) => (
-                            <div
-                                key={doubt.id || index}
-                                ref={
-                                    index === allDoubts.length - 1 ? lastDoubtElementRef : undefined
-                                }
-                            >
-                                <Doubt
-                                    doubt={doubt}
-                                    setDoubtProgressMarkerPdf={setDoubtProgressMarkerPdf}
-                                    setDoubtProgressMarkerVideo={setDoubtProgressMarkerVideo}
-                                    refetch={refetch}
-                                />
-                            </div>
-                        ))}
-                        {isFetchingNextPage && <DashboardLoader />}
+                    <TabsContent
+                        value="UNRESOLVED"
+                        className="mt-4 flex flex-col data-[state=inactive]:hidden"
+                    >
+                        <DoubtList
+                            allDoubts={allDoubts}
+                            isLoading={
+                                isLoading &&
+                                (!(data as any)?.pages || (data as any).pages.length === 0)
+                            }
+                            lastDoubtElementRef={lastDoubtElementRef}
+                            refetch={refetch}
+                            isFetchingNextPage={isFetchingNextPage}
+                            status={activeTab}
+                        />
                     </TabsContent>
                 </Tabs>
             </SidebarContent>

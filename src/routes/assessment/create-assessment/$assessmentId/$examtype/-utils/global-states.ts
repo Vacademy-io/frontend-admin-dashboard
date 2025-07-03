@@ -1,5 +1,5 @@
-import { MyQuestionPaperFormInterface } from "@/types/assessments/question-paper-form";
-import { create } from "zustand";
+import { MyQuestionPaperFormInterface } from '@/types/assessments/question-paper-form';
+import { create } from 'zustand';
 
 // Define the interface for the Zustand store
 interface SidebarState {
@@ -16,7 +16,7 @@ export const useSidebarStore = create<SidebarState>((set) => ({
 interface UploadedQuestionPapersStore {
     sectionUploadedQuestionPapers: MyQuestionPaperFormInterface[];
     setSectionUploadedQuestionPapers: (
-        updater: (prev: MyQuestionPaperFormInterface[]) => MyQuestionPaperFormInterface[],
+        updater: (prev: MyQuestionPaperFormInterface[]) => MyQuestionPaperFormInterface[]
     ) => void;
 }
 
@@ -36,8 +36,8 @@ interface AssessmentStore {
 }
 
 export const useSavedAssessmentStore = create<AssessmentStore>((set) => ({
-    savedAssessmentId: "",
-    saveAssessmentName: "",
+    savedAssessmentId: '',
+    saveAssessmentName: '',
     setSavedAssessmentId: (id: string) => set({ savedAssessmentId: id }),
     setSavedAssessmentName: (name: string) => set({ saveAssessmentName: name }),
 }));

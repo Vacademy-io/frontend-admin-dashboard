@@ -1,25 +1,23 @@
 import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
 import { MyButton } from '@/components/design-system/button';
-import { ArrowUp } from '@phosphor-icons/react';
+import { PaperPlaneTilt } from '@phosphor-icons/react';
 import { handleAddReply } from '../../-helper/handleAddReply';
 import { DoubtType } from '../../-types/add-doubt-type';
-import { getTokenFromCookie } from '@/lib/auth/sessionUtility';
-import { TokenKey } from '@/constants/auth/tokens';
-import { getTokenDecodedData } from '@/lib/auth/sessionUtility';
 import { useContentStore } from '../../-stores/chapter-sidebar-store';
 import { useState } from 'react';
 import { useAddReply } from '../../-services/AddReply';
+import { getUserId, getUserName } from '@/utils/userDetails';
 
 export const AddReply = ({ parent, refetch }: { parent: DoubtType; refetch: () => void }) => {
-    const accessToken = getTokenFromCookie(TokenKey.accessToken);
-    const tokenData = getTokenDecodedData(accessToken);
-    const userId = tokenData?.user;
-    const userName = tokenData?.username;
+    const userId = getUserId();
+    const userName = getUserName();
     const { activeItem } = useContentStore();
     const [teacherReply, setTeacherReply] = useState<string>('');
     const addReply = useAddReply();
 
     const submitReply = async () => {
+        if (!teacherReply.trim()) return;
+
         const replyData: DoubtType = {
             user_id: userId || '',
             name: userName || '',
@@ -43,18 +41,22 @@ export const AddReply = ({ parent, refetch }: { parent: DoubtType; refetch: () =
     };
 
     return (
-        <div className=" flex w-full items-center gap-2 rounded-md p-3">
+        <div className="relative flex w-full items-center gap-2">
             <MainViewQuillEditor
                 value={teacherReply}
                 onChange={setTeacherReply}
-                CustomclasssName="mb-16 h-[80px] w-full max-sm:h-[50px] sm:mb-10"
-                placeholder="Add your reply here"
+                CustomclasssName="flex-grow min-h-[70px] max-h-[150px] w-full text-sm custom-quill-compact-padding ql-editor-flex-grow"
+                placeholder="Type your reply..."
             />
-            <div className="flex flex-col items-center gap-3" onClick={submitReply}>
-                <MyButton layoutVariant="icon">
-                    <ArrowUp />
-                </MyButton>
-            </div>
+            <MyButton
+                layoutVariant="icon"
+                buttonType="primary"
+                className="absolute bottom-3 right-2 rounded-full p-1.5 shadow-md transition-shadow hover:shadow-lg"
+                onClick={submitReply}
+                disabled={!teacherReply.trim()}
+            >
+                <PaperPlaneTilt size={18} weight="fill" />
+            </MyButton>
         </div>
     );
 };

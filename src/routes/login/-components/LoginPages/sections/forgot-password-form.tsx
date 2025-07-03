@@ -1,80 +1,78 @@
-import { FormContainer } from "@/routes/login/-components/LoginPages/layout/form-container";
-import { Heading } from "@/routes/login/-components/LoginPages/ui/heading";
-import { MyInput } from "@/components/design-system/input";
-import { Link } from "@tanstack/react-router";
-import { forgotPasswordSchema } from "@/schemas/login/login";
-import { z } from "zod";
-import { forgotPassword } from "@/hooks/login/send-link-button";
-import { sendResetLink } from "@/hooks/login/reset-link-click";
-import { useMutation } from "@tanstack/react-query";
-import { MyButton } from "@/components/design-system/button";
-import { toast } from "sonner";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
-import { EnvelopeSimple, WhatsappLogo } from "phosphor-react";
-import { goToMailSupport, goToWhatsappSupport } from "@/lib/utils";
+'use client';
+
+import { useEffect, useState } from 'react';
+import { FormContainer } from '@/routes/login/-components/LoginPages/layout/form-container';
+import { Heading } from '@/routes/login/-components/LoginPages/ui/heading';
+import { MyInput } from '@/components/design-system/input';
+import { Link } from '@tanstack/react-router';
+import { forgotPasswordSchema } from '@/schemas/login/login';
+import { z } from 'zod';
+import { forgotPassword } from '@/hooks/login/send-link-button';
+import { useMutation } from '@tanstack/react-query';
+import { MyButton } from '@/components/design-system/button';
+import { toast } from 'sonner';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
+import { EnvelopeSimple, WhatsappLogo } from 'phosphor-react';
+import { goToMailSupport, goToWhatsappSupport } from '@/lib/utils';
 
 type FormValues = z.infer<typeof forgotPasswordSchema>;
 
 export function ForgotPassword() {
+    const [cooldown, setCooldown] = useState(0);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+
     const form = useForm<FormValues>({
         resolver: zodResolver(forgotPasswordSchema),
-        defaultValues: {
-            email: "",
-        },
-        mode: "onTouched",
+        defaultValues: { email: '' },
+        mode: 'onTouched',
     });
+
+    useEffect(() => {
+        let timer: NodeJS.Timeout | undefined;
+        if (cooldown > 0) {
+            timer = setInterval(() => {
+                setCooldown((prev) => prev - 1);
+            }, 1000);
+        }
+        return () => {
+            if (timer) clearInterval(timer);
+        };
+    }, [cooldown]);
 
     const forgotPasswordMutation = useMutation({
-        mutationFn: (email: string) => forgotPassword(email),
-        onSuccess: async (response) => {
-            if (response.status === "success") {
-                toast.success("Password Sent Successfully", {
-                    className: "success-toast",
-                    duration: 2000,
-                });
-
-                sendResetLinkMutation.mutate();
-            } else {
-                toast.error("Login Error", {
-                    description: "This account doesn't exist",
-                    className: "error-toast",
-                    duration: 2000,
-                });
-                form.reset(); // Clear email field if request fails
-            }
+        mutationFn: async (email: string) => {
+            return await forgotPassword(email);
         },
-        onError: () => {
-            toast.error("Login Error", {
-                description: "This account doesn't exist",
-                className: "error-toast",
-                duration: 2000,
-            });
-        },
-    });
-
-    const sendResetLinkMutation = useMutation({
-        mutationFn: sendResetLink,
         onSuccess: (response) => {
-            if (response.status != "success") {
-                toast.error("Failed to reset the password", {
-                    className: "error-toast",
-                    duration: 3000,
+            if (response.status === 'success') {
+                setCooldown(60);
+                setShowSuccessModal(true);
+                form.reset();
+            } else {
+                toast.error("We couldn't find an account with that email address.", {
+                    description: response.message,
+                    className: 'error-toast',
+                    duration: 4000,
                 });
             }
         },
-        onError: () => {
-            toast.error("Failed to reset the password", {
-                className: "error-toast",
+        onError: (error: any) => {
+            toast.error('Something went wrong', {
+                description: error?.message || 'Unable to process your request',
+                className: 'error-toast',
                 duration: 3000,
             });
         },
     });
 
-    function onSubmit(values: FormValues) {
+    const onSubmit = (values: FormValues) => {
         forgotPasswordMutation.mutate(values.email);
-    }
+    };
+
+    const isSending = forgotPasswordMutation.isPending;
+    const cooldownActive = cooldown > 0;
 
     return (
         <div>
@@ -110,14 +108,34 @@ export function ForgotPassword() {
                                 />
 
                                 <div className="flex flex-col items-center gap-4">
-                                    <MyButton
-                                        type="submit"
-                                        scale="large"
-                                        buttonType="primary"
-                                        layoutVariant="default"
-                                    >
-                                        Get Password
-                                    </MyButton>
+                                    {isSending || cooldownActive ? (
+                                        <MyButton
+                                            type="button"
+                                            scale="large"
+                                            buttonType="primary"
+                                            layoutVariant="default"
+                                            className="pointer-events-none opacity-50"
+                                        >
+                                            {isSending ? (
+                                                <div className="flex items-center gap-2">
+                                                    <span className="size-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                                                    Sending...
+                                                </div>
+                                            ) : (
+                                                `Resend in ${cooldown}s`
+                                            )}
+                                        </MyButton>
+                                    ) : (
+                                        <MyButton
+                                            type="submit"
+                                            scale="large"
+                                            buttonType="primary"
+                                            layoutVariant="default"
+                                        >
+                                            Send Reset Link
+                                        </MyButton>
+                                    )}
+
                                     <div className="flex gap-1 text-body font-regular">
                                         <div className="text-neutral-500">
                                             Remember your password?
@@ -169,6 +187,41 @@ export function ForgotPassword() {
                     </Form>
                 </div>
             </FormContainer>
+
+            {/* ✅ Modal shown on success */}
+            {showSuccessModal && (
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50">
+                    <div className="relative w-[90%] max-w-md rounded-xl bg-white p-6 text-center shadow-lg">
+                        {/* ❌ Close button */}
+                        <button
+                            className="absolute right-4 top-4 text-neutral-500 hover:text-neutral-700"
+                            onClick={() => setShowSuccessModal(false)}
+                            aria-label="Close"
+                        >
+                            ×
+                        </button>
+
+                        <h2 className="mb-2 text-xl font-semibold text-neutral-800">
+                            Check Your Email
+                        </h2>
+                        <p className="mb-6 text-neutral-600">
+                            Your username and password have been sent to your email address.
+                        </p>
+
+                        {/* ✅ Replace "Got it" with "Back to Login" */}
+                        <Link to="/login">
+                            <MyButton
+                                buttonType="primary"
+                                scale="medium"
+                                layoutVariant="default"
+                                className="mx-auto"
+                            >
+                                Back to Login
+                            </MyButton>
+                        </Link>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

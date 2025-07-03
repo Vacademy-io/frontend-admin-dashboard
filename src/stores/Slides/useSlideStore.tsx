@@ -24,6 +24,11 @@ import { SlideTypeEnum } from '@/components/common/slides/utils/types';
 import { defaultSlides as initialDefaultSlides } from '@/components/common/slides/constant/defaultSlides';
 import { createNewSlide as createNewSlideUtil } from '@/components/common/slides/utils/util';
 
+export interface RecommendationBatch {
+    timestamp: string;
+    slides: Slide[];
+}
+
 // Props from AppState that are controlled by the Excalidraw component state
 // and should be persisted if they change.
 // Props from AppState that are controlled by Excalidraw and should be persisted
@@ -35,6 +40,11 @@ const CONTROLLED_APPSTATE_PROPS: (keyof PartialAppState)[] = [
     'theme', // 'light' | 'dark'
     'gridSize',
     'zenModeEnabled',
+
+    // Add scroll and zoom to persist view adjustments
+    'scrollX',
+    'scrollY',
+    'zoom',
 
     // Current item styling (tool options for next shape)
     'currentItemStrokeColor',
@@ -133,6 +143,15 @@ interface SlideStore {
     deleteSlide: (id: string) => void;
     moveSlide: (dragIndex: number, hoverIndex: number) => void;
     updateQuizFeedbackSlide: (id: string, formData: QuestionFormData) => void;
+    initializeNewPresentationState: () => void;
+    updateSlideIds: (
+        idUpdates: { tempId: string; newId: string; newQuestionId?: string; newOptions?: { tempOptionId: string, newOptionId: string }[] }[]
+    ) => void;
+    // --- State and actions for recommendations ---
+    recommendationBatches: RecommendationBatch[];
+    addRecommendationBatch: (batch: RecommendationBatch) => void;
+    removeRecommendation: (timestamp: string, slideId: string) => void;
+    clearRecommendations: () => void;
 }
 
 export const useSlideStore = create<SlideStore>((set, get) => {
@@ -160,6 +179,23 @@ export const useSlideStore = create<SlideStore>((set, get) => {
         slides: initialSlides,
         currentSlideId: initialSlides[0]?.id,
         editMode: true,
+        recommendationBatches: [],
+
+        initializeNewPresentationState: () => {
+            const newInitialSlides = initialDefaultSlides.map(deserializeSlideFromStorage);
+            set({
+                slides: newInitialSlides,
+                currentSlideId: newInitialSlides[0]?.id,
+                recommendationBatches: [], // Also reset recommendations
+            });
+            if (typeof window !== 'undefined') {
+                localStorage.removeItem('slides'); // Clear out old presentation
+                localStorage.setItem(
+                    'slides',
+                    JSON.stringify(newInitialSlides.map(serializeSlideForStorage))
+                );
+            }
+        },
 
         setSlides: (newSlides, skipSave = false) => {
             if (!skipSave && typeof window !== 'undefined') {
@@ -181,7 +217,7 @@ export const useSlideStore = create<SlideStore>((set, get) => {
             incomingAppState: ExcalidrawAppState, // Full AppState from Excalidraw
             incomingFiles: ExcalidrawBinaryFiles
         ) => {
-            console.log('new');
+            // Reduced verbose logging for better performance
             set((state) => {
                 const slideIndex = state.slides.findIndex((s) => s.id === id);
                 if (slideIndex === -1) {
@@ -190,18 +226,17 @@ export const useSlideStore = create<SlideStore>((set, get) => {
                 }
 
                 const oldSlide = state.slides[slideIndex];
-                // Ensure it's an Excalidraw-type slide before proceeding
-                if (
-                    oldSlide.type !== SlideTypeEnum.Excalidraw &&
-                    oldSlide.type !== SlideTypeEnum.Blank &&
-                    oldSlide.type !== SlideTypeEnum.Title &&
-                    oldSlide.type !== SlideTypeEnum.Text
-                ) {
+
+                // Guard: Only allow updates for slides meant to be handled by Excalidraw logic.
+                // Quiz and Feedback slides have their own update mechanism (updateQuizFeedbackSlide).
+                if (oldSlide.type === SlideTypeEnum.Quiz || oldSlide.type === SlideTypeEnum.Feedback) {
                     console.warn(
-                        `updateSlide called for non-Excalidraw slide type: ${oldSlide.type}`
+                        `updateSlide called for Quiz/Feedback slide type: ${oldSlide.type}. These should be updated via updateQuizFeedbackSlide.`
                     );
-                    return state;
+                    return state; // Do not proceed for Quiz/Feedback types here
                 }
+
+                // Cast to ExcalidrawSlideData for all other types, assuming they conform or will conform.
                 const oldExcalidrawSlide = oldSlide as ExcalidrawSlideData;
 
                 let hasMeaningfulChange = false;
@@ -239,12 +274,44 @@ export const useSlideStore = create<SlideStore>((set, get) => {
                 let appStateActuallyChanged = false;
                 const oldStoredAppState = oldExcalidrawSlide.appState || {};
 
-                for (const key of CONTROLLED_APPSTATE_PROPS) {
+                // Check for meaningful changes (excluding frequent scroll/zoom noise)
+                const meaningfulProps = CONTROLLED_APPSTATE_PROPS.filter(prop => 
+                    !['scrollX', 'scrollY', 'zoom'].includes(prop)
+                );
+
+                for (const key of meaningfulProps) {
                     if (!isEqual(oldStoredAppState[key], newAppStateForStore[key])) {
+                        console.log(
+                            `[useSlideStore] AppState change detected on key: "${key}". Old:`,
+                            oldStoredAppState[key],
+                            'New:',
+                            newAppStateForStore[key]
+                        );
                         appStateActuallyChanged = true;
                         break;
                     }
                 }
+
+                // For scroll/zoom, only update if change is significant (> 50px for scroll, > 0.1 for zoom)
+                if (!appStateActuallyChanged) {
+                    const scrollThreshold = 50;
+                    const zoomThreshold = 0.1;
+                    
+                    const oldScroll = { x: oldStoredAppState.scrollX || 0, y: oldStoredAppState.scrollY || 0 };
+                    const newScroll = { x: newAppStateForStore.scrollX || 0, y: newAppStateForStore.scrollY || 0 };
+                    const oldZoom = oldStoredAppState.zoom?.value || 1;
+                    const newZoom = newAppStateForStore.zoom?.value || 1;
+                    
+                    const scrollChanged = Math.abs(oldScroll.x - newScroll.x) > scrollThreshold || 
+                                         Math.abs(oldScroll.y - newScroll.y) > scrollThreshold;
+                    const zoomChanged = Math.abs(oldZoom - newZoom) > zoomThreshold;
+                    
+                    if (scrollChanged || zoomChanged) {
+                        console.log(`[useSlideStore] Significant scroll/zoom change detected`);
+                        appStateActuallyChanged = true;
+                    }
+                }
+
                 // If no change in other controlled props, check collaborators specifically
                 if (!appStateActuallyChanged) {
                     if (
@@ -265,6 +332,7 @@ export const useSlideStore = create<SlideStore>((set, get) => {
 
                 // If nothing meaningful changed, return the original state to avoid unnecessary re-renders/saves
                 if (!hasMeaningfulChange) {
+                    console.log('[useSlideStore] No meaningful changes detected. Skipping update.');
                     return state;
                 }
 
@@ -285,6 +353,9 @@ export const useSlideStore = create<SlideStore>((set, get) => {
                         JSON.stringify(newSlidesArray.map(serializeSlideForStorage)) // Ensure serializeSlideForStorage handles the new appState structure
                     );
                 }
+                console.log(
+                    '[useSlideStore] State updated successfully with new view/content state.'
+                );
                 return { slides: newSlidesArray };
             });
         },
@@ -352,12 +423,13 @@ export const useSlideStore = create<SlideStore>((set, get) => {
             // }
         },
 
-        updateQuizFeedbackSlide: (id, formData) => {
+        updateQuizFeedbackSlide: (id: string, formData: QuestionFormData) =>
             set((state) => {
                 const slideIndex = state.slides.findIndex((s) => s.id === id);
                 if (slideIndex === -1) return state;
 
                 const oldSlide = state.slides[slideIndex];
+                // Ensure it's a quiz/feedback slide before updating
                 if (
                     oldSlide.type !== SlideTypeEnum.Quiz &&
                     oldSlide.type !== SlideTypeEnum.Feedback
@@ -386,7 +458,80 @@ export const useSlideStore = create<SlideStore>((set, get) => {
                     );
                 }
                 return { slides: newSlidesArray };
+            }),
+            
+        updateSlideIds: (idUpdates) => set((state) => {
+            console.log("Updating slide IDs in store:", idUpdates);
+            const newSlides = state.slides.map(slide => {
+                const update = idUpdates.find(u => u.tempId === slide.id);
+                if (update) {
+                    console.log(`Found match: tempId=${update.tempId}, newId=${update.newId}. Updating slide.`);
+                    const updatedSlide = { ...slide, id: update.newId };
+
+                    // If it's a quiz/feedback slide, we might need to update question and option IDs
+                    if ((updatedSlide.type === SlideTypeEnum.Quiz || updatedSlide.type === SlideTypeEnum.Feedback) && update.newQuestionId) {
+                        const quizSlide = updatedSlide as QuizSlideData;
+                        quizSlide.questionId = update.newQuestionId;
+
+                        if (quizSlide.elements?.singleChoiceOptions && update.newOptions) {
+                            quizSlide.elements.singleChoiceOptions = quizSlide.elements.singleChoiceOptions.map(option => {
+                                const optionUpdate = update.newOptions.find(o => o.tempOptionId === option.id);
+                                if (optionUpdate) {
+                                    return { ...option, id: optionUpdate.newOptionId };
+                                }
+                                return option;
+                            });
+                        }
+                    }
+                    return updatedSlide;
+                }
+                return slide;
             });
+
+            // Also check if the currentSlideId needs to be updated
+            let newCurrentSlideId = state.currentSlideId;
+            const currentSlideUpdate = idUpdates.find(u => u.tempId === state.currentSlideId);
+            if (currentSlideUpdate) {
+                newCurrentSlideId = currentSlideUpdate.newId;
+            }
+
+            if (typeof window !== 'undefined') {
+                localStorage.setItem(
+                    'slides',
+                    JSON.stringify(newSlides.map(serializeSlideForStorage))
+                );
+            }
+
+            return { slides: newSlides, currentSlideId: newCurrentSlideId };
+        }),
+
+        addRecommendationBatch: (batch: RecommendationBatch) => {
+            set((state) => ({
+                recommendationBatches: [...state.recommendationBatches, batch]
+            }));
+            console.log('[useSlideStore] New recommendation batch added:', batch);
+        },
+
+        removeRecommendation: (timestamp: string, slideId: string) => {
+            set((state) => {
+                const newBatches = state.recommendationBatches.map(batch => {
+                    if (batch.timestamp === timestamp) {
+                        return {
+                            ...batch,
+                            slides: batch.slides.filter(slide => slide.id !== slideId)
+                        };
+                    }
+                    return batch;
+                }).filter(batch => batch.slides.length > 0); // Remove batch if it becomes empty
+
+                return { recommendationBatches: newBatches };
+            });
+             console.log(`[useSlideStore] Removed recommendation slide ${slideId} from batch ${timestamp}.`);
+        },
+        
+        clearRecommendations: () => {
+            set({ recommendationBatches: [] });
+            console.log('[useSlideStore] All recommendations cleared.');
         },
     };
 });

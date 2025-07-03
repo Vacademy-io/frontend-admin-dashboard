@@ -1,13 +1,13 @@
-import { z } from "zod";
-import { isQuillContentEmpty } from "./helper";
+import { z } from 'zod';
+import { isQuillContentEmpty } from './helper';
 
 export const questionsFormSchema = z.object({
     questionId: z.string().optional(),
     questionName: z.string().refine((val) => !isQuillContentEmpty(val), {
-        message: "Question name is required",
+        message: 'Question name is required',
     }),
     explanation: z.string().optional(),
-    questionType: z.string().default("MCQS"),
+    questionType: z.string().default('MCQS'),
     questionPenalty: z.string(),
     questionDuration: z.object({
         hrs: z.string(),
@@ -20,7 +20,7 @@ export const questionsFormSchema = z.object({
                 id: z.string().optional(),
                 name: z.string().optional(),
                 isSelected: z.boolean().optional(),
-            }),
+            })
         )
         .optional(),
     multipleChoiceOptions: z
@@ -29,7 +29,7 @@ export const questionsFormSchema = z.object({
                 id: z.string().optional(),
                 name: z.string().optional(),
                 isSelected: z.boolean().optional(),
-            }),
+            })
         )
         .optional(),
     csingleChoiceOptions: z
@@ -38,7 +38,7 @@ export const questionsFormSchema = z.object({
                 id: z.string().optional(),
                 name: z.string().optional(),
                 isSelected: z.boolean().optional(),
-            }),
+            })
         )
         .optional(),
     cmultipleChoiceOptions: z
@@ -47,7 +47,7 @@ export const questionsFormSchema = z.object({
                 id: z.string().optional(),
                 name: z.string().optional(),
                 isSelected: z.boolean().optional(),
-            }),
+            })
         )
         .optional(),
     trueFalseOptions: z
@@ -56,7 +56,7 @@ export const questionsFormSchema = z.object({
                 id: z.string().optional(),
                 name: z.string().optional(),
                 isSelected: z.boolean().optional(),
-            }),
+            })
         )
         .optional(),
     parentRichTextContent: z.union([z.string(), z.null()]).optional(),

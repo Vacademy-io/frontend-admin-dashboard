@@ -1,4 +1,4 @@
-import { create } from "zustand";
+import { create } from 'zustand';
 
 interface TestInputField {
     id: string;
@@ -72,7 +72,7 @@ interface TestAccessState {
 }
 
 // ✅ Define the initial empty state (excluding functions)
-const initialState: Omit<TestAccessState, "setTestAccessInfo" | "getTestAccessInfo" | "reset"> = {
+const initialState: Omit<TestAccessState, 'setTestAccessInfo' | 'getTestAccessInfo' | 'reset'> = {
     status: undefined,
     closed_test: undefined,
     open_test: undefined,

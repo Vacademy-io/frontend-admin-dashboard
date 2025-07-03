@@ -400,7 +400,7 @@ export default function TimelineReports() {
                     </div>
                 )}
             </form>
-            {isPending && <DashboardLoader height="10vh" />}
+            {isPending && <DashboardLoader />}
             {reportData && <div className="border"></div>}
             {reportData && (
                 <div className="flex flex-col gap-10">
@@ -419,7 +419,7 @@ export default function TimelineReports() {
                                     handleExportPDF();
                                 }}
                             >
-                                {isExporting ? <DashboardLoader size={20} /> : 'Export'}
+                                {isExporting ? <DashboardLoader /> : 'Export'}
                             </MyButton>
                         </div>
                     </div>

@@ -48,3 +48,4 @@ export { default as MeetLogo } from './meet-logo.svg';
 export { default as YoutubeLogo } from './youtube-logo.svg';
 export { default as ZoomLogo } from './zoom-logo.svg';
 export { default as CourseCatalog } from './course-catalog.svg';
+export { default as IndianYogaLogo } from './indian-yoga.svg';

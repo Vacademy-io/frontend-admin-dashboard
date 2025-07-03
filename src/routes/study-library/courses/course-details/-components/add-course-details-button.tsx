@@ -1,8 +1,8 @@
-import { MyButton } from "@/components/design-system/button";
-import { MyDialog } from "@/components/design-system/dialog";
-import { ReactNode, useRef, useState } from "react";
-import { Plus } from "phosphor-react";
-import { AddCourseDetailsForm, AddLevelData } from "./add-course-details-form";
+import { MyButton } from '@/components/design-system/button';
+import { MyDialog } from '@/components/design-system/dialog';
+import { ReactNode, useRef, useState } from 'react';
+import { Plus } from 'phosphor-react';
+import { AddCourseDetailsForm, AddLevelData } from './add-course-details-form';
 
 const triggerButton = (
     <MyButton buttonType="primary" scale="large" layoutVariant="default" id="assign-year">
@@ -62,20 +62,20 @@ export const AddCourseDetailsButton = ({ onSubmit, trigger, packageId }: AddLeve
             footer={levelSubmitButton}
             className="z-[99999]"
         >
-            {packageId ?
+            {packageId ? (
                 <AddCourseDetailsForm
                     onSubmitSuccess={onSubmit}
                     setOpenDialog={setOpenDialog}
                     submitForm={submitFormFn}
                     packageId={packageId}
                 />
-                :
+            ) : (
                 <AddCourseDetailsForm
                     onSubmitSuccess={onSubmit}
                     setOpenDialog={setOpenDialog}
                     submitForm={submitFormFn}
                 />
-            }
+            )}
         </MyDialog>
     );
 };

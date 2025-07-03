@@ -1,5 +1,5 @@
-import { create } from "zustand";
-import { StudyLibrarySessionType } from "@/stores/study-library/use-study-library-store";
+import { create } from 'zustand';
+import { StudyLibrarySessionType } from '@/stores/study-library/use-study-library-store';
 
 interface selectedSessionStore {
     selectedSession: StudyLibrarySessionType | undefined;

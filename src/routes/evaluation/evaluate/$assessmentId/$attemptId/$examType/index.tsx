@@ -1,20 +1,20 @@
-import { LayoutContainer } from "@/components/common/layout-container/layout-container";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { getAttemptDetails } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-services/assessment-details-services";
+import { LayoutContainer } from '@/components/common/layout-container/layout-container';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { getAttemptDetails } from '@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-services/assessment-details-services';
 import {
     getAssessmentDetails,
     getQuestionDataForSection,
-} from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-services/assessment-services";
-import PDFEvaluator from "@/routes/evaluation/evaluation-tool/-components/pdf-editor";
-import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
-import { getPublicUrl } from "@/services/upload_file";
-import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Helmet } from "react-helmet";
+} from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-services/assessment-services';
+import PDFEvaluator from '@/routes/evaluation/evaluation-tool/-components/pdf-editor';
+import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
+import { getPublicUrl } from '@/services/upload_file';
+import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { createFileRoute } from '@tanstack/react-router';
+import { useEffect, useState } from 'react';
+import { Helmet } from 'react-helmet';
 
-export const Route = createFileRoute("/evaluation/evaluate/$assessmentId/$attemptId/$examType/")({
+export const Route = createFileRoute('/evaluation/evaluate/$assessmentId/$attemptId/$examType/')({
     component: () => (
         <LayoutContainer>
             <EvaluateAttemptComponent />
@@ -28,39 +28,39 @@ const EvaluateAttemptComponent = () => {
     const [fileUrl, setFileUrl] = useState<string>();
     const [file, setFile] = useState<File | null>(null);
     const { data: attemptDetails, isLoading: isAttemptLoading } = useSuspenseQuery(
-        getAttemptDetails(attemptId),
+        getAttemptDetails(attemptId)
     );
     const { data: assessmentDetails, isLoading } = useSuspenseQuery(
         getAssessmentDetails({
             assessmentId: assessmentId,
             instituteId: instituteDetails?.id,
             type: examType,
-        }),
+        })
     );
     const { data: questionData, isLoading: isQuestionsLoading } = useSuspenseQuery(
         getQuestionDataForSection({
             assessmentId,
             sectionIds: assessmentDetails[1]?.saved_data.sections
                 ?.map((section) => section.id)
-                .join(","),
-        }),
+                .join(','),
+        })
     );
 
     const { setNavHeading } = useNavHeadingStore();
 
     useEffect(() => {
-        setNavHeading("Evaluate Response");
+        setNavHeading('Evaluate Response');
         if (!isAttemptLoading) {
-            console.log("fetching");
+            console.log('fetching');
             setTimeout(() => {
                 getPublicUrl(attemptDetails).then((url) => {
                     fetch(url)
                         .then((response) => response.blob())
                         .then((blob) => {
-                            const file = new File([blob], "attempt_file", {
-                                type: blob.type || "application/octet-stream",
+                            const file = new File([blob], 'attempt_file', {
+                                type: blob.type || 'application/octet-stream',
                             });
-                            if (typeof setFile === "function") {
+                            if (typeof setFile === 'function') {
                                 setFile(file);
                             } else {
                                 setFileUrl(url);
@@ -68,7 +68,7 @@ const EvaluateAttemptComponent = () => {
                             }
                         })
                         .catch((error) => {
-                            console.error("Error fetching file:", error);
+                            console.error('Error fetching file:', error);
                         });
                 });
             }, 100);
@@ -79,7 +79,7 @@ const EvaluateAttemptComponent = () => {
         return (
             <div className="flex h-full flex-col items-center justify-center gap-y-2">
                 <h1>Getting response file please wait...</h1>
-                <DashboardLoader height="fit-content" />
+                <DashboardLoader />
             </div>
         );
 

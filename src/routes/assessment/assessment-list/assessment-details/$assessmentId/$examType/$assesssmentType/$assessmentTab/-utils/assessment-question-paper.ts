@@ -1,6 +1,6 @@
-import { z } from "zod";
-import { UseFormReturn } from "react-hook-form";
-import { sectionsEditQuestionFormSchema } from "./sections-edit-question-form-schema";
+import { z } from 'zod';
+import { UseFormReturn } from 'react-hook-form';
+import { sectionsEditQuestionFormSchema } from './sections-edit-question-form-schema';
 
 // Infer the form type from the schema
 type sectionQuestionPaperForm = z.infer<typeof sectionsEditQuestionFormSchema>;

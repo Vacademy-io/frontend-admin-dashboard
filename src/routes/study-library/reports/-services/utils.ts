@@ -15,11 +15,11 @@ import {
     EXPORT_LEARNERS_REPORT,
     EXPORT_LEARNERS_SUBJECT_REPORT,
     EXPORT_LEARNERS_MODULE_REPORT,
-} from "@/constants/urls";
-import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
-import { InstituteSettingResponse } from "../-types/types";
-import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
-import { TokenKey } from "@/constants/auth/tokens";
+} from '@/constants/urls';
+import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
+import { InstituteSettingResponse } from '../-types/types';
+import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
 
 export const fetchBatchReport = async (data: {
     start_date: string;
@@ -28,8 +28,8 @@ export const fetchBatchReport = async (data: {
 }) => {
     const response = await authenticatedAxiosInstance.post(GET_BATCH_REPORT, data, {
         headers: {
-            Accept: "*/*",
-            "Content-Type": "application/json",
+            Accept: '*/*',
+            'Content-Type': 'application/json',
         },
     });
     return response.data;
@@ -42,8 +42,8 @@ export const fetchLearnersReport = async (data: {
 }) => {
     const response = await authenticatedAxiosInstance.post(GET_LEARNERS_REPORT, data, {
         headers: {
-            Accept: "*/*",
-            "Content-Type": "application/json",
+            Accept: '*/*',
+            'Content-Type': 'application/json',
         },
     });
     return response.data;
@@ -59,8 +59,8 @@ export const fetchLeaderboardData = async (data: {
     const response = await authenticatedAxiosInstance.post(GET_LEADERBOARD_DATA, data.body, {
         params: data.param,
         headers: {
-            Accept: "*/*",
-            "Content-Type": "application/json",
+            Accept: '*/*',
+            'Content-Type': 'application/json',
         },
     });
     return response.data;
@@ -74,7 +74,7 @@ export const fetchChapterWiseProgress = async (data: {
         const response = await authenticatedAxiosInstance.get(CHAPTER_WISE_BATCH_REPORT, {
             params: data,
             headers: {
-                Accept: "*/*",
+                Accept: '*/*',
             },
         });
 
@@ -91,7 +91,7 @@ export const fetchLearnersChapterWiseProgress = async (data: {
         const response = await authenticatedAxiosInstance.get(CHAPTER_WISE_LEARNERS_REPORT, {
             params: data,
             headers: {
-                Accept: "*/*",
+                Accept: '*/*',
             },
         });
 
@@ -106,7 +106,7 @@ export const fetchSubjectWiseProgress = async (data: { packageSessionId: string 
         const response = await authenticatedAxiosInstance.get(SUBJECT_WISE_BATCH_REPORT, {
             params: data,
             headers: {
-                Accept: "*/*",
+                Accept: '*/*',
             },
         });
 
@@ -123,7 +123,7 @@ export const fetchLearnersSubjectWiseProgress = async (data: {
         const response = await authenticatedAxiosInstance.get(SUBJECT_WISE_LEARNERS_REPORT, {
             params: data,
             headers: {
-                Accept: "*/*",
+                Accept: '*/*',
             },
         });
 
@@ -142,8 +142,8 @@ export const fetchSlideWiseProgress = async (data: {
     try {
         const response = await authenticatedAxiosInstance.post(SLIDE_WISE_LEARNERS_REPORT, data, {
             headers: {
-                Accept: "*/*",
-                "Content-Type": "application/json",
+                Accept: '*/*',
+                'Content-Type': 'application/json',
             },
         });
         return response.data;
@@ -160,7 +160,7 @@ export const fetchInstituteSetting = async (instituteId: string) => {
                 instituteId,
             },
             headers: {
-                Accept: "*/*",
+                Accept: '*/*',
             },
         });
         return response.data;
@@ -180,10 +180,10 @@ export const updateInstituteReportSetting = async (data: InstituteSettingRespons
             data,
             {
                 headers: {
-                    Accept: "*/*",
-                    "Content-Type": "application/json",
+                    Accept: '*/*',
+                    'Content-Type': 'application/json',
                 },
-            },
+            }
         );
         return response.data;
     } catch (error) {
@@ -197,7 +197,7 @@ export const fetchLearnerSetting = async (param: { userId: string; instituteId: 
         const response = await authenticatedAxiosInstance.get(LEARNERS_SETTING, {
             params: param,
             headers: {
-                Accept: "*/*",
+                Accept: '*/*',
             },
         });
         return response.data;
@@ -218,10 +218,10 @@ export const updateLearnersReportSetting = async (params: {
             {
                 params: { userId: params.userId },
                 headers: {
-                    Accept: "*/*",
-                    "Content-Type": "application/json",
+                    Accept: '*/*',
+                    'Content-Type': 'application/json',
                 },
-            },
+            }
         );
         return response.data;
     } catch (error) {
@@ -246,17 +246,17 @@ export const exportBatchReport = async (params: {
                 user_id: params.userId,
             },
             {
-                responseType: "blob",
+                responseType: 'blob',
                 headers: {
-                    Accept: "*/*",
-                    "Content-Type": "application/json",
+                    Accept: '*/*',
+                    'Content-Type': 'application/json',
                 },
-            },
+            }
         );
 
         return response.data;
     } catch (error) {
-        console.error("Error exporting batch report:", error);
+        console.error('Error exporting batch report:', error);
         throw error;
     }
 };
@@ -277,17 +277,17 @@ export const exportLearnersReport = async (params: {
                 user_id: params.userId,
             },
             {
-                responseType: "blob",
+                responseType: 'blob',
                 headers: {
-                    Accept: "*/*",
-                    "Content-Type": "application/json",
+                    Accept: '*/*',
+                    'Content-Type': 'application/json',
                 },
-            },
+            }
         );
 
         return response.data;
     } catch (error) {
-        console.error("Error exporting batch report:", error);
+        console.error('Error exporting batch report:', error);
         throw error;
     }
 };
@@ -308,17 +308,17 @@ export const exportLearnersSubjectReport = async (params: {
                 user_id: params.userId,
             },
             {
-                responseType: "blob",
+                responseType: 'blob',
                 headers: {
-                    Accept: "*/*",
-                    "Content-Type": "application/json",
+                    Accept: '*/*',
+                    'Content-Type': 'application/json',
                 },
-            },
+            }
         );
 
         return response.data;
     } catch (error) {
-        console.error("Error exporting batch report:", error);
+        console.error('Error exporting batch report:', error);
         throw error;
     }
 };
@@ -333,22 +333,22 @@ export const exportLearnerModuleProgressReport = async (params: {
             EXPORT_LEARNERS_MODULE_REPORT,
             null,
             {
-                responseType: "blob",
+                responseType: 'blob',
                 params: {
                     userId: params.userId,
                     moduleId: params.moduleId,
                     packageSessionId: params.packageSessionId,
                 },
                 headers: {
-                    Accept: "application/pdf",
-                    "Content-Type": "application/json",
+                    Accept: 'application/pdf',
+                    'Content-Type': 'application/json',
                 },
-            },
+            }
         );
 
         return response.data;
     } catch (error) {
-        console.error("Error exporting learner module progress report:", error);
+        console.error('Error exporting learner module progress report:', error);
         throw error;
     }
 };
