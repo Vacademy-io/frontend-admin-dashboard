@@ -69,7 +69,7 @@ const StudyLibraryAssignmentPreview = ({ activeItem }: { activeItem: Slide }) =>
     return (
         <div key={`assignment-${activeItem.id}`} className="flex size-full flex-col gap-8">
             <FormProvider {...form}>
-                <FormField
+                {/* <FormField
                     control={form.control}
                     name="task"
                     render={({ field: { onChange, value, ...field } }) => (
@@ -89,7 +89,7 @@ const StudyLibraryAssignmentPreview = ({ activeItem }: { activeItem: Slide }) =>
                             </FormControl>
                         </FormItem>
                     )}
-                />
+                /> */}
                 <div className="flex flex-col gap-6">
                     <h1 className="-mb-5">Task Description</h1>
                     <FormField
