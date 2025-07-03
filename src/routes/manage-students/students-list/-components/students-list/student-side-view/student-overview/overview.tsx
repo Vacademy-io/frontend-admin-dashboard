@@ -28,6 +28,7 @@ export const OverViewData = ({
               `Session: ${na(packageSessionDetails?.session.session_name)}`,
               `Enrollment No: ${na(selectedStudent.institute_enrollment_id)}`,
               `Gender: ${na(selectedStudent.gender)}`,
+              `Preferred Batch: N/A`,
           ]
         : [
               `Course: ${na(packageSessionDetails?.package_dto.package_name)}`,
