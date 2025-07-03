@@ -26,9 +26,9 @@ export const OverViewData = ({
     const generalDetailsContent = isShow
         ? [
               `Session: ${na(packageSessionDetails?.session.session_name)}`,
+              `Preferred Batch: N/A`,
               `Enrollment No: ${na(selectedStudent.institute_enrollment_id)}`,
               `Gender: ${na(selectedStudent.gender)}`,
-              `Preferred Batch: N/A`,
           ]
         : [
               `Course: ${na(packageSessionDetails?.package_dto.package_name)}`,
