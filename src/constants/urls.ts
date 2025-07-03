@@ -3,8 +3,8 @@ export const BASE_URL_LEARNER_DASHBOARD = 'https://learner.vacademy.io';
 
 export const SSDC_INSTITUTE_ID = '69ca11c6-54e1-4e99-9498-50c9a4272ce6';
 export const SHUBHAM_INSTITUTE_ID = 'd0de8707-f36c-43a0-953c-019ca507c81d';
-export const HOLISTIC_INSTITUTE_ID = 'bd9f2362-84d1-4e01-9762-a5196f9bac80';
 export const CODE_CIRCLE_INSTITUTE_ID = 'dd9b9687-56ee-467a-9fc4-8c5835eae7f9';
+export const HOLISTIC_INSTITUTE_ID = 'bd9f2362-84d1-4e01-9762-a5196f9bac80';
 
 export const REQUEST_OTP = `${BASE_URL}/notification-service/v1/send-email-otp`;
 export const LOGIN_OTP = `${BASE_URL}/notification-service/v1/verify-email-otp`;
@@ -17,7 +17,12 @@ export const FORGOT_PASSWORD = `${BASE_URL}/auth-service/v1/send-password`;
 export const REFRESH_TOKEN_URL = `${BASE_URL}/auth-service/v1/refresh-token`;
 
 export const UPLOAD_DOCS_FILE_URL = `${BASE_URL}/media-service/convert/doc-to-html`;
+export const SUBMIT_RATING_URL = `${BASE_URL}/admin-core-service/rating`;
+export const GET_ALL_USER_RATINGS = `${BASE_URL}/admin-core-service/rating/get-source-ratings`;
+export const GET_ALL_RATING_SUMMARY = `${BASE_URL}/admin-core-service/rating/summary`;
 
+export const COURSE_CATALOG_URL = `${BASE_URL}/admin-core-service/packages/v1/search`;
+export const COURSE_CATALOG_TEACHER_URL = `${BASE_URL}/admin-core-service/v1/package/package-request/search`;
 export const GET_DASHBOARD_URL = `${BASE_URL}/admin-core-service/institute/v1/get-dashboard`;
 export const UPDATE_DASHBOARD_URL = `${BASE_URL}/admin-core-service/institute/v1/institute-update`;
 export const UPDATE_ADMIN_DETAILS_URL = `${BASE_URL}/auth-service/v1/user-details/update`;
@@ -124,6 +129,7 @@ export const DELETE_SESSION = `${BASE_URL}/admin-core-service/sessions/v1/delete
 
 export const GET_SLIDES = `${BASE_URL}/admin-core-service/slide/v1/slides`;
 export const ADD_UPDATE_VIDEO_SLIDE = `${BASE_URL}/admin-core-service/slide/video-slide/add-or-update`;
+export const GET_CHAPTERS_WITH_SLIDES = `${BASE_URL}/admin-core-service/v1/study-library/chapters-with-slides`;
 export const ADD_UPDATE_SPLIT_SCREEN_SLIDE = `${BASE_URL}/admin-core-service/slide/v1/add-update-video-slide`;
 export const GET_ALL_SLIDES = `${BASE_URL}/admin-core-service/v1/study-library/chapters-with-slides`;
 export const ADD_UPDATE_DOCUMENT_SLIDE = `${BASE_URL}/admin-core-service/slide/v1/add-update-document-slide`;
@@ -141,6 +147,7 @@ export const GET_STUDENT_SUBJECT_PROGRESS = `${BASE_URL}/admin-core-service/subj
 export const GET_STUDENT_SLIDE_PROGRESS = `${BASE_URL}/admin-core-service/slide/institute-learner/v1/get-slides-with-status`;
 export const COPY_SLIDE = `${BASE_URL}/admin-core-service/slide/v1/copy`;
 export const MOVE_SLIDE = `${BASE_URL}/admin-core-service/slide/v1/move`;
+export const GET_SLIDES_COUNT = `${BASE_URL}/admin-core-service/slide/v1/slide-counts-by-source-type`;
 
 export const PDF_WORKER_URL = `https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js`;
 

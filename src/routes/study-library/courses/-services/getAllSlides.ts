@@ -1,14 +1,39 @@
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
-import { GET_ALL_SLIDES } from '@/constants/urls';
+import { GET_CHAPTERS_WITH_SLIDES, GET_SLIDES } from '@/constants/urls';
 
 export const fetchChaptersWithSlides = async (moduleId: string, packageSessionId: string) => {
-    const response = await authenticatedAxiosInstance.get(GET_ALL_SLIDES, {
+    const response = await authenticatedAxiosInstance.get(GET_CHAPTERS_WITH_SLIDES, {
         params: {
             moduleId,
             packageSessionId,
         },
     });
     return response.data;
+};
+
+export const handleFetchChaptersWithSlides = (moduleId: string, packageSessionId: string) => {
+    return {
+        queryKey: ['GET_CHAPTERS_WITH_SLIDES', moduleId, packageSessionId],
+        queryFn: () => fetchChaptersWithSlides(moduleId, packageSessionId),
+        staleTime: 60 * 60 * 1000,
+    };
+};
+
+export const fetchSlidesOnly = async (chapterId: string) => {
+    const response = await authenticatedAxiosInstance.get(`${GET_SLIDES}`, {
+        params: {
+            chapterId,
+        },
+    });
+    return response.data;
+};
+
+export const handleFetchSlides = (chapterId: string) => {
+    return {
+        queryKey: ['GET_SLIDES_ONLY_OF_CHAPTERS', chapterId],
+        queryFn: () => fetchSlidesOnly(chapterId),
+        staleTime: 60 * 60 * 1000,
+    };
 };
 
 export type RichTextData = {
@@ -101,7 +126,7 @@ export type AssignmentQuestion = {
     status: string;
     new_question: boolean;
     question_type: string;
-}
+};
 
 export type Slide = {
     id: string;

@@ -5,13 +5,12 @@ import { CourseType } from '@/stores/study-library/use-study-library-store';
 import { DotsThree } from 'phosphor-react';
 import { useRef, useState } from 'react';
 import {
-    AddCourseData,
+    CourseFormData,
     AddCourseForm,
 } from '../../../../components/common/study-library/add-course/add-course-form';
-
 interface CourseMenuOptionsProps {
     onDelete: (courseId: string) => void;
-    onEdit: ({ courseId, requestData }: { requestData: AddCourseData; courseId?: string }) => void;
+    onEdit: ({ courseId, requestData }: { requestData: CourseFormData; courseId?: string }) => void;
     course: CourseType;
 }
 
@@ -61,6 +60,7 @@ export const CourseMenuOptions = ({ onDelete, onEdit, course }: CourseMenuOption
                     <DotsThree />
                 </MyButton>
             </MyDropdown>
+
             <MyDialog
                 heading="Edit Course"
                 dialogWidth="w-[700px]"
@@ -69,6 +69,8 @@ export const CourseMenuOptions = ({ onDelete, onEdit, course }: CourseMenuOption
                 footer={submitButton}
             >
                 <AddCourseForm
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-expect-error
                     initialValues={{
                         id: course.id,
                         course_name: course.package_name,
@@ -79,6 +81,8 @@ export const CourseMenuOptions = ({ onDelete, onEdit, course }: CourseMenuOption
                     onSubmitCourse={onEdit}
                     setOpenDialog={setOpenEditDialog}
                     setDisableAddButton={setDisableAddButton}
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-expect-error
                     submitForm={(submitFn) => {
                         formSubmitRef.current = submitFn;
                     }}

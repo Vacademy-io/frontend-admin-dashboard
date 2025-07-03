@@ -1,5 +1,5 @@
 import { formatTime } from '@/helpers/formatYoutubeVideoTime';
-import { Doubt } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-types/get-doubts-type';
+import { Doubt } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-types/get-doubts-type';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { useRouter } from '@tanstack/react-router';
 import { Clock, FileText } from 'phosphor-react';
@@ -30,7 +30,7 @@ export const TimestampCell = ({ doubt }: { doubt: Doubt }) => {
         const levelId = batch?.level.id;
         const sessionId = batch?.session.id;
         router.navigate({
-            to: '/study-library/courses/levels/subjects/modules/chapters/slides',
+            to: '/study-library/courses/course-details/subjects/modules/chapters/slides',
             search: {
                 courseId: courseId || '',
                 levelId: levelId || '',

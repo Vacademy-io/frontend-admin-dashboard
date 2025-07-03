@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AddCourseData } from '../../study-library/add-course/add-course-form';
+import { CourseFormData } from '../../study-library/add-course/add-course-form';
 
 export interface DropdownItem {
     label: string;
@@ -28,5 +28,5 @@ export interface myDropDownProps {
     disable?: boolean;
     required?: boolean;
     showAddCourseButton?: boolean;
-    onAddCourse?: ({ requestData }: { requestData: AddCourseData }) => void;
+    onAddCourse?: ({ requestData }: { requestData: CourseFormData }) => void;
 }

@@ -2,7 +2,7 @@ import { SubjectDefaultImage } from '@/assets/svgs';
 import { CourseType } from '@/stores/study-library/use-study-library-store';
 import { CourseMenuOptions } from './course-menu-options';
 import { useNavigate, useRouter } from '@tanstack/react-router';
-import { AddCourseData } from '../../../../components/common/study-library/add-course/add-course-form';
+import { CourseFormData } from '../../../../components/common/study-library/add-course/add-course-form';
 import { useEffect, useState } from 'react';
 import { getPublicUrl } from '@/services/upload_file';
 
@@ -13,7 +13,7 @@ export const CourseCard = ({
 }: {
     course: CourseType;
     onDelete: (courseId: string) => void;
-    onEdit: ({ courseId, requestData }: { requestData: AddCourseData; courseId?: string }) => void;
+    onEdit: ({ courseId, requestData }: { requestData: CourseFormData; courseId?: string }) => void;
 }) => {
     const router = useRouter();
     const currentPath = router.state.location.pathname;
@@ -32,7 +32,7 @@ export const CourseCard = ({
         }
 
         navigate({
-            to: `${currentPath}/levels`,
+            to: `${currentPath}/course-details`,
             search: {
                 courseId: course.id,
             },

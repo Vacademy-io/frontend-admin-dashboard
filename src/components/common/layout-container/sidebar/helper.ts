@@ -1,5 +1,6 @@
 import {
     CODE_CIRCLE_INSTITUTE_ID,
+    SSDC_INSTITUTE_ID,
     HOLISTIC_INSTITUTE_ID,
     SHUBHAM_INSTITUTE_ID,
 } from '@/constants/urls';
@@ -27,7 +28,7 @@ export function filterMenuList(
 }
 
 export function filterMenuItems(menuList: SidebarItemsType[], instituteId: string | undefined) {
-    if (instituteId === CODE_CIRCLE_INSTITUTE_ID) {
+    if (instituteId === CODE_CIRCLE_INSTITUTE_ID || instituteId === SSDC_INSTITUTE_ID) {
         return menuList.filter(
             (item) =>
                 item.id !== 'Homework Creation' &&

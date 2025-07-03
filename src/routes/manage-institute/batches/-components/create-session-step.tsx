@@ -2,30 +2,24 @@
 import { AddSessionInput } from '@/components/design-system/add-session-input';
 import { MyDropdown } from '@/components/common/students/enroll-manually/dropdownForPackageItems';
 import { RadioGroupItem, RadioGroup } from '@/components/ui/radio-group';
-import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+
 import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import {
-    convertToFormSession,
-    Session,
-} from '@/components/common/study-library/add-course/add-course-form';
+// import { Session } from '@/components/common/study-library/add-course/add-course-form';
 import { MyButton } from '@/components/design-system/button';
 import { X } from 'phosphor-react';
+import { Session } from '@/components/common/study-library/add-course/add-course-form';
 
 export const CreateSessionStep = () => {
-    const { instituteDetails, getAllSessions } = useInstituteDetailsStore();
     const [newSessionName, setNewSessionName] = useState('');
     const [newSessionStartDate, setNewSessionStartDate] = useState('');
     const form = useFormContext();
     const { watch } = form;
     const [sessionList, setSessionList] = useState<Session[]>([]);
-    useEffect(() => {
-        setSessionList(getAllSessions().map((session: any) => convertToFormSession(session)));
-    }, [instituteDetails]);
 
     const handleAddSession = (sessionName: string, startDate: string) => {
-        const newSession: Session = {
+        const newSession = {
             id: '',
             new_session: true,
             session_name: sessionName,
@@ -33,6 +27,8 @@ export const CreateSessionStep = () => {
             start_date: startDate,
             levels: [], // Initialize with empty levels array
         };
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
         setSessionList((prevSessionList) => [...prevSessionList, newSession]);
         // Set the new session in the form's state
         form.setValue('selectedSession', { id: newSession.id, name: newSession.session_name });
@@ -50,7 +46,7 @@ export const CreateSessionStep = () => {
             <FormField
                 control={form.control}
                 name="sessionCreationType"
-                render={({ field }: any) => (
+                render={({ field }) => (
                     <FormItem className="space-y-3">
                         <FormLabel className="text-base font-medium text-neutral-700">
                             Session Selection
@@ -58,7 +54,7 @@ export const CreateSessionStep = () => {
                         <FormControl>
                             <RadioGroup
                                 className="flex gap-6 pt-1"
-                                onValueChange={(value: any) => {
+                                onValueChange={(value) => {
                                     field.onChange(value);
                                     form.setValue('selectedSession', null); // Reset dependent field
                                     form.setValue('selectedStartDate', null);
@@ -99,7 +95,7 @@ export const CreateSessionStep = () => {
                     control={form.control}
                     name="selectedSession"
                     rules={{ required: 'Please select a session' }}
-                    render={({ field }: any) => (
+                    render={({ field }) => (
                         <FormItem className="flex flex-col gap-1.5">
                             <FormLabel className="text-neutral-700">
                                 Session <span className="text-danger-500">*</span>
@@ -107,9 +103,9 @@ export const CreateSessionStep = () => {
                             <FormControl>
                                 <MyDropdown
                                     currentValue={field.value}
-                                    dropdownList={sessionList.map((session: any) => ({
+                                    dropdownList={sessionList.map((session) => ({
                                         id: session.id,
-                                        name: session.session_name,
+                                        name: session.name,
                                     }))}
                                     handleChange={field.onChange}
                                     placeholder="Select a session"
