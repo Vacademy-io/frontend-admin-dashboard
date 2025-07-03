@@ -1,5 +1,5 @@
-import { getIcon } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-components/slides-sidebar/slides-sidebar-slides';
-import { Doubt } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-types/get-doubts-type';
+import { getIcon } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-components/slides-sidebar/slides-sidebar-slides';
+import { Doubt } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-types/get-doubts-type';
 
 export const TypeCell = ({ doubt }: { doubt: Doubt }) => {
     return (

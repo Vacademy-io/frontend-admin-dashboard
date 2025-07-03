@@ -13,6 +13,14 @@ export const fetchModulesWithChapters = async (subjectId: string, packageSession
     return response.data;
 };
 
+export const handleFetchModulesWithChapters = (subjectId: string, packageSessionId: string) => {
+    return {
+        queryKey: ['GET_MODULES_WITH_CHAPTERS', subjectId, packageSessionId],
+        queryFn: () => fetchModulesWithChapters(subjectId, packageSessionId),
+        staleTime: 60 * 60 * 1000,
+    };
+};
+
 export const useModulesWithChaptersQuery = (subjectId: string, packageSessionId: string) => {
     const setModulesData = useModulesWithChaptersStore((state) => state.setModulesWithChaptersData);
     return useQuery({

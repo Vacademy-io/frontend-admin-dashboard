@@ -36,7 +36,7 @@ import useDialogStore from '../-global-states/question-paper-dialogue-close';
 import sectionDetailsSchema from '../../create-assessment/$assessmentId/$examtype/-utils/section-details-schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import ConvertToHTML from '../-images/convertToHTML.png';
-import { AssignmentFormType } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-form-schemas/assignmentFormSchema';
+import { AssignmentFormType } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-form-schemas/assignmentFormSchema';
 
 export type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 export type UploadQuestionPaperFormType = z.infer<typeof uploadQuestionPaperFormSchema>;

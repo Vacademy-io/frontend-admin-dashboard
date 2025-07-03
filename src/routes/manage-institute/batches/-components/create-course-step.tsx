@@ -9,7 +9,7 @@ import { MyButton } from '@/components/design-system/button';
 import { useFormContext } from 'react-hook-form';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useAddCourse } from '@/services/study-library/course-operations/add-course';
-import { AddCourseData } from '@/components/common/study-library/add-course/add-course-form';
+import { CourseFormData } from '@/components/common/study-library/add-course/add-course-form';
 import { toast } from 'sonner';
 
 interface CreateCourseStepProps {
@@ -22,7 +22,7 @@ export const CreateCourseStep = ({ handleOpenManageBatchDialog }: CreateCourseSt
     const form = useFormContext();
     const addCourseMutation = useAddCourse();
 
-    const handleAddCourse = ({ requestData }: { requestData: AddCourseData }) => {
+    const handleAddCourse = ({ requestData }: { requestData: CourseFormData }) => {
         addCourseMutation.mutate(
             { requestData: requestData },
             {
@@ -127,6 +127,8 @@ export const CreateCourseStep = ({ handleOpenManageBatchDialog }: CreateCourseSt
             {form.watch('courseCreationType') === 'new' && (
                 <div className="mt-2">
                     <AddCourseButton
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-expect-error
                         onSubmit={handleAddCourse}
                         courseButton={
                             <MyButton

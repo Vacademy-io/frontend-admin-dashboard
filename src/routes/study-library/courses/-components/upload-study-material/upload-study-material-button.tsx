@@ -35,7 +35,7 @@ export const UploadStudyMaterialButton = () => {
             | undefined;
     }) => {
         navigate({
-            to: '/study-library/courses/levels/subjects/modules/chapters/slides',
+            to: '/study-library/courses/course-details/subjects/modules/chapters/slides',
             search: {
                 courseId: data.course?.id || '',
                 levelId: data.level?.id || '',

@@ -1,5 +1,5 @@
 import { ColumnDef } from '@tanstack/react-table';
-import { Doubt } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-types/get-doubts-type';
+import { Doubt } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-types/get-doubts-type';
 import { useDoubtTable } from './useDoubtTable';
 import { formatISODateTimeReadable } from '@/helpers/formatISOTime';
 import { DoubtCell } from '../-components/doubt-table/doubt-cell';

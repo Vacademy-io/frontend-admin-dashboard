@@ -72,6 +72,7 @@ const InstituteSchema = z.object({
     student_statuses: z.array(z.enum(['ACTIVE', 'INACTIVE'])),
     subjects: z.array(SubjectSchema),
     session_expiry_days: z.array(z.number()),
+    tags: z.array(z.string()),
 });
 
 export type InstituteDetailsType = z.infer<typeof InstituteSchema> | null;

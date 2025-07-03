@@ -1,6 +1,6 @@
 import { MyTable } from '@/components/design-system/table';
 import { MyPagination } from '@/components/design-system/pagination';
-import { Doubt } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-types/get-doubts-type';
+import { Doubt } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-types/get-doubts-type';
 import { useDoubtTable } from '../../-hooks/useDoubtTable';
 import { DOUBTS_TABLE_COLUMN_WIDTHS } from '@/components/design-system/utils/constants/table-layout';
 import { useDoubtTableColumns } from '../../-hooks/useDoubtColumns';

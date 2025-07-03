@@ -217,7 +217,7 @@ export const CreateStudyDocForm = () => {
 
     const onSubmit = (data: z.infer<typeof formSchema>) => {
         navigate({
-            to: '/study-library/courses/levels/subjects/modules/chapters/slides',
+            to: '/study-library/courses/course-details/subjects/modules/chapters/slides',
             search: {
                 courseId: data.course?.id || '',
                 levelId: data.level?.id || '',

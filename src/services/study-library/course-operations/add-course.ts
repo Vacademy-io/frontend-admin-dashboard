@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 import { ADD_COURSE } from '@/constants/urls';
-import { AddCourseData } from '@/components/common/study-library/add-course/add-course-form';
+import { CourseFormData } from '@/components/common/study-library/add-course/add-course-form';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
 
@@ -12,7 +12,7 @@ export const useAddCourse = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async ({ requestData }: { requestData: AddCourseData }) => {
+        mutationFn: async ({ requestData }: { requestData: CourseFormData }) => {
             const payload = requestData;
 
             return authenticatedAxiosInstance.post(`${ADD_COURSE}/${INSTITUTE_ID}`, payload);

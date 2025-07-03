@@ -10,7 +10,7 @@ import { z } from 'zod';
 import { Plus, DotsThree } from '@phosphor-icons/react';
 import { AddLevelInput } from '@/components/design-system/add-level-input';
 import { AddCourseButton } from '@/components/common/study-library/add-course/add-course-button';
-import { AddCourseData } from '@/components/common/study-library/add-course/add-course-form';
+import { CourseFormData } from '@/components/common/study-library/add-course/add-course-form';
 import { toast } from 'sonner';
 import { useAddCourse } from '@/services/study-library/course-operations/add-course';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -270,7 +270,7 @@ export const AddSessionForm = ({
         return form.getValues('levels').some((level) => level.level_dto.package_id === packageId);
     };
 
-    const handleAddCourse = ({ requestData }: { requestData: AddCourseData }) => {
+    const handleAddCourse = ({ requestData }: { requestData: CourseFormData }) => {
         addCourseMutation.mutate(
             { requestData: requestData },
             {
@@ -507,6 +507,8 @@ export const AddSessionForm = ({
                                         })}
                                         {!initialValues && (
                                             <AddCourseButton
+                                                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                                // @ts-expect-error
                                                 onSubmit={handleAddCourse}
                                                 courseButton={
                                                     <MyButton
