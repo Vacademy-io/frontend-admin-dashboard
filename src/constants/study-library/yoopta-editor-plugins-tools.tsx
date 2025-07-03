@@ -1,28 +1,28 @@
-import { YooptaPlugin, SlateElement } from "@yoopta/editor";
-import Paragraph from "@yoopta/paragraph";
-import Blockquote from "@yoopta/blockquote";
-import Embed from "@yoopta/embed";
-import Image from "@yoopta/image";
-import Link from "@yoopta/link";
-import Callout from "@yoopta/callout";
-import Video from "@yoopta/video";
-import File from "@yoopta/file";
-import Accordion from "@yoopta/accordion";
-import { NumberedList, BulletedList, TodoList } from "@yoopta/lists";
-import { Bold, Italic, CodeMark, Underline, Strike, Highlight } from "@yoopta/marks";
-import { HeadingOne, HeadingThree, HeadingTwo } from "@yoopta/headings";
-import Code from "@yoopta/code";
-import Table from "@yoopta/table";
-import Divider from "@yoopta/divider";
-import ActionMenuList, { DefaultActionMenuRender } from "@yoopta/action-menu-list";
-import Toolbar, { DefaultToolbarRender } from "@yoopta/toolbar";
-import LinkTool, { DefaultLinkToolRender } from "@yoopta/link-tool";
-import { getPublicUrl, UploadFileInS3 } from "@/services/upload_file";
-import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
-import { TokenKey } from "../auth/tokens";
-import { MultiLangCodePlugin } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-components/yoopta-editor-customizations/python-editor";
-import { JupyterNotebookPlugin } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-components/yoopta-editor-customizations/jupyter-notebook";
-import { ScratchPlugin } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-components/yoopta-editor-customizations/scratch-editor";
+import { YooptaPlugin, SlateElement } from '@yoopta/editor';
+import Paragraph from '@yoopta/paragraph';
+import Blockquote from '@yoopta/blockquote';
+import Embed from '@yoopta/embed';
+import Image from '@yoopta/image';
+import Link from '@yoopta/link';
+import Callout from '@yoopta/callout';
+import Video from '@yoopta/video';
+import File from '@yoopta/file';
+import Accordion from '@yoopta/accordion';
+import { NumberedList, BulletedList, TodoList } from '@yoopta/lists';
+import { Bold, Italic, CodeMark, Underline, Strike, Highlight } from '@yoopta/marks';
+import { HeadingOne, HeadingThree, HeadingTwo } from '@yoopta/headings';
+import Code from '@yoopta/code';
+import Table from '@yoopta/table';
+import Divider from '@yoopta/divider';
+import ActionMenuList, { DefaultActionMenuRender } from '@yoopta/action-menu-list';
+import Toolbar, { DefaultToolbarRender } from '@yoopta/toolbar';
+import LinkTool, { DefaultLinkToolRender } from '@yoopta/link-tool';
+import { getPublicUrl, UploadFileInS3 } from '@/services/upload_file';
+import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '../auth/tokens';
+import { MultiLangCodePlugin } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-components/yoopta-editor-customizations/python-editor';
+import { JupyterNotebookPlugin } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-components/yoopta-editor-customizations/jupyter-notebook';
+import { ScratchPlugin } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-components/yoopta-editor-customizations/scratch-editor';
 
 export const plugins: YooptaPlugin<Record<string, SlateElement>, Record<string, unknown>>[] = [
     Paragraph,
@@ -51,20 +51,20 @@ export const plugins: YooptaPlugin<Record<string, SlateElement>, Record<string, 
                     const fileId = await UploadFileInS3(
                         file,
                         () => {}, // setIsUploading
-                        "your-user-id",
+                        'your-user-id',
                         INSTITUTE_ID,
-                        "STUDENTS",
-                        true, // publicUrl
+                        'STUDENTS',
+                        true // publicUrl
                     );
 
                     if (!fileId) {
-                        throw new Error("File upload failed");
+                        throw new Error('File upload failed');
                     }
 
                     const publicUrl = await getPublicUrl(fileId);
 
                     if (!publicUrl) {
-                        throw new Error("Failed to get public URL");
+                        throw new Error('Failed to get public URL');
                     }
 
                     return {
@@ -76,7 +76,7 @@ export const plugins: YooptaPlugin<Record<string, SlateElement>, Record<string, 
                         },
                     };
                 } catch (error) {
-                    console.error("Upload failed:", error);
+                    console.error('Upload failed:', error);
                     throw error;
                 }
             },
@@ -93,20 +93,20 @@ export const plugins: YooptaPlugin<Record<string, SlateElement>, Record<string, 
                     const fileId = await UploadFileInS3(
                         file,
                         () => {}, // setIsUploading
-                        "your-user-id",
+                        'your-user-id',
                         INSTITUTE_ID,
-                        "STUDENTS",
-                        true, // publicUrl
+                        'STUDENTS',
+                        true // publicUrl
                     );
 
                     if (!fileId) {
-                        throw new Error("File upload failed");
+                        throw new Error('File upload failed');
                     }
 
                     const publicUrl = await getPublicUrl(fileId);
 
                     if (!publicUrl) {
-                        throw new Error("Failed to get public URL");
+                        throw new Error('Failed to get public URL');
                     }
 
                     return {
@@ -118,7 +118,7 @@ export const plugins: YooptaPlugin<Record<string, SlateElement>, Record<string, 
                         },
                     };
                 } catch (error) {
-                    console.error("Upload failed:", error);
+                    console.error('Upload failed:', error);
                     throw error;
                 }
             },
@@ -133,20 +133,20 @@ export const plugins: YooptaPlugin<Record<string, SlateElement>, Record<string, 
                 const fileId = await UploadFileInS3(
                     file,
                     () => {}, // setIsUploading
-                    "your-user-id",
+                    'your-user-id',
                     INSTITUTE_ID,
-                    "STUDENTS",
-                    true, // publicUrl
+                    'STUDENTS',
+                    true // publicUrl
                 );
 
                 if (!fileId) {
-                    throw new Error("File upload failed");
+                    throw new Error('File upload failed');
                 }
 
                 const publicUrl = await getPublicUrl(fileId);
 
                 if (!publicUrl) {
-                    throw new Error("Failed to get public URL");
+                    throw new Error('Failed to get public URL');
                 }
 
                 return {

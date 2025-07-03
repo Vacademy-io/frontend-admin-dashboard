@@ -1,6 +1,6 @@
-import { create } from "zustand";
-import { InitData } from "@/types/community/types";
-import { TagResponse } from "@/types/community/filters/types";
+import { create } from 'zustand';
+import { InitData } from '@/types/community/types';
+import { TagResponse } from '@/types/community/filters/types';
 
 interface FilterStore {
     options: InitData;

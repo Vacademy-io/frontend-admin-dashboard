@@ -3,7 +3,7 @@ import { MyDialog } from '@/components/design-system/dialog';
 import { Copy, DownloadSimple, LockSimple, DotsThree } from 'phosphor-react';
 import { Badge } from '@/components/ui/badge';
 import { MyButton } from '@/components/design-system/button';
-import { BASE_URL_LEARNER_DASHBOARD } from '@/constants/urls';
+import { BASE_URL_LEARNER_DASHBOARD, HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
 import { copyToClipboard } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/helper';
 import {
     DropdownMenu,
@@ -14,6 +14,7 @@ import {
 import { deleteLiveSession, LiveSession } from '../schedule/-services/utils';
 import { handleDownloadQRCode } from '@/routes/homework-creation/create-assessment/$assessmentId/$examtype/-utils/helper';
 import { useQueryClient } from '@tanstack/react-query';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { useState } from 'react';
 import { fetchSessionDetails, SessionDetailsResponse } from '../-hooks/useSessionDetails';
 import { useLiveSessionReport } from '../-hooks/useLiveSessionReport';
@@ -32,6 +33,7 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
     const [scheduledSessionDetails, setScheduleSessionDetails] =
         useState<SessionDetailsResponse | null>(null);
     const queryClient = useQueryClient();
+    const { showForInstitutes } = useInstituteDetailsStore();
     const { mutate: fetchReport, data: reportResponse, isPending, error } = useLiveSessionReport();
 
     const joinLink =
@@ -126,10 +128,12 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
             </div>
 
             <div className="flex w-full items-center justify-start gap-8 text-sm text-neutral-500">
-                <div className="flex items-center gap-2">
-                    <span className="text-black">Subject:</span>
-                    <span>{session.subject}</span>
-                </div>
+                {!showForInstitutes([HOLISTIC_INSTITUTE_ID]) && (
+                    <div className="flex items-center gap-2">
+                        <span className="text-black">Subject:</span>
+                        <span>{session.subject}</span>
+                    </div>
+                )}
 
                 <div className="flex items-center gap-2">
                     <span className="text-black">Start Date & Time:</span>

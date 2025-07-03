@@ -1,7 +1,7 @@
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { dateRangeFormSchema } from "../-utils/date-range-form-schema";
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { dateRangeFormSchema } from '../-utils/date-range-form-schema';
 import {
     Form,
     FormControl,
@@ -9,21 +9,21 @@ import {
     FormItem,
     FormLabel,
     FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarBlank, X } from "phosphor-react";
-import { PopoverClose } from "@radix-ui/react-popover";
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CalendarBlank, X } from 'phosphor-react';
+import { PopoverClose } from '@radix-ui/react-popover';
 
 export const QuestionPapersDateRangeComponent = () => {
     const form = useForm<z.infer<typeof dateRangeFormSchema>>({
         resolver: zodResolver(dateRangeFormSchema),
         defaultValues: {
-            startDate: "",
-            endDate: "",
+            startDate: '',
+            endDate: '',
         },
-        mode: "onChange", // Validate as user types
+        mode: 'onChange', // Validate as user types
     });
 
     const { handleSubmit, watch } = form;
@@ -37,8 +37,8 @@ export const QuestionPapersDateRangeComponent = () => {
     };
 
     // Watch form fields
-    const startDate = watch("startDate");
-    const endDate = watch("endDate");
+    const startDate = watch('startDate');
+    const endDate = watch('endDate');
 
     // Determine if all fields are filled
     const isFormValid = !!startDate && !!endDate;
@@ -46,7 +46,7 @@ export const QuestionPapersDateRangeComponent = () => {
     return (
         <Popover>
             <PopoverTrigger>
-                <Button variant="outline" className="-mt-1 p-0 pl-2 pr-2">
+                <Button variant="outline" className="-mt-1 p-0 px-2">
                     <CalendarBlank size={32} />
                 </Button>
             </PopoverTrigger>
@@ -75,7 +75,7 @@ export const QuestionPapersDateRangeComponent = () => {
                                             value={field.value}
                                             onChange={field.onChange}
                                             type="date"
-                                            placeholder={"DD/MM/YYYY"}
+                                            placeholder={'DD/MM/YYYY'}
                                             required
                                         />
                                     </FormControl>
@@ -96,7 +96,7 @@ export const QuestionPapersDateRangeComponent = () => {
                                             value={field.value}
                                             onChange={field.onChange}
                                             type="date"
-                                            placeholder={"DD/MM/YYYY"}
+                                            placeholder={'DD/MM/YYYY'}
                                             required
                                         />
                                     </FormControl>

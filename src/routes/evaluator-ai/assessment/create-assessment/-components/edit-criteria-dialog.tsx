@@ -1,9 +1,9 @@
-import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Plus, Trash } from "phosphor-react";
-import { Label } from "@/components/ui/label";
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Plus, Trash } from 'phosphor-react';
+import { Label } from '@/components/ui/label';
 
 interface EditCriteriaDialogProps {
     markingJson: string;
@@ -14,7 +14,7 @@ const EditCriteriaDialog = ({ markingJson, onSave }: EditCriteriaDialogProps) =>
     const [open, setOpen] = useState(false);
     const [totalMarks, setTotalMarks] = useState(0);
     const [criteria, setCriteria] = useState<Array<{ name: string; marks: number }>>([]);
-    const [newCriteriaName, setNewCriteriaName] = useState("");
+    const [newCriteriaName, setNewCriteriaName] = useState('');
     const [newCriteriaMarks, setNewCriteriaMarks] = useState(0);
     // Parse markingJson on open
     const handleOpen = () => {
@@ -32,7 +32,7 @@ const EditCriteriaDialog = ({ markingJson, onSave }: EditCriteriaDialogProps) =>
     const handleAddCriteria = () => {
         if (!newCriteriaName || newCriteriaMarks <= 0) return;
         setCriteria([...criteria, { name: newCriteriaName, marks: newCriteriaMarks }]);
-        setNewCriteriaName("");
+        setNewCriteriaName('');
         setNewCriteriaMarks(0);
     };
 

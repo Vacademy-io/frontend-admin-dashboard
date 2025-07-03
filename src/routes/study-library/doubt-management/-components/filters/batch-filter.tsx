@@ -48,16 +48,16 @@ export const BatchFilter = () => {
     }, [selectedBatch]);
 
     return (
-        <div className='flex items-center gap-2'>
+        <div className="flex items-center gap-2">
             <p>Batch</p>
-        <SelectChips
-            options={batchList}
-            selected={selectedBatch}
-            onChange={handleBatchChange}
-            multiSelect={true}
-            hasClearFilter={false}
-            className="min-w-40"
-        />
+            <SelectChips
+                options={batchList}
+                selected={selectedBatch}
+                onChange={handleBatchChange}
+                multiSelect={true}
+                hasClearFilter={false}
+                className="min-w-40"
+            />
         </div>
     );
 };

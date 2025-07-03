@@ -1,7 +1,7 @@
 export enum EntityType {
-    COURSE = "COURSE",
-    LEVEL = "LEVEL",
-    SUBJECT = "SUBJECT",
+    COURSE = 'COURSE',
+    LEVEL = 'LEVEL',
+    SUBJECT = 'SUBJECT',
 }
 
 export interface SideBarData {

@@ -1,15 +1,15 @@
-import { useState } from "react";
+import { useState } from 'react';
 import {
     Select,
     SelectTrigger,
     SelectValue,
     SelectContent,
     SelectItem,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Level, Stream, Subject } from "@/types/community/types";
-import { useEffect } from "react";
-import { useSelectedFilterStore } from "../-store/useSlectedFilterOption";
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Level, Stream, Subject } from '@/types/community/types';
+import { useEffect } from 'react';
+import { useSelectedFilterStore } from '../-store/useSlectedFilterOption';
 
 interface FilterLevelDropdownProps {
     placeholder?: string;
@@ -29,16 +29,16 @@ interface FilterDifficultiesDropdownProps {
 }
 
 export const FilterStreamDropdown = ({
-    placeholder = "Select an option",
+    placeholder = 'Select an option',
     FilterList,
 }: FilterStreamDropdownProps) => {
-    const [selectedValue, setSelectedValue] = useState<string>("");
+    const [selectedValue, setSelectedValue] = useState<string>('');
     const { setSelected } = useSelectedFilterStore();
     useEffect(() => {
         if (selectedValue) {
             const selectedStream = FilterList.find((option) => option.streamId === selectedValue);
             if (selectedStream) {
-                setSelected("stream", {
+                setSelected('stream', {
                     streamId: selectedStream.streamId,
                     streamName: selectedStream.streamName,
                 });
@@ -63,16 +63,16 @@ export const FilterStreamDropdown = ({
 };
 
 export const FilterLevelDropdown = ({
-    placeholder = "Select an option",
+    placeholder = 'Select an option',
     FilterList,
 }: FilterLevelDropdownProps) => {
-    const [selectedValue, setSelectedValue] = useState<string>("");
+    const [selectedValue, setSelectedValue] = useState<string>('');
     const { setSelected } = useSelectedFilterStore();
     useEffect(() => {
         if (selectedValue) {
             const selectedLevel = FilterList.find((option) => option.levelId === selectedValue);
             if (selectedLevel) {
-                setSelected("level", {
+                setSelected('level', {
                     levelId: selectedLevel.levelId,
                     levelName: selectedLevel.levelName,
                 });
@@ -96,16 +96,16 @@ export const FilterLevelDropdown = ({
 };
 
 export const FilterSubjectDropdown = ({
-    placeholder = "Select an option",
+    placeholder = 'Select an option',
     FilterList,
 }: FilterSubjectDropdownProps) => {
-    const [selectedValue, setSelectedValue] = useState<string>("");
+    const [selectedValue, setSelectedValue] = useState<string>('');
     const { setSelected } = useSelectedFilterStore();
     useEffect(() => {
         if (selectedValue) {
             const selectedSubject = FilterList.find((option) => option.subjectId === selectedValue);
             if (selectedSubject) {
-                setSelected("subject", {
+                setSelected('subject', {
                     subjectId: selectedSubject.subjectId,
                     subjectName: selectedSubject.subjectName,
                 });
@@ -129,14 +129,14 @@ export const FilterSubjectDropdown = ({
     );
 };
 export const FilterDifficultiesDropdown = ({
-    placeholder = "Select an option",
+    placeholder = 'Select an option',
     FilterList,
 }: FilterDifficultiesDropdownProps) => {
-    const [selectedValue, setSelectedValue] = useState<string>("");
+    const [selectedValue, setSelectedValue] = useState<string>('');
     const { setSelected } = useSelectedFilterStore();
     useEffect(() => {
         if (selectedValue) {
-            setSelected("difficulty", selectedValue);
+            setSelected('difficulty', selectedValue);
         }
     }, [selectedValue, FilterList, setSelected]);
 
@@ -156,14 +156,14 @@ export const FilterDifficultiesDropdown = ({
     );
 };
 export const FilterTypesDropdown = ({
-    placeholder = "Select an option",
+    placeholder = 'Select an option',
     FilterList,
 }: FilterDifficultiesDropdownProps) => {
-    const [selectedValue, setSelectedValue] = useState<string>("");
+    const [selectedValue, setSelectedValue] = useState<string>('');
     const { setSelected } = useSelectedFilterStore();
     useEffect(() => {
         if (selectedValue) {
-            setSelected("type", selectedValue);
+            setSelected('type', selectedValue);
         }
     }, [selectedValue, FilterList, setSelected]);
 
@@ -184,15 +184,15 @@ export const FilterTypesDropdown = ({
 };
 
 export const SearchableFilterDropdown = () => {
-    const [search, setSearch] = useState("");
+    const [search, setSearch] = useState('');
     const options = [
-        { label: "Light", value: "light" },
-        { label: "Dark", value: "dark" },
-        { label: "System", value: "system" },
+        { label: 'Light', value: 'light' },
+        { label: 'Dark', value: 'dark' },
+        { label: 'System', value: 'system' },
     ];
 
     const filteredOptions = options.filter((option) =>
-        option.label.toLowerCase().includes(search.toLowerCase()),
+        option.label.toLowerCase().includes(search.toLowerCase())
     );
 
     return (

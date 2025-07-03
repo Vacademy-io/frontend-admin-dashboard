@@ -1,13 +1,13 @@
-import { useEffect, useState } from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CaretDown, CaretUp, Check } from "phosphor-react";
-import { Badge } from "../ui/badge";
-import { FormControl, FormField, FormItem, FormLabel } from "../ui/form";
-import { type Control } from "react-hook-form";
-import { cn } from "@/lib/utils";
-import { MyDialog } from "./dialog";
-import { MyButton } from "./button";
-import { Input } from "../ui/input";
+import { useEffect, useState } from 'react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CaretDown, CaretUp, Check } from 'phosphor-react';
+import { Badge } from '../ui/badge';
+import { FormControl, FormField, FormItem, FormLabel } from '../ui/form';
+import { type Control } from 'react-hook-form';
+import { cn } from '@/lib/utils';
+import { MyDialog } from './dialog';
+import { MyButton } from './button';
+import { Input } from '../ui/input';
 
 interface Option {
     id: string;
@@ -44,14 +44,14 @@ export function SessionWithAccessDays({
     const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
     const [isOpen, setIsOpen] = useState(false);
     const [selectedOptionForDays, setSelectedOptionForDays] = useState<Option | null>(null);
-    const [accessDays, setAccessDays] = useState<string>("");
+    const [accessDays, setAccessDays] = useState<string>('');
 
     const toggleSelection = (option: Option) => {
         if (selectedOptions.some((item) => item.id === option.id)) {
             setSelectedOptions((prev) => prev.filter((item) => item.id !== option.id));
         } else {
             setSelectedOptionForDays(option);
-            setAccessDays("");
+            setAccessDays('');
         }
     };
 
@@ -61,7 +61,7 @@ export function SessionWithAccessDays({
             if (!isNaN(days) && days > 0) {
                 setSelectedOptions((prev) => {
                     const existingIndex = prev.findIndex(
-                        (item) => item.id === selectedOptionForDays.id,
+                        (item) => item.id === selectedOptionForDays.id
                     );
                     if (existingIndex >= 0) {
                         const newOptions = [...prev];
@@ -71,7 +71,7 @@ export function SessionWithAccessDays({
                     return [...prev, { id: selectedOptionForDays.id, days }];
                 });
                 setSelectedOptionForDays(null);
-                setAccessDays("");
+                setAccessDays('');
             }
         }
     };
@@ -92,7 +92,7 @@ export function SessionWithAccessDays({
                 render={() => {
                     return (
                         <div>
-                            <FormItem className={cn("w-44", className)}>
+                            <FormItem className={cn('w-44', className)}>
                                 <FormLabel className={labelStyle}>
                                     {label}
                                     {required && <span className="text-red-500">*</span>}
@@ -114,7 +114,7 @@ export function SessionWithAccessDays({
                                                 >
                                                     <label className="text-sm">{option.name}</label>
                                                     {selectedOptions.some(
-                                                        (item) => item.id === option.id,
+                                                        (item) => item.id === option.id
                                                     ) && <Check size={18} />}
                                                 </div>
                                             ))}

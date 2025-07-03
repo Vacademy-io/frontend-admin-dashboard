@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { CaretDown, CaretUp, CaretRight } from "@phosphor-icons/react";
+import { useState } from 'react';
+import { CaretDown, CaretUp, CaretRight } from '@phosphor-icons/react';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -9,9 +9,9 @@ import {
     DropdownMenuSub,
     DropdownMenuSubTrigger,
     DropdownMenuSubContent,
-} from "@radix-ui/react-dropdown-menu";
-import { myDropDownProps } from "./utils/types/study-library-dropdown-types";
-import { StudyLibrarySessionType } from "@/stores/study-library/use-study-library-store";
+} from '@radix-ui/react-dropdown-menu';
+import { myDropDownProps } from './utils/types/study-library-dropdown-types';
+import { StudyLibrarySessionType } from '@/stores/study-library/use-study-library-store';
 
 export interface DropdownItem {
     label: string;
@@ -21,15 +21,15 @@ export interface DropdownItem {
 }
 
 const isDropdownItem = (
-    item: string | DropdownItem | StudyLibrarySessionType,
+    item: string | DropdownItem | StudyLibrarySessionType
 ): item is DropdownItem => {
-    return typeof item === "object" && "label" in item;
+    return typeof item === 'object' && 'label' in item;
 };
 
 const isStudyLibrarySession = (
-    item: string | DropdownItem | StudyLibrarySessionType,
+    item: string | DropdownItem | StudyLibrarySessionType
 ): item is StudyLibrarySessionType => {
-    return typeof item === "object" && "session_name" in item;
+    return typeof item === 'object' && 'session_name' in item;
 };
 
 export const MyDropdown = ({
@@ -38,7 +38,7 @@ export const MyDropdown = ({
     dropdownList,
     children,
     onSelect,
-    placeholder = "Select an option",
+    placeholder = 'Select an option',
     error,
     disable,
 }: myDropDownProps) => {
@@ -46,7 +46,7 @@ export const MyDropdown = ({
 
     const getDisplayValue = (value: string | StudyLibrarySessionType | undefined) => {
         if (!value) return placeholder;
-        if (typeof value === "string") return value;
+        if (typeof value === 'string') return value;
         return value.session_name;
     };
 
@@ -66,7 +66,7 @@ export const MyDropdown = ({
                 <DropdownMenuItem
                     key={item.id}
                     className={`cursor-pointer truncate px-3 py-2 text-subtitle text-neutral-600 hover:bg-primary-50 ${
-                        currentValue === item.session_name ? "bg-primary-50" : "bg-none"
+                        currentValue === item.session_name ? 'bg-primary-50' : 'bg-none'
                     } hover:outline-none`}
                     onClick={() => handleValueChange(item.session_name)}
                     disabled={disable}
@@ -99,7 +99,7 @@ export const MyDropdown = ({
                 <DropdownMenuItem
                     key={item.value}
                     className={`cursor-pointer truncate px-3 py-2 text-subtitle text-neutral-600 hover:bg-primary-50 ${
-                        currentValue === item.value ? "bg-primary-50" : "bg-none"
+                        currentValue === item.value ? 'bg-primary-50' : 'bg-none'
                     } hover:outline-none`}
                     onClick={() => handleValueChange(item.value)}
                     disabled={disable}
@@ -116,7 +116,7 @@ export const MyDropdown = ({
             <DropdownMenuItem
                 key={item}
                 className={`cursor-pointer truncate px-3 py-2 text-subtitle text-neutral-600 hover:bg-primary-50 ${
-                    currentValue === item ? "bg-primary-50" : "bg-none"
+                    currentValue === item ? 'bg-primary-50' : 'bg-none'
                 } hover:outline-none`}
                 onClick={() => handleValueChange(item)}
                 disabled={disable}
@@ -137,19 +137,19 @@ export const MyDropdown = ({
                     <DropdownMenuTrigger
                         className={`inline-flex h-9 min-w-60 items-center justify-between rounded-lg border px-3 py-2 text-subtitle text-neutral-600 focus:outline-none ${
                             error
-                                ? "border-danger-600"
+                                ? 'border-danger-600'
                                 : isOpen
-                                  ? "border-primary-500"
-                                  : "border-neutral-300 hover:border-primary-200 focus:border-primary-500"
+                                  ? 'border-primary-500'
+                                  : 'border-neutral-300 hover:border-primary-200 focus:border-primary-500'
                         }`}
                         disabled={disable}
                     >
-                        <div className={`truncate ${!currentValue ? "text-neutral-400" : ""}`}>
+                        <div className={`truncate ${!currentValue ? 'text-neutral-400' : ''}`}>
                             {getDisplayValue(currentValue)}
                         </div>
-                        <div className="ml-2 flex-shrink-0">
-                            <CaretDown className={`${isOpen ? "hidden" : "visible"} size-[18px]`} />
-                            <CaretUp className={`${isOpen ? "visible" : "hidden"} size-[18px]`} />
+                        <div className="ml-2 shrink-0">
+                            <CaretDown className={`${isOpen ? 'hidden' : 'visible'} size-[18px]`} />
+                            <CaretUp className={`${isOpen ? 'visible' : 'hidden'} size-[18px]`} />
                         </div>
                     </DropdownMenuTrigger>
                 )}

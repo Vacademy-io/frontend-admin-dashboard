@@ -21,13 +21,16 @@ interface AddCustomFieldDialogProps {
     customFields: CustomField[];
 }
 
-export const AddCustomFieldDialog = ({ trigger, onAddField, customFields }: AddCustomFieldDialogProps) => {
+export const AddCustomFieldDialog = ({
+    trigger,
+    onAddField,
+    customFields,
+}: AddCustomFieldDialogProps) => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [selectedOptionValue, setSelectedOptionValue] = useState('textfield');
     const [textFieldValue, setTextFieldValue] = useState('');
     const [validTextField, setValidTextField] = useState(false);
     const [dropdownOptions, setDropdownOptions] = useState<DropdownOption[]>([]);
-
 
     const handleAddDropdownOptions = () => {
         setDropdownOptions((prevOptions) => [
@@ -141,7 +144,7 @@ export const AddCustomFieldDialog = ({ trigger, onAddField, customFields }: AddC
                             <div className="flex flex-col gap-4">
                                 {dropdownOptions.map((option) => (
                                     <div
-                                        className="flex items-center justify-between rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-1 w-[3/4]"
+                                        className="flex w-[3/4] items-center justify-between rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-1"
                                         key={option.id}
                                     >
                                         <MyInput
@@ -152,7 +155,7 @@ export const AddCustomFieldDialog = ({ trigger, onAddField, customFields }: AddC
                                                 handleValueChange(option.id, e.target.value)
                                             }
                                             disabled={option.disabled}
-                                            className="border-none pl-0 size-fit"
+                                            className="size-fit border-none pl-0"
                                         />
                                         <div className="flex items-center gap-6">
                                             <MyButton

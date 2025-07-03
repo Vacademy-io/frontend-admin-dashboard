@@ -1,6 +1,6 @@
 // types.ts
-import { ReactNode } from "react";
-import { z } from "zod";
+import { ReactNode } from 'react';
+import { z } from 'zod';
 
 // SplashScreen Props
 export interface SplashScreenProps {

@@ -8,11 +8,11 @@
 export const truncateString = (
     text: string,
     maxLength: number,
-    ellipsis: string = "...",
+    ellipsis: string = '...'
 ): string => {
     // Handle edge cases
-    if (!text) return "";
-    if (maxLength <= 0) return "";
+    if (!text) return '';
+    if (maxLength <= 0) return '';
     if (text.length <= maxLength) return text;
     if (maxLength <= ellipsis.length) return ellipsis.slice(0, maxLength);
 
@@ -20,7 +20,7 @@ export const truncateString = (
     const truncateLength = maxLength - ellipsis.length;
 
     // Find the last space within the truncate length to avoid cutting words in middle
-    const lastSpace = text.slice(0, truncateLength + 1).lastIndexOf(" ");
+    const lastSpace = text.slice(0, truncateLength + 1).lastIndexOf(' ');
 
     // If there's a space in the truncated portion, cut at the last space
     if (lastSpace > 0) {

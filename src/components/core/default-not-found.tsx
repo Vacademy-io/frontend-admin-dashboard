@@ -1,6 +1,6 @@
-import { Link, useRouter } from "@tanstack/react-router";
-import { Helmet } from "react-helmet";
-import { Button } from "../ui/button";
+import { Link, useRouter } from '@tanstack/react-router';
+import { Helmet } from 'react-helmet';
+import { Button } from '../ui/button';
 
 function RootNotFoundComponent() {
     const router = useRouter();
@@ -25,10 +25,10 @@ function RootNotFoundComponent() {
                         <span className="text-xl">the page you are looking for not available!</span>
                     </p>
                     <div className="mt-8 flex justify-center gap-5">
-                        <Button asChild variant={"outline"} className="h-10 min-w-32">
+                        <Button asChild variant={'outline'} className="h-10 min-w-32">
                             <Link to="/dashboard">Return Home</Link>
                         </Button>
-                        <Button asChild variant={"outline"} className="h-10 min-w-32">
+                        <Button asChild variant={'outline'} className="h-10 min-w-32">
                             <button onClick={() => router.history.back()}>Go Back</button>
                         </Button>
                     </div>

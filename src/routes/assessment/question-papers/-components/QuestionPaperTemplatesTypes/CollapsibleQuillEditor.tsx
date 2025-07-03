@@ -1,6 +1,6 @@
-import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
-import { useState } from "react";
-import { CollapsibleQuillEditorProps } from "@/types/assessments/question-type-types";
+import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
+import { useState } from 'react';
+import { CollapsibleQuillEditorProps } from '@/types/assessments/question-type-types';
 
 export const CollapsibleQuillEditor: React.FC<CollapsibleQuillEditorProps> = ({
     value,
@@ -12,8 +12,8 @@ export const CollapsibleQuillEditor: React.FC<CollapsibleQuillEditorProps> = ({
             {!isExpanded ? (
                 // Render only a single line preview
                 <div className="flex cursor-pointer flex-row gap-1 rounded-md border bg-primary-50 p-2">
-                    <div className="w-full max-w-[50vw] overflow-hidden text-ellipsis whitespace-nowrap text-body">
-                        {value && value.replace(/<[^>]+>/g, "")}
+                    <div className="w-full max-w-[50vw] truncate text-body">
+                        {value && value.replace(/<[^>]+>/g, '')}
                     </div>
                     <button
                         className="text-body text-primary-500"

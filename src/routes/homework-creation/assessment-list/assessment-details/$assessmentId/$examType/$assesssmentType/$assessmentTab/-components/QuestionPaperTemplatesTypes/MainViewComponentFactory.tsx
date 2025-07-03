@@ -1,9 +1,9 @@
-import React from "react";
-import { SingleCorrectQuestionPaperTemplateMainView } from "./MCQ(Single Correct)/SingleCorrectQuestionPaperTemplateMainView";
-import { MultipleCorrectQuestionPaperTemplateMainView } from "./MCQ(Multiple Correct)/MultipleCorrectQuestionPaperTemplateMainView";
-import { SectionQuestionPaperFormProps } from "../../-utils/assessment-question-paper";
+import React from 'react';
+import { SingleCorrectQuestionPaperTemplateMainView } from './MCQ(Single Correct)/SingleCorrectQuestionPaperTemplateMainView';
+import { MultipleCorrectQuestionPaperTemplateMainView } from './MCQ(Multiple Correct)/MultipleCorrectQuestionPaperTemplateMainView';
+import { SectionQuestionPaperFormProps } from '../../-utils/assessment-question-paper';
 
-type MainViewComponentType = "MCQS" | "MCQM";
+type MainViewComponentType = 'MCQS' | 'MCQM';
 
 type MainViewComponent = (props: SectionQuestionPaperFormProps) => React.ReactElement;
 

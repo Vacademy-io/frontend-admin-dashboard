@@ -1,5 +1,5 @@
-import { Progress } from "@/components/ui/progress";
-import { useEffect, useState } from "react";
+import { Progress } from '@/components/ui/progress';
+import { useEffect, useState } from 'react';
 
 interface ProgressBarProps {
     progress: number;
@@ -17,10 +17,10 @@ export const ProgressBar = ({ progress }: ProgressBarProps) => {
                 value={percentageValue}
                 className={`w-full bg-white ${
                     progress >= 180
-                        ? "[&>div]:bg-success-600"
+                        ? '[&>div]:bg-success-600'
                         : progress >= 30
-                          ? "[&>div]:bg-warning-600"
-                          : "[&>div]:bg-danger-600"
+                          ? '[&>div]:bg-warning-600'
+                          : '[&>div]:bg-danger-600'
                 }`}
             />
         </div>

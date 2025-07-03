@@ -1,5 +1,5 @@
-import { create } from "zustand";
-import { Level, Stream, Subject } from "@/types/community/types";
+import { create } from 'zustand';
+import { Level, Stream, Subject } from '@/types/community/types';
 
 interface SelectedFilters {
     difficulty: string | null;
@@ -14,7 +14,7 @@ interface SelectedFilterStore {
     selected: SelectedFilters;
     setSelected: (
         filterKey: keyof SelectedFilters,
-        value: string | Level | Stream | Subject | null,
+        value: string | Level | Stream | Subject | null
     ) => void;
     name: string;
     setName: (value: string) => void;
@@ -30,7 +30,7 @@ export const useSelectedFilterStore = create<SelectedFilterStore>((set) => ({
         topic: null,
         stream: null,
     },
-    name: "",
+    name: '',
     setName: (value: string) => set(() => ({ name: value })),
     setSelected: (filterKey, value) =>
         set((state) => ({

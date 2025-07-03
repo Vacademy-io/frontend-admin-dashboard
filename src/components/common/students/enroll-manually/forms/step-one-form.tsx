@@ -30,7 +30,6 @@ export const StepOneForm = ({
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const data = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
-
     const [isUploading, setIsUploading] = useState(false);
     const { uploadFile, getPublicUrl, isUploading: isUploadingFile } = useFileUpload();
     const { stepOneData, setStepOneData, nextStep } = useFormStore();

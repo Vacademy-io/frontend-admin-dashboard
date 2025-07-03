@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { DoubtFilter } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-types/get-doubts-type';
+import { DoubtFilter } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-types/get-doubts-type';
 
 // Zustand store for doubt filters
 interface DoubtFilterStore {

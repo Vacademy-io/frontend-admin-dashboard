@@ -1,5 +1,5 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { getAssessmentDetails } from "../-services/assessment-services";
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { getAssessmentDetails } from '../-services/assessment-services';
 
 export interface SectionResponse {
     id: string;
@@ -68,12 +68,12 @@ export interface AdaptiveMarking {
 
 export function useQuestionsForSection(
     assessmentId: string,
-    sectionId: string,
+    sectionId: string
 ): { adaptiveMarking: AdaptiveMarking[]; isLoading: boolean } {
     const { data: questionsData, isLoading } = useSuspenseQuery(
         getAssessmentDetails({
             assessmentId,
-        }),
+        })
     );
     // Find the section with the specified ID
     const section = questionsData.sections.find((section) => section.id === sectionId);
@@ -91,7 +91,7 @@ export function useQuestionsForSection(
         try {
             if (question.marking_json) {
                 const markingData = JSON.parse(question.marking_json);
-                if (markingData && typeof markingData.marks !== "undefined") {
+                if (markingData && typeof markingData.marks !== 'undefined') {
                     questionMark = markingData.marks.toString();
                 }
             }
@@ -102,7 +102,7 @@ export function useQuestionsForSection(
 
         return {
             questionId: question.id,
-            questionName: question.question_text.content || "",
+            questionName: question.question_text.content || '',
             questionMark: questionMark,
         };
     });

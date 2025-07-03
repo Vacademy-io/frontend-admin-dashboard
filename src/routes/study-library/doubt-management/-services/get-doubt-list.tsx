@@ -1,7 +1,7 @@
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 import { GET_DOUBTS } from '@/constants/urls';
-import { PaginatedDoubtResponse } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-types/get-doubts-type';
-import { DoubtFilter } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-types/get-doubts-type';
+import { PaginatedDoubtResponse } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-types/get-doubts-type';
+import { DoubtFilter } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-types/get-doubts-type';
 import { useQuery } from '@tanstack/react-query';
 
 export const useGetDoubtList = ({

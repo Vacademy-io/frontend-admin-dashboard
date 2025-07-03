@@ -56,4 +56,4 @@ export const pricingPlans = [
         buttonText: 'Contact Sales',
         isMostPopular: false,
     },
-]; 
+];

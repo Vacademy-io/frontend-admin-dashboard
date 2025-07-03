@@ -80,9 +80,9 @@ export const SessionExcalidrawOverlay: React.FC<SessionExcalidrawOverlayProps> =
                 const savedDataString = localStorage.getItem(whiteboardStorageKey);
                 if (savedDataString) {
                     const savedData = JSON.parse(savedDataString);
-                    
-                    const collaboratorsMap = savedData.appState?.collaborators 
-                        ? new Map(savedData.appState.collaborators) 
+
+                    const collaboratorsMap = savedData.appState?.collaborators
+                        ? new Map(savedData.appState.collaborators)
                         : new Map();
 
                     setElements(savedData.elements || []);
@@ -92,14 +92,14 @@ export const SessionExcalidrawOverlay: React.FC<SessionExcalidrawOverlayProps> =
                         collaborators: collaboratorsMap,
                     });
                     setFiles(savedData.files || {});
-                    toast.info("Loaded saved whiteboard from your browser.");
+                    toast.info('Loaded saved whiteboard from your browser.');
                 } else {
                     initializeFreshWhiteboard();
                 }
             } catch (error) {
-                console.error("Failed to load whiteboard from localStorage:", error);
-                toast.error("Could not load saved whiteboard. Starting fresh.");
-            initializeFreshWhiteboard();
+                console.error('Failed to load whiteboard from localStorage:', error);
+                toast.error('Could not load saved whiteboard. Starting fresh.');
+                initializeFreshWhiteboard();
             } finally {
                 setTimeout(() => setIsLoading(false), 100);
             }
@@ -159,9 +159,10 @@ export const SessionExcalidrawOverlay: React.FC<SessionExcalidrawOverlayProps> =
         if (!sessionId) return;
         setIsSaving(true);
         try {
-            const collaboratorsArray = appStateRef.current.collaborators instanceof Map 
-                ? Array.from(appStateRef.current.collaborators.entries()) 
-                : [];
+            const collaboratorsArray =
+                appStateRef.current.collaborators instanceof Map
+                    ? Array.from(appStateRef.current.collaborators.entries())
+                    : [];
 
             const dataToSave = {
                 elements: elementsRef.current,
@@ -173,7 +174,7 @@ export const SessionExcalidrawOverlay: React.FC<SessionExcalidrawOverlayProps> =
             };
 
             localStorage.setItem(whiteboardStorageKey, JSON.stringify(dataToSave));
-            
+
             await new Promise((resolve) => setTimeout(resolve, 500));
             toast.success('Whiteboard saved!');
         } catch (error: any) {

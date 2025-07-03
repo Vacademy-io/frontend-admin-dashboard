@@ -1,15 +1,23 @@
 // src/types/file-upload.ts
 
-import { Control, FieldValues, Path } from "react-hook-form";
-import { MutableRefObject } from "react";
+import { Control, FieldValues, Path } from 'react-hook-form';
+import { MutableRefObject } from 'react';
 
 export type FileType =
-    | "image/*"
-    | "application/pdf"
-    | "video/*"
-    | "audio/*"
-    | "application/msword"
-    | "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    | 'image/*'
+    | 'image/jpeg'
+    | 'image/png'
+    | 'image/svg+xml'
+    | 'video/*'
+    | 'video/mp4'
+    | 'video/quicktime'
+    | 'video/x-msvideo'
+    | 'video/webm'
+    | 'application/pdf'
+    | 'audio/*'
+    | 'application/msword'
+    | 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+
 export interface FileUploadComponentProps<T extends FieldValues> {
     fileInputRef: MutableRefObject<HTMLInputElement | null>;
     onFileSubmit: (file: File) => void;
@@ -19,5 +27,5 @@ export interface FileUploadComponentProps<T extends FieldValues> {
     children?: React.ReactNode;
     isUploading?: boolean;
     error?: string | null;
-    className?: string; // Add this line
+    className?: string;
 }

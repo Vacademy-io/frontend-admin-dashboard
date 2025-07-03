@@ -1,7 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-import EvaluationSummary from "../-components/summary-student";
+import { createFileRoute } from '@tanstack/react-router';
+import EvaluationSummary from '../-components/summary-student';
 
-export const Route = createFileRoute("/evaluator-ai/evaluation/student-summary/")({
+export const Route = createFileRoute('/evaluator-ai/evaluation/student-summary/')({
     component: RouteComponent,
 });
 

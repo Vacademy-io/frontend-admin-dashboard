@@ -1,25 +1,25 @@
-import { useSelectedFilterStore } from "../-store/useSlectedFilterOption";
-import { useFilterStore } from "../-store/useFilterOptions";
+import { useSelectedFilterStore } from '../-store/useSlectedFilterOption';
+import { useFilterStore } from '../-store/useFilterOptions';
 import {
     GET_QUESTION_PAPER_FILTERED_DATA_PUBLIC,
     INIT_FILTERS,
     GET_FILTERED_ENTITY_DATA,
-} from "@/constants/urls";
-import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
+} from '@/constants/urls';
+import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 // import {
 //     transformFilterData,
 // } from "./helper";
-import { FilterOption } from "@/types/assessments/question-paper-filter";
-import { FilterRequest, FilteredEntityApiResponse, Tag } from "@/types/community/filters/types";
+import { FilterOption } from '@/types/assessments/question-paper-filter';
+import { FilterRequest, FilteredEntityApiResponse, Tag } from '@/types/community/filters/types';
 import {
     PaginatedResponse,
     // QuestionPaperInterface,
-} from "@/types/assessments/question-paper-template";
+} from '@/types/assessments/question-paper-template';
 
 export async function fetchStaticData() {
     try {
         const response = await authenticatedAxiosInstance({
-            method: "GET",
+            method: 'GET',
             url: `${INIT_FILTERS}`,
         });
         return response?.data;
@@ -31,11 +31,11 @@ export async function fetchStaticData() {
 export const getFilteredEntityData = async (
     pageNo: number,
     pageSize: number,
-    data: FilterRequest,
+    data: FilterRequest
 ): Promise<FilteredEntityApiResponse> => {
     try {
         const response = await authenticatedAxiosInstance({
-            method: "POST",
+            method: 'POST',
             url: `${GET_FILTERED_ENTITY_DATA}`,
             params: {
                 pageNo,
@@ -57,19 +57,19 @@ export const mapFiltersToTags = (): FilterRequest => {
     const tags: Tag[] = [];
 
     if (selected.difficulty) {
-        tags.push({ tagId: selected.difficulty, tagSource: "DIFFICULTY" });
+        tags.push({ tagId: selected.difficulty, tagSource: 'DIFFICULTY' });
     }
     if (selected.level) {
-        tags.push({ tagId: selected.level.levelId, tagSource: "LEVEL" });
+        tags.push({ tagId: selected.level.levelId, tagSource: 'LEVEL' });
     }
     if (selected.subject) {
-        tags.push({ tagId: selected.subject.subjectId, tagSource: "SUBJECT" });
+        tags.push({ tagId: selected.subject.subjectId, tagSource: 'SUBJECT' });
     }
     if (selected.topic) {
-        tags.push({ tagId: selected.topic, tagSource: "TOPIC" });
+        tags.push({ tagId: selected.topic, tagSource: 'TOPIC' });
     }
     if (selected.stream) {
-        tags.push({ tagId: selected.stream.streamId, tagSource: "STREAM" });
+        tags.push({ tagId: selected.stream.streamId, tagSource: 'STREAM' });
     }
 
     for (let i = 0; i < selectedChips.length; i++) {
@@ -78,11 +78,11 @@ export const mapFiltersToTags = (): FilterRequest => {
             tags.push({ tagId: chip.tagId, tagSource: chip.tagSource });
         }
     }
-    console.log("tags ", tags);
+    console.log('tags ', tags);
 
     //TODO: for now only type available is question paper in future new types will be added
     return {
-        type: "QUESTION_PAPER", // Ensure it's of the correct type
+        type: 'QUESTION_PAPER', // Ensure it's of the correct type
         name: name,
         tags: tags.length > 0 ? tags : undefined, // Only include `tags` if there are any
     };
@@ -91,11 +91,11 @@ export const mapFiltersToTags = (): FilterRequest => {
 export const getQuestionPaperDataWithFilters = async (
     pageNo: number,
     pageSize: number,
-    data: Record<string, FilterOption[]>,
+    data: Record<string, FilterOption[]>
 ): Promise<PaginatedResponse> => {
     try {
         const response = await authenticatedAxiosInstance({
-            method: "POST",
+            method: 'POST',
             url: `${GET_QUESTION_PAPER_FILTERED_DATA_PUBLIC}`,
             params: {
                 pageNo,

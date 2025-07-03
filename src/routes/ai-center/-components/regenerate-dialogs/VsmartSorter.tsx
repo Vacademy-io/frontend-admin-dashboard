@@ -1,7 +1,7 @@
-import { MyButton } from "@/components/design-system/button";
-import { MyDialog } from "@/components/design-system/dialog";
-import { useState } from "react";
-import { AITaskIndividualListInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
+import { MyButton } from '@/components/design-system/button';
+import { MyDialog } from '@/components/design-system/dialog';
+import { useState } from 'react';
+import { AITaskIndividualListInterface } from '@/types/ai/generate-assessment/generate-complete-assessment';
 
 export const VsmartSorter = ({
     open,
@@ -14,16 +14,16 @@ export const VsmartSorter = ({
     handleGenerateQuestionsForAssessment?: (
         pdfId: string,
         prompt: string,
-        taskName: string,
+        taskName: string
     ) => void;
     task: AITaskIndividualListInterface;
 }) => {
-    const [prompt, setPrompt] = useState("");
+    const [prompt, setPrompt] = useState('');
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         handleGenerateQuestionsForAssessment &&
-            handleGenerateQuestionsForAssessment("", prompt, "Vsmart Sorter");
+            handleGenerateQuestionsForAssessment('', prompt, 'Vsmart Sorter');
         handleOpen(false);
     };
 

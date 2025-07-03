@@ -7,7 +7,7 @@ import { CreateLevelStep } from './create-level-step';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { useAddCourse } from '@/services/study-library/course-operations/add-course';
-import { AddCourseData } from '@/components/common/study-library/add-course/add-course-form';
+import { CourseFormData } from '@/components/common/study-library/add-course/add-course-form';
 import { useCopyStudyMaterialFromSession } from '../../../manage-students/students-list/-services/copyStudyMaterialFromSession';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { Plus } from 'phosphor-react';
@@ -88,7 +88,7 @@ export const CreateBatchDialog = () => {
         levelId,
         sessionId,
     }: {
-        requestData: AddCourseData;
+        requestData: CourseFormData;
         duplicateFromSession: boolean;
         duplicationSessionId: string;
         courseId: string;
@@ -203,9 +203,11 @@ export const CreateBatchDialog = () => {
                               : undefined,
                       };
 
-            const courseData: AddCourseData =
+            const courseData: CourseFormData =
                 data.courseCreationType === 'new'
                     ? {
+                          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                          // @ts-expect-error
                           id: data.selectedCourse?.id || '',
                           course_name: data.selectedCourse?.name || '',
                           thumbnail_file_id: '',
@@ -248,9 +250,14 @@ export const CreateBatchDialog = () => {
                 currentStep === 2 ? submit() : nextStep();
             }}
             buttonType={currentStep === 2 ? 'secondary' : 'text'}
-            className={currentStep === 2 ? "text-neutral-700 font-semibold" : "text-primary-600 hover:text-primary-700 font-semibold"}
+            className={
+                currentStep === 2
+                    ? 'font-semibold text-neutral-700'
+                    : 'text-primary-600 hover:text-primary-700 font-semibold'
+            }
         >
-            {nextButtonIcon}{nextButtonText}
+            {nextButtonIcon}
+            {nextButtonText}
         </MyButton>
     );
 
@@ -280,7 +287,7 @@ export const CreateBatchDialog = () => {
             dialogWidth="w-[600px]"
             open={openManageBatchDialog}
             onOpenChange={handleOpenManageBatchDialog}
-            className="pt-6 pb-8 px-8"
+            className="px-8 pb-8 pt-6"
         >
             <FormProvider {...methods}>
                 <form onSubmit={methods.handleSubmit(submit)} className="space-y-6">

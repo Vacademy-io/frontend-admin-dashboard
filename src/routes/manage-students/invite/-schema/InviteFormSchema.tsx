@@ -63,10 +63,10 @@ const customFieldSchema = z.object({
     oldKey: z.boolean(),
     isRequired: z.boolean(),
     options: z
-    .array(
-        z.object({
-            id: z.number(),
-            value: z.string(),
+        .array(
+            z.object({
+                id: z.number(),
+                value: z.string(),
                 disabled: z.boolean(),
             })
         )
@@ -103,7 +103,7 @@ export const defaultFormValues: Partial<InviteForm> = {
             name: 'Full Name',
             oldKey: true,
             isRequired: true,
-            status: "ACTIVE"
+            status: 'ACTIVE',
         },
         {
             id: 1,
@@ -111,7 +111,7 @@ export const defaultFormValues: Partial<InviteForm> = {
             name: 'Email',
             oldKey: true,
             isRequired: true,
-            status: "ACTIVE"
+            status: 'ACTIVE',
         },
         {
             id: 2,
@@ -119,7 +119,7 @@ export const defaultFormValues: Partial<InviteForm> = {
             name: 'Phone Number',
             oldKey: true,
             isRequired: true,
-            status: "ACTIVE"
+            status: 'ACTIVE',
         },
     ],
     batches: {

@@ -1,8 +1,8 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 // Define the response schema using Zod
 const sendResetLinkResponseSchema = z.object({
-    status: z.enum(["success", "error"]),
+    status: z.enum(['success', 'error']),
     message: z.string().optional(),
 });
 
@@ -10,7 +10,7 @@ const sendResetLinkResponseSchema = z.object({
 async function sendResetLink(): Promise<z.infer<typeof sendResetLinkResponseSchema>> {
     // Simulate a successful reset link request
     return {
-        status: "success",
+        status: 'success',
     };
 
     // Uncomment the following to simulate a failed reset link request

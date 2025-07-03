@@ -1,5 +1,5 @@
-import { MyButton } from "@/components/design-system/button";
-import { RoleTypeSelectedFilter } from "./RoleTypeComponent";
+import { MyButton } from '@/components/design-system/button';
+import { RoleTypeSelectedFilter } from './RoleTypeComponent';
 
 interface RoleTypeFilterButtonsProps {
     selectedQuestionPaperFilters: RoleTypeSelectedFilter;

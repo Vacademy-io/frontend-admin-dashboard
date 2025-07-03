@@ -2,7 +2,7 @@
 import {
     useStudyLibraryStore,
     StudyLibrarySessionType,
-} from "@/stores/study-library/use-study-library-store";
+} from '@/stores/study-library/use-study-library-store';
 
 export const getCourseSessions = (courseId: string): StudyLibrarySessionType[] => {
     const studyLibraryData = useStudyLibraryStore.getState().studyLibraryData;

@@ -215,6 +215,9 @@ importers:
       '@tanstack/react-table':
         specifier: ^8.20.5
         version: 8.21.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@types/uuid':
+        specifier: ^10.0.0
+        version: 10.0.0
       '@types/youtube':
         specifier: ^0.1.0
         version: 0.1.2
@@ -605,6 +608,9 @@ importers:
       tunnel-rat:
         specifier: 0.1.2
         version: 0.1.2(@types/react@18.3.23)(immer@10.1.1)(react@18.3.1)
+      uuid:
+        specifier: ^11.1.0
+        version: 11.1.0
       vite-plugin-html:
         specifier: 3.2.2
         version: 3.2.2(vite@5.4.19(@types/node@22.15.31)(sass@1.51.0)(terser@5.42.0))
@@ -4874,6 +4880,9 @@ packages:
 
   '@types/unist@3.0.3':
     resolution: {integrity: sha512-ko/gIFJRv177XgZsZcBwnqJN5x/Gien8qNOn0D5bQU/zAzVf9Zt3BlcUiLqhV9y4ARk0GbT3tnUiPNgnTXzc/Q==}
+
+  '@types/uuid@10.0.0':
+    resolution: {integrity: sha512-7gqG38EyHgyP1S+7+xomFtL+ZNHcKv6DwNaCZmJmo1vgMugyF3TCnXVg4t1uk89mLNwnLtnY3TpOpCOyp1/xHQ==}
 
   '@types/uuid@9.0.8':
     resolution: {integrity: sha512-jg+97EGIcY9AGHJJRaaPVgetKDsrTgbRjQ5Msgjh/DQKEFl0DtyRr/VCOyD1T2R1MNeWPK/u7JoGhlDZnKBAfA==}
@@ -12255,6 +12264,10 @@ packages:
   utrie@1.0.2:
     resolution: {integrity: sha512-1MLa5ouZiOmQzUbjbu9VmjLzn1QLXBhwpUa7kdLUQK+KQ5KA9I1vk5U4YHe/X2Ch7PYnJfWuWT+VbuxbGwljhw==}
 
+  uuid@11.1.0:
+    resolution: {integrity: sha512-0/A9rDy9P7cJ+8w1c9WD9V//9Wj15Ce2MPz8Ri6032usz+NfePxx5AcN3bN+r6ZL6jEo066/yNYB3tn4pQEx+A==}
+    hasBin: true
+
   uuid@8.3.2:
     resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
     hasBin: true
@@ -17682,6 +17695,8 @@ snapshots:
   '@types/unist@2.0.11': {}
 
   '@types/unist@3.0.3': {}
+
+  '@types/uuid@10.0.0': {}
 
   '@types/uuid@9.0.8': {}
 
@@ -26972,6 +26987,8 @@ snapshots:
   utrie@1.0.2:
     dependencies:
       base64-arraybuffer: 1.0.2
+
+  uuid@11.1.0: {}
 
   uuid@8.3.2: {}
 

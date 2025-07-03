@@ -1,7 +1,7 @@
 // components/ParticipantsSidePanel.tsx
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { X, Users, Loader2, WifiOff, Wifi, Clock } from 'lucide-react';
+import { X, Users, Loader2, WifiOff, Wifi, Clock, UserCheck, UserX } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 // Participant interface should ideally be imported from a shared types file if used elsewhere,
@@ -62,7 +62,7 @@ export const ParticipantsSidePanel: React.FC<ParticipantsSidePanelProps> = ({
     onClose,
     topOffset = '0px',
     participants, // Now from props
-    sseStatus,    // Now from props
+    sseStatus, // Now from props
 }) => {
     // Removed local state for participants and sseStatus
     // Removed eventSourceRef
@@ -74,130 +74,199 @@ export const ParticipantsSidePanel: React.FC<ParticipantsSidePanelProps> = ({
         // Uses sseStatus from props
         if (sseStatus === 'connecting') {
             return (
-                <span title="Connecting for participant updates...">
-                    <Loader2 size={16} className="mr-1 animate-spin text-yellow-500" />
-                </span>
+                <div className="flex items-center gap-1.5 bg-yellow-500/20 border border-yellow-400/30 rounded-lg px-2 py-1 backdrop-blur-sm">
+                    <Loader2 size={14} className="animate-spin text-yellow-400" />
+                    <span className="text-xs font-medium text-yellow-300 hidden lg:inline">Connecting</span>
+                </div>
             );
         }
         if (sseStatus === 'connected') {
             return (
-                <span title="Participant updates active">
-                    <Wifi size={16} className="mr-1 text-green-500" />
-                </span>
+                <div className="flex items-center gap-1.5 bg-green-500/20 border border-green-400/30 rounded-lg px-2 py-1 backdrop-blur-sm">
+                    <Wifi size={14} className="text-green-400" />
+                    <span className="text-xs font-medium text-green-300 hidden lg:inline">Live</span>
+                </div>
             );
         }
         return (
-            <span title="Participant updates disconnected. Retrying...">
-                <WifiOff size={16} className="mr-1 text-red-500" />
-            </span>
+            <div className="flex items-center gap-1.5 bg-red-500/20 border border-red-400/30 rounded-lg px-2 py-1 backdrop-blur-sm">
+                <WifiOff size={14} className="text-red-400" />
+                <span className="text-xs font-medium text-red-300 hidden lg:inline">Offline</span>
+            </div>
         );
     };
 
     return (
         <div
-            className="fixed right-0 top-0 z-[1000] flex h-screen w-72 flex-col border-l border-slate-200 bg-slate-50 shadow-xl transition-transform duration-300 ease-in-out sm:w-80"
+            className="fixed right-0 top-0 z-[1000] flex h-screen w-80 sm:w-96 flex-col border-l border-white/20 bg-black/20 backdrop-blur-xl shadow-2xl transition-transform duration-500 ease-out"
             style={{
                 transform: isOpen ? 'translateX(0)' : 'translateX(100%)',
                 height: `calc(100vh - ${topOffset})`, // Adjusted to use topOffset correctly if header is outside
                 top: topOffset, // Position panel below any fixed header
             }}
         >
-            <div
-                className="flex shrink-0 items-center justify-between border-b border-slate-200 bg-white p-3"
-                // style={{ paddingTop: `calc(${topOffset} + 0.75rem)`, paddingBottom: '0.75rem' }} // Removed if topOffset handled by parent div style
-            >
-                <h3 className="flex items-center text-sm font-semibold text-slate-700">
-                    <Users size={18} className="mr-2 text-orange-500" /> Participants (
+            {/* Enhanced background effects */}
+            <div className="absolute inset-0 bg-gradient-to-b from-slate-900/50 via-slate-800/30 to-slate-900/50 pointer-events-none" />
+            <div className="absolute top-1/4 right-0 w-32 h-64 bg-blue-500/5 blur-2xl" />
+            <div className="absolute bottom-1/4 left-0 w-32 h-64 bg-purple-500/5 blur-2xl" />
+            
+            {/* Enhanced header */}
+            <div className="relative z-10 flex shrink-0 items-center justify-between border-b border-white/10 bg-white/10 backdrop-blur-sm p-4 shadow-lg">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-lg">
+                        <Users size={20} className="text-white" />
+                    </div>
+                    <div>
+                        <h3 className="font-bold text-white text-lg flex items-center gap-2">
+                            Participants
+                            <span className="px-2 py-1 bg-white/20 backdrop-blur-sm rounded-lg text-sm font-mono">
                     {sseStatus === 'connected' ? (
                         participants.length
                     ) : (
                         <span className="text-xs font-normal italic">...</span>
                     )}
-                    )
-                    <span className="ml-2">
-                        <StatusIndicator />
                     </span>
                 </h3>
+                        <div className="mt-1">
+                            <StatusIndicator />
+                        </div>
+                    </div>
+                </div>
                 <Button
                     variant="ghost"
                     size="icon"
                     onClick={onClose}
-                    className="rounded-full text-slate-500 hover:bg-slate-200 hover:text-slate-700"
+                    className="rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-all duration-200 hover:scale-105"
                 >
                     <X size={20} />
                 </Button>
             </div>
 
-            <ScrollArea className="grow">
-                <div className="space-y-2 p-3">
-                    {/* Render logic remains the same, using props participants and sseStatus */}
+            <ScrollArea className="grow relative z-10">
+                <div className="space-y-3 p-4">
+                    {/* Enhanced loading state */}
                     {sseStatus === 'connecting' && participants.length === 0 && (
-                        <div className="flex flex-col items-center justify-center py-10 text-center">
-                            <Loader2 className="mb-2 size-7 animate-spin text-orange-500" />
-                            <p className="text-sm text-slate-500">Loading participants...</p>
+                        <div className="flex flex-col items-center justify-center py-12 text-center">
+                            <div className="relative mb-4">
+                                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
+                                    <Loader2 className="animate-spin text-white" size={24} />
+                                </div>
+                                <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-xl animate-pulse" />
+                            </div>
+                            <p className="text-white font-medium mb-1">Loading participants...</p>
+                            <p className="text-white/60 text-sm">Connecting to live session</p>
                         </div>
                     )}
-                    {/* ... rest of the rendering logic for participants ... */}
-                     {sseStatus === 'disconnected' && participants.length === 0 && (
-                            <div className="flex flex-col items-center justify-center rounded-md border border-red-200 bg-red-50 p-4 text-center text-red-500">
-                                <WifiOff size={28} className="mb-2" />
-                                <p className="text-sm font-medium">Connection lost</p>
-                                <p className="text-xs">
-                                    Attempting to reconnect to participant updates.
-                                </p>
+                    
+                    {/* Enhanced disconnected state */}
+                    {sseStatus === 'disconnected' && participants.length === 0 && (
+                        <div className="flex flex-col items-center justify-center rounded-2xl border border-red-400/30 bg-red-500/10 backdrop-blur-sm p-6 text-center shadow-lg">
+                            <div className="relative mb-4">
+                                <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-red-600 rounded-full flex items-center justify-center shadow-lg">
+                                    <WifiOff size={24} className="text-white" />
+                                </div>
+                                <div className="absolute inset-0 bg-red-500/20 rounded-full blur-xl" />
                             </div>
-                        )}
-                    {sseStatus === 'connected' && participants.length === 0 && (
-                        <div className="px-4 py-10 text-center">
-                            <Users size={36} className="mx-auto mb-3 text-slate-400" />
-                            <p className="text-sm text-slate-500">
-                                No participants have joined this session yet.
+                            <p className="text-red-300 font-semibold mb-2">Connection Lost</p>
+                            <p className="text-red-200/80 text-sm leading-relaxed">
+                                Attempting to reconnect to participant updates...
                             </p>
                         </div>
                     )}
+                    
+                    {/* Enhanced empty state */}
+                    {sseStatus === 'connected' && participants.length === 0 && (
+                        <div className="flex flex-col items-center justify-center py-12 text-center">
+                            <div className="relative mb-4">
+                                <div className="w-16 h-16 bg-gradient-to-r from-slate-600 to-slate-700 rounded-2xl flex items-center justify-center shadow-xl">
+                                    <Users size={32} className="text-white/80" />
+                                </div>
+                                <div className="absolute inset-0 bg-slate-500/10 rounded-2xl blur-xl" />
+                            </div>
+                            <p className="text-white font-medium mb-2">Waiting for participants</p>
+                            <p className="text-white/60 text-sm leading-relaxed max-w-xs">
+                                Share the session code for participants to join this live session.
+                            </p>
+                        </div>
+                    )}
+                    
+                    {/* Enhanced participant list */}
                     {participants.length > 0 &&
                         participants.map((p, index) => (
                             <div
                                 key={p.user_id || p.username + index}
-                                className="flex flex-col items-start justify-between rounded-md border border-slate-200 bg-white p-2.5 text-sm shadow-sm transition-colors hover:bg-slate-50"
+                                className="group relative rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-4 shadow-lg transition-all duration-300 hover:bg-white/10 hover:border-white/20 hover:shadow-xl hover:scale-[1.02]"
                             >
-                                <div className="flex w-full items-center justify-between">
+                                {/* Subtle gradient overlay */}
+                                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-transparent to-purple-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                
+                                <div className="relative flex flex-col">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="flex items-center gap-3">
+                                            {/* Avatar */}
+                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white shadow-lg ${
+                                                p.status?.toLowerCase() === 'active' 
+                                                    ? 'bg-gradient-to-r from-green-500 to-green-600' 
+                                                    : 'bg-gradient-to-r from-slate-500 to-slate-600'
+                                            }`}>
+                                                {(p.name || p.username).charAt(0).toUpperCase()}
+                                            </div>
+                                            
+                                            <div className="flex-1 min-w-0">
                                     <span
-                                        className="truncate font-medium text-slate-700"
+                                                    className="block font-semibold text-white text-sm truncate"
                                         title={p.username}
                                     >
                                         {p.name || p.username}
                                     </span>
-                                    <span
-                                        className={`min-w-[70px] rounded-full px-2 py-0.5 text-center text-xs font-semibold capitalize
-                                            ${
+                                                {p.email && (
+                                                    <span className="block text-white/60 text-xs truncate">
+                                                        {p.email}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                        
+                                        {/* Enhanced status badge */}
+                                        <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border backdrop-blur-sm ${
                                                 p.status?.toLowerCase() === 'active'
-                                                    ? 'border border-green-300 bg-green-100 text-green-700'
+                                                ? 'border-green-400/30 bg-green-500/20 text-green-300'
                                                     : p.status?.toLowerCase() === 'inactive' ||
-                                                        p.status?.toLowerCase() ===
-                                                            'inactive_disconnected'
-                                                      ? 'border border-yellow-300 bg-yellow-100 text-yellow-700'
-                                                      : 'border border-slate-300 bg-slate-100 text-slate-600'
-                                            }`}
-                                    >
-                                        {p.status
-                                            ? p.status.toLowerCase().replace('_', ' ')
-                                            : 'Unknown'}
+                                                    p.status?.toLowerCase() === 'inactive_disconnected'
+                                                  ? 'border-yellow-400/30 bg-yellow-500/20 text-yellow-300'
+                                                  : 'border-slate-400/30 bg-slate-500/20 text-slate-300'
+                                        }`}>
+                                            {p.status?.toLowerCase() === 'active' ? (
+                                                <UserCheck size={12} />
+                                            ) : (
+                                                <UserX size={12} />
+                                            )}
+                                            <span className="capitalize tracking-wide">
+                                                {p.status ? p.status.toLowerCase().replace('_', ' ') : 'Unknown'}
                                     </span>
                                 </div>
+                                    </div>
+                                    
+                                    {/* Enhanced time information */}
                                 {(p.status?.toLowerCase() === 'inactive' ||
                                     p.status?.toLowerCase() === 'inactive_disconnected') &&
                                     p.last_active_at && (
-                                        <div className="mt-1.5 flex items-center text-xs text-slate-500">
-                                            <Clock size={12} className="mr-1 shrink-0" />
-                                            Last active: {formatDateTime(p.last_active_at)}
+                                            <div className="flex items-center gap-2 mt-2 px-3 py-2 bg-white/5 backdrop-blur-sm rounded-lg border border-white/10">
+                                                <Clock size={12} className="text-yellow-400 flex-shrink-0" />
+                                                <span className="text-white/70 text-xs">
+                                                    Last active: <span className="font-medium text-white/90">{formatDateTime(p.last_active_at)}</span>
+                                                </span>
+                                            </div>
+                                        )}
+                                    {p.status?.toLowerCase() === 'active' && p.joined_at && (
+                                        <div className="flex items-center gap-2 mt-2 px-3 py-2 bg-white/5 backdrop-blur-sm rounded-lg border border-white/10">
+                                            <UserCheck size={12} className="text-green-400 flex-shrink-0" />
+                                            <span className="text-white/70 text-xs">
+                                                Joined: <span className="font-medium text-white/90">{formatDateTime(p.joined_at)}</span>
+                                            </span>
                                         </div>
                                     )}
-                                {p.status?.toLowerCase() === 'active' && p.joined_at && (
-                                    <div className="mt-1.5 flex items-center text-xs text-slate-400">
-                                        Joined: {formatDateTime(p.joined_at)}
                                     </div>
-                                )}
                             </div>
                         ))}
                 </div>

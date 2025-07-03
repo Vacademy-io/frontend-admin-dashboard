@@ -1,18 +1,18 @@
-import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
-import { Sliders, X } from "phosphor-react";
-import "react-quill/dist/quill.snow.css";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { PopoverClose } from "@radix-ui/react-popover";
-import SelectField from "@/components/design-system/select-field";
-import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
-import { QuestionPaperTemplateFormProps } from "../../../-utils/question-paper-template-form";
-import { formatStructure } from "../../../-utils/helper";
-import { QUESTION_TYPES } from "@/constants/dummy-data";
-import { MyInput } from "@/components/design-system/input";
-import { useEffect } from "react";
-import { CollapsibleQuillEditor } from "../CollapsibleQuillEditor";
-import { Badge } from "@/components/ui/badge";
+import { FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
+import { Sliders, X } from 'phosphor-react';
+import 'react-quill/dist/quill.snow.css';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { PopoverClose } from '@radix-ui/react-popover';
+import SelectField from '@/components/design-system/select-field';
+import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
+import { QuestionPaperTemplateFormProps } from '../../../-utils/question-paper-template-form';
+import { formatStructure } from '../../../-utils/helper';
+import { QUESTION_TYPES } from '@/constants/dummy-data';
+import { MyInput } from '@/components/design-system/input';
+import { useEffect } from 'react';
+import { CollapsibleQuillEditor } from '../CollapsibleQuillEditor';
+import { Badge } from '@/components/ui/badge';
 
 export const OneWordQuestionPaperTemplateMainView = ({
     form,
@@ -20,12 +20,12 @@ export const OneWordQuestionPaperTemplateMainView = ({
     className,
 }: QuestionPaperTemplateFormProps) => {
     const { control, getValues } = form;
-    const explanationsType = getValues("explanationsType") || "Explanation:";
-    const questionsType = getValues("questionsType") || "";
+    const explanationsType = getValues('explanationsType') || 'Explanation:';
+    const questionsType = getValues('questionsType') || '';
 
-    const allQuestions = getValues("questions") || [];
+    const allQuestions = getValues('questions') || [];
     const tags = getValues(`questions.${currentQuestionIndex}.tags`) || [];
-    const level = getValues(`questions.${currentQuestionIndex}.level`) || "";
+    const level = getValues(`questions.${currentQuestionIndex}.level`) || '';
 
     useEffect(() => {
         const validAnswrs = form.getValues(`questions.${currentQuestionIndex}.validAnswers`);

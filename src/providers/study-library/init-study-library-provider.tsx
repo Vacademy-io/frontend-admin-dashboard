@@ -1,8 +1,8 @@
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { useStudyLibraryQuery } from "@/routes/study-library/courses/-services/getStudyLibraryDetails";
-import { useStudyLibraryStore } from "@/stores/study-library/use-study-library-store";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { useStudyLibraryQuery } from '@/routes/study-library/courses/-services/getStudyLibraryDetails';
+import { useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 
 export const InitStudyLibraryProvider = ({ children }: { children: React.ReactNode }) => {
     const queryClient = useQueryClient();
@@ -12,7 +12,7 @@ export const InitStudyLibraryProvider = ({ children }: { children: React.ReactNo
     // Trigger refetch manually on mount
     useEffect(() => {
         if (studyLibraryData == null)
-            queryClient.invalidateQueries({ queryKey: ["GET_INIT_STUDY_LIBRARY"] });
+            queryClient.invalidateQueries({ queryKey: ['GET_INIT_STUDY_LIBRARY'] });
     }, [queryClient]);
 
     const { isLoading } = useQuery({

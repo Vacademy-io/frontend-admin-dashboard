@@ -1,18 +1,18 @@
-import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
-import { DotsThree } from "phosphor-react";
-import { Checkbox } from "@/components/ui/checkbox";
-import { useState } from "react";
+import { FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
+import { DotsThree } from 'phosphor-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { useState } from 'react';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import "react-quill/dist/quill.snow.css";
-import { PPTViewQuillEditor } from "@/components/quill/PPTViewQuillEditor";
-import { QuestionPaperTemplateFormProps } from "../../../-utils/question-paper-template-form";
-import { formatStructure } from "../../../-utils/helper";
+} from '@/components/ui/dropdown-menu';
+import 'react-quill/dist/quill.snow.css';
+import { PPTViewQuillEditor } from '@/components/quill/PPTViewQuillEditor';
+import { QuestionPaperTemplateFormProps } from '../../../-utils/question-paper-template-form';
+import { formatStructure } from '../../../-utils/helper';
 
 export const TrueFalseQuestionPaperTemplatePPTView = ({
     form,
@@ -25,8 +25,8 @@ export const TrueFalseQuestionPaperTemplatePPTView = ({
     const [isDropdownVisible, setIsDropdownVisible] = useState(false); // State to track dropdown visibility
     const [isDropdownOpen, setIsDropdownOpen] = useState(false); // State for dropdown open state
 
-    const optionsType = getValues("optionsType") || "";
-    const allQuestions = getValues("questions") || [];
+    const optionsType = getValues('optionsType') || '';
+    const allQuestions = getValues('questions') || [];
     const option1 = getValues(`questions.${currentQuestionIndex}.trueFalseOptions.${0}`);
     const option2 = getValues(`questions.${currentQuestionIndex}.trueFalseOptions.${1}`);
 
@@ -38,7 +38,7 @@ export const TrueFalseQuestionPaperTemplatePPTView = ({
 
         // Remove the current question from the questions array
         allQuestions.splice(currentQuestionIndex, 1);
-        setValue("questions", allQuestions);
+        setValue('questions', allQuestions);
         form.trigger();
     };
 
@@ -47,13 +47,13 @@ export const TrueFalseQuestionPaperTemplatePPTView = ({
         if (questionToDuplicate) {
             const duplicatedQuestion = {
                 ...questionToDuplicate,
-                questionId: questionToDuplicate.questionId || "",
-                questionName: questionToDuplicate.questionName || "",
-                explanation: questionToDuplicate.explanation || "",
+                questionId: questionToDuplicate.questionId || '',
+                questionName: questionToDuplicate.questionName || '',
+                explanation: questionToDuplicate.explanation || '',
                 trueFalseOptions: questionToDuplicate.trueFalseOptions || [],
             };
             allQuestions.splice(currentQuestionIndex, 0, duplicatedQuestion);
-            setValue("questions", allQuestions);
+            setValue('questions', allQuestions);
         }
     };
 
@@ -62,13 +62,13 @@ export const TrueFalseQuestionPaperTemplatePPTView = ({
 
         // Check current state of the selected option
         const isCurrentlySelected = getValues(
-            `questions.${currentQuestionIndex}.trueFalseOptions.${optionIndex}.isSelected`,
+            `questions.${currentQuestionIndex}.trueFalseOptions.${optionIndex}.isSelected`
         );
 
         options.forEach((option) => {
             setValue(
                 `questions.${currentQuestionIndex}.trueFalseOptions.${option}.isSelected`,
-                option === optionIndex ? !isCurrentlySelected : false, // Toggle only the selected option
+                option === optionIndex ? !isCurrentlySelected : false // Toggle only the selected option
             );
         });
     };
@@ -96,13 +96,13 @@ export const TrueFalseQuestionPaperTemplatePPTView = ({
                 <div className="flex gap-2">
                     <div
                         className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-2 ${
-                            option1?.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                            option1?.isSelected ? 'border border-primary-300 bg-primary-50' : ''
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">
                             <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
                                 <span className="!p-0 text-sm">
-                                    {optionsType ? formatStructure(optionsType, "a") : "(a.)"}
+                                    {optionsType ? formatStructure(optionsType, 'a') : '(a.)'}
                                 </span>
                             </div>
                         </div>
@@ -118,8 +118,8 @@ export const TrueFalseQuestionPaperTemplatePPTView = ({
                                                 onCheckedChange={() => handleOptionChange(0)}
                                                 className={`mt-1 size-5 rounded-xl border-2 shadow-none ${
                                                     field.value
-                                                        ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
-                                                        : "" // Default styles when unchecked
+                                                        ? 'border-none bg-green-500 text-white' // Blue background and red tick when checked
+                                                        : '' // Default styles when unchecked
                                                 }`}
                                             />
                                         </FormControl>
@@ -131,13 +131,13 @@ export const TrueFalseQuestionPaperTemplatePPTView = ({
                     </div>
                     <div
                         className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-2 ${
-                            option2?.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                            option2?.isSelected ? 'border border-primary-300 bg-primary-50' : ''
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">
                             <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
                                 <span className="!p-0 text-sm">
-                                    {optionsType ? formatStructure(optionsType, "b") : "(b.)"}
+                                    {optionsType ? formatStructure(optionsType, 'b') : '(b.)'}
                                 </span>
                             </div>
                         </div>
@@ -153,8 +153,8 @@ export const TrueFalseQuestionPaperTemplatePPTView = ({
                                                 onCheckedChange={() => handleOptionChange(1)}
                                                 className={`mt-1 size-5 rounded-xl border-2 shadow-none ${
                                                     field.value
-                                                        ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
-                                                        : "" // Default styles when unchecked
+                                                        ? 'border-none bg-green-500 text-white' // Blue background and red tick when checked
+                                                        : '' // Default styles when unchecked
                                                 }`}
                                             />
                                         </FormControl>

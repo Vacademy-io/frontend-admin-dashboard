@@ -88,11 +88,7 @@ const GeneratePageWiseAssessmentQuestionsDialog = ({
                     className="text-sm"
                     onClick={handleGenerateQuestionsForAssessment}
                 >
-                    {loadingState === 'pending' ? (
-                        <DashboardLoader/>
-                    ) : (
-                        'Extract Copied Questions'
-                    )}
+                    {loadingState === 'pending' ? <DashboardLoader /> : 'Extract Copied Questions'}
                 </MyButton>
             </DialogTrigger>
             {assessmentData!.questions.length > 0 && (

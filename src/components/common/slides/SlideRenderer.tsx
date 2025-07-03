@@ -23,7 +23,7 @@ interface SlideRendererProps {
     onRegenerate: (slideId: string) => void;
 }
 
-export const SlideRenderer: React.FC<SlideRendererProps> = ({ currentSlideId, editModeExcalidraw: editMode,  editModeQuiz, onRegenerate}) => {
+const SlideRendererComponent: React.FC<SlideRendererProps> = ({ currentSlideId, editModeExcalidraw: editMode,  editModeQuiz, onRegenerate}) => {
     const getSlide = useSlideStore((state) => state.getSlide);
     const rawUpdateSlide = useSlideStore((state) => state.updateSlide);
 
@@ -40,7 +40,7 @@ export const SlideRenderer: React.FC<SlideRendererProps> = ({ currentSlideId, ed
                         rawUpdateSlide(id, elements, appState, files);
                     }
                 },
-                1000
+                2000 // Increased from 1000ms to 2000ms for smoother editing
             ),
         [rawUpdateSlide]
     );
@@ -53,7 +53,7 @@ export const SlideRenderer: React.FC<SlideRendererProps> = ({ currentSlideId, ed
             </div>
         );
     }
-    console.log('[SlideRenderer] Current slide object (for Quiz/Feedback check):', JSON.parse(JSON.stringify(slide)));
+    // Removed verbose slide logging for better performance
 
     const slideEditorKey = `${slide.id}-${(slide as ExcalidrawSlideData).elements?.length}-${(slide as ExcalidrawSlideData).appState?.zenModeEnabled}`;
     const quizSlideKey = `${slide.id}-${(slide as QuizSlideData).elements?.questionName?.substring(0, 255)}`;
@@ -94,3 +94,13 @@ export const SlideRenderer: React.FC<SlideRendererProps> = ({ currentSlideId, ed
             );
     }
 }; 
+
+// Memoize the component to prevent unnecessary re-renders
+export const SlideRenderer = React.memo(SlideRendererComponent, (prevProps, nextProps) => {
+    return (
+        prevProps.currentSlideId === nextProps.currentSlideId &&
+        prevProps.editModeExcalidraw === nextProps.editModeExcalidraw &&
+        prevProps.editModeQuiz === nextProps.editModeQuiz &&
+        prevProps.onRegenerate === nextProps.onRegenerate
+    );
+}); 

@@ -1,6 +1,6 @@
-import { QuestionEntityData, QuestionPaperEntityData } from "@/types/community/filters/types";
-import { useNavigate } from "@tanstack/react-router";
-import RandomImage from "./RandomImage";
+import { QuestionEntityData, QuestionPaperEntityData } from '@/types/community/filters/types';
+import { useNavigate } from '@tanstack/react-router';
+import RandomImage from './RandomImage';
 
 interface DataCardProps {
     data: QuestionEntityData | QuestionPaperEntityData;
@@ -11,9 +11,9 @@ export function DataCard({ title, data }: DataCardProps) {
     const navigate = useNavigate();
 
     const navigateToDisplayQuestionPaper = () => {
-        console.log("here");
-        console.log("data : ", data);
-        if ("id" in data) {
+        console.log('here');
+        console.log('data : ', data);
+        if ('id' in data) {
             navigate({
                 to: `/community/question-paper`,
                 search: { id: data.id },

@@ -20,6 +20,8 @@ export const BulkActionsMenu = ({ selectedStudents, trigger }: BulkActionsMenuPr
         openBulkTerminateRegistrationDialog,
         openBulkDeleteDialog,
         openBulkShareCredentialsDialog,
+        openBulkSendMessageDialog,
+        openBulkSendEmailDialog,
     } = useDialogStore();
 
     const handleMenuOptionsChange = (value: string) => {
@@ -53,6 +55,12 @@ export const BulkActionsMenu = ({ selectedStudents, trigger }: BulkActionsMenuPr
                 break;
             case 'Share Credentials':
                 openBulkShareCredentialsDialog(bulkActionInfo);
+                break;
+            case 'Send WhatsApp Message':
+                openBulkSendMessageDialog(bulkActionInfo);
+                break;
+            case 'Send Email':
+                openBulkSendEmailDialog(bulkActionInfo);
                 break;
         }
     };

@@ -217,14 +217,7 @@ export const useSlideStore = create<SlideStore>((set, get) => {
             incomingAppState: ExcalidrawAppState, // Full AppState from Excalidraw
             incomingFiles: ExcalidrawBinaryFiles
         ) => {
-            console.log(
-                `[useSlideStore] updateSlide called for id: ${id}. incomingAppState scroll:`,
-                {
-                    scrollX: incomingAppState.scrollX,
-                    scrollY: incomingAppState.scrollY,
-                    zoom: incomingAppState.zoom,
-                }
-            );
+            // Reduced verbose logging for better performance
             set((state) => {
                 const slideIndex = state.slides.findIndex((s) => s.id === id);
                 if (slideIndex === -1) {
@@ -281,7 +274,12 @@ export const useSlideStore = create<SlideStore>((set, get) => {
                 let appStateActuallyChanged = false;
                 const oldStoredAppState = oldExcalidrawSlide.appState || {};
 
-                for (const key of CONTROLLED_APPSTATE_PROPS) {
+                // Check for meaningful changes (excluding frequent scroll/zoom noise)
+                const meaningfulProps = CONTROLLED_APPSTATE_PROPS.filter(prop => 
+                    !['scrollX', 'scrollY', 'zoom'].includes(prop)
+                );
+
+                for (const key of meaningfulProps) {
                     if (!isEqual(oldStoredAppState[key], newAppStateForStore[key])) {
                         console.log(
                             `[useSlideStore] AppState change detected on key: "${key}". Old:`,
@@ -293,6 +291,27 @@ export const useSlideStore = create<SlideStore>((set, get) => {
                         break;
                     }
                 }
+
+                // For scroll/zoom, only update if change is significant (> 50px for scroll, > 0.1 for zoom)
+                if (!appStateActuallyChanged) {
+                    const scrollThreshold = 50;
+                    const zoomThreshold = 0.1;
+                    
+                    const oldScroll = { x: oldStoredAppState.scrollX || 0, y: oldStoredAppState.scrollY || 0 };
+                    const newScroll = { x: newAppStateForStore.scrollX || 0, y: newAppStateForStore.scrollY || 0 };
+                    const oldZoom = oldStoredAppState.zoom?.value || 1;
+                    const newZoom = newAppStateForStore.zoom?.value || 1;
+                    
+                    const scrollChanged = Math.abs(oldScroll.x - newScroll.x) > scrollThreshold || 
+                                         Math.abs(oldScroll.y - newScroll.y) > scrollThreshold;
+                    const zoomChanged = Math.abs(oldZoom - newZoom) > zoomThreshold;
+                    
+                    if (scrollChanged || zoomChanged) {
+                        console.log(`[useSlideStore] Significant scroll/zoom change detected`);
+                        appStateActuallyChanged = true;
+                    }
+                }
+
                 // If no change in other controlled props, check collaborators specifically
                 if (!appStateActuallyChanged) {
                     if (

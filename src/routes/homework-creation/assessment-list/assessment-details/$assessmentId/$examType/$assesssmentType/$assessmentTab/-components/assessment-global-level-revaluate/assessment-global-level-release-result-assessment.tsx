@@ -1,13 +1,13 @@
-import { useMutation } from "@tanstack/react-query";
-import { useState } from "react";
-import { SelectedReleaseResultFilterInterface } from "../AssessmentSubmissionsTab";
-import { getReleaseStudentResult } from "../../-services/assessment-details-services";
-import { toast } from "sonner";
-import { Route } from "../..";
-import { getInstituteId } from "@/constants/helper";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { MyButton } from "@/components/design-system/button";
-import { WarningCircle } from "phosphor-react";
+import { useMutation } from '@tanstack/react-query';
+import { useState } from 'react';
+import { SelectedReleaseResultFilterInterface } from '../AssessmentSubmissionsTab';
+import { getReleaseStudentResult } from '../../-services/assessment-details-services';
+import { toast } from 'sonner';
+import { Route } from '../..';
+import { getInstituteId } from '@/constants/helper';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { MyButton } from '@/components/design-system/button';
+import { WarningCircle } from 'phosphor-react';
 
 export const AssessmentGlobalLevelReleaseResultAssessment = () => {
     const { assessmentId } = Route.useParams();
@@ -27,11 +27,11 @@ export const AssessmentGlobalLevelReleaseResultAssessment = () => {
         }) => getReleaseStudentResult(assessmentId, instituteId, methodType, selectedReleaseFilter),
         onSuccess: () => {
             toast.success(
-                "Result for this assessment has been released for all students. Participants need to check their email!",
+                'Result for this assessment has been released for all students. Participants need to check their email!',
                 {
-                    className: "success-toast",
+                    className: 'success-toast',
                     duration: 4000,
-                },
+                }
             );
             setReleaseResultDialog(false);
         },
@@ -44,7 +44,7 @@ export const AssessmentGlobalLevelReleaseResultAssessment = () => {
         getRleaseResultMutation.mutate({
             assessmentId,
             instituteId,
-            methodType: "ASSESSMENT_ALL",
+            methodType: 'ASSESSMENT_ALL',
             selectedReleaseFilter: {
                 attempt_ids: [],
             },

@@ -1,4 +1,4 @@
-import { MyFilterOption } from "./my-filter";
+import { MyFilterOption } from './my-filter';
 
 export interface QuestionAssessmentStatusProps {
     assessmentId: string;
@@ -79,7 +79,7 @@ export interface Step3ParticipantsListIndiviudalStudentInterface {
     sourceId: string;
     phoneNumber: string;
     registrationTime: string; // Consider using Date type if you plan to parse it
-    status: "ACTIVE" | "INACTIVE" | "PENDING"; // Add other possible statuses if applicable
+    status: 'ACTIVE' | 'INACTIVE' | 'PENDING'; // Add other possible statuses if applicable
     assessmentRegistrationCustomFieldResponseList: string[]; // Define a proper type if available
     studentAttempts: string[]; // Define a proper type if available
     createdAt: string; // Consider using Date type

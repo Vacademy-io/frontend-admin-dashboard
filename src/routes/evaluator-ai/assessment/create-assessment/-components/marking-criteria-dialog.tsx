@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Eye } from "lucide-react";
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Eye } from 'lucide-react';
 
 interface MarkingCriteriaDialogProps {
     markingJson: string;
@@ -16,7 +16,7 @@ export function MarkingCriteriaDialog({ markingJson }: MarkingCriteriaDialogProp
     try {
         markingData = JSON.parse(markingJson);
     } catch (error) {
-        console.error("Failed to parse marking JSON:", error);
+        console.error('Failed to parse marking JSON:', error);
     }
 
     return (

@@ -40,8 +40,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useSearch } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
-import { GET_PUBLIC_URL_PUBLIC } from '@/constants/urls';
+import { GET_PUBLIC_URL_PUBLIC, HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
 import { FilePlus } from 'phosphor-react';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 // Helper functions for API calls using axios directly
 export const getPublicUrl = async (fileId: string | undefined | null): Promise<string> => {
@@ -79,6 +80,7 @@ export function StudentEnrollment() {
     const [editIndex, setEditIndex] = useState<number | null>(null);
     const [isEditMode, setIsEditMode] = useState(false);
     const [loadingPdf, setLoadingPdf] = useState<Record<string, boolean>>({});
+    const { showForInstitutes } = useInstituteDetailsStore();
 
     // New state for attempt management
     const [attemptDialogOpen, setAttemptDialogOpen] = useState(false);
@@ -454,10 +456,6 @@ export function StudentEnrollment() {
             toast.warning('Please select at least one student');
             return;
         }
-
-        const selectedStudents = selected.map((index) => students[index]);
-        console.log('Selected students:', selectedStudents);
-
         // Here you would typically send this data to your backend
         toast.success(`Submitted ${selected.length} student(s)`);
     };
@@ -495,7 +493,9 @@ export function StudentEnrollment() {
                     }}
                     trigger={
                         <MyButton scale="large" buttonType="primary" type="button">
-                            Enroll Learner
+                            {showForInstitutes([HOLISTIC_INSTITUTE_ID])
+                                ? 'Enroll Member'
+                                : 'Enroll Learner'}
                         </MyButton>
                     }
                 >

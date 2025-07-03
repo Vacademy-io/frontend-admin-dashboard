@@ -118,11 +118,7 @@ const AIChatWithPDFPreview = ({
                     className="border-none text-sm !text-blue-600 shadow-none hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 active:bg-transparent"
                     onClick={() => handleRetryTask(task.id)}
                 >
-                    {getRetryMutation.status === 'pending' ? (
-                        <DashboardLoader />
-                    ) : (
-                        'Retry'
-                    )}
+                    {getRetryMutation.status === 'pending' ? <DashboardLoader /> : 'Retry'}
                 </MyButton>
             ) : (
                 <MyButton
@@ -132,11 +128,7 @@ const AIChatWithPDFPreview = ({
                     className="border-none text-sm !text-blue-600 shadow-none hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 active:bg-transparent"
                     onClick={() => handlViewChatList(task.id)}
                 >
-                    {getChatListMutation.status === 'pending' ? (
-                        <DashboardLoader />
-                    ) : (
-                        'View'
-                    )}
+                    {getChatListMutation.status === 'pending' ? <DashboardLoader /> : 'View'}
                 </MyButton>
             )}
 

@@ -1,7 +1,7 @@
-import { uploadQuestionPaperFormSchema } from "@/routes/assessment/question-papers/-utils/upload-question-paper-form-schema";
-import { Dispatch, SetStateAction } from "react";
-import { UseFormReturn } from "react-hook-form";
-import { z } from "zod";
+import { uploadQuestionPaperFormSchema } from '@/routes/assessment/question-papers/-utils/upload-question-paper-form-schema';
+import { Dispatch, SetStateAction } from 'react';
+import { UseFormReturn } from 'react-hook-form';
+import { z } from 'zod';
 
 // Infer the form type from the schema
 type QuestionFormSchemaType = z.infer<typeof uploadQuestionPaperFormSchema>;

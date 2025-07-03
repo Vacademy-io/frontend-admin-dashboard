@@ -1,11 +1,11 @@
-import { LayoutContainer } from "@/components/common/layout-container/layout-container";
-import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
-import { Examination, Mock, Practice, Survey } from "@/svgs";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
-import { Helmet } from "react-helmet";
+import { LayoutContainer } from '@/components/common/layout-container/layout-container';
+import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
+import { Examination, Mock, Practice, Survey } from '@/svgs';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { useEffect } from 'react';
+import { Helmet } from 'react-helmet';
 
-export const Route = createFileRoute("/assessment/")({
+export const Route = createFileRoute('/assessment/')({
     component: () => (
         <LayoutContainer>
             <AssessmentPage />
@@ -19,9 +19,9 @@ function AssessmentPage() {
 
     const handleRedirectRoute = (type: string) => {
         navigate({
-            to: "/assessment/create-assessment/$assessmentId/$examtype",
+            to: '/assessment/create-assessment/$assessmentId/$examtype',
             params: {
-                assessmentId: "defaultId",
+                assessmentId: 'defaultId',
                 examtype: type,
             },
             search: {
@@ -46,7 +46,7 @@ function AssessmentPage() {
             <div className="flex size-auto flex-col items-center justify-center gap-11">
                 <div className="flex items-center gap-12">
                     <div
-                        onClick={() => handleRedirectRoute("EXAM")}
+                        onClick={() => handleRedirectRoute('EXAM')}
                         className="flex w-[400px] cursor-pointer flex-col items-center rounded-xl border bg-neutral-50 p-8"
                     >
                         <Examination />
@@ -57,7 +57,7 @@ function AssessmentPage() {
                         </p>
                     </div>
                     <div
-                        onClick={() => handleRedirectRoute("MOCK")}
+                        onClick={() => handleRedirectRoute('MOCK')}
                         className="flex w-[400px] cursor-pointer flex-col items-center rounded-xl border bg-neutral-50 p-8"
                     >
                         <Mock />
@@ -70,7 +70,7 @@ function AssessmentPage() {
                 </div>
                 <div className="flex items-center gap-12">
                     <div
-                        onClick={() => handleRedirectRoute("PRACTICE")}
+                        onClick={() => handleRedirectRoute('PRACTICE')}
                         className="flex w-[400px] cursor-pointer flex-col items-center rounded-xl border bg-neutral-50 p-8"
                     >
                         <Practice />
@@ -81,7 +81,7 @@ function AssessmentPage() {
                         </p>
                     </div>
                     <div
-                        onClick={() => handleRedirectRoute("SURVEY")}
+                        onClick={() => handleRedirectRoute('SURVEY')}
                         className="flex w-[400px] cursor-pointer flex-col items-center rounded-xl border bg-neutral-50 p-8"
                     >
                         <Survey />

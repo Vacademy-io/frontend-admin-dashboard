@@ -1,8 +1,8 @@
 'use client';
-
-import { useState } from 'react';
 import { useNavigate, useRouter } from '@tanstack/react-router';
-// import { useStudyLibraryStore } from "@/stores/study-library/use-study-library-store";
+import { Collapsible, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Folder } from 'phosphor-react';
+import { cn } from '@/lib/utils';
 
 export const InternalSideBar = ({
     sideBarList,
@@ -13,52 +13,57 @@ export const InternalSideBar = ({
 }) => {
     const router = useRouter();
     const navigate = useNavigate();
+    const { search } = router.state.location;
 
-    const searchParams = router.state.location.search;
-    const searchKey = sideBarData?.searchParam;
-    const searchValue = searchParams[searchKey as keyof typeof searchParams];
-    const [activeItem, setActiveItem] = useState<string>(searchValue as string);
+    const courseId = (search as Record<string, string | undefined>).courseId;
 
-    const handleClick = (id: string) => {
-        setActiveItem(id);
+    const handleCourseNavigation = (clickedCourseId: string) => {
         navigate({
-            to: router.state.location.pathname,
-            search: {
-                ...searchParams,
-                [sideBarData?.searchParam as string]: id,
-            },
+            to: '/study-library/courses/course-details',
+            search: { courseId: clickedCourseId },
         });
     };
 
-    // const studyLibraryData = useStudyLibraryStore();
-
-    if (sideBarList?.length == 0) {
+    if (!sideBarList || sideBarList.length === 0) {
         return null;
     }
+
     return (
-        <div className="flex h-full w-[307px] flex-col gap-6 bg-primary-50 px-3 py-10">
-            <div className="text-subtitle font-bold">{sideBarData?.title}</div>
-            <div className="flex flex-col gap-2">
-                {sideBarList?.map((item, index) => (
-                    <div
-                        key={index}
-                        className={`flex cursor-pointer flex-row items-center gap-3 p-4 py-2 ${
-                            activeItem == item.id
-                                ? 'rounded-lg border-2 bg-white text-primary-500'
-                                : ''
-                        }`}
-                        onClick={() => {
-                            handleClick(item.id);
-                        }}
-                    >
-                        <div
-                            className={`text-h3 font-bold text-neutral-500 ${
-                                activeItem == item.id ? 'text-primary-500' : ''
-                            }`}
-                        >{`${sideBarData?.listIconText}${index + 1}`}</div>
-                        <div>{item.value}</div>
-                    </div>
-                ))}
+        <div className="flex h-full w-[307px] flex-col gap-4 bg-primary-50 px-3 py-6">
+            <div className="px-3 text-lg font-semibold text-gray-800">{sideBarData?.title}</div>
+            <div className="flex-1 space-y-1 overflow-y-auto pr-1">
+                {sideBarList.map((course) => {
+                    return (
+                        <Collapsible
+                            key={course.id}
+                            open={course.id === courseId}
+                            className="space-y-1"
+                        >
+                            <CollapsibleTrigger
+                                className="w-full"
+                                onClick={() => handleCourseNavigation(course.id)}
+                            >
+                                <div
+                                    className={cn(
+                                        'flex items-center gap-2 rounded-md p-2 text-sm font-medium',
+                                        course.id === courseId
+                                            ? 'bg-primary-100'
+                                            : 'hover:bg-gray-200'
+                                    )}
+                                >
+                                    <Folder
+                                        size={18}
+                                        weight={course.id === courseId ? 'fill' : 'duotone'}
+                                        className={cn(course.id === courseId && 'text-primary-600')}
+                                    />
+                                    <span className="flex-1 truncate text-left">
+                                        {course.value}
+                                    </span>
+                                </div>
+                            </CollapsibleTrigger>
+                        </Collapsible>
+                    );
+                })}
             </div>
         </div>
     );

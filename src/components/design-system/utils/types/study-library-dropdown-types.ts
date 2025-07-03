@@ -1,5 +1,5 @@
-import { StudyLibrarySessionType } from "@/stores/study-library/use-study-library-store";
-import { z } from "zod";
+import { StudyLibrarySessionType } from '@/stores/study-library/use-study-library-store';
+import { z } from 'zod';
 
 export interface DropdownItem {
     label: string;

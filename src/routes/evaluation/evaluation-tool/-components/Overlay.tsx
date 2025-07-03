@@ -1,6 +1,6 @@
-import { Progress } from "@/components/ui/progress";
-import { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Progress } from '@/components/ui/progress';
+import { useEffect, useState } from 'react';
+import { Loader2 } from 'lucide-react';
 
 export const LoadingOverlay = ({
     pageNumber,

@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 export const AddSessionSchema = z.object({
     session_name: z.string(),
@@ -10,7 +10,7 @@ export const AddLevelSchema = z.object({
 });
 
 export const AddCourseSchema = z.object({
-    course_name: z.string().min(1, "Course Name is required"),
+    course_name: z.string().min(1, 'Course Name is required'),
     thumbnail_file_id: z.string(),
     contain_levels: z.boolean(),
     levels: z.array(AddLevelSchema).optional(),

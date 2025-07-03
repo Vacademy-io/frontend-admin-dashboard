@@ -1,7 +1,7 @@
-import { ComponentProps } from "react";
-import { Meta, StoryObj } from "@storybook/react";
-import { fn } from "@storybook/test";
-import { MyButton } from "@/components/design-system/button";
+import { ComponentProps } from 'react';
+import { Meta, StoryObj } from '@storybook/react';
+import { fn } from '@storybook/test';
+import { MyButton } from '@/components/design-system/button';
 
 type StoryProps = ComponentProps<typeof MyButton> & {
     buttonText: string;
@@ -9,9 +9,9 @@ type StoryProps = ComponentProps<typeof MyButton> & {
 
 const meta: Meta<StoryProps> = {
     component: MyButton,
-    tags: ["autodocs"],
+    tags: ['autodocs'],
     parameters: {
-        layout: "centered",
+        layout: 'centered',
     },
     args: {
         onClick: fn(),
@@ -24,10 +24,10 @@ type Story = StoryObj<StoryProps>;
 
 export const Primary: Story = {
     args: {
-        buttonType: "primary",
-        scale: "large",
-        layoutVariant: "default",
-        buttonText: "Primary Button",
+        buttonType: 'primary',
+        scale: 'large',
+        layoutVariant: 'default',
+        buttonText: 'Primary Button',
     },
     render: (args) => {
         return <MyButton {...args}>{args.buttonText}</MyButton>;

@@ -11,13 +11,13 @@ import {
     enrollBulkFormType,
 } from '@/routes/manage-students/students-list/-schemas/student-bulk-enroll/enroll-bulk-schema';
 import { MyButton } from '@/components/design-system/button';
-import { AddCourseData } from '@/components/common/study-library/add-course/add-course-form';
+import { CourseFormData } from '@/components/common/study-library/add-course/add-course-form';
 import { toast } from 'sonner';
 import { useAddCourse } from '@/services/study-library/course-operations/add-course';
 import { useAddSession } from '@/services/study-library/session-management/addSession';
-import { useAddLevel } from '@/routes/study-library/courses/levels/-services/add-level';
+import { useAddLevel } from '@/routes/study-library/courses/course-details/-services/add-level';
 import { AddSessionDataType } from '@/routes/manage-institute/sessions/-components/session-operations/add-session/add-session-form';
-import { AddLevelData } from '@/routes/study-library/courses/levels/-components/add-level-form';
+import { AddLevelData } from '@/routes/study-library/courses/course-details/-components/add-course-details-form';
 
 export const EnrollBulkDialog = () => {
     const { getCourseFromPackage, getSessionFromPackage, getLevelsFromPackage, instituteDetails } =
@@ -86,7 +86,7 @@ export const EnrollBulkDialog = () => {
         form.handleSubmit(onSubmitEnrollBulkForm)();
     };
 
-    const handleAddCourse = ({ requestData }: { requestData: AddCourseData }) => {
+    const handleAddCourse = ({ requestData }: { requestData: CourseFormData }) => {
         addCourseMutation.mutate(
             { requestData: requestData },
             {

@@ -1,8 +1,8 @@
 // services/study-library/course-operations/update-course.ts
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
-import { AddCourseData } from "@/components/common/study-library/add-course/add-course-form";
-import { UPDATE_COURSE } from "@/constants/urls";
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
+import { CourseFormData } from '@/components/common/study-library/add-course/add-course-form';
+import { UPDATE_COURSE } from '@/constants/urls';
 
 export const useUpdateCourse = () => {
     const queryClient = useQueryClient();
@@ -12,23 +12,23 @@ export const useUpdateCourse = () => {
             courseId,
             requestData,
         }: {
-            requestData: AddCourseData;
+            requestData: CourseFormData;
             courseId?: string;
         }) => {
             const payload = {
                 id: courseId,
-                package_name: requestData.course_name,
-                thumbnail_file_id: requestData.thumbnail_file_id,
+                package_name: requestData.course,
+                thumbnail_file_id: requestData.coursePreview,
             };
 
             return authenticatedAxiosInstance.put(`${UPDATE_COURSE}/${courseId}`, payload);
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["GET_INIT_STUDY_LIBRARY"] });
-            queryClient.invalidateQueries({ queryKey: ["GET_INIT_INSTITUTE"] });
-            queryClient.invalidateQueries({ queryKey: ["GET_STUDENT_SUBJECTS_PROGRESS"] });
-            queryClient.invalidateQueries({ queryKey: ["GET_SESSION_DATA"] });
-            queryClient.invalidateQueries({ queryKey: ["GET_BATCHES"] });
+            queryClient.invalidateQueries({ queryKey: ['GET_INIT_STUDY_LIBRARY'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SUBJECTS_PROGRESS'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_SESSION_DATA'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_BATCHES'] });
         },
     });
 };

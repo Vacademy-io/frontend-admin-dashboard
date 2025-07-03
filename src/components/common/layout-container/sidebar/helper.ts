@@ -1,4 +1,9 @@
-import { HOLISTIC_INSTITUTE_ID, SHUBHAM_INSTITUTE_ID } from '@/constants/urls';
+import {
+    CODE_CIRCLE_INSTITUTE_ID,
+    SSDC_INSTITUTE_ID,
+    HOLISTIC_INSTITUTE_ID,
+    SHUBHAM_INSTITUTE_ID,
+} from '@/constants/urls';
 import { SidebarItemsType } from '@/types/layout-container/layout-container-types';
 
 export function getModuleFlags(
@@ -23,8 +28,17 @@ export function filterMenuList(
 }
 
 export function filterMenuItems(menuList: SidebarItemsType[], instituteId: string | undefined) {
-    const shubham_id = SHUBHAM_INSTITUTE_ID;
-    if (instituteId === shubham_id) {
+    if (instituteId === CODE_CIRCLE_INSTITUTE_ID || instituteId === SSDC_INSTITUTE_ID) {
+        return menuList.filter(
+            (item) =>
+                item.id !== 'Homework Creation' &&
+                item.id !== 'assessment-centre' &&
+                item.id !== 'evaluation-centre' &&
+                item.id !== 'Community Centre' &&
+                item.id !== 'AI Center'
+        );
+    }
+    if (instituteId === SHUBHAM_INSTITUTE_ID) {
         return menuList.filter(
             (item) =>
                 item.id !== 'evaluation-centre' &&

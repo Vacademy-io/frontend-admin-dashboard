@@ -220,7 +220,7 @@ export default function ProgressReports() {
                 </div>
                 {/* <FormMessage/> */}
             </form>
-            {isPending && <DashboardLoader/>}
+            {isPending && <DashboardLoader />}
             {subjectReportData && !isPending && <div className="border"></div>}
             {subjectReportData && (
                 <div className="flex flex-col gap-10">

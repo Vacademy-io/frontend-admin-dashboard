@@ -1,5 +1,5 @@
-import React from "react";
-import create from "zustand";
+import React from 'react';
+import create from 'zustand';
 
 interface navHeadingState {
     navHeading: string | React.ReactNode;
@@ -7,6 +7,6 @@ interface navHeadingState {
 }
 
 export const useNavHeadingStore = create<navHeadingState>((set) => ({
-    navHeading: "",
+    navHeading: '',
     setNavHeading: (newNavHeading) => set({ navHeading: newNavHeading }),
 }));

@@ -3,32 +3,32 @@ import {
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { DotsThree, WarningCircle } from "phosphor-react";
-import { useEffect, useState } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { MyButton } from "@/components/design-system/button";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { FormProvider, useForm } from "react-hook-form";
-import { FormControl, FormField, FormItem } from "@/components/ui/form";
-import { MyInput } from "@/components/design-system/input";
-import MultiSelectDropdown from "@/components/design-system/multiple-select-field";
-import { RoleType } from "@/constants/dummy-data";
-import { UserRolesDataEntry } from "@/types/dashboard/user-roles";
+} from '@/components/ui/dropdown-menu';
+import { DotsThree, WarningCircle } from 'phosphor-react';
+import { useEffect, useState } from 'react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { MyButton } from '@/components/design-system/button';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { FormProvider, useForm } from 'react-hook-form';
+import { FormControl, FormField, FormItem } from '@/components/ui/form';
+import { MyInput } from '@/components/design-system/input';
+import MultiSelectDropdown from '@/components/design-system/multiple-select-field';
+import { RoleType } from '@/constants/dummy-data';
+import { UserRolesDataEntry } from '@/types/dashboard/user-roles';
 import {
     handleDeleteDisableDashboardUsers,
     handleResendUserInvitation,
     handleUpdateUserInvitation,
-} from "../-services/dashboard-services";
-import { useMutation } from "@tanstack/react-query";
-import { getInstituteId } from "@/constants/helper";
-import { toast } from "sonner";
+} from '../-services/dashboard-services';
+import { useMutation } from '@tanstack/react-query';
+import { getInstituteId } from '@/constants/helper';
+import { toast } from 'sonner';
 
 export const inviteUsersSchema = z.object({
-    name: z.string().min(1, "Full name is required"),
-    email: z.string().min(1, "Email is required").email("Invalid email format"),
-    roleType: z.array(z.string()).min(1, "At least one role type is required"),
+    name: z.string().min(1, 'Full name is required'),
+    email: z.string().min(1, 'Email is required').email('Invalid email format'),
+    roleType: z.array(z.string()).min(1, 'At least one role type is required'),
 });
 type FormValues = z.infer<typeof inviteUsersSchema>;
 
@@ -43,19 +43,19 @@ const EditComponent: React.FC<EditComponentProps> = ({ student, onClose, refetch
     const form = useForm<FormValues>({
         resolver: zodResolver(inviteUsersSchema),
         defaultValues: {
-            name: "",
-            email: "",
+            name: '',
+            email: '',
             roleType: [],
         },
-        mode: "onChange",
+        mode: 'onChange',
     });
     const { getValues } = form;
     const isValid =
-        !!getValues("name") &&
-        !!getValues("email") &&
-        (getValues("roleType").length > 0 ? true : false);
+        !!getValues('name') &&
+        !!getValues('email') &&
+        (getValues('roleType').length > 0 ? true : false);
 
-    form.watch("roleType");
+    form.watch('roleType');
 
     const handleUpdateUserMutation = useMutation({
         mutationFn: ({
@@ -70,8 +70,8 @@ const EditComponent: React.FC<EditComponentProps> = ({ student, onClose, refetch
         onSuccess: () => {
             onClose();
             refetchData();
-            toast.success("Invitation for this user has been updated successfully!", {
-                className: "success-toast",
+            toast.success('Invitation for this user has been updated successfully!', {
+                className: 'success-toast',
                 duration: 2000,
             });
         },
@@ -90,8 +90,8 @@ const EditComponent: React.FC<EditComponentProps> = ({ student, onClose, refetch
 
     useEffect(() => {
         form.reset({
-            name: student.full_name || "",
-            email: student.email || "",
+            name: student.full_name || '',
+            email: student.email || '',
             roleType: student.roles.map((role) => role.role_name) || [],
         });
     }, []);
@@ -193,8 +193,8 @@ const ResendInviteComponent: React.FC<ResendInviteComponentProps> = ({
         onSuccess: () => {
             onClose();
             refetchData();
-            toast.success("Invitation for this user has been resend successfully!", {
-                className: "success-toast",
+            toast.success('Invitation for this user has been resend successfully!', {
+                className: 'success-toast',
                 duration: 2000,
             });
         },
@@ -217,7 +217,7 @@ const ResendInviteComponent: React.FC<ResendInviteComponentProps> = ({
                     <WarningCircle size={18} />
                 </div>
                 <h1>
-                    Are you sure you want to resend invite to{" "}
+                    Are you sure you want to resend invite to{' '}
                     <span className="text-primary-500">{student.full_name}</span>?
                 </h1>
                 <div className="flex justify-end">
@@ -261,8 +261,8 @@ const CancelInviteComponent: React.FC<CancelInviteComponentProps> = ({
         onSuccess: () => {
             onClose();
             refetchData();
-            toast.success("Invitation for this user has been cancelled successfully!", {
-                className: "success-toast",
+            toast.success('Invitation for this user has been cancelled successfully!', {
+                className: 'success-toast',
                 duration: 2000,
             });
         },
@@ -274,7 +274,7 @@ const CancelInviteComponent: React.FC<CancelInviteComponentProps> = ({
     const handlCancelInviteUser = () => {
         handleDisableUserMutation.mutate({
             instituteId,
-            status: "CANCEL",
+            status: 'CANCEL',
             userId: student.id,
         });
     };
@@ -287,7 +287,7 @@ const CancelInviteComponent: React.FC<CancelInviteComponentProps> = ({
                     <WarningCircle size={18} />
                 </div>
                 <h1>
-                    Are you sure you want to cancel invite for{" "}
+                    Are you sure you want to cancel invite for{' '}
                     <span className="text-primary-500">{student.full_name}</span>?
                 </h1>
                 <div className="flex justify-end">
@@ -329,33 +329,33 @@ const InviteUsersOptions = ({
                     </p>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                    <DropdownMenuItem onClick={() => handleDropdownMenuClick("Edit")}>
+                    <DropdownMenuItem onClick={() => handleDropdownMenuClick('Edit')}>
                         Edit
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleDropdownMenuClick("Resend Invite")}>
+                    <DropdownMenuItem onClick={() => handleDropdownMenuClick('Resend Invite')}>
                         Resend Invite
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleDropdownMenuClick("Cancel Invite")}>
+                    <DropdownMenuItem onClick={() => handleDropdownMenuClick('Cancel Invite')}>
                         Cancel Invite
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
             <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-                {selectedOption === "Edit" && (
+                {selectedOption === 'Edit' && (
                     <EditComponent
                         student={user}
                         onClose={() => setOpenDialog(false)}
                         refetchData={refetchData}
                     />
                 )}
-                {selectedOption === "Resend Invite" && (
+                {selectedOption === 'Resend Invite' && (
                     <ResendInviteComponent
                         student={user}
                         onClose={() => setOpenDialog(false)}
                         refetchData={refetchData}
                     />
                 )}
-                {selectedOption === "Cancel Invite" && (
+                {selectedOption === 'Cancel Invite' && (
                     <CancelInviteComponent
                         student={user}
                         onClose={() => setOpenDialog(false)}

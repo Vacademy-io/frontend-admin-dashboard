@@ -1,26 +1,26 @@
-import { useState } from "react";
-import { ArrowCounterClockwise, Clock } from "phosphor-react";
-import { Crown, Person } from "@/svgs";
-import { MyPagination } from "@/components/design-system/pagination";
-import { AssessmentDetailsSearchComponent } from "./SearchComponent";
-import { MyButton } from "@/components/design-system/button";
-import { getInstituteId } from "@/constants/helper";
-import { Route } from "..";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
+import { useState } from 'react';
+import { ArrowCounterClockwise, Clock } from 'phosphor-react';
+import { Crown, Person } from '@/svgs';
+import { MyPagination } from '@/components/design-system/pagination';
+import { AssessmentDetailsSearchComponent } from './SearchComponent';
+import { MyButton } from '@/components/design-system/button';
+import { getInstituteId } from '@/constants/helper';
+import { Route } from '..';
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import {
     getStudentLeaderboardDetails,
     handleGetAssessmentTotalMarksData,
     handleGetLeaderboardData,
     handleGetStudentLeaderboardExportCSV,
     handleGetStudentLeaderboardExportPDF,
-} from "../-services/assessment-details-services";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
-import { getBatchNameById } from "../-utils/helper";
-import { StudentLeaderboard } from "@/types/assessment-overview";
-import ExportDialogPDFCSV from "@/components/common/export-dialog-pdf-csv";
-import { toast } from "sonner";
-import Papa from "papaparse";
+} from '../-services/assessment-details-services';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
+import { getBatchNameById } from '../-utils/helper';
+import { StudentLeaderboard } from '@/types/assessment-overview';
+import ExportDialogPDFCSV from '@/components/common/export-dialog-pdf-csv';
+import { toast } from 'sonner';
+import Papa from 'papaparse';
 
 export interface AssessmentStudentLeaderboardInterface {
     name: string;
@@ -34,14 +34,14 @@ const AssessmentStudentLeaderboard = () => {
     const instituteId = getInstituteId();
     const { assessmentId } = Route.useParams();
     const { data: totalMarks } = useSuspenseQuery(
-        handleGetAssessmentTotalMarksData({ assessmentId }),
+        handleGetAssessmentTotalMarksData({ assessmentId })
     );
     const [selectedFilter] = useState<AssessmentStudentLeaderboardInterface>({
-        name: "",
+        name: '',
         status: [],
         sort_columns: {},
     });
-    const [searchText, setSearchText] = useState("");
+    const [searchText, setSearchText] = useState('');
     const [pageNo, setPageNo] = useState(0);
     const { data, isLoading } = useSuspenseQuery(
         handleGetLeaderboardData({
@@ -50,7 +50,7 @@ const AssessmentStudentLeaderboard = () => {
             pageNo,
             pageSize: 10,
             selectedFilter,
-        }),
+        })
     );
 
     const [studentLeaderboardData, setStudentLeaderboardData] = useState(data);
@@ -74,7 +74,7 @@ const AssessmentStudentLeaderboard = () => {
                 instituteId,
                 pageNo,
                 pageSize,
-                selectedFilter,
+                selectedFilter
             ),
         onSuccess: (data) => {
             setStudentLeaderboardData(data);
@@ -85,8 +85,8 @@ const AssessmentStudentLeaderboard = () => {
     });
 
     const clearSearch = () => {
-        setSearchText("");
-        selectedFilter["name"] = "";
+        setSearchText('');
+        selectedFilter['name'] = '';
         getStudentLeaderboardData.mutate({
             assessmentId,
             instituteId,
@@ -142,17 +142,17 @@ const AssessmentStudentLeaderboard = () => {
         onSuccess: async (response) => {
             const date = new Date();
             const url = window.URL.createObjectURL(new Blob([response]));
-            const link = document.createElement("a");
+            const link = document.createElement('a');
             link.href = url;
             link.setAttribute(
-                "download",
-                `pdf_student_leaderboard_report_${date.toLocaleString()}.pdf`,
+                'download',
+                `pdf_student_leaderboard_report_${date.toLocaleString()}.pdf`
             );
             document.body.appendChild(link);
             link.click();
             link.remove();
             window.URL.revokeObjectURL(url);
-            toast.success("Leaderboard data for PDF exported successfully");
+            toast.success('Leaderboard data for PDF exported successfully');
         },
         onError: (error: unknown) => {
             throw error;
@@ -177,14 +177,14 @@ const AssessmentStudentLeaderboard = () => {
 
             const csv = Papa.unparse(parsedData);
 
-            const blob = new Blob([csv], { type: "text/csv" });
+            const blob = new Blob([csv], { type: 'text/csv' });
             const url = URL.createObjectURL(blob);
 
-            const link = document.createElement("a");
+            const link = document.createElement('a');
             link.href = url;
             link.setAttribute(
-                "download",
-                `csv_student_leaderboard_report_${date.toLocaleString()}.csv`,
+                'download',
+                `csv_student_leaderboard_report_${date.toLocaleString()}.csv`
             );
             document.body.appendChild(link);
             link.click();
@@ -192,7 +192,7 @@ const AssessmentStudentLeaderboard = () => {
 
             // Clean up the created URL object
             URL.revokeObjectURL(url);
-            toast.success("Leaderboard data for CSV exported successfully");
+            toast.success('Leaderboard data for CSV exported successfully');
         },
         onError: (error: unknown) => {
             throw error;
@@ -223,10 +223,10 @@ const AssessmentStudentLeaderboard = () => {
                         handleExportPDF={handleExportPDF}
                         handleExportCSV={handleExportCSV}
                         isPDFLoading={
-                            getExportLeaderboardDataPDF.status === "pending" ? true : false
+                            getExportLeaderboardDataPDF.status === 'pending' ? true : false
                         }
                         isCSVLoading={
-                            getExportLeaderboardDataCSV.status === "pending" ? true : false
+                            getExportLeaderboardDataCSV.status === 'pending' ? true : false
                         }
                     />
                     <MyButton
@@ -246,7 +246,7 @@ const AssessmentStudentLeaderboard = () => {
                 setSearchText={setSearchText}
                 clearSearch={clearSearch}
             />
-            {getStudentLeaderboardData.status === "pending" ? (
+            {getStudentLeaderboardData.status === 'pending' ? (
                 <DashboardLoader />
             ) : (
                 <div className="flex max-h-[60vh] flex-col gap-4 overflow-y-auto">
@@ -256,7 +256,7 @@ const AssessmentStudentLeaderboard = () => {
                                 <div
                                     key={idx}
                                     className={`flex items-center justify-between rounded-xl border ${
-                                        student.rank === 1 ? "bg-primary-50" : "bg-white"
+                                        student.rank === 1 ? 'bg-primary-50' : 'bg-white'
                                     } p-4`}
                                 >
                                     <div className="flex items-center gap-4">
@@ -274,7 +274,7 @@ const AssessmentStudentLeaderboard = () => {
                                             <span className="text-[12px]">
                                                 {getBatchNameById(
                                                     batches_for_sessions,
-                                                    student.batch_id,
+                                                    student.batch_id
                                                 )}
                                             </span>
                                         </div>
@@ -284,8 +284,8 @@ const AssessmentStudentLeaderboard = () => {
                                             <Clock size={18} className="text-neutral-600" />
                                             <span className="text-sm text-neutral-500">
                                                 {Math.floor(
-                                                    student.completion_time_in_seconds / 60,
-                                                )}{" "}
+                                                    student.completion_time_in_seconds / 60
+                                                )}{' '}
                                                 min {student.completion_time_in_seconds % 60} sec
                                             </span>
                                         </div>
@@ -307,7 +307,7 @@ const AssessmentStudentLeaderboard = () => {
                                     </div>
                                 </div>
                             );
-                        },
+                        }
                     )}
                     <MyPagination
                         currentPage={pageNo}

@@ -9,7 +9,7 @@ import { MyButton } from '@/components/design-system/button';
 import { useFormContext } from 'react-hook-form';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useAddCourse } from '@/services/study-library/course-operations/add-course';
-import { AddCourseData } from '@/components/common/study-library/add-course/add-course-form';
+import { CourseFormData } from '@/components/common/study-library/add-course/add-course-form';
 import { toast } from 'sonner';
 
 interface CreateCourseStepProps {
@@ -22,7 +22,7 @@ export const CreateCourseStep = ({ handleOpenManageBatchDialog }: CreateCourseSt
     const form = useFormContext();
     const addCourseMutation = useAddCourse();
 
-    const handleAddCourse = ({ requestData }: { requestData: AddCourseData }) => {
+    const handleAddCourse = ({ requestData }: { requestData: CourseFormData }) => {
         addCourseMutation.mutate(
             { requestData: requestData },
             {
@@ -54,7 +54,9 @@ export const CreateCourseStep = ({ handleOpenManageBatchDialog }: CreateCourseSt
                 name="courseCreationType"
                 render={({ field }) => (
                     <FormItem className="space-y-3">
-                        <FormLabel className="text-base font-medium text-neutral-700">Course Selection</FormLabel>
+                        <FormLabel className="text-base font-medium text-neutral-700">
+                            Course Selection
+                        </FormLabel>
                         <FormControl>
                             <RadioGroup
                                 className="flex gap-6 pt-1"
@@ -74,7 +76,7 @@ export const CreateCourseStep = ({ handleOpenManageBatchDialog }: CreateCourseSt
                                     </FormControl>
                                     <FormLabel
                                         htmlFor="existing-course"
-                                        className={`font-normal cursor-pointer ${courseList.length === 0 ? 'text-neutral-400' : 'text-neutral-600'}`}
+                                        className={`cursor-pointer font-normal ${courseList.length === 0 ? 'text-neutral-400' : 'text-neutral-600'}`}
                                     >
                                         Select existing course
                                     </FormLabel>
@@ -83,7 +85,10 @@ export const CreateCourseStep = ({ handleOpenManageBatchDialog }: CreateCourseSt
                                     <FormControl>
                                         <RadioGroupItem value="new" id="new-course" />
                                     </FormControl>
-                                    <FormLabel htmlFor="new-course" className="font-normal text-neutral-600 cursor-pointer">
+                                    <FormLabel
+                                        htmlFor="new-course"
+                                        className="cursor-pointer font-normal text-neutral-600"
+                                    >
                                         Create new course
                                     </FormLabel>
                                 </FormItem>
@@ -122,6 +127,8 @@ export const CreateCourseStep = ({ handleOpenManageBatchDialog }: CreateCourseSt
             {form.watch('courseCreationType') === 'new' && (
                 <div className="mt-2">
                     <AddCourseButton
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-expect-error
                         onSubmit={handleAddCourse}
                         courseButton={
                             <MyButton
@@ -129,7 +136,7 @@ export const CreateCourseStep = ({ handleOpenManageBatchDialog }: CreateCourseSt
                                 buttonType="text"
                                 layoutVariant="default"
                                 scale="medium"
-                                className="flex items-center text-neutral-600 hover:text-primary-600 p-0 hover:bg-transparent active:bg-transparent font-normal"
+                                className="hover:text-primary-600 flex items-center p-0 font-normal text-neutral-600 hover:bg-transparent active:bg-transparent"
                                 onClick={(e) => {
                                     e.preventDefault();
                                     e.stopPropagation();

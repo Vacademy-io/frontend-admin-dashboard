@@ -1,11 +1,16 @@
-import { Star, StarHalf } from "phosphor-react";
+import { Star, StarHalf } from 'phosphor-react';
 
 interface StarRatingProps {
     score: number;
     maxScore?: number;
+    starColor?: boolean;
 }
 
-export const StarRatingComponent = ({ score, maxScore = 100 }: StarRatingProps) => {
+export const StarRatingComponent = ({
+    score,
+    maxScore = 100,
+    starColor = false,
+}: StarRatingProps) => {
     const maxStars = 5;
     const starValue = (score / maxScore) * maxStars;
     const fullStars = Math.floor(starValue);
@@ -18,13 +23,18 @@ export const StarRatingComponent = ({ score, maxScore = 100 }: StarRatingProps) 
             {Array.from({ length: fullStars }).map((_, i) => (
                 <Star
                     key={`full-${i}`}
-                    className="size-5 fill-yellow-500 text-yellow-500"
+                    className={`size-5 ${starColor ? 'fill-primary-500 text-primary-500' : 'fill-yellow-500 text-yellow-500'} `}
                     weight="fill"
                 />
             ))}
 
             {/* Half Star */}
-            {hasHalfStar && <StarHalf weight="fill" className="size-5 text-yellow-500" />}
+            {hasHalfStar && (
+                <StarHalf
+                    weight="fill"
+                    className={`size-5  ${starColor ? 'fill-primary-500 text-primary-500' : 'fill-yellow-500 text-yellow-500'}`}
+                />
+            )}
 
             {/* Empty Stars — render only if there's any */}
             {emptyStars > 0 &&

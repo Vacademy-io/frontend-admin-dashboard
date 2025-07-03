@@ -1,8 +1,8 @@
-import { Badge } from "@/components/ui/badge";
-import { TabsContent } from "@/components/ui/tabs";
-import { RoleTypeEmptyScreen } from "@/svgs";
-import InviteUsersOptions from "./InviteUsersOptions";
-import { RolesDummyDataType, UserRolesDataEntry } from "@/types/dashboard/user-roles";
+import { Badge } from '@/components/ui/badge';
+import { TabsContent } from '@/components/ui/tabs';
+import { RoleTypeEmptyScreen } from '@/svgs';
+import InviteUsersOptions from './InviteUsersOptions';
+import { RolesDummyDataType, UserRolesDataEntry } from '@/types/dashboard/user-roles';
 
 interface InviteUsersTabProps {
     selectedTab: keyof RolesDummyDataType;
@@ -17,7 +17,7 @@ const InviteUsersTab: React.FC<InviteUsersTabProps> = ({
 }) => {
     return (
         <>
-            {selectedTab === "invites" && selectedTabData.length === 0 ? (
+            {selectedTab === 'invites' && selectedTabData.length === 0 ? (
                 <div className="flex h-[60vh] w-screen flex-col items-center justify-center">
                     <RoleTypeEmptyScreen />
                     <p>No users have been invited yet.</p>
@@ -36,15 +36,15 @@ const InviteUsersTab: React.FC<InviteUsersTabProps> = ({
                                                     <Badge
                                                         key={index}
                                                         className={`whitespace-nowrap rounded-lg border border-neutral-300 py-1.5 font-thin shadow-none ${
-                                                            role.role_name === "ADMIN"
-                                                                ? "bg-[#F4F9FF]"
+                                                            role.role_name === 'ADMIN'
+                                                                ? 'bg-[#F4F9FF]'
                                                                 : role.role_name ===
-                                                                    "COURSE CREATOR"
-                                                                  ? "bg-[#F4FFF9]"
+                                                                    'COURSE CREATOR'
+                                                                  ? 'bg-[#F4FFF9]'
                                                                   : role.role_name ===
-                                                                      "ASSESSMENT CREATOR"
-                                                                    ? "bg-[#FFF4F5]"
-                                                                    : "bg-[#F5F0FF]"
+                                                                      'ASSESSMENT CREATOR'
+                                                                    ? 'bg-[#FFF4F5]'
+                                                                    : 'bg-[#F5F0FF]'
                                                         }`}
                                                     >
                                                         {role.role_name}

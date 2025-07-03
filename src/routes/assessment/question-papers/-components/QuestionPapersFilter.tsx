@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
     Command,
     CommandEmpty,
@@ -6,13 +6,13 @@ import {
     CommandInput,
     CommandItem,
     CommandList,
-} from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/utils";
-import { FilterOption, FilterProps } from "@/types/assessments/question-paper-filter";
-import { CheckIcon } from "@radix-ui/react-icons";
-import { PlusCircle } from "phosphor-react";
+} from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/utils';
+import { FilterOption, FilterProps } from '@/types/assessments/question-paper-filter';
+import { CheckIcon } from '@radix-ui/react-icons';
+import { PlusCircle } from 'phosphor-react';
 
 export const QuestionPapersFilter = ({
     label,
@@ -31,11 +31,11 @@ export const QuestionPapersFilter = ({
         <Popover>
             <PopoverTrigger asChild>
                 <Button
-                    variant={"outline"}
+                    variant={'outline'}
                     className={`text-neutral-600 ${
                         selectedItems.length > 0
-                            ? "border-primary-500 bg-primary-100 hover:bg-primary-100"
-                            : ""
+                            ? 'border-primary-500 bg-primary-100 hover:bg-primary-100'
+                            : ''
                     }`}
                 >
                     <PlusCircle size={32} />
@@ -58,7 +58,7 @@ export const QuestionPapersFilter = ({
                         <CommandGroup heading={label}>
                             {data?.map((option, index) => {
                                 const isSelected = selectedItems.some(
-                                    (item) => item.id === option.id,
+                                    (item) => item.id === option.id
                                 );
                                 return (
                                     <CommandItem
@@ -67,14 +67,14 @@ export const QuestionPapersFilter = ({
                                     >
                                         <div
                                             className={cn(
-                                                "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-gray-300",
+                                                'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-gray-300',
                                                 isSelected
-                                                    ? "border-none bg-primary-300 text-white"
-                                                    : "opacity-70 [&_svg]:invisible",
+                                                    ? 'border-none bg-primary-300 text-white'
+                                                    : 'opacity-70 [&_svg]:invisible'
                                             )}
                                         >
                                             <CheckIcon
-                                                className={cn("h-4 w-4 rounded-sm bg-primary-500")}
+                                                className={cn('h-4 w-4 rounded-sm bg-primary-500')}
                                             />
                                         </div>
                                         {option.name}

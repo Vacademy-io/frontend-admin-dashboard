@@ -64,7 +64,7 @@ export const InviteCardMenuOptions = ({ invite }: InviteCardMenuOptionsProps) =>
             resetContext();
         }
         setOpenEditDialog(!openEditDialog);
-    };
+    }
 
     const handleSelect = async (value: string) => {
         if (value == 'delete') {

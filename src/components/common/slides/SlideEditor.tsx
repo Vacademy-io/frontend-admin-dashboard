@@ -22,7 +22,7 @@ export interface Props {
     onRegenerate?: (slideId: string) => void;
 }
 
-export const SlideEditor = memo(({ slide, editMode, onSlideChange, onRegenerate }: Props) => {
+const SlideEditorComponent = ({ slide, editMode, onSlideChange, onRegenerate }: Props) => {
     const handleExcalidrawChange = (
         elements: readonly ExcalidrawElement[],
         appState: AppState, // Received full AppState from ExcalidrawWrapper
@@ -70,6 +70,18 @@ export const SlideEditor = memo(({ slide, editMode, onSlideChange, onRegenerate 
                 </div>
             )}
         </div>
+    );
+};
+
+// Memoize with custom comparison for better performance
+export const SlideEditor = memo(SlideEditorComponent, (prevProps, nextProps) => {
+    return (
+        prevProps.slide.id === nextProps.slide.id &&
+        prevProps.editMode === nextProps.editMode &&
+        prevProps.onSlideChange === nextProps.onSlideChange &&
+        prevProps.onRegenerate === nextProps.onRegenerate &&
+        // Only re-render if slide content actually changed
+        prevProps.slide.elements?.length === nextProps.slide.elements?.length
     );
 });
 

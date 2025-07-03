@@ -1,11 +1,11 @@
-import { FormProvider, useForm } from "react-hook-form";
-import { uploadQuestionPaperFormSchema } from "../-utils/upload-question-paper-form-schema";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { QuestionPaperTemplate } from "./QuestionPaperTemplate";
-import { Dispatch, SetStateAction, useEffect } from "react";
-import { getLevelNameById, getSubjectNameById } from "../-utils/helper";
-import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
+import { FormProvider, useForm } from 'react-hook-form';
+import { uploadQuestionPaperFormSchema } from '../-utils/upload-question-paper-form-schema';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { QuestionPaperTemplate } from './QuestionPaperTemplate';
+import { Dispatch, SetStateAction, useEffect } from 'react';
+import { getLevelNameById, getSubjectNameById } from '../-utils/helper';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 export const ViewQuestionPaper = ({
     questionPaperId,
@@ -29,19 +29,19 @@ export const ViewQuestionPaper = ({
     const { instituteDetails } = useInstituteDetailsStore();
     const form = useForm<z.infer<typeof uploadQuestionPaperFormSchema>>({
         resolver: zodResolver(uploadQuestionPaperFormSchema),
-        mode: "onChange",
+        mode: 'onChange',
         defaultValues: {
             questionPaperId: questionPaperId,
             isFavourite: false,
             title: title,
             createdOn: new Date(),
-            yearClass: (instituteDetails && getLevelNameById(instituteDetails.levels, level)) || "",
+            yearClass: (instituteDetails && getLevelNameById(instituteDetails.levels, level)) || '',
             subject:
-                (instituteDetails && getSubjectNameById(instituteDetails?.subjects, subject)) || "",
-            questionsType: "",
-            optionsType: "",
-            answersType: "",
-            explanationsType: "",
+                (instituteDetails && getSubjectNameById(instituteDetails?.subjects, subject)) || '',
+            questionsType: '',
+            optionsType: '',
+            answersType: '',
+            explanationsType: '',
             fileUpload: null as unknown as File,
             questions: [],
         },
@@ -66,7 +66,7 @@ export const ViewQuestionPaper = ({
                     questionPaperId={questionPaperId}
                     isViewMode={true}
                     refetchData={refetchData}
-                    buttonText={isAssessment ? "View" : "View Question Paper"}
+                    buttonText={isAssessment ? 'View' : 'View Question Paper'}
                     isAssessment={isAssessment}
                     currentQuestionIndex={currentQuestionIndex}
                     setCurrentQuestionIndex={setCurrentQuestionIndex}

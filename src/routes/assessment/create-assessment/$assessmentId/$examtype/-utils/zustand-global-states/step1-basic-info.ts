@@ -1,4 +1,4 @@
-import { create } from "zustand";
+import { create } from 'zustand';
 
 interface BasicInfoState {
     assessmentPreview?: {
@@ -28,7 +28,7 @@ interface BasicInfoState {
 }
 
 // ✅ Define the initial empty state
-const initialState: Omit<BasicInfoState, "setBasicInfo" | "getBasicInfo" | "reset"> = {
+const initialState: Omit<BasicInfoState, 'setBasicInfo' | 'getBasicInfo' | 'reset'> = {
     assessmentPreview: undefined,
     reattemptCount: undefined,
     durationDistribution: undefined,
@@ -56,6 +56,6 @@ interface AssessmentUrlStore {
 
 // Create the Zustand store
 export const useAssessmentUrlStore = create<AssessmentUrlStore>((set) => ({
-    assessmentUrl: "",
+    assessmentUrl: '',
     setAssessmentUrl: (url) => set({ assessmentUrl: url }),
 }));

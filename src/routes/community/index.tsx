@@ -1,11 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { LayoutContainer } from "@/components/common/layout-container/layout-container";
-import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
-import { CommunityPage } from "./-components/CommunityPage";
-import { useEffect } from "react";
-import { Helmet } from "react-helmet";
+import { createFileRoute } from '@tanstack/react-router';
+import { LayoutContainer } from '@/components/common/layout-container/layout-container';
+import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
+import { CommunityPage } from './-components/CommunityPage';
+import { useEffect } from 'react';
+import { Helmet } from 'react-helmet';
 
-export const Route = createFileRoute("/community/")({
+export const Route = createFileRoute('/community/')({
     component: () => (
         <LayoutContainer intrnalMargin={false}>
             <CommunityLayoutPage />

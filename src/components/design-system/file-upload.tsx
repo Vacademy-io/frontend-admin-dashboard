@@ -1,10 +1,10 @@
 // src/components/design-system/file-upload.tsx
 
-import { FieldValues } from "react-hook-form";
-import { FormControl, FormField, FormItem } from "../ui/form";
-import { FileUploadComponentProps } from "@/types/common/file-upload";
-import { useDropzone } from "react-dropzone";
-import { useCallback } from "react";
+import { FieldValues } from 'react-hook-form';
+import { FormControl, FormField, FormItem } from '../ui/form';
+import { FileUploadComponentProps } from '@/types/common/file-upload';
+import { useDropzone } from 'react-dropzone';
+import { useCallback } from 'react';
 
 export const FileUploadComponent = <T extends FieldValues>({
     fileInputRef,
@@ -24,7 +24,7 @@ export const FileUploadComponent = <T extends FieldValues>({
                 onFileSubmit(file);
             }
         },
-        [onFileSubmit],
+        [onFileSubmit]
     );
 
     const handleClick = () => {
@@ -63,7 +63,7 @@ export const FileUploadComponent = <T extends FieldValues>({
                                 ref={fileInputRef}
                                 accept={
                                     Array.isArray(acceptedFileTypes)
-                                        ? acceptedFileTypes.join(",")
+                                        ? acceptedFileTypes.join(',')
                                         : acceptedFileTypes
                                 }
                                 className="outline-none"

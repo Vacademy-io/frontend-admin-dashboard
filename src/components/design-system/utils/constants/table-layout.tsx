@@ -66,12 +66,10 @@ export const ACTIVITY_RESPONSE_ASSIGNMENT_COLUMN_WIDTHS: ColumnWidthConfig = {
 };
 
 export const ACTIVITY_STATS_COLUMN_WIDTHS: ColumnWidthConfig = {
-    details: 'min-w-[80px] sticky left-0',
-    full_name: 'min-w-[160px] sticky left-[80px]',
-    institute_enrollment_id: 'min-w-[120px]',
-    username: 'min-w-[120px]',
+    details: 'min-w-[80px]',
+    full_name: 'min-w-[180px]',
     time_spent: 'min-w-[120px]',
-    last_active: 'min-w-[120px]',
+    last_active: 'min-w-[160px]',
 };
 
 export const ASSESSMENT_STATUS_STUDENT_ATTEMPTED_COLUMNS_INTERNAL_WIDTH: ColumnWidthConfig = {

@@ -1,12 +1,12 @@
-import { z } from "zod";
-import { useAdaptiveMarkingStore } from "../-hooks/sectionData";
-import sectionDetailsSchema from "./section-details-sechma";
+import { z } from 'zod';
+import { useAdaptiveMarkingStore } from '../-hooks/sectionData';
+import sectionDetailsSchema from './section-details-sechma';
 
 interface TransformedQuestion {
     id: string;
     question_text: {
         id: string;
-        type: "html";
+        type: 'html';
         content: string;
     };
     criteria_json: string;
@@ -18,7 +18,7 @@ interface TransformedQuestion {
     evaluation_type: string;
     explanation: {
         id: string;
-        type: "html";
+        type: 'html';
         content: string;
     };
     marking_json: string;
@@ -31,7 +31,7 @@ interface TransformedSection {
     name: string;
     description: {
         id: string;
-        type: "html";
+        type: 'html';
         content: string;
     };
     total_marks: number;
@@ -43,7 +43,7 @@ interface TransformedSection {
 }
 
 export const transformFormData = (
-    formData: z.infer<typeof sectionDetailsSchema>,
+    formData: z.infer<typeof sectionDetailsSchema>
 ): TransformedSection[] => {
     const adaptiveMarkingStore = useAdaptiveMarkingStore.getState();
 
@@ -59,20 +59,20 @@ export const transformFormData = (
                 id: question.questionId || `q-${sectionIndex}-${questionIndex}`,
                 question_text: {
                     id: `qt-${sectionIndex}-${questionIndex}`,
-                    type: "html",
+                    type: 'html',
                     content: question.questionName,
                 },
                 criteria_json: JSON.stringify(criteria),
                 spelling_check: false,
                 grammer_check: false,
-                difficulty: "MEDIUM",
-                question_response_type: "DESCRIPTIVE",
-                question_type: "SUBJECTIVE",
-                evaluation_type: "AI",
+                difficulty: 'MEDIUM',
+                question_response_type: 'DESCRIPTIVE',
+                question_type: 'SUBJECTIVE',
+                evaluation_type: 'AI',
                 explanation: {
                     id: `exp-${sectionIndex}-${questionIndex}`,
-                    type: "html",
-                    content: question.validAnswers || "",
+                    type: 'html',
+                    content: question.validAnswers || '',
                 },
                 marking_json: JSON.stringify({
                     total_marks: Number(question.questionMark),
@@ -88,7 +88,7 @@ export const transformFormData = (
             name: section.sectionName,
             description: {
                 id: `desc-${sectionIndex}`,
-                type: "html",
+                type: 'html',
                 content: section.section_description,
             },
             total_marks: Number(section.total_marks),

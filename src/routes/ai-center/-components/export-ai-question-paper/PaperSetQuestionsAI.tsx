@@ -1,9 +1,9 @@
-import { useMemo, useRef, useEffect, useState } from "react";
-import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-import { Input } from "@/components/ui/input";
-import { ExportSettings } from "@/components/common/export-offline/contexts/export-settings-context";
-import { Question } from "@/components/common/export-offline/types/question";
-import { QuestionComponent } from "@/components/common/export-offline/preview/question-component";
+import { useMemo, useRef, useEffect, useState } from 'react';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { Input } from '@/components/ui/input';
+import { ExportSettings } from '@/components/common/export-offline/contexts/export-settings-context';
+import { Question } from '@/components/common/export-offline/types/question';
+import { QuestionComponent } from '@/components/common/export-offline/preview/question-component';
 
 interface PaperSetProps {
     questionsData: Question[];
@@ -27,11 +27,11 @@ export function PaperSetQuestionsAI({ questionsData, settings }: PaperSetProps) 
     const PAGE_MARGIN = 20; // Top and bottom margins
     const QUESTION_SPACING = 10; // Space between questions
     const ROUGH_WORK_HEIGHT =
-        settings.spaceForRoughWork === "none"
+        settings.spaceForRoughWork === 'none'
             ? 0
-            : settings.roughWorkSize === "small"
+            : settings.roughWorkSize === 'small'
               ? 50
-              : settings.roughWorkSize === "large"
+              : settings.roughWorkSize === 'large'
                 ? 150
                 : 100;
 
@@ -79,10 +79,10 @@ export function PaperSetQuestionsAI({ questionsData, settings }: PaperSetProps) 
                             >
                                 <label className="w-1/4 text-sm font-medium">{field.label}:</label>
                                 <div className="w-3/4">
-                                    {field.type === "blank" && (
+                                    {field.type === 'blank' && (
                                         <div className="h-8 border-b border-gray-300" />
                                     )}
-                                    {field.type === "blocks" && (
+                                    {field.type === 'blocks' && (
                                         <div className="flex">
                                             {[...Array(field.numberOfBlocks || 10)].map((_, i) => (
                                                 <div
@@ -92,10 +92,10 @@ export function PaperSetQuestionsAI({ questionsData, settings }: PaperSetProps) 
                                             ))}
                                         </div>
                                     )}
-                                    {field.type === "input" && (
+                                    {field.type === 'input' && (
                                         <Input className="w-full" readOnly />
                                     )}
-                                    {field.type === "checkbox" && (
+                                    {field.type === 'checkbox' && (
                                         <div className="size-6 rounded-full border-2 border-gray-300" />
                                     )}
                                 </div>
@@ -124,7 +124,7 @@ export function PaperSetQuestionsAI({ questionsData, settings }: PaperSetProps) 
             return (
                 pageHeight -
                 2 * PAGE_MARGIN -
-                (settings.spaceForRoughWork !== "none" ? ROUGH_WORK_HEIGHT : 0)
+                (settings.spaceForRoughWork !== 'none' ? ROUGH_WORK_HEIGHT : 0)
             );
         };
 
@@ -132,7 +132,7 @@ export function PaperSetQuestionsAI({ questionsData, settings }: PaperSetProps) 
             <div key={`page-${pageNumber}`} className="page relative bg-white">
                 <div className="flex h-full flex-col">
                     <div className="grow">{content}</div>
-                    {settings.spaceForRoughWork !== "none" && renderRoughWork()}
+                    {settings.spaceForRoughWork !== 'none' && renderRoughWork()}
                 </div>
                 {settings.showPageNumbers && (
                     <div className="absolute bottom-4 right-4 text-sm text-gray-500">
@@ -182,11 +182,11 @@ export function PaperSetQuestionsAI({ questionsData, settings }: PaperSetProps) 
                         className="mb-4"
                         style={{
                             fontSize:
-                                settings.fontSize === "small"
-                                    ? "12px"
-                                    : settings.fontSize === "large"
-                                      ? "16px"
-                                      : "14px",
+                                settings.fontSize === 'small'
+                                    ? '12px'
+                                    : settings.fontSize === 'large'
+                                      ? '16px'
+                                      : '14px',
                         }}
                     >
                         <QuestionComponent
@@ -196,7 +196,7 @@ export function PaperSetQuestionsAI({ questionsData, settings }: PaperSetProps) 
                             showCheckboxes={settings.showCheckboxesBeforeOptions}
                             answerSpacing={settings.answerSpacings?.[question.question_id] || 10}
                         />
-                    </div>,
+                    </div>
                 );
                 columnHeights[currentColumn] += questionHeight + QUESTION_SPACING;
             } else {
@@ -211,11 +211,11 @@ export function PaperSetQuestionsAI({ questionsData, settings }: PaperSetProps) 
                             className="mb-4"
                             style={{
                                 fontSize:
-                                    settings.fontSize === "small"
-                                        ? "12px"
-                                        : settings.fontSize === "large"
-                                          ? "16px"
-                                          : "14px",
+                                    settings.fontSize === 'small'
+                                        ? '12px'
+                                        : settings.fontSize === 'large'
+                                          ? '16px'
+                                          : '14px',
                             }}
                         >
                             <QuestionComponent
@@ -227,7 +227,7 @@ export function PaperSetQuestionsAI({ questionsData, settings }: PaperSetProps) 
                                     settings.answerSpacings?.[question.question_id] || 10
                                 }
                             />
-                        </div>,
+                        </div>
                     );
                     columnHeights[currentColumn] = questionHeight + QUESTION_SPACING;
                 } else {
@@ -235,7 +235,7 @@ export function PaperSetQuestionsAI({ questionsData, settings }: PaperSetProps) 
                     const questionsGrid = (
                         <div
                             className={`grid gap-8 ${
-                                columns === 2 ? "grid-cols-2" : columns === 3 ? "grid-cols-3" : ""
+                                columns === 2 ? 'grid-cols-2' : columns === 3 ? 'grid-cols-3' : ''
                             }`}
                         >
                             {currentQuestions.map((colQuestions, colIndex) => (
@@ -267,11 +267,11 @@ export function PaperSetQuestionsAI({ questionsData, settings }: PaperSetProps) 
                             className="mb-4"
                             style={{
                                 fontSize:
-                                    settings.fontSize === "small"
-                                        ? "12px"
-                                        : settings.fontSize === "large"
-                                          ? "16px"
-                                          : "14px",
+                                    settings.fontSize === 'small'
+                                        ? '12px'
+                                        : settings.fontSize === 'large'
+                                          ? '16px'
+                                          : '14px',
                             }}
                         >
                             <QuestionComponent
@@ -283,7 +283,7 @@ export function PaperSetQuestionsAI({ questionsData, settings }: PaperSetProps) 
                                     settings.answerSpacings?.[question.question_id] || 10
                                 }
                             />
-                        </div>,
+                        </div>
                     );
                     columnHeights[currentColumn] = questionHeight + QUESTION_SPACING;
                 }
@@ -295,7 +295,7 @@ export function PaperSetQuestionsAI({ questionsData, settings }: PaperSetProps) 
             const questionsGrid = (
                 <div
                     className={`grid gap-8 ${
-                        columns === 2 ? "grid-cols-2" : columns === 3 ? "grid-cols-3" : ""
+                        columns === 2 ? 'grid-cols-2' : columns === 3 ? 'grid-cols-3' : ''
                     }`}
                 >
                     {currentQuestions.map((colQuestions, colIndex) => (

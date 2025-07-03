@@ -1,17 +1,17 @@
 import {
     ExportSettingsProvider,
     useExportSettings,
-} from "@/components/common/export-offline/contexts/export-settings-context";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Settings, Trash2 } from "lucide-react";
-import { Upload } from "phosphor-react";
-import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { ExportHandlerQuestionPaperAI } from "./ExportHandlerQuestionPaperAI";
-import { PaperSetQuestionsAI } from "./PaperSetQuestionsAI";
-import { convertQuestionsToExportSchema } from "@/routes/assessment/question-papers/-utils/helper";
-import { MyButton } from "@/components/design-system/button";
-import { ExportQuestionPaperSettingsDialogAI } from "./export-question-paper-dialog-ai/export-question-paper-setting-dialog-ai";
+} from '@/components/common/export-offline/contexts/export-settings-context';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Settings, Trash2 } from 'lucide-react';
+import { Upload } from 'phosphor-react';
+import { Dialog, DialogClose, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { ExportHandlerQuestionPaperAI } from './ExportHandlerQuestionPaperAI';
+import { PaperSetQuestionsAI } from './PaperSetQuestionsAI';
+import { convertQuestionsToExportSchema } from '@/routes/assessment/question-papers/-utils/helper';
+import { MyButton } from '@/components/design-system/button';
+import { ExportQuestionPaperSettingsDialogAI } from './export-question-paper-dialog-ai/export-question-paper-setting-dialog-ai';
 
 const ExportQuestionPaperAI = ({ responseQuestionsData }: { responseQuestionsData: any }) => {
     return (
@@ -45,12 +45,12 @@ function PreviewWithSettings({ responseQuestionsData }: { responseQuestionsData:
     // Determine padding based on settings
     const getPadding = () => {
         switch (settings.pagePadding) {
-            case "low":
-                return "10mm";
-            case "high":
-                return "30mm";
+            case 'low':
+                return '10mm';
+            case 'high':
+                return '30mm';
             default:
-                return "20mm"; // medium
+                return '20mm'; // medium
         }
     };
 
@@ -75,7 +75,7 @@ function PreviewWithSettings({ responseQuestionsData }: { responseQuestionsData:
     };
 
     return (
-        <div className="min-h-screen w-full bg-slate-50/50" style={{ boxSizing: "border-box" }}>
+        <div className="min-h-screen w-full bg-slate-50/50" style={{ boxSizing: 'border-box' }}>
             <div className="no-print sticky top-0 z-10 border-b bg-white">
                 <div className="flex items-center justify-between p-4">
                     <Button
@@ -104,7 +104,7 @@ function PreviewWithSettings({ responseQuestionsData }: { responseQuestionsData:
                                 <Button
                                     variant="outline"
                                     onClick={() =>
-                                        document.getElementById("letterhead-upload")?.click()
+                                        document.getElementById('letterhead-upload')?.click()
                                     }
                                 >
                                     <Upload />

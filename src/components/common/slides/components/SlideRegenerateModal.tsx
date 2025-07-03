@@ -20,12 +20,7 @@ interface Props {
     isRegenerating: boolean;
 }
 
-export const SlideRegenerateModal = ({
-    isOpen,
-    onClose,
-    onSubmit,
-    isRegenerating,
-}: Props) => {
+export const SlideRegenerateModal = ({ isOpen, onClose, onSubmit, isRegenerating }: Props) => {
     const [prompt, setPrompt] = useState('');
 
     const handleSubmit = async () => {
@@ -48,7 +43,7 @@ export const SlideRegenerateModal = ({
                 className={cn(
                     'transition-all duration-500 ease-in-out data-[state=closed]:duration-300',
                     isRegenerating
-                        ? 'fixed !w-[260px] !p-4 !bottom-5 !right-5 !top-auto !left-auto !translate-x-0 !translate-y-0 !rounded-lg'
+                        ? 'fixed !bottom-5 !left-auto !right-5 !top-auto !w-[260px] !translate-x-0 !translate-y-0 !rounded-lg !p-4'
                         : 'p-6 sm:max-w-lg'
                 )}
                 onInteractOutside={(e) => {
@@ -59,7 +54,7 @@ export const SlideRegenerateModal = ({
             >
                 {isRegenerating ? (
                     <div className="flex h-full items-center space-x-3">
-                        <Loader2 className="h-6 w-6 animate-spin text-purple-500" />
+                        <Loader2 className="size-6 animate-spin text-purple-500" />
                         <span className="font-semibold text-neutral-700">Regenerating...</span>
                     </div>
                 ) : (
@@ -115,7 +110,7 @@ export const SlideRegenerateModal = ({
                                 >
                                     {isRegenerating ? (
                                         <>
-                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            <Loader2 className="mr-2 size-4 animate-spin" />
                                             Please wait...
                                         </>
                                     ) : (
@@ -129,4 +124,4 @@ export const SlideRegenerateModal = ({
             </DialogContent>
         </Dialog>
     );
-}; 
+};

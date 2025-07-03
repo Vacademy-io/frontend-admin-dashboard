@@ -1,7 +1,7 @@
-import { Steps } from "@/types/assessments/assessment-data-type";
-import sectionDetailsSchema from "./section-details-sechma";
-import { z } from "zod";
-import { AdaptiveMarking } from "../-hooks/getQuestionsDataForSection";
+import { Steps } from '@/types/assessments/assessment-data-type';
+import sectionDetailsSchema from './section-details-sechma';
+import { z } from 'zod';
+import { AdaptiveMarking } from '../-hooks/getQuestionsDataForSection';
 
 interface QuestionAndMarking {
     question_id?: string | undefined;
@@ -50,7 +50,7 @@ export function getStepKey({
 
 export const parseHTMLIntoString = (htmlString: string) => {
     const parser = new DOMParser();
-    const doc = parser.parseFromString(htmlString, "text/html");
+    const doc = parser.parseFromString(htmlString, 'text/html');
     return doc;
 };
 
@@ -58,7 +58,7 @@ export const copyToClipboard = async (text: string) => {
     try {
         await navigator.clipboard.writeText(text);
     } catch (err) {
-        console.log("Failed to copy text. Please try again.");
+        console.log('Failed to copy text. Please try again.');
     }
 };
 
@@ -78,9 +78,9 @@ export function calculateTotalMarks(questions: AdaptiveMarking[]) {
 
 export const convertStep2Data = (data: z.infer<typeof sectionDetailsSchema>) => {
     return data.section.map((section, index) => ({
-        section_description_html: section.section_description || "",
+        section_description_html: section.section_description || '',
         section_name: section.sectionName,
-        section_id: section.sectionId || "",
+        section_id: section.sectionId || '',
         section_duration:
             parseInt(section.section_duration.hrs) * 60 + parseInt(section.section_duration.min),
         section_order: index + 1,
@@ -91,7 +91,7 @@ export const convertStep2Data = (data: z.infer<typeof sectionDetailsSchema>) => 
             question_id: question.questionId,
             marking_json: JSON.stringify({
                 data: {
-                    totalMark: question.questionMark || "",
+                    totalMark: question.questionMark || '',
                 },
             }),
         })),
@@ -109,7 +109,7 @@ export function classifySections(oldSectionData: Section[], newSectionData: Sect
             acc[section.section_id] = section;
             return acc;
         },
-        {} as { [key: string]: Section },
+        {} as { [key: string]: Section }
     );
 
     const newSectionMap = new Set(newSectionData.map((section) => section.section_id));
@@ -143,10 +143,10 @@ export function classifySections(oldSectionData: Section[], newSectionData: Sect
 
             // Create maps for quick lookup
             const oldQuestionsMap = new Map(
-                oldSection?.question_and_marking?.map((q) => [q.question_id, q]),
+                oldSection?.question_and_marking?.map((q) => [q.question_id, q])
             );
             const newQuestionsMap = new Map(
-                newSection?.question_and_marking?.map((q) => [q.question_id, q]),
+                newSection?.question_and_marking?.map((q) => [q.question_id, q])
             );
 
             const updatedQuestionAndMarking: QuestionAndMarking[] = [];
@@ -211,9 +211,9 @@ export const isQuillContentEmpty = (content: string) => {
     if (!content) return true;
 
     // Check for common Quill empty patterns
-    if (content === "<p><br></p>" || content === "<p></p>") return true;
+    if (content === '<p><br></p>' || content === '<p></p>') return true;
 
     // Strip all HTML tags and check if there's any text content left
-    const textOnly = content.replace(/<[^>]*>/g, "").trim();
+    const textOnly = content.replace(/<[^>]*>/g, '').trim();
     return textOnly.length === 0;
 };

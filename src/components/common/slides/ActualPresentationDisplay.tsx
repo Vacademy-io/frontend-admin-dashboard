@@ -9,7 +9,7 @@ import { useSlideStore } from '@/stores/Slides/useSlideStore'; // For participan
 import type { Slide as AppSlide } from './utils/types';
 import type { SessionDetails } from './SlideEditorComponent'; // Assuming SessionDetails type is exported or define here
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Maximize, Minimize } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Maximize, Minimize, X, Tv2 } from 'lucide-react';
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance'; // For API calls
 import { toast } from 'sonner'; // For notifications
 import { ParticipantsSidePanel } from '../slides/components/ParticipantsSidePanel'; // Implied import for ParticipantsSidePanel component
@@ -333,20 +333,46 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
 
     if (!currentSlideData) {
         return (
-            <div className="flex h-screen w-screen flex-col items-center justify-center bg-slate-900 text-white">
-                <p>No slide to display or slide not found.</p>
-                <Button onClick={onVoltExit} className="mt-4">Exit Volt</Button>
+            <div className="flex h-screen w-screen flex-col items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden">
+                {/* Ambient background effects */}
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-900/10 via-transparent to-purple-900/10 pointer-events-none" />
+                <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl animate-pulse" />
+                <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+                
+                <div className="relative z-10 text-center">
+                    <div className="mb-6 p-4 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 w-fit mx-auto">
+                        <Tv2 size={48} className="text-orange-400" />
+                    </div>
+                    <h2 className="text-2xl font-bold mb-2 bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent">
+                        No Slide Available
+                    </h2>
+                    <p className="text-white/60 mb-8 max-w-md">
+                        No slide to display or slide not found. Please check your presentation content.
+                    </p>
+                    <Button 
+                        onClick={onVoltExit} 
+                        className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 border border-red-400/30 text-white font-semibold backdrop-blur-sm transition-all duration-300 ease-out hover:scale-105 shadow-lg shadow-red-500/25 px-6 py-3 rounded-xl"
+                    >
+                        <X size={16} className="mr-2" />
+                        Exit Session
+                    </Button>
+                </div>
             </div>
         );
     }
 
     return (
-        <div ref={presentationContainerRef} className="flex h-screen w-screen flex-col bg-slate-800 outline-none">
+        <div ref={presentationContainerRef} className="flex h-screen w-screen flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 outline-none relative overflow-hidden">
+            {/* Ambient background effects */}
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-900/10 via-transparent to-purple-900/10 pointer-events-none" />
+            <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl animate-pulse" />
+            <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+            
             <LiveSessionActionBar
                 inviteCode={liveSessionData?.invite_code || 'N/A'}
                 currentSlideIndex={currentSlideIndex}
                 totalSlides={slides.length}
-                participantsCount={participantsList.length} // Use length of the new state
+                participantsCount={participantsList.length}
                 onToggleParticipantsView={() => onToggleParticipantsPanel && onToggleParticipantsPanel()}
                 isParticipantsPanelOpen={isParticipantsPanelOpen}
                 onToggleWhiteboard={() => setIsWhiteboardOpen(!isWhiteboardOpen)} 
@@ -359,76 +385,124 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
                 audioBlobUrl={audioBlobUrl}
                 onDownloadAudio={handleDownloadAudio}
                 recordingDuration={recordingDuration}
-                sseStatus={sseStatus} // Pass the new sseStatus state
+                sseStatus={sseStatus}
                 onGenerateTranscript={onGenerateTranscript}
             />
 
             {/* Main content area for the slide */}
-            <div className="flex-grow overflow-hidden relative" style={{ paddingTop: '3.5rem' }}> {/* Adjust padding to be below action bar */}
+            <div className="flex-grow overflow-hidden relative transition-all duration-300 ease-in-out" style={{ paddingTop: '4rem' }}>
+                <div className="h-full w-full relative">
+                    {/* Slide container with modern styling */}
+                    <div className="absolute inset-4 md:inset-8 lg:inset-12 xl:inset-16 2xl:inset-20">
+                        <div className="h-full w-full bg-white/95 backdrop-blur-sm rounded-2xl lg:rounded-3xl shadow-2xl border border-white/20 overflow-hidden transition-all duration-500 ease-out transform hover:shadow-3xl">
+                            {/* Subtle border glow */}
+                            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-transparent to-purple-500/10 rounded-2xl lg:rounded-3xl opacity-50" />
+                            
+                            {/* Slide content */}
+                            <div className="relative h-full w-full p-1">
                  {currentSlideId && (
+                                    <div className="h-full w-full transition-opacity duration-300 ease-in-out">
                     <SlideRenderer currentSlideId={currentSlideId} editModeExcalidraw={true} editModeQuiz={false} />
+                                    </div>
                 )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
                 {isQuestionSlideForResponses && liveSessionData && currentSlideData && (
+                    <div className="absolute inset-0 transition-all duration-300 ease-in-out">
                     <ResponseOverlay sessionId={liveSessionData.session_id} slideData={currentSlideData} />
+                    </div>
                 )}
             </div>
 
-            {/* Bottom Navigation / Controls for Presentation View */}
-            <div className="fixed bottom-0 left-0 right-0 z-[1002] flex items-center justify-between bg-slate-800/80 p-2 text-white backdrop-blur-sm">
+            {/* Modern Bottom Navigation Controls */}
+            <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-[1002] transition-all duration-300 ease-in-out">
+                <div className="flex items-center gap-3 bg-black/20 backdrop-blur-xl border border-white/10 rounded-2xl px-4 py-3 shadow-2xl">
+                    {/* Previous button */}
                 <Button 
                     onClick={goToPreviousSlide} 
                     disabled={currentSlideIndex === 0}
                     variant="ghost" 
                     size="icon"
-                    className="hover:bg-slate-700"
+                        className="h-12 w-12 rounded-xl bg-white/10 hover:bg-white/20 disabled:bg-white/5 border border-white/10 text-white hover:text-white disabled:text-white/30 transition-all duration-200 ease-out hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed shadow-lg"
                  >
-                    <ChevronLeft size={28} />
+                        <ChevronLeft size={24} className="transition-transform duration-200 group-hover:-translate-x-0.5" />
                 </Button>
-                <span className="text-sm">{currentSlideIndex + 1} / {slides.length}</span>
+                    
+                    {/* Slide counter with modern styling */}
+                    <div className="px-6 py-2 bg-white/10 backdrop-blur-sm rounded-xl border border-white/10">
+                        <span className="text-white font-medium text-sm lg:text-base tracking-wide">
+                            <span className="font-mono text-blue-300">{currentSlideIndex + 1}</span>
+                            <span className="text-white/60 mx-2">/</span>
+                            <span className="font-mono text-white/80">{slides.length}</span>
+                        </span>
+                    </div>
+                    
+                    {/* Fullscreen toggle */}
                 <Button 
                     onClick={toggleFullscreen} 
                     variant="ghost" 
                     size="icon" 
-                    className="hover:bg-slate-700"
+                        className="h-12 w-12 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-white hover:text-white transition-all duration-200 ease-out hover:scale-105 shadow-lg"
                     title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
                 >
-                    {isFullscreen ? <Minimize size={24} /> : <Maximize size={24} />}
+                        {isFullscreen ? 
+                            <Minimize size={20} className="transition-transform duration-200" /> : 
+                            <Maximize size={20} className="transition-transform duration-200" />
+                        }
                 </Button>
+                    
+                    {/* Next button */}
                 <Button 
                     onClick={goToNextSlide} 
                     disabled={currentSlideIndex === slides.length - 1}
                     variant="ghost" 
                     size="icon"
-                    className="hover:bg-slate-700"
+                        className="h-12 w-12 rounded-xl bg-white/10 hover:bg-white/20 disabled:bg-white/5 border border-white/10 text-white hover:text-white disabled:text-white/30 transition-all duration-200 ease-out hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed shadow-lg"
                 >
-                    <ChevronRight size={28} />
+                        <ChevronRight size={24} className="transition-transform duration-200 group-hover:translate-x-0.5" />
                 </Button>
+                </div>
             </div>
 
-            {/* Floating Action Button for Quick Questions */}
+            {/* Enhanced Floating Action Button for Quick Questions */}
             {liveSessionData?.session_id && onAddQuickQuestion && (
+                <div className="fixed bottom-20 right-6 z-[1003] transition-all duration-300 ease-in-out">
                 <QuickQuestionFAB onAddQuickQuestion={onAddQuickQuestion} />
+                </div>
             )}
 
-            {/* Conditionally render ParticipantsSidePanel */}
+            {/* Enhanced Participants Side Panel */}
             {liveSessionData?.session_id && (
+                <div className={`fixed inset-0 z-[1004] transition-all duration-300 ease-in-out ${isParticipantsPanelOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}>
+                    {/* Backdrop */}
+                    <div className={`absolute inset-0 bg-black/20 backdrop-blur-sm transition-opacity duration-300 ${isParticipantsPanelOpen ? 'opacity-100' : 'opacity-0'}`} />
+                    
                 <ParticipantsSidePanel
                     sessionId={liveSessionData.session_id}
-                    isOpen={isParticipantsPanelOpen} // Prop from parent (SlideEditorComponent)
-                    onClose={() => onToggleParticipantsPanel && onToggleParticipantsPanel()} // Prop from parent
-                    participants={participantsList} // From ActualPresentationDisplay's state
-                    sseStatus={sseStatus} // From ActualPresentationDisplay's state
-                    topOffset="3.5rem" // Height of the LiveSessionActionBar (h-14)
+                        isOpen={isParticipantsPanelOpen}
+                        onClose={() => onToggleParticipantsPanel && onToggleParticipantsPanel()}
+                        participants={participantsList}
+                        sseStatus={sseStatus}
+                        topOffset="4rem" // Height of the enhanced LiveSessionActionBar
                 />
+                </div>
             )}
 
-            {/* SessionExcalidrawOverlay would be conditionally rendered here if used */}
+            {/* Enhanced Whiteboard Overlay */}
             {isWhiteboardOpen && liveSessionData?.session_id && (
+                <div className={`fixed inset-0 z-[1005] transition-all duration-300 ease-in-out ${isWhiteboardOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}>
+                    {/* Backdrop */}
+                    <div className={`absolute inset-0 bg-black/30 backdrop-blur-sm transition-opacity duration-300 ${isWhiteboardOpen ? 'opacity-100' : 'opacity-0'}`} />
+                    
                 <SessionExcalidrawOverlay
                     sessionId={liveSessionData.session_id}
                     isOpen={isWhiteboardOpen}
                     onClose={() => setIsWhiteboardOpen(false)}
                 />
+                </div>
             )}
         </div>
     );

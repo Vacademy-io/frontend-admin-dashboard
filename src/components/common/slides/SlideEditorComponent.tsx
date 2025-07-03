@@ -78,7 +78,7 @@ interface SlideRendererProps {
     editMode: boolean; // In editor, this will be true. In PresentationView, SlideEditor gets editMode=false
 }
 
-export default function SlidesEditorComponent({
+const SlidesEditorComponent = ({
     metaData,
     presentationId,
     isEdit, 
@@ -88,16 +88,8 @@ export default function SlidesEditorComponent({
     presentationId: string;
     isEdit: boolean;
     autoStartLive?: string;
-}) {
-    console.log(
-        '[SlideEditorComponent] Props received on render:',
-        JSON.stringify({
-            metaData,
-            presentationId,
-            isEdit,
-            autoStartLive,
-        })
-    );
+}) => {
+    // Removed verbose prop logging for better performance
     const {
         slides,
         currentSlideId,
@@ -1844,7 +1836,7 @@ export default function SlidesEditorComponent({
                     }}
                 />
                 <Dialog open={isFinishModalOpen} onOpenChange={(isOpen) => !isTranscribingOnFinish && setIsFinishModalOpen(isOpen)}>
-                    <DialogContent>
+                    <DialogContent className="!w-[600px] !max-w-[95vw] !p-0" style={{ width: '600px', maxWidth: '95vw', padding: '0' }}>
                         {isTranscribingOnFinish ? (
                             <AiGeneratingLoader
                                 title="Finalizing Session..."
@@ -1853,33 +1845,41 @@ export default function SlidesEditorComponent({
                             />
                         ) : (
                             <>
-                                <DialogHeader>
-                                    <DialogTitle className="text-xl font-semibold">Finish Session & Generate Summary</DialogTitle>
-                                    <DialogDescription className="mt-2 text-neutral-600">
+                                <DialogHeader className="!border-b !border-slate-200/50 !p-6 !bg-white/80 !backdrop-blur-sm" style={{ padding: '1.5rem', borderBottom: '1px solid rgb(226 232 240 / 0.5)' }}>
+                                    <DialogTitle className="!flex !items-start !gap-3 !text-lg !font-bold !text-slate-800 !leading-tight" style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', fontSize: '1.125rem', fontWeight: '700' }}>
+                                        <div className="p-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl shadow-lg flex-shrink-0">
+                                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </div>
+                                        <span className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent leading-tight">
+                                            Finish Session & Generate Summary
+                                        </span>
+                                    </DialogTitle>
+                                    <DialogDescription className="mt-3 text-slate-600 leading-relaxed">
                                         This session has an audio recording. Would you like to generate a transcript and send a summary report to participants?
                                     </DialogDescription>
                                 </DialogHeader>
-                                <DialogFooter className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-end">
+                                <DialogFooter className="!flex !flex-col !gap-3 sm:!flex-row sm:!justify-end !p-6 !border-t !border-slate-200/50 !bg-white/80 !backdrop-blur-sm" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: '1.5rem', borderTop: '1px solid rgb(226 232 240 / 0.5)' }}>
                                     <MyButton
                                         type="button"
                                         buttonType="secondary"
                                         onClick={() => cleanupAndExitSession(true)}
-                                        className="w-full sm:w-auto"
-
+                                        className="w-full sm:w-auto text-sm px-4 py-2"
                                     >
                                         Exit Without Summary
                                     </MyButton>
                                     <MyButton
                                         type="button"
                                         onClick={() => processAndFinishSession(true)}
-                                        className="w-full sm:w-auto"
+                                        className="w-full sm:w-auto text-sm px-4 py-2 bg-blue-600 hover:bg-blue-700"
                                     >
                                         Finish in Background
                                     </MyButton>
                                     <MyButton
                                         type="submit"
                                         onClick={() => processAndFinishSession(false)}
-                                        className="w-full sm:w-auto"
+                                        className="w-full sm:w-auto text-sm px-4 py-2"
                                     >
                                         Finish and Generate
                                     </MyButton>
@@ -2279,4 +2279,15 @@ export default function SlidesEditorComponent({
             </Dialog>
         </div>
     );
-}
+};
+
+// Memoize the main component for better performance
+export default React.memo(SlidesEditorComponent, (prevProps, nextProps) => {
+    return (
+        prevProps.presentationId === nextProps.presentationId &&
+        prevProps.isEdit === nextProps.isEdit &&
+        prevProps.autoStartLive === nextProps.autoStartLive &&
+        prevProps.metaData.title === nextProps.metaData.title &&
+        prevProps.metaData.description === nextProps.metaData.description
+    );
+});

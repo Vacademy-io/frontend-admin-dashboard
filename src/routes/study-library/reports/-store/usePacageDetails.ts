@@ -1,4 +1,4 @@
-import { create } from "zustand";
+import { create } from 'zustand';
 
 interface SelectionState {
     course: string;
@@ -12,10 +12,10 @@ interface SelectionState {
 }
 
 export const usePacageDetails = create<SelectionState>((set) => ({
-    course: "",
-    session: "",
-    level: "",
-    pacageSessionId: "",
+    course: '',
+    session: '',
+    level: '',
+    pacageSessionId: '',
     setPacageSessionId: (id) => set({ pacageSessionId: id }),
     setCourse: (course) => set({ course }),
     setSession: (session) => set({ session }),

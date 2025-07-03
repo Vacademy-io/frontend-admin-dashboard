@@ -1,20 +1,20 @@
-import { MyButton } from "@/components/design-system/button";
-import { MyDialog } from "@/components/design-system/dialog";
-import { useState, useEffect } from "react";
-import { Row } from "@tanstack/react-table";
+import { MyButton } from '@/components/design-system/button';
+import { MyDialog } from '@/components/design-system/dialog';
+import { useState, useEffect } from 'react';
+import { Row } from '@tanstack/react-table';
 import {
     SubjectOverviewBatchColumnType,
     ChapterReport,
     ChapterOverviewColumns,
     CHAPTER_OVERVIEW_WIDTH,
-} from "../../-types/types";
-import { useMutation } from "@tanstack/react-query";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { MyTable } from "@/components/design-system/table";
-import { fetchChapterWiseProgress, fetchLearnersChapterWiseProgress } from "../../-services/utils";
-import { usePacageDetails } from "../../-store/usePacageDetails";
-import dayjs from "dayjs";
-import { formatToTwoDecimalPlaces, convertMinutesToTimeFormat } from "../../-services/helper";
+} from '../../-types/types';
+import { useMutation } from '@tanstack/react-query';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { MyTable } from '@/components/design-system/table';
+import { fetchChapterWiseProgress, fetchLearnersChapterWiseProgress } from '../../-services/utils';
+import { usePacageDetails } from '../../-store/usePacageDetails';
+import dayjs from 'dayjs';
+import { formatToTwoDecimalPlaces, convertMinutesToTimeFormat } from '../../-services/helper';
 
 export const ViewDetails = ({ row }: { row: Row<SubjectOverviewBatchColumnType> }) => {
     const [viewDetailsState, setViewDetailsState] = useState(false);
@@ -29,38 +29,38 @@ export const ViewDetails = ({ row }: { row: Row<SubjectOverviewBatchColumnType> 
     const { isPending: isChapterPending, error: chapterError } = ChapterWiseMutation;
     const { isPending: isLearnerPending, error: learnerError } = LearnersChapterWiseMutation;
     const date = new Date().toString();
-    const currDate = dayjs(date).format("DD/MM/YYYY");
+    const currDate = dayjs(date).format('DD/MM/YYYY');
     useEffect(() => {
         if (viewDetailsState) {
-            if (row.getValue("user_id")) {
+            if (row.getValue('user_id')) {
                 LearnersChapterWiseMutation.mutate(
                     {
-                        userId: row.getValue("user_id"),
-                        moduleId: row.getValue("module_id"),
+                        userId: row.getValue('user_id'),
+                        moduleId: row.getValue('module_id'),
                     },
                     {
                         onSuccess: (data) => {
                             setChapterReportData(data);
                         },
                         onError: (error) => {
-                            console.error("Error:", error);
+                            console.error('Error:', error);
                         },
-                    },
+                    }
                 );
             } else {
                 ChapterWiseMutation.mutate(
                     {
                         packageSessionId: pacageSessionId,
-                        moduleId: row.getValue("module_id"),
+                        moduleId: row.getValue('module_id'),
                     },
                     {
                         onSuccess: (data) => {
                             setChapterReportData(data);
                         },
                         onError: (error) => {
-                            console.error("Error:", error);
+                            console.error('Error:', error);
                         },
-                    },
+                    }
                 );
             }
         }
@@ -89,10 +89,10 @@ export const ViewDetails = ({ row }: { row: Row<SubjectOverviewBatchColumnType> 
                         <div>Course: {course}</div>
                         <div>Session: {session}</div>
                         <div>Level: {level}</div>
-                        <div>Subject: {row.getValue("subject")}</div>
-                        <div>Module: {row.getValue("module")}</div>
+                        <div>Subject: {row.getValue('subject')}</div>
+                        <div>Module: {row.getValue('module')}</div>
                     </div>
-                    {(isChapterPending || isLearnerPending) && <DashboardLoader/>}
+                    {(isChapterPending || isLearnerPending) && <DashboardLoader />}
                     {chapterReportData &&
                         chapterReportData.map((chapter) => (
                             <div key={chapter.chapter_id} className="flex flex-col gap-6">
@@ -109,10 +109,10 @@ export const ViewDetails = ({ row }: { row: Row<SubjectOverviewBatchColumnType> 
                                             chapter.slides?.map((slide) => ({
                                                 study_slide: slide.slide_title,
                                                 batch_concentration_score: `${formatToTwoDecimalPlaces(
-                                                    slide.avg_concentration_score,
+                                                    slide.avg_concentration_score
                                                 )} %`,
                                                 average_time_spent: `${convertMinutesToTimeFormat(
-                                                    slide.avg_time_spent,
+                                                    slide.avg_time_spent
                                                 )}`,
                                             })) || [],
                                         total_pages: 0,

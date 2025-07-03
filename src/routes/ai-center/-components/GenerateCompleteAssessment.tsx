@@ -218,8 +218,7 @@ const GenerateCompleteAssessment = ({
                                                             layoutVariant="default"
                                                             className="mr-4 text-sm"
                                                         >
-                                                            <DashboardLoader
-                                                            />
+                                                            <DashboardLoader />
                                                         </MyButton>
                                                     ) : (
                                                         <MyButton
