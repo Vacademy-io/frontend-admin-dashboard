@@ -22,6 +22,9 @@ import { useLiveSessionStore } from '../schedule/-store/sessionIdstore';
 import { useNavigate } from '@tanstack/react-router';
 import { useSessionDetailsStore } from '../-store/useSessionDetailsStore';
 import { DraftSession, getSessionBySessionId } from '../-services/utils';
+import { LiveSessionReport } from '../-services/utils';
+import { registrationColumns, REGISTRATION_WIDTH } from '../-constants/reportTable';
+import { MyTable } from '@/components/design-system/table';
 
 interface LiveSessionCardProps {
     session: LiveSession;
@@ -42,7 +45,7 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
     const formattedDateTime = `${session.meeting_date} ${session.start_time}`;
 
     const navigate = useNavigate();
-    const { setSessionId , setIsEdit} = useLiveSessionStore();
+    const { setSessionId, setIsEdit } = useLiveSessionStore();
     const { setSessionDetails } = useSessionDetailsStore();
 
     const handleEditSession = async () => {
@@ -67,6 +70,24 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
         } catch (error) {
             console.error('Error deleting session:', error);
         }
+    };
+
+    const convertToReportTableData = (data: LiveSessionReport[]) => {
+        return data.map((item, idx) => ({
+            index: idx + 1,
+            username: item.fullName,
+            phoneNumber: item.mobileNumber,
+            email: item.email,
+        }));
+    };
+
+    const tableData = {
+        content: reportResponse ? convertToReportTableData(reportResponse) : [],
+        total_pages: 0,
+        page_no: 0,
+        page_size: 10,
+        total_elements: 0,
+        last: true,
     };
 
     const fetchSessionDetail = async () => {
@@ -110,7 +131,12 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
                             <DropdownMenuItem className="cursor-pointer" onClick={handleDelete}>
                                 Delete Live Session
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="cursor-pointer" onClick={() => {}}>
+                            <DropdownMenuItem
+                                className="cursor-pointer"
+                                onClick={() => {
+                                    handleOpenDialog();
+                                }}
+                            >
                                 View Registration List
                             </DropdownMenuItem>
                             <DropdownMenuItem
@@ -194,19 +220,19 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
                 onOpenChange={handleOpenDialog}
                 className="w-[80vw] max-w-4xl"
             >
-                <div className="flex flex-col gap-3 p-4 text-sm">
-                    {/* <div className="mt-4 rounded-lg">
-                        <h3 className="mb-2 text-lg font-semibold">Attendance</h3>
+                <div className="flex flex-col gap-3 p-4 text-sm h-full">
+                    <div className="mt-4 rounded-lg h-full">
+                        <h3 className="mb-2 text-lg font-semibold">Registrations</h3>
                         <MyTable
                             data={tableData}
-                            columns={reportColumns}
+                            columns={registrationColumns}
                             isLoading={isPending}
                             error={error as Error | null}
-                            columnWidths={REPORT_WIDTH}
+                            columnWidths={REGISTRATION_WIDTH}
                             currentPage={0}
-                            // className="!h-full"
+                            className="!w-fit !h-[70%]"
                         />
-                    </div> */}
+                    </div>
                 </div>
             </MyDialog>
         </div>
