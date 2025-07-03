@@ -121,6 +121,7 @@ export const addParticipantsSchema = z.object({
     }),
     fields: z.array(
         z.object({
+            id: z.string().optional(),
             label: z.string().min(1, 'Field label is required').max(100, 'Field label too long'),
             required: z.boolean(),
             isDefault: z.boolean(),

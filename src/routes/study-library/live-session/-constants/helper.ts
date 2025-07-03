@@ -130,7 +130,6 @@ export function transformFormToDTOStep1(
 
     // Convert hours and minutes to total duration in hours
     const totalDuration = Number(durationHours) + Number(durationMinutes) / 60;
-    console.log('startTime ', startTime);
 
     // Fix timezone handling by creating an ISO string that preserves the local time
     const [datePart, timePart] = startTime.split('T');
@@ -165,7 +164,6 @@ export function transformFormToDTOStep1(
                     durationMinutes?: string;
                     link?: string;
                 }) => {
-                    console.log('session ', session);
                     const duration =
                         Number(session.durationHours) * 60 + Number(session.durationMinutes);
                     const baseSchedule: ScheduleDTO = {
@@ -187,6 +185,10 @@ export function transformFormToDTOStep1(
         });
 
         // Anything left in originalScheduleMap is considered deleted
+        for (const id of originalScheduleMap.keys()) {
+            deleted_schedule_ids.push(id);
+        }
+    } else {
         for (const id of originalScheduleMap.keys()) {
             deleted_schedule_ids.push(id);
         }
@@ -267,15 +269,31 @@ export function transformFormToDTOStep2(
             });
         });
     }
+    const { added_fields, update_fields } = fields.reduce(
+        (acc, field) => {
+            const fieldData: CustomFieldDTO = {
+                id: field.id ?? null,
+                label: field.label,
+                required: field.required,
+                is_default: field.isDefault,
+                type: field.type,
+                options: field.options,
+            };
 
-    const addedFields: CustomFieldDTO[] = fields.map((field) => ({
-        id: null,
-        label: field.label,
-        required: field.required,
-        is_default: field.isDefault,
-        type: field.type,
-        options: field.options,
-    }));
+            if (field.id) {
+                acc.update_fields.push(fieldData);
+            } else {
+                acc.added_fields.push(fieldData);
+            }
+
+            return acc;
+        },
+        {
+            added_fields: [] as CustomFieldDTO[],
+            update_fields: [] as CustomFieldDTO[],
+        }
+    );
+      
 
     return {
         session_id: sessionId,
@@ -286,8 +304,8 @@ export function transformFormToDTOStep2(
         added_notification_actions: addedNotificationActions,
         updated_notification_actions: [],
         deleted_notification_action_ids: [],
-        added_fields: addedFields,
-        updated_fields: [],
+        added_fields: added_fields,
+        updated_fields: update_fields,
         deleted_field_ids: [],
     };
 }
