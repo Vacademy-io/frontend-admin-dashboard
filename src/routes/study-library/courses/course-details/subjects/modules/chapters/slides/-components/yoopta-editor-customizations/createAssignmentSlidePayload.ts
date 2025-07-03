@@ -1,6 +1,5 @@
-// src/routes/study-library/courses/levels/subjects/modules/chapters/slides/-utils/create-assignment-slide-payload.ts
 
-import type { DocumentSlidePayload, Slide } from '@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides';
+import type { DocumentSlidePayload, Slide }  from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-hooks/use-slides';
 import { generateUniqueAssignmentSlideTitle } from '../../-helper/slide-naming-utils';
 
 export function createAssignmentSlidePayload(
