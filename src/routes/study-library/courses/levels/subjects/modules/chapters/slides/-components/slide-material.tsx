@@ -75,7 +75,9 @@ export const SlideMaterial = ({
     const router = useRouter();
     const [content, setContent] = useState<JSX.Element | null>(null);
     const isAutoSavingRef = useRef(false);
-    const getCurrentExcalidrawStateRef = useRef<(() => { elements: any[], appState: any, files: any }) | null>(null);
+    const getCurrentExcalidrawStateRef = useRef<
+        (() => { elements: any[]; appState: any; files: any }) | null
+    >(null);
     const isExcalidrawBusyRef = useRef(false); // Track if Excalidraw is performing intensive operations
     const pendingStateUpdateRef = useRef<any>(null); // Store pending state updates
     const stableKeyRef = useRef<string>(''); // Stable key during operations
@@ -85,7 +87,12 @@ export const SlideMaterial = ({
     const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
     const [isUnpublishDialogOpen, setIsUnpublishDialogOpen] = useState(false);
     const { getPackageSessionId } = useInstituteDetailsStore();
-    const { addUpdateDocumentSlide, addUpdateVideoSlide, updateQuestionOrder, updateAssignmentOrder } = useSlidesMutations(
+    const {
+        addUpdateDocumentSlide,
+        addUpdateVideoSlide,
+        updateQuestionOrder,
+        updateAssignmentOrder,
+    } = useSlidesMutations(
         chapterId || '',
         moduleId || '',
         subjectId || '',
@@ -157,8 +164,6 @@ export const SlideMaterial = ({
                         // Get current editor content and check if it's empty
                         const currentContent = html.serialize(editor, editor.children);
                         const currentIsEmpty = checkIsEmpty(currentContent);
-                        console.log('[Slide Material] onChange - currentIsEmpty:', currentIsEmpty);
-                        console.log('[Slide Material] onChange - currentContent:', currentContent);
 
                         // Update placeholder state
                         setShowPlaceholder(currentIsEmpty);
@@ -176,13 +181,7 @@ export const SlideMaterial = ({
                 ? activeItem.document_slide?.published_data || null
                 : activeItem?.document_slide?.data || null;
 
-        console.log('[Slide Material] Raw docData:', docData);
-        console.log('[Slide Material] activeItem status:', activeItem?.status);
-        console.log('[Slide Material] published_data:', activeItem?.document_slide?.published_data);
-        console.log('[Slide Material] data:', activeItem?.document_slide?.data);
-
         const editorContent = html.deserialize(editor, docData || '');
-        console.log('[Slide Material] Deserialized editorContent:', editorContent);
 
         editor.setEditorValue(editorContent);
 
@@ -213,18 +212,6 @@ export const SlideMaterial = ({
         // Check if content is empty - handle HTML structure
         const isEmpty = checkIsEmpty(docData);
 
-        console.log('[Slide Material] isEmpty check:', isEmpty);
-        console.log('[Slide Material] docData after trim:', docData?.trim());
-        console.log(
-            '[Slide Material] Text content after HTML removal:',
-            docData
-                ? docData
-                      .replace(/<[^>]*>/g, '')
-                      .replace(/\s+/g, '')
-                      .trim()
-                : 'null'
-        );
-
         setContent(<EditorWithPlaceholder initialIsEmpty={isEmpty} />);
         editor.focus();
     };
@@ -241,19 +228,10 @@ export const SlideMaterial = ({
         async (elements: any[], appState: any, files: any, fileId?: string) => {
             if (!activeItem || activeItem.document_slide?.type !== 'PRESENTATION') return;
 
-            console.log(`[SlideMaterial] handleExcalidrawChange called:`, {
-                slideId: activeItem.id,
-                currentFileId: activeItem.document_slide?.data,
-                newFileId: fileId,
-                hasNewFileId: !!fileId,
-                elementsCount: elements?.length || 0
-            });
-
             // Only update database if we have a new fileId from auto-save
             if (fileId && fileId !== activeItem.document_slide?.data) {
                 // Prevent infinite loops by tracking auto-save state
                 if (isAutoSavingRef.current) {
-                    console.log('Auto-save already in progress, skipping...');
                     return;
                 }
 
@@ -261,18 +239,11 @@ export const SlideMaterial = ({
 
                 // Determine the correct status based on current state
                 let newStatus = activeItem.status || 'DRAFT';
-                
+
                 // If the slide is PUBLISHED and being edited, change status to UNSYNC
                 if (activeItem.status === 'PUBLISHED') {
                     newStatus = 'UNSYNC';
                 }
-
-                console.log(`[SlideMaterial] Updating slide in database:`, {
-                    slideId: activeItem.id,
-                    oldStatus: activeItem.status,
-                    newStatus: newStatus,
-                    fileId: fileId
-                });
 
                 try {
                     await addUpdateDocumentSlide({
@@ -295,33 +266,33 @@ export const SlideMaterial = ({
                         new_slide: false,
                         notify: false,
                     });
-                    
+
                     // Update local activeItem state with the new fileId and status
                     // Only update if Excalidraw is not performing intensive operations
                     if (!isExcalidrawBusyRef.current) {
                         const updatedActiveItem = {
                             ...activeItem,
                             status: newStatus,
-                            document_slide: activeItem.document_slide ? {
-                                ...activeItem.document_slide,
-                                data: fileId, // Update local state with new fileId
-                            } : undefined,
+                            document_slide: activeItem.document_slide
+                                ? {
+                                      ...activeItem.document_slide,
+                                      data: fileId, // Update local state with new fileId
+                                  }
+                                : undefined,
                         };
                         setActiveItem(updatedActiveItem);
                     } else {
-                        console.log('[SlideMaterial] Excalidraw is busy, storing pending state update...');
-                        // Store the pending update to be applied when operation completes
                         pendingStateUpdateRef.current = {
                             ...activeItem,
                             status: newStatus,
-                            document_slide: activeItem.document_slide ? {
-                                ...activeItem.document_slide,
-                                data: fileId,
-                            } : undefined,
+                            document_slide: activeItem.document_slide
+                                ? {
+                                      ...activeItem.document_slide,
+                                      data: fileId,
+                                  }
+                                : undefined,
                         };
                     }
-                    
-                    console.log('Excalidraw auto-saved successfully:', { fileId, status: newStatus });
                 } catch (error) {
                     console.error('Error auto-saving Excalidraw:', error);
                 } finally {
@@ -425,11 +396,9 @@ export const SlideMaterial = ({
                             onBusyStateChange={(isBusy) => {
                                 const wasBusy = isExcalidrawBusyRef.current;
                                 isExcalidrawBusyRef.current = isBusy;
-                                console.log(`[SlideMaterial] Excalidraw busy state changed:`, isBusy);
-                                
+
                                 // If operation just completed and we have a pending update, apply it
                                 if (wasBusy && !isBusy && pendingStateUpdateRef.current) {
-                                    console.log('[SlideMaterial] Operation completed, applying pending state update');
                                     const pendingUpdate = pendingStateUpdateRef.current;
                                     setActiveItem(pendingUpdate);
                                     pendingStateUpdateRef.current = null;
@@ -901,6 +870,31 @@ export const SlideMaterial = ({
                 return;
             }
 
+            // ✅ Handle ASSIGNMENT first (before DOC)
+            if (documentType === 'ASSIGNMENT') {
+                try {
+                    const rawData =
+                        activeItem.status === 'PUBLISHED'
+                            ? activeItem.document_slide?.data ||
+                              activeItem.document_slide?.published_data
+                            : activeItem.document_slide?.data;
+
+                    const assignmentData = rawData ? JSON.parse(rawData) : null;
+
+                    setContent(
+                        <StudyLibraryAssignmentPreview
+                           
+                            activeItem={activeItem}
+                        />
+                    );
+                } catch (error) {
+                    console.error('Error rendering assignment preview:', error);
+                    setContent(<div>Error loading assignment</div>);
+                }
+                return;
+            }
+
+            // 🔁 Then handle DOC
             if (documentType === 'DOC') {
                 try {
                     setTimeout(() => {
@@ -920,10 +914,10 @@ export const SlideMaterial = ({
             return;
         }
 
-        if (activeItem.source_type === 'ASSIGNMENT') {
-            setContent(<StudyLibraryAssignmentPreview activeItem={activeItem} />);
-            return;
-        }
+        // if (activeItem.source_type === 'ASSIGNMENT') {
+        //     setContent(<StudyLibraryAssignmentPreview activeItem={activeItem} />);
+        //     return;
+        // }
 
         // Fallback
         setContent(
@@ -940,7 +934,10 @@ export const SlideMaterial = ({
             const slide = slideToSave ? slideToSave : activeItem;
             // Determine the correct status based on slide type and current state
             let status: string;
-            if (slide?.source_type === 'DOCUMENT' && slide?.document_slide?.type === 'PRESENTATION') {
+            if (
+                slide?.source_type === 'DOCUMENT' &&
+                slide?.document_slide?.type === 'PRESENTATION'
+            ) {
                 // For presentations, use the same logic as auto-save
                 status = slide?.status || 'DRAFT';
                 if (slide?.status === 'PUBLISHED') {
@@ -1013,7 +1010,6 @@ export const SlideMaterial = ({
                     notify: false,
                 };
                 try {
-                    console.log('Saving split screen slide with payload:', videoSlidePayload);
                     await addUpdateVideoSlide(videoSlidePayload);
                     toast.success(`Split screen slide saved successfully!`);
 
@@ -1071,19 +1067,11 @@ export const SlideMaterial = ({
                 try {
                     // For presentations, use the same status logic as auto-save
                     let presentationStatus = slide?.status || 'DRAFT';
-                    
+
                     // If the slide is PUBLISHED and being edited, change status to UNSYNC
                     if (slide?.status === 'PUBLISHED') {
                         presentationStatus = 'UNSYNC';
                     }
-
-                    console.log(`[SaveDraft] Saving presentation slide:`, {
-                        slideId: slide?.id,
-                        oldStatus: slide?.status,
-                        newStatus: presentationStatus,
-                        data: slide?.document_slide?.data,
-                        published_data: slide?.document_slide?.published_data
-                    });
 
                     await addUpdateDocumentSlide({
                         id: slide?.id || '',
@@ -1114,9 +1102,10 @@ export const SlideMaterial = ({
                         setActiveItem(updatedActiveItem);
                     }
 
-                    const successMessage = slide?.status === 'PUBLISHED' 
-                        ? 'Presentation saved as draft (unsync from published version)!'
-                        : 'Presentation saved successfully!';
+                    const successMessage =
+                        slide?.status === 'PUBLISHED'
+                            ? 'Presentation saved as draft (unsync from published version)!'
+                            : 'Presentation saved successfully!';
                     toast.success(successMessage);
                 } catch {
                     toast.error('Error saving presentation');
@@ -1228,7 +1217,7 @@ export const SlideMaterial = ({
             }
 
             const currentState = getCurrentExcalidrawStateRef.current();
-            
+
             if (!currentState.elements || currentState.elements.length === 0) {
                 toast.error('No content to publish. Please add some content first.');
                 return;
@@ -1244,7 +1233,9 @@ export const SlideMaterial = ({
             };
 
             // Step 3: Upload current state to S3
-            const jsonBlob = new Blob([JSON.stringify(excalidrawData)], { type: 'application/json' });
+            const jsonBlob = new Blob([JSON.stringify(excalidrawData)], {
+                type: 'application/json',
+            });
             const fileName = `excalidraw_${activeItem.id}_published_${Date.now()}.json`;
             const jsonFile = new File([jsonBlob], fileName, {
                 type: 'application/json',
@@ -1296,11 +1287,13 @@ export const SlideMaterial = ({
             const updatedActiveItem = {
                 ...activeItem,
                 status: 'PUBLISHED' as any,
-                document_slide: activeItem.document_slide ? {
-                    ...activeItem.document_slide,
-                    data: publishedFileId,
-                    published_data: publishedFileId,
-                } : undefined,
+                document_slide: activeItem.document_slide
+                    ? {
+                          ...activeItem.document_slide,
+                          data: publishedFileId,
+                          published_data: publishedFileId,
+                      }
+                    : undefined,
             };
             setActiveItem(updatedActiveItem);
 
@@ -1329,17 +1322,7 @@ export const SlideMaterial = ({
     }, [activeItem]);
 
     useEffect(() => {
-        console.log(
-            '🔄 Active slide management - items length:',
-            items?.length,
-            'activeItem:',
-            activeItem?.id,
-            'slideId:',
-            slideId
-        );
-
         if (items && items.length === 0 && slideId === undefined) {
-            console.log('📭 No slides available, setting activeItem to null');
             setActiveItem(null);
             return;
         }
@@ -1351,18 +1334,14 @@ export const SlideMaterial = ({
 
             if (activeSlideStillExists) {
                 // Active slide still exists, keep it selected
-                console.log('✅ Current active slide still exists:', activeItem.title);
+
                 return;
             }
-
-            // Active slide no longer exists (deleted) OR no active slide
-            console.log('🔄 Active slide missing or null, finding new active slide...');
 
             // Priority 1: Use slideId from URL if available
             if (slideId) {
                 const targetSlide = items.find((slide) => slide.id === slideId);
                 if (targetSlide) {
-                    console.log('🎯 Setting slide from URL as active:', targetSlide.title);
                     setActiveItem(targetSlide);
                     return;
                 }
@@ -1371,7 +1350,7 @@ export const SlideMaterial = ({
             // Priority 2: Always set first available slide as active
             // This handles both new slide creation and slide deletion scenarios
             const firstSlide = items[0];
-            console.log('📌 Setting first slide as active:', firstSlide?.title);
+
             setActiveItem(firstSlide || null);
         }
     }, [items, slideId]);

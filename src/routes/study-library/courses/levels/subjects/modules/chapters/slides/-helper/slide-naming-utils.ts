@@ -10,16 +10,16 @@ export const SLIDE_TYPE_NAMES = {
     JUPYTER: 'Jupyter Notebook',
     SCRATCH: 'Scratch Project',
     CODE: 'Code Editor',
-    
+
     // Video types
     VIDEO: 'Video',
-    
+
     // Question types
     QUESTION: 'Question',
-    
+
     // Assignment types
     ASSIGNMENT: 'Assignment',
-    
+
     // PDF types
     PDF: 'PDF Document',
 } as const;
@@ -46,23 +46,19 @@ export function getSlideTypeForNaming(slide: Partial<Slide>): string {
                 return SLIDE_TYPE_NAMES.DOC;
         }
     }
-    
-    // Handle video slides
+
     if (slide.source_type === 'VIDEO') {
         return SLIDE_TYPE_NAMES.VIDEO;
     }
-    
-    // Handle question slides
+
     if (slide.source_type === 'QUESTION') {
         return SLIDE_TYPE_NAMES.QUESTION;
     }
-    
-    // Handle assignment slides
+
     if (slide.source_type === 'ASSIGNMENT') {
         return SLIDE_TYPE_NAMES.ASSIGNMENT;
     }
-    
-    // Default fallback
+
     return 'Slide';
 }
 
@@ -77,7 +73,7 @@ export function countSlidesOfType(allSlides: Slide[], targetSlideType: string): 
 }
 
 /**
- * Generate a unique slide name based on type and existing count
+ * Generate a unique slide name based on type and existing titles
  */
 export function generateUniqueSlideTitle(
     allSlides: Slide[],
@@ -85,10 +81,17 @@ export function generateUniqueSlideTitle(
     customPrefix?: string
 ): string {
     const typeForNaming = customPrefix || slideType;
-    const existingCount = countSlidesOfType(allSlides, typeForNaming);
-    const nextNumber = existingCount + 1;
-    
-    return `${typeForNaming} ${nextNumber}`;
+    const existingTitles = new Set(allSlides.map(slide => slide.title?.trim() || ''));
+
+    let counter = 1;
+    let candidateTitle = `${typeForNaming} ${counter}`;
+
+    while (existingTitles.has(candidateTitle)) {
+        counter++;
+        candidateTitle = `${typeForNaming} ${counter}`;
+    }
+
+    return candidateTitle;
 }
 
 /**
@@ -99,7 +102,7 @@ export function generateUniqueDocumentSlideTitle(
     documentType: string
 ): string {
     let slideTypeName: string;
-    
+
     switch (documentType) {
         case 'DOC':
             slideTypeName = SLIDE_TYPE_NAMES.DOC;
@@ -119,7 +122,7 @@ export function generateUniqueDocumentSlideTitle(
         default:
             slideTypeName = SLIDE_TYPE_NAMES.DOC;
     }
-    
+
     return generateUniqueSlideTitle(allSlides, slideTypeName);
 }
 
@@ -142,4 +145,4 @@ export function generateUniqueQuestionSlideTitle(allSlides: Slide[]): string {
  */
 export function generateUniqueAssignmentSlideTitle(allSlides: Slide[]): string {
     return generateUniqueSlideTitle(allSlides, SLIDE_TYPE_NAMES.ASSIGNMENT);
-} 
+}
