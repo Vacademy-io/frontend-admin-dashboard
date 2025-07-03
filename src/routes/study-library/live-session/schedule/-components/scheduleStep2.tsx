@@ -41,7 +41,8 @@ export default function ScheduleStep2() {
     const { studyLibraryData } = useStudyLibraryStore();
     const [addCustomFieldDialog, setAddCustomFieldDialog] = useState<boolean>(false);
     const [previewDialog, setPreviewDialog] = useState<boolean>(false);
-    const sessionId = useLiveSessionStore((state) => state.sessionId);
+    const { sessionId } = useLiveSessionStore();
+    const {clearSessionId} = useLiveSessionStore();
     const isEditState = useLiveSessionStore((state) => state.isEdit);
     const { sessionDetails } = useSessionDetailsStore();
 
@@ -52,7 +53,8 @@ export default function ScheduleStep2() {
 
     useEffect(() => {
         if (!sessionId) {
-            navigate({ to: '/study-library/live-session/schedule/step1' });
+            console.log("here " , sessionId)
+            navigate({ to: '/study-library/live-session' });
         }
     }, [sessionId, navigate]);
 

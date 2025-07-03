@@ -57,6 +57,7 @@ const STREAMING_OPTIONS = [
 export default function ScheduleStep1() {
     // Hooks and State
     const navigate = useNavigate();
+    const {setSessionId} = useLiveSessionStore();
     const { sessionDetails } = useSessionDetailsStore();
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [selectedMusicFile, setSelectedMusicFile] = useState<File | null>(null);
@@ -268,6 +269,8 @@ export default function ScheduleStep1() {
         try {
             const response = await createLiveSessionStep1(body);
             useLiveSessionStore.getState().setSessionId(response.id);
+            console.log(response.id)
+            setSessionId(response.id)
             navigate({ to: '/study-library/live-session/schedule/step2' });
         } catch (error) {
             console.error(error);
