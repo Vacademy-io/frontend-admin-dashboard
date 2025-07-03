@@ -57,8 +57,8 @@ export const ChapterMaterial = ({ currentModuleId }: { currentModuleId: string }
         const chapterIds: string[] = [chapter.chapter.id];
         try {
             await deleteChapterMutation.mutateAsync({
-                moduleId: moduleId,
-                subjectId,
+                moduleId: moduleId || '',
+                subjectId: subjectId || '',
                 packageSessionIds: packageSessionId || '',
                 chapterIds: chapterIds,
             });

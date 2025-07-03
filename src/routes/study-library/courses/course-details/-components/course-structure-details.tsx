@@ -320,7 +320,6 @@ export const CourseStructureDetails = ({
         const slide = chapterSlidesMap[chapterId]?.find((s) => s.id === slideId);
         if (slide) {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
             setActiveItem(slide);
         } else {
             // Fallback for safety, though this path should ideally not be taken
