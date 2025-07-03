@@ -77,7 +77,7 @@ export function countSlidesOfType(allSlides: Slide[], targetSlideType: string): 
 }
 
 /**
- * Generate a unique slide name based on type and existing count
+ * Generate a unique slide name based on type and existing titles
  */
 export function generateUniqueSlideTitle(
     allSlides: Slide[],
@@ -85,10 +85,17 @@ export function generateUniqueSlideTitle(
     customPrefix?: string
 ): string {
     const typeForNaming = customPrefix || slideType;
-    const existingCount = countSlidesOfType(allSlides, typeForNaming);
-    const nextNumber = existingCount + 1;
+    const existingTitles = new Set(allSlides.map(slide => slide.title?.trim() || ''));
 
-    return `${typeForNaming} ${nextNumber}`;
+    let counter = 1;
+    let candidateTitle = `${typeForNaming} ${counter}`;
+
+    while (existingTitles.has(candidateTitle)) {
+        counter++;
+        candidateTitle = `${typeForNaming} ${counter}`;
+    }
+
+    return candidateTitle;
 }
 
 /**

@@ -31,6 +31,7 @@ import {
     generateUniqueAssignmentSlideTitle,
 } from '../../-helper/slide-naming-utils';
 import { toast } from 'sonner';
+import { createAssignmentSlidePayload } from '../yoopta-editor-customizations/createAssignmentSlidePayload';
 import { createPresentationSlidePayload } from '../create-presentation-slide';
 
 // Simple utility function for setting first slide as active (used as fallback)
@@ -245,56 +246,22 @@ export const ChapterSidebarAddButton = () => {
             case 'question':
                 openQuestionDialog();
                 break;
-
             case 'assignment': {
                 try {
-                    const slideId = crypto.randomUUID();
-                    const title = generateUniqueAssignmentSlideTitle(items || []);
-
-                    const response = await addUpdateDocumentSlide({
-                        id: slideId,
-                        title: title,
-                        image_file_id: '',
-                        description: 'Assignment for student response',
-                        slide_order: 0,
-                        document_slide: {
-                            id: crypto.randomUUID(),
-                            type: 'ASSIGNMENT',
-                            data: JSON.stringify({
-                                parent_rich_text: {
-                                    id: null,
-                                    type: '',
-                                    content: '',
-                                },
-                                text_data: {
-                                    id: null,
-                                    type: '',
-                                    content: '',
-                                },
-                                live_date: '',
-                                end_date: '',
-                                re_attempt_count: 0,
-                                comma_separated_media_ids: '',
-                                timestamp: Date.now(),
-                            }),
-                            title: title,
-                            cover_file_id: '',
-                            total_pages: 1,
-                            published_data: null,
-                            published_document_total_pages: 0,
-                        },
-                        status: 'DRAFT',
-                        new_slide: true,
-                        notify: false,
-                    });
-
+                    const payload = createAssignmentSlidePayload(items || []);
+                    const response = await addUpdateDocumentSlide(payload);
+                  
                     if (response) {
-                        await reorderSlidesAfterNewSlide(slideId);
+                        await reorderSlidesAfterNewSlide(payload.id||'');
                         toast.success('Assignment created successfully!');
+                    } else {
+                        throw new Error('Empty response returned from API.');
                     }
                 } catch (err) {
-                    console.error('Error creating assignment:', err);
-                    toast.error('Failed to create assignment');
+                    console.error('❌ Error creating assignment:', err);
+                    toast.error(
+                        (err as Error)?.message || 'Failed to create assignment. Please try again.'
+                    );
                 }
                 break;
             }
