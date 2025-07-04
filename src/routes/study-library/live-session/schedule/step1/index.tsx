@@ -4,7 +4,6 @@ import { Helmet } from 'react-helmet';
 import { useEffect } from 'react';
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
 import { CaretLeft } from 'phosphor-react';
-import { useNavigate } from '@tanstack/react-router';
 import ScheduleStep1 from '../-components/scheduleStep1';
 export const Route = createFileRoute('/study-library/live-session/schedule/step1/')({
     component: RouteComponent,
@@ -12,17 +11,10 @@ export const Route = createFileRoute('/study-library/live-session/schedule/step1
 
 function RouteComponent() {
     const { setNavHeading } = useNavHeadingStore();
-    const navigate = useNavigate();
-
-    const handleBackClick = () => {
-        navigate({
-            to: '/study-library/live-session',
-        });
-    };
 
     const heading = (
         <div className="flex items-center gap-4">
-            <CaretLeft onClick={handleBackClick} className="cursor-pointer" />
+            <CaretLeft onClick={() => window.history.back()} className="cursor-pointer" />
             <div>Schedule Live Sessions</div>
         </div>
     );

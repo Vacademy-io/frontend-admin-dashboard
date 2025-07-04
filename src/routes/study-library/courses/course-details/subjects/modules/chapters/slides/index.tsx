@@ -122,27 +122,14 @@ function RouteComponent() {
         setModuleName(getModuleName(moduleId || ''));
     }, [studyLibraryData, modulesWithChaptersData, subjectId, moduleId]);
 
-    const handleBackClick = useCallback(() => {
-        navigate({
-            to: `/study-library/courses/course-details/subjects/modules/chapters`,
-            search: {
-                courseId,
-                levelId,
-                subjectId,
-                moduleId,
-                sessionId: sessionId,
-            },
-        });
-    }, [courseId, levelId, subjectId, moduleId, sessionId, navigate]);
-
     const heading = useMemo(
         () => (
             <div className="flex items-center gap-4">
-                <CaretLeft onClick={handleBackClick} className="cursor-pointer" />
+                <CaretLeft onClick={() => window.history.back()} className="cursor-pointer" />
                 <div>{`${chapterName || ''} Slides`}</div>
             </div>
         ),
-        [chapterName, handleBackClick]
+        [chapterName]
     );
 
     const SidebarComponent = useMemo(
