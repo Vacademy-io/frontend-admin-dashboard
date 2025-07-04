@@ -1,5 +1,5 @@
 import { LayoutContainer } from '@/components/common/layout-container/layout-container';
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 import { AICenterProvider } from '../../-contexts/useAICenterContext';
 import EvaluateLectureAI from './-components/EvaluateLectureAI';
 import { useEffect } from 'react';
@@ -11,20 +11,12 @@ export const Route = createFileRoute('/ai-center/ai-tools/vsmart-feedback/')({
 });
 
 function RouteComponent() {
-    const navigate = useNavigate();
     const { setNavHeading } = useNavHeadingStore();
 
     useEffect(() => {
         const heading = (
             <div className="flex items-center gap-4">
-                <CaretLeft
-                    onClick={() => {
-                        navigate({
-                            to: '/ai-center',
-                        });
-                    }}
-                    className="cursor-pointer"
-                />
+                <CaretLeft onClick={() => window.history.back()} className="cursor-pointer" />
                 <div>VSmart AI Tools</div>
             </div>
         );

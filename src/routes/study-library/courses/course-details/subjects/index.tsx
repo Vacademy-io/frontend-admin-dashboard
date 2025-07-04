@@ -1,5 +1,5 @@
 // routes/study-library/$class/$subject/index.tsx
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 import { LayoutContainer } from '@/components/common/layout-container/layout-container';
 import { InitStudyLibraryProvider } from '@/providers/study-library/init-study-library-provider';
 import { useEffect, useState } from 'react';
@@ -27,32 +27,17 @@ export const Route = createFileRoute('/study-library/courses/course-details/subj
 
 function RouteComponent() {
     const { setNavHeading } = useNavHeadingStore();
-    const navigate = useNavigate();
     const { courseId, levelId } = Route.useSearch();
     const levelName = getLevelName(levelId);
     const { getLevelsFromPackage } = useInstituteDetailsStore();
     const { studyLibraryData } = useStudyLibraryStore();
 
     const levelList = getLevelsFromPackage({ courseId: courseId });
-
-    const handleBackClick = () => {
-        if (levelId == 'DEFAULT') {
-            navigate({
-                to: '/study-library/courses',
-            });
-        } else {
-            navigate({
-                to: '/study-library/courses/course-details',
-                search: { courseId: courseId },
-            });
-        }
-    };
-
     const [courseName, setCourseName] = useState(getCourseNameById(courseId));
 
     const heading = (
         <div className="flex items-center gap-4">
-            <CaretLeft onClick={handleBackClick} className="cursor-pointer" />
+            <CaretLeft onClick={() => window.history.back()} className="cursor-pointer" />
             <div>
                 {levelId === 'DEFAULT' ? '' : levelName} {courseName}
             </div>
