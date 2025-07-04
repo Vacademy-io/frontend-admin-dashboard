@@ -468,14 +468,11 @@ export const CourseMaterial = () => {
 
             {/* Add Tabs Section Here */}
             <Tabs value={selectedTab} onValueChange={handleTabChange}>
-                <TabsList className="inline-flex h-auto justify-start gap-4 rounded-none border-b !bg-transparent p-0">
+                <TabsList className="inline-flex h-auto w-full justify-start gap-4 rounded-none border-b !bg-transparent p-0">
                     <TabsTrigger
                         value="AllCourses"
-                        className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
-                            selectedTab === 'AllCourses'
-                                ? 'border-4px rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
-                                : 'border-none bg-transparent'
-                        }`}
+                        className={`-mb-px rounded-none border-b-2 text-sm font-semibold !shadow-none
+                            ${selectedTab === 'AllCourses' ? 'border-primary-500 !text-primary-500' : 'border-transparent text-gray-500'}`}
                     >
                         <span
                             className={`${selectedTab === 'AllCourses' ? 'text-primary-500' : ''}`}
@@ -488,11 +485,8 @@ export const CourseMaterial = () => {
                         <>
                             <TabsTrigger
                                 value="AuthoredCourses"
-                                className={`inline-flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
-                                    selectedTab === 'AuthoredCourses'
-                                        ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
-                                        : 'border-none bg-transparent'
-                                }`}
+                                className={`-mb-px rounded-none border-b-2 text-sm font-semibold !shadow-none
+                                    ${selectedTab === 'AuthoredCourses' ? 'border-primary-500 !text-primary-500' : 'border-transparent text-gray-500'}`}
                             >
                                 <span
                                     className={`${selectedTab === 'AuthoredCourses' ? 'text-primary-500' : ''}`}
@@ -502,11 +496,8 @@ export const CourseMaterial = () => {
                             </TabsTrigger>
                             <TabsTrigger
                                 value="CourseRequests"
-                                className={`inline-flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
-                                    selectedTab === 'CourseRequests'
-                                        ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
-                                        : 'border-none bg-transparent'
-                                }`}
+                                className={`-mb-px rounded-none border-b-2 text-sm font-semibold !shadow-none
+                                    ${selectedTab === 'CourseRequests' ? 'border-primary-500 !text-primary-500' : 'border-transparent text-gray-500'}`}
                             >
                                 <span
                                     className={`${selectedTab === 'CourseRequests' ? 'text-primary-500' : ''}`}
@@ -519,11 +510,8 @@ export const CourseMaterial = () => {
                     {roles?.includes('TEACHER') && !roles?.includes('ADMIN') && (
                         <TabsTrigger
                             value="AuthoredCourses"
-                            className={`inline-flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
-                                selectedTab === 'AuthoredCourses'
-                                    ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
-                                    : 'border-none bg-transparent'
-                            }`}
+                            className={`-mb-px rounded-none border-b-2 text-sm font-semibold !shadow-none
+                                ${selectedTab === 'AuthoredCourses' ? 'border-primary-500 !text-primary-500' : 'border-transparent text-gray-500'}`}
                         >
                             <span
                                 className={`${selectedTab === 'AuthoredCourses' ? 'text-primary-500' : ''}`}
