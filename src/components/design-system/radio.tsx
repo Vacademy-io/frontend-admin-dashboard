@@ -13,11 +13,17 @@ interface RadioGroupFieldProps {
     onChange: (value: string) => void;
     name: string;
     className?: string;
+    disabled?:boolean;
 }
 
-export function MyRadioButton({ options, value, onChange, name, className }: RadioGroupFieldProps) {
+export function MyRadioButton({ options, value, onChange, name, className , disabled = false}: RadioGroupFieldProps) {
     return (
-        <RadioGroup defaultValue={value} onValueChange={onChange} className={className}>
+        <RadioGroup
+            disabled={disabled}
+            defaultValue={value}
+            onValueChange={onChange}
+            className={className}
+        >
             {options.map((option, index) => {
                 const id = `${name}-${index}`;
                 return (

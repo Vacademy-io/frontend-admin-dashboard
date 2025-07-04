@@ -1,5 +1,3 @@
-import { SidebarMenuItem } from '@/components/ui/sidebar';
-import { Separator } from '@/components/ui/separator';
 import { ProgressBar } from '@/components/design-system/progress-bar';
 import {
     Key,
@@ -9,7 +7,6 @@ import {
     Envelope,
     MapPin,
     Users,
-    Calendar,
     Clock,
     TrendUp,
     Shield,
@@ -30,6 +27,7 @@ import { useDialogStore } from '@/routes/manage-students/students-list/-hooks/us
 import { useGetStudentDetails } from '@/services/get-student-details';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { StudentTable } from '@/types/student-table-types';
+import { HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
 
 export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean }) => {
     const { selectedStudent } = useStudentSidebar();
@@ -40,17 +38,18 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
     const userId = isSubmissionTab ? selectedStudent?.id : selectedStudent?.user_id;
     const { data: studentDetails, isLoading, isError } = useGetStudentDetails(userId || '');
 
-    const { getDetailsFromPackageSessionId, instituteDetails } = useInstituteDetailsStore();
+    const { getDetailsFromPackageSessionId, instituteDetails, showForInstitutes } =
+        useInstituteDetailsStore();
 
     const { getCredentials } = useStudentCredentialsStore();
     const [password, setPassword] = useState(
         getCredentials(isSubmissionTab ? selectedStudent?.id || '' : selectedStudent?.user_id || '')
             ?.password || 'password not found'
     );
-    const { 
+    const {
         openIndividualShareCredentialsDialog,
         openIndividualSendEmailDialog,
-        openIndividualSendMessageDialog 
+        openIndividualSendMessageDialog,
     } = useDialogStore();
 
     // Copy function with feedback
@@ -111,6 +110,7 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
             parents_to_mother_mobile_number: '',
             parents_to_mother_email: '',
             package_id: selectedStudent?.package_id || '',
+            country: studentDetails?.country || '',
         };
 
         const learner = isSubmissionTab ? student : selectedStudent;
@@ -119,6 +119,7 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
                 selectedStudent: learner,
                 packageSessionDetails: details,
                 password: password,
+                isShow: showForInstitutes([HOLISTIC_INSTITUTE_ID]),
             })
         );
 
@@ -149,7 +150,7 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
     }
 
     return (
-        <div className="relative animate-fadeIn flex flex-col gap-3 text-neutral-600">
+        <div className="animate-fadeIn relative flex flex-col gap-3 text-neutral-600">
             {/* Compact Edit Button */}
             <div className="flex justify-center">
                 <EditStudentDetails />
@@ -206,15 +207,11 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
             <div className="rounded-lg border border-neutral-200/50 bg-gradient-to-br from-white to-neutral-50/30 p-3 transition-all duration-200 hover:border-primary-200/50 hover:shadow-md">
                 <div className="mb-2 flex items-center gap-2.5">
                     <div className="rounded-md bg-gradient-to-br from-blue-50 to-blue-100 p-1.5">
-                        <Bell className="text-blue-600 size-4" />
+                        <Bell className="size-4 text-blue-600" />
                     </div>
                     <div className="flex-1">
-                        <h4 className="text-xs font-medium text-neutral-700">
-                            Send Notification
-                        </h4>
-                        <p className="text-[10px] text-neutral-500">
-                            Email or WhatsApp message
-                        </p>
+                        <h4 className="text-xs font-medium text-neutral-700">Send Notification</h4>
+                        <p className="text-[10px] text-neutral-500">Email or WhatsApp message</p>
                     </div>
                 </div>
 
@@ -230,13 +227,13 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
                                 openIndividualSendEmailDialog(selectedStudent);
                             }
                         }}
-                        className="hover:scale-102 group flex-1 flex items-center justify-center gap-1.5 border border-blue-200 bg-white text-xs text-blue-700 transition-all duration-200 hover:border-blue-300 hover:bg-blue-50 cursor-pointer"
+                        className="hover:scale-102 group flex flex-1 cursor-pointer items-center justify-center gap-1.5 border border-blue-200 bg-white text-xs text-blue-700 transition-all duration-200 hover:border-blue-300 hover:bg-blue-50"
                         style={{ pointerEvents: 'auto', zIndex: 10 }}
                     >
                         <Envelope className="size-3 transition-transform duration-200 group-hover:scale-110" />
                         Email
                     </MyButton>
-                    
+
                     <MyButton
                         type="button"
                         buttonType="secondary"
@@ -247,7 +244,7 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
                                 openIndividualSendMessageDialog(selectedStudent);
                             }
                         }}
-                        className="hover:scale-102 group flex-1 flex items-center justify-center gap-1.5 border border-green-200 bg-white text-xs text-green-700 transition-all duration-200 hover:border-green-300 hover:bg-green-50 cursor-pointer"
+                        className="hover:scale-102 group flex flex-1 cursor-pointer items-center justify-center gap-1.5 border border-green-200 bg-white text-xs text-green-700 transition-all duration-200 hover:border-green-300 hover:bg-green-50"
                         style={{ pointerEvents: 'auto', zIndex: 10 }}
                     >
                         <WhatsappLogo className="size-3 transition-transform duration-200 group-hover:scale-110" />
@@ -294,7 +291,7 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
                         return (
                             <div key={key} className="group">
                                 <div
-                                    className={`rounded-lg border border-neutral-200/50 bg-gradient-to-br from-white to-neutral-50/30 p-2.5 transition-all duration-200 hover:scale-[1.01] hover:shadow-md hover:border-${sectionConfig.color}-200/50`}
+                                    className={`hover:border- rounded-lg border border-neutral-200/50 bg-gradient-to-br from-white to-neutral-50/30 p-2.5 transition-all duration-200 hover:scale-[1.01] hover:shadow-md${sectionConfig.color}-200/50`}
                                 >
                                     {/* Compact section header */}
                                     <div className="mb-2 flex items-center justify-between">
@@ -303,11 +300,11 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
                                                 className={`rounded-md bg-gradient-to-br p-1 ${sectionConfig.bg} transition-transform duration-200 group-hover:scale-105`}
                                             >
                                                 <IconComponent
-                                                    className={`size-3.5 text-${sectionConfig.color}-600`}
+                                                    className={`text- size-3.5${sectionConfig.color}-600`}
                                                 />
                                             </div>
                                             <h3
-                                                className={`text-xs font-semibold text-neutral-700 transition-colors duration-200 group-hover:text-${sectionConfig.color}-700`}
+                                                className={`group-hover:text- text-xs font-semibold text-neutral-700 transition-colors duration-200${sectionConfig.color}-700`}
                                             >
                                                 {studentDetail.heading}
                                             </h3>
@@ -322,10 +319,12 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
                                                 disable={false}
                                                 onClick={() => {
                                                     if (selectedStudent) {
-                                                        openIndividualShareCredentialsDialog(selectedStudent);
+                                                        openIndividualShareCredentialsDialog(
+                                                            selectedStudent
+                                                        );
                                                     }
                                                 }}
-                                                className="h-auto min-h-0 px-2 py-1 text-[10px] cursor-pointer"
+                                                className="h-auto min-h-0 cursor-pointer px-2 py-1 text-[10px]"
                                                 style={{ pointerEvents: 'auto', zIndex: 10 }}
                                             >
                                                 <Shield className="mr-1 size-2.5" />
@@ -385,7 +384,7 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
                                                                                 );
                                                                             }
                                                                         }}
-                                                                        className="ml-2 rounded-md p-1 hover:bg-neutral-200 cursor-pointer"
+                                                                        className="ml-2 cursor-pointer rounded-md p-1 hover:bg-neutral-200"
                                                                         style={{
                                                                             pointerEvents: 'auto',
                                                                         }}

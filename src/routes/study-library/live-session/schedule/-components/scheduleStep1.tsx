@@ -57,6 +57,7 @@ const STREAMING_OPTIONS = [
 export default function ScheduleStep1() {
     // Hooks and State
     const navigate = useNavigate();
+    const {setSessionId} = useLiveSessionStore();
     const { sessionDetails } = useSessionDetailsStore();
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [selectedMusicFile, setSelectedMusicFile] = useState<File | null>(null);
@@ -74,9 +75,8 @@ export default function ScheduleStep1() {
         defaultValues: {
             title: '',
             meetingType:
-                sessionDetails?.schedule?.added_schedules &&
-                sessionDetails.schedule.added_schedules.length > 0
-                    ? RecurringType.WEEKLY
+                sessionDetails?.schedule?.recurrence_type === 'weekly' 
+                    ? RecurringType.WEEKLY 
                     : RecurringType.ONCE,
             recurringSchedule: WEEK_DAYS.map((day) => ({
                 day: day.label,
@@ -102,6 +102,7 @@ export default function ScheduleStep1() {
             enableWaitingRoom: false,
             sessionPlatform: StreamingPlatform.YOUTUBE,
             durationMinutes: '00',
+            durationHours: '00',
         },
         mode: 'onChange',
     });
@@ -134,7 +135,7 @@ export default function ScheduleStep1() {
                     form.setValue('durationMinutes', String(minutes));
                 }
             }
-            if (sessionDetails.schedule.added_schedules.length > 0) {
+            if (sessionDetails?.schedule?.recurrence_type === 'weekly') {
                 form.setValue('meetingType', RecurringType.WEEKLY);
                 form.setValue('endDate', sessionDetails.schedule.session_end_date);
                 const transformedSchedules = WEEK_DAYS.map((day) => {
@@ -194,11 +195,10 @@ export default function ScheduleStep1() {
     const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
-            if (file.type === 'image/png') {
-                setSelectedFile(file);
-            } else {
-                alert('Please upload a PNG file');
-            }
+            setSelectedFile(file);
+        } else {
+            console.log('hgere ' , file)
+            alert('Please upload a PNG file');
         }
     };
 
@@ -258,7 +258,6 @@ export default function ScheduleStep1() {
                     },
                 ],
             })) || [];
-
         const body = transformFormToDTOStep1(
             data,
             INSTITUTE_ID,
@@ -270,6 +269,8 @@ export default function ScheduleStep1() {
         try {
             const response = await createLiveSessionStep1(body);
             useLiveSessionStore.getState().setSessionId(response.id);
+            console.log(response.id)
+            setSessionId(response.id)
             navigate({ to: '/study-library/live-session/schedule/step2' });
         } catch (error) {
             console.error(error);
@@ -708,9 +709,11 @@ export default function ScheduleStep1() {
                             </MyButton>
                         </div>
                         {selectedFile && (
-                            <div className="mt-2 flex flex-row items-center gap-2 rounded-md border border-primary-500 p-1 text-sm">
-                                {selectedFile.name}{' '}
-                                <X className="cursor-pointer" onClick={handleRemoveFile} />
+                            <div className="mt-2 flex h-fit max-w-[140px] flex-row items-center justify-between gap-2 rounded-md border border-primary-500 p-1 text-sm">
+                                <span className="max-w-[120px] overflow-hidden truncate text-ellipsis whitespace-nowrap">
+                                    {selectedFile.name}
+                                </span>
+                                <X className="shrink-0 cursor-pointer" onClick={handleRemoveFile} />
                             </div>
                         )}
                     </div>
@@ -728,8 +731,11 @@ export default function ScheduleStep1() {
                             </MyButton>
                         </div>
                         {selectedMusicFile && (
-                            <div className="mt-2 flex flex-row items-center gap-2 rounded-md border border-primary-500 p-1 text-sm">
-                                {selectedMusicFile.name}
+                            <div className="mt-2 flex h-fit max-w-[140px] flex-row items-center justify-between gap-2 rounded-md border border-primary-500 p-1 text-sm">
+                                <span className="max-w-[120px] overflow-hidden truncate text-ellipsis whitespace-nowrap">
+                                    {selectedMusicFile.name}
+                                </span>
+
                                 <X className="cursor-pointer" onClick={handleRemoveMusicFile} />
                             </div>
                         )}

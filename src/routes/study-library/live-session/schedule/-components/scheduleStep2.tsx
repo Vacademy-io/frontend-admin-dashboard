@@ -28,6 +28,7 @@ import { createLiveSessionStep2 } from '../-services/utils';
 import { useLiveSessionStore } from '../-store/sessionIdstore';
 import { useNavigate } from '@tanstack/react-router';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { useSessionDetailsStore } from '../../-store/useSessionDetailsStore';
 
 const TimeOptions = [
     { label: '5 minutes before', value: '5m' },
@@ -40,7 +41,11 @@ export default function ScheduleStep2() {
     const { studyLibraryData } = useStudyLibraryStore();
     const [addCustomFieldDialog, setAddCustomFieldDialog] = useState<boolean>(false);
     const [previewDialog, setPreviewDialog] = useState<boolean>(false);
-    const sessionId = useLiveSessionStore((state) => state.sessionId);
+    const { sessionId } = useLiveSessionStore();
+    const {clearSessionId} = useLiveSessionStore();
+    const isEditState = useLiveSessionStore((state) => state.isEdit);
+    const { sessionDetails } = useSessionDetailsStore();
+
     const navigate = useNavigate();
 
     // Get the institute details at component level
@@ -48,9 +53,51 @@ export default function ScheduleStep2() {
 
     useEffect(() => {
         if (!sessionId) {
-            navigate({ to: '/study-library/live-session/schedule/step1' });
+            console.log("here " , sessionId)
+            navigate({ to: '/study-library/live-session' });
         }
     }, [sessionId, navigate]);
+
+    useEffect(() => {
+        if (sessionDetails) {
+            form.setValue(
+                'accessType',
+                sessionDetails?.schedule?.access_type === 'public'
+                    ? AccessType.PUBLIC
+                    : AccessType.PRIVATE
+            );
+            const defaultNotifySettings = {
+                onCreate: false,
+                beforeLive: false,
+                beforeLiveTime: [] as { time: string }[],
+                onLive: false,
+            };
+
+            let mail = false;
+            let whatsapp = false;
+
+            sessionDetails?.notifications?.addedNotificationActions.forEach((action) => {
+                const { type, notify, notifyBy, time } = action;
+
+                if (type === 'ON_CREATE') {
+                    defaultNotifySettings.onCreate = notify;
+                } else if (type === 'ON_LIVE') {
+                    defaultNotifySettings.onLive = notify;
+                } else if (type === 'BEFORE_LIVE') {
+                    defaultNotifySettings.beforeLive = notify;
+                    if (time) {
+                        defaultNotifySettings.beforeLiveTime = [{ time }];
+                    }
+                }
+
+                // Merge mail & whatsapp flags
+                mail = mail || notifyBy.mail;
+                whatsapp = whatsapp || notifyBy.whatsapp;
+            });
+
+            form.setValue('notifySettings', defaultNotifySettings);
+        }
+    }, [sessionDetails]);
 
     const sessionList: DropdownItemType[] = Array.from(
         new Map(
@@ -88,7 +135,10 @@ export default function ScheduleStep2() {
     const form = useForm<z.infer<typeof addParticipantsSchema>>({
         resolver: zodResolver(addParticipantsSchema),
         defaultValues: {
-            accessType: AccessType.PRIVATE,
+            accessType:
+                sessionDetails?.schedule?.access_type === 'private'
+                    ? AccessType.PRIVATE
+                    : AccessType.PUBLIC,
             batchSelectionType: 'batch',
             selectedLevels: [],
             selectedLearners: [],
@@ -139,7 +189,30 @@ export default function ScheduleStep2() {
     });
 
     const accessType = watch('accessType');
+    console.log(accessType);
     useEffect(() => {
+        if (isEditState) {
+            if (accessType === AccessType.PUBLIC) {
+                const fields =
+                    sessionDetails?.notifications?.addedFields.map((field: any) => ({
+                        id: field.id,
+                        label: field.label,
+                        required: field.required,
+                        isDefault: field.label === 'Full Name' || field.label === 'Email',
+                        type: field.type,
+                    })) ?? [];
+
+                form.setValue('fields', fields);
+                form.setValue(
+                    'joinLink',
+                    `https://learner.vacademy.io/register/live-class?sessionId=${sessionId}`
+                );
+            } else {
+                form.setValue('fields', []);
+                form.setValue('joinLink', 'https://learner.vacademy.io/study-library/live-class');
+            }
+            return;
+        }
         if (accessType === AccessType.PUBLIC) {
             form.setValue('fields', [
                 { label: 'Full Name', required: true, isDefault: true, type: InputType.TEXT },
@@ -242,43 +315,64 @@ export default function ScheduleStep2() {
                     <Separator className="my-4" />
 
                     {/* Access Type */}
+
                     <div className="flex flex-col gap-4 font-medium">
                         <div className="font-bold">Participant Access Settings</div>
-                        <FormField
-                            control={control}
-                            name="accessType"
-                            render={({ field }) => (
-                                <MyRadioButton
-                                    name="meetingType"
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    options={[
-                                        {
-                                            label: (
-                                                <div className="flex flex-row gap-1">
-                                                    <div className="font-bold">Private Class:</div>
-                                                    Restrict the class to specific participants by
-                                                    assigning it to institute batches or selecting
-                                                    individual learners.
-                                                </div>
-                                            ),
-                                            value: AccessType.PRIVATE,
-                                        },
-                                        {
-                                            label: (
-                                                <div className="flex flex-row gap-1">
-                                                    <div className="font-bold">Public Class:</div>
-                                                    Allow anyone to join this class via a shared
-                                                    link.
-                                                </div>
-                                            ),
-                                            value: AccessType.PUBLIC,
-                                        },
-                                    ]}
-                                    className="flex flex-col gap-4"
-                                />
-                            )}
-                        />
+                        {isEditState && (
+                            <div className="flex flex-row">
+                                <div className="font-bold">{accessType} : </div>
+                                {accessType === AccessType.PRIVATE ? (
+                                    <div>
+                                        Restrict the class to specific participants by assigning it
+                                        to institute batches or selecting individual learners.
+                                    </div>
+                                ) : (
+                                    <div>Allow anyone to join this class via a shared link.</div>
+                                )}
+                            </div>
+                        )}
+                        {!isEditState && (
+                            <FormField
+                                control={control}
+                                name="accessType"
+                                render={({ field }) => (
+                                    <MyRadioButton
+                                        name="meetingType"
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        disabled={isEditState}
+                                        options={[
+                                            {
+                                                label: (
+                                                    <div className="flex flex-row gap-1">
+                                                        <div className="font-bold">
+                                                            Private Class:
+                                                        </div>
+                                                        Restrict the class to specific participants
+                                                        by assigning it to institute batches or
+                                                        selecting individual learners.
+                                                    </div>
+                                                ),
+                                                value: AccessType.PRIVATE,
+                                            },
+                                            {
+                                                label: (
+                                                    <div className="flex flex-row gap-1">
+                                                        <div className="font-bold">
+                                                            Public Class:
+                                                        </div>
+                                                        Allow anyone to join this class via a shared
+                                                        link.
+                                                    </div>
+                                                ),
+                                                value: AccessType.PUBLIC,
+                                            },
+                                        ]}
+                                        className="flex flex-col gap-4"
+                                    />
+                                )}
+                            />
+                        )}
                     </div>
 
                     {accessType === AccessType.PUBLIC && (

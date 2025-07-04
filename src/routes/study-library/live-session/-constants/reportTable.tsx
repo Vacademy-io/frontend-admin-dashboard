@@ -6,6 +6,12 @@ export interface ReportTableData {
     username: string;
     attendanceStatus: string | null;
 }
+export interface RegistrationTableData {
+    index: number;
+    username: string;
+    phoneNumber:string;
+    email:string;
+}
 
 export const reportColumns: ColumnDef<ReportTableData>[] = [
     {
@@ -38,9 +44,33 @@ export const reportColumns: ColumnDef<ReportTableData>[] = [
         },
     },
 ];
+export const registrationColumns: ColumnDef<RegistrationTableData>[] = [
+    {
+        accessorKey: 'index',
+        header: 'Sr. No.',
+    },
+    {
+        accessorKey: 'username',
+        header: 'Members Name',
+    },
+    {
+        accessorKey: 'phoneNumber',
+        header: 'Members Phone Number',
+    },
+    {
+        accessorKey: 'email',
+        header: 'Members Email',
+    },
+];
 
 export const REPORT_WIDTH: Record<string, string> = {
     index: 'w-[20px]',
     username: 'w-[120px]',
     attendanceStatus: 'w-[150px]',
+};
+export const REGISTRATION_WIDTH: Record<string, string> = {
+    index: 'w-[20px]',
+    username: 'w-[150px]',
+    phoneNumber: 'w-[150px]',
+    email: 'w-[150px]',
 };

@@ -48,6 +48,7 @@ export interface StudentTable {
     status: 'ACTIVE' | 'TERMINATED' | 'INACTIVE';
     session_expiry_days: number;
     institute_id: string;
+    country?: string;
     expiry_date: number;
     face_file_id: string;
     attempt_id?: string;
