@@ -11,7 +11,6 @@ export interface ResponseQuestionList {
     type: string;
     studentDetails: StudentDetailsQuestion[];
 }
-
 export interface SubmissionStudentData {
     registration_id: string;
     student_name: string;
@@ -22,7 +21,12 @@ export interface SubmissionStudentData {
     user_id: string;
     duration: number;
     batch_id: string;
+
+    // ✅ Add these two fields from the response
+    report_release_result_status: string | null;
+    last_report_release_date: string | null;
 }
+
 
 export interface StudentDetailsAttemptedOpen {
     userId: string;
