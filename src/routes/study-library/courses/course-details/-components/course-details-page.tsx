@@ -34,6 +34,7 @@ import { handleGetSlideCountDetails } from '../-services/get-slides-count';
 import { CourseDetailsRatingsComponent } from './course-details-ratings-page';
 import { transformApiDataToCourseData } from '../-utils/helper';
 import { CourseStructureDetails } from './course-structure-details';
+import { AddCourseForm } from '@/components/common/study-library/add-course/add-course-form';
 
 type SlideType = {
     id: string;
@@ -310,22 +311,26 @@ export const CourseDetailsPage = () => {
                                 </div>
                             ) : (
                                 <>
-                                    <div className="mb-4 flex gap-2">
-                                        {form.getValues('courseData').tags.map((tag, index) => (
-                                            <span
-                                                key={index}
-                                                className="rounded-full bg-blue-600 px-3 py-1 text-sm"
-                                            >
-                                                {tag}
-                                            </span>
-                                        ))}
-                                    </div>
                                     <h1 className="mb-4 text-4xl font-bold">
                                         {form.getValues('courseData').title}
                                     </h1>
                                     <p className="text-lg opacity-90">
                                         {form.getValues('courseData').description}
                                     </p>
+                                    <div className="mt-4 flex gap-2">
+                                        {form.getValues('courseData').tags.map((tag, index) => (
+                                            <span
+                                                key={index}
+                                                className="rounded-md border px-3 py-1 text-sm shadow-lg"
+                                            >
+                                                {tag}
+                                            </span>
+                                        ))}
+                                    </div>
+                                    <AddCourseForm
+                                        isEdit={true}
+                                        initialCourseData={form.getValues()}
+                                    />
                                 </>
                             )}
                         </div>

@@ -1,3 +1,4 @@
+import { CourseDetailsFormValues } from '@/routes/study-library/courses/course-details/-components/course-details-schema';
 import { Step1Data, Step2Data } from '../add-course/add-course-form';
 
 export type CourseFormData = Step1Data & Step2Data;
@@ -274,9 +275,9 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
         contain_levels: hasLevels || hasSessions,
         sessions,
         is_course_published_to_catalaouge: formData.publishToCatalogue,
-        course_preview_image_media_id: formData.coursePreview?.id || '',
-        course_banner_media_id: formData.courseBanner?.id || '',
-        course_media_id: formData.courseMedia?.id || '',
+        course_preview_image_media_id: formData.coursePreview || '',
+        course_banner_media_id: formData.courseBanner || '',
+        course_media_id: formData.courseMedia || '',
         why_learn_html: formData.learningOutcome || '',
         who_should_learn_html: formData.targetAudience || '',
         about_the_course_html: formData.aboutCourse || '',
@@ -285,3 +286,37 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
         course_html_description: formData.description || '',
     };
 };
+
+export function transformCourseData(course: CourseDetailsFormValues) {
+    return {
+        id: course.courseData.id,
+        course: course.courseData.packageName || course.courseData.title || '',
+        description: course.courseData.description ?? '',
+        learningOutcome: course.courseData.whatYoullLearn ?? '',
+        aboutCourse: course.courseData.aboutTheCourse ?? '',
+        targetAudience: course.courseData.whoShouldLearn ?? '',
+        coursePreview: course.courseData.coursePreviewImageMediaId ?? '',
+        courseBanner: course.courseData.courseBannerMediaId ?? '',
+        courseMedia: course.courseData.courseMediaId ?? '',
+        tags: course.courseData.tags ?? [],
+        levelStructure: course.courseData.courseStructure ?? 0,
+        hasLevels: course.courseData.courseStructure > 0 ? 'YES' : 'NO',
+        hasSessions:
+            Array.isArray(course.courseData.sessions) && course.courseData.sessions.length > 0
+                ? 'YES'
+                : 'NO',
+        sessions: (course.courseData.sessions || []).map((session) => ({
+            id: session.sessionDetails?.id ?? '',
+            name: session.sessionDetails?.session_name ?? '',
+            startDate: session.sessionDetails?.start_date ?? '',
+            levels: (session.levelDetails || []).map((level) => ({
+                id: level.id,
+                name: level.name,
+                userIds: [], // No user data in input
+            })),
+        })),
+        selectedInstructors: [], // No data available in input
+        instructors: [], // No data available in input
+        publishToCatalogue: course.courseData.isCoursePublishedToCatalaouge ?? false,
+    };
+}

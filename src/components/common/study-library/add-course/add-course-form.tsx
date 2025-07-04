@@ -6,7 +6,7 @@ import { MyButton } from '@/components/design-system/button';
 import { AddCourseStep1, step1Schema } from './add-course-steps/add-course-step1';
 import { AddCourseStep2, step2Schema } from './add-course-steps/add-course-step2';
 import { toast } from 'sonner';
-import { convertToApiCourseFormat } from '../-utils/helper';
+import { convertToApiCourseFormat, transformCourseData } from '../-utils/helper';
 import { useAddCourse } from '@/services/study-library/course-operations/add-course';
 import { useNavigate } from '@tanstack/react-router';
 import { useAddSubject } from '@/routes/study-library/courses/course-details/subjects/-services/addSubject';
@@ -15,6 +15,7 @@ import { useAddChapter } from '@/routes/study-library/courses/course-details/sub
 import { SubjectType } from '@/routes/study-library/courses/course-details/-components/course-details-page';
 import { fetchInstituteDetails } from '@/services/student-list-section/getInstituteDetails';
 import { BatchForSessionType } from '@/schemas/student/student-list/institute-schema';
+import { CourseDetailsFormValues } from '@/routes/study-library/courses/course-details/-components/course-details-schema';
 
 export interface Level {
     id: string;
@@ -35,7 +36,13 @@ export type Step2Data = z.infer<typeof step2Schema>;
 export interface CourseFormData extends Step1Data, Step2Data {}
 
 // Main wrapper component
-export const AddCourseForm = () => {
+export const AddCourseForm = ({
+    isEdit,
+    initialCourseData,
+}: {
+    isEdit?: boolean;
+    initialCourseData?: CourseDetailsFormValues;
+}) => {
     const addSubjectMutation = useAddSubject();
     const addModuleMutation = useAddModule();
     const addChapterMutation = useAddChapter();
@@ -43,12 +50,14 @@ export const AddCourseForm = () => {
     const navigate = useNavigate();
     const addCourseMutation = useAddCourse();
     const [step, setStep] = useState(1);
-    const [formData, setFormData] = useState<Partial<CourseFormData>>({});
+    const [formData, setFormData] = useState<Partial<CourseFormData>>(
+        transformCourseData(initialCourseData)
+    );
+
     const [isOpen, setIsOpen] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
 
     const handleStep1Submit = (data: Step1Data) => {
-        console.log('Step 1 data:', data);
         setFormData((prev) => ({ ...prev, ...data }));
         setStep(2);
     };
@@ -173,16 +182,28 @@ export const AddCourseForm = () => {
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger>
-                <MyButton
-                    type="button"
-                    buttonType="secondary"
-                    layoutVariant="default"
-                    scale="large"
-                    id="add-course-button"
-                    className="w-[140px] font-light"
-                >
-                    Create Course Manually
-                </MyButton>
+                {!isEdit ? (
+                    <MyButton
+                        type="button"
+                        buttonType="secondary"
+                        layoutVariant="default"
+                        scale="large"
+                        id="add-course-button"
+                        className="w-[140px] font-light"
+                    >
+                        Create Course Manually
+                    </MyButton>
+                ) : (
+                    <MyButton
+                        type="button"
+                        buttonType="secondary"
+                        layoutVariant="default"
+                        scale="small"
+                        className="my-6 bg-white py-5 !font-semibold hover:bg-white"
+                    >
+                        Edit Course
+                    </MyButton>
+                )}
             </DialogTrigger>
             <DialogContent className="z-[10000] flex !h-[90%] !max-h-[90%] w-[90%] flex-col overflow-hidden p-0">
                 <div className="flex h-full flex-col">
