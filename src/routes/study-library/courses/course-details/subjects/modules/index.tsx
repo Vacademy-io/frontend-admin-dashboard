@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 import { LayoutContainer } from '@/components/common/layout-container/layout-container';
 import { InitStudyLibraryProvider } from '@/providers/study-library/init-study-library-provider';
 import { ModulesWithChaptersProvider } from '@/providers/study-library/modules-with-chapters-provider';
@@ -35,8 +35,8 @@ function RouteComponent() {
     const queryClient = useQueryClient(); // Get the queryClient instance
 
     const { setNavHeading } = useNavHeadingStore();
-    const navigate = useNavigate();
-    const { courseId, levelId, subjectId, sessionId } = Route.useSearch();
+
+    const { levelId, subjectId, sessionId } = Route.useSearch();
     const subjectName = getSubjectName(subjectId);
 
     // Function to invalidate the modules with chapters query
@@ -46,16 +46,9 @@ function RouteComponent() {
         });
     };
 
-    const handleBackClick = () => {
-        navigate({
-            to: '/study-library/courses/course-details',
-            search: { courseId },
-        });
-    };
-
     const heading = (
         <div className="flex items-center gap-4">
-            <CaretLeft onClick={handleBackClick} className="cursor-pointer" />
+            <CaretLeft onClick={() => window.history.back()} className="cursor-pointer" />
             <div>{`${subjectName} Modules`}</div>
         </div>
     );

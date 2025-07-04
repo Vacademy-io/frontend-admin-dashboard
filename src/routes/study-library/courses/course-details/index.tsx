@@ -3,7 +3,6 @@ import { createFileRoute } from '@tanstack/react-router';
 import { LayoutContainer } from '@/components/common/layout-container/layout-container';
 import { InitStudyLibraryProvider } from '@/providers/study-library/init-study-library-provider';
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
-import { useNavigate } from '@tanstack/react-router';
 import { CaretLeft } from 'phosphor-react';
 import { useEffect, useState } from 'react';
 import { useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
@@ -26,7 +25,6 @@ export const Route = createFileRoute('/study-library/courses/course-details/')({
 
 function RouteComponent() {
     const { setNavHeading } = useNavHeadingStore();
-    const navigate = useNavigate();
     const { courseId } = Route.useSearch();
     const [isLoading, setIsLoading] = useState(false);
 
@@ -44,15 +42,9 @@ function RouteComponent() {
         return () => clearTimeout(timer);
     }, [studyLibraryData, courseId]);
 
-    const handleBackClick = () => {
-        navigate({
-            to: `/study-library/courses`,
-        });
-    };
-
     const heading = (
         <div className="flex items-center gap-4">
-            <CaretLeft onClick={handleBackClick} className="cursor-pointer" />
+            <CaretLeft onClick={() => window.history.back()} className="cursor-pointer" />
             <div>Course Details</div>
         </div>
     );

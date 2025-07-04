@@ -14,15 +14,9 @@ function RouteComponent() {
     const { setNavHeading } = useNavHeadingStore();
     const navigate = useNavigate();
 
-    const handleBackClick = () => {
-        navigate({
-            to: '/study-library/live-session',
-        });
-    };
-
     const heading = (
         <div className="flex items-center gap-4">
-            <CaretLeft onClick={handleBackClick} className="cursor-pointer" />
+            <CaretLeft onClick={() => window.history.back()} className="cursor-pointer" />
             <div>Schedule Live Sessions</div>
         </div>
     );

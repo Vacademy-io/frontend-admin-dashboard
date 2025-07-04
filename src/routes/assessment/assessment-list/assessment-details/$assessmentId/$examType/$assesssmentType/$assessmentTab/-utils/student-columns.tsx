@@ -106,9 +106,7 @@ export const assessmentStatusStudentAttemptedColumnsInternal: ColumnDef<StudentT
                 <div className="relative">
                     <MyDropdown
                         dropdownList={['ASC', 'DESC']}
-                        onSelect={(value) => {
-                            meta.onSort?.('full_name', value);
-                        }}
+                        onSelect={(value) => meta.onSort?.('full_name', value)}
                     >
                         <button className="flex w-full cursor-pointer items-center justify-between">
                             <div>Learner Name</div>
@@ -153,6 +151,7 @@ export const assessmentStatusStudentAttemptedColumnsInternal: ColumnDef<StudentT
         header: 'Score',
         cell: ({ row }) => <CreateClickableCell row={row} columnId="score" />,
     },
+
     {
         accessorKey: 'evaluation_status',
         header: 'Evaluation Status',
@@ -163,11 +162,34 @@ export const assessmentStatusStudentAttemptedColumnsInternal: ColumnDef<StudentT
                 PENDING: 'pending',
                 EVALUATING: 'evaluating',
             };
-
             const mappedStatus = statusMapping[status] || 'evaluating';
             return <StatusChips status={mappedStatus} />;
         },
     },
+    {
+        accessorKey: 'result_status',
+        header: 'Result Status',
+        cell: ({ row }) => {
+            const status = row.original.result_status;
+
+            if (status === 'Released') {
+                return (
+                    <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700">
+                        Released
+                    </span>
+                );
+            } else if (status === 'Pending') {
+                return (
+                    <span className="rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600">
+                        Pending
+                    </span>
+                );
+            } else {
+                return <span className="text-gray-400">N/A</span>;
+            }
+        },
+    },
+
     {
         id: 'options',
         header: '',
@@ -366,20 +388,29 @@ export const assessmentStatusStudentAttemptedColumnsExternal: ColumnDef<StudentT
         cell: ({ row }) => <CreateClickableCell row={row} columnId="score" />,
     },
     {
-        accessorKey: 'evaluation_status',
-        header: 'Evaluation Status',
+        accessorKey: 'result_status',
+        header: 'Result Status',
         cell: ({ row }) => {
-            const status = row.original.status || 'evaluated';
-            const statusMapping: Record<string, ActivityStatus> = {
-                EVALUATED: 'evaluated',
-                PENDING: 'pending',
-                EVALUATING: 'evaluating',
-            };
+            const status = row.original.result_status;
 
-            const mappedStatus = statusMapping[status] || 'evaluating';
-            return <StatusChips status={mappedStatus} />;
+            if (status === 'Released') {
+                return (
+                    <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700">
+                        Released
+                    </span>
+                );
+            } else if (status === 'Pending') {
+                return (
+                    <span className="rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600">
+                        Pending
+                    </span>
+                );
+            } else {
+                return <span className="text-gray-400">N/A</span>;
+            }
         },
     },
+
     {
         id: 'options',
         header: '',

@@ -36,7 +36,7 @@ export const Route = createFileRoute(
 
 function RouteComponent() {
     const navigate = useNavigate();
-    const { courseId, levelId, subjectId, moduleId, sessionId } = Route.useSearch();
+    const { courseId, levelId, subjectId, moduleId } = Route.useSearch();
     const [currentModuleId, setCurrentModuleId] = useState(moduleId);
     const { setNavHeading } = useNavHeadingStore();
     const { setActiveItem, setItems } = useContentStore();
@@ -65,21 +65,9 @@ function RouteComponent() {
 
     const moduleName = getModuleName(moduleId);
 
-    const handleBackClick = () => {
-        navigate({
-            to: `/study-library/courses/course-details/subjects/modules`,
-            search: {
-                courseId,
-                levelId,
-                subjectId,
-                sessionId,
-            },
-        });
-    };
-
     const heading = (
         <div className="flex items-center gap-4">
-            <CaretLeft onClick={handleBackClick} className="cursor-pointer" />
+            <CaretLeft onClick={() => window.history.back()} className="cursor-pointer" />
             <div>{`${moduleName} Chapters`}</div>
         </div>
     );
