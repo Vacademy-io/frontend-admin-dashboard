@@ -83,6 +83,7 @@ export const ASSESSMENT_STATUS_STUDENT_ATTEMPTED_COLUMNS_INTERNAL_WIDTH: ColumnW
     duration: 'min-w-[180px]',
     score: 'min-w-[180px]',
     evaluation_status: 'min-w-[180px]',
+    result_status: 'min-w-[120px]',
     options: 'min-w-[56px] sticky right-0',
 };
 
@@ -111,6 +112,7 @@ export const ASSESSMENT_STATUS_STUDENT_ATTEMPTED_COLUMNS_EXTERNAL_WIDTH: ColumnW
     duration: 'min-w-[180px]',
     score: 'min-w-[180px]',
     evaluation_status: 'min-w-[180px]',
+    result_status: 'min-w-[120px]',
     options: 'min-w-[56px] sticky right-0',
 };
 

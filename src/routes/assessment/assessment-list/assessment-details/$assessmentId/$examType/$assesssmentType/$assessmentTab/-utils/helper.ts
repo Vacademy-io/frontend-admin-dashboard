@@ -80,22 +80,19 @@ export const getAssessmentSubmissionsFilteredDataStudentData = (
                             batches_for_sessions,
                             student.batch_id
                         ),
-                        attempt_date: extractDateTime(convertToLocalDateTime(student.attempt_date))
-                            .date,
-                        start_time: extractDateTime(convertToLocalDateTime(student.attempt_date))
-                            .time,
-                        end_time: extractDateTime(convertToLocalDateTime(student.end_time || ''))
-                            .time,
+                        attempt_date: extractDateTime(convertToLocalDateTime(student.attempt_date)).date,
+                        start_time: extractDateTime(convertToLocalDateTime(student.attempt_date)).time,
+                        end_time: extractDateTime(convertToLocalDateTime(student.end_time || '')).time,
                         duration: (student.duration / 60).toFixed(2) + ' min',
                         score: `${student.score ? student.score.toFixed(2) : 0} / ${totalMarks}`,
+                        result_status: student.report_release_result_status !== null ? 'Released' : 'Pending',
                     };
                 } else if (selectedTab === 'Ongoing') {
                     return {
                         id: student.user_id,
                         attempt_id: student.attempt_id,
                         full_name: student.student_name,
-                        start_time: extractDateTime(convertToLocalDateTime(student.attempt_date))
-                            .time,
+                        start_time: extractDateTime(convertToLocalDateTime(student.attempt_date)).time,
                     };
                 } else if (selectedTab === 'Pending') {
                     return {
@@ -123,22 +120,19 @@ export const getAssessmentSubmissionsFilteredDataStudentData = (
                             batches_for_sessions,
                             student.batch_id
                         ),
-                        attempt_date: extractDateTime(convertToLocalDateTime(student.attempt_date))
-                            .date,
-                        start_time: extractDateTime(convertToLocalDateTime(student.attempt_date))
-                            .time,
-                        end_time: extractDateTime(convertToLocalDateTime(student.end_time || ''))
-                            .time,
+                        attempt_date: extractDateTime(convertToLocalDateTime(student.attempt_date)).date,
+                        start_time: extractDateTime(convertToLocalDateTime(student.attempt_date)).time,
+                        end_time: extractDateTime(convertToLocalDateTime(student.end_time || '')).time,
                         duration: (student.duration / 60).toFixed(2) + ' min',
                         score: `${student.score ? student.score.toFixed(2) : 0} / ${totalMarks}`,
+                        result_status: student.report_release_result_status !== null ? 'Released' : 'Pending',
                     };
                 } else if (selectedTab === 'Ongoing') {
                     return {
                         id: student.user_id,
                         attempt_id: student.attempt_id,
                         full_name: student.student_name,
-                        start_time: extractDateTime(convertToLocalDateTime(student.attempt_date))
-                            .time,
+                        start_time: extractDateTime(convertToLocalDateTime(student.attempt_date)).time,
                     };
                 } else if (selectedTab === 'Pending') {
                     return {
@@ -155,6 +149,9 @@ export const getAssessmentSubmissionsFilteredDataStudentData = (
             return [];
     }
 };
+
+
+
 
 export const getQuestionWiseFilteredDataStudentData = (
     studentsListData: StudentResponseQuestionwiseInterface[],
