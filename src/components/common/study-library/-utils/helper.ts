@@ -300,11 +300,11 @@ export function transformCourseData(course: CourseDetailsFormValues) {
         courseMedia: course.courseData.courseMediaId ?? '',
         tags: course.courseData.tags ?? [],
         levelStructure: course.courseData.courseStructure ?? 0,
-        hasLevels: course.courseData.courseStructure > 0 ? 'YES' : 'NO',
+        hasLevels: course.courseData.courseStructure > 0 ? 'yes' : 'no',
         hasSessions:
             Array.isArray(course.courseData.sessions) && course.courseData.sessions.length > 0
-                ? 'YES'
-                : 'NO',
+                ? 'yes'
+                : 'no',
         sessions: (course.courseData.sessions || []).map((session) => ({
             id: session.sessionDetails?.id ?? '',
             name: session.sessionDetails?.session_name ?? '',

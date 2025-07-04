@@ -117,6 +117,7 @@ export const AddCourseStep2 = ({
     isLoading?: boolean;
     disableCreate?: boolean;
 }) => {
+    console.log('initialData', initialData);
     const instituteId = getInstituteId();
     const [hasLevels, setHasLevels] = useState(initialData?.hasLevels || 'yes');
     const [hasSessions, setHasSessions] = useState(
