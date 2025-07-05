@@ -77,9 +77,9 @@ export const OverViewData = ({
         overviewSections.push({
             heading: "Parent/Guardian's Details",
             content: [
-                `Father's Name: ${na(selectedStudent.father_name)}`,
-                `Mother's Name: ${na(selectedStudent.mother_name)}`,
-                `Guardian's Name: -`,
+                ` Father/Male Guardian's Name: ${na(selectedStudent.father_name)}`,
+                `Mother/Male Guardian's Name: ${na(selectedStudent.mother_name)}`,
+                // `Guardian's Name: -`,
                 `Mobile No.: ${na(selectedStudent.parents_mobile_number)}`,
                 `Email Id: ${na(selectedStudent.parents_email)}`,
             ],
