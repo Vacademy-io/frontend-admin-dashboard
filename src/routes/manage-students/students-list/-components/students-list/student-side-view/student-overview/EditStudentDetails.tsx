@@ -18,6 +18,8 @@ import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { useStudentSidebar } from '@/routes/manage-students/students-list/-context/selected-student-sidebar-context';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { DropdownValueType } from '@/components/common/students/enroll-manually/dropdownTypesForPackageItems';
+import { Menu, Transition } from '@headlessui/react';
+import { Pencil, Upload, Trash2 } from 'lucide-react';
 
 const EditStudentDetailsFormSchema = z.object({
     user_id: z.string().min(1, 'This field is required'),
@@ -32,16 +34,46 @@ const EditStudentDetailsFormSchema = z.object({
     father_name: z.string().optional(),
     mother_name: z.string().optional(),
     parents_mobile_number: z.string().optional(),
-    parents_email: z.string().email('Invalid email address'),
-    face_file_id: z.string().optional(),
+    parents_email: z.string().email('Invalid email').optional().or(z.literal('')),
+    face_file_id: z.string().optional().or(z.literal('')),
 });
 
 export type EditStudentDetailsFormValues = z.infer<typeof EditStudentDetailsFormSchema>;
 
 export const EditStudentDetails = () => {
-    const { selectedStudent } = useStudentSidebar();
+    const { selectedStudent, setSelectedStudent } = useStudentSidebar();
+    const form = useForm<EditStudentDetailsFormValues>({
+        resolver: zodResolver(EditStudentDetailsFormSchema),
+        defaultValues: {},
+    });
+
+    const { setValue } = form;
+    const { instituteDetails } = useInstituteDetailsStore();
+    const genderList: DropdownValueType[] =
+        instituteDetails?.genders.map((gender) => ({ id: crypto.randomUUID(), name: gender })) ||
+        [];
+
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const data = getTokenDecodedData(accessToken);
+    const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
+
+    const [faceUrl, setFaceUrl] = useState<string | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
+    const { uploadFile, getPublicUrl } = useFileUpload();
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const formRef = useRef<HTMLFormElement>(null);
+    const [openDialog, setOpenDialog] = useState(false);
+    const [removedImage, setRemovedImage] = useState(false); // 🆕 new state for tracking unsaved removal
+
+    const loadImage = async (fileId: string) => {
+        if (fileId) {
+            const url = await getPublicUrl(fileId);
+            setFaceUrl(url);
+        }
+    };
+
     useEffect(() => {
-        if (selectedStudent) {
+        if (selectedStudent && openDialog) {
             form.reset({
                 user_id: selectedStudent?.user_id || '',
                 email: selectedStudent?.email || '',
@@ -58,135 +90,90 @@ export const EditStudentDetails = () => {
                 parents_email: selectedStudent?.parents_email || '',
                 face_file_id: selectedStudent?.face_file_id || '',
             });
-        }
-    }, [selectedStudent]);
 
-    const form = useForm<z.infer<typeof EditStudentDetailsFormSchema>>({
-        resolver: zodResolver(EditStudentDetailsFormSchema),
-        defaultValues: {
-            user_id: selectedStudent?.user_id || '',
-            email: selectedStudent?.email || '',
-            full_name: selectedStudent?.full_name || '',
-            contact_number: selectedStudent?.mobile_number || '',
-            gender: selectedStudent?.gender || '',
-            address_line: selectedStudent?.address_line || '',
-            state: selectedStudent?.region || '',
-            pin_code: selectedStudent?.pin_code || '',
-            institute_name: selectedStudent?.linked_institute_name || '',
-            father_name: selectedStudent?.father_name || '',
-            mother_name: selectedStudent?.mother_name || '',
-            parents_mobile_number: selectedStudent?.parents_mobile_number || '',
-            parents_email: selectedStudent?.parents_email || '',
-            face_file_id: selectedStudent?.face_file_id || '',
-        },
-    });
-
-    const { setValue } = form;
-    const { instituteDetails } = useInstituteDetailsStore();
-
-    const genderList: DropdownValueType[] =
-        instituteDetails?.genders.map((gender) => ({
-            id: crypto.randomUUID(),
-            name: gender as string,
-        })) || [];
-
-    const accessToken = getTokenFromCookie(TokenKey.accessToken);
-    const data = getTokenDecodedData(accessToken);
-    const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
-    const [faceUrl, setFaceUrl] = useState<string | null>(null);
-    const [isUploading, setIsUploading] = useState(false);
-    const {
-        uploadFile,
-        getPublicUrl,
-        isUploading: isUploadingFile,
-    } = useFileUpload() as {
-        uploadFile: (params: {
-            file: File;
-            setIsUploading: (value: boolean) => void;
-            userId: string;
-            source: string;
-            sourceId: string;
-        }) => Promise<string>;
-        getPublicUrl: (fileId: string) => Promise<string>;
-        isUploading: boolean;
-    };
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    const editStudentDetailsMutation = useEditStudentDetails();
-    const [openDialog, setOpenDialog] = useState(false);
-
-    const handleDialogChange = () => {
-        if (openDialog) {
-            form.reset();
-        }
-        setOpenDialog(!openDialog);
-    };
-
-    useEffect(() => {
-        const fetchFaceUrl = async () => {
-            if (selectedStudent?.face_file_id) {
-                setIsUploading(true);
-                const url = await getPublicUrl(selectedStudent?.face_file_id);
-                setFaceUrl(url);
-                setIsUploading(false);
+            if (selectedStudent.face_file_id && !removedImage) {
+                loadImage(selectedStudent.face_file_id);
+            } else {
+                setFaceUrl(null); // fallback if image was removed
             }
-        };
-        fetchFaceUrl();
-    }, [selectedStudent?.face_file_id]);
+
+            setRemovedImage(false); // reset on open
+        }
+    }, [selectedStudent, openDialog]);
 
     const handleFileSubmit = async (file: File) => {
-        try {
-            setIsUploading(true);
-            const uploadedFileId = await uploadFile({
-                file,
-                setIsUploading,
-                userId: selectedStudent?.user_id || '',
-                source: INSTITUTE_ID || '',
-                sourceId: 'STUDENTS',
-            });
+        setIsUploading(true);
+        const fileId = await uploadFile({
+            file,
+            setIsUploading,
+            userId: selectedStudent?.user_id || '',
+            source: INSTITUTE_ID || '',
+            sourceId: 'STUDENTS',
+        });
 
-            if (uploadedFileId) {
-                setValue('face_file_id', uploadedFileId);
-                // Get public URL only for preview purposes
-                const publicUrl = await getPublicUrl(uploadedFileId);
-                setFaceUrl(publicUrl);
-            }
-        } catch (error) {
-            console.error('Upload failed:', error);
-        } finally {
-            setIsUploading(false);
+        if (fileId) {
+            await loadImage(fileId);
+            setValue('face_file_id', fileId);
         }
+
+        setIsUploading(false);
     };
 
-    const submitButton = (
-        <MyButton
-            onClick={() => {
-                formRef.current?.requestSubmit();
-            }}
-        >
-            Save Changes
-        </MyButton>
-    );
+    const handleRemoveImage = () => {
+        setFaceUrl(null);
+        setValue('face_file_id', '');
+        setRemovedImage(true); // 🆕 flag to remember removal
+    };
 
-    const formRef = useRef<HTMLFormElement>(null);
+    const handleDialogChange = (isOpen: boolean) => {
+        setOpenDialog(isOpen);
+    };
 
-    async function onSubmit(e: EditStudentDetailsFormValues) {
-        try {
-            await editStudentDetailsMutation.mutateAsync(e);
-            handleDialogChange();
-        } catch (error) {
-            console.error('Failed to update student details:', error);
-        }
+    const editStudentDetailsMutation = useEditStudentDetails();
+ const onSubmit = async (values: EditStudentDetailsFormValues) => {
+  try {
+    const face_file_id = form.getValues('face_file_id') ?? '';
+
+    const payload = { ...values, face_file_id };
+
+    await editStudentDetailsMutation.mutateAsync(payload);
+
+    if (selectedStudent) {
+      const updatedStudent = {
+        ...selectedStudent,
+        ...payload,
+        id: selectedStudent.id,
+        mobile_number: payload.contact_number,
+        region: payload.state ?? null,
+        linked_institute_name: payload.institute_name ?? null,
+        face_file_id: payload.face_file_id ?? '', // Ensure it's a string
+      };
+
+      setSelectedStudent(updatedStudent);
     }
 
-    return selectedStudent != null ? (
+    if (face_file_id) {
+      const newFaceUrl = await getPublicUrl(face_file_id);
+      setFaceUrl(newFaceUrl);
+    } else {
+      setFaceUrl(null); // if image was removed
+    }
+
+    setOpenDialog(false);
+  } catch (err) {
+    console.error('Failed to update student:', err);
+  }
+};
+
+    const submitButton = (
+        <MyButton onClick={() => formRef.current?.requestSubmit()}>Save Changes</MyButton>
+    );
+
+    return selectedStudent ? (
         <MyDialog
             trigger={
-                <div className="flex w-full items-center justify-center">
-                    <MyButton
-                        buttonType="secondary"
-                        scale="medium"
-                        className="text-primary-700 hover:text-primary-800 hover:scale-102 w-fit border-primary-200 bg-gradient-to-r from-primary-50 to-primary-100 px-3 py-1.5 text-xs transition-all duration-200 hover:from-primary-100 hover:to-primary-200"
-                    >
+                <div className="flex w-full justify-center">
+                    <MyButton buttonType="secondary" scale="medium">
                         ✏️ Edit Details
                     </MyButton>
                 </div>
@@ -200,53 +187,110 @@ export const EditStudentDetails = () => {
             <FormProvider {...form}>
                 <form
                     ref={formRef}
-                    onSubmit={(e) => {
-                        form.handleSubmit(onSubmit)(e);
-                    }}
+                    onSubmit={form.handleSubmit(onSubmit)}
                     className="flex max-h-[80vh] w-full flex-col items-center gap-4"
                 >
-                    <div className="flex w-full flex-col items-center gap-2">
+                    <div className="flex flex-col items-center">
                         {isUploading ? (
                             <DashboardLoader />
                         ) : (
-                            <div className="flex flex-col items-center justify-center gap-2">
-                                <div className="relative flex items-center justify-center rounded-full">
-                                    {faceUrl ? (
-                                        <img
-                                            src={faceUrl}
-                                            alt="Profile"
-                                            className="size-[300px] rounded-full object-cover"
-                                        />
-                                    ) : (
-                                        <div className="flex size-[320px] items-center justify-center rounded-full bg-neutral-100 object-cover">
-                                            <EnrollFormUploadImage />
-                                        </div>
-                                    )}
-                                </div>
-                                <FileUploadComponent
-                                    fileInputRef={fileInputRef}
-                                    onFileSubmit={handleFileSubmit}
-                                    control={form.control}
-                                    name="face_file_id"
-                                    acceptedFileTypes="image/*"
-                                />
-                                <div className="flex w-full items-center justify-center">
-                                    <MyButton
-                                        onClick={() => fileInputRef.current?.click()}
-                                        disable={isUploading || isUploadingFile}
-                                        buttonType="secondary"
-                                        layoutVariant="default"
-                                        scale="large"
-                                        className=""
-                                        type="button"
-                                    >
-                                        Upload Image
-                                    </MyButton>
-                                </div>
+                            <div className="relative">
+                                {faceUrl ? (
+                                    <img
+                                        src={faceUrl}
+                                        alt="Profile"
+                                        className="size-[300px] rounded-full object-cover"
+                                    />
+                                ) : (
+                                    <div className="flex size-[320px] items-center justify-center rounded-full bg-neutral-100">
+                                        <EnrollFormUploadImage />
+                                    </div>
+                                )}
+
+                                {faceUrl && (
+                                    <div className="absolute bottom-3 right-3 z-10">
+                                        <Menu as="div" className="relative inline-block text-left">
+                                            <Menu.Button className="rounded-full bg-white p-1 shadow hover:bg-neutral-100">
+                                                <Pencil className="h-5 w-5 text-neutral-700" />
+                                            </Menu.Button>
+                                            <Transition
+                                                enter="transition ease-out duration-100"
+                                                enterFrom="transform opacity-0 scale-95"
+                                                enterTo="transform opacity-100 scale-100"
+                                                leave="transition ease-in duration-75"
+                                                leaveFrom="transform opacity-100 scale-100"
+                                                leaveTo="transform opacity-0 scale-95"
+                                            >
+                                                <Menu.Items className="absolute bottom-10 right-0 z-20 w-40 origin-bottom-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none">
+                                                    <div className="px-1 py-1">
+                                                        <Menu.Item>
+                                                            {({ active }) => (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() =>
+                                                                        fileInputRef.current?.click()
+                                                                    }
+                                                                    className={`${
+                                                                        active
+                                                                            ? 'bg-neutral-100'
+                                                                            : ''
+                                                                    } group flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm`}
+                                                                >
+                                                                    <Upload className="h-4 w-4" />
+                                                                    Upload New
+                                                                </button>
+                                                            )}
+                                                        </Menu.Item>
+                                                        <Menu.Item>
+                                                            {({ active }) => (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={handleRemoveImage}
+                                                                    className={`${
+                                                                        active
+                                                                            ? 'bg-neutral-100'
+                                                                            : ''
+                                                                    } group flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm text-red-600`}
+                                                                >
+                                                                    <Trash2 className="h-4 w-4" />
+                                                                    Remove Image
+                                                                </button>
+                                                            )}
+                                                        </Menu.Item>
+                                                    </div>
+                                                </Menu.Items>
+                                            </Transition>
+                                        </Menu>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        <FileUploadComponent
+                            fileInputRef={fileInputRef}
+                            onFileSubmit={handleFileSubmit}
+                            control={form.control}
+                            name="face_file_id"
+                            acceptedFileTypes="image/*"
+                        />
+
+                        {!faceUrl && (
+                            <div className="mt-2">
+                                <MyButton
+                                    onClick={() => fileInputRef.current?.click()}
+                                    disable={isUploading}
+                                    buttonType="secondary"
+                                    layoutVariant="default"
+                                    scale="large"
+                                    type="button"
+                                >
+                                    Upload Image
+                                </MyButton>
                             </div>
                         )}
                     </div>
 
+                    {/* Form Fields */}
                     <FormField
                         control={form.control}
                         name="full_name"
@@ -294,7 +338,7 @@ export const EditStudentDetails = () => {
                         name="contact_number"
                         render={() => (
                             <FormItem className="w-full">
-                                <FormControl className="w-full">
+                                <FormControl>
                                     <div className="flex flex-col gap-1">
                                         <PhoneInputField
                                             label="Mobile Number"

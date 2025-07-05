@@ -50,7 +50,7 @@ export interface StudentTable {
     institute_id: string;
     country?: string;
     expiry_date: number;
-    face_file_id: string;
+    face_file_id: string | null; // ✅ safer and allows removal
     attempt_id?: string;
     parents_to_mother_mobile_number: string;
     parents_to_mother_email: string;
