@@ -233,11 +233,11 @@ export const CSVFormatDialog = ({
                             </h3>
                             <div className="grid grid-cols-2 gap-3">
                                 {[
-                                    { name: 'fatherName', label: "Father's Name" },
+                                    { name: 'fatherName', label: " Father/Male Guardian's Name" },
                                     { name: 'collegeName', label: 'College/School Name' },
-                                    { name: 'motherName', label: "Mother's Name" },
+                                    { name: 'motherName', label: "Mother/Female Guardian's Name" },
                                     { name: 'state', label: 'State' },
-                                    { name: 'guardianName', label: "Guardian's Name" },
+                                    // { name: 'guardianName', label: "Guardian's Name" },
                                     { name: 'city', label: 'City' },
                                     { name: 'fatherEmail', label: "Father/Male Guardian's Email" },
                                     {
