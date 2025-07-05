@@ -34,21 +34,46 @@ const EditStudentDetailsFormSchema = z.object({
     father_name: z.string().optional(),
     mother_name: z.string().optional(),
     parents_mobile_number: z.string().optional(),
-    parents_email: z.string().email('Invalid email address'),
-    face_file_id: z.string().optional(),
+    parents_email: z.string().email('Invalid email').optional().or(z.literal('')),
+    face_file_id: z.string().optional().or(z.literal('')),
 });
 
 export type EditStudentDetailsFormValues = z.infer<typeof EditStudentDetailsFormSchema>;
 
 export const EditStudentDetails = () => {
-    const { selectedStudent } = useStudentSidebar();
+    const { selectedStudent, setSelectedStudent } = useStudentSidebar();
     const form = useForm<EditStudentDetailsFormValues>({
         resolver: zodResolver(EditStudentDetailsFormSchema),
         defaultValues: {},
     });
 
+    const { setValue } = form;
+    const { instituteDetails } = useInstituteDetailsStore();
+    const genderList: DropdownValueType[] =
+        instituteDetails?.genders.map((gender) => ({ id: crypto.randomUUID(), name: gender })) ||
+        [];
+
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const data = getTokenDecodedData(accessToken);
+    const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
+
+    const [faceUrl, setFaceUrl] = useState<string | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
+    const { uploadFile, getPublicUrl } = useFileUpload();
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const formRef = useRef<HTMLFormElement>(null);
+    const [openDialog, setOpenDialog] = useState(false);
+    const [removedImage, setRemovedImage] = useState(false); // 🆕 new state for tracking unsaved removal
+
+    const loadImage = async (fileId: string) => {
+        if (fileId) {
+            const url = await getPublicUrl(fileId);
+            setFaceUrl(url);
+        }
+    };
+
     useEffect(() => {
-        if (selectedStudent) {
+        if (selectedStudent && openDialog) {
             form.reset({
                 user_id: selectedStudent?.user_id || '',
                 email: selectedStudent?.email || '',
@@ -65,32 +90,16 @@ export const EditStudentDetails = () => {
                 parents_email: selectedStudent?.parents_email || '',
                 face_file_id: selectedStudent?.face_file_id || '',
             });
+
+            if (selectedStudent.face_file_id && !removedImage) {
+                loadImage(selectedStudent.face_file_id);
+            } else {
+                setFaceUrl(null); // fallback if image was removed
+            }
+
+            setRemovedImage(false); // reset on open
         }
-    }, [selectedStudent]);
-
-    const { setValue } = form;
-    const { instituteDetails } = useInstituteDetailsStore();
-    const genderList: DropdownValueType[] =
-        instituteDetails?.genders.map((gender) => ({
-            id: crypto.randomUUID(),
-            name: gender,
-        })) || [];
-
-    const accessToken = getTokenFromCookie(TokenKey.accessToken);
-    const data = getTokenDecodedData(accessToken);
-    const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
-
-    const [faceUrl, setFaceUrl] = useState<string | null>(null);
-    const [isUploading, setIsUploading] = useState(false);
-    const { uploadFile, getPublicUrl, isUploading: isUploadingFile } = useFileUpload();
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
-    const fetchFaceUrl = async () => {
-        if (selectedStudent?.face_file_id) {
-            const url = await getPublicUrl(selectedStudent.face_file_id);
-            setFaceUrl(url);
-        }
-    };
+    }, [selectedStudent, openDialog]);
 
     const handleFileSubmit = async (file: File) => {
         setIsUploading(true);
@@ -103,42 +112,58 @@ export const EditStudentDetails = () => {
         });
 
         if (fileId) {
-            const url = await getPublicUrl(fileId);
+            await loadImage(fileId);
             setValue('face_file_id', fileId);
-            setFaceUrl(url);
         }
+
         setIsUploading(false);
     };
 
     const handleRemoveImage = () => {
         setFaceUrl(null);
         setValue('face_file_id', '');
+        setRemovedImage(true); // 🆕 flag to remember removal
+    };
+
+    const handleDialogChange = (isOpen: boolean) => {
+        setOpenDialog(isOpen);
     };
 
     const editStudentDetailsMutation = useEditStudentDetails();
-    const [openDialog, setOpenDialog] = useState(false);
-    const formRef = useRef<HTMLFormElement>(null);
-    useEffect(() => {
-        const fetchFaceUrl = async () => {
-            if (selectedStudent?.face_file_id && openDialog) {
-                const url = await getPublicUrl(selectedStudent.face_file_id);
-                setFaceUrl(url);
-            }
-        };
-        fetchFaceUrl();
-    }, [selectedStudent?.face_file_id, openDialog]);
+ const onSubmit = async (values: EditStudentDetailsFormValues) => {
+  try {
+    const face_file_id = form.getValues('face_file_id') ?? '';
 
-    const handleDialogChange = () => {
-        if (openDialog) {
-            form.reset();
-        }
-        setOpenDialog(!openDialog);
-    };
+    const payload = { ...values, face_file_id };
 
-    const onSubmit = async (values: EditStudentDetailsFormValues) => {
-        await editStudentDetailsMutation.mutateAsync(values);
-        handleDialogChange();
-    };
+    await editStudentDetailsMutation.mutateAsync(payload);
+
+    if (selectedStudent) {
+      const updatedStudent = {
+        ...selectedStudent,
+        ...payload,
+        id: selectedStudent.id,
+        mobile_number: payload.contact_number,
+        region: payload.state ?? null,
+        linked_institute_name: payload.institute_name ?? null,
+        face_file_id: payload.face_file_id ?? '', // Ensure it's a string
+      };
+
+      setSelectedStudent(updatedStudent);
+    }
+
+    if (face_file_id) {
+      const newFaceUrl = await getPublicUrl(face_file_id);
+      setFaceUrl(newFaceUrl);
+    } else {
+      setFaceUrl(null); // if image was removed
+    }
+
+    setOpenDialog(false);
+  } catch (err) {
+    console.error('Failed to update student:', err);
+  }
+};
 
     const submitButton = (
         <MyButton onClick={() => formRef.current?.requestSubmit()}>Save Changes</MyButton>
@@ -248,11 +273,12 @@ export const EditStudentDetails = () => {
                             name="face_file_id"
                             acceptedFileTypes="image/*"
                         />
+
                         {!faceUrl && (
                             <div className="mt-2">
                                 <MyButton
                                     onClick={() => fileInputRef.current?.click()}
-                                    disable={isUploading || isUploadingFile}
+                                    disable={isUploading}
                                     buttonType="secondary"
                                     layoutVariant="default"
                                     scale="large"
@@ -264,6 +290,7 @@ export const EditStudentDetails = () => {
                         )}
                     </div>
 
+                    {/* Form Fields */}
                     <FormField
                         control={form.control}
                         name="full_name"
@@ -311,7 +338,7 @@ export const EditStudentDetails = () => {
                         name="contact_number"
                         render={() => (
                             <FormItem className="w-full">
-                                <FormControl className="w-full">
+                                <FormControl>
                                     <div className="flex flex-col gap-1">
                                         <PhoneInputField
                                             label="Mobile Number"
