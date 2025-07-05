@@ -474,9 +474,9 @@ export const EditStudentDetails = () => {
                                         input={field.value}
                                         onChangeFunction={(e) => field.onChange(e.target.value)}
                                         inputType="text"
-                                        inputPlaceholder="Father Name"
+                                        inputPlaceholder="Father/Male Gardian Name"
                                         className="w-full"
-                                        label="Father Name"
+                                        label="Father/Male Gardian Name"
                                         error={form.formState.errors.father_name?.message}
                                     />
                                 </FormControl>
@@ -494,9 +494,9 @@ export const EditStudentDetails = () => {
                                         input={field.value}
                                         onChangeFunction={(e) => field.onChange(e.target.value)}
                                         inputType="text"
-                                        inputPlaceholder="Mother Name"
+                                        inputPlaceholder="Mother/Female Gardian Name"
                                         className="w-full"
-                                        label="Mother Name"
+                                        label="Mother/Female Gardian Name"
                                         error={form.formState.errors.mother_name?.message}
                                     />
                                 </FormControl>
