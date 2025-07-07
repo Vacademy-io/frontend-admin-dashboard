@@ -288,16 +288,19 @@ export const CourseDetailsPage = () => {
             )
         );
     }, [currentLevel, currentSession]);
+
     return (
-        <div className="flex min-h-screen flex-col bg-white">
+        <div className="pt-18 z-[-100] flex min-h-screen flex-col bg-white">
             {/* Top Banner */}
-            <div className="relative h-[300px]">
+            <div className={`relative h-[300px]`}>
                 {/* Transparent black overlay */}
-                {form.watch('courseData').courseBannerMediaId && (
+                {form.watch('courseData').courseBannerMediaId ? (
                     <div className="pointer-events-none absolute inset-0 z-10 bg-black/50" />
+                ) : (
+                    <div className="pointer-events-none absolute inset-0 z-10 bg-black/10" />
                 )}
                 {!form.watch('courseData').courseBannerMediaId ? (
-                    <div className="absolute inset-0 z-0 bg-primary-500" />
+                    <div className="absolute inset-0 z-0 bg-transparent" />
                 ) : (
                     <div className="absolute inset-0 z-0 opacity-70">
                         <img
@@ -312,7 +315,9 @@ export const CourseDetailsPage = () => {
                     </div>
                 )}
                 {/* Primary color overlay with 70% opacity */}
-                <div className="container relative z-20 mx-auto px-4 py-12 text-white">
+                <div
+                    className={`container relative z-20 mx-auto px-4 py-12 ${!form.watch('courseData').courseBannerMediaId ? 'text-black' : 'text-white'}`}
+                >
                     <div className="flex items-start justify-between gap-8">
                         {/* Left side - Title and Description */}
                         <div className="max-w-2xl">
@@ -353,21 +358,9 @@ export const CourseDetailsPage = () => {
                         </div>
 
                         {/* Right side - Video Player */}
-                        <div className="w-[400px] overflow-hidden rounded-lg shadow-xl">
-                            <div className="relative aspect-video bg-black">
-                                {!form.watch('courseData').courseMediaId ? (
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                        <div className="flex size-16 items-center justify-center rounded-full bg-white/20">
-                                            <svg
-                                                className="size-8 text-white"
-                                                fill="currentColor"
-                                                viewBox="0 0 24 24"
-                                            >
-                                                <path d="M8 5v14l11-7z" />
-                                            </svg>
-                                        </div>
-                                    </div>
-                                ) : (
+                        {form.watch('courseData').courseMediaId && (
+                            <div className="w-[400px] overflow-hidden rounded-lg shadow-xl">
+                                <div className="relative aspect-video bg-black">
                                     <video
                                         src={form.watch('courseData').courseMediaId}
                                         controls
@@ -381,9 +374,9 @@ export const CourseDetailsPage = () => {
                                     >
                                         Your browser does not support the video tag.
                                     </video>
-                                )}
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -399,25 +392,9 @@ export const CourseDetailsPage = () => {
                                 {sessionOptions.length === 1 ? (
                                     sessionOptions[0]?.label !== 'default' && (
                                         <div className="flex flex-col gap-2">
-                                            <label className="text-sm font-medium">Session</label>
-                                            <Select
-                                                value={selectedSession}
-                                                onValueChange={handleSessionChange}
-                                            >
-                                                <SelectTrigger className="w-48">
-                                                    <SelectValue placeholder="Select Session" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {sessionOptions.map((option) => (
-                                                        <SelectItem
-                                                            key={option._id}
-                                                            value={option.value}
-                                                        >
-                                                            {option.label}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
+                                            <label className="text-sm font-medium">
+                                                {sessionOptions[0]?.label}
+                                            </label>
                                         </div>
                                     )
                                 ) : (
@@ -446,26 +423,9 @@ export const CourseDetailsPage = () => {
                                 {levelOptions.length === 1 ? (
                                     levelOptions[0]?.label !== 'default' && (
                                         <div className="flex flex-col gap-2">
-                                            <label className="text-sm font-medium">Level</label>
-                                            <Select
-                                                value={selectedLevel}
-                                                onValueChange={handleLevelChange}
-                                                disabled={!selectedSession}
-                                            >
-                                                <SelectTrigger className="w-48">
-                                                    <SelectValue placeholder="Select Level" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {levelOptions.map((option) => (
-                                                        <SelectItem
-                                                            key={option._id}
-                                                            value={option.value}
-                                                        >
-                                                            {option.label}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
+                                            <label className="text-sm font-medium">
+                                                {levelOptions[0]?.label}
+                                            </label>
                                         </div>
                                     )
                                 ) : (
