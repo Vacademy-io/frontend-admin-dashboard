@@ -75,11 +75,12 @@ export const getLiveSessions = async (instituteId: string) => {
     return response.data;
 };
 
-export const deleteLiveSession = async (sessionId: string) => {
+export const deleteLiveSession = async (sessionId: string , type :string) => {
     try {
         const response = await authenticatedAxiosInstance.get(DELETE_LIVE_SESSION, {
             params: {
                 sessionId,
+                type,
             },
         });
         return response.data;
