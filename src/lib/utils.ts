@@ -13,6 +13,7 @@ export function isNullOrEmptyOrUndefined<T>(
 
 export function convertCapitalToTitleCase(str: string) {
     // Split the text into words
+    console.log(str);
     const words = str?.split(' ');
 
     // Capitalize the first letter of each word and convert the rest to lowercase
