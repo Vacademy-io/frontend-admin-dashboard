@@ -399,25 +399,9 @@ export const CourseDetailsPage = () => {
                                 {sessionOptions.length === 1 ? (
                                     sessionOptions[0]?.label !== 'default' && (
                                         <div className="flex flex-col gap-2">
-                                            <label className="text-sm font-medium">Session</label>
-                                            <Select
-                                                value={selectedSession}
-                                                onValueChange={handleSessionChange}
-                                            >
-                                                <SelectTrigger className="w-48">
-                                                    <SelectValue placeholder="Select Session" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {sessionOptions.map((option) => (
-                                                        <SelectItem
-                                                            key={option._id}
-                                                            value={option.value}
-                                                        >
-                                                            {option.label}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
+                                            <label className="text-sm font-medium">
+                                                {sessionOptions[0]?.label}
+                                            </label>
                                         </div>
                                     )
                                 ) : (
@@ -446,26 +430,9 @@ export const CourseDetailsPage = () => {
                                 {levelOptions.length === 1 ? (
                                     levelOptions[0]?.label !== 'default' && (
                                         <div className="flex flex-col gap-2">
-                                            <label className="text-sm font-medium">Level</label>
-                                            <Select
-                                                value={selectedLevel}
-                                                onValueChange={handleLevelChange}
-                                                disabled={!selectedSession}
-                                            >
-                                                <SelectTrigger className="w-48">
-                                                    <SelectValue placeholder="Select Level" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {levelOptions.map((option) => (
-                                                        <SelectItem
-                                                            key={option._id}
-                                                            value={option.value}
-                                                        >
-                                                            {option.label}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
+                                            <label className="text-sm font-medium">
+                                                {levelOptions[0]?.label}
+                                            </label>
                                         </div>
                                     )
                                 ) : (
