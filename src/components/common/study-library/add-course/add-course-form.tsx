@@ -21,6 +21,7 @@ import { fetchInstituteDetails } from '@/services/student-list-section/getInstit
 import { BatchForSessionType } from '@/schemas/student/student-list/institute-schema';
 import { CourseDetailsFormValues } from '@/routes/study-library/courses/course-details/-components/course-details-schema';
 import { useUpdateCourse } from '@/services/study-library/course-operations/update-course';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 export interface Level {
     id: string;
@@ -48,6 +49,7 @@ export const AddCourseForm = ({
     isEdit?: boolean;
     initialCourseData?: CourseDetailsFormValues;
 }) => {
+    const { getPackageSessionId } = useInstituteDetailsStore();
     const addSubjectMutation = useAddSubject();
     const addModuleMutation = useAddModule();
     const addChapterMutation = useAddChapter();
@@ -113,7 +115,7 @@ export const AddCourseForm = ({
         const formattedData = convertToApiCourseFormat(finalData);
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
-        const formattedDataUpdate = convertToApiCourseFormatUpdate(finalData);
+        const formattedDataUpdate = convertToApiCourseFormatUpdate(finalData, getPackageSessionId);
 
         if (isEdit) {
             updateCourseMutation.mutate(

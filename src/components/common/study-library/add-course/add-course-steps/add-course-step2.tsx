@@ -1408,7 +1408,7 @@ export const AddCourseStep2 = ({
                                 {isLoading ? (
                                     <span className="flex items-center gap-2">
                                         <span className="size-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                                        Creating...
+                                        {isEdit ? 'Updating...' : 'Creating...'}
                                     </span>
                                 ) : (
                                     <>

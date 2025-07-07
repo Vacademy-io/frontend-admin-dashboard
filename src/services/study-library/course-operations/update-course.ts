@@ -11,7 +11,10 @@ export const useUpdateCourse = () => {
 
     return useMutation({
         mutationFn: async ({ requestData }: { requestData: CourseFormData }) => {
-            return authenticatedAxiosInstance.post(`${UPDATE_COURSE}/${instituteId}`, requestData);
+            return authenticatedAxiosInstance.post(
+                `${UPDATE_COURSE}/${instituteId}?instituteId=${instituteId}`,
+                requestData
+            );
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['GET_INIT_STUDY_LIBRARY'] });

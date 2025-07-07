@@ -1,6 +1,7 @@
 import { CourseDetailsFormValues } from '@/routes/study-library/courses/course-details/-components/course-details-schema';
 import { Step1Data, Step2Data } from '../add-course/add-course-form';
 import { Session } from '@/types/course/create-course';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 export type CourseFormData = Step1Data & Step2Data;
 
@@ -48,6 +49,8 @@ interface FormattedCourseData {
             thumbnail_file_id: string;
             package_id: string;
             add_faculty_to_course: AddFacultyToCourse[];
+            package_session_status?: string;
+            package_session_id?: string;
             group: {
                 id: string;
                 group_name: string;
@@ -288,12 +291,16 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
     };
 };
 
-export const convertToApiCourseFormatUpdate = (formData: CourseFormData): FormattedCourseData => {
+export const convertToApiCourseFormatUpdate = (
+    formData: CourseFormData,
+    getPackageSessionId: any
+): FormattedCourseData => {
     const hasLevels = formData.hasLevels === 'yes';
     const hasSessions = formData.hasSessions === 'yes';
 
     // Function to format levels
     const formatLevels = (
+        sessionId: string,
         levels: Array<{
             id: string;
             name: string;
@@ -307,6 +314,13 @@ export const convertToApiCourseFormatUpdate = (formData: CourseFormData): Format
             duration_in_days: 0,
             thumbnail_file_id: '',
             package_id: '',
+            package_session_status: 'ACTIVE',
+            package_session_id:
+                getPackageSessionId({
+                    courseId: formData.id,
+                    levelId: level.id,
+                    sessionId: sessionId || '',
+                }) || '',
             add_faculty_to_course: level?.userIds?.map((user) => ({
                 user: {
                     id: user.id || '',
@@ -356,6 +370,13 @@ export const convertToApiCourseFormatUpdate = (formData: CourseFormData): Format
                         duration_in_days: 0,
                         thumbnail_file_id: '',
                         package_id: '',
+                        package_session_status: '',
+                        package_session_id:
+                            getPackageSessionId({
+                                courseId: formData.id,
+                                levelId: 'DEFAULT',
+                                sessionId: 'DEFAULT',
+                            }) || '',
                         add_faculty_to_course: Array.isArray(allUsers)
                             ? allUsers?.map((user) => ({
                                   user: {
@@ -390,13 +411,13 @@ export const convertToApiCourseFormatUpdate = (formData: CourseFormData): Format
         ];
     } else if (hasSessions) {
         sessions = formData?.sessions?.map((session) => ({
-            id: '',
+            id: session.id,
             session_name: session.name,
             status: 'ACTIVE',
             start_date: session.startDate,
             new_session: false,
             levels: hasLevels
-                ? formatLevels(session.levels)
+                ? formatLevels(session.id, session.levels)
                 : [
                       {
                           id: 'DEFAULT',
@@ -405,6 +426,12 @@ export const convertToApiCourseFormatUpdate = (formData: CourseFormData): Format
                           duration_in_days: 0,
                           thumbnail_file_id: '',
                           package_id: '',
+                          package_session_id:
+                              getPackageSessionId({
+                                  courseId: formData.id,
+                                  levelId: 'DEFAULT',
+                                  sessionId: session.id,
+                              }) || '',
                           add_faculty_to_course: session.levels[0]?.userIds
                               ? session.levels[0]?.userIds?.map((user) => ({
                                     user: {
@@ -447,12 +474,19 @@ export const convertToApiCourseFormatUpdate = (formData: CourseFormData): Format
                 start_date: '',
                 new_session: false,
                 levels: standaloneLevels?.map((level) => ({
-                    id: '',
+                    id: level.id,
                     new_level: false,
                     level_name: level.name,
                     duration_in_days: 0,
                     thumbnail_file_id: '',
                     package_id: '',
+                    package_session_status: '',
+                    package_session_id:
+                        getPackageSessionId({
+                            courseId: formData.id,
+                            levelId: level.id,
+                            sessionId: 'DEFAULT',
+                        }) || '',
                     add_faculty_to_course: Array.isArray(level.userIds)
                         ? level?.userIds?.map((user) => ({
                               user: {
