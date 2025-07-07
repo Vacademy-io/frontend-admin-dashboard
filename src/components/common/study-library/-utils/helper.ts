@@ -1,4 +1,6 @@
+import { CourseDetailsFormValues } from '@/routes/study-library/courses/course-details/-components/course-details-schema';
 import { Step1Data, Step2Data } from '../add-course/add-course-form';
+import { Session } from '@/types/course/create-course';
 
 export type CourseFormData = Step1Data & Step2Data;
 
@@ -46,6 +48,8 @@ interface FormattedCourseData {
             thumbnail_file_id: string;
             package_id: string;
             add_faculty_to_course: AddFacultyToCourse[];
+            package_session_status?: string;
+            package_session_id?: string;
             group: {
                 id: string;
                 group_name: string;
@@ -77,7 +81,7 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
         levels: Array<{
             id: string;
             name: string;
-            userIds: { id: string; name: string; email: string }[];
+            userIds: { id: string; name: string; email: string; profilePicId: string }[];
         }>
     ): FormattedLevel[] =>
         levels?.map((level) => ({
@@ -101,7 +105,7 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
                     date_of_birth: '',
                     gender: '',
                     password: '',
-                    profile_pic_file_id: '',
+                    profile_pic_file_id: user.profilePicId,
                     roles: [],
                     root_user: true,
                 },
@@ -151,7 +155,7 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
                                       date_of_birth: '',
                                       gender: '',
                                       password: '',
-                                      profile_pic_file_id: '',
+                                      profile_pic_file_id: user.profilePicId,
                                       roles: [],
                                       root_user: true,
                                   },
@@ -200,7 +204,7 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
                                         date_of_birth: '',
                                         gender: '',
                                         password: '',
-                                        profile_pic_file_id: '',
+                                        profile_pic_file_id: user.profilePicId,
                                         roles: [],
                                         root_user: true,
                                     },
@@ -248,7 +252,7 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
                                   date_of_birth: '',
                                   gender: '',
                                   password: '',
-                                  profile_pic_file_id: '',
+                                  profile_pic_file_id: user.profilePicId,
                                   roles: [],
                                   root_user: true,
                               },
@@ -274,9 +278,9 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
         contain_levels: hasLevels || hasSessions,
         sessions,
         is_course_published_to_catalaouge: formData.publishToCatalogue,
-        course_preview_image_media_id: formData.coursePreview?.id || '',
-        course_banner_media_id: formData.courseBanner?.id || '',
-        course_media_id: formData.courseMedia?.id || '',
+        course_preview_image_media_id: formData.coursePreview || '',
+        course_banner_media_id: formData.courseBanner || '',
+        course_media_id: formData.courseMedia || '',
         why_learn_html: formData.learningOutcome || '',
         who_should_learn_html: formData.targetAudience || '',
         about_the_course_html: formData.aboutCourse || '',
@@ -285,3 +289,272 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
         course_html_description: formData.description || '',
     };
 };
+
+export const convertToApiCourseFormatUpdate = (
+    oldFormData: CourseFormData,
+    formData: CourseFormData,
+    getPackageSessionId: (params: {
+        courseId: string;
+        sessionId: string;
+        levelId: string;
+    }) => string
+): FormattedCourseData => {
+    const hasLevels = formData.hasLevels === 'yes';
+    const hasSessions = formData.hasSessions === 'yes';
+
+    const findById = <T extends { id: string }>(list: T[], id: string) =>
+        list.find((item) => item.id === id);
+
+    // Types for user and level
+    type User = {
+        id: string;
+        name: string;
+        email: string;
+        profilePicId: string;
+    };
+    type Level = {
+        id: string;
+        name: string;
+        userIds: User[];
+    };
+
+    const formatLevels = (sessionId: string, newLevels: Level[] = [], oldLevels: Level[] = []) => {
+        const allLevelIds = new Set([...newLevels.map((l) => l.id), ...oldLevels.map((l) => l.id)]);
+
+        return Array.from(allLevelIds).map((levelId) => {
+            const current = findById(newLevels, levelId);
+            const previous = findById(oldLevels, levelId);
+
+            const isNewLevel = current && !previous;
+            const isDeletedLevel = !current && previous;
+
+            const level = current || previous;
+
+            const currentUsers: User[] = current?.userIds || [];
+            const previousUsers: User[] = previous?.userIds || [];
+
+            // Users present in old but not in new (deleted)
+            const deletedUsers = previousUsers
+                .filter((oldUser) => !currentUsers.some((newUser) => newUser.id === oldUser.id))
+                .map((user) => ({
+                    user: {
+                        id: user.id || '',
+                        username: '',
+                        email: user.email || '',
+                        full_name: user.name || '',
+                        address_line: '',
+                        city: '',
+                        region: '',
+                        pin_code: '',
+                        mobile_number: '',
+                        date_of_birth: '',
+                        gender: '',
+                        password: '',
+                        profile_pic_file_id: user.profilePicId || '',
+                        roles: [],
+                        root_user: true,
+                    },
+                    status: 'DELETED',
+                    new_user: false,
+                }));
+            // Users present in new but not in old (added)
+            const addedUsers = currentUsers
+                .filter((newUser) => !previousUsers.some((oldUser) => oldUser.id === newUser.id))
+                .map((user) => ({
+                    user: {
+                        id: user.id || '',
+                        username: '',
+                        email: user.email || '',
+                        full_name: user.name || '',
+                        address_line: '',
+                        city: '',
+                        region: '',
+                        pin_code: '',
+                        mobile_number: '',
+                        date_of_birth: '',
+                        gender: '',
+                        password: '',
+                        profile_pic_file_id: user.profilePicId || '',
+                        roles: [],
+                        root_user: true,
+                    },
+                    status: 'ACTIVE',
+                    new_user: true,
+                }));
+
+            // Users present in both (existing, still active)
+            const existingUsers = currentUsers
+                .filter((newUser) => previousUsers.some((oldUser) => oldUser.id === newUser.id))
+                .map((user) => ({
+                    user: {
+                        id: user.id || '',
+                        username: '',
+                        email: user.email || '',
+                        full_name: user.name || '',
+                        address_line: '',
+                        city: '',
+                        region: '',
+                        pin_code: '',
+                        mobile_number: '',
+                        date_of_birth: '',
+                        gender: '',
+                        password: '',
+                        profile_pic_file_id: user.profilePicId || '',
+                        roles: [],
+                        root_user: true,
+                    },
+                    status: 'ACTIVE',
+                    new_user: false,
+                }));
+
+            const add_faculty_to_course = [...deletedUsers, ...addedUsers, ...existingUsers];
+
+            return {
+                id: isNewLevel ? '' : level?.id || '',
+                new_level: isNewLevel ? true : false,
+                level_name: level?.name || '',
+                duration_in_days: 0,
+                thumbnail_file_id: '',
+                package_id: '',
+                package_session_status: isDeletedLevel ? 'DELETED' : 'ACTIVE',
+                package_session_id:
+                    getPackageSessionId({
+                        courseId: formData.id || '',
+                        sessionId,
+                        levelId: level?.id || '',
+                    }) || '',
+                new_package_session: isNewLevel ? true : false,
+                add_faculty_to_course,
+                group: {
+                    id: '',
+                    group_name: '',
+                    group_value: '',
+                    new_group: false,
+                },
+            };
+        });
+    };
+
+    const currentSessions = formData.sessions || [];
+    const previousSessions = oldFormData.sessions || [];
+
+    const allSessionIds = new Set([
+        ...currentSessions.map((s) => s.id),
+        ...previousSessions.map((s) => s.id),
+    ]);
+
+    const sessions: FormattedSession[] = Array.from(allSessionIds).map((sessionId) => {
+        const current = findById(currentSessions, sessionId);
+        const previous = findById(previousSessions, sessionId);
+
+        const isNewSession = current && !previous;
+        const isDeletedSession = !current && previous;
+
+        const session = current || previous;
+
+        const levels = formatLevels(
+            sessionId,
+            (current?.levels as Level[]) || [],
+            (previous?.levels as Level[]) || []
+        );
+
+        return {
+            id: isNewSession ? '' : session?.id || '',
+            session_name: session?.name || '',
+            status: isDeletedSession ? 'DELETED' : 'ACTIVE',
+            start_date: session?.startDate || '',
+            new_session: isNewSession ? true : false,
+            levels,
+        };
+    });
+
+    return {
+        id: formData.id || '',
+        new_course: false,
+        course_name: formData.course || '',
+        thumbnail_file_id: '',
+        contain_levels: hasLevels || hasSessions,
+        sessions,
+        is_course_published_to_catalaouge: formData.publishToCatalogue,
+        course_preview_image_media_id: '',
+        course_banner_media_id: '',
+        course_media_id: '',
+        why_learn_html: formData.learningOutcome || '',
+        who_should_learn_html: formData.targetAudience || '',
+        about_the_course_html: formData.aboutCourse || '',
+        tags: formData.tags || [],
+        course_depth: formData.levelStructure || 2,
+        course_html_description: formData.description || '',
+    };
+};
+
+export function transformCourseData(course: CourseDetailsFormValues) {
+    const sessions = course.courseData.sessions || [];
+
+    const hasLevels = sessions.some(
+        (session) => Array.isArray(session.levelDetails) && session.levelDetails.length > 0
+    )
+        ? 'yes'
+        : 'no';
+    return {
+        id: course.courseData.id || '',
+        course: course.courseData.packageName || course.courseData.title || '',
+        description: course.courseData.description ?? '',
+        learningOutcome: course.courseData.whatYoullLearn ?? '',
+        aboutCourse: course.courseData.aboutTheCourse ?? '',
+        targetAudience: course.courseData.whoShouldLearn ?? '',
+        coursePreview: course.courseData.coursePreviewImageMediaId ?? '',
+        courseBanner: course.courseData.courseBannerMediaId ?? '',
+        courseMedia: course.courseData.courseMediaId ?? '',
+        tags: course.courseData.tags ?? [],
+        levelStructure: course.courseData.courseStructure ?? 0,
+        hasLevels,
+        hasSessions:
+            Array.isArray(course.courseData.sessions) && course.courseData.sessions.length > 0
+                ? 'yes'
+                : 'no',
+        sessions: (course.courseData.sessions || []).map((session) => ({
+            id: session.sessionDetails?.id ?? '',
+            name: session.sessionDetails?.session_name ?? '',
+            startDate: session.sessionDetails?.start_date ?? '',
+            levels: (session.levelDetails || []).map((level) => ({
+                id: level.id,
+                name: level.name,
+                userIds: level.instructors.map((inst) => ({
+                    id: inst.id,
+                    name: inst.name,
+                    email: inst.email,
+                    profilePicId: inst.profilePicId,
+                })),
+            })),
+        })),
+        selectedInstructors: extractInstructors(course.courseData.sessions), // No data available in input
+        instructors: [], // No data available in input
+        publishToCatalogue: course.courseData.isCoursePublishedToCatalaouge ?? false,
+    };
+}
+
+function extractInstructors(data: Session[]) {
+    const instructorMap = new Map<string, Session>();
+
+    for (const session of data) {
+        const levels = session.levelDetails || [];
+        for (const level of levels) {
+            const instructors = level.instructors || [];
+            for (const instructor of instructors) {
+                if (!instructorMap.has(instructor.id)) {
+                    instructorMap.set(instructor.id, {
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-expect-error
+                        id: instructor.id,
+                        name: instructor.name,
+                        email: instructor.email,
+                        profilePicId: instructor.profilePicId,
+                    });
+                }
+            }
+        }
+    }
+
+    return Array.from(instructorMap.values());
+}

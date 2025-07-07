@@ -32,8 +32,9 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { handleGetSlideCountDetails } from '../-services/get-slides-count';
 import { CourseDetailsRatingsComponent } from './course-details-ratings-page';
-import { transformApiDataToCourseData } from '../-utils/helper';
+import { getInstructorsBySessionAndLevel, transformApiDataToCourseData } from '../-utils/helper';
 import { CourseStructureDetails } from './course-structure-details';
+import { AddCourseForm } from '@/components/common/study-library/add-course/add-course-form';
 
 type SlideType = {
     id: string;
@@ -254,6 +255,8 @@ export const CourseDetailsPage = () => {
                     const transformedData = await transformApiDataToCourseData(courseDetailsData);
                     if (transformedData) {
                         form.reset({
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-expect-error
                             courseData: transformedData,
                             mockCourses: mockCourses,
                         });
@@ -273,6 +276,18 @@ export const CourseDetailsPage = () => {
         enabled: !!packageSessionIds,
     });
 
+    useEffect(() => {
+        form.setValue(
+            'courseData.instructors',
+            getInstructorsBySessionAndLevel(
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-expect-error
+                courseDetailsData?.sessions,
+                selectedSession,
+                selectedLevel
+            )
+        );
+    }, [currentLevel, currentSession]);
     return (
         <div className="flex min-h-screen flex-col bg-white">
             {/* Top Banner */}
@@ -310,16 +325,6 @@ export const CourseDetailsPage = () => {
                                 </div>
                             ) : (
                                 <>
-                                    <div className="mb-4 flex gap-2">
-                                        {form.getValues('courseData').tags.map((tag, index) => (
-                                            <span
-                                                key={index}
-                                                className="rounded-full bg-blue-600 px-3 py-1 text-sm"
-                                            >
-                                                {tag}
-                                            </span>
-                                        ))}
-                                    </div>
                                     <h1 className="mb-4 text-4xl font-bold">
                                         {form.getValues('courseData').title}
                                     </h1>
@@ -328,6 +333,20 @@ export const CourseDetailsPage = () => {
                                         dangerouslySetInnerHTML={{
                                             __html: form.getValues('courseData').description || '',
                                         }}
+                                    />
+                                    <div className="mt-4 flex gap-2">
+                                        {form.getValues('courseData').tags.map((tag, index) => (
+                                            <span
+                                                key={index}
+                                                className="rounded-md border px-3 py-1 text-sm shadow-lg"
+                                            >
+                                                {tag}
+                                            </span>
+                                        ))}
+                                    </div>
+                                    <AddCourseForm
+                                        isEdit={true}
+                                        initialCourseData={form.getValues()}
                                     />
                                 </>
                             )}
@@ -424,7 +443,6 @@ export const CourseDetailsPage = () => {
                                         </Select>
                                     </div>
                                 )}
-
                                 {levelOptions.length === 1 ? (
                                     levelOptions[0]?.label !== 'default' && (
                                         <div className="flex flex-col gap-2">

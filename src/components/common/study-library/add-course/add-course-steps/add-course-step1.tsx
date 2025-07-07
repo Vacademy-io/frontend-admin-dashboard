@@ -24,18 +24,17 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
 
-type MediaType = 'image' | 'video';
-
 // Step 1 Schema
 export const step1Schema = z.object({
+    id: z.string().optional(),
     course: z.string().min(1, { message: 'Course name is required' }),
     description: z.string().optional(),
     learningOutcome: z.string().optional(),
     aboutCourse: z.string().optional(),
     targetAudience: z.string().optional(),
-    coursePreview: z.any().optional(),
-    courseBanner: z.any().optional(),
-    courseMedia: z.any().optional(),
+    coursePreview: z.string().optional(),
+    courseBanner: z.string().optional(),
+    courseMedia: z.string().optional(),
     tags: z.array(z.string()).default([]),
 });
 export type Step1Data = z.infer<typeof step1Schema>;
@@ -74,9 +73,9 @@ export const AddCourseStep1 = ({
             learningOutcome: '',
             aboutCourse: '',
             targetAudience: '',
-            coursePreview: null,
-            courseBanner: null,
-            courseMedia: null,
+            coursePreview: '',
+            courseBanner: '',
+            courseMedia: '',
             tags: [],
         },
     });
@@ -98,16 +97,10 @@ export const AddCourseStep1 = ({
                 [field]: true,
             }));
 
-            const imageUrl = URL.createObjectURL(file);
-            form.setValue(`${field}.url`, imageUrl);
+            const fileUrl = URL.createObjectURL(file);
+            form.setValue(field, fileUrl); // set as string
 
-            // Set media type for course media
-            if (field === 'courseMedia') {
-                const mediaType: MediaType = file.type.startsWith('video/') ? 'video' : 'image';
-                form.setValue('courseMedia.mediaType', mediaType);
-            }
-
-            const uploadedFileId = await uploadFile({
+            const uploadedFileUrl = await uploadFile({
                 file,
                 setIsUploading: (state) =>
                     setUploadingStates((prev) => ({
@@ -119,8 +112,8 @@ export const AddCourseStep1 = ({
                 sourceId: 'COURSES',
             });
 
-            if (uploadedFileId) {
-                form.setValue(`${field}.id`, uploadedFileId);
+            if (uploadedFileUrl) {
+                form.setValue(field, uploadedFileUrl); // set as string
             }
         } catch (error) {
             console.error('Upload failed:', error);
@@ -249,7 +242,7 @@ export const AddCourseStep1 = ({
                                                 >
                                                     {tag}
                                                     <X
-                                                        className="h-3 w-3 cursor-pointer"
+                                                        className="size-3 cursor-pointer"
                                                         onClick={() => removeTag(tag)}
                                                     />
                                                 </Badge>
@@ -329,12 +322,12 @@ export const AddCourseStep1 = ({
                                             <div className="flex h-[200px] items-center justify-center rounded-lg bg-gray-100">
                                                 <DashboardLoader />
                                             </div>
-                                        ) : form.watch('coursePreview.url') ? (
+                                        ) : form.watch('coursePreview') ? (
                                             <div className="h-[200px] w-full rounded-lg bg-gray-100">
                                                 <img
-                                                    src={form.watch('coursePreview.url')}
+                                                    src={form.watch('coursePreview')}
                                                     alt="Course Preview"
-                                                    className="h-full w-full rounded-lg object-contain"
+                                                    className="size-full rounded-lg object-contain"
                                                 />
                                             </div>
                                         ) : (
@@ -350,7 +343,7 @@ export const AddCourseStep1 = ({
                                                 handleFileUpload(file, 'coursePreview')
                                             }
                                             control={form.control}
-                                            name="coursePreview.id"
+                                            name="coursePreview"
                                             acceptedFileTypes={[
                                                 'image/jpeg',
                                                 'image/png',
@@ -383,12 +376,12 @@ export const AddCourseStep1 = ({
                                             <div className="flex h-[200px] items-center justify-center rounded-lg bg-gray-100">
                                                 <DashboardLoader />
                                             </div>
-                                        ) : form.watch('courseBanner.url') ? (
+                                        ) : form.watch('courseBanner') ? (
                                             <div className="h-[200px] w-full rounded-lg bg-gray-100">
                                                 <img
-                                                    src={form.watch('courseBanner.url')}
+                                                    src={form.watch('courseBanner')}
                                                     alt="Course Banner"
-                                                    className="h-full w-full rounded-lg object-contain"
+                                                    className="size-full rounded-lg object-contain"
                                                 />
                                             </div>
                                         ) : (
@@ -404,7 +397,7 @@ export const AddCourseStep1 = ({
                                                 handleFileUpload(file, 'courseBanner')
                                             }
                                             control={form.control}
-                                            name="courseBanner.id"
+                                            name="courseBanner"
                                             acceptedFileTypes={[
                                                 'image/jpeg',
                                                 'image/png',
@@ -438,21 +431,22 @@ export const AddCourseStep1 = ({
                                             <div className="flex h-[200px] items-center justify-center rounded-lg bg-gray-100">
                                                 <DashboardLoader />
                                             </div>
-                                        ) : form.watch('courseMedia.url') ? (
+                                        ) : form.watch('courseMedia') ? (
                                             <div className="h-[200px] w-full rounded-lg bg-gray-100">
-                                                {form.watch('courseMedia.mediaType') === 'video' ? (
+                                                {form.watch('courseMedia')?.endsWith('.mp4') ||
+                                                form.watch('courseMedia')?.includes('video') ? (
                                                     <video
-                                                        src={form.watch('courseMedia.url')}
+                                                        src={form.watch('courseMedia')}
                                                         controls
-                                                        className="h-full w-full rounded-lg object-contain"
+                                                        className="size-full rounded-lg object-contain"
                                                     >
                                                         Your browser does not support the video tag.
                                                     </video>
                                                 ) : (
                                                     <img
-                                                        src={form.watch('courseMedia.url')}
+                                                        src={form.watch('courseMedia') || ''}
                                                         alt="Course Media"
-                                                        className="h-full w-full rounded-lg object-contain"
+                                                        className="size-full rounded-lg object-contain"
                                                     />
                                                 )}
                                             </div>
@@ -469,7 +463,7 @@ export const AddCourseStep1 = ({
                                                 handleFileUpload(file, 'courseMedia')
                                             }
                                             control={form.control}
-                                            name="courseMedia.id"
+                                            name="courseMedia"
                                             acceptedFileTypes={[
                                                 'image/jpeg',
                                                 'image/png',

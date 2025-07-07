@@ -34,8 +34,8 @@ const SessionLevelMappingDialog = ({
     const [selectedMappings, setSelectedMappings] = useState<SessionLevel[]>([]);
 
     // Create flattened array of session-level combinations
-    const sessionLevelMappings = sessions.flatMap(session =>
-        session.levels.map(level => ({
+    const sessionLevelMappings = sessions.flatMap((session) =>
+        session.levels.map((level) => ({
             sessionId: session.id,
             sessionName: session.name,
             levelId: level.id,
@@ -45,18 +45,14 @@ const SessionLevelMappingDialog = ({
     );
 
     const handleCheckboxChange = (mapping: SessionLevel) => {
-        setSelectedMappings(prev => {
+        setSelectedMappings((prev) => {
             const exists = prev.some(
-                m =>
-                    m.sessionId === mapping.sessionId &&
-                    m.levelId === mapping.levelId
+                (m) => m.sessionId === mapping.sessionId && m.levelId === mapping.levelId
             );
 
             if (exists) {
                 return prev.filter(
-                    m =>
-                        m.sessionId !== mapping.sessionId ||
-                        m.levelId !== mapping.levelId
+                    (m) => m.sessionId !== mapping.sessionId || m.levelId !== mapping.levelId
                 );
             } else {
                 return [...prev, mapping];
@@ -77,14 +73,11 @@ const SessionLevelMappingDialog = ({
                 </h1>
                 <div className="flex flex-col gap-4 p-4">
                     {sessionLevelMappings.map((mapping) => (
-                        <div
-                            key={mapping.key}
-                            className="flex items-center space-x-2"
-                        >
+                        <div key={mapping.key} className="flex items-center space-x-2">
                             <Checkbox
                                 id={mapping.key}
                                 checked={selectedMappings.some(
-                                    m =>
+                                    (m) =>
                                         m.sessionId === mapping.sessionId &&
                                         m.levelId === mapping.levelId
                                 )}
