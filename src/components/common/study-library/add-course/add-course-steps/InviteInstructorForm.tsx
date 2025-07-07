@@ -13,6 +13,8 @@ import { handleInviteUsers } from '@/routes/dashboard/-services/dashboard-servic
 import { useMutation } from '@tanstack/react-query';
 import { getInstituteId } from '@/constants/helper';
 import { toast } from 'sonner';
+import { MultiSelectField } from '@/components/design-system/multi-select-field';
+import { RoleType } from '@/constants/dummy-data';
 
 interface InviteInstructorFormProps {
     onInviteSuccess: (id: string, name: string, email: string) => void;
@@ -103,6 +105,15 @@ const InviteInstructorForm = ({ onInviteSuccess, onCancel }: InviteInstructorFor
                                     </FormControl>
                                 </FormItem>
                             )}
+                        />
+                        <MultiSelectField
+                            form={form}
+                            label="Role Type"
+                            name="roleType"
+                            options={RoleType}
+                            control={form.control}
+                            className="w-full"
+                            required
                         />
                         <div className="mt-3 flex gap-4">
                             <MyButton

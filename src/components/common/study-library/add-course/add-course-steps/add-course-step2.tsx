@@ -942,7 +942,7 @@ export const AddCourseStep2 = ({
                                 <div className="space-y-3">
                                     <div className="flex items-center justify-between">
                                         <Label className="text-base font-medium text-gray-900">
-                                            Add Instructors to Course
+                                            Add Authors to Course
                                         </Label>
                                         <MyButton
                                             type="button"
