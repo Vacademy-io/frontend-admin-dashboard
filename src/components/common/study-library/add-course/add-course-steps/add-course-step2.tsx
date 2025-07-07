@@ -38,6 +38,7 @@ interface Instructor {
     id: string;
     email: string;
     name: string;
+    profilePicId: string;
 }
 
 // Update the schema
@@ -61,6 +62,7 @@ export const step2Schema = z.object({
                                     id: z.string(),
                                     email: z.string(),
                                     name: z.string(),
+                                    profilePicId: z.string(),
                                 })
                             )
                             .default([]),
@@ -75,6 +77,7 @@ export const step2Schema = z.object({
                 id: z.string(),
                 name: z.string(),
                 email: z.string(),
+                profilePicId: z.string(),
             })
         )
         .default([]),
@@ -84,7 +87,7 @@ export const step2Schema = z.object({
                 id: z.string(),
                 name: z.string(),
                 email: z.string(),
-                profilePicId: z.string().optional(),
+                profilePicId: z.string(),
             })
         )
         .optional(),
@@ -111,12 +114,14 @@ export const AddCourseStep2 = ({
     initialData,
     isLoading = false,
     disableCreate = false,
+    isEdit,
 }: {
     onBack: () => void;
     onSubmit: (data: Step2Data) => void;
     initialData?: Step2Data;
     isLoading?: boolean;
     disableCreate?: boolean;
+    isEdit?: boolean;
 }) => {
     const instituteId = getInstituteId();
     const [hasLevels, setHasLevels] = useState(initialData?.hasLevels || 'yes');
@@ -249,7 +254,7 @@ export const AddCourseStep2 = ({
     };
 
     const handleInviteSuccess = (id: string, name: string, email: string) => {
-        const newInstructor: Instructor = { id: id, email: email, name: name };
+        const newInstructor: Instructor = { id: id, email: email, name: name, profilePicId: '' };
 
         // Add to available instructors list if not already present
         if (!instructors.some((i) => i.email === email)) {
@@ -997,6 +1002,8 @@ export const AddCourseStep2 = ({
                                                                 id: instructor?.id || '',
                                                                 email: instructor?.email || '',
                                                                 name: instructor?.name || '',
+                                                                profilePicId:
+                                                                    instructor?.profilePicId || '',
                                                             };
                                                         })
                                                         ?.filter((i) => i.id && i.email && i.name);
@@ -1406,7 +1413,7 @@ export const AddCourseStep2 = ({
                                 ) : (
                                     <>
                                         <Plus />
-                                        Create
+                                        {isEdit ? 'Edit' : 'Create'}
                                     </>
                                 )}
                             </MyButton>

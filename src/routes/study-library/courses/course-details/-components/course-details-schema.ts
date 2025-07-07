@@ -38,6 +38,7 @@ const levelDetailsSchema = z.object({
         .number()
         .int()
         .min(0, { message: 'Duration must be a non-negative integer.' }),
+    instructors: z.array(instructorSchema),
     subjects: z
         .array(
             z.object({

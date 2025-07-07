@@ -255,6 +255,8 @@ export const CourseDetailsPage = () => {
                     const transformedData = await transformApiDataToCourseData(courseDetailsData);
                     if (transformedData) {
                         form.reset({
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-expect-error
                             courseData: transformedData,
                             mockCourses: mockCourses,
                         });
@@ -278,6 +280,8 @@ export const CourseDetailsPage = () => {
         form.setValue(
             'courseData.instructors',
             getInstructorsBySessionAndLevel(
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-expect-error
                 courseDetailsData?.sessions,
                 selectedSession,
                 selectedLevel

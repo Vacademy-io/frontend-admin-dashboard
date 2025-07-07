@@ -1,6 +1,40 @@
 import { SubjectType } from '@/stores/study-library/use-study-library-store';
 import { getPublicUrl } from '@/services/upload_file';
 
+export interface Instructor {
+    id: string;
+    username: string;
+    email: string;
+    full_name: string;
+    address_line: string | null;
+    city: string | null;
+    region: string | null;
+    pin_code: string | null;
+    mobile_number: string | null;
+    date_of_birth: string | null;
+    gender: string | null;
+    password: string | null;
+    profile_pic_file_id: string | null;
+    roles: string[];
+    root_user: boolean;
+}
+
+export interface Session {
+    session_dto: {
+        id: string;
+        session_name: string;
+        status: string;
+        start_date: string;
+    };
+    level_with_details: Array<{
+        id: string;
+        name: string;
+        duration_in_days: number;
+        instructors: Instructor[];
+        subjects: SubjectType[];
+    }>;
+}
+
 interface CourseWithSessionsType {
     course: {
         id: string;
@@ -18,20 +52,7 @@ interface CourseWithSessionsType {
         course_depth: number;
         course_html_description: string;
     };
-    sessions: Array<{
-        level_with_details: Array<{
-            id: string;
-            name: string;
-            duration_in_days: number;
-            subjects: SubjectType[];
-        }>;
-        session_dto: {
-            id: string;
-            session_name: string;
-            status: string;
-            start_date: string;
-        };
-    }>;
+    sessions: Session[];
 }
 
 const createDefaultSubject = (): SubjectType => ({
@@ -131,7 +152,7 @@ export const transformApiDataToCourseData = async (apiData: CourseWithSessionsTy
 
 // Function to get instructors by sessionId and levelId
 export function getInstructorsBySessionAndLevel(
-    sessionsData: any,
+    sessionsData: Session[],
     sessionId: string,
     levelId: string
 ) {
@@ -139,11 +160,11 @@ export function getInstructorsBySessionAndLevel(
         if (session.session_dto.id === sessionId) {
             for (const level of session.level_with_details) {
                 if (level.id === levelId) {
-                    return level.instructors.map((inst) => ({
+                    return level.instructors.map((inst: Instructor) => ({
                         id: inst.id,
                         name: inst.full_name,
                         email: inst.email,
-                        profilePicId: inst.profile_pic_file_id,
+                        profilePicId: inst.profile_pic_file_id || '',
                     }));
                 }
             }

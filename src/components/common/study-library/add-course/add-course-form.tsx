@@ -6,7 +6,11 @@ import { MyButton } from '@/components/design-system/button';
 import { AddCourseStep1, step1Schema } from './add-course-steps/add-course-step1';
 import { AddCourseStep2, step2Schema } from './add-course-steps/add-course-step2';
 import { toast } from 'sonner';
-import { convertToApiCourseFormat, transformCourseData } from '../-utils/helper';
+import {
+    convertToApiCourseFormat,
+    convertToApiCourseFormatUpdate,
+    transformCourseData,
+} from '../-utils/helper';
 import { useAddCourse } from '@/services/study-library/course-operations/add-course';
 import { useNavigate } from '@tanstack/react-router';
 import { useAddSubject } from '@/routes/study-library/courses/course-details/subjects/-services/addSubject';
@@ -16,6 +20,7 @@ import { SubjectType } from '@/routes/study-library/courses/course-details/-comp
 import { fetchInstituteDetails } from '@/services/student-list-section/getInstituteDetails';
 import { BatchForSessionType } from '@/schemas/student/student-list/institute-schema';
 import { CourseDetailsFormValues } from '@/routes/study-library/courses/course-details/-components/course-details-schema';
+import { useUpdateCourse } from '@/services/study-library/course-operations/update-course';
 
 export interface Level {
     id: string;
@@ -49,8 +54,11 @@ export const AddCourseForm = ({
 
     const navigate = useNavigate();
     const addCourseMutation = useAddCourse();
+    const updateCourseMutation = useUpdateCourse();
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState<Partial<CourseFormData>>(
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
         initialCourseData ? transformCourseData(initialCourseData) : {}
     );
 
@@ -103,76 +111,99 @@ export const AddCourseForm = ({
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         const formattedData = convertToApiCourseFormat(finalData);
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        const formattedDataUpdate = convertToApiCourseFormatUpdate(finalData);
 
-        addCourseMutation.mutate(
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
-            { requestData: formattedData },
-            {
-                onSuccess: async (response) => {
-                    try {
-                        const instituteDetails = await fetchInstituteDetails();
-
-                        const packageSessionId = findIdByPackageId(
-                            instituteDetails?.batches_for_sessions || [],
-                            response.data
-                        );
-
-                        if (formattedData.course_depth === 2) {
-                            const subjectResponse = await addSubjectMutation.mutateAsync({
-                                subject: newSubject,
-                                packageSessionIds: packageSessionId,
-                            });
-
-                            const moduleResponse = await addModuleMutation.mutateAsync({
-                                subjectId: subjectResponse.data.id,
-                                packageSessionIds: packageSessionId,
-                                module: newModule,
-                            });
-
-                            await addChapterMutation.mutateAsync({
-                                subjectId: subjectResponse.data.id,
-                                moduleId: moduleResponse.data.id,
-                                commaSeparatedPackageSessionIds: packageSessionId,
-                                chapter: newChapter,
-                            });
-                        } else if (formattedData.course_depth === 3) {
-                            const subjectResponse = await addSubjectMutation.mutateAsync({
-                                subject: newSubject,
-                                packageSessionIds: packageSessionId,
-                            });
-
-                            await addModuleMutation.mutateAsync({
-                                subjectId: subjectResponse.data.id,
-                                packageSessionIds: packageSessionId,
-                                module: newModule,
-                            });
-                        } else if (formattedData.course_depth === 4) {
-                            await addSubjectMutation.mutateAsync({
-                                subject: newSubject,
-                                packageSessionIds: packageSessionId,
-                            });
-                        }
-
-                        toast.success('Course created successfully');
+        if (isEdit) {
+            updateCourseMutation.mutate(
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-expect-error
+                { requestData: formattedDataUpdate },
+                {
+                    onSuccess: () => {
+                        toast.success('Course updated successfully');
                         setIsOpen(false);
                         setStep(1);
                         setFormData({});
-                        navigate({
-                            to: `/study-library/courses/course-details?courseId=${response.data}`,
-                        });
-                    } catch (err) {
-                        toast.error('Failed to create course');
-                    } finally {
+                    },
+                    onError: () => {
+                        toast.error('Failed to update course');
                         setIsCreating(false);
-                    }
-                },
-                onError: () => {
-                    toast.error('Failed to create course');
-                    setIsCreating(false);
-                },
-            }
-        );
+                    },
+                }
+            );
+        } else {
+            addCourseMutation.mutate(
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-expect-error
+                { requestData: formattedData },
+                {
+                    onSuccess: async (response) => {
+                        try {
+                            const instituteDetails = await fetchInstituteDetails();
+
+                            const packageSessionId = findIdByPackageId(
+                                instituteDetails?.batches_for_sessions || [],
+                                response.data
+                            );
+
+                            if (formattedData.course_depth === 2) {
+                                const subjectResponse = await addSubjectMutation.mutateAsync({
+                                    subject: newSubject,
+                                    packageSessionIds: packageSessionId,
+                                });
+
+                                const moduleResponse = await addModuleMutation.mutateAsync({
+                                    subjectId: subjectResponse.data.id,
+                                    packageSessionIds: packageSessionId,
+                                    module: newModule,
+                                });
+
+                                await addChapterMutation.mutateAsync({
+                                    subjectId: subjectResponse.data.id,
+                                    moduleId: moduleResponse.data.id,
+                                    commaSeparatedPackageSessionIds: packageSessionId,
+                                    chapter: newChapter,
+                                });
+                            } else if (formattedData.course_depth === 3) {
+                                const subjectResponse = await addSubjectMutation.mutateAsync({
+                                    subject: newSubject,
+                                    packageSessionIds: packageSessionId,
+                                });
+
+                                await addModuleMutation.mutateAsync({
+                                    subjectId: subjectResponse.data.id,
+                                    packageSessionIds: packageSessionId,
+                                    module: newModule,
+                                });
+                            } else if (formattedData.course_depth === 4) {
+                                await addSubjectMutation.mutateAsync({
+                                    subject: newSubject,
+                                    packageSessionIds: packageSessionId,
+                                });
+                            }
+
+                            toast.success('Course created successfully');
+                            setIsOpen(false);
+                            setStep(1);
+                            setFormData({});
+                            navigate({
+                                to: `/study-library/courses/course-details?courseId=${response.data}`,
+                            });
+                        } catch (err) {
+                            toast.error('Failed to create course');
+                        } finally {
+                            setIsCreating(false);
+                        }
+                    },
+                    onError: () => {
+                        toast.error('Failed to create course');
+                        setIsCreating(false);
+                    },
+                }
+            );
+        }
     };
 
     const handleBack = () => {
@@ -222,6 +253,7 @@ export const AddCourseForm = ({
                             initialData={formData as Step2Data}
                             isLoading={isCreating}
                             disableCreate={isCreating}
+                            isEdit={isEdit}
                         />
                     )}
                 </div>

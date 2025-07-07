@@ -1,5 +1,6 @@
 import { CourseDetailsFormValues } from '@/routes/study-library/courses/course-details/-components/course-details-schema';
 import { Step1Data, Step2Data } from '../add-course/add-course-form';
+import { Session } from '@/types/course/create-course';
 
 export type CourseFormData = Step1Data & Step2Data;
 
@@ -152,7 +153,7 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
                                       date_of_birth: '',
                                       gender: '',
                                       password: '',
-                                      profile_pic_file_id: '',
+                                      profile_pic_file_id: user.profilePicId,
                                       roles: [],
                                       root_user: true,
                                   },
@@ -201,7 +202,7 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
                                         date_of_birth: '',
                                         gender: '',
                                         password: '',
-                                        profile_pic_file_id: '',
+                                        profile_pic_file_id: user.profilePicId,
                                         roles: [],
                                         root_user: true,
                                     },
@@ -249,7 +250,7 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
                                   date_of_birth: '',
                                   gender: '',
                                   password: '',
-                                  profile_pic_file_id: '',
+                                  profile_pic_file_id: user.profilePicId,
                                   roles: [],
                                   root_user: true,
                               },
@@ -270,6 +271,224 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
     return {
         id: '',
         new_course: true,
+        course_name: formData.course || '',
+        thumbnail_file_id: '',
+        contain_levels: hasLevels || hasSessions,
+        sessions,
+        is_course_published_to_catalaouge: formData.publishToCatalogue,
+        course_preview_image_media_id: formData.coursePreview || '',
+        course_banner_media_id: formData.courseBanner || '',
+        course_media_id: formData.courseMedia || '',
+        why_learn_html: formData.learningOutcome || '',
+        who_should_learn_html: formData.targetAudience || '',
+        about_the_course_html: formData.aboutCourse || '',
+        tags: formData.tags || [],
+        course_depth: formData.levelStructure || 2,
+        course_html_description: formData.description || '',
+    };
+};
+
+export const convertToApiCourseFormatUpdate = (formData: CourseFormData): FormattedCourseData => {
+    const hasLevels = formData.hasLevels === 'yes';
+    const hasSessions = formData.hasSessions === 'yes';
+
+    // Function to format levels
+    const formatLevels = (
+        levels: Array<{
+            id: string;
+            name: string;
+            userIds: { id: string; name: string; email: string; profilePicId: string }[];
+        }>
+    ): FormattedLevel[] =>
+        levels?.map((level) => ({
+            id: level.id,
+            new_level: false,
+            level_name: level.name,
+            duration_in_days: 0,
+            thumbnail_file_id: '',
+            package_id: '',
+            add_faculty_to_course: level?.userIds?.map((user) => ({
+                user: {
+                    id: user.id || '',
+                    username: '',
+                    email: user.email || '',
+                    full_name: user.name || '',
+                    address_line: '',
+                    city: '',
+                    region: '',
+                    pin_code: '',
+                    mobile_number: '',
+                    date_of_birth: '',
+                    gender: '',
+                    password: '',
+                    profile_pic_file_id: user.profilePicId,
+                    roles: [],
+                    root_user: true,
+                },
+                new_user: false,
+            })),
+            group: {
+                id: '',
+                group_name: '',
+                group_value: '',
+                new_group: false,
+            },
+        }));
+
+    // Determine sessions structure
+    let sessions: FormattedSession[] = [];
+    if (!hasLevels && !hasSessions) {
+        // When both are false, all selected instructors go to default level in default session
+        const allUsers = formData.instructors; // Instructor[]
+
+        sessions = [
+            {
+                id: 'DEFAULT',
+                session_name: 'DEFAULT',
+                status: 'ACTIVE',
+                start_date: '',
+                new_session: false,
+                levels: [
+                    {
+                        id: 'DEFAULT',
+                        new_level: false,
+                        level_name: 'DEFAULT',
+                        duration_in_days: 0,
+                        thumbnail_file_id: '',
+                        package_id: '',
+                        add_faculty_to_course: Array.isArray(allUsers)
+                            ? allUsers?.map((user) => ({
+                                  user: {
+                                      id: user.id || '',
+                                      username: '',
+                                      email: user.email || '',
+                                      full_name: user.name || '',
+                                      address_line: '',
+                                      city: '',
+                                      region: '',
+                                      pin_code: '',
+                                      mobile_number: '',
+                                      date_of_birth: '',
+                                      gender: '',
+                                      password: '',
+                                      profile_pic_file_id: user.profilePicId,
+                                      roles: [],
+                                      root_user: true,
+                                  },
+                                  new_user: false,
+                              }))
+                            : [],
+                        group: {
+                            id: 'DEFAULT',
+                            group_name: 'DEFAULT',
+                            group_value: '',
+                            new_group: false,
+                        },
+                    },
+                ],
+            },
+        ];
+    } else if (hasSessions) {
+        sessions = formData?.sessions?.map((session) => ({
+            id: '',
+            session_name: session.name,
+            status: 'ACTIVE',
+            start_date: session.startDate,
+            new_session: false,
+            levels: hasLevels
+                ? formatLevels(session.levels)
+                : [
+                      {
+                          id: 'DEFAULT',
+                          new_level: false,
+                          level_name: 'DEFAULT',
+                          duration_in_days: 0,
+                          thumbnail_file_id: '',
+                          package_id: '',
+                          add_faculty_to_course: session.levels[0]?.userIds
+                              ? session.levels[0]?.userIds?.map((user) => ({
+                                    user: {
+                                        id: user.id || '',
+                                        username: '',
+                                        email: user.email || '',
+                                        full_name: user.name || '',
+                                        address_line: '',
+                                        city: '',
+                                        region: '',
+                                        pin_code: '',
+                                        mobile_number: '',
+                                        date_of_birth: '',
+                                        gender: '',
+                                        password: '',
+                                        profile_pic_file_id: user.profilePicId,
+                                        roles: [],
+                                        root_user: true,
+                                    },
+                                    new_user: false,
+                                }))
+                              : [],
+                          group: {
+                              id: 'DEFAULT',
+                              group_name: 'DEFAULT',
+                              group_value: '',
+                              new_group: false,
+                          },
+                      },
+                  ],
+        }));
+    } else if (hasLevels) {
+        // When only hasLevels is true, keep userIds in their respective levels but in default session
+        const standaloneLevels = formData.sessions.find((s) => s.id === 'standalone')?.levels || [];
+        sessions = [
+            {
+                id: 'DEFAULT',
+                session_name: 'DEFAULT',
+                status: 'ACTIVE',
+                start_date: '',
+                new_session: false,
+                levels: standaloneLevels?.map((level) => ({
+                    id: '',
+                    new_level: false,
+                    level_name: level.name,
+                    duration_in_days: 0,
+                    thumbnail_file_id: '',
+                    package_id: '',
+                    add_faculty_to_course: Array.isArray(level.userIds)
+                        ? level?.userIds?.map((user) => ({
+                              user: {
+                                  id: user.id || '',
+                                  username: '',
+                                  email: user.email || '',
+                                  full_name: user.name || '',
+                                  address_line: '',
+                                  city: '',
+                                  region: '',
+                                  pin_code: '',
+                                  mobile_number: '',
+                                  date_of_birth: '',
+                                  gender: '',
+                                  password: '',
+                                  profile_pic_file_id: user.profilePicId,
+                                  roles: [],
+                                  root_user: true,
+                              },
+                              new_user: false,
+                          }))
+                        : [],
+                    group: {
+                        id: '',
+                        group_name: '',
+                        group_value: '',
+                        new_group: false,
+                    },
+                })),
+            },
+        ];
+    }
+
+    return {
+        id: formData.id || '',
+        new_course: false,
         course_name: formData.course || '',
         thumbnail_file_id: '',
         contain_levels: hasLevels || hasSessions,
@@ -333,8 +552,8 @@ export function transformCourseData(course: CourseDetailsFormValues) {
     };
 }
 
-function extractInstructors(data: any[]) {
-    const instructorMap = new Map<string, any>();
+function extractInstructors(data: Session[]) {
+    const instructorMap = new Map<string, Session>();
 
     for (const session of data) {
         const levels = session.levelDetails || [];
@@ -343,6 +562,8 @@ function extractInstructors(data: any[]) {
             for (const instructor of instructors) {
                 if (!instructorMap.has(instructor.id)) {
                     instructorMap.set(instructor.id, {
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-expect-error
                         id: instructor.id,
                         name: instructor.name,
                         email: instructor.email,
