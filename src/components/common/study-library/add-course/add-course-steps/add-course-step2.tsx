@@ -576,6 +576,7 @@ export const AddCourseStep2 = ({
                         id: instructor.id,
                         email: instructor.email,
                         name: instructor.full_name,
+                        profilePicId: instructor.profile_pic_file_id,
                     }))
                 );
             })
