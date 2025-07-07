@@ -535,7 +535,10 @@ export const CourseDetailsPage = () => {
                     <div className="w-1/3">
                         <div className="sticky top-4 rounded-lg border bg-white p-6 shadow-lg">
                             {/* Course Stats */}
-                            <h2 className="mb-4 text-lg font-bold">Scratch Programming Language</h2>
+                            <h2 className="mb-4 text-lg font-bold">
+                                {' '}
+                                {form.getValues('courseData').title}
+                            </h2>
                             <div className="space-y-4">
                                 {levelOptions[0]?.label !== 'default' && (
                                     <div className="flex items-center gap-2">
