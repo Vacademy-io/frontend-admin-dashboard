@@ -56,8 +56,11 @@ export function MultiSelectField({
     };
 
     useEffect(() => {
-        form.setValue(name, selectedOptions);
-    }, [selectedOptions]);
+        const selectedNames = selectedOptions
+            .map((id) => options.find((opt) => opt.id === id)?.name)
+            .filter(Boolean); // Remove undefined if any id not found
+        form.setValue(name, selectedNames);
+    }, [selectedOptions, form, name, options]);
 
     useEffect(() => {
         setSelectedOptions(form.getValues(name) || []);

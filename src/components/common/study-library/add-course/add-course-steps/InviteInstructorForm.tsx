@@ -28,7 +28,7 @@ const InviteInstructorForm = ({ onInviteSuccess, onCancel }: InviteInstructorFor
         defaultValues: {
             name: '',
             email: '',
-            roleType: ['TEACHER'],
+            roleType: [],
             batch_subject_mappings: [],
         },
         mode: 'onChange',
