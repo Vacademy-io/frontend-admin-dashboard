@@ -710,20 +710,22 @@ export const CourseMaterial = () => {
                                         return (
                                             <div
                                                 key={course.id}
-                                                className={`animate-fade-in group relative flex flex-col rounded-lg border border-neutral-200 bg-white p-0 shadow-sm transition-transform duration-500 hover:scale-[1.025] hover:shadow-md`}
+                                                className={`animate-fade-in group relative flex h-fit flex-col rounded-lg border border-neutral-200 bg-white p-0 shadow-sm transition-transform duration-500 hover:scale-[1.025] hover:shadow-md`}
                                             >
                                                 {/* Course Banner Image */}
-                                                <div className="flex size-full w-full items-center justify-center overflow-hidden rounded-lg px-3 pb-0 pt-4">
-                                                    <img
-                                                        src={
-                                                            courseImageUrls[course.id] ||
-                                                            course.thumbnail_file_id ||
-                                                            'https://images.pexels.com/photos/31530661/pexels-photo-31530661.jpeg'
-                                                        }
-                                                        alt={course.package_name}
-                                                        className="object-fit rounded-lg bg-white p-2 transition-transform duration-300 group-hover:scale-105"
-                                                    />
-                                                </div>
+                                                {courseImageUrls[course.id] && (
+                                                    <div className="flex size-full w-full items-center justify-center overflow-hidden rounded-lg px-3 pb-0 pt-4">
+                                                        <img
+                                                            src={
+                                                                courseImageUrls[course.id] ||
+                                                                course.thumbnail_file_id ||
+                                                                'https://images.pexels.com/photos/31530661/pexels-photo-31530661.jpeg'
+                                                            }
+                                                            alt={course.package_name}
+                                                            className="object-fit rounded-lg bg-white p-2 transition-transform duration-300 group-hover:scale-105"
+                                                        />
+                                                    </div>
+                                                )}
                                                 <div className="flex flex-col gap-1 p-4">
                                                     <div className="flex items-center justify-between">
                                                         <div className="text-lg font-extrabold text-neutral-800">
