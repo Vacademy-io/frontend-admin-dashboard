@@ -290,7 +290,7 @@ export const CourseDetailsPage = () => {
     }, [currentLevel, currentSession]);
 
     return (
-        <div className="flex min-h-screen flex-col bg-white">
+        <div className="pt-18 z-[-100] flex min-h-screen flex-col bg-white">
             {/* Top Banner */}
             <div className={`relative h-[300px]`}>
                 {/* Transparent black overlay */}
