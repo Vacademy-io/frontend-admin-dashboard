@@ -80,9 +80,6 @@ export const AddCourseStep1 = ({
         },
     });
 
-    console.log('initialData', initialData);
-    console.log('formvalues', form.getValues());
-
     // Watch the course field value
     const courseValue = form.watch('course');
     const isNextDisabled =

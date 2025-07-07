@@ -51,7 +51,7 @@ export const AddCourseForm = ({
     const addCourseMutation = useAddCourse();
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState<Partial<CourseFormData>>(
-        transformCourseData(initialCourseData)
+        initialCourseData ? transformCourseData(initialCourseData) : {}
     );
 
     const [isOpen, setIsOpen] = useState(false);

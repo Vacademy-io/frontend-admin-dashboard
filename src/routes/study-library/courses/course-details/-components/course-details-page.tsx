@@ -32,7 +32,7 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { handleGetSlideCountDetails } from '../-services/get-slides-count';
 import { CourseDetailsRatingsComponent } from './course-details-ratings-page';
-import { transformApiDataToCourseData } from '../-utils/helper';
+import { getInstructorsBySessionAndLevel, transformApiDataToCourseData } from '../-utils/helper';
 import { CourseStructureDetails } from './course-structure-details';
 import { AddCourseForm } from '@/components/common/study-library/add-course/add-course-form';
 
@@ -274,6 +274,16 @@ export const CourseDetailsPage = () => {
         enabled: !!packageSessionIds,
     });
 
+    useEffect(() => {
+        form.setValue(
+            'courseData.instructors',
+            getInstructorsBySessionAndLevel(
+                courseDetailsData?.sessions,
+                selectedSession,
+                selectedLevel
+            )
+        );
+    }, [currentLevel, currentSession]);
     return (
         <div className="flex min-h-screen flex-col bg-white">
             {/* Top Banner */}
@@ -429,7 +439,6 @@ export const CourseDetailsPage = () => {
                                         </Select>
                                     </div>
                                 )}
-
                                 {levelOptions.length === 1 ? (
                                     levelOptions[0]?.label !== 'default' && (
                                         <div className="flex flex-col gap-2">

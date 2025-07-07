@@ -78,7 +78,7 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
         levels: Array<{
             id: string;
             name: string;
-            userIds: { id: string; name: string; email: string }[];
+            userIds: { id: string; name: string; email: string; profilePicId: string }[];
         }>
     ): FormattedLevel[] =>
         levels?.map((level) => ({
@@ -102,7 +102,7 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
                     date_of_birth: '',
                     gender: '',
                     password: '',
-                    profile_pic_file_id: '',
+                    profile_pic_file_id: user.profilePicId,
                     roles: [],
                     root_user: true,
                 },
@@ -288,8 +288,15 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
 };
 
 export function transformCourseData(course: CourseDetailsFormValues) {
+    const sessions = course.courseData.sessions || [];
+
+    const hasLevels = sessions.some(
+        (session) => Array.isArray(session.levelDetails) && session.levelDetails.length > 0
+    )
+        ? 'yes'
+        : 'no';
     return {
-        id: course.courseData.id,
+        id: course.courseData.id || '',
         course: course.courseData.packageName || course.courseData.title || '',
         description: course.courseData.description ?? '',
         learningOutcome: course.courseData.whatYoullLearn ?? '',
@@ -300,7 +307,7 @@ export function transformCourseData(course: CourseDetailsFormValues) {
         courseMedia: course.courseData.courseMediaId ?? '',
         tags: course.courseData.tags ?? [],
         levelStructure: course.courseData.courseStructure ?? 0,
-        hasLevels: course.courseData.courseStructure > 0 ? 'yes' : 'no',
+        hasLevels,
         hasSessions:
             Array.isArray(course.courseData.sessions) && course.courseData.sessions.length > 0
                 ? 'yes'
@@ -312,11 +319,38 @@ export function transformCourseData(course: CourseDetailsFormValues) {
             levels: (session.levelDetails || []).map((level) => ({
                 id: level.id,
                 name: level.name,
-                userIds: [], // No user data in input
+                userIds: level.instructors.map((inst) => ({
+                    id: inst.id,
+                    name: inst.name,
+                    email: inst.email,
+                    profilePicId: inst.profilePicId,
+                })),
             })),
         })),
-        selectedInstructors: [], // No data available in input
+        selectedInstructors: extractInstructors(course.courseData.sessions), // No data available in input
         instructors: [], // No data available in input
         publishToCatalogue: course.courseData.isCoursePublishedToCatalaouge ?? false,
     };
+}
+
+function extractInstructors(data: any[]) {
+    const instructorMap = new Map<string, any>();
+
+    for (const session of data) {
+        const levels = session.levelDetails || [];
+        for (const level of levels) {
+            const instructors = level.instructors || [];
+            for (const instructor of instructors) {
+                if (!instructorMap.has(instructor.id)) {
+                    instructorMap.set(instructor.id, {
+                        id: instructor.id,
+                        name: instructor.name,
+                        email: instructor.email,
+                    });
+                }
+            }
+        }
+    }
+
+    return Array.from(instructorMap.values());
 }

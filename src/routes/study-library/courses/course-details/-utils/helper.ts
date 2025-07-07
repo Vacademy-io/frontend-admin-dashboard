@@ -97,6 +97,12 @@ export const transformApiDataToCourseData = async (apiData: CourseWithSessionsTy
                         id: level.id,
                         name: level.name,
                         duration_in_days: level.duration_in_days,
+                        instructors: level.instructors.map((inst) => ({
+                            id: inst.id,
+                            name: inst.full_name,
+                            email: inst.email,
+                            profilePicId: inst.profile_pic_file_id,
+                        })),
                         subjects: subjects.map((subject) => ({
                             id: subject.id,
                             subject_name: subject.subject_name,
@@ -122,3 +128,26 @@ export const transformApiDataToCourseData = async (apiData: CourseWithSessionsTy
         return null;
     }
 };
+
+// Function to get instructors by sessionId and levelId
+export function getInstructorsBySessionAndLevel(
+    sessionsData: any,
+    sessionId: string,
+    levelId: string
+) {
+    for (const session of sessionsData) {
+        if (session.session_dto.id === sessionId) {
+            for (const level of session.level_with_details) {
+                if (level.id === levelId) {
+                    return level.instructors.map((inst) => ({
+                        id: inst.id,
+                        name: inst.full_name,
+                        email: inst.email,
+                        profilePicId: inst.profile_pic_file_id,
+                    }));
+                }
+            }
+        }
+    }
+    return [];
+}
