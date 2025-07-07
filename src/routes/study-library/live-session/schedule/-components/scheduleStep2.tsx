@@ -42,7 +42,6 @@ export default function ScheduleStep2() {
     const [addCustomFieldDialog, setAddCustomFieldDialog] = useState<boolean>(false);
     const [previewDialog, setPreviewDialog] = useState<boolean>(false);
     const { sessionId } = useLiveSessionStore();
-    const {clearSessionId} = useLiveSessionStore();
     const isEditState = useLiveSessionStore((state) => state.isEdit);
     const { sessionDetails } = useSessionDetailsStore();
 

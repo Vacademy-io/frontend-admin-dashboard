@@ -17,10 +17,13 @@ import { DraftSessionDay, LiveSession, SessionsByDate } from '../-services/utils
 import PreviousSessionCard from './previous-session-card';
 import DraftSessionCard from './draft-session-card';
 import { useSessionDetailsStore } from '../-store/useSessionDetailsStore';
+import { useLiveSessionStore } from '../schedule/-store/sessionIdstore';
 
 export default function SessionListPage() {
     const { setNavHeading } = useNavHeadingStore();
     const { clearSessionDetails } = useSessionDetailsStore();
+    const { clearSessionId } = useLiveSessionStore();
+
     const [selectedTab, setSelectedTab] = useState<SessionStatus>(SessionStatus.LIVE);
     const navigate = useNavigate();
 
@@ -57,6 +60,7 @@ export default function SessionListPage() {
     useEffect(() => {
         setNavHeading('Live Session');
         clearSessionDetails();
+        clearSessionId();
     }, []);
 
     const renderLiveSessions = (sessions: LiveSession[] | undefined) => {

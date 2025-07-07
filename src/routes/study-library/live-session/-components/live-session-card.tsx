@@ -23,8 +23,15 @@ import { useNavigate } from '@tanstack/react-router';
 import { useSessionDetailsStore } from '../-store/useSessionDetailsStore';
 import { DraftSession, getSessionBySessionId } from '../-services/utils';
 import { LiveSessionReport } from '../-services/utils';
-import { registrationColumns, REGISTRATION_WIDTH } from '../-constants/reportTable';
+import {
+    registrationColumns,
+    REGISTRATION_WIDTH,
+    reportColumns,
+    REPORT_WIDTH,
+} from '../-constants/reportTable';
 import { MyTable } from '@/components/design-system/table';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
 
 interface LiveSessionCardProps {
     session: LiveSession;
@@ -33,6 +40,9 @@ interface LiveSessionCardProps {
 
 export default function LiveSessionCard({ session, isDraft = false }: LiveSessionCardProps) {
     const [openDialog, setOpenDialog] = useState<boolean>(false);
+    const [openDeleteDialog, setOpenDeleteDialog] = useState<boolean>(false);
+    const [selectedTab, setSelectedTab] = useState<string>('Registration');
+
     const [scheduledSessionDetails, setScheduleSessionDetails] =
         useState<SessionDetailsResponse | null>(null);
     const queryClient = useQueryClient();
@@ -48,6 +58,10 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
     const { setSessionId, setIsEdit } = useLiveSessionStore();
     const { setSessionDetails } = useSessionDetailsStore();
 
+    const handleTabChange = (value: string) => {
+        setSelectedTab(value);
+    };
+
     const handleEditSession = async () => {
         try {
             const details = await getSessionBySessionId(session?.session_id || '');
@@ -61,10 +75,9 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
         }
     };
 
-    const handleDelete = async (e: React.MouseEvent) => {
-        e.stopPropagation();
+    const handleDelete = async (type: string) => {
         try {
-            await deleteLiveSession(session.session_id);
+            await deleteLiveSession(session.session_id, type);
             await queryClient.invalidateQueries({ queryKey: ['liveSessions'] });
             await queryClient.invalidateQueries({ queryKey: ['upcomingSessions'] });
         } catch (error) {
@@ -90,6 +103,23 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
         last: true,
     };
 
+    const convertToReportTableAttedanceData = (data: LiveSessionReport[]) => {
+        return data.map((item, idx) => ({
+            index: idx + 1,
+            username: item.fullName,
+            attendanceStatus: item.attendanceStatus,
+        }));
+    };
+
+    const tableAttendanceData = {
+        content: reportResponse ? convertToReportTableAttedanceData(reportResponse) : [],
+        total_pages: 0,
+        page_no: 0,
+        page_size: 10,
+        total_elements: 0,
+        last: true,
+    };
+
     const fetchSessionDetail = async () => {
         const response = await fetchSessionDetails(session.schedule_id);
         setScheduleSessionDetails(response);
@@ -102,6 +132,9 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
     const handleOpenDialog = () => {
         fetchSessionDetail();
         setOpenDialog(!openDialog);
+    };
+    const handleOpenDeleteDialog = () => {
+        setOpenDeleteDialog(!openDeleteDialog);
     };
 
     return (
@@ -128,7 +161,10 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
                             </MyButton>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                            <DropdownMenuItem className="cursor-pointer" onClick={handleDelete}>
+                            <DropdownMenuItem
+                                className="cursor-pointer"
+                                onClick={handleOpenDeleteDialog}
+                            >
                                 Delete Live Session
                             </DropdownMenuItem>
                             <DropdownMenuItem
@@ -220,18 +256,105 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
                 onOpenChange={handleOpenDialog}
                 className="w-[80vw] max-w-4xl"
             >
-                <div className="flex flex-col gap-3 p-4 text-sm h-full">
-                    <div className="mt-4 rounded-lg h-full">
-                        <h3 className="mb-2 text-lg font-semibold">Registrations</h3>
-                        <MyTable
-                            data={tableData}
-                            columns={registrationColumns}
-                            isLoading={isPending}
-                            error={error as Error | null}
-                            columnWidths={REGISTRATION_WIDTH}
-                            currentPage={0}
-                            className="!w-fit !h-[70%]"
-                        />
+                <div className="flex h-full flex-col gap-3 p-4 text-sm">
+                    <div className="mt-4 h-full rounded-lg">
+                        <Tabs value={selectedTab} onValueChange={handleTabChange}>
+                            <div className="flex flex-row justify-between">
+                                <TabsList className="inline-flex h-auto justify-start gap-4 rounded-none border-b !bg-transparent p-0">
+                                    <TabsTrigger
+                                        key={'Registration'}
+                                        value={'Registration'}
+                                        className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
+                                            selectedTab === 'Registration'
+                                                ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                                : 'border-none bg-transparent'
+                                        }`}
+                                    >
+                                        Registered Users
+                                    </TabsTrigger>
+                                    <TabsTrigger
+                                        key={'Attendance'}
+                                        value={'Attendance'}
+                                        className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
+                                            selectedTab === 'Attendance'
+                                                ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                                : 'border-none bg-transparent'
+                                        }`}
+                                    >
+                                        Attendance
+                                    </TabsTrigger>
+                                </TabsList>
+                            </div>
+
+                            <TabsContent value={'Registration'} className="space-y-4">
+                                {isPending ? (
+                                    <>
+                                        <DashboardLoader></DashboardLoader>
+                                    </>
+                                ) : (
+                                    <>
+                                        <h3 className="mb-2 text-lg font-semibold">
+                                            Registrations
+                                        </h3>
+                                        <MyTable
+                                            data={tableData}
+                                            columns={registrationColumns}
+                                            isLoading={isPending}
+                                            error={error as Error | null}
+                                            columnWidths={REGISTRATION_WIDTH}
+                                            currentPage={0}
+                                            className="!h-[70%] !w-fit"
+                                        />
+                                    </>
+                                )}
+                            </TabsContent>
+                            <TabsContent value={'Attendance'} className="space-y-4">
+                                {isPending ? (
+                                    <>
+                                        <DashboardLoader></DashboardLoader>
+                                    </>
+                                ) : (
+                                    <>
+                                        <h3 className="mb-2 text-lg font-semibold">Attendance</h3>
+                                        <MyTable
+                                            data={tableAttendanceData}
+                                            columns={reportColumns}
+                                            isLoading={isPending}
+                                            error={error as Error | null}
+                                            columnWidths={REPORT_WIDTH}
+                                            currentPage={0}
+                                            className="!h-[70%] !w-fit"
+                                        />
+                                    </>
+                                )}
+                            </TabsContent>
+                        </Tabs>
+                    </div>
+                </div>
+            </MyDialog>
+            <MyDialog
+                heading="Attendance Report"
+                open={openDeleteDialog}
+                onOpenChange={handleOpenDeleteDialog}
+                className="w-fit max-w-4xl"
+            >
+                <div className="flex h-full flex-col gap-3 p-4 ">
+                    <div className="text-lg">Do you want to delete every class for this session</div>
+                    <div className="flex flex-row gap-4 justify-between items-center">
+                        <MyButton
+                            onClick={() => {
+                                handleDelete('session');
+                            }}
+                        >
+                            Yes
+                        </MyButton>
+                        <MyButton
+                            onClick={() => {
+                                handleDelete('schedule');
+                            }}
+                        >
+                            No
+                        </MyButton>
                     </div>
                 </div>
             </MyDialog>
