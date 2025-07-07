@@ -44,10 +44,9 @@ export default function DraftSessionCard({ session }: DraftSessionCardProps) {
         }
     };
 
-    const handleDelete = async (e: React.MouseEvent) => {
-        e.stopPropagation();
+    const handleDelete = async (type: string) => {
         try {
-            await deleteLiveSession(session.session_id);
+            await deleteLiveSession(session.session_id, type);
             await queryClient.invalidateQueries({ queryKey: ['draftSessions'] });
             await queryClient.invalidateQueries({ queryKey: ['upcomingSessions'] });
         } catch (error) {
@@ -92,7 +91,12 @@ export default function DraftSessionCard({ session }: DraftSessionCardProps) {
                             >
                                 Edit Live Session
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="cursor-pointer" onClick={handleDelete}>
+                            <DropdownMenuItem
+                                className="cursor-pointer"
+                                onClick={() => {
+                                    handleDelete('session');
+                                }}
+                            >
                                 Delete Live Session
                             </DropdownMenuItem>
                         </DropdownMenuContent>
