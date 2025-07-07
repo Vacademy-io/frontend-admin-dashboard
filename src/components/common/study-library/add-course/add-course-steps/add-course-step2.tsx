@@ -241,14 +241,14 @@ export const AddCourseStep2 = ({
     };
 
     const handleSubmit = (data: Step2Data) => {
-        const completeData: Step2Data = {
+        const completeData = {
             ...data,
             levelStructure: data.levelStructure || 2,
             hasLevels: data.hasLevels,
             hasSessions: data.hasSessions,
-            sessions: sessions,
-            instructors: instructors,
-            publishToCatalogue,
+            sessions: data.sessions,
+            instructors: data.instructors,
+            publishToCatalogue: data.publishToCatalogue,
         };
         onSubmit(completeData);
     };
@@ -515,17 +515,12 @@ export const AddCourseStep2 = ({
         if (initialData) {
             setSelectedInstructors(form.getValues('selectedInstructors'));
 
-            // Extract instructor mappings from session data
+            // Aggregate instructor mappings from session data
             const instructorMappingsFromSessions: InstructorMapping[] = [];
 
             form.getValues('sessions')?.forEach((session) => {
                 session.levels?.forEach((level) => {
                     level.userIds?.forEach((instructor) => {
-                        // Find existing mapping for this instructor
-                        const existingMappingIndex = instructorMappingsFromSessions.findIndex(
-                            (m) => m.id === instructor.id
-                        );
-
                         const sessionLevelMapping = {
                             sessionId: session.id,
                             sessionName: session.name,
@@ -533,21 +528,20 @@ export const AddCourseStep2 = ({
                             levelName: level.name,
                         };
 
-                        if (existingMappingIndex >= 0) {
-                            // Add to existing mapping if not already present
-                            const existingMapping =
-                                instructorMappingsFromSessions[existingMappingIndex];
-                            if (existingMapping) {
-                                const mappingExists = existingMapping.sessionLevels.some(
+                        // Find or create mapping for this instructor
+                        const mapping = instructorMappingsFromSessions.find(
+                            (m) => m.id === instructor.id
+                        );
+                        if (mapping) {
+                            // Only add if not already present
+                            if (
+                                !mapping.sessionLevels.some(
                                     (sl) => sl.sessionId === session.id && sl.levelId === level.id
-                                );
-
-                                if (!mappingExists) {
-                                    existingMapping.sessionLevels.push(sessionLevelMapping);
-                                }
+                                )
+                            ) {
+                                mapping.sessionLevels.push(sessionLevelMapping);
                             }
                         } else {
-                            // Create new mapping
                             instructorMappingsFromSessions.push({
                                 id: instructor.id,
                                 email: instructor.email,
@@ -1106,14 +1100,62 @@ export const AddCourseStep2 = ({
                                                                             scale="medium"
                                                                             layoutVariant="icon"
                                                                             onClick={() => {
-                                                                                setSelectedInstructors(
-                                                                                    (prev) =>
-                                                                                        prev.filter(
+                                                                                // 1. Remove from selectedInstructors
+                                                                                const updatedInstructors =
+                                                                                    (
+                                                                                        selectedInstructors: Instructor[]
+                                                                                    ) =>
+                                                                                        selectedInstructors.filter(
                                                                                             (i) =>
                                                                                                 i.id !==
                                                                                                 instructor.id
-                                                                                        )
+                                                                                        );
+                                                                                setSelectedInstructors(
+                                                                                    updatedInstructors
                                                                                 );
+                                                                                form.setValue(
+                                                                                    'selectedInstructors',
+                                                                                    updatedInstructors(
+                                                                                        selectedInstructors
+                                                                                    )
+                                                                                );
+                                                                                // 2. Remove from all sessions -> levels -> userIds
+                                                                                const updatedSessions =
+                                                                                    form
+                                                                                        .getValues(
+                                                                                            'sessions'
+                                                                                        )
+                                                                                        .map(
+                                                                                            (
+                                                                                                session
+                                                                                            ) => ({
+                                                                                                ...session,
+                                                                                                levels: session.levels.map(
+                                                                                                    (
+                                                                                                        level
+                                                                                                    ) => ({
+                                                                                                        ...level,
+                                                                                                        userIds:
+                                                                                                            level.userIds.filter(
+                                                                                                                (
+                                                                                                                    user
+                                                                                                                ) =>
+                                                                                                                    user.id !==
+                                                                                                                    instructor.id
+                                                                                                            ),
+                                                                                                    })
+                                                                                                ),
+                                                                                            })
+                                                                                        );
+                                                                                form.setValue(
+                                                                                    'sessions',
+                                                                                    updatedSessions,
+                                                                                    {
+                                                                                        shouldDirty:
+                                                                                            true,
+                                                                                    }
+                                                                                );
+
                                                                                 setInstructorMappings(
                                                                                     (prev) =>
                                                                                         prev.filter(

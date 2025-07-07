@@ -156,6 +156,7 @@ export function getInstructorsBySessionAndLevel(
     sessionId: string,
     levelId: string
 ) {
+    if (!sessionsData) return [];
     for (const session of sessionsData) {
         if (session.session_dto.id === sessionId) {
             for (const level of session.level_with_details) {

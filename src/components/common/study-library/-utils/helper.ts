@@ -1,7 +1,6 @@
 import { CourseDetailsFormValues } from '@/routes/study-library/courses/course-details/-components/course-details-schema';
 import { Step1Data, Step2Data } from '../add-course/add-course-form';
 import { Session } from '@/types/course/create-course';
-import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 export type CourseFormData = Step1Data & Step2Data;
 
@@ -292,233 +291,182 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
 };
 
 export const convertToApiCourseFormatUpdate = (
+    oldFormData: CourseFormData,
     formData: CourseFormData,
-    getPackageSessionId: any
+    getPackageSessionId: (params: {
+        courseId: string;
+        sessionId: string;
+        levelId: string;
+    }) => string
 ): FormattedCourseData => {
     const hasLevels = formData.hasLevels === 'yes';
     const hasSessions = formData.hasSessions === 'yes';
 
-    // Function to format levels
-    const formatLevels = (
-        sessionId: string,
-        levels: Array<{
-            id: string;
-            name: string;
-            userIds: { id: string; name: string; email: string; profilePicId: string }[];
-        }>
-    ): FormattedLevel[] =>
-        levels?.map((level) => ({
-            id: level.id,
-            new_level: false,
-            level_name: level.name,
-            duration_in_days: 0,
-            thumbnail_file_id: '',
-            package_id: '',
-            package_session_status: 'ACTIVE',
-            package_session_id:
-                getPackageSessionId({
-                    courseId: formData.id,
-                    levelId: level.id,
-                    sessionId: sessionId || '',
-                }) || '',
-            add_faculty_to_course: level?.userIds?.map((user) => ({
-                user: {
-                    id: user.id || '',
-                    username: '',
-                    email: user.email || '',
-                    full_name: user.name || '',
-                    address_line: '',
-                    city: '',
-                    region: '',
-                    pin_code: '',
-                    mobile_number: '',
-                    date_of_birth: '',
-                    gender: '',
-                    password: '',
-                    profile_pic_file_id: user.profilePicId,
-                    roles: [],
-                    root_user: true,
+    const findById = <T extends { id: string }>(list: T[], id: string) =>
+        list.find((item) => item.id === id);
+
+    // Types for user and level
+    type User = {
+        id: string;
+        name: string;
+        email: string;
+        profilePicId: string;
+    };
+    type Level = {
+        id: string;
+        name: string;
+        userIds: User[];
+    };
+
+    const formatLevels = (sessionId: string, newLevels: Level[] = [], oldLevels: Level[] = []) => {
+        const allLevelIds = new Set([...newLevels.map((l) => l.id), ...oldLevels.map((l) => l.id)]);
+
+        return Array.from(allLevelIds).map((levelId) => {
+            const current = findById(newLevels, levelId);
+            const previous = findById(oldLevels, levelId);
+
+            const isNewLevel = current && !previous;
+            const isDeletedLevel = !current && previous;
+
+            const level = current || previous;
+
+            const currentUsers: User[] = current?.userIds || [];
+            const previousUsers: User[] = previous?.userIds || [];
+
+            // Users present in old but not in new (deleted)
+            const deletedUsers = previousUsers
+                .filter((oldUser) => !currentUsers.some((newUser) => newUser.id === oldUser.id))
+                .map((user) => ({
+                    user: {
+                        id: user.id || '',
+                        username: '',
+                        email: user.email || '',
+                        full_name: user.name || '',
+                        address_line: '',
+                        city: '',
+                        region: '',
+                        pin_code: '',
+                        mobile_number: '',
+                        date_of_birth: '',
+                        gender: '',
+                        password: '',
+                        profile_pic_file_id: user.profilePicId || '',
+                        roles: [],
+                        root_user: true,
+                    },
+                    status: 'DELETED',
+                    new_user: false,
+                }));
+            // Users present in new but not in old (added)
+            const addedUsers = currentUsers
+                .filter((newUser) => !previousUsers.some((oldUser) => oldUser.id === newUser.id))
+                .map((user) => ({
+                    user: {
+                        id: user.id || '',
+                        username: '',
+                        email: user.email || '',
+                        full_name: user.name || '',
+                        address_line: '',
+                        city: '',
+                        region: '',
+                        pin_code: '',
+                        mobile_number: '',
+                        date_of_birth: '',
+                        gender: '',
+                        password: '',
+                        profile_pic_file_id: user.profilePicId || '',
+                        roles: [],
+                        root_user: true,
+                    },
+                    status: 'ACTIVE',
+                    new_user: true,
+                }));
+
+            // Users present in both (existing, still active)
+            const existingUsers = currentUsers
+                .filter((newUser) => previousUsers.some((oldUser) => oldUser.id === newUser.id))
+                .map((user) => ({
+                    user: {
+                        id: user.id || '',
+                        username: '',
+                        email: user.email || '',
+                        full_name: user.name || '',
+                        address_line: '',
+                        city: '',
+                        region: '',
+                        pin_code: '',
+                        mobile_number: '',
+                        date_of_birth: '',
+                        gender: '',
+                        password: '',
+                        profile_pic_file_id: user.profilePicId || '',
+                        roles: [],
+                        root_user: true,
+                    },
+                    status: 'ACTIVE',
+                    new_user: false,
+                }));
+
+            const add_faculty_to_course = [...deletedUsers, ...addedUsers, ...existingUsers];
+
+            return {
+                id: isNewLevel ? '' : level?.id || '',
+                new_level: isNewLevel ? true : false,
+                level_name: level?.name || '',
+                duration_in_days: 0,
+                thumbnail_file_id: '',
+                package_id: '',
+                package_session_status: isDeletedLevel ? 'DELETED' : 'ACTIVE',
+                package_session_id:
+                    getPackageSessionId({
+                        courseId: formData.id || '',
+                        sessionId,
+                        levelId: level?.id || '',
+                    }) || '',
+                new_package_session: isNewLevel ? true : false,
+                add_faculty_to_course,
+                group: {
+                    id: '',
+                    group_name: '',
+                    group_value: '',
+                    new_group: false,
                 },
-                new_user: false,
-            })),
-            group: {
-                id: '',
-                group_name: '',
-                group_value: '',
-                new_group: false,
-            },
-        }));
+            };
+        });
+    };
 
-    // Determine sessions structure
-    let sessions: FormattedSession[] = [];
-    if (!hasLevels && !hasSessions) {
-        // When both are false, all selected instructors go to default level in default session
-        const allUsers = formData.instructors; // Instructor[]
+    const currentSessions = formData.sessions || [];
+    const previousSessions = oldFormData.sessions || [];
 
-        sessions = [
-            {
-                id: 'DEFAULT',
-                session_name: 'DEFAULT',
-                status: 'ACTIVE',
-                start_date: '',
-                new_session: false,
-                levels: [
-                    {
-                        id: 'DEFAULT',
-                        new_level: false,
-                        level_name: 'DEFAULT',
-                        duration_in_days: 0,
-                        thumbnail_file_id: '',
-                        package_id: '',
-                        package_session_status: '',
-                        package_session_id:
-                            getPackageSessionId({
-                                courseId: formData.id,
-                                levelId: 'DEFAULT',
-                                sessionId: 'DEFAULT',
-                            }) || '',
-                        add_faculty_to_course: Array.isArray(allUsers)
-                            ? allUsers?.map((user) => ({
-                                  user: {
-                                      id: user.id || '',
-                                      username: '',
-                                      email: user.email || '',
-                                      full_name: user.name || '',
-                                      address_line: '',
-                                      city: '',
-                                      region: '',
-                                      pin_code: '',
-                                      mobile_number: '',
-                                      date_of_birth: '',
-                                      gender: '',
-                                      password: '',
-                                      profile_pic_file_id: user.profilePicId,
-                                      roles: [],
-                                      root_user: true,
-                                  },
-                                  new_user: false,
-                              }))
-                            : [],
-                        group: {
-                            id: 'DEFAULT',
-                            group_name: 'DEFAULT',
-                            group_value: '',
-                            new_group: false,
-                        },
-                    },
-                ],
-            },
-        ];
-    } else if (hasSessions) {
-        sessions = formData?.sessions?.map((session) => ({
-            id: session.id,
-            session_name: session.name,
-            status: 'ACTIVE',
-            start_date: session.startDate,
-            new_session: false,
-            levels: hasLevels
-                ? formatLevels(session.id, session.levels)
-                : [
-                      {
-                          id: 'DEFAULT',
-                          new_level: false,
-                          level_name: 'DEFAULT',
-                          duration_in_days: 0,
-                          thumbnail_file_id: '',
-                          package_id: '',
-                          package_session_id:
-                              getPackageSessionId({
-                                  courseId: formData.id,
-                                  levelId: 'DEFAULT',
-                                  sessionId: session.id,
-                              }) || '',
-                          add_faculty_to_course: session.levels[0]?.userIds
-                              ? session.levels[0]?.userIds?.map((user) => ({
-                                    user: {
-                                        id: user.id || '',
-                                        username: '',
-                                        email: user.email || '',
-                                        full_name: user.name || '',
-                                        address_line: '',
-                                        city: '',
-                                        region: '',
-                                        pin_code: '',
-                                        mobile_number: '',
-                                        date_of_birth: '',
-                                        gender: '',
-                                        password: '',
-                                        profile_pic_file_id: user.profilePicId,
-                                        roles: [],
-                                        root_user: true,
-                                    },
-                                    new_user: false,
-                                }))
-                              : [],
-                          group: {
-                              id: 'DEFAULT',
-                              group_name: 'DEFAULT',
-                              group_value: '',
-                              new_group: false,
-                          },
-                      },
-                  ],
-        }));
-    } else if (hasLevels) {
-        // When only hasLevels is true, keep userIds in their respective levels but in default session
-        const standaloneLevels = formData.sessions.find((s) => s.id === 'standalone')?.levels || [];
-        sessions = [
-            {
-                id: 'DEFAULT',
-                session_name: 'DEFAULT',
-                status: 'ACTIVE',
-                start_date: '',
-                new_session: false,
-                levels: standaloneLevels?.map((level) => ({
-                    id: level.id,
-                    new_level: false,
-                    level_name: level.name,
-                    duration_in_days: 0,
-                    thumbnail_file_id: '',
-                    package_id: '',
-                    package_session_status: '',
-                    package_session_id:
-                        getPackageSessionId({
-                            courseId: formData.id,
-                            levelId: level.id,
-                            sessionId: 'DEFAULT',
-                        }) || '',
-                    add_faculty_to_course: Array.isArray(level.userIds)
-                        ? level?.userIds?.map((user) => ({
-                              user: {
-                                  id: user.id || '',
-                                  username: '',
-                                  email: user.email || '',
-                                  full_name: user.name || '',
-                                  address_line: '',
-                                  city: '',
-                                  region: '',
-                                  pin_code: '',
-                                  mobile_number: '',
-                                  date_of_birth: '',
-                                  gender: '',
-                                  password: '',
-                                  profile_pic_file_id: user.profilePicId,
-                                  roles: [],
-                                  root_user: true,
-                              },
-                              new_user: false,
-                          }))
-                        : [],
-                    group: {
-                        id: '',
-                        group_name: '',
-                        group_value: '',
-                        new_group: false,
-                    },
-                })),
-            },
-        ];
-    }
+    const allSessionIds = new Set([
+        ...currentSessions.map((s) => s.id),
+        ...previousSessions.map((s) => s.id),
+    ]);
+
+    const sessions: FormattedSession[] = Array.from(allSessionIds).map((sessionId) => {
+        const current = findById(currentSessions, sessionId);
+        const previous = findById(previousSessions, sessionId);
+
+        const isNewSession = current && !previous;
+        const isDeletedSession = !current && previous;
+
+        const session = current || previous;
+
+        const levels = formatLevels(
+            sessionId,
+            (current?.levels as Level[]) || [],
+            (previous?.levels as Level[]) || []
+        );
+
+        return {
+            id: isNewSession ? '' : session?.id || '',
+            session_name: session?.name || '',
+            status: isDeletedSession ? 'DELETED' : 'ACTIVE',
+            start_date: session?.startDate || '',
+            new_session: isNewSession ? true : false,
+            levels,
+        };
+    });
 
     return {
         id: formData.id || '',
@@ -528,9 +476,9 @@ export const convertToApiCourseFormatUpdate = (
         contain_levels: hasLevels || hasSessions,
         sessions,
         is_course_published_to_catalaouge: formData.publishToCatalogue,
-        course_preview_image_media_id: formData.coursePreview || '',
-        course_banner_media_id: formData.courseBanner || '',
-        course_media_id: formData.courseMedia || '',
+        course_preview_image_media_id: '',
+        course_banner_media_id: '',
+        course_media_id: '',
         why_learn_html: formData.learningOutcome || '',
         who_should_learn_html: formData.targetAudience || '',
         about_the_course_html: formData.aboutCourse || '',
@@ -601,6 +549,7 @@ function extractInstructors(data: Session[]) {
                         id: instructor.id,
                         name: instructor.name,
                         email: instructor.email,
+                        profilePicId: instructor.profilePicId,
                     });
                 }
             }

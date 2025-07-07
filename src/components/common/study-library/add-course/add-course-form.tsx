@@ -1,5 +1,5 @@
 // add-course-form.tsx
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { z } from 'zod';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { MyButton } from '@/components/design-system/button';
@@ -64,6 +64,12 @@ export const AddCourseForm = ({
         initialCourseData ? transformCourseData(initialCourseData) : {}
     );
 
+    const oldFormData = useRef<Partial<CourseFormData>>(
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        initialCourseData ? transformCourseData(initialCourseData) : {}
+    );
+
     const [isOpen, setIsOpen] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
 
@@ -113,9 +119,13 @@ export const AddCourseForm = ({
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         const formattedData = convertToApiCourseFormat(finalData);
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
-        const formattedDataUpdate = convertToApiCourseFormatUpdate(finalData, getPackageSessionId);
+        const formattedDataUpdate = convertToApiCourseFormatUpdate(
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            oldFormData.current,
+            finalData,
+            getPackageSessionId
+        );
 
         if (isEdit) {
             updateCourseMutation.mutate(
