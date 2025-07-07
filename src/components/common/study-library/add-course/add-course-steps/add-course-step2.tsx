@@ -20,6 +20,8 @@ import { getInstituteId } from '@/constants/helper';
 import InviteInstructorForm from './InviteInstructorForm';
 import { UserRolesDataEntry } from '@/types/dashboard/user-roles';
 import { CODE_CIRCLE_INSTITUTE_ID } from '@/constants/urls';
+import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
 
 interface Level {
     id: string;
@@ -123,6 +125,9 @@ export const AddCourseStep2 = ({
     disableCreate?: boolean;
     isEdit?: boolean;
 }) => {
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const tokenData = getTokenDecodedData(accessToken);
+
     const instituteId = getInstituteId();
     const [hasLevels, setHasLevels] = useState(initialData?.hasLevels || 'yes');
     const [hasSessions, setHasSessions] = useState(
@@ -572,12 +577,16 @@ export const AddCourseStep2 = ({
         })
             .then((res) => {
                 setInstructors(
-                    res.map((instructor: UserRolesDataEntry) => ({
-                        id: instructor.id,
-                        email: instructor.email,
-                        name: instructor.full_name,
-                        profilePicId: instructor.profile_pic_file_id,
-                    }))
+                    res
+                        .map((instructor: UserRolesDataEntry) => ({
+                            id: instructor.id,
+                            email: instructor.email,
+                            name: instructor.full_name,
+                            profilePicId: instructor.profile_pic_file_id,
+                        }))
+                        .filter((instr: UserRolesDataEntry) => {
+                            return instr.id !== tokenData?.user;
+                        })
                 );
             })
             .catch((err) => {
