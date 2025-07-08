@@ -130,6 +130,9 @@ export const courseDetailsSchema = z.object({
         coursePreviewImageMediaId: z.string(),
         courseBannerMediaId: z.string(),
         courseMediaId: z.string(),
+        coursePreviewImageMediaPreview: z.string(),
+        courseBannerMediaPreview: z.string(),
+        courseMediaPreview: z.string(),
         courseHtmlDescription: z.string(),
         instructors: z
             .array(instructorSchema)

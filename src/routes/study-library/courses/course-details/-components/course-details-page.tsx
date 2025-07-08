@@ -165,6 +165,9 @@ export const CourseDetailsPage = () => {
                 coursePreviewImageMediaId: '',
                 courseBannerMediaId: '',
                 courseMediaId: '',
+                coursePreviewImageMediaPreview: '',
+                courseBannerMediaPreview: '',
+                courseMediaPreview: '',
                 courseHtmlDescription: '',
                 instructors: [],
                 sessions: [],
@@ -304,7 +307,7 @@ export const CourseDetailsPage = () => {
                 ) : (
                     <div className="absolute inset-0 z-0 opacity-70">
                         <img
-                            src={form.watch('courseData').courseBannerMediaId}
+                            src={form.watch('courseData').courseBannerMediaPreview}
                             alt="Course Banner"
                             className="size-full object-cover"
                             onError={(e) => {
@@ -362,7 +365,7 @@ export const CourseDetailsPage = () => {
                             <div className="w-[400px] overflow-hidden rounded-lg shadow-xl">
                                 <div className="relative aspect-video bg-black">
                                     <video
-                                        src={form.watch('courseData').courseMediaId}
+                                        src={form.watch('courseData').courseMediaPreview}
                                         controls
                                         className="size-full rounded-lg object-contain"
                                         onError={(e) => {
