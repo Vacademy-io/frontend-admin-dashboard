@@ -37,9 +37,10 @@ export const useFileUpload = () => {
 
     const getUrlMutation = useMutation({
         mutationFn: async (fileId: string) => {
-            if (!fileId) return;
+            if (fileId === '') return '';
             try {
-                return await getPublicUrl(fileId);
+                const url = await getPublicUrl(fileId);
+                return url;
             } catch (error) {
                 console.error('Get URL error:', error);
                 throw error;
@@ -49,6 +50,7 @@ export const useFileUpload = () => {
 
     const getMultipleUrlMutation = useMutation({
         mutationFn: async (fileIds: string) => {
+            if (fileIds === '') return '';
             try {
                 return await getPublicUrls(fileIds);
             } catch (error) {

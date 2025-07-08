@@ -99,6 +99,7 @@ const acknowledgeUpload = async (
 };
 
 export const getPublicUrl = async (fileId: string | undefined | null): Promise<string> => {
+    if (!fileId) return '';
     const response = await authenticatedAxiosInstance.get(GET_PUBLIC_URL, {
         params: { fileId, expiryDays: 1 },
     });
