@@ -372,11 +372,13 @@ export const CourseMaterial = () => {
     useEffect(() => {
         selectedFiltersRef.current = selectedFilters;
     }, [selectedFilters]);
+
     const pageRef = useRef(page);
     useEffect(() => {
         pageRef.current = page;
     }, [page]);
     // Fetch all tabs data in parallel
+
     useEffect(() => {
         if (!instituteDetails?.id) return;
         setLoading({ allCourses: true, authoredCourses: true, courseRequests: true });
@@ -407,6 +409,7 @@ export const CourseMaterial = () => {
             .then((data) => setCourseRequestsData(data))
             .finally(() => setLoading((l) => ({ ...l, courseRequests: false })));
     }, [instituteDetails?.id, page, JSON.stringify(selectedFilters)]);
+
     // Helper to get available tabs
     const availableTabs = useMemo(() => {
         const safeRoles = Array.isArray(roles) ? roles : [];
@@ -484,10 +487,20 @@ export const CourseMaterial = () => {
         loading.allCourses ||
         loading.authoredCourses ||
         loading.courseRequests ||
-        !instituteDetails?.id ||
-        availableTabs.length === 0
-    )
+        !instituteDetails?.id
+    ) {
         return <DashboardLoader />;
+    }
+
+    if (availableTabs.length === 0) {
+        return (
+            <div className="flex h-full flex-col items-center justify-center py-20">
+                <div className="mb-2 text-2xl font-semibold">No courses found</div>
+                <div className="mb-4 text-gray-500">Try adding a new course.</div>
+                <AddCourseButton />
+            </div>
+        );
+    }
 
     return (
         <div className="relative flex w-full flex-col gap-8 text-neutral-600">
