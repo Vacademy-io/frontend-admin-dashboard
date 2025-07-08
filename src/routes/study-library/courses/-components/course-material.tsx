@@ -1,5 +1,5 @@
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { AddCourseButton } from '@/components/common/study-library/add-course/add-course-button';
 import useIntroJsTour from '@/hooks/use-intro';
 import { StudyLibraryIntroKey } from '@/constants/storage/introKey';
@@ -94,8 +94,19 @@ export const CourseMaterial = () => {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
     const [roles, setRoles] = useState<string[] | undefined>([]);
-    const [allCourses, setAllCourses] = useState<AllCoursesApiResponse | null>(null);
+    const [allCoursesData, setAllCoursesData] = useState<AllCoursesApiResponse | null>(null);
+    const [authoredCoursesData, setAuthoredCoursesData] = useState<AllCoursesApiResponse | null>(
+        null
+    );
+    const [courseRequestsData, setCourseRequestsData] = useState<AllCoursesApiResponse | null>(
+        null
+    );
     const [page, setPage] = useState(0);
+    const [loading, setLoading] = useState({
+        allCourses: true,
+        authoredCourses: true,
+        courseRequests: true,
+    });
 
     const { data: accessControlUsers, isLoading: isUsersLoading } = useSuspenseQuery(
         handleGetInstituteUsersForAccessControl(instituteDetails?.id, {
@@ -136,7 +147,7 @@ export const CourseMaterial = () => {
             data: AllCourseFilters;
         }) => getAllTeacherCoursesWithFilters(page, pageSize, instituteId, data),
         onSuccess: (data) => {
-            setAllCourses(data);
+            setAllCoursesData(data);
         },
         onError: (error: unknown) => {
             throw error;
@@ -156,46 +167,18 @@ export const CourseMaterial = () => {
             data: AllCourseFilters;
         }) => getAllCoursesWithFilters(page, pageSize, instituteId, data),
         onSuccess: (data) => {
-            setAllCourses(data);
+            setAllCoursesData(data);
         },
         onError: (error: unknown) => {
             throw error;
         },
     });
 
-    const handleGetTeacherCourses = () => {
-        getAllTeacherCoursesMutation.mutate({
-            page: page,
-            pageSize: 10,
-            instituteId: instituteDetails?.id,
-            data: selectedFilters,
-        });
-    };
-
-    const handleGetCourses = () => {
-        getAllCoursesMutation.mutate({
-            page: page,
-            pageSize: 10,
-            instituteId: instituteDetails?.id,
-            data: {
-                ...selectedFilters,
-                faculty_ids:
-                    selectedTab === 'AuthoredCourses' && tokenData?.user
-                        ? [...selectedFilters.faculty_ids, tokenData.user]
-                        : selectedFilters.faculty_ids,
-            },
-        });
-    };
-
     useIntroJsTour({
         key: StudyLibraryIntroKey.createCourseStep,
         steps: studyLibrarySteps.createCourseStep,
         partial: true,
     });
-
-    const handleTabChange = (value: string) => {
-        setSelectedTab(value);
-    };
 
     const levels = useMemo(() => {
         return (
@@ -210,80 +193,112 @@ export const CourseMaterial = () => {
         return instituteDetails?.tags || [];
     }, [instituteDetails]);
 
-    const handlePageChange = (newPage: number) => {
+    const handlePageChange = (newPage: number = 0) => {
         setPage(newPage);
+        if (!selectedTab || !tokenData || !instituteDetails?.id || !selectedFilters) return;
+        const safeInstituteId: string = instituteDetails.id;
+        const safeSelectedFilters: AllCourseFilters = {
+            status: selectedFilters?.status ?? ['ACTIVE'],
+            level_ids: selectedFilters?.level_ids ?? [],
+            tag: selectedFilters?.tag ?? [],
+            faculty_ids: selectedFilters?.faculty_ids ?? [],
+            search_by_name: selectedFilters?.search_by_name ?? '',
+            min_percentage_completed: selectedFilters?.min_percentage_completed ?? 0,
+            max_percentage_completed: selectedFilters?.max_percentage_completed ?? 0,
+            sort_columns: selectedFilters?.sort_columns ?? { created_at: 'DESC' as const },
+        };
+
+        const teacherMutate = getAllTeacherCoursesMutation.mutate;
+        const coursesMutate = getAllCoursesMutation.mutate;
+
         if (selectedTab === 'CourseRequests') {
-            getAllTeacherCoursesMutation.mutate({
-                page: newPage,
-                pageSize: 10,
-                instituteId: instituteDetails?.id,
-                data: selectedFilters,
-            });
+            if (typeof teacherMutate === 'function') {
+                teacherMutate({
+                    page: newPage,
+                    pageSize: 10,
+                    instituteId: safeInstituteId,
+                    data: safeSelectedFilters,
+                });
+            }
         } else {
-            getAllCoursesMutation.mutate({
-                page: newPage,
-                pageSize: 10,
-                instituteId: instituteDetails?.id,
-                data: {
-                    ...selectedFilters,
-                    faculty_ids:
-                        selectedTab === 'AuthoredCourses' && tokenData?.user
-                            ? [tokenData.user]
-                            : selectedFilters.faculty_ids,
-                },
-            });
+            if (typeof coursesMutate === 'function') {
+                const safeStatus = safeSelectedFilters.status ?? ['ACTIVE'];
+                const safeLevelIds = safeSelectedFilters.level_ids ?? [];
+                const safeTag = safeSelectedFilters.tag ?? [];
+                const safeFacultyIds = (safeSelectedFilters.faculty_ids ?? []).filter(
+                    (id): id is string => typeof id === 'string'
+                );
+                const safeSearchByName = safeSelectedFilters.search_by_name ?? '';
+                const safeMinCompleted = safeSelectedFilters.min_percentage_completed ?? 0;
+                const safeMaxCompleted = safeSelectedFilters.max_percentage_completed ?? 0;
+                const safeSortColumns: Record<string, 'ASC' | 'DESC'> =
+                    safeSelectedFilters.sort_columns ?? { created_at: 'DESC' as const };
+                coursesMutate({
+                    page: newPage,
+                    pageSize: 10,
+                    instituteId: safeInstituteId,
+                    data: {
+                        status: safeStatus,
+                        level_ids: safeLevelIds,
+                        tag: safeTag,
+                        faculty_ids: safeFacultyIds,
+                        search_by_name: safeSearchByName,
+                        min_percentage_completed: safeMinCompleted,
+                        max_percentage_completed: safeMaxCompleted,
+                        sort_columns: safeSortColumns,
+                    },
+                });
+            }
         }
     };
 
     const handleLevelChange = (levelId: string) => {
         setSelectedFilters((prev) => {
-            const alreadySelected = prev.level_ids.includes(levelId);
+            const level_ids = prev.level_ids ?? [];
+            const alreadySelected = level_ids.includes(levelId);
             return {
                 ...prev,
                 level_ids: alreadySelected
-                    ? prev.level_ids.filter((id) => id !== levelId)
-                    : [...prev.level_ids, levelId],
+                    ? level_ids.filter((id) => id !== levelId)
+                    : [...level_ids, levelId],
             };
         });
     };
 
     const handleTagChange = (tagValue: string) => {
         setSelectedFilters((prev) => {
-            const alreadySelected = prev.tag.includes(tagValue);
+            const tag = prev.tag ?? [];
+            const alreadySelected = tag.includes(tagValue);
             return {
                 ...prev,
-                tag: alreadySelected
-                    ? prev.tag.filter((t) => t !== tagValue)
-                    : [...prev.tag, tagValue],
+                tag: alreadySelected ? tag.filter((t) => t !== tagValue) : [...tag, tagValue],
             };
         });
     };
 
     const handleUserChange = (userId: string) => {
         setSelectedFilters((prev) => {
-            const alreadySelected = prev.faculty_ids.includes(userId);
+            const faculty_ids = prev.faculty_ids ?? [];
+            const alreadySelected = faculty_ids.includes(userId);
             return {
                 ...prev,
                 faculty_ids: alreadySelected
-                    ? prev.faculty_ids.filter((id) => id !== userId)
-                    : [...prev.faculty_ids, userId],
+                    ? faculty_ids.filter((id) => id !== userId)
+                    : [...faculty_ids, userId],
             };
         });
     };
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
+        const value = e?.target?.value ?? '';
         setSearchValue(value);
         setSelectedFilters((prev) => ({ ...prev, search_by_name: value }));
     };
 
     const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter') {
-            if (selectedTab === 'CourseRequests') {
-                handleGetTeacherCourses();
-            } else {
-                handleGetCourses();
-            }
+        if ((e?.key ?? '') === 'Enter') {
+            // No need to manually fetch, just update filters
+            setSelectedFilters((prev) => ({ ...prev }));
         }
     };
 
@@ -299,64 +314,28 @@ export const CourseMaterial = () => {
             sort_columns: { created_at: 'DESC' },
         });
         setSearchValue('');
-        if (selectedTab === 'CourseRequests') {
-            getAllTeacherCoursesMutation.mutate({
-                page: page,
-                pageSize: 10,
-                instituteId: instituteDetails?.id,
-                data: {
-                    status: ['ACTIVE'],
-                    level_ids: [],
-                    tag: [],
-                    faculty_ids: [],
-                    search_by_name: '',
-                    min_percentage_completed: 0,
-                    max_percentage_completed: 0,
-                    sort_columns: { created_at: 'DESC' },
-                },
-            });
-        } else {
-            getAllCoursesMutation.mutate({
-                page: page,
-                pageSize: 10,
-                instituteId: instituteDetails?.id,
-                data: {
-                    status: ['ACTIVE'],
-                    level_ids: [],
-                    tag: [],
-                    faculty_ids: [],
-                    search_by_name: '',
-                    min_percentage_completed: 0,
-                    max_percentage_completed: 0,
-                    sort_columns: { created_at: 'DESC' },
-                },
-            });
-        }
     };
 
     const handleApply = () => {
-        if (selectedTab === 'CourseRequests') {
-            handleGetTeacherCourses();
-        } else {
-            handleGetCourses();
-        }
+        // No need to manually fetch, just update filters
+        setSelectedFilters((prev) => ({ ...prev }));
     };
 
     const handleCourseDelete = (courseId: string) => {
-        deleteCourseMutation.mutate(courseId, {
-            onSuccess: () => {
-                toast.success('Course deleted successfully');
-                handleGetCourses();
-                if (selectedTab === 'CourseRequests') {
-                    handleGetTeacherCourses();
-                } else {
-                    handleGetCourses();
-                }
-            },
-            onError: (error) => {
-                toast.error(error.message || 'Failed to delete course');
-            },
-        });
+        if (deleteCourseMutation && toast) {
+            deleteCourseMutation.mutate(courseId, {
+                onSuccess: () => {
+                    toast.success('Course deleted successfully');
+                },
+                onError: (error: unknown) => {
+                    const errMsg =
+                        error && typeof error === 'object' && 'message' in error
+                            ? (error as { message?: string }).message
+                            : undefined;
+                    toast.error(errMsg || 'Failed to delete course');
+                },
+            });
+        }
     };
 
     useEffect(() => {
@@ -371,65 +350,142 @@ export const CourseMaterial = () => {
                     ? { created_at: 'ASC' as const }
                     : { created_at: 'DESC' as const };
             if (JSON.stringify(prev.sort_columns) !== JSON.stringify(newSortColumns)) {
-                const updated = { ...prev, sort_columns: newSortColumns };
-                setTimeout(() => {
-                    if (selectedTab === 'CourseRequests') {
-                        handleGetTeacherCourses();
-                    } else {
-                        handleGetCourses();
-                    }
-                }, 0);
-                return updated;
+                return { ...prev, sort_columns: newSortColumns };
             }
             return prev;
         });
     }, [sortBy]);
 
     useEffect(() => {
-        if (tokenData && instituteDetails?.id) {
-            setRoles(tokenData.authorities[instituteDetails?.id]?.roles);
-        }
-    }, []);
-
-    // Call handleGetCourses when selectedTab changes
-    useEffect(() => {
-        if (selectedTab === 'CourseRequests') {
-            handleGetTeacherCourses();
+        if (tokenData && tokenData.authorities && instituteDetails?.id) {
+            setRoles(tokenData.authorities[instituteDetails.id]?.roles ?? []);
         } else {
-            handleGetCourses();
+            setRoles([]);
         }
-    }, [selectedTab, instituteDetails?.id]);
+    }, [tokenData, instituteDetails?.id]);
 
     const { getPublicUrl } = useFileUpload();
     const [courseImageUrls, setCourseImageUrls] = useState<Record<string, string>>({});
 
-    // Fetch public URLs for course images when allCourses.content changes
+    // Store refs to prevent stale closures
+    const selectedFiltersRef = useRef(selectedFilters);
+    useEffect(() => {
+        selectedFiltersRef.current = selectedFilters;
+    }, [selectedFilters]);
+    const pageRef = useRef(page);
+    useEffect(() => {
+        pageRef.current = page;
+    }, [page]);
+    // Fetch all tabs data in parallel
+    useEffect(() => {
+        if (!instituteDetails?.id) return;
+        setLoading({ allCourses: true, authoredCourses: true, courseRequests: true });
+        // AllCourses
+        getAllCoursesWithFilters(
+            pageRef.current,
+            10,
+            instituteDetails.id,
+            selectedFiltersRef.current
+        )
+            .then((data) => setAllCoursesData(data))
+            .finally(() => setLoading((l) => ({ ...l, allCourses: false })));
+        // AuthoredCourses
+        const authoredFilters = {
+            ...selectedFiltersRef.current,
+            faculty_ids: tokenData?.user ? [tokenData.user] : [],
+        };
+        getAllCoursesWithFilters(pageRef.current, 10, instituteDetails.id, authoredFilters)
+            .then((data) => setAuthoredCoursesData(data))
+            .finally(() => setLoading((l) => ({ ...l, authoredCourses: false })));
+        // CourseRequests
+        getAllTeacherCoursesWithFilters(
+            pageRef.current,
+            10,
+            instituteDetails.id,
+            selectedFiltersRef.current
+        )
+            .then((data) => setCourseRequestsData(data))
+            .finally(() => setLoading((l) => ({ ...l, courseRequests: false })));
+    }, [instituteDetails?.id, page, JSON.stringify(selectedFilters)]);
+    // Helper to get available tabs
+    const availableTabs = useMemo(() => {
+        const safeRoles = Array.isArray(roles) ? roles : [];
+        const tabs: { key: string; label: string; show: boolean }[] = [
+            {
+                key: 'AllCourses',
+                label: 'All Courses',
+                show: (allCoursesData?.content?.length ?? 0) > 0,
+            },
+            {
+                key: 'AuthoredCourses',
+                label: 'Authored Courses',
+                show:
+                    safeRoles.includes('ADMIN') && (authoredCoursesData?.content?.length ?? 0) > 0,
+            },
+            {
+                key: 'CourseRequests',
+                label: 'Course Requests',
+                show: safeRoles.includes('ADMIN') && (courseRequestsData?.content?.length ?? 0) > 0,
+            },
+        ];
+        if (safeRoles.includes('TEACHER') && !safeRoles.includes('ADMIN') && tabs[1] && tabs[2]) {
+            tabs[1].show = (authoredCoursesData?.content?.length ?? 0) > 0;
+            tabs[2].show = (courseRequestsData?.content?.length ?? 0) > 0;
+        }
+        return tabs.filter((t) => t.show);
+    }, [roles, allCoursesData, authoredCoursesData, courseRequestsData]);
+    // If current tab is not available, switch to first available
+    useEffect(() => {
+        if (
+            !availableTabs.find((t) => t.key === selectedTab) &&
+            availableTabs.length > 0 &&
+            availableTabs[0]
+        ) {
+            setSelectedTab(availableTabs[0]?.key);
+        }
+    }, [availableTabs, selectedTab]);
+    // Use correct data for CourseListPage
+    const getCurrentTabData = () => {
+        if (selectedTab === 'AllCourses') return allCoursesData;
+        if (selectedTab === 'AuthoredCourses') return authoredCoursesData;
+        if (selectedTab === 'CourseRequests') return courseRequestsData;
+        return null;
+    };
+    // Fetch public URLs for course images when current tab data changes
     useEffect(() => {
         const fetchImages = async () => {
-            if (allCourses && Array.isArray(allCourses.content)) {
-                const urlPromises = allCourses.content.map(async (course) => {
-                    if (course.course_preview_image_media_id) {
-                        const url = await getPublicUrl(course.course_preview_image_media_id);
-                        return { id: course.id, url };
-                    }
-                    return { id: course.id, url: '' };
-                });
-                const results = await Promise.all(urlPromises);
-                const urlMap: Record<string, string> = {};
-                results.forEach(({ id, url }) => {
-                    urlMap[id] = url;
-                });
-                setCourseImageUrls(urlMap);
-            }
+            const data = getCurrentTabData();
+            const contentArr: CourseItem[] = Array.isArray(data?.content)
+                ? data.content.filter((course): course is CourseItem => !!course)
+                : [];
+            const urlPromises = contentArr.map(async (course) => {
+                const { id = '', course_preview_image_media_id = '' } = course;
+                if (course_preview_image_media_id) {
+                    const url = await getPublicUrl(course_preview_image_media_id);
+                    return { id, url };
+                }
+                if (id) {
+                    return { id, url: '' };
+                }
+                return { id: '', url: '' };
+            });
+            const results = await Promise.all(urlPromises);
+            const urlMap: Record<string, string> = {};
+            results.forEach(({ id, url }) => {
+                if (id) urlMap[id] = url;
+            });
+            setCourseImageUrls(urlMap);
         };
         fetchImages();
-    }, [allCourses]);
+    }, [allCoursesData, authoredCoursesData, courseRequestsData, selectedTab]);
 
     if (
         isUsersLoading ||
-        !allCourses ||
+        loading.allCourses ||
+        loading.authoredCourses ||
+        loading.courseRequests ||
         !instituteDetails?.id ||
-        getAllCoursesMutation.status === 'pending'
+        availableTabs.length === 0
     )
         return <DashboardLoader />;
 
@@ -453,87 +509,23 @@ export const CourseMaterial = () => {
             </div>
 
             {/* Add Tabs Section Here */}
-            <Tabs value={selectedTab} onValueChange={handleTabChange}>
+            <Tabs value={selectedTab} onValueChange={setSelectedTab}>
                 <TabsList className="inline-flex h-auto w-full justify-start gap-4 rounded-none border-b !bg-transparent p-0">
-                    <TabsTrigger
-                        value="AllCourses"
-                        className={`-mb-px rounded-none border-b-2 text-sm font-semibold !shadow-none
-                            ${selectedTab === 'AllCourses' ? 'border-primary-500 !text-primary-500' : 'border-transparent text-gray-500'}`}
-                    >
-                        <span
-                            className={`${selectedTab === 'AllCourses' ? 'text-primary-500' : ''}`}
-                        >
-                            All Courses
-                        </span>
-                    </TabsTrigger>
-                    {/* Conditionally render tabs based on roles */}
-                    {roles?.includes('ADMIN') && (
-                        <>
-                            <TabsTrigger
-                                value="AuthoredCourses"
-                                className={`-mb-px rounded-none border-b-2 text-sm font-semibold !shadow-none
-                                    ${selectedTab === 'AuthoredCourses' ? 'border-primary-500 !text-primary-500' : 'border-transparent text-gray-500'}`}
-                            >
-                                <span
-                                    className={`${selectedTab === 'AuthoredCourses' ? 'text-primary-500' : ''}`}
-                                >
-                                    Authored Courses
-                                </span>
-                            </TabsTrigger>
-                            <TabsTrigger
-                                value="CourseRequests"
-                                className={`-mb-px rounded-none border-b-2 text-sm font-semibold !shadow-none
-                                    ${selectedTab === 'CourseRequests' ? 'border-primary-500 !text-primary-500' : 'border-transparent text-gray-500'}`}
-                            >
-                                <span
-                                    className={`${selectedTab === 'CourseRequests' ? 'text-primary-500' : ''}`}
-                                >
-                                    Course Requests
-                                </span>
-                            </TabsTrigger>
-                        </>
-                    )}
-                    {roles?.includes('TEACHER') && !roles?.includes('ADMIN') && (
+                    {availableTabs.map((tab) => (
                         <TabsTrigger
-                            value="AuthoredCourses"
+                            key={tab.key}
+                            value={tab.key}
                             className={`-mb-px rounded-none border-b-2 text-sm font-semibold !shadow-none
-                                ${selectedTab === 'AuthoredCourses' ? 'border-primary-500 !text-primary-500' : 'border-transparent text-gray-500'}`}
+                                ${selectedTab === tab.key ? 'border-primary-500 !text-primary-500' : 'border-transparent text-gray-500'}`}
                         >
-                            <span
-                                className={`${selectedTab === 'AuthoredCourses' ? 'text-primary-500' : ''}`}
-                            >
-                                Authored Courses
+                            <span className={selectedTab === tab.key ? 'text-primary-500' : ''}>
+                                {tab.label}
                             </span>
                         </TabsTrigger>
-                    )}
+                    ))}
                 </TabsList>
-                <TabsContent value="AllCourses">
-                    <CourseListPage
-                        selectedFilters={selectedFilters}
-                        setSelectedFilters={setSelectedFilters}
-                        handleClearAll={handleClearAll}
-                        handleApply={handleApply}
-                        levels={levels}
-                        handleLevelChange={handleLevelChange}
-                        tags={tags}
-                        accessControlUsers={accessControlUsers}
-                        handleUserChange={handleUserChange}
-                        handleTagChange={handleTagChange}
-                        searchValue={searchValue}
-                        setSearchValue={setSearchValue}
-                        handleSearchChange={handleSearchChange}
-                        handleSearchKeyDown={handleSearchKeyDown}
-                        sortBy={sortBy}
-                        setSortBy={setSortBy}
-                        allCourses={allCourses}
-                        courseImageUrls={courseImageUrls}
-                        handleCourseDelete={handleCourseDelete}
-                        page={page}
-                        handlePageChange={handlePageChange}
-                    />
-                </TabsContent>
-                {roles?.includes('ADMIN') && (
-                    <TabsContent value="AuthoredCourses">
+                {availableTabs.map((tab) => (
+                    <TabsContent key={tab.key} value={tab.key}>
                         <CourseListPage
                             selectedFilters={selectedFilters}
                             setSelectedFilters={setSelectedFilters}
@@ -551,41 +543,22 @@ export const CourseMaterial = () => {
                             handleSearchKeyDown={handleSearchKeyDown}
                             sortBy={sortBy}
                             setSortBy={setSortBy}
-                            allCourses={allCourses}
+                            allCourses={
+                                tab.key === 'AllCourses'
+                                    ? allCoursesData
+                                    : tab.key === 'AuthoredCourses'
+                                      ? authoredCoursesData
+                                      : tab.key === 'CourseRequests'
+                                        ? courseRequestsData
+                                        : null
+                            }
                             courseImageUrls={courseImageUrls}
                             handleCourseDelete={handleCourseDelete}
                             page={page}
                             handlePageChange={handlePageChange}
                         />
                     </TabsContent>
-                )}
-                {roles?.includes('TEACHER') && !roles?.includes('ADMIN') && (
-                    <TabsContent value="CourseRequests">
-                        <CourseListPage
-                            selectedFilters={selectedFilters}
-                            setSelectedFilters={setSelectedFilters}
-                            handleClearAll={handleClearAll}
-                            handleApply={handleApply}
-                            levels={levels}
-                            handleLevelChange={handleLevelChange}
-                            tags={tags}
-                            accessControlUsers={accessControlUsers}
-                            handleUserChange={handleUserChange}
-                            handleTagChange={handleTagChange}
-                            searchValue={searchValue}
-                            setSearchValue={setSearchValue}
-                            handleSearchChange={handleSearchChange}
-                            handleSearchKeyDown={handleSearchKeyDown}
-                            sortBy={sortBy}
-                            setSortBy={setSortBy}
-                            allCourses={allCourses}
-                            courseImageUrls={courseImageUrls}
-                            handleCourseDelete={handleCourseDelete}
-                            page={page}
-                            handlePageChange={handlePageChange}
-                        />
-                    </TabsContent>
-                )}
+                ))}
             </Tabs>
         </div>
     );
