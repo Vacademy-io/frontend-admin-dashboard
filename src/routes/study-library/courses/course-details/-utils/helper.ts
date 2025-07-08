@@ -65,11 +65,22 @@ const createDefaultSubject = (): SubjectType => ({
     updated_at: new Date().toISOString(),
 });
 
+function isJson(str: string): boolean {
+    try {
+        const parsed = JSON.parse(str);
+        return typeof parsed === 'object' && parsed !== null;
+    } catch {
+        return false;
+    }
+}
+
 export const transformApiDataToCourseData = async (apiData: CourseWithSessionsType) => {
     if (!apiData) return null;
 
     try {
-        const courseMediaImage = JSON.parse(apiData.course.course_media_id);
+        const courseMediaImage = isJson(apiData.course.course_media_id)
+            ? JSON.parse(apiData.course.course_media_id)
+            : apiData.course.course_media_id;
 
         const coursePreviewImageMediaId = await getPublicUrl(
             apiData.course.course_preview_image_media_id
@@ -77,7 +88,11 @@ export const transformApiDataToCourseData = async (apiData: CourseWithSessionsTy
 
         const courseBannerMediaId = await getPublicUrl(apiData.course.course_banner_media_id);
 
-        const courseMediaId = await getPublicUrl(courseMediaImage.id);
+        const courseMediaId = await getPublicUrl(
+            isJson(apiData.course.course_media_id)
+                ? courseMediaImage.id
+                : apiData.course.course_media_id
+        );
 
         return {
             id: apiData.course.id,
@@ -96,8 +111,8 @@ export const transformApiDataToCourseData = async (apiData: CourseWithSessionsTy
             coursePreviewImageMediaId: apiData.course.course_preview_image_media_id,
             courseBannerMediaId: apiData.course.course_banner_media_id,
             courseMediaId: {
-                type: courseMediaImage ? courseMediaImage.type : '',
-                id: courseMediaImage ? courseMediaImage.id : '',
+                type: isJson(apiData.course.course_media_id) ? courseMediaImage.type : '',
+                id: isJson(apiData.course.course_media_id) ? courseMediaImage.id : '',
             },
             coursePreviewImageMediaPreview: coursePreviewImageMediaId,
             courseBannerMediaPreview: courseBannerMediaId,
