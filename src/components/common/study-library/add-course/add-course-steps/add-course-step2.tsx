@@ -258,18 +258,27 @@ export const AddCourseStep2 = ({
         onSubmit(completeData);
     };
 
-    const handleInviteSuccess = (id: string, name: string, email: string) => {
-        const newInstructor: Instructor = { id: id, email: email, name: name, profilePicId: '' };
+    const handleInviteSuccess = (id: string, name: string, email: string, profilePicId: string) => {
+        if (!id || !email || !name) return;
 
-        // Add to available instructors list if not already present
-        if (!instructors.some((i) => i.email === email)) {
-            setInstructors((prev) => [...prev, newInstructor]);
-        }
+        const newInstructor: Instructor = { id, name, email, profilePicId };
 
-        // Add to selected instructors list
-        if (!selectedInstructors.some((i) => i.email === email)) {
-            setSelectedInstructors((prev) => [...prev, newInstructor]);
-        }
+        // Add to available instructors if not already there
+        setInstructors((prev) => {
+            if (!prev.some((i) => i.email === email)) {
+                return [...prev, newInstructor];
+            }
+            return prev;
+        });
+
+        // Add to selected instructors if not already present
+        setSelectedInstructors((prev) => {
+            const safePrev = Array.isArray(prev) ? prev : [];
+            const alreadySelected = safePrev.some((i) => i.email === newInstructor.email);
+            if (alreadySelected) return safePrev;
+
+            return [...safePrev, newInstructor];
+        });
     };
 
     const handleSessionLevelMappingSave = (
@@ -968,8 +977,8 @@ export const AddCourseStep2 = ({
 
                                     {showInviteDialog && (
                                         <InviteInstructorForm
-                                            onInviteSuccess={(id, name, email) => {
-                                                handleInviteSuccess(id, name, email);
+                                            onInviteSuccess={(id, name, email, profilePicId) => {
+                                                handleInviteSuccess(id, name, email, profilePicId);
                                                 setShowInviteDialog(false);
                                             }}
                                             onCancel={() => setShowInviteDialog(false)}
