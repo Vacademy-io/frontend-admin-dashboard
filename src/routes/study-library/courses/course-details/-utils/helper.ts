@@ -90,7 +90,7 @@ export const transformApiDataToCourseData = async (apiData: CourseWithSessionsTy
             title: apiData.course.package_name,
             description: apiData.course.course_html_description, // Remove HTML tags
             tags: apiData.course.tags?.split(',').map((tag) => tag.trim()) || [],
-            imageUrl: coursePreviewImageMediaId || '', // Use the preview image as the main image
+            imageUrl: '', // Use the preview image as the main image
             courseStructure: apiData.course.course_depth,
             whatYoullLearn: apiData.course.why_learn,
             whyLearn: apiData.course.why_learn,
@@ -99,9 +99,12 @@ export const transformApiDataToCourseData = async (apiData: CourseWithSessionsTy
             packageName: apiData.course.package_name,
             status: apiData.course.status,
             isCoursePublishedToCatalaouge: apiData.course.is_course_published_to_catalaouge,
-            coursePreviewImageMediaId,
-            courseBannerMediaId,
-            courseMediaId,
+            coursePreviewImageMediaId: apiData.course.course_preview_image_media_id,
+            courseBannerMediaId: apiData.course.course_banner_media_id,
+            courseMediaId: apiData.course.course_media_id,
+            coursePreviewImageMediaPreview: coursePreviewImageMediaId,
+            courseBannerMediaPreview: courseBannerMediaId,
+            courseMediaPreview: courseMediaId,
             courseHtmlDescription: apiData.course.course_html_description,
             instructors: [], // This should be populated from your API if available
             sessions: apiData.sessions.map((session) => ({
