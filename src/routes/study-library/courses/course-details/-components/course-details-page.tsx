@@ -528,7 +528,7 @@ export const CourseDetailsPage = () => {
                         {form.getValues('courseData').instructors &&
                             form.getValues('courseData').instructors.length > 0 && (
                                 <div className="mb-8">
-                                    <h2 className="mb-4 text-2xl font-bold">Instructors</h2>
+                                    <h2 className="mb-4 text-2xl font-bold">Authors</h2>
                                     {form
                                         .getValues('courseData')
                                         .instructors?.map((instructor, index) => (
