@@ -178,7 +178,7 @@ export const AddCourseStep1 = ({
                                     )}
                                 />
 
-                                <div className="flex flex-col gap-16">
+                                <div className="flex flex-col">
                                     <FormField
                                         control={form.control}
                                         name="description"
@@ -187,16 +187,26 @@ export const AddCourseStep1 = ({
                                                 <FormLabel>Description</FormLabel>
                                                 <FormControl>
                                                     <MainViewQuillEditor
-                                                        onChange={field.onChange}
+                                                        onChange={(value: string) => {
+                                                            const wordCount = value
+                                                                .replace(/<[^>]*>/g, '')
+                                                                .trim()
+                                                                .split(/\s+/).length;
+                                                            if (wordCount <= 30) {
+                                                                field.onChange(value);
+                                                            }
+                                                        }}
                                                         value={field.value}
                                                         CustomclasssName="h-[120px]"
-                                                        placeholder="Enter course description"
+                                                        placeholder="Enter course description (max 30 words)"
                                                     />
                                                 </FormControl>
-                                                <FormMessage />
                                             </FormItem>
                                         )}
                                     />
+                                    <span className="relative top-12 text-xs text-red-500">
+                                        *Max 30 words allowed
+                                    </span>
                                 </div>
 
                                 {/* Tags Section */}
