@@ -362,7 +362,7 @@ export const CourseMaterial = () => {
         } else {
             setRoles([]);
         }
-    }, [tokenData, instituteDetails?.id]);
+    }, [instituteDetails?.id]);
 
     const { getPublicUrl } = useFileUpload();
     const [courseImageUrls, setCourseImageUrls] = useState<Record<string, string>>({});
