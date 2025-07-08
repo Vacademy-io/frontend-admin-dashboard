@@ -65,27 +65,19 @@ const createDefaultSubject = (): SubjectType => ({
     updated_at: new Date().toISOString(),
 });
 
-const tryGetPublicUrl = async (mediaId: string | null | undefined): Promise<string> => {
-    if (!mediaId) return '';
-    try {
-        const url = await getPublicUrl(mediaId);
-        return url || '';
-    } catch {
-        return '';
-    }
-};
-
 export const transformApiDataToCourseData = async (apiData: CourseWithSessionsType) => {
     if (!apiData) return null;
 
     try {
         const courseMediaImage = JSON.parse(apiData.course.course_media_id);
 
-        const [coursePreviewImageMediaId, courseBannerMediaId, courseMediaId] = await Promise.all([
-            tryGetPublicUrl(apiData.course.course_preview_image_media_id),
-            tryGetPublicUrl(apiData.course.course_banner_media_id),
-            tryGetPublicUrl(courseMediaImage.id),
-        ]);
+        const coursePreviewImageMediaId = await getPublicUrl(
+            apiData.course.course_preview_image_media_id
+        );
+
+        const courseBannerMediaId = await getPublicUrl(apiData.course.course_banner_media_id);
+
+        const courseMediaId = await getPublicUrl(courseMediaImage.id);
 
         return {
             id: apiData.course.id,
@@ -104,12 +96,12 @@ export const transformApiDataToCourseData = async (apiData: CourseWithSessionsTy
             coursePreviewImageMediaId: apiData.course.course_preview_image_media_id,
             courseBannerMediaId: apiData.course.course_banner_media_id,
             courseMediaId: {
-                type: courseMediaImage.type,
-                id: courseMediaImage.id,
+                type: courseMediaImage ? courseMediaImage.type : '',
+                id: courseMediaImage ? courseMediaImage.id : '',
             },
             coursePreviewImageMediaPreview: coursePreviewImageMediaId,
             courseBannerMediaPreview: courseBannerMediaId,
-            courseMediaPreview: courseMediaId,
+            courseMediaPreview: courseMediaId ?? '',
             courseHtmlDescription: apiData.course.course_html_description,
             instructors: [], // This should be populated from your API if available
             sessions: apiData.sessions.map((session) => ({
