@@ -295,6 +295,7 @@ export const CourseDetailsPage = () => {
         );
     }, [currentLevel, currentSession]);
 
+    console.log(form.getValues());
     return (
         <div className="pt-18 flex min-h-screen flex-col bg-white">
             {/* Top Banner */}
@@ -364,7 +365,7 @@ export const CourseDetailsPage = () => {
                         </div>
 
                         {/* Right side - Video Player */}
-                        {form.watch('courseData').courseMediaId &&
+                        {form.watch('courseData').courseMediaId.id &&
                             (form.watch('courseData').courseMediaId.type === 'video' ? (
                                 <div className="w-[400px] overflow-hidden rounded-lg shadow-xl">
                                     <div className="relative aspect-video bg-black">
