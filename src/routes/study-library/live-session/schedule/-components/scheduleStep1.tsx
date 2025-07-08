@@ -521,6 +521,7 @@ export default function ScheduleStep1() {
                                 <MainViewQuillEditor
                                     onChange={field.onChange}
                                     value={field.value}
+                                    onBlur={field.onBlur}
                                     CustomclasssName="h-[200px]"
                                 />
                             </FormControl>

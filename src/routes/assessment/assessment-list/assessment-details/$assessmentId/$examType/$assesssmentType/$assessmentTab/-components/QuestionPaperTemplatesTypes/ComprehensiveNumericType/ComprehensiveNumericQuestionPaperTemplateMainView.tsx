@@ -48,9 +48,10 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
     interface CollapsibleQuillEditorProps {
         value: string | null | undefined;
         onChange: (content: string) => void;
+        onBlur: () => void;
     }
 
-    const CollapsibleQuillEditor: React.FC<CollapsibleQuillEditorProps> = ({ value, onChange }) => {
+    const CollapsibleQuillEditor: React.FC<CollapsibleQuillEditorProps> = ({ value, onChange, onBlur }) => {
         return (
             <div className="">
                 {!isExpanded ? (
@@ -69,7 +70,7 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
                 ) : (
                     // Render full Quill Editor when expanded
                     <div className="border bg-primary-100 p-2">
-                        <MainViewQuillEditor value={value} onChange={onChange} />
+                        <MainViewQuillEditor value={value} onChange={onChange} onBlur={onBlur} />
                         <button
                             className="mt-2 text-body text-blue-500"
                             onClick={() => setIsExpanded(false)}
@@ -178,6 +179,7 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
                                 <CollapsibleQuillEditor
                                     value={field.value}
                                     onChange={field.onChange}
+                                    onBlur={field.onBlur}
                                 />
                             </FormControl>
                             <FormMessage />
@@ -201,6 +203,7 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
                                 <MainViewQuillEditor
                                     value={field.value}
                                     onChange={field.onChange}
+                                    onBlur={field.onBlur}
                                 />
                             </FormControl>
                             <FormMessage />
@@ -312,6 +315,7 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
                                 <MainViewQuillEditor
                                     value={field.value}
                                     onChange={field.onChange}
+                                    onBlur={field.onBlur}
                                 />
                             </FormControl>
                             <FormMessage />

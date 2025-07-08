@@ -5,6 +5,7 @@ import { CollapsibleQuillEditorProps } from '@/types/assessments/question-type-t
 export const CollapsibleQuillEditor: React.FC<CollapsibleQuillEditorProps> = ({
     value,
     onChange,
+    onBlur,
 }) => {
     const [isExpanded, setIsExpanded] = useState<boolean>(false);
     return (
@@ -25,7 +26,7 @@ export const CollapsibleQuillEditor: React.FC<CollapsibleQuillEditorProps> = ({
             ) : (
                 // Render full Quill Editor when expanded
                 <div className="rounded-md border bg-primary-50 p-2">
-                    <MainViewQuillEditor value={value} onChange={onChange} />
+                    <MainViewQuillEditor value={value} onChange={onChange} onBlur={onBlur} />
                     <button
                         className="mt-2 text-body text-primary-500"
                         onClick={() => setIsExpanded(false)}

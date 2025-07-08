@@ -189,6 +189,7 @@ export const AddCourseStep1 = ({
                                                     <MainViewQuillEditor
                                                         onChange={field.onChange}
                                                         value={field.value}
+                                                        onBlur={field.onBlur}
                                                         CustomclasssName="h-[120px]"
                                                         placeholder="Enter course description"
                                                     />
@@ -261,6 +262,7 @@ export const AddCourseStep1 = ({
                                                     <MainViewQuillEditor
                                                         onChange={field.onChange}
                                                         value={field.value}
+                                                        onBlur={field.onBlur}
                                                         CustomclasssName="h-[120px]"
                                                         placeholder="Provide a detailed overview of the course. Include learning objectives, topics covered, format (video, quizzes, projects), and who this course is for."
                                                     />
@@ -279,6 +281,7 @@ export const AddCourseStep1 = ({
                                                     <MainViewQuillEditor
                                                         onChange={field.onChange}
                                                         value={field.value}
+                                                        onBlur={field.onBlur}
                                                         CustomclasssName="h-[120px]"
                                                         placeholder="Provide a detailed overview of the course. Include learning objectives, topics covered, format (video, quizzes, projects), and who this course is for."
                                                     />
@@ -297,6 +300,7 @@ export const AddCourseStep1 = ({
                                                     <MainViewQuillEditor
                                                         onChange={field.onChange}
                                                         value={field.value}
+                                                        onBlur={field.onBlur}
                                                         CustomclasssName="h-[120px]"
                                                         placeholder="Provide a detailed overview of the course. Include learning objectives, topics covered, format (video, quizzes, projects), and who this course is for."
                                                     />

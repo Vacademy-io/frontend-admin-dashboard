@@ -87,6 +87,7 @@ export const SlideMaterial = ({
     const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
     const [isUnpublishDialogOpen, setIsUnpublishDialogOpen] = useState(false);
     const { getPackageSessionId } = useInstituteDetailsStore();
+    const { setOpen: setSidebarOpen } = useSidebar();
     const { addUpdateDocumentSlide } = useSlidesMutations(
         chapterId || '',
         moduleId || '',
@@ -1593,6 +1594,7 @@ export const SlideMaterial = ({
                             layoutVariant="icon"
                             buttonType="secondary"
                             title="Open Doubt Resolution Sidebar"
+                            onClick={() => setSidebarOpen(true)}
                         >
                             <ChatCircleDots size={26} className="text-primary-600" />
                         </MyButton>
