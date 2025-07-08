@@ -1052,16 +1052,21 @@ export const AddCourseStep2 = ({
                                                                                 --- &nbsp;
                                                                                 {instructor.email}
                                                                             </span>
-                                                                            <span className="text-xs text-gray-500">
-                                                                                {instructorMappings.find(
-                                                                                    (m) =>
-                                                                                        m.id ===
-                                                                                        instructor.id
-                                                                                )?.sessionLevels
-                                                                                    .length ||
-                                                                                    0}{' '}
-                                                                                batches assigned
-                                                                            </span>
+                                                                            {(hasSessions ===
+                                                                                'yes' ||
+                                                                                hasLevels ===
+                                                                                    'yes') && (
+                                                                                <span className="text-xs text-gray-500">
+                                                                                    {instructorMappings.find(
+                                                                                        (m) =>
+                                                                                            m.id ===
+                                                                                            instructor.id
+                                                                                    )?.sessionLevels
+                                                                                        .length ||
+                                                                                        0}{' '}
+                                                                                    batches assigned
+                                                                                </span>
+                                                                            )}
                                                                         </div>
                                                                     </div>
                                                                     <div className="flex gap-2">

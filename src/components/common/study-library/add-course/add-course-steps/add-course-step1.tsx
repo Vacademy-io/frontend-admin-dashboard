@@ -2,7 +2,7 @@ import { TokenKey } from '@/constants/auth/tokens';
 import { useFileUpload } from '@/hooks/use-file-upload';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import {
@@ -34,7 +34,13 @@ export const step1Schema = z.object({
     targetAudience: z.string().optional(),
     coursePreview: z.string().optional(),
     courseBanner: z.string().optional(),
-    courseMedia: z.string().optional(),
+    courseMedia: z.object({
+        type: z.string().optional(),
+        id: z.string().optional(),
+    }),
+    coursePreviewBlob: z.string().optional(),
+    courseBannerBlob: z.string().optional(),
+    courseMediaBlob: z.string().optional(),
     tags: z.array(z.string()).default([]),
 });
 export type Step1Data = z.infer<typeof step1Schema>;
@@ -50,7 +56,7 @@ export const AddCourseStep1 = ({
     const data = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
 
-    const { uploadFile } = useFileUpload();
+    const { uploadFile, getPublicUrl } = useFileUpload();
 
     const coursePreviewRef = useRef<HTMLInputElement>(null);
     const courseBannerRef = useRef<HTMLInputElement>(null);
@@ -67,16 +73,26 @@ export const AddCourseStep1 = ({
 
     const form = useForm<Step1Data>({
         resolver: zodResolver(step1Schema),
-        defaultValues: initialData || {
-            course: '',
-            description: '',
-            learningOutcome: '',
-            aboutCourse: '',
-            targetAudience: '',
-            coursePreview: '',
-            courseBanner: '',
-            courseMedia: '',
-            tags: [],
+        defaultValues: {
+            course: initialData?.course,
+            description: initialData?.description,
+            learningOutcome: initialData?.learningOutcome,
+            aboutCourse: initialData?.aboutCourse,
+            targetAudience: initialData?.targetAudience,
+            coursePreview: initialData?.coursePreview,
+            courseBanner: initialData?.courseBanner,
+            courseMedia: {
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-expect-error
+                type: initialData?.courseMedia ? JSON.parse(initialData?.courseMedia).type : '',
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-expect-error
+                id: initialData?.courseMedia ? JSON.parse(initialData?.courseMedia).id : '',
+            },
+            coursePreviewBlob: '',
+            courseBannerBlob: '',
+            courseMediaBlob: '',
+            tags: initialData?.tags,
         },
     });
 
@@ -97,10 +113,7 @@ export const AddCourseStep1 = ({
                 [field]: true,
             }));
 
-            const fileUrl = URL.createObjectURL(file);
-            form.setValue(field, fileUrl); // set as string
-
-            const uploadedFileUrl = await uploadFile({
+            const uploadedFileId = await uploadFile({
                 file,
                 setIsUploading: (state) =>
                     setUploadingStates((prev) => ({
@@ -112,8 +125,24 @@ export const AddCourseStep1 = ({
                 sourceId: 'COURSES',
             });
 
-            if (uploadedFileUrl) {
-                form.setValue(field, uploadedFileUrl); // set as string
+            const publicUrl = await getPublicUrl(uploadedFileId || '');
+
+            if (uploadedFileId) {
+                if (field === 'courseMedia') {
+                    form.setValue(field, {
+                        type: file.type.includes('video') ? 'video' : 'image',
+                        id: uploadedFileId,
+                    }); // set as string
+                } else {
+                    form.setValue(field, uploadedFileId); // set as string
+                }
+                if (field === 'coursePreview') {
+                    form.setValue('coursePreviewBlob', publicUrl);
+                } else if (field === 'courseBanner') {
+                    form.setValue('courseBannerBlob', publicUrl);
+                } else if (field === 'courseMedia') {
+                    form.setValue('courseMediaBlob', publicUrl);
+                }
             }
         } catch (error) {
             console.error('Upload failed:', error);
@@ -140,6 +169,27 @@ export const AddCourseStep1 = ({
         setTags(updatedTags);
         form.setValue('tags', updatedTags);
     };
+
+    useEffect(() => {
+        const fetchAndSetUrls = async () => {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            const courseMediaImage = JSON.parse(initialData?.courseMedia);
+            const coursePreviewUrl = await getPublicUrl(form.getValues('coursePreview') || '');
+            const courseBannerUrl = await getPublicUrl(form.getValues('courseBanner') || '');
+            const courseMediaUrl = await getPublicUrl(courseMediaImage.id);
+
+            form.setValue('coursePreviewBlob', coursePreviewUrl);
+            form.setValue('courseBannerBlob', courseBannerUrl);
+            form.setValue('courseMediaBlob', courseMediaUrl);
+        };
+
+        if (initialData) {
+            fetchAndSetUrls();
+        }
+    }, [initialData]);
+
+    console.log(form.getValues());
 
     return (
         <Form {...form}>
@@ -178,7 +228,7 @@ export const AddCourseStep1 = ({
                                     )}
                                 />
 
-                                <div className="flex flex-col gap-16">
+                                <div className="flex flex-col">
                                     <FormField
                                         control={form.control}
                                         name="description"
@@ -187,17 +237,27 @@ export const AddCourseStep1 = ({
                                                 <FormLabel>Description</FormLabel>
                                                 <FormControl>
                                                     <MainViewQuillEditor
-                                                        onChange={field.onChange}
+                                                        onChange={(value: string) => {
+                                                            const wordCount = value
+                                                                .replace(/<[^>]*>/g, '')
+                                                                .trim()
+                                                                .split(/\s+/).length;
+                                                            if (wordCount <= 30) {
+                                                                field.onChange(value);
+                                                            }
+                                                        }}
                                                         value={field.value}
                                                         onBlur={field.onBlur}
                                                         CustomclasssName="h-[120px]"
-                                                        placeholder="Enter course description"
+                                                        placeholder="Enter course description (max 30 words)"
                                                     />
                                                 </FormControl>
-                                                <FormMessage />
                                             </FormItem>
                                         )}
                                     />
+                                    <span className="relative top-12 text-xs text-red-500">
+                                        *Max 30 words allowed
+                                    </span>
                                 </div>
 
                                 {/* Tags Section */}
@@ -329,7 +389,7 @@ export const AddCourseStep1 = ({
                                         ) : form.watch('coursePreview') ? (
                                             <div className="h-[200px] w-full rounded-lg bg-gray-100">
                                                 <img
-                                                    src={form.watch('coursePreview')}
+                                                    src={form.watch('coursePreviewBlob')}
                                                     alt="Course Preview"
                                                     className="size-full rounded-lg object-contain"
                                                 />
@@ -383,7 +443,7 @@ export const AddCourseStep1 = ({
                                         ) : form.watch('courseBanner') ? (
                                             <div className="h-[200px] w-full rounded-lg bg-gray-100">
                                                 <img
-                                                    src={form.watch('courseBanner')}
+                                                    src={form.watch('courseBannerBlob')}
                                                     alt="Course Banner"
                                                     className="size-full rounded-lg object-contain"
                                                 />
@@ -435,25 +495,26 @@ export const AddCourseStep1 = ({
                                             <div className="flex h-[200px] items-center justify-center rounded-lg bg-gray-100">
                                                 <DashboardLoader />
                                             </div>
-                                        ) : form.watch('courseMedia') ? (
-                                            <div className="h-[200px] w-full rounded-lg bg-gray-100">
-                                                {form.watch('courseMedia')?.endsWith('.mp4') ||
-                                                form.watch('courseMedia')?.includes('video') ? (
+                                        ) : form.watch('courseMedia')?.id ? (
+                                            form.watch('courseMedia')?.type === 'video' ? (
+                                                <div className="h-[200px] w-full rounded-lg bg-gray-100">
                                                     <video
-                                                        src={form.watch('courseMedia')}
+                                                        src={form.watch('courseMediaBlob')}
                                                         controls
                                                         className="size-full rounded-lg object-contain"
                                                     >
                                                         Your browser does not support the video tag.
                                                     </video>
-                                                ) : (
+                                                </div>
+                                            ) : (
+                                                <div className="flex h-[200px] items-center justify-center rounded-lg bg-gray-100">
                                                     <img
-                                                        src={form.watch('courseMedia') || ''}
-                                                        alt="Course Media"
+                                                        src={form.watch('courseMediaBlob')}
+                                                        alt="Course Banner"
                                                         className="size-full rounded-lg object-contain"
                                                     />
-                                                )}
-                                            </div>
+                                                </div>
+                                            )
                                         ) : (
                                             <div className="flex h-[200px] items-center justify-center rounded-lg bg-gray-100">
                                                 <p className="text-white">

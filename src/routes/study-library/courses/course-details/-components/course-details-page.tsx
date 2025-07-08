@@ -164,7 +164,13 @@ export const CourseDetailsPage = () => {
                 isCoursePublishedToCatalaouge: false,
                 coursePreviewImageMediaId: '',
                 courseBannerMediaId: '',
-                courseMediaId: '',
+                courseMediaId: {
+                    type: '',
+                    id: '',
+                },
+                coursePreviewImageMediaPreview: '',
+                courseBannerMediaPreview: '',
+                courseMediaPreview: '',
                 courseHtmlDescription: '',
                 instructors: [],
                 sessions: [],
@@ -289,8 +295,9 @@ export const CourseDetailsPage = () => {
         );
     }, [currentLevel, currentSession]);
 
+    console.log(form.getValues());
     return (
-        <div className="pt-18 z-[-100] flex min-h-screen flex-col bg-white">
+        <div className="pt-18 flex min-h-screen flex-col bg-white">
             {/* Top Banner */}
             <div className={`relative h-[300px]`}>
                 {/* Transparent black overlay */}
@@ -304,7 +311,7 @@ export const CourseDetailsPage = () => {
                 ) : (
                     <div className="absolute inset-0 z-0 opacity-70">
                         <img
-                            src={form.watch('courseData').courseBannerMediaId}
+                            src={form.watch('courseData').courseBannerMediaPreview}
                             alt="Course Banner"
                             className="size-full object-cover"
                             onError={(e) => {
@@ -358,25 +365,36 @@ export const CourseDetailsPage = () => {
                         </div>
 
                         {/* Right side - Video Player */}
-                        {form.watch('courseData').courseMediaId && (
-                            <div className="w-[400px] overflow-hidden rounded-lg shadow-xl">
-                                <div className="relative aspect-video bg-black">
-                                    <video
-                                        src={form.watch('courseData').courseMediaId}
-                                        controls
-                                        className="size-full rounded-lg object-contain"
-                                        onError={(e) => {
-                                            e.currentTarget.style.display = 'none';
-                                            e.currentTarget.parentElement?.classList.add(
-                                                'bg-black'
-                                            );
-                                        }}
-                                    >
-                                        Your browser does not support the video tag.
-                                    </video>
+                        {form.watch('courseData').courseMediaId.id &&
+                            (form.watch('courseData').courseMediaId.type === 'video' ? (
+                                <div className="w-[400px] overflow-hidden rounded-lg shadow-xl">
+                                    <div className="relative aspect-video bg-black">
+                                        <video
+                                            src={form.watch('courseData').courseMediaPreview}
+                                            controls
+                                            className="size-full rounded-lg object-contain"
+                                            onError={(e) => {
+                                                e.currentTarget.style.display = 'none';
+                                                e.currentTarget.parentElement?.classList.add(
+                                                    'bg-black'
+                                                );
+                                            }}
+                                        >
+                                            Your browser does not support the video tag.
+                                        </video>
+                                    </div>
                                 </div>
-                            </div>
-                        )}
+                            ) : (
+                                <div className="w-[400px] overflow-hidden rounded-lg shadow-xl">
+                                    <div className="relative aspect-video bg-black">
+                                        <img
+                                            src={form.watch('courseData').courseMediaPreview}
+                                            alt="Course Banner"
+                                            className="size-full rounded-lg object-contain"
+                                        />
+                                    </div>
+                                </div>
+                            ))}
                     </div>
                 </div>
             </div>
@@ -510,7 +528,7 @@ export const CourseDetailsPage = () => {
                         {form.getValues('courseData').instructors &&
                             form.getValues('courseData').instructors.length > 0 && (
                                 <div className="mb-8">
-                                    <h2 className="mb-4 text-2xl font-bold">Instructors</h2>
+                                    <h2 className="mb-4 text-2xl font-bold">Authors</h2>
                                     {form
                                         .getValues('courseData')
                                         .instructors?.map((instructor, index) => (

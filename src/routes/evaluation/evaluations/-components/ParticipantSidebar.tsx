@@ -79,7 +79,7 @@ export const ParticipantSidebar = ({
                 try {
                     setFaceLoader(true);
                     const url = await getPublicUrl(selectedStudent.face_file_id);
-                    setImageUrl(url);
+                    setImageUrl(url || '');
                     setFaceLoader(false);
                 } catch (error) {
                     console.error('Failed to fetch image URL:', error);
