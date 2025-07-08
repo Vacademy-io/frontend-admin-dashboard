@@ -79,10 +79,12 @@ export const transformApiDataToCourseData = async (apiData: CourseWithSessionsTy
     if (!apiData) return null;
 
     try {
+        const courseMediaImage = JSON.parse(apiData.course.course_media_id);
+
         const [coursePreviewImageMediaId, courseBannerMediaId, courseMediaId] = await Promise.all([
             tryGetPublicUrl(apiData.course.course_preview_image_media_id),
             tryGetPublicUrl(apiData.course.course_banner_media_id),
-            tryGetPublicUrl(apiData.course.course_media_id),
+            tryGetPublicUrl(courseMediaImage.id),
         ]);
 
         return {
@@ -101,7 +103,10 @@ export const transformApiDataToCourseData = async (apiData: CourseWithSessionsTy
             isCoursePublishedToCatalaouge: apiData.course.is_course_published_to_catalaouge,
             coursePreviewImageMediaId: apiData.course.course_preview_image_media_id,
             courseBannerMediaId: apiData.course.course_banner_media_id,
-            courseMediaId: apiData.course.course_media_id,
+            courseMediaId: {
+                type: courseMediaImage.type,
+                id: courseMediaImage.id,
+            },
             coursePreviewImageMediaPreview: coursePreviewImageMediaId,
             courseBannerMediaPreview: courseBannerMediaId,
             courseMediaPreview: courseMediaId,

@@ -164,7 +164,10 @@ export const CourseDetailsPage = () => {
                 isCoursePublishedToCatalaouge: false,
                 coursePreviewImageMediaId: '',
                 courseBannerMediaId: '',
-                courseMediaId: '',
+                courseMediaId: {
+                    type: '',
+                    id: '',
+                },
                 coursePreviewImageMediaPreview: '',
                 courseBannerMediaPreview: '',
                 courseMediaPreview: '',
@@ -361,25 +364,36 @@ export const CourseDetailsPage = () => {
                         </div>
 
                         {/* Right side - Video Player */}
-                        {form.watch('courseData').courseMediaId && (
-                            <div className="w-[400px] overflow-hidden rounded-lg shadow-xl">
-                                <div className="relative aspect-video bg-black">
-                                    <video
-                                        src={form.watch('courseData').courseMediaPreview}
-                                        controls
-                                        className="size-full rounded-lg object-contain"
-                                        onError={(e) => {
-                                            e.currentTarget.style.display = 'none';
-                                            e.currentTarget.parentElement?.classList.add(
-                                                'bg-black'
-                                            );
-                                        }}
-                                    >
-                                        Your browser does not support the video tag.
-                                    </video>
+                        {form.watch('courseData').courseMediaId &&
+                            (form.watch('courseData').courseMediaId.type === 'video' ? (
+                                <div className="w-[400px] overflow-hidden rounded-lg shadow-xl">
+                                    <div className="relative aspect-video bg-black">
+                                        <video
+                                            src={form.watch('courseData').courseMediaPreview}
+                                            controls
+                                            className="size-full rounded-lg object-contain"
+                                            onError={(e) => {
+                                                e.currentTarget.style.display = 'none';
+                                                e.currentTarget.parentElement?.classList.add(
+                                                    'bg-black'
+                                                );
+                                            }}
+                                        >
+                                            Your browser does not support the video tag.
+                                        </video>
+                                    </div>
                                 </div>
-                            </div>
-                        )}
+                            ) : (
+                                <div className="w-[400px] overflow-hidden rounded-lg shadow-xl">
+                                    <div className="relative aspect-video bg-black">
+                                        <img
+                                            src={form.watch('courseData').courseMediaPreview}
+                                            alt="Course Banner"
+                                            className="size-full rounded-lg object-contain"
+                                        />
+                                    </div>
+                                </div>
+                            ))}
                     </div>
                 </div>
             </div>

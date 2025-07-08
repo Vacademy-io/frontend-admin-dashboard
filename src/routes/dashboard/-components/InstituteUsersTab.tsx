@@ -28,7 +28,7 @@ const InstituteUsersComponent: React.FC<InviteUsersTabProps> = ({
             for (const user of selectedTabData) {
                 if (user.profile_pic_file_id) {
                     const publicUrl = await getPublicUrl(user.profile_pic_file_id);
-                    pics[user.id] = publicUrl;
+                    pics[user.id] = publicUrl || '';
                 }
             }
             setProfilePics(pics);

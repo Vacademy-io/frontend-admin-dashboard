@@ -34,7 +34,10 @@ export const step1Schema = z.object({
     targetAudience: z.string().optional(),
     coursePreview: z.string().optional(),
     courseBanner: z.string().optional(),
-    courseMedia: z.string().optional(),
+    courseMedia: z.object({
+        type: z.string().optional(),
+        id: z.string().optional(),
+    }),
     coursePreviewBlob: z.string().optional(),
     courseBannerBlob: z.string().optional(),
     courseMediaBlob: z.string().optional(),
@@ -70,23 +73,28 @@ export const AddCourseStep1 = ({
 
     const form = useForm<Step1Data>({
         resolver: zodResolver(step1Schema),
-        defaultValues: initialData || {
-            course: '',
-            description: '',
-            learningOutcome: '',
-            aboutCourse: '',
-            targetAudience: '',
-            coursePreview: '',
-            courseBanner: '',
-            courseMedia: '',
+        defaultValues: {
+            course: initialData?.course,
+            description: initialData?.description,
+            learningOutcome: initialData?.learningOutcome,
+            aboutCourse: initialData?.aboutCourse,
+            targetAudience: initialData?.targetAudience,
+            coursePreview: initialData?.coursePreview,
+            courseBanner: initialData?.courseBanner,
+            courseMedia: {
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-expect-error
+                type: initialData?.courseMedia ? JSON.parse(initialData?.courseMedia).type : '',
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-expect-error
+                id: initialData?.courseMedia ? JSON.parse(initialData?.courseMedia).id : '',
+            },
             coursePreviewBlob: '',
             courseBannerBlob: '',
             courseMediaBlob: '',
-            tags: [],
+            tags: initialData?.tags,
         },
     });
-
-    console.log(form.getValues());
 
     // Watch the course field value
     const courseValue = form.watch('course');
@@ -105,10 +113,7 @@ export const AddCourseStep1 = ({
                 [field]: true,
             }));
 
-            const fileUrl = URL.createObjectURL(file);
-            form.setValue(field, fileUrl); // set as string
-
-            const uploadedFileUrl = await uploadFile({
+            const uploadedFileId = await uploadFile({
                 file,
                 setIsUploading: (state) =>
                     setUploadingStates((prev) => ({
@@ -120,10 +125,17 @@ export const AddCourseStep1 = ({
                 sourceId: 'COURSES',
             });
 
-            const publicUrl = await getPublicUrl(uploadedFileUrl || '');
+            const publicUrl = await getPublicUrl(uploadedFileId || '');
 
-            if (uploadedFileUrl) {
-                form.setValue(field, uploadedFileUrl); // set as string
+            if (uploadedFileId) {
+                if (field === 'courseMedia') {
+                    form.setValue(field, {
+                        type: file.type.includes('video') ? 'video' : 'image',
+                        id: uploadedFileId,
+                    }); // set as string
+                } else {
+                    form.setValue(field, uploadedFileId); // set as string
+                }
                 if (field === 'coursePreview') {
                     form.setValue('coursePreviewBlob', publicUrl);
                 } else if (field === 'courseBanner') {
@@ -160,9 +172,12 @@ export const AddCourseStep1 = ({
 
     useEffect(() => {
         const fetchAndSetUrls = async () => {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            const courseMediaImage = JSON.parse(initialData?.courseMedia);
             const coursePreviewUrl = await getPublicUrl(form.getValues('coursePreview') || '');
             const courseBannerUrl = await getPublicUrl(form.getValues('courseBanner') || '');
-            const courseMediaUrl = await getPublicUrl(form.getValues('courseMedia') || '');
+            const courseMediaUrl = await getPublicUrl(courseMediaImage.id);
 
             form.setValue('coursePreviewBlob', coursePreviewUrl);
             form.setValue('courseBannerBlob', courseBannerUrl);
@@ -173,6 +188,8 @@ export const AddCourseStep1 = ({
             fetchAndSetUrls();
         }
     }, [initialData]);
+
+    console.log(form.getValues());
 
     return (
         <Form {...form}>
@@ -474,16 +491,26 @@ export const AddCourseStep1 = ({
                                             <div className="flex h-[200px] items-center justify-center rounded-lg bg-gray-100">
                                                 <DashboardLoader />
                                             </div>
-                                        ) : form.watch('courseMedia') ? (
-                                            <div className="h-[200px] w-full rounded-lg bg-gray-100">
-                                                <video
-                                                    src={form.watch('courseMediaBlob')}
-                                                    controls
-                                                    className="size-full rounded-lg object-contain"
-                                                >
-                                                    Your browser does not support the video tag.
-                                                </video>
-                                            </div>
+                                        ) : form.watch('courseMedia')?.id ? (
+                                            form.watch('courseMedia')?.type === 'video' ? (
+                                                <div className="h-[200px] w-full rounded-lg bg-gray-100">
+                                                    <video
+                                                        src={form.watch('courseMediaBlob')}
+                                                        controls
+                                                        className="size-full rounded-lg object-contain"
+                                                    >
+                                                        Your browser does not support the video tag.
+                                                    </video>
+                                                </div>
+                                            ) : (
+                                                <div className="flex h-[200px] items-center justify-center rounded-lg bg-gray-100">
+                                                    <img
+                                                        src={form.watch('courseMediaBlob')}
+                                                        alt="Course Banner"
+                                                        className="size-full rounded-lg object-contain"
+                                                    />
+                                                </div>
+                                            )
                                         ) : (
                                             <div className="flex h-[200px] items-center justify-center rounded-lg bg-gray-100">
                                                 <p className="text-white">

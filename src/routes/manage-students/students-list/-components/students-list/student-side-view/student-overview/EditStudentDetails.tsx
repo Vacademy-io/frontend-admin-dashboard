@@ -68,7 +68,7 @@ export const EditStudentDetails = () => {
     const loadImage = async (fileId: string) => {
         if (fileId) {
             const url = await getPublicUrl(fileId);
-            setFaceUrl(url);
+            setFaceUrl(url || '');
         }
     };
 
@@ -130,40 +130,40 @@ export const EditStudentDetails = () => {
     };
 
     const editStudentDetailsMutation = useEditStudentDetails();
- const onSubmit = async (values: EditStudentDetailsFormValues) => {
-  try {
-    const face_file_id = form.getValues('face_file_id') ?? '';
+    const onSubmit = async (values: EditStudentDetailsFormValues) => {
+        try {
+            const face_file_id = form.getValues('face_file_id') ?? '';
 
-    const payload = { ...values, face_file_id };
+            const payload = { ...values, face_file_id };
 
-    await editStudentDetailsMutation.mutateAsync(payload);
+            await editStudentDetailsMutation.mutateAsync(payload);
 
-    if (selectedStudent) {
-      const updatedStudent = {
-        ...selectedStudent,
-        ...payload,
-        id: selectedStudent.id,
-        mobile_number: payload.contact_number,
-        region: payload.state ?? null,
-        linked_institute_name: payload.institute_name ?? null,
-        face_file_id: payload.face_file_id ?? '', // Ensure it's a string
-      };
+            if (selectedStudent) {
+                const updatedStudent = {
+                    ...selectedStudent,
+                    ...payload,
+                    id: selectedStudent.id,
+                    mobile_number: payload.contact_number,
+                    region: payload.state ?? null,
+                    linked_institute_name: payload.institute_name ?? null,
+                    face_file_id: payload.face_file_id ?? '', // Ensure it's a string
+                };
 
-      setSelectedStudent(updatedStudent);
-    }
+                setSelectedStudent(updatedStudent);
+            }
 
-    if (face_file_id) {
-      const newFaceUrl = await getPublicUrl(face_file_id);
-      setFaceUrl(newFaceUrl);
-    } else {
-      setFaceUrl(null); // if image was removed
-    }
+            if (face_file_id) {
+                const newFaceUrl = await getPublicUrl(face_file_id);
+                setFaceUrl(newFaceUrl || '');
+            } else {
+                setFaceUrl(null); // if image was removed
+            }
 
-    setOpenDialog(false);
-  } catch (err) {
-    console.error('Failed to update student:', err);
-  }
-};
+            setOpenDialog(false);
+        } catch (err) {
+            console.error('Failed to update student:', err);
+        }
+    };
 
     const submitButton = (
         <MyButton onClick={() => formRef.current?.requestSubmit()}>Save Changes</MyButton>
