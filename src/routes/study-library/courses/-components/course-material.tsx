@@ -292,13 +292,13 @@ export const CourseMaterial = () => {
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e?.target?.value ?? '';
         setSearchValue(value);
-        setSelectedFilters((prev) => ({ ...prev, search_by_name: value }));
+        // Do NOT update selectedFilters here to avoid triggering API on every keystroke
     };
 
     const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if ((e?.key ?? '') === 'Enter') {
-            // No need to manually fetch, just update filters
-            setSelectedFilters((prev) => ({ ...prev }));
+            // Only update selectedFilters (which triggers API) when Enter is pressed
+            setSelectedFilters((prev) => ({ ...prev, search_by_name: searchValue }));
         }
     };
 
