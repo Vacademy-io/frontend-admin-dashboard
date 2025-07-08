@@ -475,7 +475,7 @@ export const CourseMaterial = () => {
             const results = await Promise.all(urlPromises);
             const urlMap: Record<string, string> = {};
             results.forEach(({ id, url }) => {
-                if (id) urlMap[id] = url;
+                if (id) urlMap[id] = url || '';
             });
             setCourseImageUrls(urlMap);
         };

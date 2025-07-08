@@ -37,6 +37,7 @@ export const useFileUpload = () => {
 
     const getUrlMutation = useMutation({
         mutationFn: async (fileId: string) => {
+            if (!fileId) return;
             try {
                 return await getPublicUrl(fileId);
             } catch (error) {

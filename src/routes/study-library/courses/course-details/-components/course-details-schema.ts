@@ -129,7 +129,10 @@ export const courseDetailsSchema = z.object({
         isCoursePublishedToCatalaouge: z.boolean(),
         coursePreviewImageMediaId: z.string(),
         courseBannerMediaId: z.string(),
-        courseMediaId: z.string(),
+        courseMediaId: z.object({
+            type: z.string(),
+            id: z.string(),
+        }),
         coursePreviewImageMediaPreview: z.string(),
         courseBannerMediaPreview: z.string(),
         courseMediaPreview: z.string(),

@@ -65,7 +65,7 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
             const fetchPublicUrl = async () => {
                 if (data?.institute_logo_file_id) {
                     const publicUrl = await getPublicUrl(data.institute_logo_file_id);
-                    setInstituteLogo(publicUrl);
+                    setInstituteLogo(publicUrl || '');
                 }
             };
 
