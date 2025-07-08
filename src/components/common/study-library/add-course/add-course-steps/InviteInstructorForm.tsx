@@ -122,7 +122,11 @@ const InviteInstructorForm = ({ onInviteSuccess, onCancel }: InviteInstructorFor
                                 scale="medium"
                                 layoutVariant="default"
                                 onClick={form.handleSubmit(handleSubmit)}
-                                disable={!form.formState.isValid}
+                                disable={
+                                    !form.watch('name') ||
+                                    !form.watch('email') ||
+                                    form.watch('roleType').length === 0
+                                }
                             >
                                 Add Instructor
                             </MyButton>
