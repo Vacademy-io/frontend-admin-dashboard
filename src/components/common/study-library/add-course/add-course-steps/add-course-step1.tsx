@@ -2,7 +2,7 @@ import { TokenKey } from '@/constants/auth/tokens';
 import { useFileUpload } from '@/hooks/use-file-upload';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import {
@@ -35,6 +35,9 @@ export const step1Schema = z.object({
     coursePreview: z.string().optional(),
     courseBanner: z.string().optional(),
     courseMedia: z.string().optional(),
+    coursePreviewBlob: z.string().optional(),
+    courseBannerBlob: z.string().optional(),
+    courseMediaBlob: z.string().optional(),
     tags: z.array(z.string()).default([]),
 });
 export type Step1Data = z.infer<typeof step1Schema>;
@@ -50,7 +53,7 @@ export const AddCourseStep1 = ({
     const data = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
 
-    const { uploadFile } = useFileUpload();
+    const { uploadFile, getPublicUrl } = useFileUpload();
 
     const coursePreviewRef = useRef<HTMLInputElement>(null);
     const courseBannerRef = useRef<HTMLInputElement>(null);
@@ -76,6 +79,9 @@ export const AddCourseStep1 = ({
             coursePreview: '',
             courseBanner: '',
             courseMedia: '',
+            coursePreviewBlob: '',
+            courseBannerBlob: '',
+            courseMediaBlob: '',
             tags: [],
         },
     });
@@ -112,8 +118,17 @@ export const AddCourseStep1 = ({
                 sourceId: 'COURSES',
             });
 
+            const publicUrl = await getPublicUrl(uploadedFileUrl || '');
+
             if (uploadedFileUrl) {
                 form.setValue(field, uploadedFileUrl); // set as string
+                if (field === 'coursePreview') {
+                    form.setValue('coursePreviewBlob', publicUrl);
+                } else if (field === 'courseBanner') {
+                    form.setValue('courseBannerBlob', publicUrl);
+                } else if (field === 'courseMedia') {
+                    form.setValue('courseMediaBlob', publicUrl);
+                }
             }
         } catch (error) {
             console.error('Upload failed:', error);
@@ -140,6 +155,22 @@ export const AddCourseStep1 = ({
         setTags(updatedTags);
         form.setValue('tags', updatedTags);
     };
+
+    useEffect(() => {
+        const fetchAndSetUrls = async () => {
+            const coursePreviewUrl = await getPublicUrl(form.getValues('coursePreview') || '');
+            const courseBannerUrl = await getPublicUrl(form.getValues('courseBanner') || '');
+            const courseMediaUrl = await getPublicUrl(form.getValues('courseMedia') || '');
+
+            form.setValue('coursePreviewBlob', coursePreviewUrl);
+            form.setValue('courseBannerBlob', courseBannerUrl);
+            form.setValue('courseMediaBlob', courseMediaUrl);
+        };
+
+        if (initialData) {
+            fetchAndSetUrls();
+        }
+    }, [initialData]);
 
     return (
         <Form {...form}>
@@ -335,7 +366,7 @@ export const AddCourseStep1 = ({
                                         ) : form.watch('coursePreview') ? (
                                             <div className="h-[200px] w-full rounded-lg bg-gray-100">
                                                 <img
-                                                    src={form.watch('coursePreview')}
+                                                    src={form.watch('coursePreviewBlob')}
                                                     alt="Course Preview"
                                                     className="size-full rounded-lg object-contain"
                                                 />
@@ -389,7 +420,7 @@ export const AddCourseStep1 = ({
                                         ) : form.watch('courseBanner') ? (
                                             <div className="h-[200px] w-full rounded-lg bg-gray-100">
                                                 <img
-                                                    src={form.watch('courseBanner')}
+                                                    src={form.watch('courseBannerBlob')}
                                                     alt="Course Banner"
                                                     className="size-full rounded-lg object-contain"
                                                 />
@@ -443,22 +474,13 @@ export const AddCourseStep1 = ({
                                             </div>
                                         ) : form.watch('courseMedia') ? (
                                             <div className="h-[200px] w-full rounded-lg bg-gray-100">
-                                                {form.watch('courseMedia')?.endsWith('.mp4') ||
-                                                form.watch('courseMedia')?.includes('video') ? (
-                                                    <video
-                                                        src={form.watch('courseMedia')}
-                                                        controls
-                                                        className="size-full rounded-lg object-contain"
-                                                    >
-                                                        Your browser does not support the video tag.
-                                                    </video>
-                                                ) : (
-                                                    <img
-                                                        src={form.watch('courseMedia') || ''}
-                                                        alt="Course Media"
-                                                        className="size-full rounded-lg object-contain"
-                                                    />
-                                                )}
+                                                <video
+                                                    src={form.watch('courseMediaBlob')}
+                                                    controls
+                                                    className="size-full rounded-lg object-contain"
+                                                >
+                                                    Your browser does not support the video tag.
+                                                </video>
                                             </div>
                                         ) : (
                                             <div className="flex h-[200px] items-center justify-center rounded-lg bg-gray-100">
