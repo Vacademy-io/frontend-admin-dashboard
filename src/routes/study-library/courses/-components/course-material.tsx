@@ -6,33 +6,21 @@ import { StudyLibraryIntroKey } from '@/constants/storage/introKey';
 import { studyLibrarySteps } from '@/constants/intro/steps';
 import { CourseCatalog } from '@/svgs';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MyButton } from '@/components/design-system/button';
-import {
-    Select,
-    SelectTrigger,
-    SelectValue,
-    SelectContent,
-    SelectItem,
-} from '@/components/ui/select';
-import { StarRatingComponent } from '@/components/common/star-rating-component';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import type { LevelType } from '@/schemas/student/student-list/institute-schema';
 import { handleGetInstituteUsersForAccessControl } from '@/routes/dashboard/-services/dashboard-services';
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
-import type { UserRolesDataEntry } from '@/types/dashboard/user-roles';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
-import { MyPagination } from '@/components/design-system/pagination';
 import {
     getAllCoursesWithFilters,
     getAllTeacherCoursesWithFilters,
 } from '../-services/courses-services';
 import { useFileUpload } from '@/hooks/use-file-upload';
-import { useNavigate } from '@tanstack/react-router';
 import { useDeleteCourse } from '@/services/study-library/course-operations/delete-course';
 import { toast } from 'sonner';
-import { TrashSimple } from 'phosphor-react';
+import CourseListPage from './course-list-page';
 
 export interface AllCourseFilters {
     status: string[];
@@ -46,7 +34,7 @@ export interface AllCourseFilters {
 }
 
 // Add types for API response and course item
-interface CourseInstructor {
+export interface CourseInstructor {
     id: string;
     username: string;
     email: string;
@@ -64,7 +52,7 @@ interface CourseInstructor {
     root_user: boolean;
 }
 
-interface CourseItem {
+export interface CourseItem {
     id: string;
     package_name: string;
     thumbnail_file_id: string;
@@ -86,7 +74,7 @@ interface CourseItem {
     instructors: CourseInstructor[];
 }
 
-interface AllCoursesApiResponse {
+export interface AllCoursesApiResponse {
     totalPages: number;
     totalElements: number;
     pageable: unknown;
@@ -437,8 +425,6 @@ export const CourseMaterial = () => {
         fetchImages();
     }, [allCourses]);
 
-    const navigate = useNavigate();
-
     if (
         isUsersLoading ||
         !allCourses ||
@@ -521,338 +507,85 @@ export const CourseMaterial = () => {
                         </TabsTrigger>
                     )}
                 </TabsList>
-                <TabsContent value={selectedTab}>
-                    <div className="mt-6 flex w-full gap-6">
-                        {/* Filter Section */}
-                        <div className="animate-fade-in flex h-fit min-w-[240px] max-w-[260px] flex-col gap-2 rounded-lg border border-neutral-200 bg-white p-4 shadow-sm">
-                            <div className="mb-2 flex items-center justify-between">
-                                <div className="text-base font-semibold">Filters</div>
-                                {(selectedFilters.level_ids.length > 0 ||
-                                    selectedFilters.tag.length > 0 ||
-                                    selectedFilters.faculty_ids.length > 0) && (
-                                    <div className="flex gap-2">
-                                        <button
-                                            className="text-xs font-medium text-primary-500 transition-transform hover:underline active:scale-95"
-                                            onClick={handleClearAll}
-                                        >
-                                            Clear All
-                                        </button>
-                                        <button
-                                            className="hover:bg-primary-600 rounded bg-primary-500 px-3 py-1 text-xs font-medium text-white transition-transform active:scale-95"
-                                            onClick={handleApply}
-                                        >
-                                            Apply
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                            <div className="mb-1 text-sm font-semibold">Levels</div>
-                            <div className="flex flex-col gap-2">
-                                {levels.map((level) => (
-                                    <label
-                                        key={level.id}
-                                        className="group flex cursor-pointer items-center gap-2"
-                                    >
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedFilters.level_ids.includes(level.id)}
-                                            onChange={() => handleLevelChange(level.id)}
-                                            className="scale-110 accent-primary-500 transition-transform"
-                                        />
-                                        <span className="transition-colors group-hover:text-primary-500">
-                                            {level.name}
-                                        </span>
-                                    </label>
-                                ))}
-                            </div>
-                            {/* Tags Section */}
-                            {tags.length > 0 && (
-                                <>
-                                    <div className="mb-1 mt-4 text-sm font-semibold">Tags</div>
-                                    <div className="flex flex-col gap-2">
-                                        {tags.map((tagValue: string) => (
-                                            <label
-                                                key={tagValue}
-                                                className="group flex cursor-pointer items-center gap-2"
-                                            >
-                                                <input
-                                                    type="checkbox"
-                                                    checked={selectedFilters.tag.includes(tagValue)}
-                                                    onChange={() => handleTagChange(tagValue)}
-                                                    className="scale-110 accent-primary-500 transition-transform"
-                                                />
-                                                <span className="transition-colors group-hover:text-primary-500">
-                                                    {tagValue}
-                                                </span>
-                                            </label>
-                                        ))}
-                                    </div>
-                                </>
-                            )}
-                            {/* Users Section */}
-                            {Array.isArray(accessControlUsers) && accessControlUsers.length > 0 && (
-                                <>
-                                    <div className="mb-1 mt-4 text-sm font-semibold">
-                                        Instructors
-                                    </div>
-                                    <div className="flex flex-col gap-2">
-                                        {(accessControlUsers as UserRolesDataEntry[]).map(
-                                            (user) => (
-                                                <label
-                                                    key={user.id}
-                                                    className="group flex cursor-pointer items-center gap-2"
-                                                >
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={selectedFilters.faculty_ids.includes(
-                                                            user.id
-                                                        )}
-                                                        onChange={() => handleUserChange(user.id)}
-                                                        className="scale-110 accent-primary-500 transition-transform"
-                                                    />
-                                                    <span className="transition-colors group-hover:text-primary-500">
-                                                        {user.full_name}
-                                                    </span>
-                                                </label>
-                                            )
-                                        )}
-                                    </div>
-                                </>
-                            )}
-                        </div>
-                        {/* Courses Section */}
-                        <div className="animate-fade-in flex flex-1 flex-col gap-4">
-                            <div className="mb-2 flex w-full items-center justify-between gap-4">
-                                {/* Search Bar */}
-                                <div className="relative max-w-xs flex-1">
-                                    {/* Search Icon */}
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400">
-                                        <svg
-                                            width="18"
-                                            height="18"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                        >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth="2"
-                                                d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 104.5 4.5a7.5 7.5 0 0012.15 12.15z"
-                                            />
-                                        </svg>
-                                    </span>
-                                    <input
-                                        type="text"
-                                        value={searchValue}
-                                        onChange={handleSearchChange}
-                                        onKeyDown={handleSearchKeyDown}
-                                        placeholder="Search courses..."
-                                        className="w-full rounded-md border border-neutral-200 px-9 py-2 text-sm shadow-sm transition-all focus:border-primary-400 focus:ring-2 focus:ring-primary-100"
-                                    />
-                                    {/* Cross Button (visible only if searchValue) */}
-                                    {searchValue && (
-                                        <button
-                                            className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-neutral-400 transition-transform active:scale-95"
-                                            aria-label="Clear search"
-                                            onClick={() => {
-                                                setSearchValue('');
-                                                setSelectedFilters((prev) => ({
-                                                    ...prev,
-                                                    search_by_name: '',
-                                                }));
-                                            }}
-                                            type="button"
-                                        >
-                                            <svg
-                                                width="18"
-                                                height="18"
-                                                fill="none"
-                                                viewBox="0 0 24 24"
-                                                stroke="currentColor"
-                                            >
-                                                <path
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                    strokeWidth="2"
-                                                    d="M6 18L18 6M6 6l12 12"
-                                                />
-                                            </svg>
-                                        </button>
-                                    )}
-                                </div>
-                                {/* Sort By */}
-                                <div className="flex min-w-[180px] items-center justify-end gap-2">
-                                    <span className="text-sm font-medium text-neutral-600">
-                                        Sort by
-                                    </span>
-                                    <Select value={sortBy} onValueChange={setSortBy}>
-                                        <SelectTrigger className="w-[110px]">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="oldest">Oldest</SelectItem>
-                                            <SelectItem value="newest">Newest</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                                {Array.isArray(allCourses?.content) &&
-                                allCourses.content.length > 0 ? (
-                                    allCourses.content.map((course) => {
-                                        const instructors = course.instructors || [];
-                                        const tags = course.comma_separeted_tags
-                                            ? course.comma_separeted_tags
-                                                  .split(',')
-                                                  .map((t) => t.trim())
-                                            : [];
-                                        return (
-                                            <div
-                                                key={course.id}
-                                                className={`animate-fade-in group relative flex h-fit flex-col rounded-lg border border-neutral-200 bg-white p-0 shadow-sm transition-transform duration-500 hover:scale-[1.025] hover:shadow-md`}
-                                            >
-                                                {/* Course Banner Image */}
-                                                {courseImageUrls[course.id] && (
-                                                    <div className="flex size-full w-full items-center justify-center overflow-hidden rounded-lg px-3 pb-0 pt-4">
-                                                        <img
-                                                            src={
-                                                                courseImageUrls[course.id] ||
-                                                                course.thumbnail_file_id ||
-                                                                'https://images.pexels.com/photos/31530661/pexels-photo-31530661.jpeg'
-                                                            }
-                                                            alt={course.package_name}
-                                                            className="object-fit rounded-lg bg-white p-2 transition-transform duration-300 group-hover:scale-105"
-                                                        />
-                                                    </div>
-                                                )}
-                                                <div className="flex flex-col gap-1 p-4">
-                                                    <div className="flex items-center justify-between">
-                                                        <div className="text-lg font-extrabold text-neutral-800">
-                                                            {course.package_name}
-                                                        </div>
-                                                        <div
-                                                            className={`rounded-lg bg-gray-100 p-1 px-2 text-xs font-semibold text-gray-700`}
-                                                        >
-                                                            {course.level_name || 'Level'}
-                                                        </div>
-                                                    </div>
-                                                    {/* Description section */}
-                                                    <div
-                                                        className={
-                                                            (
-                                                                course.course_html_description_html ||
-                                                                ''
-                                                            )
-                                                                .replace(/<[^>]*>/g, '')
-                                                                .slice(0, 120).length > 0
-                                                                ? 'mt-2 text-sm text-neutral-600'
-                                                                : 'text-sm text-neutral-600'
-                                                        }
-                                                    >
-                                                        {(course.course_html_description_html || '')
-                                                            .replace(/<[^>]*>/g, '')
-                                                            .slice(0, 120)}
-                                                    </div>
-                                                    {/* Instructors section */}
-                                                    <div
-                                                        className={
-                                                            instructors && instructors.length > 0
-                                                                ? 'mt-2 flex items-center gap-2'
-                                                                : 'flex items-center gap-2'
-                                                        }
-                                                    >
-                                                        {instructors?.map((inst) => (
-                                                            <img
-                                                                key={inst.id}
-                                                                src={
-                                                                    inst.profile_pic_file_id ||
-                                                                    'https://randomuser.me/api/portraits/lego/1.jpg'
-                                                                }
-                                                                alt={inst.full_name}
-                                                                className="-ml-2 size-7 rounded-full border border-neutral-200 object-cover first:ml-0"
-                                                            />
-                                                        ))}
-                                                        <span className="ml-2 text-xs text-neutral-600">
-                                                            {instructors
-                                                                ?.map((inst) => inst.full_name)
-                                                                .join(', ')}
-                                                        </span>
-                                                    </div>
-                                                    {/* Tags section */}
-                                                    <div
-                                                        className={
-                                                            tags && tags.length > 0
-                                                                ? 'mt-2 flex flex-wrap gap-2'
-                                                                : 'flex flex-wrap gap-2'
-                                                        }
-                                                    >
-                                                        {tags?.map((tag) => (
-                                                            <span
-                                                                key={tag}
-                                                                className="rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700"
-                                                            >
-                                                                {tag}
-                                                            </span>
-                                                        ))}
-                                                    </div>
-                                                    {/* Rating section */}
-                                                    <div
-                                                        className={
-                                                            tags && tags.length > 0
-                                                                ? 'my-2 -mb-2 flex items-center gap-2'
-                                                                : '-mb-2 flex items-center gap-2'
-                                                        }
-                                                    >
-                                                        <StarRatingComponent
-                                                            score={course.rating * 20}
-                                                            maxScore={100}
-                                                        />
-                                                        <span className="text-neutral-500">
-                                                            {(course.rating || 0).toFixed(1)}
-                                                        </span>
-                                                    </div>
-                                                    {/* View Course Button */}
-                                                    <div className="mt-4 flex gap-2">
-                                                        <MyButton
-                                                            className="flex-1"
-                                                            buttonType="primary"
-                                                            onClick={() =>
-                                                                navigate({
-                                                                    to: `/study-library/courses/course-details?courseId=${course.id}`,
-                                                                })
-                                                            }
-                                                        >
-                                                            View Course
-                                                        </MyButton>
-                                                        <button
-                                                            onClick={() =>
-                                                                handleCourseDelete(course.id)
-                                                            }
-                                                            className="flex size-9 items-center justify-center rounded-md border border-red-200 bg-red-50 text-red-500 transition-colors hover:border-red-300 hover:bg-red-100 active:scale-95"
-                                                            title="Delete course"
-                                                        >
-                                                            <TrashSimple size={18} />
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        );
-                                    })
-                                ) : (
-                                    <div className="col-span-2 text-center text-neutral-400">
-                                        No courses found.
-                                    </div>
-                                )}
-                            </div>
-                            <MyPagination
-                                currentPage={page}
-                                totalPages={allCourses?.totalPages || 0}
-                                onPageChange={handlePageChange}
-                            />
-                        </div>
-                    </div>
+                <TabsContent value="AllCourses">
+                    <CourseListPage
+                        selectedFilters={selectedFilters}
+                        setSelectedFilters={setSelectedFilters}
+                        handleClearAll={handleClearAll}
+                        handleApply={handleApply}
+                        levels={levels}
+                        handleLevelChange={handleLevelChange}
+                        tags={tags}
+                        accessControlUsers={accessControlUsers}
+                        handleUserChange={handleUserChange}
+                        handleTagChange={handleTagChange}
+                        searchValue={searchValue}
+                        setSearchValue={setSearchValue}
+                        handleSearchChange={handleSearchChange}
+                        handleSearchKeyDown={handleSearchKeyDown}
+                        sortBy={sortBy}
+                        setSortBy={setSortBy}
+                        allCourses={allCourses}
+                        courseImageUrls={courseImageUrls}
+                        handleCourseDelete={handleCourseDelete}
+                        page={page}
+                        handlePageChange={handlePageChange}
+                    />
                 </TabsContent>
+                {roles?.includes('ADMIN') && (
+                    <TabsContent value="AuthoredCourses">
+                        <CourseListPage
+                            selectedFilters={selectedFilters}
+                            setSelectedFilters={setSelectedFilters}
+                            handleClearAll={handleClearAll}
+                            handleApply={handleApply}
+                            levels={levels}
+                            handleLevelChange={handleLevelChange}
+                            tags={tags}
+                            accessControlUsers={accessControlUsers}
+                            handleUserChange={handleUserChange}
+                            handleTagChange={handleTagChange}
+                            searchValue={searchValue}
+                            setSearchValue={setSearchValue}
+                            handleSearchChange={handleSearchChange}
+                            handleSearchKeyDown={handleSearchKeyDown}
+                            sortBy={sortBy}
+                            setSortBy={setSortBy}
+                            allCourses={allCourses}
+                            courseImageUrls={courseImageUrls}
+                            handleCourseDelete={handleCourseDelete}
+                            page={page}
+                            handlePageChange={handlePageChange}
+                        />
+                    </TabsContent>
+                )}
+                {roles?.includes('TEACHER') && !roles?.includes('ADMIN') && (
+                    <TabsContent value="CourseRequests">
+                        <CourseListPage
+                            selectedFilters={selectedFilters}
+                            setSelectedFilters={setSelectedFilters}
+                            handleClearAll={handleClearAll}
+                            handleApply={handleApply}
+                            levels={levels}
+                            handleLevelChange={handleLevelChange}
+                            tags={tags}
+                            accessControlUsers={accessControlUsers}
+                            handleUserChange={handleUserChange}
+                            handleTagChange={handleTagChange}
+                            searchValue={searchValue}
+                            setSearchValue={setSearchValue}
+                            handleSearchChange={handleSearchChange}
+                            handleSearchKeyDown={handleSearchKeyDown}
+                            sortBy={sortBy}
+                            setSortBy={setSortBy}
+                            allCourses={allCourses}
+                            courseImageUrls={courseImageUrls}
+                            handleCourseDelete={handleCourseDelete}
+                            page={page}
+                            handlePageChange={handlePageChange}
+                        />
+                    </TabsContent>
+                )}
             </Tabs>
         </div>
     );
