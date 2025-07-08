@@ -456,9 +456,9 @@ export const CourseMaterial = () => {
         const fetchImages = async () => {
             const data = getCurrentTabData();
             const contentArr: CourseItem[] = Array.isArray(data?.content)
-                ? data.content.filter((course): course is CourseItem => !!course)
+                ? data?.content?.filter((course): course is CourseItem => !!course) ?? []
                 : [];
-            const urlPromises = contentArr.map(async (course) => {
+            const urlPromises = contentArr?.map(async (course) => {
                 const { id = '', course_preview_image_media_id = '' } = course;
                 if (course_preview_image_media_id) {
                     const url = await getPublicUrl(course_preview_image_media_id);

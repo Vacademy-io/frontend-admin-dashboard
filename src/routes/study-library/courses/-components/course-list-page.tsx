@@ -236,8 +236,9 @@ const CourseListPage = ({
                         </div>
                     </div>
                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                        {Array.isArray(allCourses?.content) && allCourses.content.length > 0 ? (
-                            allCourses.content.map((course: CourseItem) => {
+                        {Array.isArray(allCourses?.content) &&
+                        (allCourses?.content?.length ?? 0) > 0 ? (
+                            allCourses?.content?.map((course: CourseItem) => {
                                 const instructors: CourseInstructor[] = course.instructors || [];
                                 const tags: string[] = course.comma_separeted_tags
                                     ? course.comma_separeted_tags
