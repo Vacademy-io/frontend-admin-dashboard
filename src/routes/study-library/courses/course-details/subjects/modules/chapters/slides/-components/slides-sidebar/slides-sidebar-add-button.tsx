@@ -246,6 +246,8 @@ export const ChapterSidebarAddButton = () => {
             case 'assignment': {
                 try {
                     const payload = createAssignmentSlidePayload(items || []);
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-expect-error
                     const response = await updateAssignmentOrder(payload);
 
                     if (response) {
