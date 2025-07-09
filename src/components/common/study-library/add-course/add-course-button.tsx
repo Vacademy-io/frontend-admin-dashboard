@@ -18,7 +18,7 @@ export const AddCourseButton = () => {
                 </MyButton>
             }
             heading="Add Course"
-            dialogWidth="w-[400px]"
+            dialogWidth="w-[600px]"
             open={openDialog}
             onOpenChange={handleOpenChange}
             isTour

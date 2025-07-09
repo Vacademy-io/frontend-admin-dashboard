@@ -179,7 +179,7 @@ export const AddCourseForm = () => {
                     layoutVariant="default"
                     scale="large"
                     id="add-course-button"
-                    className="w-[140px] font-light"
+                    className="w-full font-medium"
                 >
                     Create Course Manually
                 </MyButton>
