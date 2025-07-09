@@ -1,48 +1,53 @@
-
-import type { DocumentSlidePayload, Slide }  from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-hooks/use-slides';
+import type {
+    DocumentSlidePayload,
+    Slide,
+} from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-hooks/use-slides';
 import { generateUniqueAssignmentSlideTitle } from '../../-helper/slide-naming-utils';
 
 export function createAssignmentSlidePayload(
-  allSlides: Slide[] = [],
-  titleOverride?: string
+    allSlides: Slide[] = [],
+    titleOverride?: string
 ): DocumentSlidePayload {
-  const slideId = crypto.randomUUID();
-  const title = titleOverride?.trim() || generateUniqueAssignmentSlideTitle(allSlides) || 'Untitled Assignment';
+    const slideId = crypto.randomUUID();
+    const title =
+        titleOverride?.trim() ||
+        generateUniqueAssignmentSlideTitle(allSlides) ||
+        'Untitled Assignment';
 
-  return {
-    id: slideId,
-    title: title,
-    image_file_id: '',
-    description: 'Assignment for student response',
-    slide_order: 0,
-    document_slide: {
-      id: crypto.randomUUID(),
-      type: 'ASSIGNMENT',
-      data: JSON.stringify({
-        parent_rich_text: {
-          id: null,
-          type: '',
-          content: '',
+    const date = new Date();
+
+    return {
+        id: slideId,
+        title: title,
+        source_id: '',
+        source_type: 'ASSIGNMENT',
+        image_file_id: '',
+        description: '',
+        status: 'DRAFT',
+        slide_order: 0,
+        video_slide: null,
+        document_slide: null,
+        question_slide: null,
+        assignment_slide: {
+            id: crypto.randomUUID(),
+            parent_rich_text: {
+                id: '',
+                type: '',
+                content: '',
+            },
+            text_data: {
+                id: '',
+                type: '',
+                content: '',
+            },
+            live_date: date.toLocaleString(),
+            end_date: date.toLocaleString(),
+            re_attempt_count: 0,
+            comma_separated_media_ids: '',
+            questions: [],
         },
-        text_data: {
-          id: null,
-          type: '',
-          content: '',
-        },
-        live_date: '',
-        end_date: '',
-        re_attempt_count: 0,
-        comma_separated_media_ids: '',
-        timestamp: Date.now(),
-      }),
-      title: title,
-      cover_file_id: '',
-      total_pages: 1,
-      published_data: null,
-      published_document_total_pages: 0,
-    },
-    status: 'DRAFT',
-    new_slide: true,
-    notify: false,
-  };
+        quiz_slide: null,
+        is_loaded: true,
+        new_slide: true,
+    };
 }

@@ -26,10 +26,7 @@ import AddQuestionDialog from './add-question-dialog';
 import { File, GameController } from 'phosphor-react';
 import { formatHTMLString } from '../slide-operations/formatHtmlString';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
-import {
-    generateUniqueDocumentSlideTitle,
-    generateUniqueAssignmentSlideTitle,
-} from '../../-helper/slide-naming-utils';
+import { generateUniqueDocumentSlideTitle } from '../../-helper/slide-naming-utils';
 import { toast } from 'sonner';
 import { createAssignmentSlidePayload } from '../yoopta-editor-customizations/createAssignmentSlidePayload';
 import { createPresentationSlidePayload } from '../create-presentation-slide';
@@ -48,7 +45,7 @@ export const ChapterSidebarAddButton = () => {
     const { getPackageSessionId } = useInstituteDetailsStore();
     const { courseId, levelId, chapterId, moduleId, subjectId, sessionId } =
         route.state.location.search;
-    const { addUpdateDocumentSlide, updateSlideOrder } = useSlidesMutations(
+    const { addUpdateDocumentSlide, updateSlideOrder, updateAssignmentOrder } = useSlidesMutations(
         chapterId || '',
         moduleId || '',
         subjectId || '',
@@ -249,10 +246,10 @@ export const ChapterSidebarAddButton = () => {
             case 'assignment': {
                 try {
                     const payload = createAssignmentSlidePayload(items || []);
-                    const response = await addUpdateDocumentSlide(payload);
-                  
+                    const response = await updateAssignmentOrder(payload);
+
                     if (response) {
-                        await reorderSlidesAfterNewSlide(payload.id||'');
+                        await reorderSlidesAfterNewSlide(payload.id || '');
                         toast.success('Assignment created successfully!');
                     } else {
                         throw new Error('Empty response returned from API.');
