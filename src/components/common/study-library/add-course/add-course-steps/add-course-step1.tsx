@@ -23,6 +23,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 // Step 1 Schema
 export const step1Schema = z.object({
@@ -52,6 +53,7 @@ export const AddCourseStep1 = ({
     onNext: (data: Step1Data) => void;
     initialData?: Step1Data;
 }) => {
+    const { instituteDetails } = useInstituteDetailsStore();
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const data = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
@@ -68,8 +70,10 @@ export const AddCourseStep1 = ({
         courseMedia: false,
     });
 
-    const [newTag, setNewTag] = useState('');
-    const [tags, setTags] = useState<string[]>(initialData?.tags || []);
+    const [tags, setTags] = useState<string[]>(initialData?.tags || []); // selected tags
+    const allTags = instituteDetails?.tags || [];
+    const [newTag, setNewTag] = useState<string>('');
+    const [filteredTags, setFilteredTags] = useState<string[]>([]);
 
     const form = useForm<Step1Data>({
         resolver: zodResolver(step1Schema),
@@ -154,14 +158,34 @@ export const AddCourseStep1 = ({
         }
     };
 
-    const addTag = (e: React.MouseEvent | React.KeyboardEvent) => {
-        e.preventDefault();
-        if (newTag.trim() && !tags.includes(newTag.trim())) {
-            const updatedTags = [...tags, newTag.trim()];
+    const handleTagInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const input = e.target.value;
+        setNewTag(input);
+
+        if (input.trim()) {
+            const filtered = allTags
+                ?.filter(
+                    (tag) => tag.toLowerCase().includes(input.toLowerCase()) && !tags.includes(tag) // Exclude already selected tags
+                )
+                .slice(0, 5);
+            setFilteredTags(filtered);
+        } else {
+            setFilteredTags([]);
+        }
+    };
+
+    const addTag = (e?: React.MouseEvent | React.KeyboardEvent, selectedTag?: string) => {
+        if (e) e.preventDefault();
+
+        const tagToAdd = selectedTag || newTag.trim();
+        if (tagToAdd && !tags.includes(tagToAdd)) {
+            const updatedTags = [...tags, tagToAdd];
             setTags(updatedTags);
             form.setValue('tags', updatedTags);
-            setNewTag('');
         }
+
+        setNewTag('');
+        setFilteredTags([]);
     };
 
     const removeTag = (tagToRemove: string) => {
@@ -188,8 +212,6 @@ export const AddCourseStep1 = ({
             fetchAndSetUrls();
         }
     }, [initialData]);
-
-    console.log(form.getValues());
 
     return (
         <Form {...form}>
@@ -261,9 +283,7 @@ export const AddCourseStep1 = ({
 
                                 {/* Tags Section */}
                                 <div className="space-y-2 pt-10">
-                                    <Label className="text-normal font-medium text-gray-900">
-                                        Course Tags
-                                    </Label>
+                                    <Label className="font-medium text-gray-900">Course Tags</Label>
                                     <p className="text-sm text-gray-600">
                                         Add tags to help categorize and find your course easily
                                     </p>
@@ -272,7 +292,7 @@ export const AddCourseStep1 = ({
                                             type="text"
                                             placeholder="Enter a tag"
                                             value={newTag}
-                                            onChange={(e) => setNewTag(e.target.value)}
+                                            onChange={handleTagInputChange}
                                             onKeyDown={(e) => {
                                                 if (e.key === 'Enter') {
                                                     addTag(e);
@@ -280,6 +300,7 @@ export const AddCourseStep1 = ({
                                             }}
                                             className="h-9 border-gray-300"
                                         />
+
                                         <MyButton
                                             type="button"
                                             buttonType="secondary"
@@ -292,9 +313,26 @@ export const AddCourseStep1 = ({
                                         </MyButton>
                                     </div>
 
-                                    {tags.length > 0 && (
+                                    {/* Suggestions dropdown */}
+                                    {filteredTags?.length > 0 && (
+                                        <div className="w-full overflow-y-auto rounded-md border border-neutral-200 bg-white shadow-sm">
+                                            <div className="flex flex-wrap gap-1.5 p-2">
+                                                {filteredTags.map((tag, index) => (
+                                                    <span
+                                                        key={index}
+                                                        className="hover:text-primary-600 cursor-pointer select-none rounded-full bg-neutral-100 px-2 py-1 text-xs text-neutral-700 transition-colors hover:bg-primary-100"
+                                                        onClick={(e) => addTag(e, tag)}
+                                                    >
+                                                        {tag}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {tags?.length > 0 && (
                                         <div className="flex flex-wrap gap-2">
-                                            {tags.map((tag, index) => (
+                                            {tags?.map((tag, index) => (
                                                 <Badge
                                                     key={index}
                                                     variant="secondary"
