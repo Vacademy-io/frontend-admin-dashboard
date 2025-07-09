@@ -107,6 +107,7 @@ export const CourseMaterial = () => {
         authoredCourses: true,
         courseRequests: true,
     });
+    const [deletingCourseId, setDeletingCourseId] = useState<string | null>(null);
 
     const { data: accessControlUsers, isLoading: isUsersLoading } = useSuspenseQuery(
         handleGetInstituteUsersForAccessControl(instituteDetails?.id, {
@@ -323,9 +324,12 @@ export const CourseMaterial = () => {
 
     const handleCourseDelete = (courseId: string) => {
         if (deleteCourseMutation && toast) {
+            setDeletingCourseId(courseId);
             deleteCourseMutation.mutate(courseId, {
                 onSuccess: () => {
                     toast.success('Course deleted successfully');
+                    handlePageChange(page);
+                    setDeletingCourseId(null);
                 },
                 onError: (error: unknown) => {
                     const errMsg =
@@ -333,6 +337,7 @@ export const CourseMaterial = () => {
                             ? (error as { message?: string }).message
                             : undefined;
                     toast.error(errMsg || 'Failed to delete course');
+                    setDeletingCourseId(null);
                 },
             });
         }
@@ -569,6 +574,7 @@ export const CourseMaterial = () => {
                             handleCourseDelete={handleCourseDelete}
                             page={page}
                             handlePageChange={handlePageChange}
+                            deletingCourseId={deletingCourseId}
                         />
                     </TabsContent>
                 ))}
