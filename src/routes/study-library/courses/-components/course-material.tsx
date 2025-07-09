@@ -326,6 +326,8 @@ export const CourseMaterial = () => {
             deleteCourseMutation.mutate(courseId, {
                 onSuccess: () => {
                     toast.success('Course deleted successfully');
+                    // Refetch data to update UI
+                    handlePageChange(page); // This will trigger the fetch for the current page
                 },
                 onError: (error: unknown) => {
                     const errMsg =
