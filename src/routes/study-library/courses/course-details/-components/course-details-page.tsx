@@ -372,6 +372,9 @@ export const CourseDetailsPage = () => {
                                         <video
                                             src={form.watch('courseData').courseMediaPreview}
                                             controls
+                                            controlsList="nodownload noremoteplayback"
+                                            disablePictureInPicture
+                                            disableRemotePlayback
                                             className="size-full rounded-lg object-contain"
                                             onError={(e) => {
                                                 e.currentTarget.style.display = 'none';
