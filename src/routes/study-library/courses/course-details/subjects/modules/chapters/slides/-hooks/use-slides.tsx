@@ -343,7 +343,7 @@ export const useSlidesMutations = (
                     cover_file_id: '',
                     total_pages: 1,
                     published_data: null,
-                    published_document_total_pages: 0,
+                    published_document_total_pages: 1,
                 },
                 status: slideData.status || 'DRAFT',
                 new_slide: slideData.new_slide,
