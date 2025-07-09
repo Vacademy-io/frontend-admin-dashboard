@@ -539,6 +539,9 @@ export const AddCourseStep1 = ({
                                                     <video
                                                         src={form.watch('courseMediaBlob')}
                                                         controls
+                                                        controlsList="nodownload noremoteplayback"
+                                                        disablePictureInPicture
+                                                        disableRemotePlayback
                                                         className="size-full rounded-lg object-contain"
                                                     >
                                                         Your browser does not support the video tag.
