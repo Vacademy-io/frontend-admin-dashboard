@@ -213,8 +213,6 @@ export const useSlidesQuery = (chapterId: string) => {
         queryKey: ['slides', chapterId],
         queryFn: async () => {
             try {
-                console.log(`[useSlidesQuery] 🔥 Starting API call for chapterId: ${chapterId}`);
-
                 const response = await authenticatedAxiosInstance.get(
                     `${GET_SLIDES}?chapterId=${chapterId}`
                 );
