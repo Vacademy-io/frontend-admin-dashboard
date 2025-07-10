@@ -36,6 +36,7 @@ interface CourseListPageProps {
     handleCourseDelete: (courseId: string) => void;
     page: number;
     handlePageChange: (newPage: number) => void;
+    deletingCourseId: string | null;
 }
 
 const CourseListPage = ({
@@ -60,6 +61,7 @@ const CourseListPage = ({
     handleCourseDelete,
     page,
     handlePageChange,
+    deletingCourseId,
 }: CourseListPageProps) => {
     const navigate = useNavigate();
     return (
@@ -367,8 +369,30 @@ const CourseListPage = ({
                                                     onClick={() => handleCourseDelete(course.id)}
                                                     className="flex size-9 items-center justify-center rounded-md border border-red-200 bg-red-50 text-red-500 transition-colors hover:border-red-300 hover:bg-red-100 active:scale-95"
                                                     title="Delete course"
+                                                    disabled={deletingCourseId === course.id}
                                                 >
-                                                    <TrashSimple size={18} />
+                                                    {deletingCourseId === course.id ? (
+                                                        <svg
+                                                            className="animate-spin"
+                                                            width="18"
+                                                            height="18"
+                                                            viewBox="0 0 24 24"
+                                                            fill="none"
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                        >
+                                                            <circle
+                                                                cx="12"
+                                                                cy="12"
+                                                                r="10"
+                                                                stroke="#ef4444"
+                                                                strokeWidth="4"
+                                                                strokeDasharray="60"
+                                                                strokeDashoffset="20"
+                                                            />
+                                                        </svg>
+                                                    ) : (
+                                                        <TrashSimple size={18} />
+                                                    )}
                                                 </button>
                                             </div>
                                         </div>

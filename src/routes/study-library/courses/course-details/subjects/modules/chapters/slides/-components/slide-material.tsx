@@ -285,7 +285,7 @@ export const SlideMaterial = ({
                             cover_file_id: '',
                             total_pages: 1,
                             published_data: activeItem.document_slide?.published_data || null, // Keep published_data unchanged
-                            published_document_total_pages: 0,
+                            published_document_total_pages: 1,
                         },
                         status: newStatus, // Use the determined status
                         new_slide: false,
@@ -424,6 +424,7 @@ export const SlideMaterial = ({
 
                                 // If operation just completed and we have a pending update, apply it
                                 if (wasBusy && !isBusy && pendingStateUpdateRef.current) {
+
                                     const pendingUpdate = pendingStateUpdateRef.current;
                                     setActiveItem(pendingUpdate);
                                     pendingStateUpdateRef.current = null;
@@ -487,7 +488,7 @@ export const SlideMaterial = ({
                                             cover_file_id: '',
                                             total_pages: 1,
                                             published_data: null,
-                                            published_document_total_pages: 0,
+                                            published_document_total_pages: 1,
                                         },
                                         status: activeItem.status,
                                         new_slide: false,
@@ -538,7 +539,7 @@ export const SlideMaterial = ({
                                                             cover_file_id: '',
                                                             total_pages: 1,
                                                             published_data: null,
-                                                            published_document_total_pages: 0,
+                                                            published_document_total_pages: 1,
                                                         },
                                                         status: activeItem.status,
                                                         new_slide: false,
@@ -623,7 +624,7 @@ export const SlideMaterial = ({
                                             cover_file_id: '',
                                             total_pages: 1,
                                             published_data: null,
-                                            published_document_total_pages: 0,
+                                            published_document_total_pages: 1,
                                         },
                                         status: activeItem.status,
                                         new_slide: false,
@@ -675,7 +676,7 @@ export const SlideMaterial = ({
                                                             cover_file_id: '',
                                                             total_pages: 1,
                                                             published_data: null,
-                                                            published_document_total_pages: 0,
+                                                            published_document_total_pages: 1,
                                                         },
                                                         status: activeItem.status,
                                                         new_slide: false,
@@ -755,7 +756,7 @@ export const SlideMaterial = ({
                                             cover_file_id: '',
                                             total_pages: 1,
                                             published_data: null,
-                                            published_document_total_pages: 0,
+                                            published_document_total_pages: 1,
                                         },
                                         status: activeItem.status,
                                         new_slide: false,
@@ -827,7 +828,7 @@ export const SlideMaterial = ({
                                             cover_file_id: '',
                                             total_pages: 1,
                                             published_data: null,
-                                            published_document_total_pages: 0,
+                                            published_document_total_pages: 1,
                                         },
                                         status: activeItem.status,
                                         new_slide: false,
@@ -906,7 +907,9 @@ export const SlideMaterial = ({
 
                     const assignmentData = rawData ? JSON.parse(rawData) : null;
 
+
                     setContent(<StudyLibraryAssignmentPreview activeItem={activeItem} />);
+
                 } catch (error) {
                     console.error('Error rendering assignment preview:', error);
                     setContent(<div>Error loading assignment</div>);
@@ -1137,7 +1140,7 @@ export const SlideMaterial = ({
                             cover_file_id: '',
                             total_pages: 1,
                             published_data: slide?.document_slide?.published_data || null,
-                            published_document_total_pages: 0,
+                            published_document_total_pages: 1,
                         },
                         status: presentationStatus, // Use the correct status logic
                         new_slide: false,
@@ -1194,7 +1197,7 @@ export const SlideMaterial = ({
                             cover_file_id: '',
                             total_pages: 1,
                             published_data: activeItem.status === 'PUBLISHED' ? rawData : null,
-                            published_document_total_pages: 0,
+                            published_document_total_pages: 1,
                         },
                         status: status,
                         new_slide: false,
@@ -1240,7 +1243,7 @@ export const SlideMaterial = ({
                         cover_file_id: '',
                         total_pages: totalPages,
                         published_data: null,
-                        published_document_total_pages: 0,
+                        published_document_total_pages: 1,
                     },
                     status: status,
                     new_slide: false,
@@ -1326,7 +1329,7 @@ export const SlideMaterial = ({
                     cover_file_id: '',
                     total_pages: 1,
                     published_data: publishedFileId, // Set published_data to same file_id
-                    published_document_total_pages: 0,
+                    published_document_total_pages: 1,
                 },
                 status: 'PUBLISHED',
                 new_slide: false,

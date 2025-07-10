@@ -86,12 +86,11 @@ export const AddCourseStep1 = ({
             coursePreview: initialData?.coursePreview,
             courseBanner: initialData?.courseBanner,
             courseMedia: {
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-expect-error
-                type: initialData?.courseMedia ? JSON.parse(initialData?.courseMedia).type : '',
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-expect-error
-                id: initialData?.courseMedia ? JSON.parse(initialData?.courseMedia).id : '',
+                ...(typeof initialData?.courseMedia === 'string'
+                    ? initialData?.courseMedia
+                        ? JSON.parse(initialData?.courseMedia)
+                        : { type: '', id: '' }
+                    : initialData?.courseMedia || { type: '', id: '' }),
             },
             coursePreviewBlob: '',
             courseBannerBlob: '',
@@ -539,6 +538,9 @@ export const AddCourseStep1 = ({
                                                     <video
                                                         src={form.watch('courseMediaBlob')}
                                                         controls
+                                                        controlsList="nodownload noremoteplayback"
+                                                        disablePictureInPicture
+                                                        disableRemotePlayback
                                                         className="size-full rounded-lg object-contain"
                                                     >
                                                         Your browser does not support the video tag.

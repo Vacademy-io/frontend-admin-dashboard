@@ -46,7 +46,7 @@ export const ChapterSidebarAddButton = () => {
     const { getPackageSessionId } = useInstituteDetailsStore();
     const { courseId, levelId, chapterId, moduleId, subjectId, sessionId } =
         route.state.location.search;
-    const { addUpdateDocumentSlide, updateSlideOrder } = useSlidesMutations(
+    const { addUpdateDocumentSlide, updateSlideOrder, updateAssignmentOrder } = useSlidesMutations(
         chapterId || '',
         moduleId || '',
         subjectId || '',
@@ -228,7 +228,7 @@ export const ChapterSidebarAddButton = () => {
                             cover_file_id: '',
                             total_pages: 1,
                             published_data: null,
-                            published_document_total_pages: 0,
+                            published_document_total_pages: 1,
                         },
                         status: 'DRAFT',
                         new_slide: true,
@@ -257,7 +257,11 @@ export const ChapterSidebarAddButton = () => {
             case 'assignment': {
                 try {
                     const payload = createAssignmentSlidePayload(items || []);
+
                     const response = await addUpdateDocumentSlide(payload);
+
+                    //const response = await updateAssignmentOrder(payload);
+
 
                     if (response) {
                         await reorderSlidesAfterNewSlide(payload.id || '');
@@ -342,7 +346,7 @@ export const ChapterSidebarAddButton = () => {
                             cover_file_id: '',
                             total_pages: 1,
                             published_data: null,
-                            published_document_total_pages: 0,
+                            published_document_total_pages: 1,
                         },
                         status: 'DRAFT',
                         new_slide: true,
@@ -386,7 +390,7 @@ export const ChapterSidebarAddButton = () => {
                             cover_file_id: '',
                             total_pages: 1,
                             published_data: null,
-                            published_document_total_pages: 0,
+                            published_document_total_pages: 1,
                         },
                         status: 'DRAFT',
                         new_slide: true,
@@ -431,7 +435,7 @@ export const ChapterSidebarAddButton = () => {
                             cover_file_id: '',
                             total_pages: 1,
                             published_data: null,
-                            published_document_total_pages: 0,
+                            published_document_total_pages: 1,
                         },
                         status: 'DRAFT',
                         new_slide: true,

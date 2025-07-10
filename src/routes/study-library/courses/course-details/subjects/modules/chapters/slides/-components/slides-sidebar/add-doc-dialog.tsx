@@ -144,7 +144,7 @@ export const AddDocDialog = ({
                     cover_file_id: '',
                     total_pages: totalPages,
                     published_data: null,
-                    published_document_total_pages: 0,
+                    published_document_total_pages: 1,
                 },
                 status: 'DRAFT',
                 new_slide: true,
