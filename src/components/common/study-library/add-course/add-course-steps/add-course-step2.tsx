@@ -277,6 +277,12 @@ export const AddCourseStep2 = ({
             const alreadySelected = safePrev.some((i) => i.email === newInstructor.email);
             if (alreadySelected) return safePrev;
 
+            // Automatically open assignment card for this instructor
+            setSelectedInstructorId(newInstructor.id);
+            setSelectedInstructorEmail(newInstructor.email);
+            setShowAssignmentCard(true);
+            setSelectedSessionLevels([]); // Optionally clear previous selection
+
             return [...safePrev, newInstructor];
         });
     };
