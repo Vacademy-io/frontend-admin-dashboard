@@ -963,13 +963,12 @@ export const AddCourseStep2 = ({
                                                                     htmlFor="add-session-existing"
                                                                     className="text-sm font-normal"
                                                                 >
-                                                                    Existing{' '}
                                                                     {hasSessions === 'yes' &&
                                                                     hasLevels === 'yes'
-                                                                        ? 'Batch'
+                                                                        ? 'Existing Sessions'
                                                                         : hasSessions === 'yes'
-                                                                          ? 'Session'
-                                                                          : 'Level'}
+                                                                          ? 'Existing Sessions'
+                                                                          : 'Existing Levels'}
                                                                 </Label>
                                                             </div>
                                                         </RadioGroup>
@@ -1682,7 +1681,7 @@ export const AddCourseStep2 = ({
                                                                     htmlFor="add-level-existing"
                                                                     className="text-sm font-normal"
                                                                 >
-                                                                    Existing Level
+                                                                    Existing Levels
                                                                 </Label>
                                                             </div>
                                                         </RadioGroup>
