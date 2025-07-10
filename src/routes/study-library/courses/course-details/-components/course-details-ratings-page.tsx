@@ -2,7 +2,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ThumbsUp, ThumbsDown, Trash, Star } from 'phosphor-react';
 import { StarRatingComponent } from '@/components/common/star-rating-component';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { MyButton } from '@/components/design-system/button';
 import { MyPagination } from '@/components/design-system/pagination';
@@ -18,6 +18,7 @@ import {
 import { useRouter } from '@tanstack/react-router';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { ProgressBar } from '@/components/ui/custom-progress-bar';
+import { getPublicUrl } from '@/services/upload_file';
 
 // Types for API Response
 interface User {
@@ -101,10 +102,12 @@ export function CourseDetailsRatingsComponent({
     const [selectedRating, setSelectedRating] = useState<number | null>(null);
     const [submitting, setSubmitting] = useState(false);
     const [page, setPage] = useState(0);
+    const [resolvedReviews, setResolvedReviews] = useState<Review[]>([]);
+    const [loadingAvatars, setLoadingAvatars] = useState(false);
 
     const { getPackageSessionId } = useInstituteDetailsStore();
 
-    const { data: ratingData, isLoading } = useSuspenseQuery<PaginatedResponse>(
+    const { data: ratingData } = useSuspenseQuery<PaginatedResponse>(
         handleGetRatingDetails({
             pageNo: page,
             pageSize: 10,
@@ -134,6 +137,47 @@ export function CourseDetailsRatingsComponent({
     // Transform API data to reviews format
     const reviews = ratingData?.content.map(transformRatingToReview) || [];
     const totalPages = ratingData?.totalPages || 0;
+
+    useEffect(() => {
+        let isMounted = true;
+        async function preloadAvatars() {
+            setLoadingAvatars(true);
+            // Get all unique avatar IDs (filter out empty strings)
+            const uniqueAvatarIds = [
+                ...new Set(reviews.map((r) => r.user.avatarUrl).filter((id) => !!id)),
+            ];
+            // Fetch all public URLs in parallel
+            const idToUrl: Record<string, string> = {};
+            await Promise.all(
+                uniqueAvatarIds.map(async (id) => {
+                    try {
+                        idToUrl[id] = await getPublicUrl(id);
+                    } catch {
+                        idToUrl[id] = '';
+                    }
+                })
+            );
+            // Map reviews to use the resolved URL
+            if (isMounted) {
+                setResolvedReviews(
+                    reviews.map((review) => ({
+                        ...review,
+                        user: {
+                            ...review.user,
+                            avatarUrl: review.user.avatarUrl
+                                ? idToUrl[review.user.avatarUrl] || ''
+                                : '',
+                        },
+                    }))
+                );
+                setLoadingAvatars(false);
+            }
+        }
+        preloadAvatars();
+        return () => {
+            isMounted = false;
+        };
+    }, [JSON.stringify(reviews)]);
 
     const handleStarClick = (rating: number) => {
         setSelectedRating(rating);
@@ -182,11 +226,11 @@ export function CourseDetailsRatingsComponent({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!selectedRating || !feedbackText.trim() || !courseId) return;
+        if (!courseId) return;
 
         setSubmitting(true);
         handleSubmitRatingMutation.mutate({
-            rating: selectedRating,
+            rating: selectedRating || 0,
             desc: feedbackText.trim(),
             source_id:
                 getPackageSessionId({
@@ -239,7 +283,7 @@ export function CourseDetailsRatingsComponent({
     };
 
     return (
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-5 bg-white p-8">
             <h1 className="text-2xl font-bold text-neutral-600">Ratings & Reviews</h1>
             {/* Feedback Form */}
             <form
@@ -283,109 +327,109 @@ export function CourseDetailsRatingsComponent({
                 </div>
                 <MyButton
                     type="submit"
-                    disable={submitting || !selectedRating || !feedbackText.trim()}
+                    disable={submitting || (!selectedRating && !feedbackText.trim())}
                     className="w-fit"
                 >
                     {submitting ? 'Submitting...' : 'Submit Feedback'}
                 </MyButton>
             </form>
-            {reviews.length > 0 && (
-                <div className="flex w-full gap-12">
-                    <div className="flex flex-col gap-2 text-center">
-                        <h1 className="text-3xl">
-                            {overallRatingData?.average_rating !== null &&
-                            overallRatingData?.average_rating !== undefined
-                                ? Number(overallRatingData.average_rating).toFixed(1)
-                                : 'N/A'}
-                        </h1>
-                        <StarRatingComponent
-                            score={
-                                overallRatingData?.average_rating !== null &&
+            {overallRatingData?.average_rating !== null &&
+                overallRatingData?.average_rating !== undefined && (
+                    <div className="flex w-full gap-12">
+                        <div className="flex flex-col gap-2 text-center">
+                            <h1 className="text-3xl">
+                                {overallRatingData?.average_rating !== null &&
                                 overallRatingData?.average_rating !== undefined
-                                    ? Number(overallRatingData.average_rating) * 20
-                                    : 0
-                            }
-                            starColor={true}
-                        />
-                        <span>
-                            {overallRatingData?.total_reviews !== null &&
-                            overallRatingData?.total_reviews !== undefined
-                                ? overallRatingData.total_reviews
-                                : 0}{' '}
-                            reviews
-                        </span>
+                                    ? Number(overallRatingData.average_rating).toFixed(1)
+                                    : 'N/A'}
+                            </h1>
+                            <StarRatingComponent
+                                score={
+                                    overallRatingData?.average_rating !== null &&
+                                    overallRatingData?.average_rating !== undefined
+                                        ? Number(overallRatingData.average_rating) * 20
+                                        : 0
+                                }
+                                starColor={true}
+                            />
+                            <span>
+                                {overallRatingData?.total_reviews !== null &&
+                                overallRatingData?.total_reviews !== undefined
+                                    ? overallRatingData.total_reviews
+                                    : 0}{' '}
+                                reviews
+                            </span>
+                        </div>
+                        <div className="flex w-full flex-col gap-4">
+                            <div className="flex w-1/2 items-center gap-2">
+                                <span>5</span>
+                                <ProgressBar value={overallRatingData?.percent_five_star ?? 0} />
+                                <span>
+                                    {overallRatingData?.percent_five_star !== null &&
+                                    overallRatingData?.percent_five_star !== undefined
+                                        ? `${overallRatingData.percent_five_star}%`
+                                        : '0%'}
+                                </span>
+                            </div>
+                            <div className="flex w-1/2 items-center gap-2">
+                                <span>4</span>
+                                <ProgressBar value={overallRatingData?.percent_four_star ?? 0} />
+                                <span>
+                                    {overallRatingData?.percent_four_star !== null &&
+                                    overallRatingData?.percent_four_star !== undefined
+                                        ? `${overallRatingData.percent_four_star}%`
+                                        : '0%'}
+                                </span>
+                            </div>
+                            <div className="flex w-1/2 items-center gap-2">
+                                <span>3</span>
+                                <ProgressBar value={overallRatingData?.percent_three_star ?? 0} />
+                                <span>
+                                    {overallRatingData?.percent_three_star !== null &&
+                                    overallRatingData?.percent_three_star !== undefined
+                                        ? `${overallRatingData.percent_three_star}%`
+                                        : '0%'}
+                                </span>
+                            </div>
+                            <div className="flex w-1/2 items-center gap-2">
+                                <span>2</span>
+                                <ProgressBar value={overallRatingData?.percent_two_star ?? 0} />
+                                <span>
+                                    {overallRatingData?.percent_two_star !== null &&
+                                    overallRatingData?.percent_two_star !== undefined
+                                        ? `${overallRatingData.percent_two_star}%`
+                                        : '0%'}
+                                </span>
+                            </div>
+                            <div className="flex w-1/2 items-center gap-2">
+                                <span>1</span>
+                                <ProgressBar value={overallRatingData?.percent_one_star ?? 0} />
+                                <span>
+                                    {overallRatingData?.percent_one_star !== null &&
+                                    overallRatingData?.percent_one_star !== undefined
+                                        ? `${overallRatingData.percent_one_star}%`
+                                        : '0%'}
+                                </span>
+                            </div>
+                        </div>
                     </div>
-                    <div className="flex w-full flex-col gap-4">
-                        <div className="flex w-1/2 items-center gap-2">
-                            <span>5</span>
-                            <ProgressBar value={overallRatingData?.percent_five_star ?? 0} />
-                            <span>
-                                {overallRatingData?.percent_five_star !== null &&
-                                overallRatingData?.percent_five_star !== undefined
-                                    ? `${overallRatingData.percent_five_star}%`
-                                    : '0%'}
-                            </span>
-                        </div>
-                        <div className="flex w-1/2 items-center gap-2">
-                            <span>4</span>
-                            <ProgressBar value={overallRatingData?.percent_four_star ?? 0} />
-                            <span>
-                                {overallRatingData?.percent_four_star !== null &&
-                                overallRatingData?.percent_four_star !== undefined
-                                    ? `${overallRatingData.percent_four_star}%`
-                                    : '0%'}
-                            </span>
-                        </div>
-                        <div className="flex w-1/2 items-center gap-2">
-                            <span>3</span>
-                            <ProgressBar value={overallRatingData?.percent_three_star ?? 0} />
-                            <span>
-                                {overallRatingData?.percent_three_star !== null &&
-                                overallRatingData?.percent_three_star !== undefined
-                                    ? `${overallRatingData.percent_three_star}%`
-                                    : '0%'}
-                            </span>
-                        </div>
-                        <div className="flex w-1/2 items-center gap-2">
-                            <span>2</span>
-                            <ProgressBar value={overallRatingData?.percent_two_star ?? 0} />
-                            <span>
-                                {overallRatingData?.percent_two_star !== null &&
-                                overallRatingData?.percent_two_star !== undefined
-                                    ? `${overallRatingData.percent_two_star}%`
-                                    : '0%'}
-                            </span>
-                        </div>
-                        <div className="flex w-1/2 items-center gap-2">
-                            <span>1</span>
-                            <ProgressBar value={overallRatingData?.percent_one_star ?? 0} />
-                            <span>
-                                {overallRatingData?.percent_one_star !== null &&
-                                overallRatingData?.percent_one_star !== undefined
-                                    ? `${overallRatingData.percent_one_star}%`
-                                    : '0%'}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            )}
+                )}
             {/* User Reviews List */}
             <div className={`${reviews.length === 0 ? 'mt-0' : 'mt-8'} flex flex-col gap-4`}>
-                {isLoading ? (
-                    // Add loading skeleton here if needed
-                    <div>Loading reviews...</div>
-                ) : reviews.length === 0 ? (
+                {loadingAvatars ? (
+                    <div>Loading avatars...</div>
+                ) : resolvedReviews.length === 0 ? (
                     <div className="text-center text-neutral-500">No reviews yet</div>
                 ) : (
-                    reviews.map((review) => (
+                    resolvedReviews.map((review) => (
                         <div
                             key={review.id}
-                            className="flex flex-col rounded-lg border bg-white p-5 md:items-start md:gap-4"
+                            className="flex flex-col  bg-white p-5 md:items-start md:gap-4"
                         >
                             {/* Avatar */}
                             <div className="flex shrink-0 items-center justify-center gap-2">
                                 <Avatar>
-                                    {review.user.avatarUrl ? (
+                                    {review.user.avatarUrl !== '' ? (
                                         <AvatarImage
                                             src={review.user.avatarUrl}
                                             alt={review.user.name}
