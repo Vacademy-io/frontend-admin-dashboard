@@ -305,7 +305,7 @@ export default function ProgressReports() {
                 </div>
 
                 <div>
-                    <div>Learner Name</div>
+                    <div>Name</div>
                     <Select
                         onValueChange={(value) => {
                             setValue('student', value);

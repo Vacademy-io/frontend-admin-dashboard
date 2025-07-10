@@ -34,6 +34,8 @@ import { handleGetSlideCountDetails } from '../-services/get-slides-count';
 import { CourseDetailsRatingsComponent } from './course-details-ratings-page';
 import { transformApiDataToCourseData } from '../-utils/helper';
 import { CourseStructureDetails } from './course-structure-details';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 
 type SlideType = {
     id: string;
@@ -380,7 +382,12 @@ export const CourseDetailsPage = () => {
                                 {sessionOptions.length === 1 ? (
                                     sessionOptions[0]?.label !== 'default' && (
                                         <div className="flex flex-col gap-2">
-                                            <label className="text-sm font-medium">Session</label>
+                                            <label className="text-sm font-medium">
+                                                {getTerminology(
+                                                    ContentTerms.Session,
+                                                    SystemTerms.Session
+                                                )}
+                                            </label>
                                             <Select
                                                 value={selectedSession}
                                                 onValueChange={handleSessionChange}
@@ -403,13 +410,23 @@ export const CourseDetailsPage = () => {
                                     )
                                 ) : (
                                     <div className="flex flex-col gap-2">
-                                        <label className="text-sm font-medium">Session</label>
+                                        <label className="text-sm font-medium">
+                                            {getTerminology(
+                                                ContentTerms.Session,
+                                                SystemTerms.Session
+                                            )}
+                                        </label>
                                         <Select
                                             value={selectedSession}
                                             onValueChange={handleSessionChange}
                                         >
                                             <SelectTrigger className="w-48">
-                                                <SelectValue placeholder="Select Session" />
+                                                <SelectValue
+                                                    placeholder={`Select ${getTerminology(
+                                                        ContentTerms.Session,
+                                                        SystemTerms.Session
+                                                    )}`}
+                                                />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {sessionOptions.map((option) => (
@@ -428,14 +445,24 @@ export const CourseDetailsPage = () => {
                                 {levelOptions.length === 1 ? (
                                     levelOptions[0]?.label !== 'default' && (
                                         <div className="flex flex-col gap-2">
-                                            <label className="text-sm font-medium">Level</label>
+                                            <label className="text-sm font-medium">
+                                                {getTerminology(
+                                                    ContentTerms.Level,
+                                                    SystemTerms.Level
+                                                )}
+                                            </label>
                                             <Select
                                                 value={selectedLevel}
                                                 onValueChange={handleLevelChange}
                                                 disabled={!selectedSession}
                                             >
                                                 <SelectTrigger className="w-48">
-                                                    <SelectValue placeholder="Select Level" />
+                                                    <SelectValue
+                                                        placeholder={`Select ${getTerminology(
+                                                            ContentTerms.Level,
+                                                            SystemTerms.Level
+                                                        )}`}
+                                                    />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {levelOptions.map((option) => (
@@ -452,14 +479,21 @@ export const CourseDetailsPage = () => {
                                     )
                                 ) : (
                                     <div className="flex flex-col gap-2">
-                                        <label className="text-sm font-medium">Level</label>
+                                        <label className="text-sm font-medium">
+                                            {getTerminology(ContentTerms.Level, SystemTerms.Level)}
+                                        </label>
                                         <Select
                                             value={selectedLevel}
                                             onValueChange={handleLevelChange}
                                             disabled={!selectedSession}
                                         >
                                             <SelectTrigger className="w-48">
-                                                <SelectValue placeholder="Select Level" />
+                                                <SelectValue
+                                                    placeholder={`Select ${getTerminology(
+                                                        ContentTerms.Level,
+                                                        SystemTerms.Level
+                                                    )}`}
+                                                />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {levelOptions.map((option) => (
@@ -501,7 +535,13 @@ export const CourseDetailsPage = () => {
                         {/* About Content Section */}
                         {form.getValues('courseData').aboutTheCourse && (
                             <div className="mb-8">
-                                <h2 className="mb-4 text-2xl font-bold">About this course</h2>
+                                <h2 className="mb-4 text-2xl font-bold">
+                                    About this{' '}
+                                    {getTerminology(
+                                        ContentTerms.Course,
+                                        SystemTerms.Course
+                                    ).toLocaleLowerCase()}
+                                </h2>
                                 <div className="rounded-lg">
                                     <p
                                         dangerouslySetInnerHTML={{
@@ -595,33 +635,64 @@ export const CourseDetailsPage = () => {
                                                     <>
                                                         <PlayCircle size={18} />
                                                         <span>
-                                                            {count.slide_count} Video slides
+                                                            {count.slide_count} Video{' '}
+                                                            {getTerminology(
+                                                                ContentTerms.Slides,
+                                                                SystemTerms.Slides
+                                                            ).toLocaleLowerCase()}
+                                                            s
                                                         </span>
                                                     </>
                                                 )}
                                                 {count.source_type === 'CODE' && (
                                                     <>
                                                         <Code size={18} />
-                                                        <span>{count.slide_count} Code slides</span>
+                                                        <span>
+                                                            {count.slide_count} Code{' '}
+                                                            {getTerminology(
+                                                                ContentTerms.Slides,
+                                                                SystemTerms.Slides
+                                                            ).toLocaleLowerCase()}
+                                                            s
+                                                        </span>
                                                     </>
                                                 )}
                                                 {count.source_type === 'PDF' && (
                                                     <>
                                                         <FilePdf size={18} />
-                                                        <span>{count.slide_count} PDF slides</span>
+                                                        <span>
+                                                            {count.slide_count} PDF{' '}
+                                                            {getTerminology(
+                                                                ContentTerms.Slides,
+                                                                SystemTerms.Slides
+                                                            ).toLocaleLowerCase()}
+                                                            s
+                                                        </span>
                                                     </>
                                                 )}
                                                 {count.source_type === 'DOCUMENT' && (
                                                     <>
                                                         <FileDoc size={18} />
-                                                        <span>{count.slide_count} Doc slides</span>
+                                                        <span>
+                                                            {count.slide_count} Doc{' '}
+                                                            {getTerminology(
+                                                                ContentTerms.Slides,
+                                                                SystemTerms.Slides
+                                                            ).toLocaleLowerCase()}
+                                                            s
+                                                        </span>
                                                     </>
                                                 )}
                                                 {count.source_type === 'QUESTION' && (
                                                     <>
                                                         <Question size={18} />
                                                         <span>
-                                                            {count.slide_count} Question slides
+                                                            {count.slide_count} Question{' '}
+                                                            {getTerminology(
+                                                                ContentTerms.Slides,
+                                                                SystemTerms.Slides
+                                                            ).toLocaleLowerCase()}
+                                                            s
                                                         </span>
                                                     </>
                                                 )}
@@ -629,7 +700,12 @@ export const CourseDetailsPage = () => {
                                                     <>
                                                         <File size={18} />
                                                         <span>
-                                                            {count.slide_count} Assignment slides
+                                                            {count.slide_count} Assignment{' '}
+                                                            {getTerminology(
+                                                                ContentTerms.Slides,
+                                                                SystemTerms.Slides
+                                                            ).toLocaleLowerCase()}
+                                                            s
                                                         </span>
                                                     </>
                                                 )}

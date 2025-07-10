@@ -15,6 +15,8 @@ import { useAddChapter } from '@/routes/study-library/courses/course-details/sub
 import { SubjectType } from '@/routes/study-library/courses/course-details/-components/course-details-page';
 import { fetchInstituteDetails } from '@/services/student-list-section/getInstituteDetails';
 import { BatchForSessionType } from '@/schemas/student/student-list/institute-schema';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { getTerminology } from '../../layout-container/sidebar/utils';
 
 export interface Level {
     id: string;
@@ -181,13 +183,14 @@ export const AddCourseForm = () => {
                     id="add-course-button"
                     className="w-[140px] font-light"
                 >
-                    Create Course Manually
+                    Create {getTerminology(ContentTerms.Course, SystemTerms.Course)} Manually
                 </MyButton>
             </DialogTrigger>
             <DialogContent className="z-[10000] flex !h-[90%] !max-h-[90%] w-[90%] flex-col overflow-hidden p-0">
                 <div className="flex h-full flex-col">
                     <h1 className="bg-primary-50 p-4 font-semibold text-primary-500">
-                        Create Course - Step {step} of 2
+                        Create {getTerminology(ContentTerms.Course, SystemTerms.Course)} - Step{' '}
+                        {step} of 2
                     </h1>
                     {step === 1 ? (
                         <AddCourseStep1

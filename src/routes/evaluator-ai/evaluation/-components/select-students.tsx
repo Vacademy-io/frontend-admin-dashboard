@@ -202,7 +202,7 @@ export function StudentSelectionDialog({
                                                 />
                                             </TableHead>
                                             <TableHead className="sticky left-12 z-10 bg-primary-50">
-                                                Learner Name
+                                                Name
                                             </TableHead>
                                             <TableHead>Enrollment ID</TableHead>
                                             <TableHead>Attempt Count</TableHead>

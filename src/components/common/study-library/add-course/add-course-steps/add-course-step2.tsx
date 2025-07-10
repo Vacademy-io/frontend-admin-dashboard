@@ -20,6 +20,8 @@ import { getInstituteId } from '@/constants/helper';
 import InviteInstructorForm from './InviteInstructorForm';
 import { UserRolesDataEntry } from '@/types/dashboard/user-roles';
 import { CODE_CIRCLE_INSTITUTE_ID } from '@/constants/urls';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 
 interface Level {
     id: string;
@@ -551,7 +553,11 @@ export const AddCourseStep2 = ({
                                     <div className="mt-1 flex items-center gap-2">
                                         <span className="text-sm text-gray-600">Step 2</span>
                                         <span className="text-sm font-medium text-gray-900">
-                                            Course Structure
+                                            {getTerminology(
+                                                ContentTerms.Course,
+                                                SystemTerms.Course
+                                            )}{' '}
+                                            Structure
                                         </span>
                                     </div>
                                 </div>
@@ -561,16 +567,30 @@ export const AddCourseStep2 = ({
                                 {/* Warning Note */}
                                 <div className="rounded-lg border border-red-200 bg-red-50 p-3">
                                     <p className="text-sm text-red-700">
-                                        <strong>Note:</strong> Once you create the course, its
-                                        structure—including sessions and levels—cannot be changed.
-                                        Please review carefully before proceeding.
+                                        <strong>Note:</strong> Once you{' '}
+                                        {getTerminology(ContentTerms.Course, SystemTerms.Course)}{' '}
+                                        the{' '}
+                                        {getTerminology(
+                                            ContentTerms.Course,
+                                            SystemTerms.Course
+                                        ).toLocaleLowerCase()}
+                                        , its structure—including{' '}
+                                        {getTerminology(ContentTerms.Session, SystemTerms.Session)}{' '}
+                                        and {getTerminology(ContentTerms.Level, SystemTerms.Level)}
+                                        —cannot be changed. Please review carefully before
+                                        proceeding.
                                     </p>
                                 </div>
 
                                 {/* Structure Selection */}
                                 <div>
                                     <h3 className="mb-3 text-base font-medium text-gray-900">
-                                        Select course structure that is suitable for your institute
+                                        Select{' '}
+                                        {getTerminology(
+                                            ContentTerms.Course,
+                                            SystemTerms.Course
+                                        ).toLocaleLowerCase()}{' '}
+                                        structure that is suitable for your institute
                                     </h3>
                                     <AddCourseStep2StructureTypes form={form} />
                                 </div>
@@ -580,12 +600,25 @@ export const AddCourseStep2 = ({
                                         <Separator className="bg-gray-200" />
                                         <div className="space-y-2">
                                             <Label className="block text-base font-medium text-gray-900">
-                                                Contains Sessions?
+                                                Contains{' '}
+                                                {getTerminology(
+                                                    ContentTerms.Session,
+                                                    SystemTerms.Session
+                                                )}
+                                                s?
                                             </Label>
                                             <p className="text-sm text-gray-600">
-                                                Sessions organize a course into different batches or
-                                                time periods. For eg: January 2025 Batch, February
-                                                2025 Batch
+                                                {getTerminology(
+                                                    ContentTerms.Session,
+                                                    SystemTerms.Session
+                                                )}{' '}
+                                                organize a{' '}
+                                                {getTerminology(
+                                                    ContentTerms.Course,
+                                                    SystemTerms.Course
+                                                ).toLocaleLowerCase()}{' '}
+                                                into different batches or time periods. For eg:
+                                                January 2025 Batch, February 2025 Batch
                                             </p>
                                             <RadioGroup
                                                 value={hasSessions}
@@ -626,13 +659,24 @@ export const AddCourseStep2 = ({
                                 {/* Contains Levels Radio */}
                                 <div className="space-y-2">
                                     <Label className="block text-base font-medium text-gray-900">
-                                        Contains Levels?
+                                        Contains{' '}
+                                        {getTerminology(ContentTerms.Level, SystemTerms.Level)}s?
                                     </Label>
                                     <p className="text-sm text-gray-600">
-                                        Levels organize a course into structured learning stages.
-                                        These stages may represent increasing difficulty, different
-                                        modules, or key milestones within the course. For eg: Basic,
-                                        Advanced
+                                        {getTerminology(ContentTerms.Level, SystemTerms.Level)}{' '}
+                                        organize a{' '}
+                                        {getTerminology(
+                                            ContentTerms.Course,
+                                            SystemTerms.Course
+                                        ).toLocaleLowerCase()}{' '}
+                                        into structured learning stages. These stages may represent
+                                        increasing difficulty, different modules, or key milestones
+                                        within the{' '}
+                                        {getTerminology(
+                                            ContentTerms.Course,
+                                            SystemTerms.Course
+                                        ).toLocaleLowerCase()}{' '}
+                                        . For eg: Basic, Advanced
                                     </p>
                                     <RadioGroup
                                         value={hasLevels}
@@ -675,8 +719,24 @@ export const AddCourseStep2 = ({
                                 {hasSessions === 'no' && hasLevels === 'no' && (
                                     <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
                                         <p className="text-sm text-blue-700">
-                                            This course will not have any sessions or levels.
-                                            Students will directly access the course content.
+                                            This{' '}
+                                            {getTerminology(
+                                                ContentTerms.Course,
+                                                SystemTerms.Course
+                                            ).toLocaleLowerCase()}{' '}
+                                            will not have any{' '}
+                                            {getTerminology(
+                                                ContentTerms.Session,
+                                                SystemTerms.Session
+                                            )}{' '}
+                                            or{' '}
+                                            {getTerminology(ContentTerms.Level, SystemTerms.Level)}.
+                                            Students will directly access the{' '}
+                                            {getTerminology(
+                                                ContentTerms.Course,
+                                                SystemTerms.Course
+                                            ).toLocaleLowerCase()}{' '}
+                                            content.
                                         </p>
                                     </div>
                                 )}
@@ -687,12 +747,29 @@ export const AddCourseStep2 = ({
                                         <div className="flex items-center justify-between">
                                             <div>
                                                 <Label className="text-base font-medium text-gray-900">
-                                                    Course Sessions
+                                                    {getTerminology(
+                                                        ContentTerms.Session,
+                                                        SystemTerms.Session
+                                                    )}
+                                                    s
                                                 </Label>
                                                 <p className="text-sm text-gray-600">
                                                     {hasLevels === 'yes'
-                                                        ? 'Create sessions and add levels within each session'
-                                                        : 'Create sessions for your course'}
+                                                        ? `Create ${getTerminology(
+                                                              ContentTerms.Session,
+                                                              SystemTerms.Session
+                                                          )} and add ${getTerminology(
+                                                              ContentTerms.Level,
+                                                              SystemTerms.Level
+                                                          )} within each ${getTerminology(
+                                                              ContentTerms.Session,
+                                                              SystemTerms.Session
+                                                          )}`
+                                                        : 'Create sessions for your ' +
+                                                          getTerminology(
+                                                              ContentTerms.Course,
+                                                              SystemTerms.Course
+                                                          ).toLocaleLowerCase()}
                                                 </p>
                                             </div>
                                             <MyButton
@@ -704,7 +781,11 @@ export const AddCourseStep2 = ({
                                                 className="font-light"
                                             >
                                                 <Plus />
-                                                Add Session
+                                                Add{' '}
+                                                {getTerminology(
+                                                    ContentTerms.Session,
+                                                    SystemTerms.Session
+                                                )}
                                             </MyButton>
                                         </div>
 
@@ -714,7 +795,11 @@ export const AddCourseStep2 = ({
                                                     <div className="grid grid-cols-2 gap-2">
                                                         <div>
                                                             <Label className="mb-1 block text-sm font-medium text-gray-700">
-                                                                Session Name
+                                                                {getTerminology(
+                                                                    ContentTerms.Session,
+                                                                    SystemTerms.Session
+                                                                )}{' '}
+                                                                Name
                                                             </Label>
                                                             <Input
                                                                 placeholder="e.g., January 2025 Batch"
@@ -755,7 +840,11 @@ export const AddCourseStep2 = ({
                                                                 !newSessionStartDate
                                                             }
                                                         >
-                                                            Add Session
+                                                            Add{' '}
+                                                            {getTerminology(
+                                                                ContentTerms.Session,
+                                                                SystemTerms.Session
+                                                            )}
                                                         </MyButton>
                                                         <MyButton
                                                             type="button"
@@ -795,10 +884,23 @@ export const AddCourseStep2 = ({
                                         <div className="flex items-center justify-between">
                                             <div>
                                                 <Label className="text-base font-medium text-gray-900">
-                                                    Course Levels
+                                                    {getTerminology(
+                                                        ContentTerms.Level,
+                                                        SystemTerms.Level
+                                                    )}
+                                                    s
                                                 </Label>
                                                 <p className="text-sm text-gray-600">
-                                                    Create levels for your course
+                                                    Create{' '}
+                                                    {getTerminology(
+                                                        ContentTerms.Level,
+                                                        SystemTerms.Level
+                                                    )}{' '}
+                                                    for your{' '}
+                                                    {getTerminology(
+                                                        ContentTerms.Course,
+                                                        SystemTerms.Course
+                                                    ).toLocaleLowerCase()}
                                                 </p>
                                             </div>
                                             <MyButton
@@ -810,7 +912,11 @@ export const AddCourseStep2 = ({
                                                 className="font-light"
                                             >
                                                 <Plus />
-                                                Add Level
+                                                Add{' '}
+                                                {getTerminology(
+                                                    ContentTerms.Level,
+                                                    SystemTerms.Level
+                                                )}
                                             </MyButton>
                                         </div>
 
@@ -819,7 +925,11 @@ export const AddCourseStep2 = ({
                                                 <CardContent className="p-3">
                                                     <div>
                                                         <Label className="mb-1 block text-sm font-medium text-gray-700">
-                                                            Level Name
+                                                            {getTerminology(
+                                                                ContentTerms.Level,
+                                                                SystemTerms.Level
+                                                            )}{' '}
+                                                            Name
                                                         </Label>
                                                         <Input
                                                             placeholder="Enter level name (e.g., Basic)"
@@ -839,7 +949,11 @@ export const AddCourseStep2 = ({
                                                             onClick={addStandaloneLevel}
                                                             disable={!newLevelName.trim()}
                                                         >
-                                                            Add Level
+                                                            Add{' '}
+                                                            {getTerminology(
+                                                                ContentTerms.Level,
+                                                                SystemTerms.Level
+                                                            )}
                                                         </MyButton>
                                                         <MyButton
                                                             type="button"
@@ -892,7 +1006,11 @@ export const AddCourseStep2 = ({
                                 <div className="space-y-3">
                                     <div className="flex items-center justify-between">
                                         <Label className="text-base font-medium text-gray-900">
-                                            Add Instructors to Course
+                                            Add Instructors to{' '}
+                                            {getTerminology(
+                                                ContentTerms.Course,
+                                                SystemTerms.Course
+                                            )}
                                         </Label>
                                         <MyButton
                                             type="button"
@@ -1311,12 +1429,26 @@ export const AddCourseStep2 = ({
                                             htmlFor="publish-catalogue"
                                             className="text-base font-medium text-gray-900"
                                         >
-                                            Publish to Course Catalogue
+                                            Publish to{' '}
+                                            {getTerminology(
+                                                ContentTerms.Course,
+                                                SystemTerms.Course
+                                            )}{' '}
+                                            Catalogue
                                         </Label>
                                     </div>
                                     <p className="ml-7 text-sm text-gray-600">
-                                        The course will be added to the course catalogue which will
-                                        be viewed by the learners.
+                                        The{' '}
+                                        {getTerminology(
+                                            ContentTerms.Course,
+                                            SystemTerms.Course
+                                        ).toLocaleLowerCase()}{' '}
+                                        will be added to the{' '}
+                                        {getTerminology(
+                                            ContentTerms.Course,
+                                            SystemTerms.Course
+                                        ).toLocaleLowerCase()}{' '}
+                                        catalogue which will be viewed by the learners.
                                     </p>
                                 </div>
 

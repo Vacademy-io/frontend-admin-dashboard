@@ -33,6 +33,8 @@ import { useNavigate } from '@tanstack/react-router';
 import { useDeleteCourse } from '@/services/study-library/course-operations/delete-course';
 import { toast } from 'sonner';
 import { TrashSimple } from 'phosphor-react';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 export interface AllCourseFilters {
     status: string[];
@@ -372,7 +374,7 @@ export const CourseMaterial = () => {
     };
 
     useEffect(() => {
-        setNavHeading('Explore Courses');
+        setNavHeading(`Explore ${getTerminology(ContentTerms.Course, SystemTerms.Course) + 's'}`);
     }, []);
 
     // Update sort_columns in selectedFilters when sortBy changes and call handleGetCourses after update
@@ -454,7 +456,9 @@ export const CourseMaterial = () => {
             </div>
             <div className="flex items-center gap-8">
                 <div className="flex flex-col gap-2">
-                    <div className="text-h3 font-semibold">Explore Courses</div>
+                    <div className="text-h3 font-semibold">
+                        Explore {getTerminology(ContentTerms.Course, SystemTerms.Course)}s
+                    </div>
                     <div className="text-subtitle">
                         Effortlessly organize, upload, and track educational resources in one place.
                         Provide students with easy access to the materials they need to succeed,
@@ -480,7 +484,7 @@ export const CourseMaterial = () => {
                         <span
                             className={`${selectedTab === 'AllCourses' ? 'text-primary-500' : ''}`}
                         >
-                            All Courses
+                            All {getTerminology(ContentTerms.Course, SystemTerms.Course)}s
                         </span>
                     </TabsTrigger>
                     {/* Conditionally render tabs based on roles */}
@@ -497,7 +501,8 @@ export const CourseMaterial = () => {
                                 <span
                                     className={`${selectedTab === 'AuthoredCourses' ? 'text-primary-500' : ''}`}
                                 >
-                                    Authored Courses
+                                    Authored{' '}
+                                    {getTerminology(ContentTerms.Course, SystemTerms.Course)}s
                                 </span>
                             </TabsTrigger>
                             <TabsTrigger
@@ -511,7 +516,8 @@ export const CourseMaterial = () => {
                                 <span
                                     className={`${selectedTab === 'CourseRequests' ? 'text-primary-500' : ''}`}
                                 >
-                                    Course Requests
+                                    {getTerminology(ContentTerms.Course, SystemTerms.Course)}{' '}
+                                    Requests
                                 </span>
                             </TabsTrigger>
                         </>
@@ -528,7 +534,7 @@ export const CourseMaterial = () => {
                             <span
                                 className={`${selectedTab === 'AuthoredCourses' ? 'text-primary-500' : ''}`}
                             >
-                                Authored Courses
+                                Authored {getTerminology(ContentTerms.Course, SystemTerms.Course)}s
                             </span>
                         </TabsTrigger>
                     )}
@@ -558,7 +564,9 @@ export const CourseMaterial = () => {
                                     </div>
                                 )}
                             </div>
-                            <div className="mb-1 text-sm font-semibold">Levels</div>
+                            <div className="mb-1 text-sm font-semibold">
+                                {getTerminology(ContentTerms.Level, SystemTerms.Level)}s
+                            </div>
                             <div className="flex flex-col gap-2">
                                 {levels.map((level) => (
                                     <label
@@ -659,7 +667,10 @@ export const CourseMaterial = () => {
                                         value={searchValue}
                                         onChange={handleSearchChange}
                                         onKeyDown={handleSearchKeyDown}
-                                        placeholder="Search courses..."
+                                        placeholder={`Search ${getTerminology(
+                                            ContentTerms.Course,
+                                            SystemTerms.Course
+                                        )}s...`}
                                         className="w-full rounded-md border border-neutral-200 px-9 py-2 text-sm shadow-sm transition-all focus:border-primary-400 focus:ring-2 focus:ring-primary-100"
                                     />
                                     {/* Cross Button (visible only if searchValue) */}
@@ -833,7 +844,11 @@ export const CourseMaterial = () => {
                                                                 })
                                                             }
                                                         >
-                                                            View Course
+                                                            View{' '}
+                                                            {getTerminology(
+                                                                ContentTerms.Course,
+                                                                SystemTerms.Course
+                                                            )}
                                                         </MyButton>
                                                         <button
                                                             onClick={() =>
@@ -851,7 +866,8 @@ export const CourseMaterial = () => {
                                     })
                                 ) : (
                                     <div className="col-span-2 text-center text-neutral-400">
-                                        No courses found.
+                                        No {getTerminology(ContentTerms.Course, SystemTerms.Course)}
+                                        s found.
                                     </div>
                                 )}
                             </div>

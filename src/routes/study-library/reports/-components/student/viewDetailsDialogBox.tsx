@@ -20,6 +20,8 @@ import { usePacageDetails } from '../../-store/usePacageDetails';
 import dayjs from 'dayjs';
 import { formatToTwoDecimalPlaces, convertMinutesToTimeFormat } from '../../-services/helper';
 import { toast } from 'sonner';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 
 export const ViewDetails = ({ row }: { row: Row<SubjectOverviewColumnType> }) => {
     const [viewDetailsState, setViewDetailsState] = useState(false);
@@ -131,7 +133,10 @@ export const ViewDetails = ({ row }: { row: Row<SubjectOverviewColumnType> }) =>
                         <div>Course: {course}</div>
                         <div>Session: {session}</div>
                         <div>Level: {level}</div>
-                        <div>Subject: {row.getValue('subject')}</div>
+                        <div>
+                            {getTerminology(ContentTerms.Subjects, SystemTerms.Subjects)}:{' '}
+                            {row.getValue('subject')}
+                        </div>
                         <div>Module: {row.getValue('module')}</div>
                     </div>
                     {(isChapterPending || isLearnerPending) && <DashboardLoader />}

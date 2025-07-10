@@ -14,7 +14,8 @@ import { useInstituteDetailsStore } from '@/stores/students/students-list/useIns
 import { NoCourseDialog } from '@/components/common/students/no-course-dialog';
 import { cn } from '@/lib/utils';
 import { UserPlus, ArrowRight, Users, GraduationCap, Calendar } from '@phosphor-icons/react';
-import { HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 const InviteLinksDialog = ({
     currentSession,
@@ -162,7 +163,7 @@ export const StudentListHeader = ({
     titleSize?: string;
 }) => {
     const [openInviteLinksDialog, setOpenInviteLinksDialog] = useState(false);
-    const { instituteDetails, showForInstitutes } = useInstituteDetailsStore();
+    const { instituteDetails } = useInstituteDetailsStore();
     const [isOpen, setIsOpen] = useState(false);
 
     const handleOpenChange = () => {
@@ -183,9 +184,7 @@ export const StudentListHeader = ({
                             titleSize ? titleSize : 'text-lg lg:text-xl'
                         )}
                     >
-                        {showForInstitutes([HOLISTIC_INSTITUTE_ID])
-                            ? 'Member Management'
-                            : 'Learner Management'}
+                        {getTerminology(RoleTerms.Learner, SystemTerms.Learner)} Management
                     </h1>
                     <div className="h-0.5 w-8 rounded-full bg-gradient-to-r from-primary-400 to-primary-500"></div>
                 </div>

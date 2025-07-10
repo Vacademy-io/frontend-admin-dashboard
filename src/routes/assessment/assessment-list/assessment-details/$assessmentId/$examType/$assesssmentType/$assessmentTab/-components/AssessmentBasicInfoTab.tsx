@@ -7,6 +7,8 @@ import { Route } from '..';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { convertToLocalDateTime } from '@/constants/helper';
 import { getSubjectNameById } from '@/routes/assessment/question-papers/-utils/helper';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 
 export const AssessmentBasicInfoTab = () => {
     const { assessmentId, examType } = Route.useParams();
@@ -28,7 +30,7 @@ export const AssessmentBasicInfoTab = () => {
                         <span className="font-thin">{assessmentDetails[0]?.saved_data.name}</span>
                     </h1>
                     <h1 className="text-sm font-semibold">
-                        Subject:{' '}
+                        {getTerminology(ContentTerms.Subjects, SystemTerms.Subjects)}:{' '}
                         <span className="font-thin">
                             {getSubjectNameById(
                                 instituteDetails?.subjects || [],

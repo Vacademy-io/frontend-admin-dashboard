@@ -37,6 +37,8 @@ import Assessments from '../subjects/-components/assessment-list';
 import { getIcon } from '../subjects/modules/chapters/slides/-components/slides-sidebar/slides-sidebar-slides';
 import { useContentStore } from '../subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
 import { TeachersList } from '../subjects/-components/teacher-list';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 // Interfaces (assuming these are unchanged)
 export interface Chapter {
@@ -579,8 +581,11 @@ export const CourseStructureDetails = ({
                                                                                                     className="text-primary-400 group-hover:text-primary-500"
                                                                                                 />
                                                                                                 <span className="font-medium">
-                                                                                                    Add
-                                                                                                    Slide
+                                                                                                    Add{' '}
+                                                                                                    {getTerminology(
+                                                                                                        ContentTerms.Slides,
+                                                                                                        SystemTerms.Slides
+                                                                                                    )}
                                                                                                 </span>
                                                                                             </MyButton>
 
@@ -595,8 +600,11 @@ export const CourseStructureDetails = ({
                                                                                                 .length ===
                                                                                             0 ? (
                                                                                                 <div className="px-2 py-1 text-xs text-gray-400">
-                                                                                                    No
-                                                                                                    slides
+                                                                                                    No{' '}
+                                                                                                    {getTerminology(
+                                                                                                        ContentTerms.Slides,
+                                                                                                        SystemTerms.Slides
+                                                                                                    )}{' '}
                                                                                                     in
                                                                                                     this
                                                                                                     chapter.
@@ -849,8 +857,11 @@ export const CourseStructureDetails = ({
                                                                                                     className="text-primary-400 group-hover:text-primary-500"
                                                                                                 />
                                                                                                 <span className="font-medium">
-                                                                                                    Add
-                                                                                                    Slide
+                                                                                                    Add{' '}
+                                                                                                    {getTerminology(
+                                                                                                        ContentTerms.Slides,
+                                                                                                        SystemTerms.Slides
+                                                                                                    )}
                                                                                                 </span>
                                                                                             </MyButton>
 
@@ -865,8 +876,11 @@ export const CourseStructureDetails = ({
                                                                                                 .length ===
                                                                                             0 ? (
                                                                                                 <div className="px-2 py-1 text-xs text-gray-400">
-                                                                                                    No
-                                                                                                    slides
+                                                                                                    No{' '}
+                                                                                                    {getTerminology(
+                                                                                                        ContentTerms.Slides,
+                                                                                                        SystemTerms.Slides
+                                                                                                    )}{' '}
                                                                                                     in
                                                                                                     this
                                                                                                     chapter.
@@ -1074,8 +1088,11 @@ export const CourseStructureDetails = ({
                                                                                                 className="text-primary-400 group-hover:text-primary-500"
                                                                                             />
                                                                                             <span className="font-medium">
-                                                                                                Add
-                                                                                                Slide
+                                                                                                Add{' '}
+                                                                                                {getTerminology(
+                                                                                                    ContentTerms.Slides,
+                                                                                                    SystemTerms.Slides
+                                                                                                )}
                                                                                             </span>
                                                                                         </MyButton>
 
@@ -1088,8 +1105,11 @@ export const CourseStructureDetails = ({
                                                                                         ).length ===
                                                                                         0 ? (
                                                                                             <div className="px-2 py-1 text-xs text-gray-400">
-                                                                                                No
-                                                                                                slides
+                                                                                                No{' '}
+                                                                                                {getTerminology(
+                                                                                                    ContentTerms.Slides,
+                                                                                                    SystemTerms.Slides
+                                                                                                )}{' '}
                                                                                                 in
                                                                                                 this
                                                                                                 chapter.
@@ -1243,8 +1263,11 @@ export const CourseStructureDetails = ({
                                                                                             className="text-primary-400 group-hover:text-primary-500"
                                                                                         />
                                                                                         <span className="font-medium">
-                                                                                            Add
-                                                                                            Slide
+                                                                                            Add{' '}
+                                                                                            {getTerminology(
+                                                                                                ContentTerms.Modules,
+                                                                                                SystemTerms.Modules
+                                                                                            )}
                                                                                         </span>
                                                                                     </MyButton>
 
@@ -1257,8 +1280,11 @@ export const CourseStructureDetails = ({
                                                                                     ).length ===
                                                                                     0 ? (
                                                                                         <div className="px-2 py-1 text-xs text-gray-400">
-                                                                                            No
-                                                                                            slides
+                                                                                            No{' '}
+                                                                                            {getTerminology(
+                                                                                                ContentTerms.Slides,
+                                                                                                SystemTerms.Slides
+                                                                                            )}{' '}
                                                                                             in this
                                                                                             chapter.
                                                                                         </div>

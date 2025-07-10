@@ -23,6 +23,8 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 
 type MediaType = 'image' | 'video';
 
@@ -157,7 +159,10 @@ export const AddCourseStep1 = ({
                 {/* Scrollable Content */}
                 <div className="flex-1 overflow-y-auto">
                     <div className="p-8">
-                        <h1 className="mb-8">Step 1: Course Overview</h1>
+                        <h1 className="mb-8">
+                            Step 1: {getTerminology(ContentTerms.Course, SystemTerms.Course)}{' '}
+                            Overview
+                        </h1>
                         <div className="grid grid-cols-2 gap-8">
                             {/* Left Column - Form Fields */}
                             <div className="space-y-6">
@@ -170,7 +175,10 @@ export const AddCourseStep1 = ({
                                                 <MyInput
                                                     id="course-name"
                                                     required={true}
-                                                    label="Course"
+                                                    label={getTerminology(
+                                                        ContentTerms.Course,
+                                                        SystemTerms.Course
+                                                    )}
                                                     inputType="text"
                                                     inputPlaceholder="Enter course name"
                                                     className="w-full"
@@ -197,7 +205,10 @@ export const AddCourseStep1 = ({
                                                         onChange={field.onChange}
                                                         value={field.value}
                                                         CustomclasssName="h-[120px]"
-                                                        placeholder="Enter course description"
+                                                        placeholder={`Enter ${getTerminology(
+                                                            ContentTerms.Course,
+                                                            SystemTerms.Course
+                                                        )} description`}
                                                     />
                                                 </FormControl>
                                                 <FormMessage />
@@ -209,7 +220,8 @@ export const AddCourseStep1 = ({
                                 {/* Tags Section */}
                                 <div className="space-y-2 pt-10">
                                     <Label className="text-normal font-medium text-gray-900">
-                                        Course Tags
+                                        {getTerminology(ContentTerms.Course, SystemTerms.Course)}{' '}
+                                        Tags
                                     </Label>
                                     <p className="text-sm text-gray-600">
                                         Add tags to help categorize and find your course easily
@@ -249,7 +261,7 @@ export const AddCourseStep1 = ({
                                                 >
                                                     {tag}
                                                     <X
-                                                        className="h-3 w-3 cursor-pointer"
+                                                        className="size-3 cursor-pointer"
                                                         onClick={() => removeTag(tag)}
                                                     />
                                                 </Badge>
@@ -281,7 +293,13 @@ export const AddCourseStep1 = ({
                                         name="aboutCourse"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>About the course</FormLabel>
+                                                <FormLabel>
+                                                    About the{' '}
+                                                    {getTerminology(
+                                                        ContentTerms.Course,
+                                                        SystemTerms.Course
+                                                    )}
+                                                </FormLabel>
                                                 <FormControl>
                                                     <MainViewQuillEditor
                                                         onChange={field.onChange}
@@ -319,7 +337,10 @@ export const AddCourseStep1 = ({
                             <div className="space-y-6">
                                 {/* Course Preview */}
                                 <div className="flex flex-col gap-1">
-                                    <FormLabel>Course Preview Image</FormLabel>
+                                    <FormLabel>
+                                        {getTerminology(ContentTerms.Course, SystemTerms.Course)}{' '}
+                                        Preview Image
+                                    </FormLabel>
                                     <p className="text-sm text-gray-500">
                                         This is the thumbnail that appears on the course card.
                                         Recommended size: 2:1 ratio
@@ -334,7 +355,7 @@ export const AddCourseStep1 = ({
                                                 <img
                                                     src={form.watch('coursePreview.url')}
                                                     alt="Course Preview"
-                                                    className="h-full w-full rounded-lg object-contain"
+                                                    className="size-full rounded-lg object-contain"
                                                 />
                                             </div>
                                         ) : (
@@ -373,7 +394,10 @@ export const AddCourseStep1 = ({
 
                                 {/* Course Banner */}
                                 <div className="flex flex-col gap-1">
-                                    <FormLabel>Course Banner Image</FormLabel>
+                                    <FormLabel>
+                                        {getTerminology(ContentTerms.Course, SystemTerms.Course)}{' '}
+                                        Banner Image
+                                    </FormLabel>
                                     <p className="text-sm text-gray-500">
                                         A wide background image displayed on top of the course
                                         detail page. Recommended size: 2.64:1 ratio
@@ -388,7 +412,7 @@ export const AddCourseStep1 = ({
                                                 <img
                                                     src={form.watch('courseBanner.url')}
                                                     alt="Course Banner"
-                                                    className="h-full w-full rounded-lg object-contain"
+                                                    className="size-full rounded-lg object-contain"
                                                 />
                                             </div>
                                         ) : (
@@ -427,7 +451,10 @@ export const AddCourseStep1 = ({
 
                                 {/* Course Media */}
                                 <div className="flex flex-col gap-1">
-                                    <FormLabel>Course Media (Image or Video)</FormLabel>
+                                    <FormLabel>
+                                        {getTerminology(ContentTerms.Course, SystemTerms.Course)}{' '}
+                                        Media (Image or Video)
+                                    </FormLabel>
                                     <p className="text-sm text-gray-500">
                                         A featured media block within the course page; this can
                                         visually represent the content or offer a teaser. For
@@ -444,7 +471,7 @@ export const AddCourseStep1 = ({
                                                     <video
                                                         src={form.watch('courseMedia.url')}
                                                         controls
-                                                        className="h-full w-full rounded-lg object-contain"
+                                                        className="size-full rounded-lg object-contain"
                                                     >
                                                         Your browser does not support the video tag.
                                                     </video>
@@ -452,7 +479,7 @@ export const AddCourseStep1 = ({
                                                     <img
                                                         src={form.watch('courseMedia.url')}
                                                         alt="Course Media"
-                                                        className="h-full w-full rounded-lg object-contain"
+                                                        className="size-full rounded-lg object-contain"
                                                     />
                                                 )}
                                             </div>

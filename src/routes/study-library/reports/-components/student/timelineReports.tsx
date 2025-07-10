@@ -324,7 +324,7 @@ export default function TimelineReports() {
                 </div>
 
                 <div>
-                    <div>Learner Name</div>
+                    <div>Name</div>
                     <Select
                         onValueChange={(value) => {
                             setValue('student', value);
