@@ -281,7 +281,99 @@ export const AddCourseStep2 = ({
             setSelectedInstructorId(newInstructor.id);
             setSelectedInstructorEmail(newInstructor.email);
             setShowAssignmentCard(true);
-            setSelectedSessionLevels([]); // Optionally clear previous selection
+
+            // --- Assign all batches (sessions/levels) automatically ---
+            const allSessionLevels: Array<{
+                sessionId: string;
+                sessionName: string;
+                levelId: string;
+                levelName: string;
+            }> = [];
+            if (hasSessions === 'yes' && hasLevels === 'yes') {
+                sessions.forEach((session: Session) => {
+                    session.levels.forEach((level: Level) => {
+                        allSessionLevels.push({
+                            sessionId: session.id,
+                            sessionName: session.name,
+                            levelId: level.id,
+                            levelName: level.name,
+                        });
+                    });
+                });
+            } else if (hasSessions === 'yes' && hasLevels === 'no') {
+                sessions.forEach((session: Session) => {
+                    allSessionLevels.push({
+                        sessionId: session.id,
+                        sessionName: session.name,
+                        levelId: 'DEFAULT',
+                        levelName: '',
+                    });
+                });
+            } else if (hasSessions === 'no' && hasLevels === 'yes') {
+                const standaloneSession = sessions.find((s: Session) => s.id === 'standalone');
+                if (standaloneSession) {
+                    standaloneSession.levels.forEach((level: Level) => {
+                        allSessionLevels.push({
+                            sessionId: 'DEFAULT',
+                            sessionName: '',
+                            levelId: level.id,
+                            levelName: level.name,
+                        });
+                    });
+                }
+            }
+            setSelectedSessionLevels(allSessionLevels);
+            setInstructorMappings((prev) => [
+                ...prev,
+                {
+                    id: newInstructor.id,
+                    email: newInstructor.email,
+                    sessionLevels: allSessionLevels,
+                },
+            ]);
+            // Also update sessions state to reflect assignment
+            setSessions((prevSessions) => {
+                const updatedSessions = JSON.parse(JSON.stringify(prevSessions));
+                if (hasSessions === 'yes' && hasLevels === 'yes') {
+                    updatedSessions.forEach((session: Session) => {
+                        session.levels.forEach((level: Level) => {
+                            if (!level.userIds.some((i: Instructor) => i.id === newInstructor.id)) {
+                                level.userIds.push(newInstructor);
+                            }
+                        });
+                    });
+                } else if (hasSessions === 'yes' && hasLevels === 'no') {
+                    updatedSessions.forEach((session: Session) => {
+                        if (session.levels.length === 0) {
+                            session.levels = [
+                                { id: 'DEFAULT', name: '', userIds: [newInstructor] },
+                            ];
+                        } else {
+                            if (
+                                session.levels[0]?.userIds &&
+                                !session.levels[0].userIds.some(
+                                    (i: Instructor) => i.id === newInstructor.id
+                                )
+                            ) {
+                                session.levels[0].userIds.push(newInstructor);
+                            }
+                        }
+                    });
+                } else if (hasSessions === 'no' && hasLevels === 'yes') {
+                    const standaloneSession = updatedSessions.find(
+                        (s: Session) => s.id === 'standalone'
+                    );
+                    if (standaloneSession) {
+                        standaloneSession.levels?.forEach((level: Level) => {
+                            if (!level.userIds.some((i: Instructor) => i.id === newInstructor.id)) {
+                                level.userIds.push(newInstructor);
+                            }
+                        });
+                    }
+                }
+                return updatedSessions;
+            });
+            // ---------------------------------------------------------
 
             return [...safePrev, newInstructor];
         });
