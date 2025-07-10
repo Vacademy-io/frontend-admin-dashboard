@@ -10,6 +10,7 @@ import {
     UPDATE_SLIDE_ORDER,
     UPDATE_QUESTION_ORDER,
     UPDATE_ASSIGNMENT_ORDER,
+    ADD_UPDATE_QUIZ_SLIDE,
 } from '@/constants/urls';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
@@ -67,6 +68,20 @@ export interface VideoSlide {
     embedded_type?: string;
     embedded_data?: string;
     questions: VideoQuestion[];
+}
+export interface QuizSlide {
+    id: string;
+    title: string;
+    media_id: string;
+    parent_rich_text: TextData;
+    explanation_text_data: TextData;
+    questions: QuestionSlide[]; // Reusing existing structure
+    question_response_type: string;
+    access_level: string;
+    evaluation_type: string;
+    default_question_time_mins: number;
+    re_attempt_count: number;
+    source_type: string;
 }
 
 // Document slide interface
@@ -135,9 +150,12 @@ export interface Slide {
     document_slide?: DocumentSlide | null;
     question_slide?: QuestionSlide | null;
     assignment_slide?: AssignmentSlide | null;
+    quiz_slide?: QuizSlide | null;
+
     is_loaded: boolean;
     new_slide: boolean;
-    // Split-screen mode properties (frontend only)
+
+    // Frontend-only
     splitScreenMode?: boolean;
     splitScreenData?: Record<string, unknown>;
     splitScreenType?: string;
@@ -511,6 +529,32 @@ export const useSlidesMutations = (
             }
         },
     });
+    const addUpdateQuizSlideMutation = useMutation({
+        mutationFn: async (payload: SlideQuestionsDataInterface) => {
+            const response = await authenticatedAxiosInstance.post(
+                `${ADD_UPDATE_QUIZ_SLIDE}?chapterId=${chapterId}&instituteId=${INSTITUTE_ID}&packageSessionId=${packageSessionId}&subjectId=${subjectId}&moduleId=${moduleId}`,
+                payload
+            );
+
+            return { data: response.data, isNewSlide: payload.new_slide };
+        },
+        onSuccess: async (result) => {
+            await queryClient.invalidateQueries({ queryKey: ['slides'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_MODULES_WITH_CHAPTERS'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SUBJECTS_PROGRESS'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SLIDES_PROGRESS'] });
+
+            if (result.isNewSlide) {
+                setTimeout(() => {
+                    const { setActiveItem, items } = useContentStore.getState();
+                    if (items && items.length > 0) {
+                        setActiveItem(items[0] as Slide);
+                    }
+                }, 1000);
+            }
+        },
+    });
 
     return {
         addUpdateVideoSlide: (payload: VideoSlidePayload) =>
@@ -523,13 +567,16 @@ export const useSlidesMutations = (
             updateQuestionSlideMutation.mutateAsync(payload).then((result) => result.data),
         updateAssignmentOrder: (payload: SlideQuestionsDataInterface) =>
             updateAssignmentSlideMutation.mutateAsync(payload).then((result) => result.data),
+        addUpdateQuizSlide: (payload: SlideQuestionsDataInterface) =>
+            addUpdateQuizSlideMutation.mutateAsync(payload).then((result) => result.data), // ✅ fixed
         addUpdateExcalidrawSlide,
         isUpdating:
             addUpdateVideoSlideMutation.isPending ||
             addUpdateDocumentSlideMutation.isPending ||
             updateSlideOrderMutation.isPending ||
             updateQuestionSlideMutation.isPending ||
-            updateAssignmentSlideMutation.isPending,
+            updateAssignmentSlideMutation.isPending ||
+            addUpdateQuizSlideMutation.isPending,
     };
 };
 

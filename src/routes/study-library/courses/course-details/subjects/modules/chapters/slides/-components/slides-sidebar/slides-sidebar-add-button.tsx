@@ -22,17 +22,15 @@ import { useRouter } from '@tanstack/react-router';
 import { useSlidesMutations } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-hooks/use-slides';
 import { useContentStore } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
 import { useDialogStore } from '@/routes/study-library/courses/-stores/slide-add-dialogs-store';
-import AddQuestionDialog from './add-question-dialog';
-import { File, GameController } from 'phosphor-react';
+import { File, GameController, ClipboardText } from 'phosphor-react';
 import { formatHTMLString } from '../slide-operations/formatHtmlString';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
-import {
-    generateUniqueDocumentSlideTitle,
-    generateUniqueAssignmentSlideTitle,
-} from '../../-helper/slide-naming-utils';
+import { generateUniqueDocumentSlideTitle } from '../../-helper/slide-naming-utils';
 import { toast } from 'sonner';
 import { createAssignmentSlidePayload } from '../yoopta-editor-customizations/createAssignmentSlidePayload';
 import { createPresentationSlidePayload } from '../create-presentation-slide';
+import AddQuestionDialog from './add-question-dialog';
+import AddQuizDialog from './Add-Quiz-Dialog';
 
 // Simple utility function for setting first slide as active (used as fallback)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -68,6 +66,7 @@ export const ChapterSidebarAddButton = () => {
         isVideoDialogOpen,
         isVideoFileDialogOpen,
         isQuestionDialogOpen,
+        isQuizDialogOpen, // ✅ NEW
 
         openPdfDialog,
         closePdfDialog,
@@ -79,6 +78,8 @@ export const ChapterSidebarAddButton = () => {
         closeVideoFileDialog,
         openQuestionDialog,
         closeQuestionDialog,
+        openQuizDialog, // ✅ NEW
+        closeQuizDialog, // ✅ NEW
     } = useDialogStore();
 
     // Function to reorder slides after adding a new one at the top
@@ -186,6 +187,13 @@ export const ChapterSidebarAddButton = () => {
             description: 'Visual programming blocks',
         },
         {
+            label: 'Quiz',
+            value: 'quiz',
+            icon: <ClipboardText className="size-4 text-pink-500" />, // ✅ Changed to ListChecks
+            description: 'Timed quiz slide',
+        },
+
+        {
             label: 'Code Editor',
             value: 'code-editor',
             icon: <Code className="size-4 text-green-500" />,
@@ -250,9 +258,9 @@ export const ChapterSidebarAddButton = () => {
                 try {
                     const payload = createAssignmentSlidePayload(items || []);
                     const response = await addUpdateDocumentSlide(payload);
-                  
+
                     if (response) {
-                        await reorderSlidesAfterNewSlide(payload.id||'');
+                        await reorderSlidesAfterNewSlide(payload.id || '');
                         toast.success('Assignment created successfully!');
                     } else {
                         throw new Error('Empty response returned from API.');
@@ -306,6 +314,7 @@ export const ChapterSidebarAddButton = () => {
                 }
                 break;
             }
+
             case 'jupyter-notebook': {
                 try {
                     // Create a Jupyter notebook slide as a document with special type
@@ -439,6 +448,10 @@ export const ChapterSidebarAddButton = () => {
                 }
                 break;
             }
+
+            case 'quiz':
+                openQuizDialog();
+                break;
         }
     };
 
@@ -538,6 +551,18 @@ export const ChapterSidebarAddButton = () => {
             >
                 <div className="duration-300 animate-in fade-in slide-in-from-bottom-4">
                     <AddQuestionDialog openState={(open) => !open && closeQuestionDialog()} />
+                </div>
+            </MyDialog>
+
+            <MyDialog
+                trigger={<></>}
+                heading="Create Quiz"
+                dialogWidth="min-w-[500px]"
+                open={isQuizDialogOpen}
+                onOpenChange={closeQuizDialog}
+            >
+                <div className="duration-300 animate-in fade-in slide-in-from-bottom-4">
+                    <AddQuizDialog openState={(open) => !open && closeQuizDialog()} />
                 </div>
             </MyDialog>
         </div>
