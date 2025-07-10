@@ -774,25 +774,30 @@ export const AddCourseStep2 = ({
 
                             <CardContent className="space-y-6 p-5">
                                 {/* Warning Note */}
-                                <div className="rounded-lg border border-red-200 bg-red-50 p-3">
-                                    <p className="text-sm text-red-700">
-                                        <strong>Note:</strong> Once you create the course, its
-                                        structure—including sessions and levels—cannot be changed.
-                                        Please review carefully before proceeding.
-                                    </p>
-                                </div>
+                                {!isEdit && (
+                                    <div className="rounded-lg border border-red-200 bg-red-50 p-3">
+                                        <p className="text-sm text-red-700">
+                                            <strong>Note:</strong> Once you create the course, its
+                                            structure—including sessions and levels—cannot be
+                                            changed. Please review carefully before proceeding.
+                                        </p>
+                                    </div>
+                                )}
 
                                 {/* Structure Selection */}
-                                <div>
-                                    <h3 className="mb-3 text-base font-medium text-gray-900">
-                                        Select course structure that is suitable for your institute
-                                    </h3>
-                                    <AddCourseStep2StructureTypes form={form} />
-                                </div>
+                                {!isEdit && (
+                                    <div>
+                                        <h3 className="mb-3 text-base font-medium text-gray-900">
+                                            Select course structure that is suitable for your
+                                            institute
+                                        </h3>
+                                        <AddCourseStep2StructureTypes form={form} />
+                                    </div>
+                                )}
 
                                 {instituteId !== CODE_CIRCLE_INSTITUTE_ID && (
                                     <>
-                                        <Separator className="bg-gray-200" />
+                                        {!isEdit && <Separator className="bg-gray-200" />}
                                         <div className="space-y-2">
                                             <Label className="block text-base font-medium text-gray-900">
                                                 Contains Sessions?
@@ -2754,7 +2759,7 @@ export const AddCourseStep2 = ({
                                     </span>
                                 ) : (
                                     <>
-                                        <Plus />
+                                        {!isEdit && <Plus />}
                                         {isEdit ? 'Edit' : 'Create'}
                                     </>
                                 )}
