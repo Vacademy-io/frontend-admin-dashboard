@@ -422,26 +422,21 @@ export const CourseMaterial = () => {
             {
                 key: 'AllCourses',
                 label: 'All Courses',
-                show: (allCoursesData?.content?.length ?? 0) > 0,
+                show: true,
             },
             {
                 key: 'AuthoredCourses',
                 label: 'Authored Courses',
-                show:
-                    safeRoles.includes('ADMIN') && (authoredCoursesData?.content?.length ?? 0) > 0,
+                show: safeRoles.includes('ADMIN') || safeRoles.includes('TEACHER'),
             },
             {
                 key: 'CourseRequests',
                 label: 'Course Requests',
-                show: safeRoles.includes('ADMIN') && (courseRequestsData?.content?.length ?? 0) > 0,
+                show: safeRoles.includes('ADMIN') || safeRoles.includes('TEACHER'),
             },
         ];
-        if (safeRoles.includes('TEACHER') && !safeRoles.includes('ADMIN') && tabs[1] && tabs[2]) {
-            tabs[1].show = (authoredCoursesData?.content?.length ?? 0) > 0;
-            tabs[2].show = (courseRequestsData?.content?.length ?? 0) > 0;
-        }
         return tabs.filter((t) => t.show);
-    }, [roles, allCoursesData, authoredCoursesData, courseRequestsData]);
+    }, [roles]);
     // If current tab is not available, switch to first available
     useEffect(() => {
         if (
@@ -544,38 +539,49 @@ export const CourseMaterial = () => {
                 </TabsList>
                 {availableTabs.map((tab) => (
                     <TabsContent key={tab.key} value={tab.key}>
-                        <CourseListPage
-                            selectedFilters={selectedFilters}
-                            setSelectedFilters={setSelectedFilters}
-                            handleClearAll={handleClearAll}
-                            handleApply={handleApply}
-                            levels={levels}
-                            handleLevelChange={handleLevelChange}
-                            tags={tags}
-                            accessControlUsers={accessControlUsers}
-                            handleUserChange={handleUserChange}
-                            handleTagChange={handleTagChange}
-                            searchValue={searchValue}
-                            setSearchValue={setSearchValue}
-                            handleSearchChange={handleSearchChange}
-                            handleSearchKeyDown={handleSearchKeyDown}
-                            sortBy={sortBy}
-                            setSortBy={setSortBy}
-                            allCourses={
+                        {(() => {
+                            const data =
                                 tab.key === 'AllCourses'
                                     ? allCoursesData
                                     : tab.key === 'AuthoredCourses'
                                       ? authoredCoursesData
                                       : tab.key === 'CourseRequests'
                                         ? courseRequestsData
-                                        : null
+                                        : null;
+                            if (!data || !data.content || data.content.length === 0) {
+                                return (
+                                    <div className="flex h-40 flex-col items-center justify-center text-gray-500">
+                                        No courses found for this tab.
+                                    </div>
+                                );
                             }
-                            courseImageUrls={courseImageUrls}
-                            handleCourseDelete={handleCourseDelete}
-                            page={page}
-                            handlePageChange={handlePageChange}
-                            deletingCourseId={deletingCourseId}
-                        />
+                            return (
+                                <CourseListPage
+                                    selectedFilters={selectedFilters}
+                                    setSelectedFilters={setSelectedFilters}
+                                    handleClearAll={handleClearAll}
+                                    handleApply={handleApply}
+                                    levels={levels}
+                                    handleLevelChange={handleLevelChange}
+                                    tags={tags}
+                                    accessControlUsers={accessControlUsers}
+                                    handleUserChange={handleUserChange}
+                                    handleTagChange={handleTagChange}
+                                    searchValue={searchValue}
+                                    setSearchValue={setSearchValue}
+                                    handleSearchChange={handleSearchChange}
+                                    handleSearchKeyDown={handleSearchKeyDown}
+                                    sortBy={sortBy}
+                                    setSortBy={setSortBy}
+                                    allCourses={data}
+                                    courseImageUrls={courseImageUrls}
+                                    handleCourseDelete={handleCourseDelete}
+                                    page={page}
+                                    handlePageChange={handlePageChange}
+                                    deletingCourseId={deletingCourseId}
+                                />
+                            );
+                        })()}
                     </TabsContent>
                 ))}
             </Tabs>
