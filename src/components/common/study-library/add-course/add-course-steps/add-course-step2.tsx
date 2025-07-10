@@ -354,12 +354,16 @@ export const AddCourseStep2 = ({
                 ),
             }))
         );
-        // If the removed level was from an existing session, add it back as a session-level pair
+        // Only add back to existingBatches if this level was originally in existingBatches
         const removedSession = sessions.find((session) => session.id === sessionId);
         const removedLevel = removedSession?.levels.find((level) => level.id === levelId);
+        const wasPreExisting = existingBatches.some(
+            (b) => b.session.id === sessionId && b.level.id === levelId
+        );
         if (
             removedSession &&
             removedLevel &&
+            wasPreExisting &&
             instituteDetails &&
             Array.isArray(instituteDetails.batches_for_sessions)
         ) {
@@ -3024,10 +3028,11 @@ const SessionCard: React.FC<{
     );
     // Determine if this session is from existingBatches (by session id)
     const isExistingSession = existingBatches.some((b) => b.session.id === session.id);
-    // Get available existing levels for this session
+    // Only show levels that are present in both existingBatches and the current session.levels
     const availableExistingLevels = existingBatches
         .filter((b) => b.session.id === session.id)
-        .map((b) => ({ id: b.level.id, name: b.level.level_name }));
+        .map((b) => ({ id: b.level.id, name: b.level.level_name }))
+        .filter((level) => session.levels.some((l) => l.id === level.id));
     const handleAddLevel = () => {
         if (addLevelMode === 'new' && newLevelName.trim()) {
             onAddLevel(session.id, newLevelName);
