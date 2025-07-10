@@ -51,6 +51,7 @@ import { SplitScreenSlide } from './split-screen-slide';
 import { getTokenFromCookie, getTokenDecodedData } from '@/lib/auth/sessionUtility';
 import { UploadFileInS3 } from '@/services/upload_file';
 import { TokenKey } from '@/constants/auth/tokens';
+import QuizPreview from './QuizPreview';
 
 // Inside your component
 // this toggles the DoubtResolutionSidebar
@@ -268,7 +269,8 @@ export const SlideMaterial = ({
                 // If the slide is PUBLISHED and being edited, change status to UNSYNC
                 if (activeItem.status === 'PUBLISHED') {
                     newStatus = 'UNSYNC';
-                }try {
+                }
+                try {
                     await addUpdateDocumentSlide({
                         id: activeItem.id,
                         title: activeItem.title || '',
@@ -316,7 +318,7 @@ export const SlideMaterial = ({
                                 : undefined,
                         };
                     }
-            } catch (error) {
+                } catch (error) {
                     console.error('Error auto-saving Excalidraw:', error);
                 } finally {
                     // Reset the flag after a short delay to allow for UI updates
@@ -422,7 +424,6 @@ export const SlideMaterial = ({
 
                                 // If operation just completed and we have a pending update, apply it
                                 if (wasBusy && !isBusy && pendingStateUpdateRef.current) {
-
 
                                     const pendingUpdate = pendingStateUpdateRef.current;
                                     setActiveItem(pendingUpdate);
@@ -906,12 +907,9 @@ export const SlideMaterial = ({
 
                     const assignmentData = rawData ? JSON.parse(rawData) : null;
 
-                    setContent(
-                        <StudyLibraryAssignmentPreview
 
-                            activeItem={activeItem}
-                        />
-                    );
+                    setContent(<StudyLibraryAssignmentPreview activeItem={activeItem} />);
+
                 } catch (error) {
                     console.error('Error rendering assignment preview:', error);
                     setContent(<div>Error loading assignment</div>);
@@ -934,15 +932,46 @@ export const SlideMaterial = ({
             }
         }
 
-        if (activeItem.source_type === 'QUESTION') {
+       if (
+    activeItem.source_type?.toUpperCase() === 'QUIZ' ||
+    activeItem.id?.startsWith('quiz-')
+) {
+    console.log('activeItem.source_type:', activeItem.source_type);
+    console.log('activeItem.id:', activeItem.id);
+    console.log('activeItem.status:', activeItem.status);
+    console.log('activeItem.question_slide:', activeItem.question_slide);
+
+    try {
+        const rawData =
+            activeItem.status === 'PUBLISHED'
+                ? activeItem.question_slide?.data || activeItem.question_slide?.published_data
+                : activeItem.question_slide?.data;
+
+        console.log('Raw data for quiz questions:', rawData);
+
+        const parsedQuestions = rawData ? JSON.parse(rawData) : [];
+
+        // Patch into activeItem so QuizPreview can read it
+        const updated = {
+            ...activeItem,
+            question_slide: parsedQuestions,
+        };
+
+        console.log('🎯 Loading QuizPreview with questions:', parsedQuestions.length);
+        setContent(<QuizPreview activeItem={updated} />);
+    } catch (error) {
+        console.error('Error loading quiz questions:', error);
+        setContent(<div>Error loading quiz questions</div>);
+    }
+    return;
+}
+
+        if (
+            activeItem.source_type?.toUpperCase() === 'QUESTION') {
+            console.log('activeItem.source_type', activeItem.source_type);
             setContent(<StudyLibraryQuestionsPreview activeItem={activeItem} />);
             return;
         }
-
-        // if (activeItem.source_type === 'ASSIGNMENT') {
-        //     setContent(<StudyLibraryAssignmentPreview activeItem={activeItem} />);
-        //     return;
-        // }
 
         // Fallback
         setContent(
