@@ -35,6 +35,8 @@ import { CourseDetailsRatingsComponent } from './course-details-ratings-page';
 import { getInstructorsBySessionAndLevel, transformApiDataToCourseData } from '../-utils/helper';
 import { CourseStructureDetails } from './course-structure-details';
 import { AddCourseForm } from '@/components/common/study-library/add-course/add-course-form';
+import { MyButton } from '@/components/design-system/button';
+import { getPublicUrl } from '@/services/upload_file';
 
 type SlideType = {
     id: string;
@@ -134,6 +136,14 @@ const mockCourses: Course[] = [
         },
     },
 ];
+
+interface InstructorWithPicUrl {
+    id: string;
+    name: string;
+    email: string;
+    profilePicId?: string;
+    profilePicUrl: string;
+}
 
 export const CourseDetailsPage = () => {
     const router = useRouter();
@@ -295,11 +305,56 @@ export const CourseDetailsPage = () => {
         );
     }, [currentLevel, currentSession]);
 
-    console.log(form.getValues());
+    console.log(form.getValues('courseData.instructors'));
+    const [resolvedInstructors, setResolvedInstructors] = useState<InstructorWithPicUrl[]>([]);
+    const [loadingInstructors, setLoadingInstructors] = useState(false);
+    const instructors: Omit<InstructorWithPicUrl, 'profilePicUrl'>[] =
+        form.getValues('courseData').instructors || [];
+
+    useEffect(() => {
+        let isMounted = true;
+        async function preloadInstructorAvatars() {
+            setLoadingInstructors(true);
+            const uniqueProfilePicIds = [
+                ...new Set(
+                    instructors.map((i) => i.profilePicId).filter((id): id is string => Boolean(id))
+                ),
+            ];
+            const idToUrl: Record<string, string> = {};
+            await Promise.all(
+                uniqueProfilePicIds.map(async (id) => {
+                    try {
+                        idToUrl[id] = await getPublicUrl(id);
+                    } catch {
+                        idToUrl[id] = '';
+                    }
+                })
+            );
+            if (isMounted) {
+                setResolvedInstructors(
+                    instructors.map((inst) => ({
+                        ...inst,
+                        profilePicUrl:
+                            inst.profilePicId && idToUrl[inst.profilePicId]
+                                ? idToUrl[inst.profilePicId]
+                                : '',
+                    })) as InstructorWithPicUrl[]
+                );
+                setLoadingInstructors(false);
+            }
+        }
+        preloadInstructorAvatars();
+        return () => {
+            isMounted = false;
+        };
+    }, [JSON.stringify(instructors)]);
+
     return (
-        <div className="pt-18 flex min-h-screen flex-col bg-white">
+        <div className="flex min-h-screen flex-col bg-gray-50">
             {/* Top Banner */}
-            <div className={`relative h-[300px]`}>
+            <div
+                className={`relative ${form.getValues('courseData.isCoursePublishedToCatalaouge') ? 'h-[350px]' : 'h-[300px]'}`}
+            >
                 {/* Transparent black overlay */}
                 {form.watch('courseData').courseBannerMediaId ? (
                     <div className="pointer-events-none absolute inset-0 z-10 bg-black/50" />
@@ -346,6 +401,16 @@ export const CourseDetailsPage = () => {
                                             __html: form.getValues('courseData').description || '',
                                         }}
                                     />
+                                    {form.getValues('courseData.isCoursePublishedToCatalaouge') && (
+                                        <MyButton
+                                            type="button"
+                                            scale="large"
+                                            buttonType="primary"
+                                            className="mt-2 bg-success-100 font-medium !text-black hover:bg-success-100  focus:bg-success-100 active:bg-success-100"
+                                        >
+                                            Added to catalog
+                                        </MyButton>
+                                    )}
                                     <div className="mt-4 flex gap-2">
                                         {form.getValues('courseData').tags.map((tag, index) => (
                                             <span
@@ -484,7 +549,7 @@ export const CourseDetailsPage = () => {
 
                         {/* What You'll Learn Section */}
                         {form.getValues('courseData').whatYoullLearn && (
-                            <div className="mb-8">
+                            <div className="mb-8 mt-6 bg-white p-6">
                                 <h2 className="mb-4 text-2xl font-bold">What you&apos;ll learn?</h2>
                                 <div className="rounded-lg">
                                     <p
@@ -499,7 +564,7 @@ export const CourseDetailsPage = () => {
 
                         {/* About Content Section */}
                         {form.getValues('courseData').aboutTheCourse && (
-                            <div className="mb-8">
+                            <div className="mb-8 bg-white p-6">
                                 <h2 className="mb-4 text-2xl font-bold">About this course</h2>
                                 <div className="rounded-lg">
                                     <p
@@ -514,7 +579,7 @@ export const CourseDetailsPage = () => {
 
                         {/* Who Should Join Section */}
                         {form.getValues('courseData').whoShouldLearn && (
-                            <div className="mb-8">
+                            <div className="mb-8 bg-white p-6">
                                 <h2 className="mb-4 text-2xl font-bold">Who should join?</h2>
                                 <div className="rounded-lg">
                                     <p
@@ -528,28 +593,32 @@ export const CourseDetailsPage = () => {
                         )}
 
                         {/* Instructors Section */}
-                        {form.getValues('courseData').instructors &&
-                            form.getValues('courseData').instructors.length > 0 && (
-                                <div className="mb-8">
-                                    <h2 className="mb-4 text-2xl font-bold">Authors</h2>
-                                    {form
-                                        .getValues('courseData')
-                                        .instructors?.map((instructor, index) => (
-                                            <div
-                                                key={index}
-                                                className="flex gap-4 rounded-lg bg-gray-50 p-4"
-                                            >
-                                                <Avatar className="size-8">
-                                                    <AvatarImage src="" alt={instructor.email} />
+                        {instructors && instructors.length > 0 && (
+                            <div className="mb-8 bg-white p-6">
+                                <h2 className="mb-4 text-2xl font-bold">Authors</h2>
+                                {loadingInstructors ? (
+                                    <div>Loading instructors...</div>
+                                ) : (
+                                    resolvedInstructors.map((instructor, index) => (
+                                        <div key={index} className="flex gap-4 rounded-lg">
+                                            <Avatar className="size-8">
+                                                {instructor.profilePicUrl ? (
+                                                    <AvatarImage
+                                                        src={instructor.profilePicUrl}
+                                                        alt={instructor.email}
+                                                    />
+                                                ) : (
                                                     <AvatarFallback className="bg-[#3B82F6] text-xs font-medium text-white">
                                                         {getInitials(instructor.email)}
                                                     </AvatarFallback>
-                                                </Avatar>
-                                                <h3 className="text-lg">{instructor.name}</h3>
-                                            </div>
-                                        ))}
-                                </div>
-                            )}
+                                                )}
+                                            </Avatar>
+                                            <h3 className="text-lg">{instructor.name}</h3>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        )}
                     </div>
 
                     {/* Right Column - 1/3 width */}
