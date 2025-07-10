@@ -150,6 +150,31 @@ type ExistingBatch = {
     group?: Group;
 };
 
+// Helper to ensure all batches have a defined package_dto
+function getSafeExistingBatches(batches: ExistingBatch[] | undefined): ExistingBatch[] {
+    const safeBatches: ExistingBatch[] = (batches ?? []) as ExistingBatch[];
+    return safeBatches.map((b: ExistingBatch) => ({
+        ...b,
+        package_dto: {
+            id: String(b.package_dto?.id ?? ''),
+            package_name: String(b.package_dto?.package_name ?? ''),
+            thumbnail_file_id: String(b.package_dto?.thumbnail_file_id ?? ''),
+            thumbnail_id: b.package_dto?.thumbnail_id ?? null,
+            is_course_published_to_catalaouge:
+                b.package_dto?.is_course_published_to_catalaouge ?? null,
+            course_preview_image_media_id: b.package_dto?.course_preview_image_media_id ?? null,
+            course_banner_media_id: b.package_dto?.course_banner_media_id ?? null,
+            course_media_id: b.package_dto?.course_media_id ?? null,
+            why_learn_html: b.package_dto?.why_learn_html ?? null,
+            who_should_learn_html: b.package_dto?.who_should_learn_html ?? null,
+            about_the_course_html: b.package_dto?.about_the_course_html ?? null,
+            tags: b.package_dto?.tags ?? [],
+            course_depth: b.package_dto?.course_depth ?? null,
+            course_html_description_html: b.package_dto?.course_html_description_html ?? null,
+        },
+    }));
+}
+
 export const AddCourseStep2 = ({
     onBack,
     onSubmit,
@@ -226,8 +251,15 @@ export const AddCourseStep2 = ({
     // Session management functions
     const addSession = () => {
         if (newSessionName.trim() && newSessionStartDate) {
+            // Always use a unique id for new sessions
+            const newId = Date.now().toString();
+            // Prevent duplicate id (should never happen, but safeguard)
+            if (sessions.some((s) => s.id === newId)) {
+                console.warn('Duplicate session id detected when adding new session:', newId);
+                return;
+            }
             const newSession: Session = {
-                id: Date.now().toString(),
+                id: newId,
                 name: newSessionName.trim(),
                 startDate: newSessionStartDate,
                 levels: [],
@@ -242,58 +274,9 @@ export const AddCourseStep2 = ({
     };
 
     const removeSession = (sessionId: string) => {
-        const removedSession = sessions.find((session) => session.id === sessionId);
-        // Add all levels of this session as separate session-level pairs to existingBatches
-        if (
-            removedSession &&
-            instituteDetails &&
-            Array.isArray(instituteDetails.batches_for_sessions)
-        ) {
-            removedSession.levels.forEach((removedLevel) => {
-                const originalBatch: ExistingBatch = {
-                    id: `${removedSession.id}-${removedLevel.id}`,
-                    session: {
-                        id: removedSession.id,
-                        session_name: removedSession.name,
-                        status: '',
-                        start_date: removedSession.startDate,
-                    },
-                    level: {
-                        id: removedLevel.id,
-                        level_name: removedLevel.name,
-                        duration_in_days: null,
-                        thumbnail_id: null,
-                    },
-                    start_time: null,
-                    status: '',
-                    package_dto: {
-                        id: '',
-                        package_name: '',
-                        thumbnail_file_id: '',
-                        thumbnail_id: null,
-                        is_course_published_to_catalaouge: null,
-                        course_preview_image_media_id: null,
-                        course_banner_media_id: null,
-                        course_media_id: null,
-                        why_learn_html: null,
-                        who_should_learn_html: null,
-                        about_the_course_html: null,
-                        tags: [],
-                        course_depth: null,
-                        course_html_description_html: null,
-                    },
-                };
-                if (
-                    !(instituteDetails.batches_for_sessions as ExistingBatch[]).some(
-                        (b) => b.id === originalBatch.id
-                    )
-                ) {
-                    (instituteDetails.batches_for_sessions as ExistingBatch[]).push(
-                        originalBatch as ExistingBatch
-                    );
-                }
-            });
-        }
+        // Debug log to confirm which session is being deleted
+        console.log('Deleting session with id:', sessionId);
+        // Remove only the session with the exact id
         const updatedSessions = sessions.filter((session) => session.id !== sessionId);
         setSessions(updatedSessions);
         form.setValue('sessions', updatedSessions);
@@ -304,6 +287,20 @@ export const AddCourseStep2 = ({
                 sessionLevels: instructor.sessionLevels.filter((sl) => sl.sessionId !== sessionId),
             }))
         );
+        // Only add back to existingBatches if this session was originally present (from existingBatches)
+        const originalBatch = getSafeExistingBatches(
+            instituteDetails?.batches_for_sessions as ExistingBatch[] | undefined
+        ).find((b) => b.session.id === sessionId);
+        if (
+            originalBatch &&
+            instituteDetails &&
+            Array.isArray(instituteDetails.batches_for_sessions) &&
+            !(instituteDetails.batches_for_sessions as ExistingBatch[]).some(
+                (b: ExistingBatch) => b.id === originalBatch.id
+            )
+        ) {
+            (instituteDetails.batches_for_sessions as ExistingBatch[]).push(originalBatch);
+        }
         // If there are existing batches, show the add session dialog again
         if (
             instituteDetails &&
@@ -888,6 +885,139 @@ export const AddCourseStep2 = ({
     useEffect(() => {
         form.setValue('sessions', sessions);
     }, [sessions, form]);
+
+    // --- BATCH ID LOGIC ---
+    // When both sessions and levels are enabled, batch.id = unique session+level combo
+    // When only sessions are enabled, batch.id = session id
+    // When only levels are enabled, batch.id = level id
+
+    // Add Session/Level from Existing (refactored for batch.id)
+    const addFromExisting = () => {
+        if (hasSessions === 'yes' && hasLevels === 'yes') {
+            // Add selected batches as sessions with levels, using batch.id
+            const selectedBatches = existingBatches.filter((b: ExistingBatch) =>
+                selectedExistingBatchIds.includes(b.id)
+            );
+            const newSessions: Session[] = [];
+            selectedBatches.forEach((batch: ExistingBatch) => {
+                let session = newSessions.find((s) => s.id === batch.session.id);
+                if (!session) {
+                    session = {
+                        id: batch.session.id,
+                        name: batch.session.session_name,
+                        startDate: batch.session.start_date,
+                        levels: [],
+                    };
+                    newSessions.push(session);
+                }
+                // Use batch.id as unique key for level in this session
+                if (!session.levels.some((l) => l.id === batch.level.id)) {
+                    session.levels.push({
+                        id: batch.level.id,
+                        name: batch.level.level_name,
+                        userIds: [],
+                    });
+                }
+            });
+            // Avoid duplicates in sessions list by session+level
+            const sessionLevelIds = new Set(
+                sessions.flatMap((s) => s.levels.map((l) => `${s.id}-${l.id}`))
+            );
+            newSessions.forEach((s) => {
+                s.levels = s.levels.filter((l) => !sessionLevelIds.has(`${s.id}-${l.id}`));
+            });
+            setSessions([...sessions, ...newSessions.filter((s) => s.levels.length > 0)]);
+            // Remove added batches from existingBatches by batch.id
+            const remainingBatches = existingBatches.filter(
+                (b: ExistingBatch) => !selectedExistingBatchIds.includes(b.id)
+            );
+            if (instituteDetails) {
+                instituteDetails.batches_for_sessions = remainingBatches;
+                if (remainingBatches.length === 0) {
+                    setAddSessionMode('new');
+                    setShowAddSession(false);
+                }
+            }
+        } else if (hasSessions === 'yes' && hasLevels !== 'yes') {
+            // Add selected sessions by batch id (session only mode)
+            const selectedBatches = existingBatches.filter((b: ExistingBatch) =>
+                selectedExistingBatchIds.includes(b.id)
+            );
+            const newSessions: Session[] = [];
+            selectedBatches.forEach((batch: ExistingBatch) => {
+                // Use batch.id as the unique id for the session
+                if (!sessions.some((s) => s.id === batch.id)) {
+                    newSessions.push({
+                        id: batch.id, // batch.id is session id in this mode
+                        name: batch.session.session_name,
+                        startDate: batch.session.start_date,
+                        levels: [],
+                    });
+                }
+            });
+            setSessions([...sessions, ...newSessions]);
+            // Remove added batches from existingBatches by batch.id
+            const remainingBatches = existingBatches.filter(
+                (b: ExistingBatch) => !selectedExistingBatchIds.includes(b.id)
+            );
+            if (instituteDetails) {
+                instituteDetails.batches_for_sessions = remainingBatches;
+                if (remainingBatches.length === 0) {
+                    setAddSessionMode('new');
+                    setShowAddSession(false);
+                }
+            }
+        } else if (hasSessions !== 'yes' && hasLevels === 'yes') {
+            // Add selected levels to standalone session by batch id (level only mode)
+            const selectedBatches = existingBatches.filter((b: ExistingBatch) =>
+                selectedExistingBatchIds.includes(b.id)
+            );
+            const newLevels: Level[] = [];
+            selectedBatches.forEach((batch: ExistingBatch) => {
+                if (
+                    !sessions
+                        .find((s) => s.id === 'standalone')
+                        ?.levels.some((l) => l.id === batch.id)
+                ) {
+                    newLevels.push({
+                        id: batch.id, // batch.id is level id in this mode
+                        name: batch.level.level_name,
+                        userIds: [],
+                    });
+                }
+            });
+            // Add to standalone session
+            setSessions((prev) => {
+                const standalone = prev.find((s) => s.id === 'standalone');
+                if (standalone) {
+                    return prev.map((s) =>
+                        s.id === 'standalone' ? { ...s, levels: [...s.levels, ...newLevels] } : s
+                    );
+                } else {
+                    return [
+                        {
+                            id: 'standalone',
+                            name: 'Standalone',
+                            startDate: new Date().toISOString(),
+                            levels: newLevels,
+                        },
+                    ];
+                }
+            });
+            // Remove added batches from existingBatches by batch.id
+            const remainingBatches = existingBatches.filter(
+                (b: ExistingBatch) => !selectedExistingBatchIds.includes(b.id)
+            );
+            if (instituteDetails) {
+                instituteDetails.batches_for_sessions = remainingBatches;
+                if (remainingBatches.length === 0) {
+                    setAddLevelMode('new');
+                    setShowAddLevel(false);
+                }
+            }
+        }
+        setSelectedExistingBatchIds([]);
+    };
 
     return (
         <>
@@ -1492,309 +1622,7 @@ export const AddCourseStep2 = ({
                                                                 buttonType="primary"
                                                                 scale="medium"
                                                                 layoutVariant="default"
-                                                                onClick={() => {
-                                                                    if (
-                                                                        hasSessions === 'yes' &&
-                                                                        hasLevels === 'yes'
-                                                                    ) {
-                                                                        // Add selected batches as sessions with levels
-                                                                        const selectedBatches =
-                                                                            existingBatches.filter(
-                                                                                (
-                                                                                    b: ExistingBatch
-                                                                                ) =>
-                                                                                    selectedExistingBatchIds.includes(
-                                                                                        b.id
-                                                                                    )
-                                                                            );
-                                                                        const newSessions: Session[] =
-                                                                            [];
-                                                                        selectedBatches.forEach(
-                                                                            (
-                                                                                batch: ExistingBatch
-                                                                            ) => {
-                                                                                let session =
-                                                                                    newSessions.find(
-                                                                                        (s) =>
-                                                                                            s.id ===
-                                                                                            batch
-                                                                                                .session
-                                                                                                .id
-                                                                                    );
-                                                                                if (!session) {
-                                                                                    session = {
-                                                                                        id: batch
-                                                                                            .session
-                                                                                            .id,
-                                                                                        name: batch
-                                                                                            .session
-                                                                                            .session_name,
-                                                                                        startDate:
-                                                                                            batch
-                                                                                                .session
-                                                                                                .start_date,
-                                                                                        levels: [],
-                                                                                    };
-                                                                                    newSessions.push(
-                                                                                        session
-                                                                                    );
-                                                                                }
-                                                                                if (
-                                                                                    !session.levels.some(
-                                                                                        (l) =>
-                                                                                            l.id ===
-                                                                                            batch
-                                                                                                .level
-                                                                                                .id
-                                                                                    )
-                                                                                ) {
-                                                                                    session.levels.push(
-                                                                                        {
-                                                                                            id: batch
-                                                                                                .level
-                                                                                                .id,
-                                                                                            name: batch
-                                                                                                .level
-                                                                                                .level_name,
-                                                                                            userIds:
-                                                                                                [],
-                                                                                        }
-                                                                                    );
-                                                                                }
-                                                                            }
-                                                                        );
-                                                                        // Avoid duplicates in sessions list by batch id
-                                                                        const sessionLevelIds =
-                                                                            new Set(
-                                                                                sessions.flatMap(
-                                                                                    (s) =>
-                                                                                        s.levels.map(
-                                                                                            (l) =>
-                                                                                                `${s.id}-${l.id}`
-                                                                                        )
-                                                                                )
-                                                                            );
-                                                                        newSessions.forEach((s) => {
-                                                                            s.levels =
-                                                                                s.levels.filter(
-                                                                                    (l) =>
-                                                                                        !sessionLevelIds.has(
-                                                                                            `${s.id}-${l.id}`
-                                                                                        )
-                                                                                );
-                                                                        });
-                                                                        setSessions([
-                                                                            ...sessions,
-                                                                            ...newSessions.filter(
-                                                                                (s) =>
-                                                                                    s.levels
-                                                                                        .length > 0
-                                                                            ),
-                                                                        ]);
-                                                                        // Remove added batches from existingBatches
-                                                                        const remainingBatches =
-                                                                            existingBatches.filter(
-                                                                                (
-                                                                                    b: ExistingBatch
-                                                                                ) =>
-                                                                                    !selectedExistingBatchIds.includes(
-                                                                                        b.id
-                                                                                    )
-                                                                            );
-                                                                        if (instituteDetails) {
-                                                                            instituteDetails.batches_for_sessions =
-                                                                                remainingBatches;
-                                                                            if (
-                                                                                remainingBatches.length ===
-                                                                                0
-                                                                            ) {
-                                                                                setAddSessionMode(
-                                                                                    'new'
-                                                                                );
-                                                                                setShowAddSession(
-                                                                                    false
-                                                                                );
-                                                                            }
-                                                                        }
-                                                                    } else if (
-                                                                        hasSessions === 'yes' &&
-                                                                        hasLevels !== 'yes'
-                                                                    ) {
-                                                                        // Add selected sessions by batch id
-                                                                        const selectedBatches =
-                                                                            existingBatches.filter(
-                                                                                (
-                                                                                    b: ExistingBatch
-                                                                                ) =>
-                                                                                    selectedExistingBatchIds.includes(
-                                                                                        b.id
-                                                                                    )
-                                                                            );
-                                                                        const newSessions: Session[] =
-                                                                            [];
-                                                                        selectedBatches.forEach(
-                                                                            (
-                                                                                batch: ExistingBatch
-                                                                            ) => {
-                                                                                if (
-                                                                                    !sessions.some(
-                                                                                        (s) =>
-                                                                                            s.id ===
-                                                                                            batch
-                                                                                                .session
-                                                                                                .id
-                                                                                    )
-                                                                                ) {
-                                                                                    newSessions.push(
-                                                                                        {
-                                                                                            id: batch
-                                                                                                .session
-                                                                                                .id,
-                                                                                            name: batch
-                                                                                                .session
-                                                                                                .session_name,
-                                                                                            startDate:
-                                                                                                batch
-                                                                                                    .session
-                                                                                                    .start_date,
-                                                                                            levels: [],
-                                                                                        }
-                                                                                    );
-                                                                                }
-                                                                            }
-                                                                        );
-                                                                        setSessions([
-                                                                            ...sessions,
-                                                                            ...newSessions,
-                                                                        ]);
-                                                                        // Remove added batches from existingBatches
-                                                                        const remainingBatches =
-                                                                            existingBatches.filter(
-                                                                                (
-                                                                                    b: ExistingBatch
-                                                                                ) =>
-                                                                                    !selectedExistingBatchIds.includes(
-                                                                                        b.id
-                                                                                    )
-                                                                            );
-                                                                        if (instituteDetails) {
-                                                                            instituteDetails.batches_for_sessions =
-                                                                                remainingBatches;
-                                                                            if (
-                                                                                remainingBatches.length ===
-                                                                                0
-                                                                            ) {
-                                                                                setAddSessionMode(
-                                                                                    'new'
-                                                                                );
-                                                                                setShowAddSession(
-                                                                                    false
-                                                                                );
-                                                                            }
-                                                                        }
-                                                                    } else if (
-                                                                        hasSessions !== 'yes' &&
-                                                                        hasLevels === 'yes'
-                                                                    ) {
-                                                                        // Add selected levels to standalone session by batch id
-                                                                        const selectedBatches =
-                                                                            existingBatches.filter(
-                                                                                (
-                                                                                    b: ExistingBatch
-                                                                                ) =>
-                                                                                    selectedExistingBatchIds.includes(
-                                                                                        b.id
-                                                                                    )
-                                                                            );
-                                                                        const newLevels: Level[] =
-                                                                            [];
-                                                                        selectedBatches.forEach(
-                                                                            (
-                                                                                batch: ExistingBatch
-                                                                            ) => {
-                                                                                if (
-                                                                                    !sessions
-                                                                                        .find(
-                                                                                            (s) =>
-                                                                                                s.id ===
-                                                                                                'standalone'
-                                                                                        )
-                                                                                        ?.levels.some(
-                                                                                            (l) =>
-                                                                                                l.id ===
-                                                                                                batch
-                                                                                                    .level
-                                                                                                    .id
-                                                                                        )
-                                                                                ) {
-                                                                                    newLevels.push({
-                                                                                        id: batch
-                                                                                            .level
-                                                                                            .id,
-                                                                                        name: batch
-                                                                                            .level
-                                                                                            .level_name,
-                                                                                        userIds: [],
-                                                                                    });
-                                                                                }
-                                                                            }
-                                                                        );
-                                                                        // Add to standalone session or create it
-                                                                        const standaloneSession =
-                                                                            sessions.find(
-                                                                                (s) =>
-                                                                                    s.id ===
-                                                                                    'standalone'
-                                                                            );
-                                                                        if (standaloneSession) {
-                                                                            standaloneSession.levels =
-                                                                                [
-                                                                                    ...standaloneSession.levels,
-                                                                                    ...newLevels,
-                                                                                ];
-                                                                            setSessions([
-                                                                                ...sessions,
-                                                                            ]);
-                                                                        } else {
-                                                                            setSessions([
-                                                                                {
-                                                                                    id: 'standalone',
-                                                                                    name: 'Standalone',
-                                                                                    startDate:
-                                                                                        new Date().toISOString(),
-                                                                                    levels: newLevels,
-                                                                                },
-                                                                            ]);
-                                                                        }
-                                                                        // Remove added batches from existingBatches
-                                                                        const remainingBatches =
-                                                                            existingBatches.filter(
-                                                                                (
-                                                                                    b: ExistingBatch
-                                                                                ) =>
-                                                                                    !selectedExistingBatchIds.includes(
-                                                                                        b.id
-                                                                                    )
-                                                                            );
-                                                                        if (instituteDetails) {
-                                                                            instituteDetails.batches_for_sessions =
-                                                                                remainingBatches;
-                                                                            if (
-                                                                                remainingBatches.length ===
-                                                                                0
-                                                                            ) {
-                                                                                setAddLevelMode(
-                                                                                    'new'
-                                                                                );
-                                                                                setShowAddLevel(
-                                                                                    false
-                                                                                );
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                    setShowAddSession(false);
-                                                                    setSelectedExistingBatchIds([]);
-                                                                }}
+                                                                onClick={addFromExisting}
                                                                 disable={
                                                                     selectedExistingBatchIds.length ===
                                                                     0
@@ -3106,7 +2934,6 @@ const SessionCard: React.FC<{
                         </MyButton>
                     </div>
                 </div>
-
                 {hasLevels && (
                     <>
                         {showAddLevel && (
@@ -3265,7 +3092,6 @@ const SessionCard: React.FC<{
                                 </div>
                             </div>
                         )}
-
                         {session.levels.length > 0 && (
                             <div className="space-y-2">
                                 {session.levels.map((level) => (
@@ -3296,28 +3122,3 @@ const SessionCard: React.FC<{
         </Card>
     );
 };
-
-// Helper to ensure all batches have a defined package_dto
-function getSafeExistingBatches(batches: ExistingBatch[] | undefined): ExistingBatch[] {
-    const safeBatches: ExistingBatch[] = (batches ?? []) as ExistingBatch[];
-    return safeBatches.map((b: ExistingBatch) => ({
-        ...b,
-        package_dto: {
-            id: String(b.package_dto?.id ?? ''),
-            package_name: String(b.package_dto?.package_name ?? ''),
-            thumbnail_file_id: String(b.package_dto?.thumbnail_file_id ?? ''),
-            thumbnail_id: b.package_dto?.thumbnail_id ?? null,
-            is_course_published_to_catalaouge:
-                b.package_dto?.is_course_published_to_catalaouge ?? null,
-            course_preview_image_media_id: b.package_dto?.course_preview_image_media_id ?? null,
-            course_banner_media_id: b.package_dto?.course_banner_media_id ?? null,
-            course_media_id: b.package_dto?.course_media_id ?? null,
-            why_learn_html: b.package_dto?.why_learn_html ?? null,
-            who_should_learn_html: b.package_dto?.who_should_learn_html ?? null,
-            about_the_course_html: b.package_dto?.about_the_course_html ?? null,
-            tags: b.package_dto?.tags ?? [],
-            course_depth: b.package_dto?.course_depth ?? null,
-            course_html_description_html: b.package_dto?.course_html_description_html ?? null,
-        },
-    }));
-}
