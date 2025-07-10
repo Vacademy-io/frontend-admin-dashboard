@@ -39,7 +39,7 @@ export function useReplaceBase64ImagesWithNetworkUrls() {
 
                         // Create new image element with proper casing for objectFit
                         const newImg = document.createElement('img');
-                        newImg.setAttribute('src', publicUrl);
+                        newImg.setAttribute('src', publicUrl || '');
                         newImg.setAttribute('data-meta-align', 'center');
                         newImg.setAttribute('data-meta-depth', '0');
                         newImg.setAttribute('alt', file.name || 'image');

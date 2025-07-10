@@ -146,6 +146,7 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplatePPTView = ({
                                     <MainViewQuillEditor
                                         value={field.value}
                                         onChange={field.onChange}
+                                        onBlur={field.onBlur}
                                     />
                                 </FormControl>
                                 <FormMessage />
@@ -170,6 +171,7 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplatePPTView = ({
                                 <MainViewQuillEditor
                                     value={field.value}
                                     onChange={field.onChange}
+                                    onBlur={field.onBlur}
                                 />
                             </FormControl>
                             <FormMessage />
@@ -202,6 +204,7 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplatePPTView = ({
                                                 <MainViewQuillEditor
                                                     value={field.value}
                                                     onChange={field.onChange}
+                                                    onBlur={field.onBlur}
                                                 />
                                             </FormControl>
                                             <FormMessage />
@@ -254,6 +257,7 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplatePPTView = ({
                                                 <MainViewQuillEditor
                                                     value={field.value}
                                                     onChange={field.onChange}
+                                                    onBlur={field.onBlur}
                                                 />
                                             </FormControl>
                                             <FormMessage />
@@ -308,6 +312,7 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplatePPTView = ({
                                                 <MainViewQuillEditor
                                                     value={field.value}
                                                     onChange={field.onChange}
+                                                    onBlur={field.onBlur}
                                                 />
                                             </FormControl>
                                             <FormMessage />
@@ -360,6 +365,7 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplatePPTView = ({
                                                 <MainViewQuillEditor
                                                     value={field.value}
                                                     onChange={field.onChange}
+                                                    onBlur={field.onBlur}
                                                 />
                                             </FormControl>
                                             <FormMessage />
@@ -404,6 +410,7 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplatePPTView = ({
                                 <MainViewQuillEditor
                                     value={field.value}
                                     onChange={field.onChange}
+                                    onBlur={field.onBlur}
                                 />
                             </FormControl>
                             <FormMessage />

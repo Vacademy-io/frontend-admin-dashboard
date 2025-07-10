@@ -122,6 +122,7 @@ export function transformFormToDTOStep1(
         defaultLink,
         meetingType,
         recurringSchedule = [],
+        enableWaitingRoom,
         openWaitingRoomBefore,
         streamingType,
         sessionPlatform,
@@ -210,7 +211,7 @@ export function transformFormToDTOStep1(
         institute_id: instituteId,
         background_score_file_id: musicFileId,
         thumbnail_file_id: thumbnailFileId,
-        waiting_room_time: Number(openWaitingRoomBefore),
+        waiting_room_time: enableWaitingRoom ? Number(openWaitingRoomBefore) : 0,
         link_type: sessionPlatform,
         allow_rewind: allowRewind,
         session_streaming_service_type: streamingType,
@@ -293,7 +294,6 @@ export function transformFormToDTOStep2(
             update_fields: [] as CustomFieldDTO[],
         }
     );
-      
 
     return {
         session_id: sessionId,

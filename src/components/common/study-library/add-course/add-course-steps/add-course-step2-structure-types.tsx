@@ -506,11 +506,10 @@ const CourseCard: React.FC<CourseCardProps> = ({
 
 function AddCourseStep2StructureTypes({ form }: { form: UseFormReturn<Step2Data> }) {
     const [selectedCourseId, setSelectedCourseId] = useState<number | null>(
-        mockCourses[0]?.level || 2
+        form.getValues('levelStructure') || 2
     ); // Default to first course selected
 
     const handleCourseSelect = (courseId: number) => {
-        console.log('courseId', courseId);
         setSelectedCourseId(courseId);
         form.setValue('levelStructure', courseId);
     };

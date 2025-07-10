@@ -1,6 +1,40 @@
 import { SubjectType } from '@/stores/study-library/use-study-library-store';
 import { getPublicUrl } from '@/services/upload_file';
 
+export interface Instructor {
+    id: string;
+    username: string;
+    email: string;
+    full_name: string;
+    address_line: string | null;
+    city: string | null;
+    region: string | null;
+    pin_code: string | null;
+    mobile_number: string | null;
+    date_of_birth: string | null;
+    gender: string | null;
+    password: string | null;
+    profile_pic_file_id: string | null;
+    roles: string[];
+    root_user: boolean;
+}
+
+export interface Session {
+    session_dto: {
+        id: string;
+        session_name: string;
+        status: string;
+        start_date: string;
+    };
+    level_with_details: Array<{
+        id: string;
+        name: string;
+        duration_in_days: number;
+        instructors: Instructor[];
+        subjects: SubjectType[];
+    }>;
+}
+
 interface CourseWithSessionsType {
     course: {
         id: string;
@@ -18,20 +52,7 @@ interface CourseWithSessionsType {
         course_depth: number;
         course_html_description: string;
     };
-    sessions: Array<{
-        level_with_details: Array<{
-            id: string;
-            name: string;
-            duration_in_days: number;
-            subjects: SubjectType[];
-        }>;
-        session_dto: {
-            id: string;
-            session_name: string;
-            status: string;
-            start_date: string;
-        };
-    }>;
+    sessions: Session[];
 }
 
 const createDefaultSubject = (): SubjectType => ({
@@ -44,32 +65,41 @@ const createDefaultSubject = (): SubjectType => ({
     updated_at: new Date().toISOString(),
 });
 
-const tryGetPublicUrl = async (mediaId: string | null | undefined): Promise<string> => {
-    if (!mediaId) return '';
+function isJson(str: string): boolean {
     try {
-        const url = await getPublicUrl(mediaId);
-        return url || '';
+        const parsed = JSON.parse(str);
+        return typeof parsed === 'object' && parsed !== null;
     } catch {
-        return '';
+        return false;
     }
-};
+}
 
 export const transformApiDataToCourseData = async (apiData: CourseWithSessionsType) => {
     if (!apiData) return null;
 
     try {
-        const [coursePreviewImageMediaId, courseBannerMediaId, courseMediaId] = await Promise.all([
-            tryGetPublicUrl(apiData.course.course_preview_image_media_id),
-            tryGetPublicUrl(apiData.course.course_banner_media_id),
-            tryGetPublicUrl(apiData.course.course_media_id),
-        ]);
+        const courseMediaImage = isJson(apiData.course.course_media_id)
+            ? JSON.parse(apiData.course.course_media_id)
+            : apiData.course.course_media_id;
+
+        const coursePreviewImageMediaId = await getPublicUrl(
+            apiData.course.course_preview_image_media_id
+        );
+
+        const courseBannerMediaId = await getPublicUrl(apiData.course.course_banner_media_id);
+
+        const courseMediaId = await getPublicUrl(
+            isJson(apiData.course.course_media_id)
+                ? courseMediaImage.id
+                : apiData.course.course_media_id
+        );
 
         return {
             id: apiData.course.id,
             title: apiData.course.package_name,
             description: apiData.course.course_html_description, // Remove HTML tags
             tags: apiData.course.tags?.split(',').map((tag) => tag.trim()) || [],
-            imageUrl: coursePreviewImageMediaId || '', // Use the preview image as the main image
+            imageUrl: '', // Use the preview image as the main image
             courseStructure: apiData.course.course_depth,
             whatYoullLearn: apiData.course.why_learn,
             whyLearn: apiData.course.why_learn,
@@ -78,9 +108,15 @@ export const transformApiDataToCourseData = async (apiData: CourseWithSessionsTy
             packageName: apiData.course.package_name,
             status: apiData.course.status,
             isCoursePublishedToCatalaouge: apiData.course.is_course_published_to_catalaouge,
-            coursePreviewImageMediaId,
-            courseBannerMediaId,
-            courseMediaId,
+            coursePreviewImageMediaId: apiData.course.course_preview_image_media_id,
+            courseBannerMediaId: apiData.course.course_banner_media_id,
+            courseMediaId: {
+                type: isJson(apiData.course.course_media_id) ? courseMediaImage.type : '',
+                id: isJson(apiData.course.course_media_id) ? courseMediaImage.id : '',
+            },
+            coursePreviewImageMediaPreview: coursePreviewImageMediaId,
+            courseBannerMediaPreview: courseBannerMediaId,
+            courseMediaPreview: courseMediaId ?? '',
             courseHtmlDescription: apiData.course.course_html_description,
             instructors: [], // This should be populated from your API if available
             sessions: apiData.sessions.map((session) => ({
@@ -97,6 +133,12 @@ export const transformApiDataToCourseData = async (apiData: CourseWithSessionsTy
                         id: level.id,
                         name: level.name,
                         duration_in_days: level.duration_in_days,
+                        instructors: level.instructors.map((inst) => ({
+                            id: inst.id,
+                            name: inst.full_name,
+                            email: inst.email,
+                            profilePicId: inst.profile_pic_file_id,
+                        })),
                         subjects: subjects.map((subject) => ({
                             id: subject.id,
                             subject_name: subject.subject_name,
@@ -122,3 +164,27 @@ export const transformApiDataToCourseData = async (apiData: CourseWithSessionsTy
         return null;
     }
 };
+
+// Function to get instructors by sessionId and levelId
+export function getInstructorsBySessionAndLevel(
+    sessionsData: Session[],
+    sessionId: string,
+    levelId: string
+) {
+    if (!sessionsData) return [];
+    for (const session of sessionsData) {
+        if (session.session_dto.id === sessionId) {
+            for (const level of session.level_with_details) {
+                if (level.id === levelId) {
+                    return level.instructors.map((inst: Instructor) => ({
+                        id: inst.id,
+                        name: inst.full_name,
+                        email: inst.email,
+                        profilePicId: inst.profile_pic_file_id || '',
+                    }));
+                }
+            }
+        }
+    }
+    return [];
+}

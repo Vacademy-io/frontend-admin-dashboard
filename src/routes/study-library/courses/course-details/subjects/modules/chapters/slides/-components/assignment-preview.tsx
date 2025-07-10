@@ -100,6 +100,7 @@ const StudyLibraryAssignmentPreview = ({ activeItem }: { activeItem: Slide }) =>
                                 <FormControl>
                                     <MainViewQuillEditor
                                         onChange={field.onChange}
+                                        onBlur={field.onBlur}
                                         value={field.value}
                                     />
                                 </FormControl>

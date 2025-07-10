@@ -120,7 +120,7 @@ export const MOVE_CHAPTER = `${BASE_URL}/admin-core-service/chapter/v1/move`;
 
 export const ADD_COURSE = `${BASE_URL}/admin-core-service/course/v1/add-course`;
 export const DELETE_COURSE = `${BASE_URL}/admin-core-service/course/v1/delete-courses`;
-export const UPDATE_COURSE = `${BASE_URL}/admin-core-service/course/v1/update-course`;
+export const UPDATE_COURSE = `${BASE_URL}/admin-core-service/course/v1/update-course-details`;
 
 export const GET_SESSION_DETAILS = `${BASE_URL}/admin-core-service/sessions/v1/session-details`;
 export const ADD_SESSION = `${BASE_URL}/admin-core-service/sessions/v1/add`;

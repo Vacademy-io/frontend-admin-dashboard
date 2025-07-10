@@ -2,7 +2,7 @@ import { TokenKey } from '@/constants/auth/tokens';
 import { useFileUpload } from '@/hooks/use-file-upload';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import {
@@ -27,17 +27,25 @@ import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingS
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 
 type MediaType = 'image' | 'video';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 // Step 1 Schema
 export const step1Schema = z.object({
+    id: z.string().optional(),
     course: z.string().min(1, { message: 'Course name is required' }),
     description: z.string().optional(),
     learningOutcome: z.string().optional(),
     aboutCourse: z.string().optional(),
     targetAudience: z.string().optional(),
-    coursePreview: z.any().optional(),
-    courseBanner: z.any().optional(),
-    courseMedia: z.any().optional(),
+    coursePreview: z.string().optional(),
+    courseBanner: z.string().optional(),
+    courseMedia: z.object({
+        type: z.string().optional(),
+        id: z.string().optional(),
+    }),
+    coursePreviewBlob: z.string().optional(),
+    courseBannerBlob: z.string().optional(),
+    courseMediaBlob: z.string().optional(),
     tags: z.array(z.string()).default([]),
 });
 export type Step1Data = z.infer<typeof step1Schema>;
@@ -49,11 +57,12 @@ export const AddCourseStep1 = ({
     onNext: (data: Step1Data) => void;
     initialData?: Step1Data;
 }) => {
+    const { instituteDetails } = useInstituteDetailsStore();
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const data = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
 
-    const { uploadFile } = useFileUpload();
+    const { uploadFile, getPublicUrl } = useFileUpload();
 
     const coursePreviewRef = useRef<HTMLInputElement>(null);
     const courseBannerRef = useRef<HTMLInputElement>(null);
@@ -65,21 +74,32 @@ export const AddCourseStep1 = ({
         courseMedia: false,
     });
 
-    const [newTag, setNewTag] = useState('');
-    const [tags, setTags] = useState<string[]>(initialData?.tags || []);
+    const [tags, setTags] = useState<string[]>(initialData?.tags || []); // selected tags
+    const allTags = instituteDetails?.tags || [];
+    const [newTag, setNewTag] = useState<string>('');
+    const [filteredTags, setFilteredTags] = useState<string[]>([]);
 
     const form = useForm<Step1Data>({
         resolver: zodResolver(step1Schema),
-        defaultValues: initialData || {
-            course: '',
-            description: '',
-            learningOutcome: '',
-            aboutCourse: '',
-            targetAudience: '',
-            coursePreview: null,
-            courseBanner: null,
-            courseMedia: null,
-            tags: [],
+        defaultValues: {
+            course: initialData?.course,
+            description: initialData?.description,
+            learningOutcome: initialData?.learningOutcome,
+            aboutCourse: initialData?.aboutCourse,
+            targetAudience: initialData?.targetAudience,
+            coursePreview: initialData?.coursePreview,
+            courseBanner: initialData?.courseBanner,
+            courseMedia: {
+                ...(typeof initialData?.courseMedia === 'string'
+                    ? initialData?.courseMedia
+                        ? JSON.parse(initialData?.courseMedia)
+                        : { type: '', id: '' }
+                    : initialData?.courseMedia || { type: '', id: '' }),
+            },
+            coursePreviewBlob: '',
+            courseBannerBlob: '',
+            courseMediaBlob: '',
+            tags: initialData?.tags,
         },
     });
 
@@ -100,15 +120,6 @@ export const AddCourseStep1 = ({
                 [field]: true,
             }));
 
-            const imageUrl = URL.createObjectURL(file);
-            form.setValue(`${field}.url`, imageUrl);
-
-            // Set media type for course media
-            if (field === 'courseMedia') {
-                const mediaType: MediaType = file.type.startsWith('video/') ? 'video' : 'image';
-                form.setValue('courseMedia.mediaType', mediaType);
-            }
-
             const uploadedFileId = await uploadFile({
                 file,
                 setIsUploading: (state) =>
@@ -121,8 +132,24 @@ export const AddCourseStep1 = ({
                 sourceId: 'COURSES',
             });
 
+            const publicUrl = await getPublicUrl(uploadedFileId || '');
+
             if (uploadedFileId) {
-                form.setValue(`${field}.id`, uploadedFileId);
+                if (field === 'courseMedia') {
+                    form.setValue(field, {
+                        type: file.type.includes('video') ? 'video' : 'image',
+                        id: uploadedFileId,
+                    }); // set as string
+                } else {
+                    form.setValue(field, uploadedFileId); // set as string
+                }
+                if (field === 'coursePreview') {
+                    form.setValue('coursePreviewBlob', publicUrl);
+                } else if (field === 'courseBanner') {
+                    form.setValue('courseBannerBlob', publicUrl);
+                } else if (field === 'courseMedia') {
+                    form.setValue('courseMediaBlob', publicUrl);
+                }
             }
         } catch (error) {
             console.error('Upload failed:', error);
@@ -134,14 +161,34 @@ export const AddCourseStep1 = ({
         }
     };
 
-    const addTag = (e: React.MouseEvent | React.KeyboardEvent) => {
-        e.preventDefault();
-        if (newTag.trim() && !tags.includes(newTag.trim())) {
-            const updatedTags = [...tags, newTag.trim()];
+    const handleTagInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const input = e.target.value;
+        setNewTag(input);
+
+        if (input.trim()) {
+            const filtered = allTags
+                ?.filter(
+                    (tag) => tag.toLowerCase().includes(input.toLowerCase()) && !tags.includes(tag) // Exclude already selected tags
+                )
+                .slice(0, 5);
+            setFilteredTags(filtered);
+        } else {
+            setFilteredTags([]);
+        }
+    };
+
+    const addTag = (e?: React.MouseEvent | React.KeyboardEvent, selectedTag?: string) => {
+        if (e) e.preventDefault();
+
+        const tagToAdd = selectedTag || newTag.trim();
+        if (tagToAdd && !tags.includes(tagToAdd)) {
+            const updatedTags = [...tags, tagToAdd];
             setTags(updatedTags);
             form.setValue('tags', updatedTags);
-            setNewTag('');
         }
+
+        setNewTag('');
+        setFilteredTags([]);
     };
 
     const removeTag = (tagToRemove: string) => {
@@ -149,6 +196,25 @@ export const AddCourseStep1 = ({
         setTags(updatedTags);
         form.setValue('tags', updatedTags);
     };
+
+    useEffect(() => {
+        const fetchAndSetUrls = async () => {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            const courseMediaImage = JSON.parse(initialData?.courseMedia);
+            const coursePreviewUrl = await getPublicUrl(form.getValues('coursePreview') || '');
+            const courseBannerUrl = await getPublicUrl(form.getValues('courseBanner') || '');
+            const courseMediaUrl = await getPublicUrl(courseMediaImage.id);
+
+            form.setValue('coursePreviewBlob', coursePreviewUrl);
+            form.setValue('courseBannerBlob', courseBannerUrl);
+            form.setValue('courseMediaBlob', courseMediaUrl);
+        };
+
+        if (initialData) {
+            fetchAndSetUrls();
+        }
+    }, [initialData]);
 
     return (
         <Form {...form}>
@@ -193,7 +259,7 @@ export const AddCourseStep1 = ({
                                     )}
                                 />
 
-                                <div className="flex flex-col gap-16">
+                                <div className="flex flex-col">
                                     <FormField
                                         control={form.control}
                                         name="description"
@@ -202,8 +268,17 @@ export const AddCourseStep1 = ({
                                                 <FormLabel>Description</FormLabel>
                                                 <FormControl>
                                                     <MainViewQuillEditor
-                                                        onChange={field.onChange}
+                                                        onChange={(value: string) => {
+                                                            const wordCount = value
+                                                                .replace(/<[^>]*>/g, '')
+                                                                .trim()
+                                                                .split(/\s+/).length;
+                                                            if (wordCount <= 30) {
+                                                                field.onChange(value);
+                                                            }
+                                                        }}
                                                         value={field.value}
+                                                        onBlur={field.onBlur}
                                                         CustomclasssName="h-[120px]"
                                                         placeholder={`Enter ${getTerminology(
                                                             ContentTerms.Course,
@@ -211,10 +286,12 @@ export const AddCourseStep1 = ({
                                                         )} description`}
                                                     />
                                                 </FormControl>
-                                                <FormMessage />
                                             </FormItem>
                                         )}
                                     />
+                                    <span className="relative top-12 text-xs text-red-500">
+                                        *Max 30 words allowed
+                                    </span>
                                 </div>
 
                                 {/* Tags Section */}
@@ -231,7 +308,7 @@ export const AddCourseStep1 = ({
                                             type="text"
                                             placeholder="Enter a tag"
                                             value={newTag}
-                                            onChange={(e) => setNewTag(e.target.value)}
+                                            onChange={handleTagInputChange}
                                             onKeyDown={(e) => {
                                                 if (e.key === 'Enter') {
                                                     addTag(e);
@@ -239,6 +316,7 @@ export const AddCourseStep1 = ({
                                             }}
                                             className="h-9 border-gray-300"
                                         />
+
                                         <MyButton
                                             type="button"
                                             buttonType="secondary"
@@ -251,9 +329,26 @@ export const AddCourseStep1 = ({
                                         </MyButton>
                                     </div>
 
-                                    {tags.length > 0 && (
+                                    {/* Suggestions dropdown */}
+                                    {filteredTags?.length > 0 && (
+                                        <div className="w-full overflow-y-auto rounded-md border border-neutral-200 bg-white shadow-sm">
+                                            <div className="flex flex-wrap gap-1.5 p-2">
+                                                {filteredTags.map((tag, index) => (
+                                                    <span
+                                                        key={index}
+                                                        className="hover:text-primary-600 cursor-pointer select-none rounded-full bg-neutral-100 px-2 py-1 text-xs text-neutral-700 transition-colors hover:bg-primary-100"
+                                                        onClick={(e) => addTag(e, tag)}
+                                                    >
+                                                        {tag}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {tags?.length > 0 && (
                                         <div className="flex flex-wrap gap-2">
-                                            {tags.map((tag, index) => (
+                                            {tags?.map((tag, index) => (
                                                 <Badge
                                                     key={index}
                                                     variant="secondary"
@@ -280,6 +375,7 @@ export const AddCourseStep1 = ({
                                                     <MainViewQuillEditor
                                                         onChange={field.onChange}
                                                         value={field.value}
+                                                        onBlur={field.onBlur}
                                                         CustomclasssName="h-[120px]"
                                                         placeholder="Provide a detailed overview of the course. Include learning objectives, topics covered, format (video, quizzes, projects), and who this course is for."
                                                     />
@@ -304,6 +400,7 @@ export const AddCourseStep1 = ({
                                                     <MainViewQuillEditor
                                                         onChange={field.onChange}
                                                         value={field.value}
+                                                        onBlur={field.onBlur}
                                                         CustomclasssName="h-[120px]"
                                                         placeholder="Provide a detailed overview of the course. Include learning objectives, topics covered, format (video, quizzes, projects), and who this course is for."
                                                     />
@@ -322,6 +419,7 @@ export const AddCourseStep1 = ({
                                                     <MainViewQuillEditor
                                                         onChange={field.onChange}
                                                         value={field.value}
+                                                        onBlur={field.onBlur}
                                                         CustomclasssName="h-[120px]"
                                                         placeholder="Provide a detailed overview of the course. Include learning objectives, topics covered, format (video, quizzes, projects), and who this course is for."
                                                     />
@@ -350,10 +448,10 @@ export const AddCourseStep1 = ({
                                             <div className="flex h-[200px] items-center justify-center rounded-lg bg-gray-100">
                                                 <DashboardLoader />
                                             </div>
-                                        ) : form.watch('coursePreview.url') ? (
+                                        ) : form.watch('coursePreview') ? (
                                             <div className="h-[200px] w-full rounded-lg bg-gray-100">
                                                 <img
-                                                    src={form.watch('coursePreview.url')}
+                                                    src={form.watch('coursePreviewBlob')}
                                                     alt="Course Preview"
                                                     className="size-full rounded-lg object-contain"
                                                 />
@@ -371,7 +469,7 @@ export const AddCourseStep1 = ({
                                                 handleFileUpload(file, 'coursePreview')
                                             }
                                             control={form.control}
-                                            name="coursePreview.id"
+                                            name="coursePreview"
                                             acceptedFileTypes={[
                                                 'image/jpeg',
                                                 'image/png',
@@ -407,10 +505,10 @@ export const AddCourseStep1 = ({
                                             <div className="flex h-[200px] items-center justify-center rounded-lg bg-gray-100">
                                                 <DashboardLoader />
                                             </div>
-                                        ) : form.watch('courseBanner.url') ? (
+                                        ) : form.watch('courseBanner') ? (
                                             <div className="h-[200px] w-full rounded-lg bg-gray-100">
                                                 <img
-                                                    src={form.watch('courseBanner.url')}
+                                                    src={form.watch('courseBannerBlob')}
                                                     alt="Course Banner"
                                                     className="size-full rounded-lg object-contain"
                                                 />
@@ -428,7 +526,7 @@ export const AddCourseStep1 = ({
                                                 handleFileUpload(file, 'courseBanner')
                                             }
                                             control={form.control}
-                                            name="courseBanner.id"
+                                            name="courseBanner"
                                             acceptedFileTypes={[
                                                 'image/jpeg',
                                                 'image/png',
@@ -465,24 +563,29 @@ export const AddCourseStep1 = ({
                                             <div className="flex h-[200px] items-center justify-center rounded-lg bg-gray-100">
                                                 <DashboardLoader />
                                             </div>
-                                        ) : form.watch('courseMedia.url') ? (
-                                            <div className="h-[200px] w-full rounded-lg bg-gray-100">
-                                                {form.watch('courseMedia.mediaType') === 'video' ? (
+                                        ) : form.watch('courseMedia')?.id ? (
+                                            form.watch('courseMedia')?.type === 'video' ? (
+                                                <div className="h-[200px] w-full rounded-lg bg-gray-100">
                                                     <video
-                                                        src={form.watch('courseMedia.url')}
+                                                        src={form.watch('courseMediaBlob')}
                                                         controls
+                                                        controlsList="nodownload noremoteplayback"
+                                                        disablePictureInPicture
+                                                        disableRemotePlayback
                                                         className="size-full rounded-lg object-contain"
                                                     >
                                                         Your browser does not support the video tag.
                                                     </video>
-                                                ) : (
+                                                </div>
+                                            ) : (
+                                                <div className="flex h-[200px] items-center justify-center rounded-lg bg-gray-100">
                                                     <img
-                                                        src={form.watch('courseMedia.url')}
-                                                        alt="Course Media"
+                                                        src={form.watch('courseMediaBlob')}
+                                                        alt="Course Banner"
                                                         className="size-full rounded-lg object-contain"
                                                     />
-                                                )}
-                                            </div>
+                                                </div>
+                                            )
                                         ) : (
                                             <div className="flex h-[200px] items-center justify-center rounded-lg bg-gray-100">
                                                 <p className="text-white">
@@ -496,7 +599,7 @@ export const AddCourseStep1 = ({
                                                 handleFileUpload(file, 'courseMedia')
                                             }
                                             control={form.control}
-                                            name="courseMedia.id"
+                                            name="courseMedia"
                                             acceptedFileTypes={[
                                                 'image/jpeg',
                                                 'image/png',

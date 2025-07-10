@@ -85,7 +85,7 @@ export function Navbar() {
             const fetchPublicUrl = async () => {
                 if (adminDetails?.profile_pic_file_id) {
                     const publicUrl = await getPublicUrl(adminDetails?.profile_pic_file_id);
-                    setAdminLogo(publicUrl);
+                    setAdminLogo(publicUrl || '');
                 }
             };
 

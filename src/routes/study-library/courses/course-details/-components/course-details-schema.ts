@@ -27,6 +27,7 @@ const instructorSchema = z.object({
     id: z.string().uuid(), // Assuming IDs are UUIDs
     email: z.string().email({ message: 'Invalid email address.' }),
     name: z.string().min(1, { message: 'Instructor name is required.' }),
+    profilePicId: z.string().optional(),
 });
 
 // Define the schema for level details within a session
@@ -37,6 +38,7 @@ const levelDetailsSchema = z.object({
         .number()
         .int()
         .min(0, { message: 'Duration must be a non-negative integer.' }),
+    instructors: z.array(instructorSchema),
     subjects: z
         .array(
             z.object({
@@ -127,7 +129,13 @@ export const courseDetailsSchema = z.object({
         isCoursePublishedToCatalaouge: z.boolean(),
         coursePreviewImageMediaId: z.string(),
         courseBannerMediaId: z.string(),
-        courseMediaId: z.string(),
+        courseMediaId: z.object({
+            type: z.string(),
+            id: z.string(),
+        }),
+        coursePreviewImageMediaPreview: z.string(),
+        courseBannerMediaPreview: z.string(),
+        courseMediaPreview: z.string(),
         courseHtmlDescription: z.string(),
         instructors: z
             .array(instructorSchema)

@@ -719,6 +719,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                             <FormControl>
                                                 <MainViewQuillEditor
                                                     onChange={field.onChange}
+                                                    onBlur={field.onBlur}
                                                     value={field.value}
                                                 />
                                             </FormControl>

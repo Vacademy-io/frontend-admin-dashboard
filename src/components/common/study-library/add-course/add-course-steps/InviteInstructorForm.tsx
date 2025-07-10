@@ -13,9 +13,11 @@ import { handleInviteUsers } from '@/routes/dashboard/-services/dashboard-servic
 import { useMutation } from '@tanstack/react-query';
 import { getInstituteId } from '@/constants/helper';
 import { toast } from 'sonner';
+import { MultiSelectField } from '@/components/design-system/multi-select-field';
+import { RoleType } from '@/constants/dummy-data';
 
 interface InviteInstructorFormProps {
-    onInviteSuccess: (id: string, name: string, email: string) => void;
+    onInviteSuccess: (id: string, name: string, email: string, profilePicId: string) => void;
     onCancel: () => void;
 }
 
@@ -26,7 +28,7 @@ const InviteInstructorForm = ({ onInviteSuccess, onCancel }: InviteInstructorFor
         defaultValues: {
             name: '',
             email: '',
-            roleType: ['TEACHER'],
+            roleType: [],
             batch_subject_mappings: [],
         },
         mode: 'onChange',
@@ -41,7 +43,7 @@ const InviteInstructorForm = ({ onInviteSuccess, onCancel }: InviteInstructorFor
             data: z.infer<typeof inviteUsersSchema>;
         }) => handleInviteUsers(instituteId, data),
         onSuccess: (res, { data }) => {
-            onInviteSuccess(res, data.name, data.email);
+            onInviteSuccess(res.id, data.name, data.email, res.profile_pic_file_id || '');
             form.reset();
             toast.success('Instructor invited successfully');
         },
@@ -104,6 +106,14 @@ const InviteInstructorForm = ({ onInviteSuccess, onCancel }: InviteInstructorFor
                                 </FormItem>
                             )}
                         />
+                        <MultiSelectField
+                            form={form}
+                            label="Role Type"
+                            name="roleType"
+                            options={RoleType}
+                            control={form.control}
+                            className="w-full"
+                        />
                         <div className="mt-3 flex gap-4">
                             <MyButton
                                 type="button"
@@ -111,7 +121,11 @@ const InviteInstructorForm = ({ onInviteSuccess, onCancel }: InviteInstructorFor
                                 scale="medium"
                                 layoutVariant="default"
                                 onClick={form.handleSubmit(handleSubmit)}
-                                disable={!form.formState.isValid}
+                                disable={
+                                    !form.watch('name') ||
+                                    !form.watch('email') ||
+                                    !form.watch('roleType')
+                                }
                             >
                                 Add Instructor
                             </MyButton>

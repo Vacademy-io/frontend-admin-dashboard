@@ -43,27 +43,30 @@ import { useInstituteDetailsStore } from '@/stores/students/students-list/useIns
 import { HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
 // Constants
 const WAITING_ROOM_OPTIONS = [
-    { value: '15', label: '15 minutes', _id: 1 },
-    { value: '30', label: '30 minutes', _id: 2 },
-    { value: '45', label: '45 minutes', _id: 3 },
+    { value: '5', label: '5 minutes', _id: 1 },
+    { value: '10', label: '10 minutes', _id: 2 },
+    { value: '15', label: '15 minutes', _id: 3 },
+    { value: '30', label: '30 minutes', _id: 4 },
+    { value: '45', label: '45 minutes', _id: 5 },
 ];
 
 const STREAMING_OPTIONS = [
     { value: StreamingPlatform.YOUTUBE, label: 'Youtube', _id: 1 },
-    { value: StreamingPlatform.MEET, label: 'Meet', _id: 2 },
+    { value: StreamingPlatform.MEET, label: 'Google Meet', _id: 2 },
     { value: StreamingPlatform.ZOOM, label: 'Zoom', _id: 3 },
+    { value: StreamingPlatform.OTHER, label: 'Other', _id: 4 },
 ];
 
 export default function ScheduleStep1() {
     // Hooks and State
     const navigate = useNavigate();
-    const {setSessionId} = useLiveSessionStore();
+    const { setSessionId } = useLiveSessionStore();
     const { sessionDetails } = useSessionDetailsStore();
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [selectedMusicFile, setSelectedMusicFile] = useState<File | null>(null);
     const musicFileInputRef = useRef<HTMLInputElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [scheduleType, setScheduleType] = useState<'everyday' | 'weekday' | null>(null);
+    const [scheduleType, setScheduleType] = useState<'everyday' | 'weekday' | 'exceptSunday' | 'custom' | null>(null);
 
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
     const { SubjectFilterData } = useFilterDataForAssesment(instituteDetails);
@@ -75,8 +78,8 @@ export default function ScheduleStep1() {
         defaultValues: {
             title: '',
             meetingType:
-                sessionDetails?.schedule?.recurrence_type === 'weekly' 
-                    ? RecurringType.WEEKLY 
+                sessionDetails?.schedule?.recurrence_type === 'weekly'
+                    ? RecurringType.WEEKLY
                     : RecurringType.ONCE,
             recurringSchedule: WEEK_DAYS.map((day) => ({
                 day: day.label,
@@ -93,7 +96,6 @@ export default function ScheduleStep1() {
             subject: 'none',
             timeZone: '(GMT 5:30) India Standard Time (Asia/Kolkata)',
             events: '1',
-            openWaitingRoomBefore: '15',
             sessionType: SessionType.LIVE,
             streamingType: sessionDetails?.schedule?.session_streaming_service_type
                 ? sessionDetails?.schedule?.session_streaming_service_type
@@ -106,6 +108,43 @@ export default function ScheduleStep1() {
         },
         mode: 'onChange',
     });
+
+    useEffect(() => {
+        const durationHours = form.watch('durationHours');
+        const durationMinutes = form.watch('durationMinutes');
+        const link = form.watch('defaultLink');
+        const updatedSchedule = form.getValues('recurringSchedule')?.map((day) => ({
+            ...day,
+            sessions: day.sessions.map((session) => ({
+                ...session,
+                durationHours,
+                durationMinutes,
+                link,
+            })),
+        }));
+
+        form.setValue('recurringSchedule', updatedSchedule);
+    }, [form.watch('durationHours'), form.watch('durationMinutes'), form.watch('defaultLink')]);
+
+    useEffect(() => {
+        const subscription = form.watch((value, { name }) => {
+            if (name === 'defaultLink' && value.defaultLink) {
+                const link = value.defaultLink.toLowerCase();
+
+                if (link.includes('youtube.com') || link.includes('youtu.be')) {
+                    form.setValue('sessionPlatform', StreamingPlatform.YOUTUBE);
+                } else if (link.includes('meet.google.com')) {
+                    form.setValue('sessionPlatform', StreamingPlatform.MEET);
+                } else if (link.includes('zoom.us')) {
+                    form.setValue('sessionPlatform', StreamingPlatform.ZOOM);
+                } else {
+                    form.setValue('sessionPlatform', StreamingPlatform.OTHER);
+                    form.setValue('streamingType', SessionPlatform.REDIRECT_TO_OTHER_PLATFORM);
+                    
+                }
+            }
+        });
+    }, [form.watch('defaultLink')]);
 
     useEffect(() => {
         if (sessionDetails) {
@@ -197,7 +236,7 @@ export default function ScheduleStep1() {
         if (file) {
             setSelectedFile(file);
         } else {
-            console.log('hgere ' , file)
+            console.log('hgere ', file);
             alert('Please upload a PNG file');
         }
     };
@@ -269,8 +308,6 @@ export default function ScheduleStep1() {
         try {
             const response = await createLiveSessionStep1(body);
             useLiveSessionStore.getState().setSessionId(response.id);
-            console.log(response.id)
-            setSessionId(response.id)
             navigate({ to: '/study-library/live-session/schedule/step2' });
         } catch (error) {
             console.error(error);
@@ -286,14 +323,17 @@ export default function ScheduleStep1() {
         const currentSchedule = form.getValues('recurringSchedule');
         const daySchedule = currentSchedule?.[dayIndex];
         if (!daySchedule) return;
+        const dh = form.getValues('durationHours');
+        const dm = form.getValues('durationMinutes');
+        const l = form.getValues('defaultLink');
 
         const updatedSessions = [
             ...daySchedule.sessions,
             {
                 startTime: '',
-                durationHours: '',
-                durationMinutes: '',
-                link: '',
+                durationHours: dh,
+                durationMinutes: dm,
+                link: l,
             },
         ];
 
@@ -324,13 +364,19 @@ export default function ScheduleStep1() {
             const isSelecting = !allSelected;
             form.setValue(`recurringSchedule.${index}.isSelect`, isSelecting);
 
+            const dh = form.getValues('durationHours');
+            const dm = form.getValues('durationMinutes');
+            const l = form.getValues('defaultLink');
+
+            console.log(dh, dm, l);
+
             if (isSelecting && (!day.sessions || day.sessions.length === 0)) {
                 form.setValue(`recurringSchedule.${index}.sessions`, [
                     {
                         startTime: '',
-                        durationHours: '',
-                        durationMinutes: '',
-                        link: '',
+                        durationHours: dh,
+                        durationMinutes: dm,
+                        link: l,
                     },
                 ]);
             }
@@ -348,13 +394,71 @@ export default function ScheduleStep1() {
                 : false;
             form.setValue(`recurringSchedule.${index}.isSelect`, isWeekday);
 
+            const dh = form.getValues('durationHours');
+            const dm = form.getValues('durationMinutes');
+            const l = form.getValues('defaultLink');
+
             if (isWeekday && (!day.sessions || day.sessions.length === 0)) {
                 form.setValue(`recurringSchedule.${index}.sessions`, [
                     {
                         startTime: '',
-                        durationHours: '',
-                        durationMinutes: '',
-                        link: '',
+                        durationHours: dh,
+                        durationMinutes: dm,
+                        link: l,
+                    },
+                ]);
+            }
+        });
+    };
+    const toggleMonToSat = () => {
+        const currentSchedule = form.getValues('recurringSchedule');
+        if (!currentSchedule) return;
+
+        currentSchedule.forEach((day, index) => {
+            const weekDay = WEEK_DAYS.find((d) => d.label === day.day);
+            const isWeekday = weekDay?.value
+                ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri' , 'Sat'].includes(weekDay.value)
+                : false;
+            form.setValue(`recurringSchedule.${index}.isSelect`, isWeekday);
+
+            const dh = form.getValues('durationHours');
+            const dm = form.getValues('durationMinutes');
+            const l = form.getValues('defaultLink');
+
+            if (isWeekday && (!day.sessions || day.sessions.length === 0)) {
+                form.setValue(`recurringSchedule.${index}.sessions`, [
+                    {
+                        startTime: '',
+                        durationHours: dh,
+                        durationMinutes: dm,
+                        link: l,
+                    },
+                ]);
+            }
+        });
+    };
+    const toggleCustom = () => {
+        const currentSchedule = form.getValues('recurringSchedule');
+        if (!currentSchedule) return;
+
+        currentSchedule.forEach((day, index) => {
+            const weekDay = WEEK_DAYS.find((d) => d.label === day.day);
+            const isWeekday = weekDay?.value
+                ? [''].includes(weekDay.value)
+                : false;
+            form.setValue(`recurringSchedule.${index}.isSelect`, isWeekday);
+
+            const dh = form.getValues('durationHours');
+            const dm = form.getValues('durationMinutes');
+            const l = form.getValues('defaultLink');
+
+            if (isWeekday && (!day.sessions || day.sessions.length === 0)) {
+                form.setValue(`recurringSchedule.${index}.sessions`, [
+                    {
+                        startTime: '',
+                        durationHours: dh,
+                        durationMinutes: dm,
+                        link: l,
                     },
                 ]);
             }
@@ -417,6 +521,7 @@ export default function ScheduleStep1() {
                                 <MainViewQuillEditor
                                     onChange={field.onChange}
                                     value={field.value}
+                                    onBlur={field.onBlur}
                                     CustomclasssName="h-[200px]"
                                 />
                             </FormControl>
@@ -753,12 +858,16 @@ export default function ScheduleStep1() {
                     <div className="flex flex-row items-center gap-2">
                         <Select
                             value={scheduleType || ''}
-                            onValueChange={(value: 'everyday' | 'weekday') => {
+                            onValueChange={(value: 'everyday' | 'weekday' | 'exceptSunday' | 'custom') => {
                                 setScheduleType(value);
                                 if (value === 'everyday') {
                                     toggleEveryDay();
                                 } else if (value === 'weekday') {
                                     toggleMonToFri();
+                                } else if(value === 'exceptSunday'){
+                                    toggleMonToSat();
+                                } else if(value === 'custom'){
+                                    toggleCustom();
                                 }
                             }}
                         >
@@ -768,6 +877,8 @@ export default function ScheduleStep1() {
                             <SelectContent>
                                 <SelectItem value="everyday">Every day</SelectItem>
                                 <SelectItem value="weekday">Mon-Fri</SelectItem>
+                                <SelectItem value="exceptSunday">Mon-Sat</SelectItem>
+                                <SelectItem value="custom">Custom</SelectItem>
                             </SelectContent>
                         </Select>
                         <div className="w-[100px]">Start Time</div>

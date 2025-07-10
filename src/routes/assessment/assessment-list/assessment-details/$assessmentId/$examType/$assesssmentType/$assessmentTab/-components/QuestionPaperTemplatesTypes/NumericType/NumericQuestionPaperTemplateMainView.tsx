@@ -122,6 +122,7 @@ export const NumericQuestionPaperTemplateMainView = ({
                                 <FormControl>
                                     <CollapsibleQuillEditor
                                         value={field.value}
+                                         onBlur={field.onBlur}
                                         onChange={field.onChange}
                                     />
                                 </FormControl>
@@ -146,6 +147,7 @@ export const NumericQuestionPaperTemplateMainView = ({
                             <FormControl>
                                 <MainViewQuillEditor
                                     value={field.value}
+                                    onBlur={field.onBlur}
                                     onChange={field.onChange}
                                 />
                             </FormControl>
@@ -262,6 +264,7 @@ export const NumericQuestionPaperTemplateMainView = ({
                             <FormControl>
                                 <MainViewQuillEditor
                                     value={field.value}
+                                    onBlur={field.onBlur}
                                     onChange={field.onChange}
                                 />
                             </FormControl>

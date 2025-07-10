@@ -374,7 +374,7 @@ export const CourseStructureDetails = ({
     const toggleChapter = (id: string) => toggleOpenState(id, setOpenChapters);
     const tabContent: Record<TabType, React.ReactNode> = {
         [TabType.OUTLINE]: (
-            <div className="space-y-4">
+            <div className="p-6 py-2">
                 <div className="max-w-3xl space-y-1 rounded-lg border border-gray-200 px-2">
                     {courseStructure === 5 && (
                         <AddSubjectButton isTextButton onAddSubject={handleAddSubject} />
@@ -1363,7 +1363,7 @@ export const CourseStructureDetails = ({
             </div>
         ),
         [TabType.STUDENT]: (
-            <div className="rounded-md bg-white p-3 text-sm text-gray-600 shadow-sm">
+            <div className="rounded-md bg-white p-6 py-2 text-sm text-gray-600 shadow-sm">
                 {currentSession && (
                     <Students
                         packageSessionId={packageSessionIds ?? ''}
@@ -1373,7 +1373,7 @@ export const CourseStructureDetails = ({
             </div>
         ),
         [TabType.TEACHERS]: (
-            <div className="space-y-3">
+            <div className="p-6 py-2">
                 <div className="flex flex-col items-start justify-between gap-2 md:flex-row md:items-center">
                     <div className="flex-1">
                         <h2 className="text-base font-semibold text-gray-800">Manage Teachers</h2>
@@ -1387,7 +1387,7 @@ export const CourseStructureDetails = ({
             </div>
         ),
         [TabType.ASSESSMENT]: (
-            <div className="rounded-md bg-white p-3 text-sm text-gray-600 shadow-sm">
+            <div className="rounded-md bg-white p-6 py-2 text-sm text-gray-600 shadow-sm">
                 <Assessments packageSessionId={packageSessionIds ?? ''} />
             </div>
         ),
