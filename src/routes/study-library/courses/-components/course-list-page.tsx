@@ -13,6 +13,8 @@ import { MyButton } from '@/components/design-system/button';
 import { TrashSimple } from 'phosphor-react';
 import { useNavigate } from '@tanstack/react-router';
 import { MyPagination } from '@/components/design-system/pagination';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 interface CourseListPageProps {
     selectedFilters: AllCourseFilters;
@@ -363,7 +365,11 @@ const CourseListPage = ({
                                                         })
                                                     }
                                                 >
-                                                    View Course
+                                                    View{' '}
+                                                    {getTerminology(
+                                                        ContentTerms.Course,
+                                                        SystemTerms.Course
+                                                    )}
                                                 </MyButton>
                                                 <button
                                                     onClick={() => handleCourseDelete(course.id)}

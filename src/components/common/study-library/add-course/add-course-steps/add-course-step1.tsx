@@ -26,7 +26,6 @@ import { X } from 'lucide-react';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 
-type MediaType = 'image' | 'video';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 // Step 1 Schema

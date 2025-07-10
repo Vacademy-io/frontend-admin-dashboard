@@ -38,7 +38,7 @@ import { getIcon } from '../subjects/modules/chapters/slides/-components/slides-
 import { useContentStore } from '../subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
 import { TeachersList } from '../subjects/-components/teacher-list';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
-import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { ContentTerms, RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 // Interfaces (assuming these are unchanged)
 export interface Chapter {
@@ -1376,9 +1376,16 @@ export const CourseStructureDetails = ({
             <div className="p-6 py-2">
                 <div className="flex flex-col items-start justify-between gap-2 md:flex-row md:items-center">
                     <div className="flex-1">
-                        <h2 className="text-base font-semibold text-gray-800">Manage Teachers</h2>
+                        <h2 className="text-base font-semibold text-gray-800">
+                            Manage {getTerminology(RoleTerms.Teacher, SystemTerms.Teacher)}
+                        </h2>
                         <p className="mt-0.5 text-xs text-gray-500">
-                            View and manage teachers assigned to this batch.
+                            View and manage{' '}
+                            {getTerminology(
+                                RoleTerms.Teacher,
+                                SystemTerms.Teacher
+                            ).toLocaleLowerCase()}
+                            s assigned to this batch.
                         </p>
                     </div>
                     <AddTeachers packageSessionId={packageSessionIds} />

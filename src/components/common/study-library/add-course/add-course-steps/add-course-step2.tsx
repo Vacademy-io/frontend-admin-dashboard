@@ -3013,7 +3013,7 @@ const SessionCard: React.FC<{
                                 className="font-light"
                             >
                                 <Plus />
-                                Add Level
+                                Add {getTerminology(ContentTerms.Level, SystemTerms.Level)}
                             </MyButton>
                         )}
                         <MyButton
