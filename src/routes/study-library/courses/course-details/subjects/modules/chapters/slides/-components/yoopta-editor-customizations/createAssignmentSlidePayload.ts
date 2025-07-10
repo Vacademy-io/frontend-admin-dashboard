@@ -26,8 +26,6 @@ export function createAssignmentSlidePayload(
         status: 'DRAFT',
         slide_order: 0,
         video_slide: null,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
         document_slide: null,
         question_slide: null,
         assignment_slide: {
@@ -51,5 +49,6 @@ export function createAssignmentSlidePayload(
         quiz_slide: null,
         is_loaded: true,
         new_slide: true,
+        notify: false,
     };
 }

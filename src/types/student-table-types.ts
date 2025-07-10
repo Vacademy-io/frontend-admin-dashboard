@@ -38,8 +38,10 @@ export interface StudentTable {
     gender: string;
     father_name: string;
     mother_name: string;
-    parents_mobile_number: string;
-    parents_email: string;
+    father_mobile_number: string;
+    father_email: string;
+    mother_mobile_number: string;
+    mother_email: string;
     linked_institute_name: string | null;
     created_at: string;
     updated_at: string;
@@ -50,10 +52,8 @@ export interface StudentTable {
     institute_id: string;
     country?: string;
     expiry_date: number;
-    face_file_id: string | null; // ✅ safer and allows removal
+    face_file_id: string | null;
     attempt_id?: string;
-    parents_to_mother_mobile_number: string;
-    parents_to_mother_email: string;
     package_id?: string;
     password?: string;
 }
