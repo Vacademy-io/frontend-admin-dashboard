@@ -220,8 +220,8 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
                 onOpenChange={handleOpenDialog}
                 className="w-[80vw] max-w-4xl"
             >
-                <div className="flex flex-col gap-3 p-4 text-sm h-full">
-                    <div className="mt-4 rounded-lg h-full">
+                <div className="flex h-full flex-col gap-3 p-4 text-sm">
+                    <div className="mt-4 h-full rounded-lg">
                         <h3 className="mb-2 text-lg font-semibold">Registrations</h3>
                         <MyTable
                             data={tableData}
@@ -230,7 +230,7 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
                             error={error as Error | null}
                             columnWidths={REGISTRATION_WIDTH}
                             currentPage={0}
-                            className="!w-fit !h-[70%]"
+                            className="!h-[70%] !w-fit"
                         />
                     </div>
                 </div>

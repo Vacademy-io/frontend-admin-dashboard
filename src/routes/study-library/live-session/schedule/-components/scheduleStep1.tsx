@@ -11,7 +11,7 @@ import { useFilterDataForAssesment } from '@/routes/assessment/assessment-list/-
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
 import { MyRadioButton } from '@/components/design-system/radio';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import {
     RecurringType,
     SessionPlatform,
@@ -50,14 +50,15 @@ const WAITING_ROOM_OPTIONS = [
 
 const STREAMING_OPTIONS = [
     { value: StreamingPlatform.YOUTUBE, label: 'Youtube', _id: 1 },
-    { value: StreamingPlatform.MEET, label: 'Meet', _id: 2 },
+    { value: StreamingPlatform.MEET, label: 'Google Meet', _id: 2 },
     { value: StreamingPlatform.ZOOM, label: 'Zoom', _id: 3 },
+    { value: StreamingPlatform.OTHER, label: 'Other', _id: 4 },
 ];
 
 export default function ScheduleStep1() {
     // Hooks and State
     const navigate = useNavigate();
-    const {setSessionId} = useLiveSessionStore();
+    const { setSessionId } = useLiveSessionStore();
     const { sessionDetails } = useSessionDetailsStore();
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [selectedMusicFile, setSelectedMusicFile] = useState<File | null>(null);
@@ -75,8 +76,8 @@ export default function ScheduleStep1() {
         defaultValues: {
             title: '',
             meetingType:
-                sessionDetails?.schedule?.recurrence_type === 'weekly' 
-                    ? RecurringType.WEEKLY 
+                sessionDetails?.schedule?.recurrence_type === 'weekly'
+                    ? RecurringType.WEEKLY
                     : RecurringType.ONCE,
             recurringSchedule: WEEK_DAYS.map((day) => ({
                 day: day.label,
@@ -94,13 +95,13 @@ export default function ScheduleStep1() {
             timeZone: '(GMT 5:30) India Standard Time (Asia/Kolkata)',
             events: '1',
             openWaitingRoomBefore: '15',
-            sessionType: SessionType.LIVE,
+            sessionType: '',
             streamingType: sessionDetails?.schedule?.session_streaming_service_type
                 ? sessionDetails?.schedule?.session_streaming_service_type
-                : SessionPlatform.EMBED_IN_APP,
+                : '',
             allowRewind: false,
             enableWaitingRoom: false,
-            sessionPlatform: StreamingPlatform.YOUTUBE,
+            sessionPlatform: StreamingPlatform.OTHER,
             durationMinutes: '00',
             durationHours: '00',
         },
@@ -183,6 +184,107 @@ export default function ScheduleStep1() {
     }, [sessionDetails]);
 
     const { control, watch } = form;
+    // Watch the selected streaming platform to conditionally render/disable options
+    const sessionPlatformWatch = useWatch({ control, name: 'sessionPlatform' });
+    const defaultLinkWatch = useWatch({ control, name: 'defaultLink' });
+
+    const detectedPlatform = useMemo(() => {
+        const link = (defaultLinkWatch || '').trim();
+        const youtubeRegex = /^(https?:\/\/(www\.)?youtube\.com\/(watch\?v=|@.+\/live))/i;
+        const meetRegex = /^(https?:\/\/meet\.google\.com\/(new|[a-zA-Z0-9-]+))/i;
+        const zoomRegex = /^(https?:\/\/([\w.-]+\.)?zoom\.us\/)/i;
+        if (youtubeRegex.test(link)) return 'youtube';
+        if (meetRegex.test(link)) return 'meet';
+        if (zoomRegex.test(link)) return 'zoom';
+        return 'other';
+    }, [defaultLinkWatch]);
+
+    // Effect: set form values based on detected platform
+    useEffect(() => {
+        switch (detectedPlatform) {
+            case 'youtube': {
+                form.setValue('sessionPlatform', StreamingPlatform.YOUTUBE);
+                form.setValue('streamingType', SessionPlatform.EMBED_IN_APP);
+                break;
+            }
+            case 'meet': {
+                form.setValue('sessionPlatform', StreamingPlatform.MEET);
+                form.setValue('sessionType', SessionType.LIVE);
+                form.setValue('streamingType', SessionPlatform.REDIRECT_TO_OTHER_PLATFORM);
+                break;
+            }
+            case 'zoom': {
+                form.setValue('sessionPlatform', StreamingPlatform.ZOOM);
+                form.setValue('streamingType', SessionPlatform.REDIRECT_TO_OTHER_PLATFORM);
+                break;
+            }
+            case 'other': {
+                form.setValue('sessionPlatform', StreamingPlatform.OTHER);
+                break;
+            }
+        }
+    }, [detectedPlatform]);
+
+    const isMeetPlatform = sessionPlatformWatch === StreamingPlatform.MEET;
+    const isZoomPlatform = sessionPlatformWatch === StreamingPlatform.ZOOM;
+
+    // Disabled options logic based on current platform selection
+    const disabledLiveClassOptions = useMemo(() => {
+        if (isMeetPlatform) return [SessionType.PRE_RECORDED];
+        return [];
+    }, [isMeetPlatform]);
+
+    const sessionTypeWatch = useWatch({ control, name: 'sessionType' });
+
+    const disabledStreamingOptions = useMemo(() => {
+        if (isMeetPlatform) {
+            return [SessionPlatform.EMBED_IN_APP];
+        }
+        if (isZoomPlatform && sessionTypeWatch !== SessionType.PRE_RECORDED) {
+            return [SessionPlatform.EMBED_IN_APP];
+        }
+        return [];
+    }, [isMeetPlatform, isZoomPlatform, sessionTypeWatch]);
+
+    // Map detectedPlatform string to enum value for comparison
+    const detectedEnumPlatform = useMemo(() => {
+        switch (detectedPlatform) {
+            case 'youtube':
+                return StreamingPlatform.YOUTUBE;
+            case 'meet':
+                return StreamingPlatform.MEET;
+            case 'zoom':
+                return StreamingPlatform.ZOOM;
+            default:
+                return StreamingPlatform.OTHER;
+        }
+    }, [detectedPlatform]);
+
+    const handleSessionPlatformChange = useCallback(
+        (value: string) => {
+            // If user picks a platform that doesn't match the one inferred from link, clear the link to prevent mismatch
+            if (defaultLinkWatch && value !== detectedEnumPlatform) {
+                form.setValue('defaultLink', '');
+                // Clear dependent selections to avoid inconsistencies
+                form.setValue('sessionType', '');
+                form.setValue('streamingType', '');
+            }
+        },
+        [defaultLinkWatch, detectedEnumPlatform]
+    );
+
+    // When Google Meet is selected, enforce Live session type and Redirect streaming type
+    useEffect(() => {
+        if (isMeetPlatform) {
+            // Enforce only if not already selected to avoid unnecessary re-renders
+            if (form.getValues('sessionType') !== SessionType.LIVE) {
+                form.setValue('sessionType', SessionType.LIVE);
+            }
+            if (form.getValues('streamingType') !== SessionPlatform.REDIRECT_TO_OTHER_PLATFORM) {
+                form.setValue('streamingType', SessionPlatform.REDIRECT_TO_OTHER_PLATFORM);
+            }
+        }
+    }, [isMeetPlatform]);
     const meetingType = useWatch({ control, name: 'meetingType' });
     const recurringSchedule = watch('recurringSchedule');
 
@@ -197,7 +299,7 @@ export default function ScheduleStep1() {
         if (file) {
             setSelectedFile(file);
         } else {
-            console.log('hgere ' , file)
+            console.log('hgere ', file);
             alert('Please upload a PNG file');
         }
     };
@@ -269,8 +371,8 @@ export default function ScheduleStep1() {
         try {
             const response = await createLiveSessionStep1(body);
             useLiveSessionStore.getState().setSessionId(response.id);
-            console.log(response.id)
-            setSessionId(response.id)
+            console.log(response.id);
+            setSessionId(response.id);
             navigate({ to: '/study-library/live-session/schedule/step2' });
         } catch (error) {
             console.error(error);
@@ -591,6 +693,7 @@ export default function ScheduleStep1() {
                 options={STREAMING_OPTIONS}
                 control={form.control}
                 className="mt-[8px] w-56 font-thin"
+                onSelect={handleSessionPlatformChange}
             />
             <div className="flex h-full flex-col items-start justify-around gap-2">
                 <div className="text-sm">Type of Live Class</div>
@@ -606,6 +709,7 @@ export default function ScheduleStep1() {
                                 { label: 'Live', value: SessionType.LIVE },
                                 { label: 'Pre Recorded', value: SessionType.PRE_RECORDED },
                             ]}
+                            disabledOptions={disabledLiveClassOptions}
                             className="flex flex-row gap-4"
                         />
                     )}
@@ -628,12 +732,23 @@ export default function ScheduleStep1() {
                                 value={field.value}
                                 onChange={field.onChange}
                                 options={[
-                                    { label: 'Embed in-app', value: SessionPlatform.EMBED_IN_APP },
                                     {
-                                        label: 'Redirect to other platform',
+                                        label: 'Embed in-app',
+                                        value: SessionPlatform.EMBED_IN_APP,
+                                    },
+                                    {
+                                        label:
+                                            sessionPlatformWatch === StreamingPlatform.YOUTUBE
+                                                ? 'Redirect to YouTube'
+                                                : sessionPlatformWatch === StreamingPlatform.MEET
+                                                  ? 'Redirect to Google Meet'
+                                                  : sessionPlatformWatch === StreamingPlatform.ZOOM
+                                                    ? 'Redirect to Zoom'
+                                                    : 'Redirect to other platform',
                                         value: SessionPlatform.REDIRECT_TO_OTHER_PLATFORM,
                                     },
                                 ]}
+                                disabledOptions={disabledStreamingOptions}
                                 className="flex flex-row gap-4"
                             />
                         )}
@@ -710,9 +825,7 @@ export default function ScheduleStep1() {
                         </div>
                         {selectedFile && (
                             <div className="mt-2 flex h-fit max-w-[140px] flex-row items-center justify-between gap-2 rounded-md border border-primary-500 p-1 text-sm">
-                                <span className="max-w-[120px] overflow-hidden truncate text-ellipsis whitespace-nowrap">
-                                    {selectedFile.name}
-                                </span>
+                                <span className="max-w-[120px] truncate">{selectedFile.name}</span>
                                 <X className="shrink-0 cursor-pointer" onClick={handleRemoveFile} />
                             </div>
                         )}
@@ -732,7 +845,7 @@ export default function ScheduleStep1() {
                         </div>
                         {selectedMusicFile && (
                             <div className="mt-2 flex h-fit max-w-[140px] flex-row items-center justify-between gap-2 rounded-md border border-primary-500 p-1 text-sm">
-                                <span className="max-w-[120px] overflow-hidden truncate text-ellipsis whitespace-nowrap">
+                                <span className="max-w-[120px] truncate">
                                     {selectedMusicFile.name}
                                 </span>
 
