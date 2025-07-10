@@ -113,7 +113,6 @@ const InviteInstructorForm = ({ onInviteSuccess, onCancel }: InviteInstructorFor
                             options={RoleType}
                             control={form.control}
                             className="w-full"
-                            required
                         />
                         <div className="mt-3 flex gap-4">
                             <MyButton
@@ -125,7 +124,7 @@ const InviteInstructorForm = ({ onInviteSuccess, onCancel }: InviteInstructorFor
                                 disable={
                                     !form.watch('name') ||
                                     !form.watch('email') ||
-                                    form.watch('roleType').length === 0
+                                    !form.watch('roleType')
                                 }
                             >
                                 Add Instructor
