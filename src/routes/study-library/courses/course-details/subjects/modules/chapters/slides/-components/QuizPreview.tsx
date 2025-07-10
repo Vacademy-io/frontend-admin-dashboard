@@ -55,9 +55,31 @@ const QuizPreview = ({ activeItem }: QuizPreviewProps) => {
 
     useEffect(() => {
         if (activeItem?.question_slide) {
-            const slide = activeItem.question_slide;
-            const questions = Array.isArray(slide) ? slide : [slide];
-            replace(questions);
+            const slides = Array.isArray(activeItem.question_slide)
+                ? activeItem.question_slide
+                : [activeItem.question_slide];
+
+            const transformedQuestions = slides.map((slide) => ({
+                questionName: slide.title || '',
+                questionType: slide.question_type || 'MCQ',
+                questionPenalty: slide.penalty || '0',
+                questionDuration: {
+                    min: '0',
+                    hrs: '0',
+                },
+                questionMark: slide.mark || '1',
+                id: slide.id,
+                status: slide.status,
+                validAnswers: slide.validAnswers || [],
+                options: slide.options || [],
+                explanation: slide.explanation || '',
+                canSkip: slide.canSkip || false,
+                hint: slide.hint || '',
+                tags: slide.tags || [],
+                // ...add other mappings if required
+            }));
+
+            replace(transformedQuestions);
         } else {
             replace([]);
         }
@@ -86,13 +108,15 @@ const QuizPreview = ({ activeItem }: QuizPreviewProps) => {
 
     const handleAdd = () => {
         append({
+            questionName: '',
             questionType: 'MCQ',
-            question: '',
-            options: [],
-            answer: '',
+            questionPenalty: '0',
+            questionDuration: { min: '0', hrs: '0' },
+            questionMark: '1',
             explanation: '',
+            validAnswers: [],
         });
-        setTimeout(syncToStore, 0); // ensure state updated after append
+        setTimeout(syncToStore, 0);
     };
 
     const handleRemove = (index: number) => {
@@ -106,11 +130,7 @@ const QuizPreview = ({ activeItem }: QuizPreviewProps) => {
                 {/* Header */}
                 <div className="flex items-center justify-between border-b bg-primary-50 px-6 py-4">
                     <h2 className="text-primary-700 text-lg font-semibold">Quiz Preview</h2>
-                    <Button
-                        type="button"
-                        onClick={handleAdd}
-                        className="bg-primary-600 hover:bg-primary-700 text-white"
-                    >
+                    <Button type="button" onClick={handleAdd} className="">
                         + Add Question
                     </Button>
                 </div>
@@ -178,14 +198,13 @@ const QuizPreview = ({ activeItem }: QuizPreviewProps) => {
                                         </DialogContent>
                                     </Dialog>
                                 </div>
-
                                 <Input
-                                    {...form.register(`questions.${index}.question`)}
+                                    {...form.register(`questions.${index}.questionName`)}
                                     placeholder="Enter question"
                                 />
                                 <Input
-                                    {...form.register(`questions.${index}.answer`)}
-                                    placeholder="Enter answer"
+                                    {...form.register(`questions.${index}.validAnswers.0`)} // Or map multiple if needed
+                                    placeholder="Enter correct answer"
                                 />
 
                                 <Button
@@ -200,7 +219,7 @@ const QuizPreview = ({ activeItem }: QuizPreviewProps) => {
                         ))
                     ) : (
                         <p className="text-center text-sm text-neutral-400">
-                            No questions added yet.
+                            No questions added yet......
                         </p>
                     )}
                 </div>

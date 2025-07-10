@@ -213,11 +213,6 @@ export function updateDocumentDataInSlides<T>(
         return item;
     });
 }
-const generateTextBlock = (content: string | null | undefined) => ({
-    id: null,
-    type: 'text',
-    content: content || '',
-});
 
 export const formatTimeStudyLibraryInSeconds = (seconds: number) => {
     const hrs = Math.floor(seconds / 3600);
@@ -878,5 +873,12 @@ export function convertToQuizSlideFormat(questionList: MyQuestion[], sourceId?: 
         options,
       };
     }),
+  };
+}
+export function generateTextBlock(content: string) {
+  return {
+    id: crypto.randomUUID(),
+    type: 'HTML',
+    content: content,
   };
 }
