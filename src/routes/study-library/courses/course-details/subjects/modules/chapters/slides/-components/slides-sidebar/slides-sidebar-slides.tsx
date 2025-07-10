@@ -11,15 +11,7 @@ import {
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { useRouter } from '@tanstack/react-router';
 import { useFieldArray, useForm } from 'react-hook-form';
-import {
-    BookOpen,
-    CheckCircle,
-    Code,
-    File,
-    GameController,
-    Question,
-    ClipboardText,
-} from 'phosphor-react';
+import { BookOpen, CheckCircle, Code, File, GameController, Question } from 'phosphor-react';
 import { useSaveDraft } from '../../-context/saveDraftContext';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -27,11 +19,9 @@ interface FormValues {
     slides: Slide[];
 }
 
+// Function to get the display text for slide type
 const getSlideTypeDisplay = (slide: Slide): string => {
-    if (slide.description && slide.description.trim() !== '') {
-        return slide.description.toLowerCase();
-    }
-
+    // For DOCUMENT slides with specific sub-types (not DOC), show just the sub-type
     if (
         slide.source_type === 'DOCUMENT' &&
         slide.document_slide?.type &&
@@ -40,32 +30,33 @@ const getSlideTypeDisplay = (slide: Slide): string => {
         return slide.document_slide.type.toLowerCase().replace('_', ' ');
     }
 
+    // For VIDEO slides with embedded_type, show the embedded_type
     if (slide.source_type === 'VIDEO' && slide.video_slide?.embedded_type) {
         return `${slide.source_type.toLowerCase().replace('_', ' ')} - ${slide.video_slide.embedded_type.toLowerCase().replace('_', ' ')}`;
     }
 
+    // For all other cases, show the main source_type
     return slide.source_type.toLowerCase().replace('_', ' ');
 };
 
 export const getIcon = (
     source_type: string,
     document_slide_type: string | undefined,
-    size?: string,
-    id?: string // Pass the slide ID if available
+    size?: string
 ): ReactNode => {
-    const sizeClass = `size-${size ?? '5'}`;
+    const sizeClass = `size-${size ? size : '5'}`;
     const iconClass = `${sizeClass} transition-all duration-200 ease-in-out group-hover:scale-105`;
 
-    const isQuiz = source_type?.toUpperCase() === 'QUIZ' || id?.toLowerCase().startsWith('quiz-');
-    console.log(source_type);
+    if (source_type === 'ASSIGNMENT') {
+        return <File className={`${iconClass} text-blue-500`} />;
+    }
 
-    const type = isQuiz
-        ? 'QUIZ'
-        : source_type?.toUpperCase() === 'QUESTION'
-          ? 'QUESTION'
-          : source_type?.toUpperCase() === 'VIDEO'
-            ? 'VIDEO'
-            : source_type?.toUpperCase() === 'DOCUMENT' && document_slide_type?.toUpperCase();
+    const type =
+        source_type === 'QUESTION'
+            ? 'QUESTION'
+            : source_type === 'VIDEO'
+              ? 'VIDEO'
+              : source_type === 'DOCUMENT' && document_slide_type;
 
     switch (type) {
         case 'PDF':
@@ -77,8 +68,6 @@ export const getIcon = (
             return <FileDoc className={`${iconClass} text-blue-600`} />;
         case 'QUESTION':
             return <Question className={`${iconClass} text-purple-500`} />;
-        case 'QUIZ':
-            return <ClipboardText className={`${iconClass} text-pink-500`} />;
         case 'JUPYTER':
             return <BookOpen className={`${iconClass} text-violet-500`} />;
         case 'SCRATCH':
@@ -87,13 +76,12 @@ export const getIcon = (
             return <Code className={`${iconClass} text-green-500`} />;
         case 'PRESENTATION':
             return <FileDoc className={`${iconClass} text-orange-500`} />;
-        case 'ASSIGNMENT':
-            return <File className="size-4 text-blue-500" />;
         default:
             return <></>;
     }
 };
 
+// Enhanced Slide Item Component
 const SlideItem = ({
     slide,
     index,
@@ -109,7 +97,7 @@ const SlideItem = ({
         return (
             (slide.source_type === 'DOCUMENT' && slide.document_slide?.title) ||
             (slide.source_type === 'VIDEO' && slide.video_slide?.title) ||
-            ((slide.source_type === 'QUESTION' || slide.source_type === 'QUIZ') && slide?.title) ||
+            (slide.source_type === 'QUESTION' && slide?.title) ||
             (slide.source_type === 'ASSIGNMENT' && slide?.title) ||
             'Untitled'
         );
@@ -166,6 +154,7 @@ const SlideItem = ({
                         <Tooltip>
                             <TooltipTrigger className="w-full">
                                 <div className="flex flex-1 items-center gap-2.5">
+                                    {/* Slide Number with enhanced styling */}
                                     <div
                                         className={`
                                         flex size-6 items-center justify-center rounded-md text-xs font-bold transition-all
@@ -180,15 +169,16 @@ const SlideItem = ({
                                         {index + 1}
                                     </div>
 
+                                    {/* Icon with enhanced styling */}
                                     <div className="shrink-0">
                                         {getIcon(
                                             slide.source_type,
                                             slide.document_slide?.type,
-                                            '4',
-                                            slide.id
+                                            '4'
                                         )}
                                     </div>
 
+                                    {/* Content area */}
                                     <div className="min-w-0 flex-1">
                                         <p className="truncate text-sm font-medium leading-tight">
                                             {truncateString(getSlideTitle(), 18)}
@@ -198,6 +188,7 @@ const SlideItem = ({
                                         </p>
                                     </div>
 
+                                    {/* Status indicator */}
                                     <div className="shrink-0">{getStatusBadge()}</div>
                                 </div>
                             </TooltipTrigger>
@@ -216,6 +207,7 @@ const SlideItem = ({
                         </Tooltip>
                     </TooltipProvider>
 
+                    {/* Drag handle with enhanced styling */}
                     <div className="drag-handle-container opacity-0 transition-opacity duration-200 group-hover:opacity-100">
                         <SortableDragHandle
                             variant="ghost"
@@ -236,11 +228,28 @@ export const ChapterSidebarSlides = ({
 }: {
     handleSlideOrderChange: (slideOrderPayload: slideOrderPayloadType) => void;
 }) => {
+    console.log(`[ChapterSidebarSlides] 🎬 Component rendered at:`, new Date().toISOString());
+
     const { setItems, activeItem, setActiveItem, items } = useContentStore();
     const router = useRouter();
     const { chapterId, slideId } = router.state.location.search;
 
+    console.log(`[ChapterSidebarSlides] 📍 Router state:`, { chapterId, slideId });
+    console.log(`[ChapterSidebarSlides] 🏪 Store state:`, {
+        itemsCount: items?.length || 0,
+        activeItemId: activeItem?.id || 'none',
+        activeItemTitle: activeItem?.title || 'none',
+    });
+
     const { slides, isLoading, refetch } = useSlidesQuery(chapterId || '');
+
+    console.log(`[ChapterSidebarSlides] 🎣 Hook response:`, {
+        slidesCount: slides?.length || 0,
+        isLoading,
+        slidesType: typeof slides,
+        isArray: Array.isArray(slides),
+        firstSlide: slides?.[0]?.title || 'N/A',
+    });
 
     const { getCurrentEditorHTMLContent, saveDraft } = useSaveDraft();
 
@@ -249,6 +258,7 @@ export const ChapterSidebarSlides = ({
     }, []);
 
     const handleSlideClick = async (slide: Slide) => {
+        // Check if we need to save the current slide before switching
         if (
             activeItem &&
             activeItem.source_type === 'DOCUMENT' &&
@@ -270,6 +280,7 @@ export const ChapterSidebarSlides = ({
             }
         }
 
+        // Now set the new active item
         setActiveItem(slide);
     };
 
@@ -287,13 +298,16 @@ export const ChapterSidebarSlides = ({
     const handleMove = ({ activeIndex, overIndex }: { activeIndex: number; overIndex: number }) => {
         move(activeIndex, overIndex);
 
+        // Create order payload after move
         const updatedFields = form.getValues('slides');
 
+        // Create order payload with the updated order
         const orderPayload = updatedFields.map((slide, index) => ({
             slide_id: slide.id,
             slide_order: index + 1,
         }));
 
+        // Call the handler to update the order through API
         handleSlideOrderChange(orderPayload);
     };
 
@@ -302,10 +316,21 @@ export const ChapterSidebarSlides = ({
     }, [items]);
 
     useEffect(() => {
+        console.log(`[ChapterSidebarSlides] 📋 useEffect[slides] triggered:`, {
+            slidesLength: slides?.length || 0,
+            slidesData: slides?.slice(0, 3) || [], // Show first 3 slides for debugging
+            currentStoreItemsCount: items?.length || 0,
+        });
+
         if (slides?.length) {
+            console.log(`[ChapterSidebarSlides] ✅ Processing ${slides.length} slides`);
+
             form.reset({ slides });
             setItems(slides as Slide[]);
 
+            console.log(`[ChapterSidebarSlides] 🏪 Store updated with ${slides.length} slides`);
+
+            // Check if current active slide still exists in updated slides
             const activeSlideStillExists =
                 activeItem && slides.find((slide) => slide.id === activeItem.id);
 
@@ -314,6 +339,7 @@ export const ChapterSidebarSlides = ({
                 return;
             }
 
+            // Priority 1: Use slideId from URL if available
             if (slideId) {
                 const targetSlide = slides.find((item) => item.id === slideId) as Slide | undefined;
                 if (targetSlide) {
@@ -322,6 +348,7 @@ export const ChapterSidebarSlides = ({
                 }
             }
 
+            // Priority 2: Always set first slide as active (handles creation/deletion)
             const firstSlide = slides[0] as Slide;
             setActiveItem(firstSlide);
         } else {
@@ -329,6 +356,7 @@ export const ChapterSidebarSlides = ({
             if (slideId === undefined) {
                 setActiveItem(null);
             } else {
+                // Create placeholder slide for URL slideId
                 setActiveItem({
                     id: slideId,
                     source_id: '',
@@ -347,9 +375,24 @@ export const ChapterSidebarSlides = ({
                 });
             }
         }
-    }, [slides, slideId]);
+    }, [slides, slideId]); // Removed activeItem?.id to prevent circular dependency
+
+    // ===== RENDER DEBUGGING =====
+    console.log(`[ChapterSidebarSlides] 🎯 Pre-render decision state:`, {
+        isLoading,
+        itemsExists: !!items,
+        itemsLength: items?.length || 0,
+        slidesExists: !!slides,
+        slidesLength: slides?.length || 0,
+        renderDecision: isLoading
+            ? 'LOADING'
+            : !items || items.length === 0
+              ? 'NO_SLIDES'
+              : 'SHOW_SLIDES',
+    });
 
     if (isLoading) {
+        console.log(`[ChapterSidebarSlides] ⏳ Rendering loader`);
         return (
             <div className="flex items-center justify-center py-6 duration-500 animate-in fade-in">
                 <DashboardLoader />
@@ -358,6 +401,7 @@ export const ChapterSidebarSlides = ({
     }
 
     if (!items || items.length === 0) {
+        console.log(`[ChapterSidebarSlides] 📭 Rendering "No slides" message`);
         return (
             <div className="flex flex-col items-center justify-center px-3 py-8 text-center duration-700 animate-in fade-in slide-in-from-bottom-4">
                 <div className="mb-3 flex size-12 animate-pulse items-center justify-center rounded-full bg-neutral-100">
@@ -370,6 +414,8 @@ export const ChapterSidebarSlides = ({
             </div>
         );
     }
+
+    console.log(`[ChapterSidebarSlides] 📄 Rendering ${items.length} slides`);
 
     return (
         <div className="duration-500 animate-in fade-in slide-in-from-bottom-2">

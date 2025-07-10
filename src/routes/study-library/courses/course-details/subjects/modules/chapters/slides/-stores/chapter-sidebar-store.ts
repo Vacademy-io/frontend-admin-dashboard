@@ -10,13 +10,11 @@ interface ContentStore {
     reorderItems: (oldIndex: number, newIndex: number) => void;
     resetChapterSidebarStore: () => void;
     getSlideById: (slideId: string) => Slide | null;
-    updateActiveSlideQuestions: (questions: any[]) => void;
 }
 
 export const useContentStore = create<ContentStore>((set, get) => ({
     items: [],
     activeItem: null,
-
     setItems: (items) => {
         console.log(`[ContentStore] 🏪 setItems called:`, {
             itemsType: typeof items,
@@ -27,7 +25,6 @@ export const useContentStore = create<ContentStore>((set, get) => ({
         });
         set({ items });
     },
-
     setActiveItem: (item) => {
         console.log(`[ContentStore] 🎯 setActiveItem called:`, {
             itemId: item?.id || 'null',
@@ -36,7 +33,6 @@ export const useContentStore = create<ContentStore>((set, get) => ({
         });
         set({ activeItem: item });
     },
-
     reorderItems: (oldIndex: number, newIndex: number) =>
         set((state) => {
             if (
@@ -58,31 +54,9 @@ export const useContentStore = create<ContentStore>((set, get) => ({
                 items: newItems,
             };
         }),
-
-    resetChapterSidebarStore: () => set({ items: [], activeItem: null }),
-
+    resetChapterSidebarStore: () => set({ items: undefined, activeItem: null }),
     getSlideById: (slideId: string) => {
         const state = get();
         return state.items.find((slide) => slide.id === slideId) || null;
-    },
-
-    updateActiveSlideQuestions: (questions: any[]) => {
-        set((state) => {
-            if (!state.activeItem) return state;
-
-            const updatedItem = {
-                ...state.activeItem,
-                question_slide: questions,
-            };
-
-            const updatedItems = state.items.map((item) =>
-                item.id === updatedItem.id ? updatedItem : item
-            );
-
-            return {
-                activeItem: updatedItem,
-                items: updatedItems,
-            };
-        });
     },
 }));

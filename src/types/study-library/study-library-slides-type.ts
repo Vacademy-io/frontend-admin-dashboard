@@ -7,7 +7,6 @@ export interface SlideQuestionsDataInterface {
     description: string;
     status: string;
     slide_order: number;
-
     video_slide: {
         id: string;
         description: string;
@@ -18,7 +17,6 @@ export interface SlideQuestionsDataInterface {
         published_video_length_in_millis: number;
         source_type: string;
     };
-
     document_slide: {
         id: string;
         type: string;
@@ -29,7 +27,6 @@ export interface SlideQuestionsDataInterface {
         published_data: string;
         published_document_total_pages: number;
     };
-
     question_slide: {
         id: string;
         parent_rich_text: RichText;
@@ -46,40 +43,6 @@ export interface SlideQuestionsDataInterface {
         points: string;
         options?: QuestionOption[];
     };
-
-    quiz_slide?: {
-        id: string;
-        title: string;
-        description: {
-            id: string;
-            type: string;
-            content: string;
-        };
-        questions: {
-            id: string;
-            parent_rich_text: { id: string; type: string; content: string };
-            text: { id: string; type: string; content: string };
-            explanation_text: { id: string; type: string; content: string };
-            media_id: string;
-            status: string;
-            question_response_type: string;
-            question_type: string;
-            access_level: string;
-            auto_evaluation_json: string;
-            evaluation_type: string;
-            question_order: number;
-            quiz_slide_id: string;
-            can_skip: boolean;
-            options: {
-                id: string;
-                quiz_slide_question_id: string;
-                text: { id: string; type: string; content: string };
-                explanation_text: { id: string; type: string; content: string };
-                media_id: string;
-            }[];
-        }[];
-    };
-
     assignment_slide: {
         id: string;
         parentRichText: RichText;
@@ -89,18 +52,17 @@ export interface SlideQuestionsDataInterface {
         reAttemptCount: number;
         commaSeparatedMediaIds: string;
     };
-
     is_loaded: boolean;
     new_slide: boolean;
 }
 
-export interface RichText {
+interface RichText {
     id: string;
     type: string;
     content: string;
 }
 
-export interface QuestionOption {
+interface QuestionOption {
     id: string;
     questionSlideId: string;
     text: RichText;

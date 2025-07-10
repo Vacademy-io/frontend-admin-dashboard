@@ -8,7 +8,6 @@ interface DialogState {
     isVideoFileDialogOpen: boolean;
     isQuestionDialogOpen: boolean;
     isAssignmentDialogOpen: boolean;
-    isQuizDialogOpen: boolean;
 
     // Dialog actions
     openPdfDialog: () => void;
@@ -35,10 +34,6 @@ interface DialogState {
     closeAssignmentDialog: () => void;
     toggleAssignmentDialog: () => void;
 
-    openQuizDialog: () => void;
-    closeQuizDialog: () => void;
-    toggleQuizDialog: () => void;
-
     resetDialogs: () => void;
 }
 
@@ -49,7 +44,6 @@ export const useDialogStore = create<DialogState>((set) => ({
     isVideoFileDialogOpen: false,
     isQuestionDialogOpen: false,
     isAssignmentDialogOpen: false,
-    isQuizDialogOpen: false,
 
     // PDF Dialog actions
     openPdfDialog: () => set({ isPdfDialogOpen: true }),
@@ -85,11 +79,6 @@ export const useDialogStore = create<DialogState>((set) => ({
     toggleAssignmentDialog: () =>
         set((state) => ({ isAssignmentDialogOpen: !state.isAssignmentDialogOpen })),
 
-    // ✅ Quiz Dialog actions
-    openQuizDialog: () => set({ isQuizDialogOpen: true }),
-    closeQuizDialog: () => set({ isQuizDialogOpen: false }),
-    toggleQuizDialog: () => set((state) => ({ isQuizDialogOpen: !state.isQuizDialogOpen })),
-
     // Reset all dialogs
     resetDialogs: () =>
         set({
@@ -99,6 +88,5 @@ export const useDialogStore = create<DialogState>((set) => ({
             isVideoFileDialogOpen: false,
             isQuestionDialogOpen: false,
             isAssignmentDialogOpen: false,
-            isQuizDialogOpen: false,
         }),
 }));
