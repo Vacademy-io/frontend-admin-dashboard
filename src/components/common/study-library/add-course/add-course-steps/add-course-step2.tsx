@@ -116,6 +116,7 @@ interface PackageDTO {
     id?: string;
     package_name?: string;
     thumbnail_file_id?: string;
+    thumbnail_id?: string | null;
     is_course_published_to_catalaouge?: boolean | null;
     course_preview_image_media_id?: string | null;
     course_banner_media_id?: string | null;
@@ -241,10 +242,61 @@ export const AddCourseStep2 = ({
     };
 
     const removeSession = (sessionId: string) => {
+        const removedSession = sessions.find((session) => session.id === sessionId);
+        // Add all levels of this session as separate session-level pairs to existingBatches
+        if (
+            removedSession &&
+            instituteDetails &&
+            Array.isArray(instituteDetails.batches_for_sessions)
+        ) {
+            removedSession.levels.forEach((removedLevel) => {
+                const originalBatch: ExistingBatch = {
+                    id: `${removedSession.id}-${removedLevel.id}`,
+                    session: {
+                        id: removedSession.id,
+                        session_name: removedSession.name,
+                        status: '',
+                        start_date: removedSession.startDate,
+                    },
+                    level: {
+                        id: removedLevel.id,
+                        level_name: removedLevel.name,
+                        duration_in_days: null,
+                        thumbnail_id: null,
+                    },
+                    start_time: null,
+                    status: '',
+                    package_dto: {
+                        id: '',
+                        package_name: '',
+                        thumbnail_file_id: undefined,
+                        thumbnail_id: null,
+                        is_course_published_to_catalaouge: null,
+                        course_preview_image_media_id: null,
+                        course_banner_media_id: null,
+                        course_media_id: null,
+                        why_learn_html: null,
+                        who_should_learn_html: null,
+                        about_the_course_html: null,
+                        tags: [],
+                        course_depth: undefined,
+                        course_html_description_html: null,
+                    },
+                };
+                if (
+                    !(instituteDetails.batches_for_sessions as ExistingBatch[]).some(
+                        (b) => b.id === originalBatch.id
+                    )
+                ) {
+                    (instituteDetails.batches_for_sessions as ExistingBatch[]).push(
+                        originalBatch as ExistingBatch
+                    );
+                }
+            });
+        }
         const updatedSessions = sessions.filter((session) => session.id !== sessionId);
         setSessions(updatedSessions);
         form.setValue('sessions', updatedSessions);
-
         // Remove all assignments for this session from all instructors
         setInstructorMappings((prev) =>
             prev.map((instructor) => ({
@@ -252,6 +304,14 @@ export const AddCourseStep2 = ({
                 sessionLevels: instructor.sessionLevels.filter((sl) => sl.sessionId !== sessionId),
             }))
         );
+        // If there are existing batches, show the add session dialog again
+        if (
+            instituteDetails &&
+            instituteDetails.batches_for_sessions &&
+            instituteDetails.batches_for_sessions.length > 0
+        ) {
+            setShowAddSession(true);
+        }
     };
 
     const addLevel = (sessionId: string, levelName: string) => {
@@ -282,7 +342,6 @@ export const AddCourseStep2 = ({
         );
         setSessions(updatedSessions);
         form.setValue('sessions', updatedSessions);
-
         // Remove all assignments for this level from all instructors
         setInstructorMappings((prev) =>
             prev.map((instructor) => ({
@@ -292,6 +351,74 @@ export const AddCourseStep2 = ({
                 ),
             }))
         );
+        // If the removed level was from an existing session, add it back as a session-level pair
+        const removedSession = sessions.find((session) => session.id === sessionId);
+        const removedLevel = removedSession?.levels.find((level) => level.id === levelId);
+        if (
+            removedSession &&
+            removedLevel &&
+            instituteDetails &&
+            Array.isArray(instituteDetails.batches_for_sessions)
+        ) {
+            const originalBatch: ExistingBatch = {
+                id: `${removedSession.id}-${removedLevel.id}`,
+                session: {
+                    id: removedSession.id,
+                    session_name: removedSession.name,
+                    status: '',
+                    start_date: removedSession.startDate,
+                },
+                level: {
+                    id: removedLevel.id,
+                    level_name: removedLevel.name,
+                    duration_in_days: null,
+                    thumbnail_id: null,
+                },
+                start_time: null,
+                status: '',
+                package_dto: {
+                    id: '',
+                    package_name: '',
+                    thumbnail_file_id: undefined,
+                    thumbnail_id: null,
+                    is_course_published_to_catalaouge: null,
+                    course_preview_image_media_id: null,
+                    course_banner_media_id: null,
+                    course_media_id: null,
+                    why_learn_html: null,
+                    who_should_learn_html: null,
+                    about_the_course_html: null,
+                    tags: [],
+                    course_depth: undefined,
+                    course_html_description_html: null,
+                },
+            };
+            if (
+                !(instituteDetails.batches_for_sessions as ExistingBatch[]).some(
+                    (b) => b.id === originalBatch.id
+                )
+            ) {
+                (instituteDetails.batches_for_sessions as ExistingBatch[]).push(
+                    originalBatch as ExistingBatch
+                );
+            }
+        }
+        // If the session now has no levels, remove the session and add all its levels to existingBatches
+        const sessionAfter = updatedSessions.find((s) => s.id === sessionId);
+        if (sessionAfter && sessionAfter.levels.length === 0) {
+            // Remove the session
+            const sessionsWithout = updatedSessions.filter((s) => s.id !== sessionId);
+            setSessions(sessionsWithout);
+            form.setValue('sessions', sessionsWithout);
+        }
+        // If there are existing batches, show the add level dialog again
+        if (
+            instituteDetails &&
+            instituteDetails.batches_for_sessions &&
+            instituteDetails.batches_for_sessions.length > 0
+        ) {
+            setShowAddLevel(true);
+        }
     };
 
     const handleSubmit = (data: Step2Data) => {
@@ -959,23 +1086,25 @@ export const AddCourseStep2 = ({
                                                                           : 'Level'}
                                                                 </Label>
                                                             </div>
-                                                            <div className="flex items-center space-x-2">
-                                                                <RadioGroupItem
-                                                                    value="existing"
-                                                                    id="add-session-existing"
-                                                                />
-                                                                <Label
-                                                                    htmlFor="add-session-existing"
-                                                                    className="text-sm font-normal"
-                                                                >
-                                                                    {hasSessions === 'yes' &&
-                                                                    hasLevels === 'yes'
-                                                                        ? 'Existing Sessions'
-                                                                        : hasSessions === 'yes'
-                                                                          ? 'Existing Sessions'
-                                                                          : 'Existing Levels'}
-                                                                </Label>
-                                                            </div>
+                                                            {existingBatches.length > 0 && (
+                                                                <div className="flex items-center space-x-2">
+                                                                    <RadioGroupItem
+                                                                        value="existing"
+                                                                        id="add-session-existing"
+                                                                    />
+                                                                    <Label
+                                                                        htmlFor="add-session-existing"
+                                                                        className="text-sm font-normal"
+                                                                    >
+                                                                        {hasSessions === 'yes' &&
+                                                                        hasLevels === 'yes'
+                                                                            ? 'Existing Sessions'
+                                                                            : hasSessions === 'yes'
+                                                                              ? 'Existing Sessions'
+                                                                              : 'Existing Levels'}
+                                                                    </Label>
+                                                                </div>
+                                                            )}
                                                         </RadioGroup>
                                                     </div>
                                                     {addSessionMode === 'new' && (
@@ -1455,6 +1584,31 @@ export const AddCourseStep2 = ({
                                                                                         .length > 0
                                                                             ),
                                                                         ]);
+                                                                        // Remove added batches from existingBatches
+                                                                        const remainingBatches =
+                                                                            existingBatches.filter(
+                                                                                (
+                                                                                    b: ExistingBatch
+                                                                                ) =>
+                                                                                    !selectedExistingBatchIds.includes(
+                                                                                        b.id
+                                                                                    )
+                                                                            );
+                                                                        if (instituteDetails) {
+                                                                            instituteDetails.batches_for_sessions =
+                                                                                remainingBatches;
+                                                                            if (
+                                                                                remainingBatches.length ===
+                                                                                0
+                                                                            ) {
+                                                                                setAddSessionMode(
+                                                                                    'new'
+                                                                                );
+                                                                                setShowAddSession(
+                                                                                    false
+                                                                                );
+                                                                            }
+                                                                        }
                                                                     } else if (
                                                                         hasSessions === 'yes' &&
                                                                         hasLevels !== 'yes'
@@ -1506,6 +1660,31 @@ export const AddCourseStep2 = ({
                                                                             ...sessions,
                                                                             ...newSessions,
                                                                         ]);
+                                                                        // Remove added batches from existingBatches
+                                                                        const remainingBatches =
+                                                                            existingBatches.filter(
+                                                                                (
+                                                                                    b: ExistingBatch
+                                                                                ) =>
+                                                                                    !selectedExistingBatchIds.includes(
+                                                                                        b.id
+                                                                                    )
+                                                                            );
+                                                                        if (instituteDetails) {
+                                                                            instituteDetails.batches_for_sessions =
+                                                                                remainingBatches;
+                                                                            if (
+                                                                                remainingBatches.length ===
+                                                                                0
+                                                                            ) {
+                                                                                setAddSessionMode(
+                                                                                    'new'
+                                                                                );
+                                                                                setShowAddSession(
+                                                                                    false
+                                                                                );
+                                                                            }
+                                                                        }
                                                                     } else if (
                                                                         hasSessions !== 'yes' &&
                                                                         hasLevels === 'yes'
@@ -1579,6 +1758,31 @@ export const AddCourseStep2 = ({
                                                                                     levels: newLevels,
                                                                                 },
                                                                             ]);
+                                                                        }
+                                                                        // Remove added batches from existingBatches
+                                                                        const remainingBatches =
+                                                                            existingBatches.filter(
+                                                                                (
+                                                                                    b: ExistingBatch
+                                                                                ) =>
+                                                                                    !selectedExistingBatchIds.includes(
+                                                                                        b.id
+                                                                                    )
+                                                                            );
+                                                                        if (instituteDetails) {
+                                                                            instituteDetails.batches_for_sessions =
+                                                                                remainingBatches;
+                                                                            if (
+                                                                                remainingBatches.length ===
+                                                                                0
+                                                                            ) {
+                                                                                setAddLevelMode(
+                                                                                    'new'
+                                                                                );
+                                                                                setShowAddLevel(
+                                                                                    false
+                                                                                );
+                                                                            }
                                                                         }
                                                                     }
                                                                     setShowAddSession(false);
@@ -1677,18 +1881,20 @@ export const AddCourseStep2 = ({
                                                                     New Level
                                                                 </Label>
                                                             </div>
-                                                            <div className="flex items-center space-x-2">
-                                                                <RadioGroupItem
-                                                                    value="existing"
-                                                                    id="add-level-existing"
-                                                                />
-                                                                <Label
-                                                                    htmlFor="add-level-existing"
-                                                                    className="text-sm font-normal"
-                                                                >
-                                                                    Existing Levels
-                                                                </Label>
-                                                            </div>
+                                                            {existingBatches.length > 0 && (
+                                                                <div className="flex items-center space-x-2">
+                                                                    <RadioGroupItem
+                                                                        value="existing"
+                                                                        id="add-level-existing"
+                                                                    />
+                                                                    <Label
+                                                                        htmlFor="add-level-existing"
+                                                                        className="text-sm font-normal"
+                                                                    >
+                                                                        Existing Levels
+                                                                    </Label>
+                                                                </div>
+                                                            )}
                                                         </RadioGroup>
                                                     </div>
                                                     {addLevelMode === 'new' && (
@@ -1884,6 +2090,25 @@ export const AddCourseStep2 = ({
                                                                                 levels: newLevels,
                                                                             },
                                                                         ]);
+                                                                    }
+                                                                    // Remove added batches from existingBatches
+                                                                    const remainingBatches =
+                                                                        existingBatches.filter(
+                                                                            (b: ExistingBatch) =>
+                                                                                !selectedExistingLevelBatchIds.includes(
+                                                                                    b.id
+                                                                                )
+                                                                        );
+                                                                    if (instituteDetails) {
+                                                                        instituteDetails.batches_for_sessions =
+                                                                            remainingBatches;
+                                                                        if (
+                                                                            remainingBatches.length ===
+                                                                            0
+                                                                        ) {
+                                                                            setAddLevelMode('new');
+                                                                            setShowAddLevel(false);
+                                                                        }
                                                                     }
                                                                     setShowAddLevel(false);
                                                                     setSelectedExistingLevelBatchIds(
