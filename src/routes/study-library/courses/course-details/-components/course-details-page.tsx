@@ -35,6 +35,7 @@ import { CourseDetailsRatingsComponent } from './course-details-ratings-page';
 import { getInstructorsBySessionAndLevel, transformApiDataToCourseData } from '../-utils/helper';
 import { CourseStructureDetails } from './course-structure-details';
 import { AddCourseForm } from '@/components/common/study-library/add-course/add-course-form';
+import { MyButton } from '@/components/design-system/button';
 
 type SlideType = {
     id: string;
@@ -295,11 +296,12 @@ export const CourseDetailsPage = () => {
         );
     }, [currentLevel, currentSession]);
 
-    console.log(form.getValues());
     return (
         <div className="pt-18 flex min-h-screen flex-col bg-white">
             {/* Top Banner */}
-            <div className={`relative h-[300px]`}>
+            <div
+                className={`relative ${form.getValues('courseData.isCoursePublishedToCatalaouge') ? 'h-[350px]' : 'h-[300px]'}`}
+            >
                 {/* Transparent black overlay */}
                 {form.watch('courseData').courseBannerMediaId ? (
                     <div className="pointer-events-none absolute inset-0 z-10 bg-black/50" />
@@ -346,6 +348,16 @@ export const CourseDetailsPage = () => {
                                             __html: form.getValues('courseData').description || '',
                                         }}
                                     />
+                                    {form.getValues('courseData.isCoursePublishedToCatalaouge') && (
+                                        <MyButton
+                                            type="button"
+                                            scale="large"
+                                            buttonType="primary"
+                                            className="mt-2 bg-success-100 font-medium !text-black hover:bg-success-100  focus:bg-success-100 active:bg-success-100"
+                                        >
+                                            Added to catalog
+                                        </MyButton>
+                                    )}
                                     <div className="mt-4 flex gap-2">
                                         {form.getValues('courseData').tags.map((tag, index) => (
                                             <span
