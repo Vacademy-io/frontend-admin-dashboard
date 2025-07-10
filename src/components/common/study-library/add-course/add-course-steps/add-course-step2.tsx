@@ -2733,7 +2733,19 @@ export const AddCourseStep2 = ({
                                     e.preventDefault();
                                     handleSubmit(form.getValues());
                                 }}
-                                disable={disableCreate}
+                                disable={
+                                    disableCreate ||
+                                    (hasSessions === 'yes' && hasLevels === 'yes'
+                                        ? sessions.length === 0 ||
+                                          sessions.every((s) => !s.levels || s.levels.length === 0)
+                                        : hasSessions === 'yes'
+                                          ? sessions.length === 0
+                                          : hasLevels === 'yes'
+                                            ? !sessions.find((s) => s.id === 'standalone') ||
+                                              sessions.find((s) => s.id === 'standalone')?.levels
+                                                  .length === 0
+                                            : false)
+                                }
                             >
                                 {isLoading ? (
                                     <span className="flex items-center gap-2">
