@@ -113,20 +113,20 @@ interface InstructorMapping {
 
 // Define a type for batches at the top of the file:
 interface PackageDTO {
-    id?: string;
-    package_name?: string;
-    thumbnail_file_id?: string;
-    thumbnail_id?: string | null;
-    is_course_published_to_catalaouge?: boolean | null;
-    course_preview_image_media_id?: string | null;
-    course_banner_media_id?: string | null;
-    course_media_id?: string | null;
-    why_learn_html?: string | null;
-    who_should_learn_html?: string | null;
-    about_the_course_html?: string | null;
-    tags?: string[];
-    course_depth?: number;
-    course_html_description_html?: string | null;
+    id: string;
+    package_name: string;
+    thumbnail_file_id: string;
+    thumbnail_id: string | null;
+    is_course_published_to_catalaouge: boolean | null;
+    course_preview_image_media_id: string | null;
+    course_banner_media_id: string | null;
+    course_media_id: string | null;
+    why_learn_html: string | null;
+    who_should_learn_html: string | null;
+    about_the_course_html: string | null;
+    tags: string[];
+    course_depth: number | null;
+    course_html_description_html: string | null;
 }
 interface Group {
     id: string;
@@ -146,7 +146,7 @@ type ExistingBatch = {
     session: { id: string; session_name: string; status: string; start_date: string };
     start_time: string | null;
     status: string;
-    package_dto?: PackageDTO;
+    package_dto: PackageDTO; // not optional
     group?: Group;
 };
 
@@ -166,7 +166,9 @@ export const AddCourseStep2 = ({
     isEdit?: boolean;
 }) => {
     const { instituteDetails } = useInstituteDetailsStore();
-    const existingBatches = instituteDetails?.batches_for_sessions || [];
+    const existingBatches: ExistingBatch[] = getSafeExistingBatches(
+        instituteDetails?.batches_for_sessions as ExistingBatch[] | undefined
+    );
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
 
@@ -206,9 +208,7 @@ export const AddCourseStep2 = ({
     const [selectedExistingBatchIds, setSelectedExistingBatchIds] = useState<string[]>([]);
     // Add state for addLevelMode and selectedExistingLevelBatchIds
     const [addLevelMode, setAddLevelMode] = useState<'new' | 'existing'>('new');
-    const [selectedExistingLevelBatchIds, setSelectedExistingLevelBatchIds] = useState<string[]>(
-        []
-    );
+    const [selectedExistingLevelIds, setSelectedExistingLevelIds] = useState<string[]>([]);
 
     const form = useForm<Step2Data>({
         resolver: zodResolver(step2Schema),
@@ -269,7 +269,7 @@ export const AddCourseStep2 = ({
                     package_dto: {
                         id: '',
                         package_name: '',
-                        thumbnail_file_id: undefined,
+                        thumbnail_file_id: '',
                         thumbnail_id: null,
                         is_course_published_to_catalaouge: null,
                         course_preview_image_media_id: null,
@@ -279,7 +279,7 @@ export const AddCourseStep2 = ({
                         who_should_learn_html: null,
                         about_the_course_html: null,
                         tags: [],
-                        course_depth: undefined,
+                        course_depth: null,
                         course_html_description_html: null,
                     },
                 };
@@ -314,21 +314,24 @@ export const AddCourseStep2 = ({
         }
     };
 
-    const addLevel = (sessionId: string, levelName: string) => {
-        if (levelName.trim()) {
-            const newLevel: Level = {
-                id: Date.now().toString(),
-                name: levelName.trim(),
-                userIds: [],
-            };
-            const updatedSessions = sessions.map((session) =>
+    const onAddLevel = (sessionId: string, levelName: string, levelId?: string) => {
+        setSessions((prevSessions) =>
+            prevSessions.map((session) =>
                 session.id === sessionId
-                    ? { ...session, levels: [...session.levels, newLevel] }
+                    ? {
+                          ...session,
+                          levels: [
+                              ...session.levels,
+                              {
+                                  id: levelId || Date.now().toString(),
+                                  name: levelName,
+                                  userIds: [],
+                              },
+                          ],
+                      }
                     : session
-            );
-            setSessions(updatedSessions);
-            form.setValue('sessions', updatedSessions);
-        }
+            )
+        );
     };
 
     const removeLevel = (sessionId: string, levelId: string) => {
@@ -379,7 +382,7 @@ export const AddCourseStep2 = ({
                 package_dto: {
                     id: '',
                     package_name: '',
-                    thumbnail_file_id: undefined,
+                    thumbnail_file_id: '',
                     thumbnail_id: null,
                     is_course_published_to_catalaouge: null,
                     course_preview_image_media_id: null,
@@ -389,7 +392,7 @@ export const AddCourseStep2 = ({
                     who_should_learn_html: null,
                     about_the_course_html: null,
                     tags: [],
-                    course_depth: undefined,
+                    course_depth: null,
                     course_html_description_html: null,
                 },
             };
@@ -1824,7 +1827,7 @@ export const AddCourseStep2 = ({
                                                 session={session}
                                                 hasLevels={hasLevels === 'yes'}
                                                 onRemoveSession={removeSession}
-                                                onAddLevel={addLevel}
+                                                onAddLevel={onAddLevel}
                                                 onRemoveLevel={removeLevel}
                                             />
                                         ))}
@@ -1928,19 +1931,19 @@ export const AddCourseStep2 = ({
                                                                             checked={
                                                                                 existingBatches.length >
                                                                                     0 &&
-                                                                                selectedExistingLevelBatchIds.length ===
+                                                                                selectedExistingLevelIds.length ===
                                                                                     existingBatches.length
                                                                             }
                                                                             onCheckedChange={() => {
                                                                                 if (
-                                                                                    selectedExistingLevelBatchIds.length ===
+                                                                                    selectedExistingLevelIds.length ===
                                                                                     existingBatches.length
                                                                                 ) {
-                                                                                    setSelectedExistingLevelBatchIds(
+                                                                                    setSelectedExistingLevelIds(
                                                                                         []
                                                                                     );
                                                                                 } else {
-                                                                                    setSelectedExistingLevelBatchIds(
+                                                                                    setSelectedExistingLevelIds(
                                                                                         existingBatches.map(
                                                                                             (
                                                                                                 b: ExistingBatch
@@ -1966,17 +1969,17 @@ export const AddCourseStep2 = ({
                                                                                     className="flex items-center gap-2 rounded border border-gray-100 bg-gray-50 px-2 py-1"
                                                                                 >
                                                                                     <Checkbox
-                                                                                        checked={selectedExistingLevelBatchIds.includes(
+                                                                                        checked={selectedExistingLevelIds.includes(
                                                                                             batch.id
                                                                                         )}
                                                                                         onCheckedChange={() => {
                                                                                             if (
-                                                                                                selectedExistingLevelBatchIds.includes(
+                                                                                                selectedExistingLevelIds.includes(
                                                                                                     batch.id
                                                                                                 )
                                                                                             ) {
-                                                                                                setSelectedExistingLevelBatchIds(
-                                                                                                    selectedExistingLevelBatchIds.filter(
+                                                                                                setSelectedExistingLevelIds(
+                                                                                                    selectedExistingLevelIds.filter(
                                                                                                         (
                                                                                                             id
                                                                                                         ) =>
@@ -1985,9 +1988,9 @@ export const AddCourseStep2 = ({
                                                                                                     )
                                                                                                 );
                                                                                             } else {
-                                                                                                setSelectedExistingLevelBatchIds(
+                                                                                                setSelectedExistingLevelIds(
                                                                                                     [
-                                                                                                        ...selectedExistingLevelBatchIds,
+                                                                                                        ...selectedExistingLevelIds,
                                                                                                         batch.id,
                                                                                                     ]
                                                                                                 );
@@ -2034,7 +2037,7 @@ export const AddCourseStep2 = ({
                                                                     const selectedBatches =
                                                                         existingBatches.filter(
                                                                             (b: ExistingBatch) =>
-                                                                                selectedExistingLevelBatchIds.includes(
+                                                                                selectedExistingLevelIds.includes(
                                                                                     b.id
                                                                                 )
                                                                         );
@@ -2095,7 +2098,7 @@ export const AddCourseStep2 = ({
                                                                     const remainingBatches =
                                                                         existingBatches.filter(
                                                                             (b: ExistingBatch) =>
-                                                                                !selectedExistingLevelBatchIds.includes(
+                                                                                !selectedExistingLevelIds.includes(
                                                                                     b.id
                                                                                 )
                                                                         );
@@ -2111,13 +2114,11 @@ export const AddCourseStep2 = ({
                                                                         }
                                                                     }
                                                                     setShowAddLevel(false);
-                                                                    setSelectedExistingLevelBatchIds(
-                                                                        []
-                                                                    );
+                                                                    setSelectedExistingLevelIds([]);
                                                                     setAddLevelMode('new');
                                                                 }}
                                                                 disable={
-                                                                    selectedExistingLevelBatchIds.length ===
+                                                                    selectedExistingLevelIds.length ===
                                                                     0
                                                                 }
                                                             >
@@ -2133,9 +2134,7 @@ export const AddCourseStep2 = ({
                                                                 setShowAddLevel(false);
                                                                 setNewLevelName('');
                                                                 setAddLevelMode('new');
-                                                                setSelectedExistingLevelBatchIds(
-                                                                    []
-                                                                );
+                                                                setSelectedExistingLevelIds([]);
                                                             }}
                                                         >
                                                             Cancel
@@ -3012,20 +3011,55 @@ const SessionCard: React.FC<{
     session: Session;
     hasLevels: boolean;
     onRemoveSession: (sessionId: string) => void;
-    onAddLevel: (sessionId: string, levelName: string) => void;
+    onAddLevel: (sessionId: string, levelName: string, levelId?: string) => void;
     onRemoveLevel: (sessionId: string, levelId: string) => void;
 }> = ({ session, hasLevels, onRemoveSession, onAddLevel, onRemoveLevel }) => {
     const [showAddLevel, setShowAddLevel] = useState(false);
     const [newLevelName, setNewLevelName] = useState('');
-
+    const [addLevelMode, setAddLevelMode] = useState<'new' | 'existing'>('new');
+    const [selectedExistingLevelIds, setSelectedExistingLevelIds] = useState<string[]>([]);
+    const { instituteDetails } = useInstituteDetailsStore();
+    const existingBatches: ExistingBatch[] = getSafeExistingBatches(
+        instituteDetails?.batches_for_sessions as ExistingBatch[] | undefined
+    );
+    // Determine if this session is from existingBatches (by session id)
+    const isExistingSession = existingBatches.some((b) => b.session.id === session.id);
+    // Get available existing levels for this session
+    const availableExistingLevels = existingBatches
+        .filter((b) => b.session.id === session.id)
+        .map((b) => ({ id: b.level.id, name: b.level.level_name }));
     const handleAddLevel = () => {
-        if (newLevelName.trim()) {
+        if (addLevelMode === 'new' && newLevelName.trim()) {
             onAddLevel(session.id, newLevelName);
             setNewLevelName('');
             setShowAddLevel(false);
+        } else if (addLevelMode === 'existing' && selectedExistingLevelIds.length > 0) {
+            // Add all selected levels to the session
+            const selectedLevels = availableExistingLevels.filter((l) =>
+                selectedExistingLevelIds.includes(l.id)
+            );
+            selectedLevels.forEach((selectedLevel) => {
+                // Only add if not already present in session.levels
+                if (!session.levels.some((lvl) => lvl.id === selectedLevel.id)) {
+                    onAddLevel(session.id, selectedLevel.name, selectedLevel.id);
+                }
+            });
+            setSelectedExistingLevelIds([]);
+            setShowAddLevel(false);
+            // Remove these levels from existingBatches (batches_for_sessions)
+            if (instituteDetails) {
+                instituteDetails.batches_for_sessions = getSafeExistingBatches(
+                    existingBatches.filter(
+                        (b) =>
+                            !(
+                                b.session.id === session.id &&
+                                selectedExistingLevelIds.includes(b.level.id)
+                            )
+                    )
+                );
+            }
         }
     };
-
     return (
         <Card className="border-gray-200">
             <CardContent className="p-3">
@@ -3073,15 +3107,126 @@ const SessionCard: React.FC<{
                         {showAddLevel && (
                             <div className="mb-3 rounded-lg border bg-gray-50 p-3">
                                 <div>
-                                    <Label className="mb-1 block text-sm font-medium text-gray-700">
-                                        Level Name
-                                    </Label>
-                                    <Input
-                                        placeholder="Enter level name (e.g., Basic)"
-                                        value={newLevelName}
-                                        onChange={(e) => setNewLevelName(e.target.value)}
-                                        className="h-8 border-gray-300"
-                                    />
+                                    {/* Show radio buttons only if this is an existing session and there are available existing levels */}
+                                    {isExistingSession && availableExistingLevels.length > 0 ? (
+                                        <RadioGroup
+                                            value={addLevelMode}
+                                            onValueChange={(val) =>
+                                                setAddLevelMode(val as 'new' | 'existing')
+                                            }
+                                            className="mb-2 flex gap-6"
+                                        >
+                                            <div className="flex items-center space-x-2">
+                                                <RadioGroupItem
+                                                    value="new"
+                                                    id={`add-level-new-${session.id}`}
+                                                />
+                                                <Label
+                                                    htmlFor={`add-level-new-${session.id}`}
+                                                    className="text-sm font-normal"
+                                                >
+                                                    Add Level
+                                                </Label>
+                                            </div>
+                                            <div className="flex items-center space-x-2">
+                                                <RadioGroupItem
+                                                    value="existing"
+                                                    id={`add-level-existing-${session.id}`}
+                                                />
+                                                <Label
+                                                    htmlFor={`add-level-existing-${session.id}`}
+                                                    className="text-sm font-normal"
+                                                >
+                                                    Existing Level
+                                                </Label>
+                                            </div>
+                                        </RadioGroup>
+                                    ) : null}
+                                    {addLevelMode === 'new' || !isExistingSession ? (
+                                        <>
+                                            <Label className="mb-1 block text-sm font-medium text-gray-700">
+                                                Level Name
+                                            </Label>
+                                            <Input
+                                                placeholder="Enter level name (e.g., Basic)"
+                                                value={newLevelName}
+                                                onChange={(e) => setNewLevelName(e.target.value)}
+                                                className="h-8 border-gray-300"
+                                            />
+                                        </>
+                                    ) : null}
+                                    {addLevelMode === 'existing' &&
+                                    isExistingSession &&
+                                    availableExistingLevels.length > 0 ? (
+                                        <>
+                                            <Label className="mb-1 block text-sm font-medium text-gray-700">
+                                                Select Existing Levels
+                                            </Label>
+                                            <div className="mb-2 flex items-center">
+                                                <Checkbox
+                                                    checked={
+                                                        selectedExistingLevelIds.length ===
+                                                            availableExistingLevels.length &&
+                                                        availableExistingLevels.length > 0
+                                                    }
+                                                    onCheckedChange={() => {
+                                                        if (
+                                                            selectedExistingLevelIds.length ===
+                                                            availableExistingLevels.length
+                                                        ) {
+                                                            setSelectedExistingLevelIds([]);
+                                                        } else {
+                                                            setSelectedExistingLevelIds(
+                                                                availableExistingLevels.map(
+                                                                    (level) => level.id
+                                                                )
+                                                            );
+                                                        }
+                                                    }}
+                                                    className="mr-2 size-4"
+                                                />
+                                                <span className="text-sm font-medium text-gray-700">
+                                                    Select All
+                                                </span>
+                                            </div>
+                                            <div className="max-h-48 space-y-1 overflow-y-auto">
+                                                {availableExistingLevels.map((level) => (
+                                                    <div
+                                                        key={level.id}
+                                                        className="flex items-center gap-2 rounded border border-gray-100 bg-gray-50 px-2 py-1"
+                                                    >
+                                                        <Checkbox
+                                                            checked={selectedExistingLevelIds.includes(
+                                                                level.id
+                                                            )}
+                                                            onCheckedChange={() => {
+                                                                if (
+                                                                    selectedExistingLevelIds.includes(
+                                                                        level.id
+                                                                    )
+                                                                ) {
+                                                                    setSelectedExistingLevelIds(
+                                                                        selectedExistingLevelIds.filter(
+                                                                            (id) => id !== level.id
+                                                                        )
+                                                                    );
+                                                                } else {
+                                                                    setSelectedExistingLevelIds([
+                                                                        ...selectedExistingLevelIds,
+                                                                        level.id,
+                                                                    ]);
+                                                                }
+                                                            }}
+                                                            className="size-4"
+                                                        />
+                                                        <span className="text-sm text-gray-700">
+                                                            {level.name}
+                                                        </span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </>
+                                    ) : null}
                                 </div>
                                 <div className="mt-2 flex gap-2">
                                     <MyButton
@@ -3090,7 +3235,11 @@ const SessionCard: React.FC<{
                                         scale="medium"
                                         layoutVariant="default"
                                         onClick={handleAddLevel}
-                                        disable={!newLevelName.trim()}
+                                        disable={
+                                            (addLevelMode === 'new' && !newLevelName.trim()) ||
+                                            (addLevelMode === 'existing' &&
+                                                selectedExistingLevelIds.length === 0)
+                                        }
                                     >
                                         Add
                                     </MyButton>
@@ -3102,6 +3251,8 @@ const SessionCard: React.FC<{
                                         onClick={() => {
                                             setShowAddLevel(false);
                                             setNewLevelName('');
+                                            setSelectedExistingLevelIds([]);
+                                            setAddLevelMode('new');
                                         }}
                                     >
                                         Cancel
@@ -3140,3 +3291,28 @@ const SessionCard: React.FC<{
         </Card>
     );
 };
+
+// Helper to ensure all batches have a defined package_dto
+function getSafeExistingBatches(batches: ExistingBatch[] | undefined): ExistingBatch[] {
+    const safeBatches: ExistingBatch[] = (batches ?? []) as ExistingBatch[];
+    return safeBatches.map((b: ExistingBatch) => ({
+        ...b,
+        package_dto: {
+            id: String(b.package_dto?.id ?? ''),
+            package_name: String(b.package_dto?.package_name ?? ''),
+            thumbnail_file_id: String(b.package_dto?.thumbnail_file_id ?? ''),
+            thumbnail_id: b.package_dto?.thumbnail_id ?? null,
+            is_course_published_to_catalaouge:
+                b.package_dto?.is_course_published_to_catalaouge ?? null,
+            course_preview_image_media_id: b.package_dto?.course_preview_image_media_id ?? null,
+            course_banner_media_id: b.package_dto?.course_banner_media_id ?? null,
+            course_media_id: b.package_dto?.course_media_id ?? null,
+            why_learn_html: b.package_dto?.why_learn_html ?? null,
+            who_should_learn_html: b.package_dto?.who_should_learn_html ?? null,
+            about_the_course_html: b.package_dto?.about_the_course_html ?? null,
+            tags: b.package_dto?.tags ?? [],
+            course_depth: b.package_dto?.course_depth ?? null,
+            course_html_description_html: b.package_dto?.course_html_description_html ?? null,
+        },
+    }));
+}
