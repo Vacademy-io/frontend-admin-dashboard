@@ -209,6 +209,14 @@ export const AddCourseStep2 = ({
         []
     );
 
+    // Add state to track used existing batches
+    const [usedExistingBatchIds, setUsedExistingBatchIds] = useState<Set<string>>(new Set());
+
+    // Filter available existing batches (exclude used ones)
+    const availableExistingBatches = existingBatches.filter(
+        (batch: ExistingBatch) => !usedExistingBatchIds.has(batch.id)
+    );
+
     const form = useForm<Step2Data>({
         resolver: zodResolver(step2Schema),
         defaultValues: initialData || {
@@ -241,6 +249,7 @@ export const AddCourseStep2 = ({
     };
 
     const removeSession = (sessionId: string) => {
+        const sessionToRemove = sessions.find((session) => session.id === sessionId);
         const updatedSessions = sessions.filter((session) => session.id !== sessionId);
         setSessions(updatedSessions);
         form.setValue('sessions', updatedSessions);
@@ -252,6 +261,20 @@ export const AddCourseStep2 = ({
                 sessionLevels: instructor.sessionLevels.filter((sl) => sl.sessionId !== sessionId),
             }))
         );
+
+        // Restore used batches when session is removed
+        if (sessionToRemove) {
+            setUsedExistingBatchIds((prev) => {
+                const newSet = new Set(prev);
+                // Find all batch IDs that were used for this session
+                existingBatches.forEach((batch) => {
+                    if (batch.session.id === sessionToRemove.id) {
+                        newSet.delete(batch.id);
+                    }
+                });
+                return newSet;
+            });
+        }
     };
 
     const addLevel = (sessionId: string, levelName: string, levelId?: string) => {
@@ -272,6 +295,9 @@ export const AddCourseStep2 = ({
     };
 
     const removeLevel = (sessionId: string, levelId: string) => {
+        const sessionToUpdate = sessions.find((session) => session.id === sessionId);
+        const levelToRemove = sessionToUpdate?.levels.find((level) => level.id === levelId);
+
         const updatedSessions = sessions.map((session) =>
             session.id === sessionId
                 ? {
@@ -292,6 +318,20 @@ export const AddCourseStep2 = ({
                 ),
             }))
         );
+
+        // Restore used batches when level is removed
+        if (levelToRemove && levelToRemove.id !== 'DEFAULT') {
+            setUsedExistingBatchIds((prev) => {
+                const newSet = new Set(prev);
+                // Find the batch ID that corresponds to this level
+                existingBatches.forEach((batch) => {
+                    if (batch.level.id === levelToRemove.id && batch.session.id === sessionId) {
+                        newSet.delete(batch.id);
+                    }
+                });
+                return newSet;
+            });
+        }
     };
 
     const handleSubmit = (data: Step2Data) => {
@@ -506,6 +546,9 @@ export const AddCourseStep2 = ({
 
     // Remove standalone level
     const removeStandaloneLevel = (levelId: string) => {
+        const standaloneSession = sessions.find((session) => session.id === 'standalone');
+        const levelToRemove = standaloneSession?.levels.find((level) => level.id === levelId);
+
         const updatedSessions = sessions.map((session) =>
             session.id === 'standalone'
                 ? {
@@ -515,6 +558,20 @@ export const AddCourseStep2 = ({
                 : session
         );
         setSessions(updatedSessions);
+
+        // Restore used batches when standalone level is removed
+        if (levelToRemove && levelToRemove.id !== 'DEFAULT') {
+            setUsedExistingBatchIds((prev) => {
+                const newSet = new Set(prev);
+                // Find the batch ID that corresponds to this level
+                existingBatches.forEach((batch) => {
+                    if (batch.level.id === levelToRemove.id) {
+                        newSet.delete(batch.id);
+                    }
+                });
+                return newSet;
+            });
+        }
     };
 
     // Function to handle checkbox changes
@@ -1046,22 +1103,22 @@ export const AddCourseStep2 = ({
                                                                         <div className="mb-2 flex items-center">
                                                                             <Checkbox
                                                                                 checked={
-                                                                                    existingBatches.length >
+                                                                                    availableExistingBatches.length >
                                                                                         0 &&
                                                                                     selectedExistingBatchIds.length ===
-                                                                                        existingBatches.length
+                                                                                        availableExistingBatches.length
                                                                                 }
                                                                                 onCheckedChange={() => {
                                                                                     if (
                                                                                         selectedExistingBatchIds.length ===
-                                                                                        existingBatches.length
+                                                                                        availableExistingBatches.length
                                                                                     ) {
                                                                                         setSelectedExistingBatchIds(
                                                                                             []
                                                                                         );
                                                                                     } else {
                                                                                         setSelectedExistingBatchIds(
-                                                                                            existingBatches.map(
+                                                                                            availableExistingBatches.map(
                                                                                                 (
                                                                                                     b: ExistingBatch
                                                                                                 ) =>
@@ -1077,7 +1134,7 @@ export const AddCourseStep2 = ({
                                                                             </span>
                                                                         </div>
                                                                         <div className="max-h-48 space-y-1 overflow-y-auto">
-                                                                            {existingBatches.map(
+                                                                            {availableExistingBatches.map(
                                                                                 (
                                                                                     batch: ExistingBatch
                                                                                 ) => (
@@ -1145,22 +1202,22 @@ export const AddCourseStep2 = ({
                                                                         <div className="mb-2 flex items-center">
                                                                             <Checkbox
                                                                                 checked={
-                                                                                    existingBatches.length >
+                                                                                    availableExistingBatches.length >
                                                                                         0 &&
                                                                                     selectedExistingBatchIds.length ===
-                                                                                        existingBatches.length
+                                                                                        availableExistingBatches.length
                                                                                 }
                                                                                 onCheckedChange={() => {
                                                                                     if (
                                                                                         selectedExistingBatchIds.length ===
-                                                                                        existingBatches.length
+                                                                                        availableExistingBatches.length
                                                                                     ) {
                                                                                         setSelectedExistingBatchIds(
                                                                                             []
                                                                                         );
                                                                                     } else {
                                                                                         setSelectedExistingBatchIds(
-                                                                                            existingBatches.map(
+                                                                                            availableExistingBatches.map(
                                                                                                 (
                                                                                                     b: ExistingBatch
                                                                                                 ) =>
@@ -1176,7 +1233,7 @@ export const AddCourseStep2 = ({
                                                                             </span>
                                                                         </div>
                                                                         <div className="max-h-48 space-y-1 overflow-y-auto">
-                                                                            {existingBatches.map(
+                                                                            {availableExistingBatches.map(
                                                                                 (
                                                                                     batch: ExistingBatch
                                                                                 ) => (
@@ -1238,22 +1295,22 @@ export const AddCourseStep2 = ({
                                                                         <div className="mb-2 flex items-center">
                                                                             <Checkbox
                                                                                 checked={
-                                                                                    existingBatches.length >
+                                                                                    availableExistingBatches.length >
                                                                                         0 &&
                                                                                     selectedExistingBatchIds.length ===
-                                                                                        existingBatches.length
+                                                                                        availableExistingBatches.length
                                                                                 }
                                                                                 onCheckedChange={() => {
                                                                                     if (
                                                                                         selectedExistingBatchIds.length ===
-                                                                                        existingBatches.length
+                                                                                        availableExistingBatches.length
                                                                                     ) {
                                                                                         setSelectedExistingBatchIds(
                                                                                             []
                                                                                         );
                                                                                     } else {
                                                                                         setSelectedExistingBatchIds(
-                                                                                            existingBatches.map(
+                                                                                            availableExistingBatches.map(
                                                                                                 (
                                                                                                     b: ExistingBatch
                                                                                                 ) =>
@@ -1269,7 +1326,7 @@ export const AddCourseStep2 = ({
                                                                             </span>
                                                                         </div>
                                                                         <div className="max-h-48 space-y-1 overflow-y-auto">
-                                                                            {existingBatches.map(
+                                                                            {availableExistingBatches.map(
                                                                                 (
                                                                                     batch: ExistingBatch
                                                                                 ) => (
@@ -1363,7 +1420,7 @@ export const AddCourseStep2 = ({
                                                                     ) {
                                                                         // Add selected batches as sessions with levels
                                                                         const selectedBatches =
-                                                                            existingBatches.filter(
+                                                                            availableExistingBatches.filter(
                                                                                 (
                                                                                     b: ExistingBatch
                                                                                 ) =>
@@ -1455,13 +1512,29 @@ export const AddCourseStep2 = ({
                                                                                         .length > 0
                                                                             ),
                                                                         ]);
+
+                                                                        // Mark selected batches as used
+                                                                        setUsedExistingBatchIds(
+                                                                            (prev) => {
+                                                                                const newSet =
+                                                                                    new Set(prev);
+                                                                                selectedBatches.forEach(
+                                                                                    (batch) => {
+                                                                                        newSet.add(
+                                                                                            batch.id
+                                                                                        );
+                                                                                    }
+                                                                                );
+                                                                                return newSet;
+                                                                            }
+                                                                        );
                                                                     } else if (
                                                                         hasSessions === 'yes' &&
                                                                         hasLevels !== 'yes'
                                                                     ) {
                                                                         // Add selected sessions by batch id
                                                                         const selectedBatches =
-                                                                            existingBatches.filter(
+                                                                            availableExistingBatches.filter(
                                                                                 (
                                                                                     b: ExistingBatch
                                                                                 ) =>
@@ -1506,13 +1579,29 @@ export const AddCourseStep2 = ({
                                                                             ...sessions,
                                                                             ...newSessions,
                                                                         ]);
+
+                                                                        // Mark selected batches as used
+                                                                        setUsedExistingBatchIds(
+                                                                            (prev) => {
+                                                                                const newSet =
+                                                                                    new Set(prev);
+                                                                                selectedBatches.forEach(
+                                                                                    (batch) => {
+                                                                                        newSet.add(
+                                                                                            batch.id
+                                                                                        );
+                                                                                    }
+                                                                                );
+                                                                                return newSet;
+                                                                            }
+                                                                        );
                                                                     } else if (
                                                                         hasSessions !== 'yes' &&
                                                                         hasLevels === 'yes'
                                                                     ) {
                                                                         // Add selected levels to standalone session by batch id
                                                                         const selectedBatches =
-                                                                            existingBatches.filter(
+                                                                            availableExistingBatches.filter(
                                                                                 (
                                                                                     b: ExistingBatch
                                                                                 ) =>
@@ -1580,6 +1669,22 @@ export const AddCourseStep2 = ({
                                                                                 },
                                                                             ]);
                                                                         }
+
+                                                                        // Mark selected batches as used
+                                                                        setUsedExistingBatchIds(
+                                                                            (prev) => {
+                                                                                const newSet =
+                                                                                    new Set(prev);
+                                                                                selectedBatches.forEach(
+                                                                                    (batch) => {
+                                                                                        newSet.add(
+                                                                                            batch.id
+                                                                                        );
+                                                                                    }
+                                                                                );
+                                                                                return newSet;
+                                                                            }
+                                                                        );
                                                                     }
                                                                     setShowAddSession(false);
                                                                     setSelectedExistingBatchIds([]);
@@ -1622,7 +1727,16 @@ export const AddCourseStep2 = ({
                                                 onRemoveSession={removeSession}
                                                 onAddLevel={addLevel}
                                                 onRemoveLevel={removeLevel}
-                                                existingBatches={existingBatches}
+                                                existingBatches={availableExistingBatches}
+                                                onMarkBatchesAsUsed={(batchIds) => {
+                                                    setUsedExistingBatchIds((prev) => {
+                                                        const newSet = new Set(prev);
+                                                        batchIds.forEach((id) => {
+                                                            newSet.add(id);
+                                                        });
+                                                        return newSet;
+                                                    });
+                                                }}
                                             />
                                         ))}
                                     </div>
@@ -1712,7 +1826,8 @@ export const AddCourseStep2 = ({
                                                             <Label className="mb-2 block text-sm font-medium text-gray-700">
                                                                 Select Levels
                                                             </Label>
-                                                            {existingBatches.length === 0 ? (
+                                                            {availableExistingBatches.length ===
+                                                            0 ? (
                                                                 <div className="text-sm text-gray-500">
                                                                     No existing levels found.
                                                                 </div>
@@ -1721,22 +1836,22 @@ export const AddCourseStep2 = ({
                                                                     <div className="mb-2 flex items-center">
                                                                         <Checkbox
                                                                             checked={
-                                                                                existingBatches.length >
+                                                                                availableExistingBatches.length >
                                                                                     0 &&
                                                                                 selectedExistingLevelBatchIds.length ===
-                                                                                    existingBatches.length
+                                                                                    availableExistingBatches.length
                                                                             }
                                                                             onCheckedChange={() => {
                                                                                 if (
                                                                                     selectedExistingLevelBatchIds.length ===
-                                                                                    existingBatches.length
+                                                                                    availableExistingBatches.length
                                                                                 ) {
                                                                                     setSelectedExistingLevelBatchIds(
                                                                                         []
                                                                                     );
                                                                                 } else {
                                                                                     setSelectedExistingLevelBatchIds(
-                                                                                        existingBatches.map(
+                                                                                        availableExistingBatches.map(
                                                                                             (
                                                                                                 b: ExistingBatch
                                                                                             ) =>
@@ -1752,7 +1867,7 @@ export const AddCourseStep2 = ({
                                                                         </span>
                                                                     </div>
                                                                     <div className="max-h-48 space-y-1 overflow-y-auto">
-                                                                        {existingBatches.map(
+                                                                        {availableExistingBatches.map(
                                                                             (
                                                                                 batch: ExistingBatch
                                                                             ) => (
@@ -1827,7 +1942,7 @@ export const AddCourseStep2 = ({
                                                                 onClick={() => {
                                                                     // Add selected levels to standalone session by batch id
                                                                     const selectedBatches =
-                                                                        existingBatches.filter(
+                                                                        availableExistingBatches.filter(
                                                                             (b: ExistingBatch) =>
                                                                                 selectedExistingLevelBatchIds.includes(
                                                                                     b.id
@@ -1886,6 +2001,23 @@ export const AddCourseStep2 = ({
                                                                             },
                                                                         ]);
                                                                     }
+
+                                                                    // Mark selected batches as used
+                                                                    setUsedExistingBatchIds(
+                                                                        (prev) => {
+                                                                            const newSet = new Set(
+                                                                                prev
+                                                                            );
+                                                                            selectedBatches.forEach(
+                                                                                (batch) => {
+                                                                                    newSet.add(
+                                                                                        batch.id
+                                                                                    );
+                                                                                }
+                                                                            );
+                                                                            return newSet;
+                                                                        }
+                                                                    );
                                                                     setShowAddLevel(false);
                                                                     setSelectedExistingLevelBatchIds(
                                                                         []
@@ -2791,7 +2923,16 @@ const SessionCard: React.FC<{
     onAddLevel: (sessionId: string, levelName: string, levelId?: string) => void;
     onRemoveLevel: (sessionId: string, levelId: string) => void;
     existingBatches?: ExistingBatch[];
-}> = ({ session, hasLevels, onRemoveSession, onAddLevel, onRemoveLevel, existingBatches = [] }) => {
+    onMarkBatchesAsUsed?: (batchIds: string[]) => void;
+}> = ({
+    session,
+    hasLevels,
+    onRemoveSession,
+    onAddLevel,
+    onRemoveLevel,
+    existingBatches = [],
+    onMarkBatchesAsUsed,
+}) => {
     const [showAddLevel, setShowAddLevel] = useState(false);
     const [newLevelName, setNewLevelName] = useState('');
     const [addLevelMode, setAddLevelMode] = useState<'new' | 'existing'>('new');
@@ -3046,6 +3187,13 @@ const SessionCard: React.FC<{
                                                         );
                                                     }
                                                 });
+
+                                                // Mark selected batches as used
+                                                if (onMarkBatchesAsUsed) {
+                                                    onMarkBatchesAsUsed(
+                                                        selectedBatches.map((batch) => batch.id)
+                                                    );
+                                                }
 
                                                 setShowAddLevel(false);
                                                 setSelectedExistingLevelBatchIds([]);
