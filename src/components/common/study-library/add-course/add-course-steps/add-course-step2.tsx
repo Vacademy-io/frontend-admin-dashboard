@@ -254,10 +254,10 @@ export const AddCourseStep2 = ({
         );
     };
 
-    const addLevel = (sessionId: string, levelName: string) => {
+    const addLevel = (sessionId: string, levelName: string, levelId?: string) => {
         if (levelName.trim()) {
             const newLevel: Level = {
-                id: Date.now().toString(),
+                id: levelId || Date.now().toString(),
                 name: levelName.trim(),
                 userIds: [],
             };
@@ -1622,6 +1622,7 @@ export const AddCourseStep2 = ({
                                                 onRemoveSession={removeSession}
                                                 onAddLevel={addLevel}
                                                 onRemoveLevel={removeLevel}
+                                                existingBatches={existingBatches}
                                             />
                                         ))}
                                     </div>
@@ -2787,11 +2788,16 @@ const SessionCard: React.FC<{
     session: Session;
     hasLevels: boolean;
     onRemoveSession: (sessionId: string) => void;
-    onAddLevel: (sessionId: string, levelName: string) => void;
+    onAddLevel: (sessionId: string, levelName: string, levelId?: string) => void;
     onRemoveLevel: (sessionId: string, levelId: string) => void;
-}> = ({ session, hasLevels, onRemoveSession, onAddLevel, onRemoveLevel }) => {
+    existingBatches?: ExistingBatch[];
+}> = ({ session, hasLevels, onRemoveSession, onAddLevel, onRemoveLevel, existingBatches = [] }) => {
     const [showAddLevel, setShowAddLevel] = useState(false);
     const [newLevelName, setNewLevelName] = useState('');
+    const [addLevelMode, setAddLevelMode] = useState<'new' | 'existing'>('new');
+    const [selectedExistingLevelBatchIds, setSelectedExistingLevelBatchIds] = useState<string[]>(
+        []
+    );
 
     const handleAddLevel = () => {
         if (newLevelName.trim()) {
@@ -2800,6 +2806,19 @@ const SessionCard: React.FC<{
             setShowAddLevel(false);
         }
     };
+
+    // Get existing levels for this specific session that are not already added
+    const getExistingLevelsForSession = (sessionId: string) => {
+        const allBatchesForSession = existingBatches.filter(
+            (batch) => batch.session.id === sessionId
+        );
+        // Filter out levels that are already added to this session
+        return allBatchesForSession.filter(
+            (batch) => !session.levels.some((level) => level.id === batch.level.id)
+        );
+    };
+
+    const existingLevelsForSession = getExistingLevelsForSession(session.id);
 
     return (
         <Card className="border-gray-200">
@@ -2847,28 +2866,196 @@ const SessionCard: React.FC<{
                     <>
                         {showAddLevel && (
                             <div className="mb-3 rounded-lg border bg-gray-50 p-3">
-                                <div>
-                                    <Label className="mb-1 block text-sm font-medium text-gray-700">
-                                        Level Name
-                                    </Label>
-                                    <Input
-                                        placeholder="Enter level name (e.g., Basic)"
-                                        value={newLevelName}
-                                        onChange={(e) => setNewLevelName(e.target.value)}
-                                        className="h-8 border-gray-300"
-                                    />
-                                </div>
-                                <div className="mt-2 flex gap-2">
-                                    <MyButton
-                                        type="button"
-                                        buttonType="primary"
-                                        scale="medium"
-                                        layoutVariant="default"
-                                        onClick={handleAddLevel}
-                                        disable={!newLevelName.trim()}
+                                <div className="mb-3">
+                                    <RadioGroup
+                                        value={addLevelMode}
+                                        onValueChange={(val) =>
+                                            setAddLevelMode(val as 'new' | 'existing')
+                                        }
+                                        className="flex gap-6"
                                     >
-                                        Add
-                                    </MyButton>
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem
+                                                value="new"
+                                                id={`add-level-new-${session.id}`}
+                                            />
+                                            <Label
+                                                htmlFor={`add-level-new-${session.id}`}
+                                                className="text-sm font-normal"
+                                            >
+                                                New Level
+                                            </Label>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem
+                                                value="existing"
+                                                id={`add-level-existing-${session.id}`}
+                                            />
+                                            <Label
+                                                htmlFor={`add-level-existing-${session.id}`}
+                                                className="text-sm font-normal"
+                                            >
+                                                Existing Levels
+                                            </Label>
+                                        </div>
+                                    </RadioGroup>
+                                </div>
+
+                                {addLevelMode === 'new' && (
+                                    <div>
+                                        <Label className="mb-1 block text-sm font-medium text-gray-700">
+                                            Level Name
+                                        </Label>
+                                        <Input
+                                            placeholder="Enter level name (e.g., Basic)"
+                                            value={newLevelName}
+                                            onChange={(e) => setNewLevelName(e.target.value)}
+                                            className="h-8 border-gray-300"
+                                        />
+                                    </div>
+                                )}
+
+                                {addLevelMode === 'existing' && (
+                                    <div className="mt-2">
+                                        <Label className="mb-2 block text-sm font-medium text-gray-700">
+                                            Select Levels
+                                        </Label>
+                                        {existingLevelsForSession.length === 0 ? (
+                                            <div className="text-sm text-gray-500">
+                                                No existing levels found for this session.
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <div className="mb-2 flex items-center">
+                                                    <Checkbox
+                                                        checked={
+                                                            existingLevelsForSession.length > 0 &&
+                                                            selectedExistingLevelBatchIds.length ===
+                                                                existingLevelsForSession.length
+                                                        }
+                                                        onCheckedChange={() => {
+                                                            if (
+                                                                selectedExistingLevelBatchIds.length ===
+                                                                existingLevelsForSession.length
+                                                            ) {
+                                                                setSelectedExistingLevelBatchIds(
+                                                                    []
+                                                                );
+                                                            } else {
+                                                                setSelectedExistingLevelBatchIds(
+                                                                    existingLevelsForSession.map(
+                                                                        (batch: ExistingBatch) =>
+                                                                            batch.id
+                                                                    )
+                                                                );
+                                                            }
+                                                        }}
+                                                        className="mr-2 size-4"
+                                                    />
+                                                    <span className="text-sm font-medium text-gray-700">
+                                                        Select All
+                                                    </span>
+                                                </div>
+                                                <div className="max-h-48 space-y-1 overflow-y-auto">
+                                                    {existingLevelsForSession.map(
+                                                        (batch: ExistingBatch) => (
+                                                            <div
+                                                                key={batch.id}
+                                                                className="flex items-center gap-2 rounded border border-gray-100 bg-gray-50 px-2 py-1"
+                                                            >
+                                                                <Checkbox
+                                                                    checked={selectedExistingLevelBatchIds.includes(
+                                                                        batch.id
+                                                                    )}
+                                                                    onCheckedChange={() => {
+                                                                        if (
+                                                                            selectedExistingLevelBatchIds.includes(
+                                                                                batch.id
+                                                                            )
+                                                                        ) {
+                                                                            setSelectedExistingLevelBatchIds(
+                                                                                selectedExistingLevelBatchIds.filter(
+                                                                                    (id) =>
+                                                                                        id !==
+                                                                                        batch.id
+                                                                                )
+                                                                            );
+                                                                        } else {
+                                                                            setSelectedExistingLevelBatchIds(
+                                                                                [
+                                                                                    ...selectedExistingLevelBatchIds,
+                                                                                    batch.id,
+                                                                                ]
+                                                                            );
+                                                                        }
+                                                                    }}
+                                                                    className="size-4"
+                                                                />
+                                                                <span className="text-sm text-gray-700">
+                                                                    {batch.level.level_name}
+                                                                </span>
+                                                            </div>
+                                                        )
+                                                    )}
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                )}
+
+                                <div className="mt-3 flex gap-2">
+                                    {addLevelMode === 'new' && (
+                                        <MyButton
+                                            type="button"
+                                            buttonType="primary"
+                                            scale="medium"
+                                            layoutVariant="default"
+                                            onClick={handleAddLevel}
+                                            disable={!newLevelName.trim()}
+                                        >
+                                            Add Level
+                                        </MyButton>
+                                    )}
+                                    {addLevelMode === 'existing' && (
+                                        <MyButton
+                                            type="button"
+                                            buttonType="primary"
+                                            scale="medium"
+                                            layoutVariant="default"
+                                            onClick={() => {
+                                                // Add selected existing levels to this session
+                                                const selectedBatches =
+                                                    existingLevelsForSession.filter(
+                                                        (batch: ExistingBatch) =>
+                                                            selectedExistingLevelBatchIds.includes(
+                                                                batch.id
+                                                            )
+                                                    );
+
+                                                selectedBatches.forEach((batch: ExistingBatch) => {
+                                                    // Check if this level already exists in the session
+                                                    const levelExists = session.levels.some(
+                                                        (level) => level.id === batch.level.id
+                                                    );
+
+                                                    if (!levelExists) {
+                                                        onAddLevel(
+                                                            session.id,
+                                                            batch.level.level_name,
+                                                            batch.level.id
+                                                        );
+                                                    }
+                                                });
+
+                                                setShowAddLevel(false);
+                                                setSelectedExistingLevelBatchIds([]);
+                                                setAddLevelMode('new');
+                                            }}
+                                            disable={selectedExistingLevelBatchIds.length === 0}
+                                        >
+                                            Add Selected
+                                        </MyButton>
+                                    )}
                                     <MyButton
                                         type="button"
                                         buttonType="secondary"
@@ -2877,6 +3064,8 @@ const SessionCard: React.FC<{
                                         onClick={() => {
                                             setShowAddLevel(false);
                                             setNewLevelName('');
+                                            setAddLevelMode('new');
+                                            setSelectedExistingLevelBatchIds([]);
                                         }}
                                     >
                                         Cancel
