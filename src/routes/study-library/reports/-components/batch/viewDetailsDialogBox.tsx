@@ -88,21 +88,35 @@ export const ViewDetails = ({ row }: { row: Row<SubjectOverviewBatchColumnType> 
                         <MyButton buttonType="secondary">Export</MyButton>
                     </div>
                     <div className="grid grid-cols-3 items-center justify-between gap-4">
-                        <div>Course: {course}</div>
-                        <div>Session: {session}</div>
-                        <div>Level: {level}</div>
+                        <div>
+                            {getTerminology(ContentTerms.Course, SystemTerms.Course)}: {course}
+                        </div>
+                        <div>
+                            {getTerminology(ContentTerms.Session, SystemTerms.Session)}: {session}
+                        </div>
+                        <div>
+                            {getTerminology(ContentTerms.Level, SystemTerms.Level)}: {level}
+                        </div>
                         <div>
                             {getTerminology(ContentTerms.Subjects, SystemTerms.Subjects)}:{' '}
                             {row.getValue('subject')}
                         </div>
-                        <div>Module: {row.getValue('module')}</div>
+                        <div>
+                            {getTerminology(ContentTerms.Modules, SystemTerms.Modules)}:{' '}
+                            {row.getValue('module')}
+                        </div>
                     </div>
                     {(isChapterPending || isLearnerPending) && <DashboardLoader />}
                     {chapterReportData &&
                         chapterReportData.map((chapter) => (
                             <div key={chapter.chapter_id} className="flex flex-col gap-6">
                                 <div className="flex flex-row gap-4">
-                                    <div className="text-h3 font-[600]">Chapter</div>
+                                    <div className="text-h3 font-[600]">
+                                        {getTerminology(
+                                            ContentTerms.Chapters,
+                                            SystemTerms.Chapters
+                                        )}
+                                    </div>
                                     <div className="text-h3 text-primary-500">
                                         {chapter.chapter_name}
                                     </div>

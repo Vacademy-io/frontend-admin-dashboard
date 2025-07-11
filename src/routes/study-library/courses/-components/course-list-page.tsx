@@ -14,7 +14,7 @@ import { TrashSimple } from 'phosphor-react';
 import { useNavigate } from '@tanstack/react-router';
 import { MyPagination } from '@/components/design-system/pagination';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
-import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { ContentTerms, RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 interface CourseListPageProps {
     selectedFilters: AllCourseFilters;
@@ -92,7 +92,9 @@ const CourseListPage = ({
                             </div>
                         )}
                     </div>
-                    <div className="mb-1 text-sm font-semibold">Levels</div>
+                    <div className="mb-1 text-sm font-semibold">
+                        {getTerminology(ContentTerms.Level, SystemTerms.Level)}s
+                    </div>
                     <div className="flex flex-col gap-2">
                         {levels.map((level: { id: string; name: string }) => (
                             <label
@@ -138,7 +140,9 @@ const CourseListPage = ({
                     {/* Users Section */}
                     {Array.isArray(accessControlUsers) && accessControlUsers.length > 0 && (
                         <>
-                            <div className="mb-1 mt-4 text-sm font-semibold">Instructors</div>
+                            <div className="mb-1 mt-4 text-sm font-semibold">
+                                {getTerminology(RoleTerms.Teacher, SystemTerms.Teacher)}s
+                            </div>
                             <div className="flex flex-col gap-2">
                                 {(accessControlUsers as UserRolesDataEntry[]).map(
                                     (user: UserRolesDataEntry) => (

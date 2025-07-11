@@ -44,6 +44,8 @@ import dayjs from 'dayjs';
 import { useSearch } from '@tanstack/react-router';
 import { Route } from '@/routes/study-library/reports';
 import { toast } from 'sonner';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 
 const formSchema = z
     .object({
@@ -251,7 +253,7 @@ export default function TimelineReports() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div className="flex flex-row items-center justify-between">
                     <div>
-                        <div>Course</div>
+                        <div>{getTerminology(ContentTerms.Course, SystemTerms.Course)}</div>
                         <Select
                             onValueChange={(value) => {
                                 setValue('course', value);
@@ -260,7 +262,12 @@ export default function TimelineReports() {
                             defaultValue={search.studentReport ? search.studentReport.courseId : ''}
                         >
                             <SelectTrigger className="h-[40px] w-[320px]">
-                                <SelectValue placeholder="Select a Course" />
+                                <SelectValue
+                                    placeholder={`Select a ${getTerminology(
+                                        ContentTerms.Course,
+                                        SystemTerms.Course
+                                    )}`}
+                                />
                             </SelectTrigger>
                             <SelectContent>
                                 {courseList?.map((course) => (
@@ -273,7 +280,7 @@ export default function TimelineReports() {
                     </div>
 
                     <div>
-                        <div>Session</div>
+                        <div>{getTerminology(ContentTerms.Session, SystemTerms.Session)}</div>
                         <Select
                             onValueChange={(value) => {
                                 setValue('session', value);
@@ -286,7 +293,12 @@ export default function TimelineReports() {
                             value={selectedSession}
                         >
                             <SelectTrigger className="h-[40px] w-[320px]">
-                                <SelectValue placeholder="Select a Session" />
+                                <SelectValue
+                                    placeholder={`Select a ${getTerminology(
+                                        ContentTerms.Session,
+                                        SystemTerms.Session
+                                    )}`}
+                                />
                             </SelectTrigger>
                             <SelectContent>
                                 {sessionList?.map((session) => (
@@ -299,7 +311,7 @@ export default function TimelineReports() {
                     </div>
 
                     <div>
-                        <div>Level</div>
+                        <div>{getTerminology(ContentTerms.Level, SystemTerms.Level)}</div>
                         <Select
                             onValueChange={(value) => {
                                 setValue('level', value);
@@ -310,7 +322,12 @@ export default function TimelineReports() {
                             {...register('level')}
                         >
                             <SelectTrigger className="h-[40px] w-[320px]">
-                                <SelectValue placeholder="Select a Level" />
+                                <SelectValue
+                                    placeholder={`Select a ${getTerminology(
+                                        ContentTerms.Level,
+                                        SystemTerms.Level
+                                    )}`}
+                                />
                             </SelectTrigger>
                             <SelectContent>
                                 {levelList?.map((level) => (
@@ -425,7 +442,9 @@ export default function TimelineReports() {
                     </div>
                     <div className="flex flex-row items-center justify-between">
                         <div className="flex flex-col items-center justify-center">
-                            <div className="text-h3 font-[600]">Course Completed</div>
+                            <div className="text-h3 font-[600]">
+                                {getTerminology(ContentTerms.Course, SystemTerms.Course)} Completed
+                            </div>
                             <div>
                                 {`${formatToTwoDecimalPlaces(
                                     reportData?.learner_progress_report?.percentage_course_completed
@@ -452,7 +471,10 @@ export default function TimelineReports() {
                     </div>
                     <div className="flex flex-row items-center justify-between">
                         <div className="flex flex-col items-center justify-center">
-                            <div className="text-h3 font-[600]">Course Completed by batch</div>
+                            <div className="text-h3 font-[600]">
+                                {getTerminology(ContentTerms.Course, SystemTerms.Course)} Completed
+                                by batch
+                            </div>
                             <div>
                                 {`${formatToTwoDecimalPlaces(
                                     reportData?.batch_progress_report?.percentage_course_completed

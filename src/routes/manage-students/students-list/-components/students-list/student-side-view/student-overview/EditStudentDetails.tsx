@@ -20,6 +20,8 @@ import { useInstituteDetailsStore } from '@/stores/students/students-list/useIns
 import { DropdownValueType } from '@/components/common/students/enroll-manually/dropdownTypesForPackageItems';
 import { Menu, Transition } from '@headlessui/react';
 import { Pencil, Upload, Trash2 } from 'lucide-react';
+import { RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 
 const EditStudentDetailsFormSchema = z.object({
     user_id: z.string().min(1, 'This field is required'),
@@ -179,7 +181,7 @@ export const EditStudentDetails = () => {
                 </div>
             }
             footer={submitButton}
-            heading="Edit Student Details"
+            heading={`Edit ${getTerminology(RoleTerms.Learner, SystemTerms.Learner)} Details`}
             open={openDialog}
             onOpenChange={handleDialogChange}
             dialogWidth="w-[35vw]"
@@ -211,7 +213,7 @@ export const EditStudentDetails = () => {
                                     <div className="absolute bottom-3 right-3 z-10">
                                         <Menu as="div" className="relative inline-block text-left">
                                             <Menu.Button className="rounded-full bg-white p-1 shadow hover:bg-neutral-100">
-                                                <Pencil className="h-5 w-5 text-neutral-700" />
+                                                <Pencil className="size-5 text-neutral-700" />
                                             </Menu.Button>
                                             <Transition
                                                 enter="transition ease-out duration-100"
@@ -222,7 +224,7 @@ export const EditStudentDetails = () => {
                                                 leaveTo="transform opacity-0 scale-95"
                                             >
                                                 <Menu.Items className="absolute bottom-10 right-0 z-20 w-40 origin-bottom-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none">
-                                                    <div className="px-1 py-1">
+                                                    <div className="p-1">
                                                         <Menu.Item>
                                                             {({ active }) => (
                                                                 <button
@@ -234,9 +236,9 @@ export const EditStudentDetails = () => {
                                                                         active
                                                                             ? 'bg-neutral-100'
                                                                             : ''
-                                                                    } group flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm`}
+                                                                    } group flex w-full items-center gap-2 rounded-md p-2 text-sm`}
                                                                 >
-                                                                    <Upload className="h-4 w-4" />
+                                                                    <Upload className="size-4" />
                                                                     Upload New
                                                                 </button>
                                                             )}
@@ -250,9 +252,9 @@ export const EditStudentDetails = () => {
                                                                         active
                                                                             ? 'bg-neutral-100'
                                                                             : ''
-                                                                    } group flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm text-red-600`}
+                                                                    } group flex w-full items-center gap-2 rounded-md p-2 text-sm text-red-600`}
                                                                 >
-                                                                    <Trash2 className="h-4 w-4" />
+                                                                    <Trash2 className="size-4" />
                                                                     Remove Image
                                                                 </button>
                                                             )}

@@ -57,7 +57,7 @@ export const defaultNamingSettings: NamingSettingsType[] = [
 ];
 
 export const systemValueDescription = {
-    Course: 'Course is the top level of the hierarchy. For eg: Mathematics, Science, English',
+    Course: 'A Course is the main learning program that covers a subject or skill. It may consist of different Levels to structure learning progressively.',
     Level: 'Levels organize a course into structured learning stages. These stages may represent increasing difficulty, different modules, or key milestones within the course. For eg: Basic, Advanced',
     Session:
         'Sessions organize a course into different batches or time periods. For eg: January 2025 Batch, February 2025 Batch',

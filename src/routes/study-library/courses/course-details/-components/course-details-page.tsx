@@ -103,7 +103,7 @@ type SlideCountType = {
 const mockCourses: Course[] = [
     {
         id: '1',
-        title: '2-Level Course Structure',
+        title: `2-Level ${getTerminology(ContentTerms.Level, SystemTerms.Level)} Structure`,
         level: 2,
         structure: {
             courseName: 'Introduction to Web Development',
@@ -112,7 +112,7 @@ const mockCourses: Course[] = [
     },
     {
         id: '2',
-        title: '3-Level Course Structure',
+        title: `3-Level ${getTerminology(ContentTerms.Level, SystemTerms.Level)} Structure`,
         level: 3,
         structure: {
             courseName: 'Frontend Fundamentals',
@@ -121,7 +121,7 @@ const mockCourses: Course[] = [
     },
     {
         id: '3',
-        title: '4-Level Course Structure',
+        title: `4-Level ${getTerminology(ContentTerms.Level, SystemTerms.Level)} Structure`,
         level: 4,
         structure: {
             courseName: 'Full-Stack JavaScript Development Mastery',
@@ -130,7 +130,7 @@ const mockCourses: Course[] = [
     },
     {
         id: '4',
-        title: '5-Level Course Structure',
+        title: `5-Level ${getTerminology(ContentTerms.Level, SystemTerms.Level)} Structure`,
         level: 5,
         structure: {
             courseName: 'Advanced Software Engineering Principles',

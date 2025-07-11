@@ -136,13 +136,18 @@ export const AddCourseForm = ({
                 { requestData: formattedDataUpdate },
                 {
                     onSuccess: () => {
-                        toast.success('Course updated successfully');
+                        toast.success(
+                            `${getTerminology(ContentTerms.Course, SystemTerms.Course)}` +
+                                'updated successfully'
+                        );
                         setIsOpen(false);
                         setStep(1);
                         setFormData({});
                     },
                     onError: () => {
-                        toast.error('Failed to update course');
+                        toast.error(
+                            `Failed to update ${getTerminology(ContentTerms.Course, SystemTerms.Course)}`
+                        );
                         setIsCreating(false);
                     },
                 }
@@ -198,7 +203,10 @@ export const AddCourseForm = ({
                                 });
                             }
 
-                            toast.success('Course created successfully');
+                            toast.success(
+                                `${getTerminology(ContentTerms.Course, SystemTerms.Course)}` +
+                                    'created successfully'
+                            );
                             setIsOpen(false);
                             setStep(1);
                             setFormData({});
@@ -206,13 +214,17 @@ export const AddCourseForm = ({
                                 to: `/study-library/courses/course-details?courseId=${response.data}`,
                             });
                         } catch (err) {
-                            toast.error('Failed to create course');
+                            toast.error(
+                                `Failed to create ${getTerminology(ContentTerms.Course, SystemTerms.Course)}`
+                            );
                         } finally {
                             setIsCreating(false);
                         }
                     },
                     onError: () => {
-                        toast.error('Failed to create course');
+                        toast.error(
+                            `Failed to create ${getTerminology(ContentTerms.Course, SystemTerms.Course)}`
+                        );
                         setIsCreating(false);
                     },
                 }
@@ -227,16 +239,28 @@ export const AddCourseForm = ({
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger>
-                <MyButton
-                    type="button"
-                    buttonType="secondary"
-                    layoutVariant="default"
-                    scale="large"
-                    id="add-course-button"
-                    className="w-[140px] font-light"
-                >
-                    Create {getTerminology(ContentTerms.Course, SystemTerms.Course)} Manually
-                </MyButton>
+                {!isEdit ? (
+                    <MyButton
+                        type="button"
+                        buttonType="secondary"
+                        layoutVariant="default"
+                        scale="large"
+                        id="add-course-button"
+                        className="w-[140px] font-light"
+                    >
+                        Create {getTerminology(ContentTerms.Course, SystemTerms.Course)} Manually
+                    </MyButton>
+                ) : (
+                    <MyButton
+                        type="button"
+                        buttonType="secondary"
+                        layoutVariant="default"
+                        scale="small"
+                        className="my-6 bg-white py-5 !font-semibold hover:bg-white"
+                    >
+                        Edit {getTerminology(ContentTerms.Course, SystemTerms.Course)}
+                    </MyButton>
+                )}
             </DialogTrigger>
             <DialogContent className="z-[10000] flex !h-[90%] !max-h-[90%] w-[90%] flex-col overflow-hidden p-0">
                 <div className="flex h-full flex-col">

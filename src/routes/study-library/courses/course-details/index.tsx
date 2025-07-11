@@ -64,7 +64,11 @@ function RouteComponent() {
                     id: course.id,
                 };
             })}
-            sideBarData={{ title: 'Courses', listIconText: 'C', searchParam: 'courseId' }}
+            sideBarData={{
+                title: getTerminology(ContentTerms.Course, SystemTerms.Course) + 's',
+                listIconText: 'C',
+                searchParam: 'courseId',
+            }}
         >
             <InitStudyLibraryProvider>
                 {isLoading ? (
