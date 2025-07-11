@@ -6,6 +6,8 @@ import {
     GET_SLIDES,
     ADD_UPDATE_VIDEO_SLIDE,
     ADD_UPDATE_DOCUMENT_SLIDE,
+    ADD_UPDATE_QUIZ_SLIDE,
+    ADD_UPDATE_ASSIGNMENT_SLIDE,
     UPDATE_SLIDE_STATUS,
     UPDATE_SLIDE_ORDER,
     UPDATE_QUESTION_ORDER,
@@ -208,10 +210,16 @@ export interface DocumentSlidePayload {
 
 export interface AssignmentSlidePayload {
     id: string | null;
+    source_id: string;
+    source_type: string;
     title: string;
     image_file_id: string;
-    description: string | null;
-    slide_order: number | null;
+    description: string;
+    status: string;
+    slide_order: number;
+    video_slide?: any | null;
+    document_slide?: any | null;
+    question_slide?: any | null;
     assignment_slide: {
         id: string;
         parent_rich_text: TextData;
@@ -222,9 +230,102 @@ export interface AssignmentSlidePayload {
         comma_separated_media_ids: string;
         questions: AssignmentQuestion[];
     };
-    status: string;
+    quiz_slide?: any | null;
+    is_loaded: boolean;
     new_slide: boolean;
-    notify: boolean;
+}
+
+export interface QuizSlideQuestion {
+    id: string;
+    parent_rich_text: TextData;
+    text: TextData;
+    explanation_text: TextData;
+    media_id: string;
+    status: string;
+    question_response_type: string;
+    question_type: string;
+    access_level: string;
+    auto_evaluation_json: string;
+    evaluation_type: string;
+    question_order: number;
+    quiz_slide_id: string;
+    can_skip: boolean;
+    options: {
+        id: string;
+        quiz_slide_question_id: string;
+        text: TextData;
+        explanation_text: TextData;
+        media_id: string;
+    }[];
+}
+
+export interface QuizSlidePayload {
+    id: string | null;
+    source_id: string;
+    source_type: string;
+    title: string;
+    image_file_id: string;
+    description: string;
+    status: string;
+    slide_order: number;
+    video_slide?: {
+        id: string;
+        description: string;
+        title: string;
+        url: string;
+        video_length_in_millis: number;
+        published_url: string;
+        published_video_length_in_millis: number;
+        source_type: string;
+        embedded_type?: string;
+        embedded_data?: string;
+        questions?: any[];
+    } | null;
+    document_slide?: {
+        id: string;
+        type: string;
+        data: string;
+        title: string;
+        cover_file_id: string;
+        total_pages: number;
+        published_data: string;
+        published_document_total_pages: number;
+    } | null;
+    question_slide?: {
+        id: string;
+        parent_rich_text: TextData;
+        text_data: TextData;
+        explanation_text_data: TextData;
+        media_id: string;
+        question_response_type: string;
+        question_type: string;
+        access_level: string;
+        auto_evaluation_json: string;
+        evaluation_type: string;
+        default_question_time_mins: number;
+        re_attempt_count: number;
+        points: number;
+        options: any[];
+        source_type: string;
+    } | null;
+    assignment_slide?: {
+        id: string;
+        parent_rich_text: TextData;
+        text_data: TextData;
+        live_date: string;
+        end_date: string;
+        re_attempt_count: number;
+        comma_separated_media_ids: string;
+        questions: any[];
+    } | null;
+    quiz_slide: {
+        id: string;
+        description: TextData;
+        title: string;
+        questions: QuizSlideQuestion[];
+    };
+    is_loaded: boolean;
+    new_slide: boolean;
 }
 
 interface UpdateStatusParams {
@@ -458,6 +559,66 @@ export const useSlidesMutations = (
         },
     });
 
+    const addUpdateQuizSlideMutation = useMutation({
+        mutationFn: async (payload: QuizSlidePayload) => {
+            const response = await authenticatedAxiosInstance.post(
+                `${ADD_UPDATE_QUIZ_SLIDE}?chapterId=${chapterId}&instituteId=${INSTITUTE_ID}&packageSessionId=${packageSessionId}&subjectId=${subjectId}&moduleId=${moduleId}`,
+                payload
+            );
+            return { data: response.data, isNewSlide: payload.new_slide };
+        },
+        onSuccess: async (result) => {
+            // Invalidate and wait for slides query to refetch
+            await queryClient.invalidateQueries({ queryKey: ['slides'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_MODULES_WITH_CHAPTERS'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SUBJECTS_PROGRESS'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SLIDES_PROGRESS'] });
+
+            // If this was a new slide creation, set first slide as active after refetch completes
+            if (result.isNewSlide) {
+                // Wait for the slides query to actually refetch and update the store
+                setTimeout(() => {
+                    const { setActiveItem, items } = useContentStore.getState();
+
+                    if (items && items.length > 0) {
+                        setActiveItem(items[0] as Slide);
+                    }
+                }, 1000); // Increased timeout to ensure refetch completes
+            }
+        },
+    });
+
+    const addUpdateAssignmentSlideMutation = useMutation({
+        mutationFn: async (payload: AssignmentSlidePayload) => {
+            const response = await authenticatedAxiosInstance.post(
+                `${ADD_UPDATE_ASSIGNMENT_SLIDE}?chapterId=${chapterId}&instituteId=${INSTITUTE_ID}&packageSessionId=${packageSessionId}&subjectId=${subjectId}&moduleId=${moduleId}`,
+                payload
+            );
+            return { data: response.data, isNewSlide: payload.new_slide };
+        },
+        onSuccess: async (result) => {
+            // Invalidate and wait for slides query to refetch
+            await queryClient.invalidateQueries({ queryKey: ['slides'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_MODULES_WITH_CHAPTERS'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SUBJECTS_PROGRESS'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SLIDES_PROGRESS'] });
+
+            // If this was a new slide creation, set first slide as active after refetch completes
+            if (result.isNewSlide) {
+                // Wait for the slides query to actually refetch and update the store
+                setTimeout(() => {
+                    const { setActiveItem, items } = useContentStore.getState();
+
+                    if (items && items.length > 0) {
+                        setActiveItem(items[0] as Slide);
+                    }
+                }, 1000); // Increased timeout to ensure refetch completes
+            }
+        },
+    });
+
     const updateSlideStatus = useMutation({
         mutationFn: async ({ chapterId, slideId, status, instituteId }: UpdateStatusParams) => {
             return await authenticatedAxiosInstance.put(
@@ -554,8 +715,10 @@ export const useSlidesMutations = (
             addUpdateVideoSlideMutation.mutateAsync(payload).then((result) => result.data),
         addUpdateDocumentSlide: (payload: DocumentSlidePayload) =>
             addUpdateDocumentSlideMutation.mutateAsync(payload).then((result) => result.data),
-        addUpdateQuizSlide: (payload: any) =>
-            addUpdateDocumentSlideMutation.mutateAsync(payload).then((result) => result.data),
+        addUpdateQuizSlide: (payload: QuizSlidePayload) =>
+            addUpdateQuizSlideMutation.mutateAsync(payload).then((result) => result.data),
+        addUpdateAssignmentSlide: (payload: AssignmentSlidePayload) =>
+            addUpdateAssignmentSlideMutation.mutateAsync(payload).then((result) => result.data),
         updateSlideStatus: updateSlideStatus.mutateAsync,
         updateSlideOrder: updateSlideOrderMutation.mutateAsync,
         updateQuestionOrder: (payload: SlideQuestionsDataInterface) =>
@@ -566,6 +729,8 @@ export const useSlidesMutations = (
         isUpdating:
             addUpdateVideoSlideMutation.isPending ||
             addUpdateDocumentSlideMutation.isPending ||
+            addUpdateQuizSlideMutation.isPending ||
+            addUpdateAssignmentSlideMutation.isPending ||
             updateSlideOrderMutation.isPending ||
             updateQuestionSlideMutation.isPending ||
             updateAssignmentSlideMutation.isPending,

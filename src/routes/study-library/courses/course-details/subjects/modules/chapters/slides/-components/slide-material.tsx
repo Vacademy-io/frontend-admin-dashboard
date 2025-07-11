@@ -385,6 +385,45 @@ export const SlideMaterial = ({
             return;
         }
 
+        // ✅ Handle ASSIGNMENT slides (check source_type first)
+        if (activeItem.source_type === 'ASSIGNMENT') {
+            try {
+                console.log('[Assignment] Loading assignment preview for:', {
+                    slideId: activeItem.id,
+                    title: activeItem.title,
+                    status: activeItem.status,
+                    hasAssignmentSlide: !!activeItem.assignment_slide,
+                    assignmentSlideData: activeItem.assignment_slide,
+                });
+                
+                if (!activeItem.assignment_slide) {
+                    console.warn('[Assignment] No assignment_slide data found, showing fallback');
+                    setContent(
+                        <div className="flex h-[500px] flex-col items-center justify-center rounded-lg py-10">
+                            <div className="text-center">
+                                <h3 className="mb-2 text-lg font-semibold">Assignment Loading</h3>
+                                <p className="text-gray-600">Assignment data is being loaded...</p>
+                            </div>
+                        </div>
+                    );
+                    return;
+                }
+                
+                setContent(<StudyLibraryAssignmentPreview activeItem={activeItem} />);
+            } catch (error) {
+                console.error('Error rendering assignment preview:', error);
+                setContent(
+                    <div className="flex h-[500px] flex-col items-center justify-center rounded-lg py-10">
+                        <div className="text-center">
+                            <h3 className="mb-2 text-lg font-semibold text-red-600">Assignment Error</h3>
+                            <p className="text-gray-600">Failed to load assignment: {error.message}</p>
+                        </div>
+                    </div>
+                );
+            }
+            return;
+        }
+
         if (activeItem.source_type === 'DOCUMENT') {
             const documentType = activeItem.document_slide?.type;
 
@@ -892,27 +931,6 @@ export const SlideMaterial = ({
                             </div>
                         </div>
                     );
-                }
-                return;
-            }
-
-            // ✅ Handle ASSIGNMENT first (before DOC)
-            if (documentType === 'ASSIGNMENT') {
-                try {
-                    const rawData =
-                        activeItem.status === 'PUBLISHED'
-                            ? activeItem.document_slide?.data ||
-                              activeItem.document_slide?.published_data
-                            : activeItem.document_slide?.data;
-
-                    const assignmentData = rawData ? JSON.parse(rawData) : null;
-
-
-                    setContent(<StudyLibraryAssignmentPreview activeItem={activeItem} />);
-
-                } catch (error) {
-                    console.error('Error rendering assignment preview:', error);
-                    setContent(<div>Error loading assignment</div>);
                 }
                 return;
             }
