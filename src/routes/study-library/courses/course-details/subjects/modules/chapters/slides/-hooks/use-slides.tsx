@@ -121,6 +121,23 @@ export interface AssignmentQuestion {
     question_type: string;
 }
 
+// Quiz slide interface
+export interface QuizSlide {
+    id: string;
+    title: string;
+    description: TextData;
+    questions: any[];
+    parent_rich_text?: TextData;
+    explanation_text_data?: TextData;
+    media_id?: string;
+    question_response_type?: string;
+    access_level?: string;
+    evaluation_type?: string;
+    default_question_time_mins?: number;
+    re_attempt_count?: number;
+    source_type?: string;
+}
+
 // Main slide interface
 export interface Slide {
     id: string;
@@ -135,6 +152,7 @@ export interface Slide {
     document_slide?: DocumentSlide | null;
     question_slide?: QuestionSlide | null;
     assignment_slide?: AssignmentSlide | null;
+    quiz_slide?: QuizSlide | null;
     is_loaded: boolean;
     new_slide: boolean;
     // Split-screen mode properties (frontend only)
@@ -182,6 +200,27 @@ export interface DocumentSlidePayload {
         total_pages: number;
         published_data: string | null;
         published_document_total_pages: number;
+    };
+    status: string;
+    new_slide: boolean;
+    notify: boolean;
+}
+
+export interface AssignmentSlidePayload {
+    id: string | null;
+    title: string;
+    image_file_id: string;
+    description: string | null;
+    slide_order: number | null;
+    assignment_slide: {
+        id: string;
+        parent_rich_text: TextData;
+        text_data: TextData;
+        live_date: string;
+        end_date: string;
+        re_attempt_count: number;
+        comma_separated_media_ids: string;
+        questions: AssignmentQuestion[];
     };
     status: string;
     new_slide: boolean;
@@ -514,6 +553,8 @@ export const useSlidesMutations = (
         addUpdateVideoSlide: (payload: VideoSlidePayload) =>
             addUpdateVideoSlideMutation.mutateAsync(payload).then((result) => result.data),
         addUpdateDocumentSlide: (payload: DocumentSlidePayload) =>
+            addUpdateDocumentSlideMutation.mutateAsync(payload).then((result) => result.data),
+        addUpdateQuizSlide: (payload: any) =>
             addUpdateDocumentSlideMutation.mutateAsync(payload).then((result) => result.data),
         updateSlideStatus: updateSlideStatus.mutateAsync,
         updateSlideOrder: updateSlideOrderMutation.mutateAsync,

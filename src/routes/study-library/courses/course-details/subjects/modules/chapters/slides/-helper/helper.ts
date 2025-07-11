@@ -14,6 +14,8 @@ import { convertToUTC } from '@/routes/homework-creation/create-assessment/$asse
 import { AssignmentFormType } from '../-form-schemas/assignmentFormSchema';
 import { parseHtmlToString } from '@/lib/utils';
 
+
+
 export const convertHtmlToPdf = async (
     htmlString: string
 ): Promise<{ pdfBlob: Blob; totalPages: number }> => {
@@ -211,11 +213,6 @@ export function updateDocumentDataInSlides<T>(
         return item;
     });
 }
-const generateTextBlock = (content: string | null | undefined) => ({
-    id: null,
-    type: 'text',
-    content: content || '',
-});
 
 export const formatTimeStudyLibraryInSeconds = (seconds: number) => {
     const hrs = Math.floor(seconds / 3600);
@@ -339,9 +336,9 @@ export function convertStudyLibraryQuestion(question: MyQuestion) {
 
     return {
         id: question.id ? question.id : crypto.randomUUID(),
-        parent_rich_text: generateTextBlock(question?.parentRichTextContent),
-        text_data: generateTextBlock(question?.questionName),
-        explanation_text_data: generateTextBlock(question?.explanation),
+        parent_rich_text: generateTextBlock(question?.parentRichTextContent || ''),
+        text_data: generateTextBlock(question?.questionName || ''),
+        explanation_text_data: generateTextBlock(question?.explanation || ''),
         media_id: '',
         question_response_type: 'OPTION',
         question_type: question?.questionType,
@@ -354,8 +351,8 @@ export function convertStudyLibraryQuestion(question: MyQuestion) {
         options: options?.map((opt, idx) => ({
             id: opt.id || null,
             preview_id: opt.id || idx,
-            text: generateTextBlock(opt.text.content),
-            explanationTextData: generateTextBlock(opt.explanation_text.content),
+            text: generateTextBlock(opt.text?.content || ''),
+            explanationTextData: generateTextBlock(opt.explanation_text?.content || ''),
             mediaId: '',
         })),
         new_question: question.newQuestion === false ? false : true,
@@ -600,9 +597,9 @@ export function convertToQuestionSlideFormat(question: MyQuestion, sourceId?: st
 
     return {
         id: sourceId ? sourceId : crypto.randomUUID(),
-        parent_rich_text: generateTextBlock(question?.parentRichTextContent),
-        text_data: generateTextBlock(question?.questionName),
-        explanation_text_data: generateTextBlock(question?.explanation),
+        parent_rich_text: generateTextBlock(question?.parentRichTextContent || ''),
+        text_data: generateTextBlock(question?.questionName || ''),
+        explanation_text_data: generateTextBlock(question?.explanation || ''),
         media_id: '',
         question_response_type: 'OPTION',
         question_type: question?.questionType,
@@ -611,13 +608,13 @@ export function convertToQuestionSlideFormat(question: MyQuestion, sourceId?: st
         evaluation_type: 'AUTO',
         default_question_time_mins: parseInt(question?.questionDuration?.min || '0'),
         re_attempt_count: question?.reattemptCount || '',
-        points: 0,
+        points: '0',
         options: options?.map((opt, idx) => ({
             id: opt?.id || '',
             preview_id: opt?.id || idx,
             questionSlideId: '',
-            text: generateTextBlock(opt?.text?.content),
-            explanationTextData: generateTextBlock(opt?.explanation_text?.content),
+            text: generateTextBlock(opt?.text?.content || ''),
+            explanationTextData: generateTextBlock(opt?.explanation_text?.content || ''),
             mediaId: '',
         })),
         source_type: 'QUESTION',
@@ -655,6 +652,38 @@ export function convertToQuestionBackendSlideFormat({
         notify,
     };
 }
+export function convertToQuizBackendSlideFormat({
+    activeItem,
+    status,
+    notify,
+    newSlide,
+}: {
+    activeItem: Slide;
+    status: string;
+    notify: boolean;
+    newSlide: boolean;
+}) {
+    return {
+        id: activeItem?.id || '',
+        title: activeItem?.title || '',
+        description: activeItem?.description || '',
+        image_file_id: activeItem?.image_file_id || '',
+        source_id: activeItem?.source_id || '',
+        source_type: activeItem?.source_type || 'QUIZE',
+        status: status,
+        slide_order: 0,
+        video_slide: null,
+        document_slide: null,
+        question_slide: null,
+        quiz_slide: activeItem?.quiz_slide
+            ? convertToQuizSlideFormat(activeItem.quiz_slide.questions as any, activeItem?.source_id)
+            : null,
+        assignment_slide: null,
+        is_loaded: true,
+        new_slide: newSlide,
+        notify,
+    };
+}
 
 export function timestampToSeconds(timestamp: string | undefined): number {
     if (!timestamp) return 0;
@@ -671,145 +700,215 @@ const transformAssignmentSlide = (assignment: AssignmentSlide) => {
         endDate: convertDateFormat(assignment?.end_date || ''),
         reattemptCount: String(assignment?.re_attempt_count || 0),
         uploaded_question_paper: null,
-        adaptive_marking_for_each_question: assignment?.questions?.map((question) => {
-            return {
-                questionId: question?.id || '',
-                questionName: question?.text_data?.content || '',
-                questionType: question?.question_type || '',
-                newQuestion: question?.new_question || false,
-            };
-        }) || [],
+        adaptive_marking_for_each_question:
+            assignment?.questions?.map((question) => {
+                return {
+                    questionId: question?.id || '',
+                    questionName: question?.text_data?.content || '',
+                    questionType: question?.question_type || '',
+                    newQuestion: question?.new_question || false,
+                };
+            }) || [],
         totalParticipants: 0,
         submittedParticipants: 0,
     };
 };
 
 export function cleanVideoQuestions(data: Slide[]) {
-    console.log(`[cleanVideoQuestions] 🧹 Input data:`, {
-        dataType: typeof data,
-        isArray: Array.isArray(data),
-        length: data?.length || 'N/A',
-        hasNullOrder: data?.some(item => item.slide_order == null) || false
-    });
+
 
     if (!data || !Array.isArray(data)) {
-        console.error(`[cleanVideoQuestions] ❌ Invalid input data:`, data);
+
         return [];
     }
 
     // Fix null slide_order issues
     const dataWithFixedOrder = data.map((item, index) => {
         if (item.slide_order == null) {
-            console.warn(`[cleanVideoQuestions] 🔧 Fixing null slide_order for slide ${item.id} at index ${index}`);
+
             return { ...item, slide_order: index };
         }
         return item;
     });
 
     // Sort by slide_order to ensure proper ordering
-    const sortedData = dataWithFixedOrder.sort((a, b) => (a.slide_order || 0) - (b.slide_order || 0));
-    
-    console.log(`[cleanVideoQuestions] 📊 After sorting:`, {
-        originalLength: data.length,
-        sortedLength: sortedData.length,
-        hasProblematicSlides: sortedData.some(item => !item.id || !item.title)
-    });
+    const sortedData = dataWithFixedOrder.sort(
+        (a, b) => (a.slide_order || 0) - (b.slide_order || 0)
+    );
 
     const cleanedData = sortedData.map((item, index) => {
         try {
-        if (item.source_type === 'VIDEO' && item.video_slide) {
-            // Check if this is a split screen video slide
-            const videoSlide = item.video_slide as any;
-            if (videoSlide.embedded_type && videoSlide.embedded_data) {
-                try {
-                    // Parse the embedded data to reconstruct split screen slide
-                    const splitScreenData = JSON.parse(videoSlide.embedded_data);
+            if (item.source_type === 'VIDEO' && item.video_slide) {
+                // Check if this is a split screen video slide
+                const videoSlide = item.video_slide as any;
+                if (videoSlide.embedded_type && videoSlide.embedded_data) {
+                    try {
+                        // Parse the embedded data to reconstruct split screen slide
+                        const splitScreenData = JSON.parse(videoSlide.embedded_data);
 
-                    return {
-                        ...item,
-                        splitScreenMode: true,
-                        splitScreenData: splitScreenData,
-                        splitScreenType: `SPLIT_${videoSlide.embedded_type}`,
-                        isNewSplitScreen: false, // Existing slides loaded from backend are not new
-                        originalVideoSlide: {
-                            ...videoSlide,
-                            // Remove embedded fields from the original video slide
-                            embedded_type: undefined,
-                            embedded_data: undefined,
-                        },
-                        video_slide: {
-                            ...videoSlide,
-                            questions: transformResponseDataToMyQuestionsSchema(
-                                    videoSlide.questions || []
-                            ),
-                        },
-                    };
-                } catch (error) {
-                    console.error('Error parsing split screen data:', error);
-                    // Fall back to regular video slide if parsing fails
-                    return {
-                        ...item,
-                        video_slide: {
-                            ...item.video_slide,
-                            questions: transformResponseDataToMyQuestionsSchema(
-                                    item.video_slide.questions as any || []
-                            ),
-                        },
-                    };
+                        return {
+                            ...item,
+                            splitScreenMode: true,
+                            splitScreenData: splitScreenData,
+                            splitScreenType: `SPLIT_${videoSlide.embedded_type}`,
+                            isNewSplitScreen: false, // Existing slides loaded from backend are not new
+                            originalVideoSlide: {
+                                ...videoSlide,
+                                // Remove embedded fields from the original video slide
+                                embedded_type: undefined,
+                                embedded_data: undefined,
+                            },
+                            video_slide: {
+                                ...videoSlide,
+                                questions: transformResponseDataToMyQuestionsSchema(
+                                    (videoSlide.questions as any) || []
+                                ),
+                            },
+                        };
+                    } catch (error) {
+
+                        // Fall back to regular video slide if parsing fails
+                        return {
+                            ...item,
+                            video_slide: {
+                                ...item.video_slide,
+                                questions: transformResponseDataToMyQuestionsSchema(
+                                    (item.video_slide.questions as any) || []
+                                ),
+                            },
+                        };
+                    }
                 }
+
+                // Regular video slide processing
+                return {
+                    ...item,
+                    video_slide: {
+                        ...item.video_slide,
+
+                        questions: transformResponseDataToMyQuestionsSchema(
+                            (item.video_slide.questions as any) || []
+                        ),
+                    },
+                };
+            }
+            if (item.source_type === 'QUESTION') {
+                return {
+                    ...item,
+                    question_slide: transformResponseDataToMyQuestionsSchemaSingleQuestion(
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-expect-error
+                        item.question_slide
+                    ),
+                };
+            }
+            if (item.source_type === 'ASSIGNMENT') {
+                return {
+                    ...item,
+                    assignment_slide: transformAssignmentSlide(
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-expect-error
+                        item.assignment_slide
+                    ),
+                };
+            }
+            if (item.source_type === 'QUIZE') {
+                return {
+                    ...item,
+                    quiz_slide: {
+                        ...item.quiz_slide,
+                        questions: transformResponseDataToMyQuestionsSchema(
+                            (item?.quiz_slide?.questions as any) || []
+                        ),
+                    },
+                };
             }
 
-            // Regular video slide processing
-            return {
-                ...item,
-                video_slide: {
-                    ...item.video_slide,
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-expect-error
-                        questions: transformResponseDataToMyQuestionsSchema(item.video_slide.questions || []),
-                },
-            };
-        }
-        if (item.source_type === 'QUESTION') {
-            return {
-                ...item,
-                question_slide: transformResponseDataToMyQuestionsSchemaSingleQuestion(
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-expect-error
-                    item.question_slide
-                ),
-            };
-        }
-        if (item.source_type === 'ASSIGNMENT') {
-            return {
-                ...item,
-                assignment_slide: transformAssignmentSlide(
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-expect-error
-                    item.assignment_slide
-                ),
-            };
-        }
-        return item;
+            return item;
         } catch (error) {
-            console.error(`[cleanVideoQuestions] ❌ Error processing slide at index ${index}:`, {
-                error: error instanceof Error ? error.message : String(error),
-                slideId: item?.id,
-                slideTitle: item?.title,
-                slideType: item?.source_type
-            });
+
             // Return the item as-is if transformation fails
             return item;
         }
     });
 
-    console.log(`[cleanVideoQuestions] ✅ Final cleaned data:`, {
-        originalLength: data.length,
-        cleanedLength: cleanedData.length,
-        finalDataType: typeof cleanedData,
-        isArray: Array.isArray(cleanedData),
-        hasValidItems: cleanedData.every((item: any) => item.id && item.title)
-    });
-
     return cleanedData;
+}
+
+export function convertToQuizSlideFormat(questionList: MyQuestion[], sourceId?: string) {
+  const quizSlideId = sourceId ?? crypto.randomUUID();
+
+  return {
+    id: quizSlideId,
+    title: 'Untitled Quiz',
+    description: generateTextBlock(''),
+    questions: questionList.map((q, index) => {
+      // Get the appropriate options based on question type
+      let options: any[] = [];
+      let correctOptionIds: string[] = [];
+
+      if (q.questionType === 'MCQS') {
+        options = q.singleChoiceOptions?.map((opt, idx) => ({
+          id: opt.id ?? crypto.randomUUID(),
+          quiz_slide_question_id: '', // Backend will assign
+          text: generateTextBlock(opt.name || ''),
+          explanation_text: generateTextBlock(q.explanation || ''),
+          media_id: '',
+        })) || [];
+
+        correctOptionIds = q.singleChoiceOptions
+          ?.map((opt, idx) => (opt.isSelected ? opt.id ?? idx.toString() : null))
+          .filter((id): id is string => id !== null) || [];
+      } else if (q.questionType === 'MCQM') {
+        options = q.multipleChoiceOptions?.map((opt, idx) => ({
+          id: opt.id ?? crypto.randomUUID(),
+          quiz_slide_question_id: '', // Backend will assign
+          text: generateTextBlock(opt.name || ''),
+          explanation_text: generateTextBlock(q.explanation || ''),
+          media_id: '',
+        })) || [];
+
+        correctOptionIds = q.multipleChoiceOptions
+          ?.map((opt, idx) => (opt.isSelected ? opt.id ?? idx.toString() : null))
+          .filter((id): id is string => id !== null) || [];
+      } else if (q.questionType === 'TRUE_FALSE') {
+        options = q.trueFalseOptions?.map((opt, idx) => ({
+          id: opt.id ?? crypto.randomUUID(),
+          quiz_slide_question_id: '', // Backend will assign
+          text: generateTextBlock(idx === 0 ? 'TRUE' : 'FALSE'),
+          explanation_text: generateTextBlock(q.explanation || ''),
+          media_id: '',
+        })) || [];
+
+        correctOptionIds = q.trueFalseOptions
+          ?.map((opt, idx) => (opt.isSelected ? opt.id ?? idx.toString() : null))
+          .filter((id): id is string => id !== null) || [];
+      }
+
+      return {
+        id: q.id ?? crypto.randomUUID(),
+        parent_rich_text: generateTextBlock(q.parentRichTextContent || ''),
+        text: generateTextBlock(q.questionName || ''),
+        explanation_text: generateTextBlock(q.explanation || ''),
+        media_id: '',
+        status: q.status ?? 'DRAFT',
+        question_response_type: 'SINGLE', // or derive from q.responseType
+        question_type: q.questionType || 'MCQ',
+        access_level: 'INSTITUTE',
+        auto_evaluation_json: JSON.stringify({ correct: correctOptionIds }),
+        evaluation_type: 'AUTO',
+        question_order: index,
+        quiz_slide_id: quizSlideId,
+        can_skip: q.canSkip ?? true,
+        options,
+      };
+    }),
+  };
+}
+export function generateTextBlock(content: string) {
+  return {
+    id: crypto.randomUUID(),
+    type: 'HTML',
+    content: content,
+  };
 }
