@@ -1,10 +1,8 @@
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { ThumbsUp, ThumbsDown, Trash, Star } from 'phosphor-react';
+import { ThumbsUp, ThumbsDown, Trash } from 'phosphor-react';
 import { StarRatingComponent } from '@/components/common/star-rating-component';
 import { useState, useEffect } from 'react';
-import { Textarea } from '@/components/ui/textarea';
-import { MyButton } from '@/components/design-system/button';
 import { MyPagination } from '@/components/design-system/pagination';
 import { AxiosError } from 'axios';
 import { toast } from 'sonner';
@@ -12,7 +10,6 @@ import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-q
 import {
     handleGetOverAllRatingDetails,
     handleGetRatingDetails,
-    handleSubmitRating,
     handleUpdateRating,
 } from '../-services/rating-services';
 import { useRouter } from '@tanstack/react-router';
@@ -98,9 +95,6 @@ export function CourseDetailsRatingsComponent({
     const queryClient = useQueryClient();
     const router = useRouter();
     const courseId = router.state.location.search.courseId;
-    const [feedbackText, setFeedbackText] = useState('');
-    const [selectedRating, setSelectedRating] = useState<number | null>(null);
-    const [submitting, setSubmitting] = useState(false);
     const [page, setPage] = useState(0);
     const [resolvedReviews, setResolvedReviews] = useState<Review[]>([]);
     const [loadingAvatars, setLoadingAvatars] = useState(false);
@@ -179,68 +173,6 @@ export function CourseDetailsRatingsComponent({
         };
     }, [JSON.stringify(reviews)]);
 
-    const handleStarClick = (rating: number) => {
-        setSelectedRating(rating);
-    };
-
-    const handleSubmitRatingMutation = useMutation({
-        mutationFn: async ({
-            rating,
-            desc,
-            source_id,
-        }: {
-            rating: number;
-            desc: string;
-            source_id: string;
-        }) => {
-            return handleSubmitRating(rating, desc, source_id);
-        },
-        onSuccess: () => {
-            toast.success('Thank you for your feedback!', {
-                className: 'success-toast',
-                duration: 2000,
-            });
-            // Reset form
-            setFeedbackText('');
-            setSelectedRating(null);
-            setSubmitting(false);
-            queryClient.invalidateQueries({ queryKey: ['GET_ALL_USER_COURSE_RATINGS'] });
-            queryClient.invalidateQueries({ queryKey: ['GET_ALL_USER_COURSE_RATINGS_OVERALL'] });
-        },
-        onError: (error: unknown) => {
-            if (error instanceof AxiosError) {
-                toast.error(error?.response?.data?.ex || 'Failed to submit rating', {
-                    className: 'error-toast',
-                    duration: 2000,
-                });
-            } else {
-                toast.error('An unexpected error occurred', {
-                    className: 'error-toast',
-                    duration: 2000,
-                });
-                console.error('Unexpected error:', error);
-            }
-            setSubmitting(false);
-        },
-    });
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!courseId) return;
-
-        setSubmitting(true);
-        handleSubmitRatingMutation.mutate({
-            rating: selectedRating || 0,
-            desc: feedbackText.trim(),
-            source_id:
-                getPackageSessionId({
-                    courseId: courseId,
-                    levelId: currentLevel,
-                    sessionId: currentSession,
-                }) || '',
-        });
-    };
-
     const handleUpdateRatingMutation = useMutation({
         mutationFn: async ({
             id,
@@ -284,55 +216,8 @@ export function CourseDetailsRatingsComponent({
 
     return (
         <div className="flex flex-col gap-5 bg-white p-8">
-            <h1 className="text-2xl font-bold text-neutral-600">Ratings & Reviews</h1>
+            <h1 className="mb-1 text-2xl font-bold text-neutral-600">Ratings & Reviews</h1>
             {/* Feedback Form */}
-            <form
-                onSubmit={handleSubmit}
-                className="mb-8 flex flex-col gap-4 rounded-xl border bg-gray-50 p-5"
-            >
-                <label className="font-semibold text-neutral-700">Your Feedback</label>
-                <Textarea
-                    value={feedbackText}
-                    onChange={(e) => setFeedbackText(e.target.value)}
-                    placeholder="Write your feedback..."
-                    rows={3}
-                    className="resize-none"
-                />
-                <div className="flex items-center gap-2">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                        <button
-                            type="button"
-                            key={star}
-                            onClick={() => handleStarClick(star)}
-                            className="focus:outline-none"
-                        >
-                            <Star
-                                size={28}
-                                weight={
-                                    selectedRating && selectedRating >= star ? 'fill' : 'regular'
-                                }
-                                className={
-                                    selectedRating && selectedRating >= star
-                                        ? 'text-yellow-400'
-                                        : 'text-gray-300'
-                                }
-                            />
-                        </button>
-                    ))}
-                    <span className="ml-2 text-sm text-neutral-500">
-                        {selectedRating
-                            ? `${selectedRating} Star${selectedRating > 1 ? 's' : ''}`
-                            : ''}
-                    </span>
-                </div>
-                <MyButton
-                    type="submit"
-                    disable={submitting || (!selectedRating && !feedbackText.trim())}
-                    className="w-fit"
-                >
-                    {submitting ? 'Submitting...' : 'Submit Feedback'}
-                </MyButton>
-            </form>
             {overallRatingData?.average_rating !== null &&
                 overallRatingData?.average_rating !== undefined && (
                     <div className="flex w-full gap-12">

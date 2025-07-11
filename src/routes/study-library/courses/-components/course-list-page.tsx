@@ -15,6 +15,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { MyPagination } from '@/components/design-system/pagination';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { ContentTerms, RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { Eye, EyeSlash } from '@phosphor-icons/react';
 
 interface CourseListPageProps {
     selectedFilters: AllCourseFilters;
@@ -358,6 +359,18 @@ const CourseListPage = ({
                                                     {(course.rating || 0).toFixed(1)}
                                                 </span>
                                             </div>
+                                            {/* Catalog/Private status */}
+                                            <span className="-mb-3 mt-2 flex items-center gap-1 rounded py-1 text-xs font-medium text-gray-500">
+                                                {course.is_course_published_to_catalaouge ? (
+                                                    <>
+                                                        <Eye className="size-4" /> In Catalog
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <EyeSlash className="size-4" /> Private
+                                                    </>
+                                                )}
+                                            </span>
                                             {/* View Course Button */}
                                             <div className="mt-4 flex gap-2">
                                                 <MyButton
