@@ -23,6 +23,7 @@ import { CODE_CIRCLE_INSTITUTE_ID } from '@/constants/urls';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { RoleType } from '@/constants/dummy-data';
 
 interface Level {
     id: string;
@@ -774,7 +775,7 @@ export const AddCourseStep2 = ({
 
     useEffect(() => {
         fetchInstituteDashboardUsers(instituteId, {
-            roles: [{ id: '5', name: 'TEACHER' }],
+            roles: RoleType,
             status: [{ id: '1', name: 'ACTIVE' }],
         })
             .then((res) => {
