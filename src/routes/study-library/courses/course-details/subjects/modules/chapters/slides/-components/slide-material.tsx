@@ -412,11 +412,14 @@ export const SlideMaterial = ({
                 setContent(<StudyLibraryAssignmentPreview activeItem={activeItem} />);
             } catch (error) {
                 console.error('Error rendering assignment preview:', error);
+                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
                 setContent(
                     <div className="flex h-[500px] flex-col items-center justify-center rounded-lg py-10">
                         <div className="text-center">
                             <h3 className="mb-2 text-lg font-semibold text-red-600">Assignment Error</h3>
-                            <p className="text-gray-600">Failed to load assignment: {error.message}</p>
+                            <p className="text-gray-600">
+                                Failed to load assignment: {errorMessage}
+                            </p>
                         </div>
                     </div>
                 );
