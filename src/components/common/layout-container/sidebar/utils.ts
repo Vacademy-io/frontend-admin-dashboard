@@ -31,7 +31,6 @@ const getNamingSettings = (): NamingSettingsType[] => {
 export const getTerminology = (key: string, defaultValue: string): string => {
     const settings = getNamingSettings();
     const setting = settings.find((item) => item.key === key);
-    console.log(setting?.customValue, defaultValue);
     return setting?.customValue || defaultValue;
 };
 
