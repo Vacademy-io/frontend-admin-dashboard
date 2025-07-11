@@ -15,33 +15,48 @@ export function createAssignmentSlidePayload(
         'Untitled Assignment';
 
     const date = new Date();
+    const isoDate = date.toISOString();
+
+    console.log('[Assignment Payload] Creating assignment slide payload:', {
+        title,
+        live_date: isoDate,
+        end_date: isoDate,
+        dateType: typeof isoDate,
+        isValidISO: /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(isoDate),
+    });
 
     return {
         id: slideId,
+        source_id: '',
+        source_type: 'ASSIGNMENT',
         title: title,
         image_file_id: '',
-        description: '',
+        description: 'Assignment',
+        status: 'DRAFT',
         slide_order: 0,
+        video_slide: null,
+        document_slide: null,
+        question_slide: null,
         assignment_slide: {
             id: crypto.randomUUID(),
             parent_rich_text: {
                 id: '',
-                type: '',
+                type: 'TEXT',
                 content: '',
             },
             text_data: {
                 id: '',
-                type: '',
+                type: 'TEXT',
                 content: '',
             },
-            live_date: date.toLocaleString(),
-            end_date: date.toLocaleString(),
+            live_date: isoDate,
+            end_date: isoDate,
             re_attempt_count: 0,
             comma_separated_media_ids: '',
             questions: [],
         },
-        status: 'DRAFT',
+        quiz_slide: null,
+        is_loaded: true,
         new_slide: true,
-        notify: false,
     };
 }

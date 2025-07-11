@@ -12,7 +12,7 @@ import { uploadQuestionPaperFormSchema } from '@/routes/assessment/question-pape
 import { useRef, useState } from 'react';
 import { useContentStore } from '../../-stores/chapter-sidebar-store';
 import { toast } from 'sonner';
-import { useSlidesMutations, useSlidesQuery } from '../../-hooks/use-slides';
+import { useSlidesMutations, useSlidesQuery, QuizSlidePayload } from '../../-hooks/use-slides';
 import { Route } from '../..';
 import { convertToQuestionSlideFormat } from '../../-helper/helper';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
@@ -123,59 +123,41 @@ const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) =
                 image_file_id: '',
                 status: 'DRAFT',
                 slide_order: 0,
-                video_slide: {
-                    id: '',
-                    description: '',
-                    title: '',
-                    url: '',
-                    video_length_in_millis: 0,
-                    published_url: '',
-                    published_video_length_in_millis: 0,
-                    source_type: '',
-                },
-                document_slide: {
-                    id: '',
-                    type: '',
-                    data: '',
-                    title: '',
-                    cover_file_id: '',
-                    total_pages: 0,
-                    published_data: '',
-                    published_document_total_pages: 0,
-                },
-                question_slide: {
-                    id: '',
-                    parent_rich_text: { id: '', type: '', content: '' },
-                    text_data: { id: '', type: '', content: '' },
-                    explanation_text_data: { id: '', type: '', content: '' },
-                    media_id: '',
-                    question_response_type: '',
-                    question_type: '',
-                    access_level: '',
-                    auto_evaluation_json: '',
-                    evaluation_type: '',
-                    default_question_time_mins: 0,
-                    re_attempt_count: '',
-                    points: '',
-                },
+                video_slide: null,
+                document_slide: null,
+                question_slide: null,
+                assignment_slide: null,
                 quiz_slide: {
                     id: crypto.randomUUID(),
                     title: autoTitle,
                     description: { id: '', content: '', type: 'TEXT' },
-                    questions: [convertToQuestionSlideFormat(responseData) as any],
-                },
-                assignment_slide: {
-                    id: '',
-                    parentRichText: { id: '', type: '', content: '' },
-                    textData: { id: '', type: '', content: '' },
-                    liveDate: '',
-                    endDate: '',
-                    reAttemptCount: 0,
-                    commaSeparatedMediaIds: '',
+                    questions: [{
+                        id: crypto.randomUUID(),
+                        parent_rich_text: { id: '', type: 'TEXT', content: responseData.questionName },
+                        text: { id: '', type: 'TEXT', content: responseData.questionName },
+                        explanation_text: { id: '', type: 'TEXT', content: responseData.explanation },
+                        media_id: '',
+                        status: 'ACTIVE',
+                        question_response_type: responseData.questionResponseType,
+                        question_type: responseData.questionType,
+                        access_level: 'INSTITUTE',
+                        auto_evaluation_json: '',
+                        evaluation_type: 'AUTO',
+                        question_order: 1,
+                        quiz_slide_id: '',
+                        can_skip: false,
+                        options: responseData.singleChoiceOptions.map((option, index) => ({
+                            id: option.id || crypto.randomUUID(),
+                            quiz_slide_question_id: '',
+                            text: { id: '', type: 'TEXT', content: option.name },
+                            explanation_text: { id: '', type: 'TEXT', content: '' },
+                            media_id: '',
+                        })),
+                    }],
                 },
                 is_loaded: true,
                 new_slide: true,
-            });
+            } as QuizSlidePayload);
 
             if (response) {
                 const reorderedSlides = [

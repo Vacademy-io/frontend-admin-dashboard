@@ -421,6 +421,23 @@ export const converDataToVideoFormat = ({
 };
 
 export const convertToAssignmentSlideBackendFormat = (assignmentSlide: AssignmentFormType) => {
+    console.log('[Assignment Backend Format] Converting assignment slide:', {
+        originalStartDate: assignmentSlide.startDate,
+        originalEndDate: assignmentSlide.endDate,
+        startDateType: typeof assignmentSlide.startDate,
+        endDateType: typeof assignmentSlide.endDate,
+    });
+
+    const convertedStartDate = convertToUTC(assignmentSlide.startDate);
+    const convertedEndDate = convertToUTC(assignmentSlide.endDate);
+
+    console.log('[Assignment Backend Format] Converted dates:', {
+        convertedStartDate,
+        convertedEndDate,
+        startDateValidISO: /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(convertedStartDate),
+        endDateValidISO: /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(convertedEndDate),
+    });
+
     return {
         id: assignmentSlide.id,
         parent_rich_text: {
@@ -433,8 +450,8 @@ export const convertToAssignmentSlideBackendFormat = (assignmentSlide: Assignmen
             type: 'TEXT',
             content: assignmentSlide.task,
         },
-        live_date: convertToUTC(assignmentSlide.startDate),
-        end_date: convertToUTC(assignmentSlide.endDate),
+        live_date: convertedStartDate,
+        end_date: convertedEndDate,
         re_attempt_count: assignmentSlide.reattemptCount,
         comma_separated_media_ids: '',
         questions: assignmentSlide.adaptive_marking_for_each_question.map((question, idx) => {
