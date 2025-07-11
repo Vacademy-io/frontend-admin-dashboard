@@ -939,23 +939,9 @@ export const SlideMaterial = ({
     console.log('activeItem.question_slide:', activeItem.question_slide);
 
     try {
-        const rawData =
-            activeItem.status === 'PUBLISHED'
-                ? activeItem.question_slide?.data || activeItem.question_slide?.published_data
-                : activeItem.question_slide?.data;
-
-        console.log('Raw data for quiz questions:', rawData);
-
-        const parsedQuestions = rawData ? JSON.parse(rawData) : [];
-
-        // Patch into activeItem so QuizPreview can read it
-        const updated = {
-            ...activeItem,
-            question_slide: parsedQuestions,
-        };
-
-        console.log('🎯 Loading QuizPreview with questions:', parsedQuestions.length);
-        setContent(<QuizPreview activeItem={updated} />);
+        // For question slides, we don't need to parse data as it's already structured
+        console.log('🎯 Loading QuizPreview with question slide');
+        setContent(<QuizPreview activeItem={activeItem} />);
     } catch (error) {
         console.error('Error loading quiz questions:', error);
         setContent(<div>Error loading quiz questions</div>);

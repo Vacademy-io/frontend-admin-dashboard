@@ -83,11 +83,22 @@ const QuizQuestionDialogAddPreview = ({
                     ...newSlide,
                     quiz_slide: {
                         ...newSlide.quiz_slide,
+                        id: newSlide.quiz_slide?.id || crypto.randomUUID(),
+                        title: newSlide.quiz_slide?.title || 'Untitled Quiz',
+                        media_id: newSlide.quiz_slide?.media_id || '',
+                        parent_rich_text: newSlide.quiz_slide?.parent_rich_text || { id: '', content: '', type: 'TEXT' },
+                        explanation_text_data: newSlide.quiz_slide?.explanation_text_data || { id: '', content: '', type: 'TEXT' },
                         questions,
+                        question_response_type: newSlide.quiz_slide?.question_response_type || 'OPTION',
+                        access_level: newSlide.quiz_slide?.access_level || 'INSTITUTE',
+                        evaluation_type: newSlide.quiz_slide?.evaluation_type || 'AUTO',
+                        default_question_time_mins: newSlide.quiz_slide?.default_question_time_mins || 1,
+                        re_attempt_count: newSlide.quiz_slide?.re_attempt_count || 0,
+                        source_type: newSlide.quiz_slide?.source_type || 'QUIZ',
                     },
                 };
 
-                setActiveItem(updatedSlide);
+                setActiveItem(updatedSlide as any);
                 updateActiveSlideQuestions(questions);
                 handleClose();
             } else {

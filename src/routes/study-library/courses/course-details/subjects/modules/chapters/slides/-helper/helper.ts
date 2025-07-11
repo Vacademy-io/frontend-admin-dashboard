@@ -336,9 +336,9 @@ export function convertStudyLibraryQuestion(question: MyQuestion) {
 
     return {
         id: question.id ? question.id : crypto.randomUUID(),
-        parent_rich_text: generateTextBlock(question?.parentRichTextContent),
-        text_data: generateTextBlock(question?.questionName),
-        explanation_text_data: generateTextBlock(question?.explanation),
+        parent_rich_text: generateTextBlock(question?.parentRichTextContent || ''),
+        text_data: generateTextBlock(question?.questionName || ''),
+        explanation_text_data: generateTextBlock(question?.explanation || ''),
         media_id: '',
         question_response_type: 'OPTION',
         question_type: question?.questionType,
@@ -351,8 +351,8 @@ export function convertStudyLibraryQuestion(question: MyQuestion) {
         options: options?.map((opt, idx) => ({
             id: opt.id || null,
             preview_id: opt.id || idx,
-            text: generateTextBlock(opt.text.content),
-            explanationTextData: generateTextBlock(opt.explanation_text.content),
+            text: generateTextBlock(opt.text?.content || ''),
+            explanationTextData: generateTextBlock(opt.explanation_text?.content || ''),
             mediaId: '',
         })),
         new_question: question.newQuestion === false ? false : true,
@@ -597,9 +597,9 @@ export function convertToQuestionSlideFormat(question: MyQuestion, sourceId?: st
 
     return {
         id: sourceId ? sourceId : crypto.randomUUID(),
-        parent_rich_text: generateTextBlock(question?.parentRichTextContent),
-        text_data: generateTextBlock(question?.questionName),
-        explanation_text_data: generateTextBlock(question?.explanation),
+        parent_rich_text: generateTextBlock(question?.parentRichTextContent || ''),
+        text_data: generateTextBlock(question?.questionName || ''),
+        explanation_text_data: generateTextBlock(question?.explanation || ''),
         media_id: '',
         question_response_type: 'OPTION',
         question_type: question?.questionType,
@@ -608,13 +608,13 @@ export function convertToQuestionSlideFormat(question: MyQuestion, sourceId?: st
         evaluation_type: 'AUTO',
         default_question_time_mins: parseInt(question?.questionDuration?.min || '0'),
         re_attempt_count: question?.reattemptCount || '',
-        points: 0,
+        points: '0',
         options: options?.map((opt, idx) => ({
             id: opt?.id || '',
             preview_id: opt?.id || idx,
             questionSlideId: '',
-            text: generateTextBlock(opt?.text?.content),
-            explanationTextData: generateTextBlock(opt?.explanation_text?.content),
+            text: generateTextBlock(opt?.text?.content || ''),
+            explanationTextData: generateTextBlock(opt?.explanation_text?.content || ''),
             mediaId: '',
         })),
         source_type: 'QUESTION',
@@ -676,7 +676,7 @@ export function convertToQuizBackendSlideFormat({
         document_slide: null,
         question_slide: null,
         quiz_slide: activeItem?.quiz_slide
-            ? convertToQuizSlideFormat(activeItem.quiz_slide.questions, activeItem?.source_id)
+            ? convertToQuizSlideFormat(activeItem.quiz_slide.questions as any, activeItem?.source_id)
             : null,
         assignment_slide: null,
         is_loaded: true,
@@ -761,7 +761,7 @@ export function cleanVideoQuestions(data: Slide[]) {
                             video_slide: {
                                 ...videoSlide,
                                 questions: transformResponseDataToMyQuestionsSchema(
-                                    videoSlide.questions || []
+                                    (videoSlide.questions as any) || []
                                 ),
                             },
                         };
@@ -787,7 +787,7 @@ export function cleanVideoQuestions(data: Slide[]) {
                         ...item.video_slide,
 
                         questions: transformResponseDataToMyQuestionsSchema(
-                            item.video_slide.questions || []
+                            (item.video_slide.questions as any) || []
                         ),
                     },
                 };
@@ -818,7 +818,7 @@ export function cleanVideoQuestions(data: Slide[]) {
                     quiz_slide: {
                         ...item.quiz_slide,
                         questions: transformResponseDataToMyQuestionsSchema(
-                            item?.quiz_slide?.questions || []
+                            (item?.quiz_slide?.questions as any) || []
                         ),
                     },
                 };
@@ -843,17 +843,47 @@ export function convertToQuizSlideFormat(questionList: MyQuestion[], sourceId?: 
     title: 'Untitled Quiz',
     description: generateTextBlock(''),
     questions: questionList.map((q, index) => {
-      const options = q.options?.map((opt, idx) => ({
-        id: opt.id ?? crypto.randomUUID(),
-        quiz_slide_question_id: '', // Backend will assign
-        text: generateTextBlock(opt.text || ''),
-        explanation_text: generateTextBlock(opt.explanation || ''),
-        media_id: '',
-      }));
+      // Get the appropriate options based on question type
+      let options: any[] = [];
+      let correctOptionIds: string[] = [];
 
-      const correctOptionIds = q.options
-        ?.map((opt, idx) => (opt.isSelected ? opt.id ?? idx.toString() : null))
-        .filter(Boolean);
+      if (q.questionType === 'MCQS') {
+        options = q.singleChoiceOptions?.map((opt, idx) => ({
+          id: opt.id ?? crypto.randomUUID(),
+          quiz_slide_question_id: '', // Backend will assign
+          text: generateTextBlock(opt.name || ''),
+          explanation_text: generateTextBlock(q.explanation || ''),
+          media_id: '',
+        })) || [];
+
+        correctOptionIds = q.singleChoiceOptions
+          ?.map((opt, idx) => (opt.isSelected ? opt.id ?? idx.toString() : null))
+          .filter((id): id is string => id !== null) || [];
+      } else if (q.questionType === 'MCQM') {
+        options = q.multipleChoiceOptions?.map((opt, idx) => ({
+          id: opt.id ?? crypto.randomUUID(),
+          quiz_slide_question_id: '', // Backend will assign
+          text: generateTextBlock(opt.name || ''),
+          explanation_text: generateTextBlock(q.explanation || ''),
+          media_id: '',
+        })) || [];
+
+        correctOptionIds = q.multipleChoiceOptions
+          ?.map((opt, idx) => (opt.isSelected ? opt.id ?? idx.toString() : null))
+          .filter((id): id is string => id !== null) || [];
+      } else if (q.questionType === 'TRUE_FALSE') {
+        options = q.trueFalseOptions?.map((opt, idx) => ({
+          id: opt.id ?? crypto.randomUUID(),
+          quiz_slide_question_id: '', // Backend will assign
+          text: generateTextBlock(idx === 0 ? 'TRUE' : 'FALSE'),
+          explanation_text: generateTextBlock(q.explanation || ''),
+          media_id: '',
+        })) || [];
+
+        correctOptionIds = q.trueFalseOptions
+          ?.map((opt, idx) => (opt.isSelected ? opt.id ?? idx.toString() : null))
+          .filter((id): id is string => id !== null) || [];
+      }
 
       return {
         id: q.id ?? crypto.randomUUID(),
