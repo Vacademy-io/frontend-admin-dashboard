@@ -54,6 +54,22 @@ export const RequestCard = ({
                 obj.learner_invitation_response_dto.custom_fields_response.find(
                     (field) => field.field_name == 'Mother Name'
                 )?.value || '',
+            father_mobile_number:
+                obj.learner_invitation_response_dto.custom_fields_response.find(
+                    (field) => field.field_name == 'Parent Phone Number'
+                )?.value || '',
+            father_email:
+                obj.learner_invitation_response_dto.custom_fields_response.find(
+                    (field) => field.field_name == 'Parent Email'
+                )?.value || '',
+            mother_mobile_number:
+                obj.learner_invitation_response_dto.custom_fields_response.find(
+                    (field) => field.field_name == 'Parent Phone Number'
+                )?.value || '',
+            mother_email:
+                obj.learner_invitation_response_dto.custom_fields_response.find(
+                    (field) => field.field_name == 'Parent Email'
+                )?.value || '',
             parents_mobile_number:
                 obj.learner_invitation_response_dto.custom_fields_response.find(
                     (field) => field.field_name == 'Parent Phone Number'

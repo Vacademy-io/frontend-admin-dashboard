@@ -72,7 +72,7 @@ export const useContentStore = create<ContentStore>((set, get) => ({
 
             const updatedItem = {
                 ...state.activeItem,
-                question_slide: questions,
+                question_slide: questions as any,
             };
 
             const updatedItems = state.items.map((item) =>

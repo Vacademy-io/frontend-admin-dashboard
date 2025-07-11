@@ -29,7 +29,7 @@ export type QuestionPaperFormType = z.infer<typeof questionsFormSchema>;
 
 const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) => {
     const { getPackageSessionId } = useInstituteDetailsStore();
-    const { setActiveItem, getSlideById, items } = useContentStore();
+    const { setActiveItem, setItems, getSlideById, items } = useContentStore();
 
     const quizQuestionForm = useForm<UploadQuestionPaperFormType>({
         resolver: zodResolver(uploadQuestionPaperFormSchema),
@@ -123,19 +123,55 @@ const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) =
                 image_file_id: '',
                 status: 'DRAFT',
                 slide_order: 0,
+                video_slide: {
+                    id: '',
+                    description: '',
+                    title: '',
+                    url: '',
+                    video_length_in_millis: 0,
+                    published_url: '',
+                    published_video_length_in_millis: 0,
+                    source_type: '',
+                },
+                document_slide: {
+                    id: '',
+                    type: '',
+                    data: '',
+                    title: '',
+                    cover_file_id: '',
+                    total_pages: 0,
+                    published_data: '',
+                    published_document_total_pages: 0,
+                },
+                question_slide: {
+                    id: '',
+                    parent_rich_text: { id: '', type: '', content: '' },
+                    text_data: { id: '', type: '', content: '' },
+                    explanation_text_data: { id: '', type: '', content: '' },
+                    media_id: '',
+                    question_response_type: '',
+                    question_type: '',
+                    access_level: '',
+                    auto_evaluation_json: '',
+                    evaluation_type: '',
+                    default_question_time_mins: 0,
+                    re_attempt_count: '',
+                    points: '',
+                },
                 quiz_slide: {
                     id: crypto.randomUUID(),
                     title: autoTitle,
-                    media_id: '',
-                    parent_rich_text: { id: '', content: '', type: 'TEXT' },
-                    explanation_text_data: { id: '', content: '', type: 'TEXT' },
-                    questions: [convertToQuestionSlideFormat(responseData)],
-                    question_response_type: 'OPTION',
-                    access_level: 'INSTITUTE',
-                    evaluation_type: 'AUTO',
-                    default_question_time_mins: 1,
-                    re_attempt_count: parseInt(responseData.reattemptCount),
-                    source_type: 'QUIZ',
+                    description: { id: '', content: '', type: 'TEXT' },
+                    questions: [convertToQuestionSlideFormat(responseData) as any],
+                },
+                assignment_slide: {
+                    id: '',
+                    parentRichText: { id: '', type: '', content: '' },
+                    textData: { id: '', type: '', content: '' },
+                    liveDate: '',
+                    endDate: '',
+                    reAttemptCount: 0,
+                    commaSeparatedMediaIds: '',
                 },
                 is_loaded: true,
                 new_slide: true,
@@ -209,6 +245,11 @@ const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) =
 
         const question = questions[0];
 
+        if (!question) {
+            toast.error('No question found.');
+            return null;
+        }
+
         const slideId = await createSlide(
             question.questionType,
             question.questionMark,
@@ -224,8 +265,8 @@ const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) =
         const slide = refreshed?.data?.find((s) => s.id === slideId);
 
         if (slide) {
-            setItems(refreshed.data);
-            setActiveItem(slide);
+            setItems((refreshed.data || []) as any);
+            setActiveItem(slide as any);
             openState?.(false);
             return slideId; // ✅ ✅ ✅ This is the MOST IMPORTANT LINE
         } else {
