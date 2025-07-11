@@ -1,5 +1,5 @@
 import type {
-    DocumentSlidePayload,
+    AssignmentSlidePayload,
     Slide,
 } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-hooks/use-slides';
 import { generateUniqueAssignmentSlideTitle } from '../../-helper/slide-naming-utils';
@@ -7,7 +7,7 @@ import { generateUniqueAssignmentSlideTitle } from '../../-helper/slide-naming-u
 export function createAssignmentSlidePayload(
     allSlides: Slide[] = [],
     titleOverride?: string
-): DocumentSlidePayload {
+): AssignmentSlidePayload {
     const slideId = crypto.randomUUID();
     const title =
         titleOverride?.trim() ||
@@ -19,15 +19,9 @@ export function createAssignmentSlidePayload(
     return {
         id: slideId,
         title: title,
-        source_id: '',
-        source_type: 'ASSIGNMENT',
         image_file_id: '',
         description: '',
-        status: 'DRAFT',
         slide_order: 0,
-        video_slide: null,
-        document_slide: null,
-        question_slide: null,
         assignment_slide: {
             id: crypto.randomUUID(),
             parent_rich_text: {
@@ -46,8 +40,7 @@ export function createAssignmentSlidePayload(
             comma_separated_media_ids: '',
             questions: [],
         },
-        quiz_slide: null,
-        is_loaded: true,
+        status: 'DRAFT',
         new_slide: true,
         notify: false,
     };

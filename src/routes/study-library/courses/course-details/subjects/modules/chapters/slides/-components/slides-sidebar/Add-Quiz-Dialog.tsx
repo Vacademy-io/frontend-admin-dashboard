@@ -16,7 +16,7 @@ import { useSlidesMutations, useSlidesQuery } from '../../-hooks/use-slides';
 import { Route } from '../..';
 import { convertToQuestionSlideFormat } from '../../-helper/helper';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
-import QuizQuestionDialogAddPreview from './QuizQuestionDialogAddPreview';
+import QuizQuestionDialogAddPreview from './QuizQuestionDialog';
 
 export interface QuestionTypeProps {
     icon: React.ReactNode;
