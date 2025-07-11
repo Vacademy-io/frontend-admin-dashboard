@@ -18,15 +18,22 @@ import {
     Shield,
     MapPin,
     Users,
+    CaretDown,
+    CaretLeft,
+    CaretRight,
+    Calendar as CalendarIcon,
+    Check,
 } from 'phosphor-react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
 import { Sidebar, SidebarContent, SidebarHeader, useSidebar } from '@/components/ui/sidebar';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { Calendar } from '@/components/ui/calendar';
-import { format } from 'date-fns';
+import { format, addMonths, addYears, setMonth, setYear, subDays, subMonths, subYears, startOfDay } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon } from '@radix-ui/react-icons';
+import { CalendarIcon as RadixCalendarIcon } from '@radix-ui/react-icons';
+import { DateRange } from 'react-day-picker';
+import { toast } from 'sonner';
 
 export const Route = createFileRoute('/study-library/attendance-tracker/')({
     component: RouteComponent,
@@ -75,13 +82,32 @@ export const useStudentSidebar = () => {
 };
 
 // Student Sidebar Component
-
-// Student Sidebar Component
 const StudentDetailsSidebar = () => {
     const { state } = useSidebar();
     const { toggleSidebar } = useSidebar();
     const { selectedStudent } = useStudentSidebar();
     const [category, setCategory] = useState('overview');
+    const [copiedField, setCopiedField] = useState<string | null>(null);
+
+    const handleCopy = (text: string, fieldName: string) => {
+        if (navigator.clipboard) {
+            navigator.clipboard
+                .writeText(text)
+                .then(() => {
+                    setCopiedField(fieldName);
+                    toast.success(`${fieldName} copied to clipboard!`);
+                    setTimeout(() => {
+                        setCopiedField(null);
+                    }, 2000);
+                })
+                .catch((err) => {
+                    console.error('Failed to copy text: ', err);
+                    toast.error('Copy failed');
+                });
+        } else {
+            toast.error('Clipboard access not available in this browser');
+        }
+    };
 
     useEffect(() => {
         if (state === 'expanded') {
@@ -342,7 +368,10 @@ const StudentDetailsSidebar = () => {
                                                 Username: {selectedStudent.username}
                                             </p>
                                         </div>
-                                        <button className="text-neutral-400 hover:text-neutral-600">
+                                        <button
+                                            onClick={() => handleCopy(selectedStudent.username, 'Username')}
+                                            className="text-neutral-400 hover:text-neutral-600"
+                                        >
                                             <Copy className="size-3.5" />
                                         </button>
                                     </div>
@@ -353,8 +382,21 @@ const StudentDetailsSidebar = () => {
                                                 Password: 123456
                                             </p>
                                         </div>
-                                        <button className="text-neutral-400 hover:text-neutral-600">
-                                            <Copy className="size-3.5" />
+                                        <button
+                                            onClick={() => handleCopy('123456', 'Password')}
+                                            className="group rounded-md p-1 hover:bg-neutral-100"
+                                            aria-label="Copy Password"
+                                        >
+                                            {copiedField === 'Password' ? (
+                                                <div className="text-primary-500">
+                                                    <Check size={14} />
+                                                </div>
+                                            ) : (
+                                                <Copy
+                                                    size={14}
+                                                    className="text-neutral-400 transition-colors group-hover:text-primary-500"
+                                                />
+                                            )}
                                         </button>
                                     </div>
                                 </div>
@@ -456,9 +498,22 @@ const StudentDetailsSidebar = () => {
                                                 Mobile No.: 919968858268
                                             </p>
                                         </div>
-                                        <div className="text-neutral-400">
-                                            <Copy className="size-3.5" />
-                                        </div>
+                                        <button
+                                            onClick={() => handleCopy('919968858268', 'Mobile Number')}
+                                            className="group rounded-md p-1 hover:bg-neutral-100"
+                                            aria-label="Copy Mobile Number"
+                                        >
+                                            {copiedField === 'Mobile Number' ? (
+                                                <div className="text-primary-500">
+                                                    <Check size={14} />
+                                                </div>
+                                            ) : (
+                                                <Copy
+                                                    size={14}
+                                                    className="text-neutral-400 transition-colors group-hover:text-primary-500"
+                                                />
+                                            )}
+                                        </button>
                                     </div>
                                     <div className="flex items-center justify-between rounded-md p-1.5 hover:bg-neutral-50">
                                         <div className="flex items-center gap-2">
@@ -467,9 +522,22 @@ const StudentDetailsSidebar = () => {
                                                 Email Id: {selectedStudent.email}
                                             </p>
                                         </div>
-                                        <div className="text-neutral-400">
-                                            <Copy className="size-3.5" />
-                                        </div>
+                                        <button
+                                            onClick={() => handleCopy(selectedStudent.email, 'Email')}
+                                            className="group rounded-md p-1 hover:bg-neutral-100"
+                                            aria-label="Copy Email"
+                                        >
+                                            {copiedField === 'Email' ? (
+                                                <div className="text-primary-500">
+                                                    <Check size={14} />
+                                                </div>
+                                            ) : (
+                                                <Copy
+                                                    size={14}
+                                                    className="text-neutral-400 transition-colors group-hover:text-primary-500"
+                                                />
+                                            )}
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -1142,6 +1210,203 @@ const AttendanceModal = ({ isOpen, onClose, student }: AttendanceModalProps) => 
     );
 };
 
+// Date range preset options
+type DateRangePreset = {
+    label: string;
+    value: () => DateRange;
+};
+
+const dateRangePresets: DateRangePreset[] = [
+    {
+        label: 'Past Week',
+        value: () => ({
+            from: startOfDay(subDays(new Date(), 7)),
+            to: new Date()
+        })
+    },
+    {
+        label: 'Past Month',
+        value: () => ({
+            from: startOfDay(subMonths(new Date(), 1)),
+            to: new Date()
+        })
+    },
+    {
+        label: 'Past 3 Months',
+        value: () => ({
+            from: startOfDay(subMonths(new Date(), 3)),
+            to: new Date()
+        })
+    },
+    {
+        label: 'Past 6 Months',
+        value: () => ({
+            from: startOfDay(subMonths(new Date(), 6)),
+            to: new Date()
+        })
+    },
+    {
+        label: 'Past Year',
+        value: () => ({
+            from: startOfDay(subYears(new Date(), 1)),
+            to: new Date()
+        })
+    }
+];
+
+// Enhanced Date Range Picker Component
+const EnhancedDateRangePicker = ({
+    startDate,
+    endDate,
+    onRangeChange,
+}: {
+    startDate: Date | undefined;
+    endDate: Date | undefined;
+    onRangeChange: (range: DateRange | undefined) => void;
+}) => {
+    const today = new Date();
+    const [month, setCurrentMonth] = useState<Date>(startDate || today);
+    const [isYearPickerOpen, setIsYearPickerOpen] = useState(false);
+    const [isMonthPickerOpen, setIsMonthPickerOpen] = useState(false);
+
+    const years = Array.from({ length: 20 }, (_, i) => today.getFullYear() - 10 + i);
+    const months = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    ];
+
+    const handlePrevMonth = () => {
+        setCurrentMonth(prev => addMonths(prev, -1));
+    };
+
+    const handleNextMonth = () => {
+        setCurrentMonth(prev => addMonths(prev, 1));
+    };
+
+    const handleYearChange = (year: number) => {
+        setCurrentMonth(setYear(month, year));
+        setIsYearPickerOpen(false);
+    };
+
+    const handleMonthChange = (monthIndex: number) => {
+        setCurrentMonth(setMonth(month, monthIndex));
+        setIsMonthPickerOpen(false);
+    };
+
+    const handlePresetSelect = (preset: DateRangePreset) => {
+        const range = preset.value();
+        onRangeChange(range);
+        setCurrentMonth(range.from || today);
+    };
+
+    return (
+        <div className="flex flex-col">
+            {/* Custom Header with Year/Month Selection */}
+            <div className="mb-2 flex items-center justify-between px-1">
+                <div className="flex gap-1">
+                    {/* Year Selector */}
+                    <div className="relative">
+                        <button
+                            onClick={() => {
+                                setIsYearPickerOpen(!isYearPickerOpen);
+                                setIsMonthPickerOpen(false);
+                            }}
+                            className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-2 py-1 text-sm hover:bg-neutral-50"
+                        >
+                            {format(month, "yyyy")}
+                            <CaretDown size={14} weight="bold" />
+                        </button>
+
+                        {isYearPickerOpen && (
+                            <div className="absolute left-0 top-full z-50 mt-1 max-h-[200px] w-[120px] overflow-y-auto rounded-md border border-neutral-200 bg-white p-1 shadow-md">
+                                {years.map((year) => (
+                                    <button
+                                        key={year}
+                                        onClick={() => handleYearChange(year)}
+                                        className={`w-full rounded-md px-2 py-1 text-left text-sm ${
+                                            year === month.getFullYear()
+                                                ? "bg-primary-50 text-primary-600 font-medium"
+                                                : "hover:bg-neutral-100"
+                                        }`}
+                                    >
+                                        {year}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Month Selector */}
+                    <div className="relative">
+                        <button
+                            onClick={() => {
+                                setIsMonthPickerOpen(!isMonthPickerOpen);
+                                setIsYearPickerOpen(false);
+                            }}
+                            className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-2 py-1 text-sm hover:bg-neutral-50"
+                        >
+                            {format(month, "MMMM")}
+                            <CaretDown size={14} weight="bold" />
+                        </button>
+
+                        {isMonthPickerOpen && (
+                            <div className="absolute left-0 top-full z-50 mt-1 max-h-[200px] w-[150px] overflow-y-auto rounded-md border border-neutral-200 bg-white p-1 shadow-md">
+                                {months.map((monthName, index) => (
+                                    <button
+                                        key={monthName}
+                                        onClick={() => handleMonthChange(index)}
+                                        className={`w-full rounded-md px-2 py-1 text-left text-sm ${
+                                            index === month.getMonth()
+                                                ? "bg-primary-50 text-primary-600 font-medium"
+                                                : "hover:bg-neutral-100"
+                                        }`}
+                                    >
+                                        {monthName}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            <div className="flex gap-3">
+                {/* Calendar Component */}
+                <Calendar
+                    mode="range"
+                    selected={{
+                        from: startDate,
+                        to: endDate
+                    }}
+                    onSelect={onRangeChange}
+                    month={month}
+                    onMonthChange={setCurrentMonth}
+                    numberOfMonths={1}
+                    disabled={{ before: new Date(2000, 0, 1) }}
+                    initialFocus
+                    showOutsideDays
+                    fixedWeeks
+                    className="border-r border-neutral-100 pr-3"
+                />
+
+                {/* Quick Presets */}
+                <div className="flex flex-col gap-2 pt-1">
+                    <h4 className="mb-1 text-xs font-medium text-neutral-500">Quick Select</h4>
+                    {dateRangePresets.map((preset) => (
+                        <button
+                            key={preset.label}
+                            onClick={() => handlePresetSelect(preset)}
+                            className="w-full rounded-md border border-neutral-200 bg-white px-3 py-1.5 text-xs text-left hover:bg-neutral-50 hover:border-neutral-300 transition-colors"
+                        >
+                            {preset.label}
+                        </button>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+};
+
 function RouteComponent() {
     // State for filters
     const [selectedDate, setSelectedDate] = useState('');
@@ -1153,6 +1418,36 @@ function RouteComponent() {
     const [attendanceFilter, setAttendanceFilter] = useState('All');
     const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
+    // State for popovers
+    const [isBatchFilterOpen, setIsBatchFilterOpen] = useState(false);
+    const [isAttendanceFilterOpen, setIsAttendanceFilterOpen] = useState(false);
+    const [isClassFilterOpen, setIsClassFilterOpen] = useState(false);
+
+    // Batch options array
+    const batchOptions = [
+        'All Batches',
+        '7th course 3',
+        '8th course 2',
+        '9th course 1',
+        '10th course 4'
+    ];
+
+    // Attendance filter options array
+    const attendanceOptions = [
+        { value: 'All', label: 'All Attendance %' },
+        { value: 'Above 75%', label: 'Above 75%' },
+        { value: '50% - 75%', label: '50% - 75%' },
+        { value: 'Below 50%', label: 'Below 50%' }
+    ];
+
+    // Class filter options
+    const classOptions = [
+        'All Live Classes',
+        'Physics',
+        'Chemistry',
+        'Mathematics'
+    ];
+
     // State for modal
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedStudent, setSelectedStudent] = useState<(typeof mockStudentData)[0] | null>(
@@ -1161,6 +1456,9 @@ function RouteComponent() {
 
     // State for sidebar
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+    // State for date picker
+    const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
     // Set the navigation heading
     const { setNavHeading } = useNavHeadingStore();
@@ -1180,6 +1478,12 @@ function RouteComponent() {
         setAttendanceFilter('All');
     };
 
+    // Handle date range change
+    const handleDateRangeChange = (range: DateRange | undefined) => {
+        setStartDate(range?.from);
+        setEndDate(range?.to);
+    };
+
     // Function to handle View More click
     const handleViewMoreClick = (student: (typeof mockStudentData)[0]) => {
         setSelectedStudent(student);
@@ -1193,6 +1497,15 @@ function RouteComponent() {
     };
 
     // Apply filters to student data
+    const hasActiveFilters = useMemo(() => {
+        return searchQuery !== '' ||
+            selectedBatch !== 'All Batches' ||
+            selectedClass !== 'All Live Classes' ||
+            attendanceFilter !== 'All' ||
+            startDate !== undefined ||
+            endDate !== undefined;
+    }, [searchQuery, selectedBatch, selectedClass, attendanceFilter, startDate, endDate]);
+
     const filteredStudents = useMemo(() => {
         return mockStudentData.filter((student) => {
             // Search filter (case-insensitive)
@@ -1225,7 +1538,7 @@ function RouteComponent() {
 
             return matchesSearch && matchesBatch && matchesClass && matchesAttendance;
         });
-    }, [searchQuery, selectedBatch, selectedClass, attendanceFilter]);
+    }, [searchQuery, selectedBatch, selectedClass, attendanceFilter, startDate, endDate]);
 
     return (
         <StudentSidebarContext.Provider value={{ selectedStudent, setSelectedStudent }}>
@@ -1266,71 +1579,136 @@ function RouteComponent() {
                                 />
                             </div>
 
-                            {/* Batch Filter */}
+                            {/* Enhanced Batch Filter with Popover */}
                             <div className="w-[180px]">
-                                <select
-                                    value={selectedBatch}
-                                    onChange={(e) => setSelectedBatch(e.target.value)}
-                                    className="h-9 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-                                >
-                                    <option value="All Batches">All Batches</option>
-                                    <option value="7th course 3">7th course 3</option>
-                                    <option value="8th course 2">8th course 2</option>
-                                    <option value="9th course 1">9th course 1</option>
-                                    <option value="10th course 4">10th course 4</option>
-                                </select>
+                                <Popover open={isBatchFilterOpen} onOpenChange={setIsBatchFilterOpen}>
+                                    <PopoverTrigger asChild>
+                                        <button
+                                            className="flex h-9 w-full items-center justify-between rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                                        >
+                                            <span className={`${selectedBatch === 'All Batches' ? 'text-neutral-500' : 'text-neutral-900'}`}>
+                                                {selectedBatch}
+                                            </span>
+                                            <CaretDown size={14} weight="bold" className="text-neutral-500" />
+                                        </button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-[200px] p-2" align="start">
+                                        <div className="flex flex-col gap-1 py-1">
+                                            <h4 className="mb-1 px-2 text-xs font-medium text-neutral-500">Select Batch</h4>
+                                            {batchOptions.map((batch) => (
+                                                <button
+                                                    key={batch}
+                                                    onClick={() => {
+                                                        setSelectedBatch(batch);
+                                                        setIsBatchFilterOpen(false);
+                                                    }}
+                                                    className={`w-full rounded-md px-2 py-1.5 text-left text-sm ${
+                                                        batch === selectedBatch
+                                                            ? "bg-primary-50 text-primary-600 font-medium"
+                                                            : "hover:bg-neutral-100 text-neutral-700"
+                                                    }`}
+                                                >
+                                                    {batch}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </PopoverContent>
+                                </Popover>
                             </div>
 
-                            {/* Date Range Picker */}
+                            {/* Enhanced Date Range Picker */}
                             <div className="w-[220px]">
-                                <Popover>
+                                <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
                                     <PopoverTrigger asChild>
                                         <button
                                             className={`flex h-9 w-full items-center justify-between rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 ${
                                                 startDate || endDate ? "text-neutral-900" : "text-neutral-500"
                                             }`}
                                         >
-                                            {startDate && endDate ? (
-                                                <>
-                                                    {format(startDate, "MMM d")} - {format(endDate, "MMM d, yyyy")}
-                                                </>
-                                            ) : startDate ? (
-                                                <>From {format(startDate, "MMM d, yyyy")}</>
-                                            ) : (
-                                                <>Select date range</>
-                                            )}
-                                            <CalendarIcon className="ml-2 size-4 text-neutral-500" />
+                                            <div className="max-w-[170px] truncate">
+                                                {startDate && endDate ? (
+                                                    <>
+                                                        {format(startDate, "dd/MM/yy")} - {format(endDate, "dd/MM/yy")}
+                                                    </>
+                                                ) : startDate ? (
+                                                    <>From {format(startDate, "dd/MM/yy")}</>
+                                                ) : (
+                                                    <>Select date range</>
+                                                )}
+                                            </div>
+                                            <CalendarIcon className="ml-2 shrink-0 size-4 text-neutral-500" weight="regular" />
                                         </button>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar
-                                            mode="range"
-                                            selected={{
-                                                from: startDate,
-                                                to: endDate
-                                            }}
-                                            onSelect={(range) => {
-                                                setStartDate(range?.from);
-                                                setEndDate(range?.to);
-                                            }}
-                                            initialFocus
+                                    <PopoverContent className="w-auto p-3" align="start">
+                                        <EnhancedDateRangePicker
+                                            startDate={startDate}
+                                            endDate={endDate}
+                                            onRangeChange={handleDateRangeChange}
                                         />
+
+                                        <div className="mt-3 flex items-center justify-between border-t border-neutral-200 pt-3">
+                                            <button
+                                                onClick={() => {
+                                                    setStartDate(undefined);
+                                                    setEndDate(undefined);
+                                                }}
+                                                className="text-xs text-neutral-500 hover:text-neutral-700"
+                                            >
+                                                Clear
+                                            </button>
+                                            <div className="text-xs text-neutral-500">
+                                                {startDate && endDate && (
+                                                    <span title={`${format(startDate, "dd MMM yyyy")} - ${format(endDate, "dd MMM yyyy")}`}>
+                                                        {format(startDate, "dd MMM yyyy")} - {format(endDate, "dd MMM yyyy")}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <button
+                                                onClick={() => setIsDatePickerOpen(false)}
+                                                className="rounded-md bg-primary-500 px-3 py-1 text-xs font-medium text-white hover:bg-primary-600"
+                                            >
+                                                Apply
+                                            </button>
+                                        </div>
                                     </PopoverContent>
                                 </Popover>
                             </div>
 
-                            {/* Attendance Filter */}
+                            {/* Enhanced Attendance Filter with Popover */}
                             <div className="w-[180px]">
-                                <select
-                                    value={attendanceFilter}
-                                    onChange={(e) => setAttendanceFilter(e.target.value)}
-                                    className="h-9 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-                                >
-                                    <option value="All">All Attendance %</option>
-                                    <option value="Above 75%">Above 75%</option>
-                                    <option value="50% - 75%">50% - 75%</option>
-                                    <option value="Below 50%">Below 50%</option>
-                                </select>
+                                <Popover open={isAttendanceFilterOpen} onOpenChange={setIsAttendanceFilterOpen}>
+                                    <PopoverTrigger asChild>
+                                        <button
+                                            className="flex h-9 w-full items-center justify-between rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                                        >
+                                            <span className={`${attendanceFilter === 'All' ? 'text-neutral-500' : 'text-neutral-900'}`}>
+                                                {attendanceOptions.find(opt => opt.value === attendanceFilter)?.label || 'All Attendance %'}
+                                            </span>
+                                            <CaretDown size={14} weight="bold" className="text-neutral-500" />
+                                        </button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-[200px] p-2" align="start">
+                                        <div className="flex flex-col gap-1 py-1">
+                                            <h4 className="mb-1 px-2 text-xs font-medium text-neutral-500">Filter by Attendance</h4>
+                                            {attendanceOptions.map((option) => (
+                                                <button
+                                                    key={option.value}
+                                                    onClick={() => {
+                                                        setAttendanceFilter(option.value);
+                                                        setIsAttendanceFilterOpen(false);
+                                                    }}
+                                                    className={`w-full rounded-md px-2 py-1.5 text-left text-sm ${
+                                                        option.value === attendanceFilter
+                                                            ? "bg-primary-50 text-primary-600 font-medium"
+                                                            : "hover:bg-neutral-100 text-neutral-700"
+                                                    }`}
+                                                >
+                                                    {option.label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </PopoverContent>
+                                </Popover>
                             </div>
 
                             {/* Advanced Filters Toggle Button */}
@@ -1355,7 +1733,7 @@ function RouteComponent() {
                                 </svg>
                             </button>
 
-                            {filteredStudents.length !== mockStudentData.length && (
+                            {hasActiveFilters && (
                                 <button
                                     onClick={clearFilters}
                                     className="ml-auto inline-flex h-9 items-center justify-center gap-1 rounded-md bg-neutral-100 px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-200"
@@ -1376,21 +1754,44 @@ function RouteComponent() {
                                     <h4 className="text-xs font-medium text-neutral-700">Advanced Filters</h4>
                                 </div>
                                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                                    {/* Class Filter */}
+                                    {/* Enhanced Class Filter */}
                                     <div>
                                         <label className="mb-1 block text-xs font-medium text-neutral-700">
                                             Live Class
                                         </label>
-                                        <select
-                                            value={selectedClass}
-                                            onChange={(e) => setSelectedClass(e.target.value)}
-                                            className="h-8 w-full rounded-md border border-neutral-300 bg-white px-3 py-1 text-sm text-neutral-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-                                        >
-                                            <option value="All Live Classes">All Live Classes</option>
-                                            <option value="Physics">Physics</option>
-                                            <option value="Chemistry">Chemistry</option>
-                                            <option value="Mathematics">Mathematics</option>
-                                        </select>
+                                        <Popover open={isClassFilterOpen} onOpenChange={setIsClassFilterOpen}>
+                                            <PopoverTrigger asChild>
+                                                <button
+                                                    className="flex h-8 w-full items-center justify-between rounded-md border border-neutral-300 bg-white px-3 py-1 text-sm text-neutral-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                                                >
+                                                    <span className={`${selectedClass === 'All Live Classes' ? 'text-neutral-500' : 'text-neutral-900'}`}>
+                                                        {selectedClass}
+                                                    </span>
+                                                    <CaretDown size={14} weight="bold" className="text-neutral-500" />
+                                                </button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-[200px] p-2" align="start">
+                                                <div className="flex flex-col gap-1 py-1">
+                                                    <h4 className="mb-1 px-2 text-xs font-medium text-neutral-500">Select Live Class</h4>
+                                                    {classOptions.map((classOption) => (
+                                                        <button
+                                                            key={classOption}
+                                                            onClick={() => {
+                                                                setSelectedClass(classOption);
+                                                                setIsClassFilterOpen(false);
+                                                            }}
+                                                            className={`w-full rounded-md px-2 py-1.5 text-left text-sm ${
+                                                                classOption === selectedClass
+                                                                    ? "bg-primary-50 text-primary-600 font-medium"
+                                                                    : "hover:bg-neutral-100 text-neutral-700"
+                                                            }`}
+                                                        >
+                                                            {classOption}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </PopoverContent>
+                                        </Popover>
                                     </div>
                                 </div>
                             </div>
