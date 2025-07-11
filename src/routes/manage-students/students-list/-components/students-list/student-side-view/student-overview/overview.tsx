@@ -19,10 +19,8 @@ export const OverViewData = ({
 }) => {
     if (selectedStudent == null) return [];
 
-    /* eslint-disable-next-line */
     const na = (value: any) => (value ? value : 'N/A');
 
-    // General Details - conditionally exclude School for holistic
     const generalDetailsContent = isShow
         ? [
               `Session: ${na(packageSessionDetails?.session.session_name)}`,
@@ -40,14 +38,12 @@ export const OverViewData = ({
           ];
 
     const locationDetailsContent = isShow
-        ? [
-              // For holistic: only show Country
-              `Country: ${na(selectedStudent.country)}`,
-          ]
+        ? [`Country: ${na(selectedStudent.country)}`]
         : [
-              // For non-holistic: show State and City (original behavior)
               `State: ${na(selectedStudent.region)}`,
               `City: ${na(selectedStudent.city)}`,
+              `Pincode: ${na(selectedStudent.pin_code)}`,
+              `Address: ${na(selectedStudent.address_line)}`,
           ];
 
     const overviewSections: OverviewDetailsType[] = [
@@ -72,16 +68,17 @@ export const OverViewData = ({
         },
     ];
 
-    // Only add Parent/Guardian's Details section if NOT a holistic institute
+    // Only show guardian info if not holistic
     if (!isShow) {
         overviewSections.push({
             heading: "Parent/Guardian's Details",
             content: [
-                ` Father/Male Guardian's Name: ${na(selectedStudent.father_name)}`,
-                `Mother/Male Guardian's Name: ${na(selectedStudent.mother_name)}`,
-                // `Guardian's Name: -`,
-                `Mobile No.: ${na(selectedStudent.parents_mobile_number)}`,
-                `Email Id: ${na(selectedStudent.parents_email)}`,
+                `Father/Male Guardian's Name: ${na(selectedStudent.father_name)}`,
+                `Father/Male Guardian's Mobile No.: ${na(selectedStudent.parents_mobile_number)}`,
+                `Father/Male Guardian's Email Id: ${na(selectedStudent.parents_email)}`,
+                `Mother/Female Guardian's Name: ${na(selectedStudent.mother_name)}`,
+                `Mother/Female Guardian's Mobile No: ${na(selectedStudent.parents_to_mother_mobile_number)}`,
+                `Mother/Female Guardian's Email Id: ${na(selectedStudent.parents_to_mother_email)}`,
             ],
         });
     }
