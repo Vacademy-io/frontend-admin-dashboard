@@ -177,7 +177,15 @@ export const AddCourseStep2 = ({
     const [hasSessions, setHasSessions] = useState(
         instituteId === CODE_CIRCLE_INSTITUTE_ID ? 'no' : initialData?.hasSessions || 'yes'
     );
-    const [sessions, setSessions] = useState<Session[]>(initialData?.sessions || []);
+    const [sessions, setSessions] = useState<Session[]>(
+        (initialData?.sessions || []).map((session) => ({
+            ...session,
+            levels: session.levels.map((level) => ({
+                ...level,
+                batchId: (level as Level).batchId || level.id,
+            })),
+        }))
+    );
     const [showAddSession, setShowAddSession] = useState(false);
     const [showAddLevel, setShowAddLevel] = useState(false);
     const [newSessionName, setNewSessionName] = useState('');
@@ -291,7 +299,6 @@ export const AddCourseStep2 = ({
 
     const removeLevel = (sessionId: string, batchId: string) => {
         if (!batchId) return;
-        const sessionToUpdate = sessions.find((session) => session.id === sessionId);
         const updatedSessions = sessions.map((session) =>
             session.id === sessionId
                 ? {
@@ -418,7 +425,12 @@ export const AddCourseStep2 = ({
                     updatedSessions.forEach((session: Session) => {
                         if (session.levels.length === 0) {
                             session.levels = [
-                                { id: 'DEFAULT', name: '', userIds: [newInstructor] },
+                                {
+                                    id: 'DEFAULT',
+                                    name: '',
+                                    userIds: [newInstructor],
+                                    batchId: 'DEFAULT',
+                                },
                             ];
                         } else {
                             if (
@@ -528,7 +540,6 @@ export const AddCourseStep2 = ({
     // Remove standalone level
     const removeStandaloneLevel = (batchId: string) => {
         if (!batchId) return;
-        const standaloneSession = sessions.find((session) => session.id === 'standalone');
         const updatedSessions = sessions.map((session) =>
             session.id === 'standalone'
                 ? {
@@ -586,6 +597,7 @@ export const AddCourseStep2 = ({
                                     id: 'DEFAULT',
                                     name: '',
                                     userIds: selectedInstructors.map((instructor) => instructor),
+                                    batchId: 'DEFAULT',
                                 },
                             ],
                         },
@@ -640,6 +652,7 @@ export const AddCourseStep2 = ({
                                             id: 'DEFAULT',
                                             name: '',
                                             userIds: [instructorObj],
+                                            batchId: 'DEFAULT',
                                         },
                                     ];
                                 } else if (
@@ -710,7 +723,7 @@ export const AddCourseStep2 = ({
                     ...session,
                     levels: session.levels.map((level) => ({
                         ...level,
-                        batchId: level.batchId || level.id,
+                        batchId: (level as Level).batchId || level.id,
                     })),
                 })) || [];
             sessionsWithBatchIdLevels.forEach((session) => {
@@ -3330,12 +3343,12 @@ const SessionCard: React.FC<{
 };
 
 // Utility to ensure all levels in sessions have batchId
-function ensureBatchIdInLevels(sessions) {
+function ensureBatchIdInLevels(sessions: Session[]): Session[] {
     return sessions.map((session) => ({
         ...session,
         levels: session.levels.map((level) => ({
             ...level,
-            batchId: level.batchId || level.id,
+            batchId: (level as Level).batchId || level.id,
         })),
     }));
 }
