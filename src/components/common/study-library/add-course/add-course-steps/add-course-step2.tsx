@@ -298,7 +298,7 @@ export const AddCourseStep2 = ({
         const sessionToUpdate = sessions.find((session) => session.id === sessionId);
         const levelToRemove = sessionToUpdate?.levels.find((level) => level.id === levelId);
 
-        const updatedSessions = sessions.map((session) =>
+        let updatedSessions = sessions.map((session) =>
             session.id === sessionId
                 ? {
                       ...session,
@@ -306,6 +306,15 @@ export const AddCourseStep2 = ({
                   }
                 : session
         );
+
+        // If both hasSessions and hasLevels are 'yes', and the session has no levels left, remove the session
+        if (hasSessions === 'yes' && hasLevels === 'yes') {
+            const sessionAfterRemoval = updatedSessions.find((session) => session.id === sessionId);
+            if (sessionAfterRemoval && sessionAfterRemoval.levels.length === 0) {
+                updatedSessions = updatedSessions.filter((session) => session.id !== sessionId);
+            }
+        }
+
         setSessions(updatedSessions);
         form.setValue('sessions', updatedSessions);
 
