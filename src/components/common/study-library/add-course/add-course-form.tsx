@@ -19,6 +19,8 @@ import { useAddChapter } from '@/routes/study-library/courses/course-details/sub
 import { SubjectType } from '@/routes/study-library/courses/course-details/-components/course-details-page';
 import { fetchInstituteDetails } from '@/services/student-list-section/getInstituteDetails';
 import { BatchForSessionType } from '@/schemas/student/student-list/institute-schema';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { getTerminology } from '../../layout-container/sidebar/utils';
 import { CourseDetailsFormValues } from '@/routes/study-library/courses/course-details/-components/course-details-schema';
 import { useUpdateCourse } from '@/services/study-library/course-operations/update-course';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
@@ -134,13 +136,18 @@ export const AddCourseForm = ({
                 { requestData: formattedDataUpdate },
                 {
                     onSuccess: () => {
-                        toast.success('Course updated successfully');
+                        toast.success(
+                            `${getTerminology(ContentTerms.Course, SystemTerms.Course)}` +
+                                'updated successfully'
+                        );
                         setIsOpen(false);
                         setStep(1);
                         setFormData({});
                     },
                     onError: () => {
-                        toast.error('Failed to update course');
+                        toast.error(
+                            `Failed to update ${getTerminology(ContentTerms.Course, SystemTerms.Course)}`
+                        );
                         setIsCreating(false);
                     },
                 }
@@ -196,7 +203,10 @@ export const AddCourseForm = ({
                                 });
                             }
 
-                            toast.success('Course created successfully');
+                            toast.success(
+                                `${getTerminology(ContentTerms.Course, SystemTerms.Course)}` +
+                                    'created successfully'
+                            );
                             setIsOpen(false);
                             setStep(1);
                             setFormData({});
@@ -204,13 +214,17 @@ export const AddCourseForm = ({
                                 to: `/study-library/courses/course-details?courseId=${response.data}`,
                             });
                         } catch (err) {
-                            toast.error('Failed to create course');
+                            toast.error(
+                                `Failed to create ${getTerminology(ContentTerms.Course, SystemTerms.Course)}`
+                            );
                         } finally {
                             setIsCreating(false);
                         }
                     },
                     onError: () => {
-                        toast.error('Failed to create course');
+                        toast.error(
+                            `Failed to create ${getTerminology(ContentTerms.Course, SystemTerms.Course)}`
+                        );
                         setIsCreating(false);
                     },
                 }
@@ -234,7 +248,7 @@ export const AddCourseForm = ({
                         id="add-course-button"
                         className="w-[140px] font-light"
                     >
-                        Create Course Manually
+                        Create {getTerminology(ContentTerms.Course, SystemTerms.Course)} Manually
                     </MyButton>
                 ) : (
                     <MyButton
@@ -244,14 +258,15 @@ export const AddCourseForm = ({
                         scale="small"
                         className="my-6 bg-white py-5 !font-semibold hover:bg-white"
                     >
-                        Edit Course
+                        Edit {getTerminology(ContentTerms.Course, SystemTerms.Course)}
                     </MyButton>
                 )}
             </DialogTrigger>
             <DialogContent className="z-[10000] flex !h-[90%] !max-h-[90%] w-[90%] flex-col overflow-hidden p-0">
                 <div className="flex h-full flex-col">
                     <h1 className="bg-primary-50 p-4 font-semibold text-primary-500">
-                        Create Course - Step {step} of 2
+                        Create {getTerminology(ContentTerms.Course, SystemTerms.Course)} - Step{' '}
+                        {step} of 2
                     </h1>
                     {step === 1 ? (
                         <AddCourseStep1

@@ -507,7 +507,7 @@ export function StudentEnrollment() {
                                     id="name"
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    placeholder="Learner name"
+                                    placeholder="Name"
                                     required
                                 />
                             </div>
@@ -654,7 +654,7 @@ export function StudentEnrollment() {
                                         />
                                     </TableHead>
                                     <TableHead className="sticky left-12 z-10 bg-primary-50">
-                                        Learner Name
+                                        Name
                                     </TableHead>
                                     <TableHead>Enrollment ID</TableHead>
                                     <TableHead>Attempt Count</TableHead>

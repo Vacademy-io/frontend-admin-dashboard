@@ -11,6 +11,7 @@ import { getInstituteId } from '@/constants/helper';
 import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
 import { handleInviteUsers } from '@/routes/dashboard/-services/dashboard-services';
+import { mapRoleToCustomName } from '@/utils/roleUtils';
 
 export const inviteUsersSchema = z.object({
     name: z.string().min(1, 'Full name is required'),
@@ -127,7 +128,7 @@ const Step4InviteUsers = ({ refetchData }: { refetchData: () => void }) => {
                             name="roleType"
                             options={RoleType.map((option, index) => ({
                                 value: option.name,
-                                label: option.name,
+                                label: mapRoleToCustomName(option.name),
                                 _id: index,
                             }))}
                             control={form.control}

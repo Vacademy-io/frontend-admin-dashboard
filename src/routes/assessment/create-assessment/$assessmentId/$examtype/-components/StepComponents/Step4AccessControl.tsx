@@ -327,8 +327,6 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
         return () => clearTimeout(timeoutId);
     }, []);
 
-    console.log(form.getValues());
-
     if (isLoading) return <DashboardLoader />;
 
     if (isLoading || handleSubmitStep4Form.status === 'pending' || isAdminLoading)

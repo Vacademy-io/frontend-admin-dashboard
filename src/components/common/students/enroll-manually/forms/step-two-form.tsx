@@ -25,6 +25,8 @@ import { useAddSession } from '@/services/study-library/session-management/addSe
 import { AddLevelData } from '@/routes/study-library/courses/course-details/-components/add-course-details-form';
 import { useAddLevel } from '@/routes/study-library/courses/course-details/-services/add-level';
 import { HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 export const StepTwoForm = ({
     initialValues,
@@ -443,7 +445,10 @@ export const StepTwoForm = ({
                                             <FormControl>
                                                 <div className="flex flex-col gap-1">
                                                     <div>
-                                                        Course
+                                                        {getTerminology(
+                                                            ContentTerms.Course,
+                                                            SystemTerms.Course
+                                                        )}
                                                         <span className="text-subtitle text-danger-600">
                                                             *
                                                         </span>
@@ -452,7 +457,10 @@ export const StepTwoForm = ({
                                                         currentValue={value.name}
                                                         dropdownList={courseList}
                                                         handleChange={handleCourseChange}
-                                                        placeholder="Select Course"
+                                                        placeholder={`Select ${getTerminology(
+                                                            ContentTerms.Course,
+                                                            SystemTerms.Course
+                                                        )}`}
                                                         error={
                                                             form.formState.errors.course?.id
                                                                 ?.message ||
@@ -478,7 +486,10 @@ export const StepTwoForm = ({
                                         <FormControl>
                                             <div className="flex flex-col gap-1">
                                                 <div>
-                                                    Session{' '}
+                                                    {getTerminology(
+                                                        ContentTerms.Session,
+                                                        SystemTerms.Session
+                                                    )}{' '}
                                                     <span className="text-subtitle text-danger-600">
                                                         *
                                                     </span>
@@ -487,7 +498,10 @@ export const StepTwoForm = ({
                                                     currentValue={value.name}
                                                     dropdownList={sessionList}
                                                     handleChange={handleSessionChange}
-                                                    placeholder="Select Session"
+                                                    placeholder={`Select ${getTerminology(
+                                                        ContentTerms.Session,
+                                                        SystemTerms.Session
+                                                    )}`}
                                                     error={
                                                         form.formState.errors.session?.id
                                                             ?.message ||
@@ -512,7 +526,10 @@ export const StepTwoForm = ({
                                         <FormControl>
                                             <div className="flex flex-col gap-1">
                                                 <div>
-                                                    Level{' '}
+                                                    {getTerminology(
+                                                        ContentTerms.Level,
+                                                        SystemTerms.Level
+                                                    )}{' '}
                                                     <span className="text-subtitle text-danger-600">
                                                         *
                                                     </span>
@@ -521,7 +538,10 @@ export const StepTwoForm = ({
                                                     currentValue={value.name}
                                                     dropdownList={levelList}
                                                     handleChange={handleLevelChange}
-                                                    placeholder="Select Level"
+                                                    placeholder={`Select ${getTerminology(
+                                                        ContentTerms.Level,
+                                                        SystemTerms.Level
+                                                    )}`}
                                                     error={
                                                         form.formState.errors.level?.id?.message ||
                                                         form.formState.errors.level?.name?.message

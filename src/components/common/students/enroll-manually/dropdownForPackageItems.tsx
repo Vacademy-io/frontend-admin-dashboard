@@ -23,6 +23,8 @@ import { useAddSession } from '@/services/study-library/session-management/addSe
 import { useAddLevel } from '@/routes/study-library/courses/course-details/-services/add-level';
 import { toast } from 'sonner';
 import { AddCourseDetailsButton } from '@/routes/study-library/courses/course-details/-components/add-course-details-button';
+import { getTerminology } from '../../layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 const isDropdownItem = (item: string | DropdownItem | DropdownItemType): item is DropdownItem => {
     return typeof item !== 'string' && 'label' in item;
@@ -124,10 +126,15 @@ export const MyDropdown = ({
                 { requestData: requestData },
                 {
                     onSuccess: () => {
-                        toast.success('Course created successfully');
+                        toast.success(
+                            `${getTerminology(ContentTerms.Course, SystemTerms.Course)}` +
+                                'created successfully'
+                        );
                     },
                     onError: () => {
-                        toast.error('Failed to create course');
+                        toast.error(
+                            `Failed to create ${getTerminology(ContentTerms.Course, SystemTerms.Course)}`
+                        );
                     },
                 }
             );
@@ -319,7 +326,11 @@ export const MyDropdown = ({
                                                 scale="small"
                                                 className="w-full text-primary-500"
                                             >
-                                                <Plus className="mr-2" /> Create Course
+                                                <Plus className="mr-2" /> Create{' '}
+                                                {getTerminology(
+                                                    ContentTerms.Course,
+                                                    SystemTerms.Course
+                                                )}
                                             </MyButton>
                                         }
                                     />
@@ -339,7 +350,11 @@ export const MyDropdown = ({
                                                 scale="small"
                                                 className="w-full text-primary-500"
                                             >
-                                                <Plus className="mr-2" /> Create Session
+                                                <Plus className="mr-2" /> Create{' '}
+                                                {getTerminology(
+                                                    ContentTerms.Session,
+                                                    SystemTerms.Session
+                                                )}
                                             </MyButton>
                                         }
                                         submitButton={
@@ -389,12 +404,21 @@ export const MyDropdown = ({
                                                                     : 'text-primary-500'
                                                             }
                                                         >
-                                                            Create Level
+                                                            Create{' '}
+                                                            {getTerminology(
+                                                                ContentTerms.Level,
+                                                                SystemTerms.Level
+                                                            )}
                                                         </p>
                                                     </div>
                                                     {disableAddLevelButton && (
                                                         <p className="text-caption text-neutral-500">
-                                                            (Select a course first)
+                                                            Select a{' '}
+                                                            {getTerminology(
+                                                                ContentTerms.Course,
+                                                                SystemTerms.Course
+                                                            )}{' '}
+                                                            first
                                                         </p>
                                                     )}
                                                 </MyButton>

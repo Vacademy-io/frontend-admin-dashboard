@@ -17,6 +17,7 @@ import InviteUsersComponent from '@/routes/dashboard/-components/InviteUsersComp
 import InstituteUsersComponent from '@/routes/dashboard/-components/InstituteUsersTab';
 import InviteUsersTab from '@/routes/dashboard/-components/InviteUsersTab';
 import { RoleType, RoleTypeUserStatus } from '@/constants/dummy-data';
+import { mapRoleToCustomName } from '@/utils/roleUtils';
 
 export interface RoleTypeSelectedFilter {
     roles: { id: string; name: string }[];
@@ -48,9 +49,24 @@ function RouteComponent() {
         invites: [],
     });
 
+    // Transform RoleType data to show custom names while preserving backend values
+    const roleTypeWithCustomNames = RoleType.map((role) => ({
+        ...role,
+        name: mapRoleToCustomName(role.name), // Use the custom name for display while preserving the id
+    }));
+
     const handleFilterChange = (filterKey: string, selectedItems: MyFilterOption[]) => {
+        // Map back to original role names for backend
+        const originalRoleItems = selectedItems.map((item) => {
+            const originalRole = RoleType.find((role) => role.id === item.id);
+            return {
+                id: item.id,
+                name: originalRole?.name || item.name, // Use original role name for backend
+            };
+        });
+
         setSelectedFilter((prev) => {
-            const updatedFilters = { ...prev, [filterKey]: selectedItems };
+            const updatedFilters = { ...prev, [filterKey]: originalRoleItems };
             return updatedFilters;
         });
     };
@@ -64,6 +80,7 @@ function RouteComponent() {
             selectedFilter: RoleTypeSelectedFilter;
         }) => fetchInstituteDashboardUsers(instituteId, selectedFilter),
         onSuccess: (data) => {
+            console.log('data', data);
             if (selectedTab === 'instituteUsers') {
                 setDashboardUsers({ ...dashboardUsers, ['instituteUsers']: data });
             } else {
@@ -298,7 +315,7 @@ function RouteComponent() {
                         </TabsList>
                         <ScheduleTestFilters
                             label="Role Type"
-                            data={RoleType}
+                            data={roleTypeWithCustomNames}
                             selectedItems={selectedFilter['roles'] || []}
                             onSelectionChange={(items) => handleFilterChange('roles', items)}
                         />

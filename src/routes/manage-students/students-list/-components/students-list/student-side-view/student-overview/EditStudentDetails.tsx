@@ -20,6 +20,8 @@ import { useInstituteDetailsStore } from '@/stores/students/students-list/useIns
 import { DropdownValueType } from '@/components/common/students/enroll-manually/dropdownTypesForPackageItems';
 import { Menu, Transition } from '@headlessui/react';
 import { Pencil, Upload, Trash2 } from 'lucide-react';
+import { RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 
 const EditStudentDetailsFormSchema = z.object({
     user_id: z.string().min(1, 'This field is required'),
@@ -185,7 +187,7 @@ export const EditStudentDetails = () => {
                 </div>
             }
             footer={submitButton}
-            heading="Edit Student Details"
+            heading={`Edit ${getTerminology(RoleTerms.Learner, SystemTerms.Learner)} Details`}
             open={openDialog}
             onOpenChange={handleDialogChange}
             dialogWidth="w-[35vw]"

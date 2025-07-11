@@ -28,6 +28,8 @@ import { NoCourseDialog } from '@/components/common/students/no-course-dialog';
 import { useRefetchStoreAssessment } from '../-global-store/refetch-store';
 import { Route } from '..';
 import { useNavigate } from '@tanstack/react-router';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 
 export interface SelectedQuestionPaperFilters {
     name: string | { id: string; name: string }[];
@@ -477,7 +479,7 @@ export const ScheduleTestMainComponent = () => {
                                 }
                             />
                             <ScheduleTestFilters
-                                label="Subjects"
+                                label={getTerminology(ContentTerms.Subjects, SystemTerms.Subjects)}
                                 data={SubjectFilterData}
                                 selectedItems={selectedQuestionPaperFilters['subjects_ids'] || []}
                                 onSelectionChange={(items) =>

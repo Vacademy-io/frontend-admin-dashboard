@@ -26,6 +26,8 @@ import { SaveDraftProvider } from './-context/saveDraftContext';
 import { useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
 import { useModulesWithChaptersStore } from '@/stores/study-library/use-modules-with-chapters-store';
 import { SidebarProvider } from '@/components/ui/sidebar';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 interface ChapterSearchParams {
     courseId: string;
@@ -126,7 +128,10 @@ function RouteComponent() {
         () => (
             <div className="flex items-center gap-4">
                 <CaretLeft onClick={() => window.history.back()} className="cursor-pointer" />
-                <div>{`${chapterName || ''} Slides`}</div>
+                <div>{`${chapterName || ''} ${getTerminology(
+                    ContentTerms.Slides,
+                    SystemTerms.Slides
+                )}s`}</div>
             </div>
         ),
         [chapterName]

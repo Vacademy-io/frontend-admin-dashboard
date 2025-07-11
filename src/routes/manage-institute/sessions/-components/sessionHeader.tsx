@@ -7,6 +7,8 @@ import { MyButton } from '@/components/design-system/button';
 import { Plus } from '@phosphor-icons/react';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { NoCourseDialog } from '@/components/common/students/no-course-dialog';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 export default function SessionHeader() {
     const [disableAddButton, setDisableAddButton] = useState(true);
@@ -72,7 +74,9 @@ export default function SessionHeader() {
     return (
         <div className="flex items-center justify-between text-neutral-600">
             <div className="flex flex-col gap-2">
-                <div className="text-xl font-[600]">Manage Your Sessions</div>
+                <div className="text-xl font-[600]">
+                    Manage Your {getTerminology(ContentTerms.Session, SystemTerms.Session)}
+                </div>
                 <div className="text-base">
                     Effortlessly organize, upload, and track educational resources in one place.
                     Provide students with easy access to the materials they need to succeed,
@@ -89,7 +93,8 @@ export default function SessionHeader() {
                             content="You need to create a course before"
                             trigger={
                                 <MyButton>
-                                    <Plus /> Add New Session
+                                    <Plus /> Add New{' '}
+                                    {getTerminology(ContentTerms.Session, SystemTerms.Session)}
                                 </MyButton>
                             }
                         />

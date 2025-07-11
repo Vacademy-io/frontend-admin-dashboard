@@ -15,6 +15,8 @@ import { useInstituteQuery } from '@/services/student-list-section/getInstituteD
 import { getSubjectNameById } from '@/routes/assessment/question-papers/-utils/helper';
 import { AssessmentOverviewDataInterface } from '@/types/assessment-overview';
 import AssessmentStudentLeaderboard from './AssessmentStudentLeaderboard';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 const chartConfig = {
     ongoing: {
@@ -105,7 +107,9 @@ export function QuestionsPieChart() {
                     </div>
                     <div className="flex flex-col gap-6">
                         <p>
-                            <span className="font-normal text-black">Subject: </span>
+                            <span className="font-normal text-black">
+                                {getTerminology(ContentTerms.Subjects, SystemTerms.Subjects)}:{' '}
+                            </span>
                             <span>
                                 {getSubjectNameById(
                                     instituteDetails?.subjects || [],

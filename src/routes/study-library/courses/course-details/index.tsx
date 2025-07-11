@@ -9,6 +9,8 @@ import { useStudyLibraryStore } from '@/stores/study-library/use-study-library-s
 import { getCourses } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getCourses';
 import { CourseDetailsPage } from './-components/course-details-page';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 interface CourseSearchParams {
     courseId: string;
@@ -45,7 +47,7 @@ function RouteComponent() {
     const heading = (
         <div className="flex items-center gap-4">
             <CaretLeft onClick={() => window.history.back()} className="cursor-pointer" />
-            <div>Course Details</div>
+            <div>{getTerminology(ContentTerms.Course, SystemTerms.Course)} Details</div>
         </div>
     );
 
@@ -62,7 +64,11 @@ function RouteComponent() {
                     id: course.id,
                 };
             })}
-            sideBarData={{ title: 'Courses', listIconText: 'C', searchParam: 'courseId' }}
+            sideBarData={{
+                title: getTerminology(ContentTerms.Course, SystemTerms.Course) + 's',
+                listIconText: 'C',
+                searchParam: 'courseId',
+            }}
         >
             <InitStudyLibraryProvider>
                 {isLoading ? (

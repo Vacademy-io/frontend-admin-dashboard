@@ -24,6 +24,8 @@ import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { MyTable } from '@/components/design-system/table';
 import { usePacageDetails } from '../../-store/usePacageDetails';
 import { formatToTwoDecimalPlaces } from '../../-services/helper';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 const formSchema = z.object({
     course: z.string().min(1, 'Course is required'),
@@ -142,7 +144,7 @@ export default function ProgressReports() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div className="flex flex-row items-center justify-between">
                     <div>
-                        <div>Course</div>
+                        <div>{getTerminology(ContentTerms.Course, SystemTerms.Course)}</div>
                         <Select
                             onValueChange={(value) => {
                                 setValue('course', value);
@@ -151,7 +153,12 @@ export default function ProgressReports() {
                             defaultValue=""
                         >
                             <SelectTrigger className="h-[40px] w-[320px]">
-                                <SelectValue placeholder="Select a Course" />
+                                <SelectValue
+                                    placeholder={`Select a ${getTerminology(
+                                        ContentTerms.Course,
+                                        SystemTerms.Course
+                                    )}`}
+                                />
                             </SelectTrigger>
                             <SelectContent>
                                 {courseList.map((course) => (
@@ -164,7 +171,7 @@ export default function ProgressReports() {
                     </div>
 
                     <div>
-                        <div>Session</div>
+                        <div>{getTerminology(ContentTerms.Session, SystemTerms.Session)}</div>
                         <Select
                             onValueChange={(value) => {
                                 setValue('session', value);
@@ -175,7 +182,12 @@ export default function ProgressReports() {
                             disabled={!sessionList.length}
                         >
                             <SelectTrigger className="h-[40px] w-[320px]">
-                                <SelectValue placeholder="Select a Session" />
+                                <SelectValue
+                                    placeholder={`Select a ${getTerminology(
+                                        ContentTerms.Session,
+                                        SystemTerms.Session
+                                    )}`}
+                                />
                             </SelectTrigger>
                             <SelectContent>
                                 {sessionList.map((session) => (
@@ -188,7 +200,7 @@ export default function ProgressReports() {
                     </div>
 
                     <div>
-                        <div>Level</div>
+                        <div>{getTerminology(ContentTerms.Level, SystemTerms.Level)}</div>
                         <Select
                             onValueChange={(value) => {
                                 setValue('level', value);
@@ -200,7 +212,12 @@ export default function ProgressReports() {
                             {...register('level')}
                         >
                             <SelectTrigger className="h-[40px] w-[320px]">
-                                <SelectValue placeholder="Select a Level" />
+                                <SelectValue
+                                    placeholder={`Select a ${getTerminology(
+                                        ContentTerms.Level,
+                                        SystemTerms.Level
+                                    )}`}
+                                />
                             </SelectTrigger>
                             <SelectContent>
                                 {levelList.map((level) => (
@@ -233,7 +250,10 @@ export default function ProgressReports() {
                         <MyButton buttonType="secondary">Export</MyButton>
                     </div>
                     <div className="flex flex-col justify-between gap-6">
-                        <div className="text-h3 text-primary-500">Subject-wise Overview</div>
+                        <div className="text-h3 text-primary-500">
+                            {getTerminology(ContentTerms.Subjects, SystemTerms.Subjects)}-wise
+                            Overview
+                        </div>
                         <MyTable
                             data={subjectWiseData}
                             columns={SubjectOverviewBatchColumns}

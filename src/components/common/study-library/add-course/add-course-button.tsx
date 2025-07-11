@@ -2,6 +2,8 @@ import { MyButton } from '@/components/design-system/button';
 import { MyDialog } from '@/components/design-system/dialog';
 import { useState } from 'react';
 import CourseTypeButtons from './course-type-buttons';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { getTerminology } from '../../layout-container/sidebar/utils';
 
 export const AddCourseButton = () => {
     const [openDialog, setOpenDialog] = useState(false);
@@ -14,10 +16,10 @@ export const AddCourseButton = () => {
         <MyDialog
             trigger={
                 <MyButton type="button" scale="large" buttonType="primary" className="font-medium">
-                    Create Course
+                    Create {getTerminology(ContentTerms.Course, SystemTerms.Course)}
                 </MyButton>
             }
-            heading="Add Course"
+            heading={`Add ${getTerminology(ContentTerms.Course, SystemTerms.Course)}`}
             dialogWidth="w-[400px]"
             open={openDialog}
             onOpenChange={handleOpenChange}

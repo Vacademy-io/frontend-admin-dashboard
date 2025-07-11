@@ -7,6 +7,7 @@ import { RolesDummyDataType, UserRolesDataEntry } from '@/types/dashboard/user-r
 import { useFileUpload } from '@/hooks/use-file-upload';
 import { useEffect, useState } from 'react';
 import { EnrollFormUploadImage } from '@/assets/svgs';
+import { mapRoleToCustomName } from '@/utils/roleUtils';
 
 interface InviteUsersTabProps {
     selectedTab: keyof RolesDummyDataType;
@@ -69,6 +70,9 @@ const InstituteUsersComponent: React.FC<InviteUsersTabProps> = ({
                                         <div className="flex items-center gap-4">
                                             <p>{item.full_name}</p>
                                             {item.roles?.map((role, index) => {
+                                                const customRoleName = mapRoleToCustomName(
+                                                    role.role_name
+                                                );
                                                 return (
                                                     <Badge
                                                         key={index}
@@ -84,7 +88,7 @@ const InstituteUsersComponent: React.FC<InviteUsersTabProps> = ({
                                                                     : 'bg-[#F5F0FF]'
                                                         }`}
                                                     >
-                                                        {role.role_name}
+                                                        {customRoleName}
                                                     </Badge>
                                                 );
                                             })}

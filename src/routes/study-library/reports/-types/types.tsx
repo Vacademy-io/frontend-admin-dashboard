@@ -77,7 +77,7 @@ export const leaderBoardColumns: ColumnDef<LeaderBoardColumnType>[] = [
     },
     {
         accessorKey: 'name',
-        header: 'Learner Name',
+        header: 'Name',
     },
     {
         accessorKey: 'score',

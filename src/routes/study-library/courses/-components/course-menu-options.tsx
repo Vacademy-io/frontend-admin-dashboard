@@ -8,6 +8,8 @@ import {
     CourseFormData,
     AddCourseForm,
 } from '../../../../components/common/study-library/add-course/add-course-form';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 interface CourseMenuOptionsProps {
     onDelete: (courseId: string) => void;
     onEdit: ({ courseId, requestData }: { requestData: CourseFormData; courseId?: string }) => void;
@@ -16,14 +18,17 @@ interface CourseMenuOptionsProps {
 
 export const CourseMenuOptions = ({ onDelete, onEdit, course }: CourseMenuOptionsProps) => {
     const [openEditDialog, setOpenEditDialog] = useState(false);
-    const DropdownList = ['Edit Course', 'Delete Course'];
+    const DropdownList = [
+        `Edit ${getTerminology(ContentTerms.Course, SystemTerms.Course)}`,
+        `Delete ${getTerminology(ContentTerms.Course, SystemTerms.Course)}`,
+    ];
     const [disableAddButton, setDisableAddButton] = useState(false);
     const formSubmitRef = useRef<() => void>(() => {});
 
     const handleMenuOptionsChange = (value: string) => {
-        if (value === 'Delete Course') {
+        if (value === `Delete ${getTerminology(ContentTerms.Course, SystemTerms.Course)}`) {
             onDelete(course.id);
-        } else if (value === 'Edit Course') {
+        } else if (value === `Edit ${getTerminology(ContentTerms.Course, SystemTerms.Course)}`) {
             setOpenEditDialog(true);
         }
     };
@@ -62,7 +67,7 @@ export const CourseMenuOptions = ({ onDelete, onEdit, course }: CourseMenuOption
             </MyDropdown>
 
             <MyDialog
-                heading="Edit Course"
+                heading={`Edit ${getTerminology(ContentTerms.Course, SystemTerms.Course)}`}
                 dialogWidth="w-[700px]"
                 open={openEditDialog}
                 onOpenChange={handleOpenChange}

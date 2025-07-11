@@ -29,6 +29,8 @@ import { useRefetchStoreAssessment } from '../-global-store/refetch-store';
 import { Route } from '..';
 import { useNavigate } from '@tanstack/react-router';
 import { getCourseSubjects } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSubjects';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 
 export interface SelectedQuestionPaperFilters {
     name: string | { id: string; name: string }[];
@@ -513,7 +515,7 @@ export const ScheduleTestMainComponent = ({
                                 />
                             )}
                             <ScheduleTestFilters
-                                label="Subjects"
+                                label={getTerminology(ContentTerms.Subjects, SystemTerms.Subjects)}
                                 data={
                                     isCourseOutline && batchId
                                         ? getSubjectsByBatchId(batchId)
