@@ -28,6 +28,7 @@ interface Level {
     id: string;
     name: string;
     userIds: Instructor[];
+    batchId: string;
 }
 
 interface Session {
@@ -35,6 +36,7 @@ interface Session {
     name: string;
     startDate: string;
     levels: Level[];
+    batchId?: string;
 }
 
 interface Instructor {
@@ -108,6 +110,7 @@ interface InstructorMapping {
         sessionName: string;
         levelId: string;
         levelName: string;
+        batchId?: string;
     }>;
 }
 
@@ -198,6 +201,7 @@ export const AddCourseStep2 = ({
             sessionName: string;
             levelId: string;
             levelName: string;
+            batchId?: string;
         }>
     >([]);
 
@@ -248,41 +252,32 @@ export const AddCourseStep2 = ({
         }
     };
 
-    const removeSession = (sessionId: string) => {
-        const sessionToRemove = sessions.find((session) => session.id === sessionId);
-        const updatedSessions = sessions.filter((session) => session.id !== sessionId);
+    const removeSession = (batchId: string) => {
+        if (!batchId) return;
+        const updatedSessions = sessions.filter((session) => session.batchId !== batchId);
         setSessions(updatedSessions);
         form.setValue('sessions', updatedSessions);
-
-        // Remove all assignments for this session from all instructors
         setInstructorMappings((prev) =>
             prev.map((instructor) => ({
                 ...instructor,
-                sessionLevels: instructor.sessionLevels.filter((sl) => sl.sessionId !== sessionId),
+                sessionLevels: instructor.sessionLevels.filter((sl) => sl.batchId !== batchId),
             }))
         );
-
-        // Restore used batches when session is removed
-        if (sessionToRemove) {
-            setUsedExistingBatchIds((prev) => {
-                const newSet = new Set(prev);
-                // Find all batch IDs that were used for this session
-                existingBatches.forEach((batch) => {
-                    if (batch.session.id === sessionToRemove.id) {
-                        newSet.delete(batch.id);
-                    }
-                });
-                return newSet;
-            });
-        }
+        setUsedExistingBatchIds((prev) => {
+            const newSet = new Set(prev);
+            newSet.delete(batchId);
+            return newSet;
+        });
     };
 
     const addLevel = (sessionId: string, levelName: string, levelId?: string) => {
         if (levelName.trim()) {
+            const id = levelId || Date.now().toString();
             const newLevel: Level = {
-                id: levelId || Date.now().toString(),
+                id,
                 name: levelName.trim(),
                 userIds: [],
+                batchId: id,
             };
             const updatedSessions = sessions.map((session) =>
                 session.id === sessionId
@@ -294,53 +289,30 @@ export const AddCourseStep2 = ({
         }
     };
 
-    const removeLevel = (sessionId: string, levelId: string) => {
+    const removeLevel = (sessionId: string, batchId: string) => {
+        if (!batchId) return;
         const sessionToUpdate = sessions.find((session) => session.id === sessionId);
-        const levelToRemove = sessionToUpdate?.levels.find((level) => level.id === levelId);
-
-        let updatedSessions = sessions.map((session) =>
+        const updatedSessions = sessions.map((session) =>
             session.id === sessionId
                 ? {
                       ...session,
-                      levels: session.levels.filter((level) => level.id !== levelId),
+                      levels: session.levels.filter((level) => level.batchId !== batchId),
                   }
                 : session
         );
-
-        // If both hasSessions and hasLevels are 'yes', and the session has no levels left, remove the session
-        if (hasSessions === 'yes' && hasLevels === 'yes') {
-            const sessionAfterRemoval = updatedSessions.find((session) => session.id === sessionId);
-            if (sessionAfterRemoval && sessionAfterRemoval.levels.length === 0) {
-                updatedSessions = updatedSessions.filter((session) => session.id !== sessionId);
-            }
-        }
-
         setSessions(updatedSessions);
         form.setValue('sessions', updatedSessions);
-
-        // Remove all assignments for this level from all instructors
         setInstructorMappings((prev) =>
             prev.map((instructor) => ({
                 ...instructor,
-                sessionLevels: instructor.sessionLevels.filter(
-                    (sl) => !(sl.sessionId === sessionId && sl.levelId === levelId)
-                ),
+                sessionLevels: instructor.sessionLevels.filter((sl) => sl.batchId !== batchId),
             }))
         );
-
-        // Restore used batches when level is removed
-        if (levelToRemove && levelToRemove.id !== 'DEFAULT') {
-            setUsedExistingBatchIds((prev) => {
-                const newSet = new Set(prev);
-                // Find the batch ID that corresponds to this level
-                existingBatches.forEach((batch) => {
-                    if (batch.level.id === levelToRemove.id && batch.session.id === sessionId) {
-                        newSet.delete(batch.id);
-                    }
-                });
-                return newSet;
-            });
-        }
+        setUsedExistingBatchIds((prev) => {
+            const newSet = new Set(prev);
+            newSet.delete(batchId);
+            return newSet;
+        });
     };
 
     const handleSubmit = (data: Step2Data) => {
@@ -386,6 +358,7 @@ export const AddCourseStep2 = ({
                 sessionName: string;
                 levelId: string;
                 levelName: string;
+                batchId?: string;
             }> = [];
             if (hasSessions === 'yes' && hasLevels === 'yes') {
                 sessions.forEach((session: Session) => {
@@ -395,6 +368,7 @@ export const AddCourseStep2 = ({
                             sessionName: session.name,
                             levelId: level.id,
                             levelName: level.name,
+                            batchId: level.batchId,
                         });
                     });
                 });
@@ -483,6 +457,7 @@ export const AddCourseStep2 = ({
             sessionName: string;
             levelId: string;
             levelName: string;
+            batchId?: string;
         }>
     ) => {
         if (selectedInstructorEmail) {
@@ -521,25 +496,23 @@ export const AddCourseStep2 = ({
     // Add standalone level
     const addStandaloneLevel = () => {
         if (newLevelName.trim()) {
+            const id = Date.now().toString();
             const dummySession: Session = {
                 id: 'standalone',
                 name: 'Standalone',
                 startDate: new Date().toISOString(),
                 levels: [],
             };
-
             const newLevel: Level = {
-                id: Date.now().toString(),
+                id,
                 name: newLevelName.trim(),
                 userIds: [],
+                batchId: id,
             };
-
-            // If there's no standalone session yet, create one
             const standaloneSession = sessions.find((s) => s.id === 'standalone');
             if (!standaloneSession) {
                 setSessions([{ ...dummySession, levels: [newLevel] }]);
             } else {
-                // Add level to existing standalone session
                 const updatedSessions = sessions.map((session) =>
                     session.id === 'standalone'
                         ? { ...session, levels: [...session.levels, newLevel] }
@@ -547,40 +520,29 @@ export const AddCourseStep2 = ({
                 );
                 setSessions(updatedSessions);
             }
-
             setNewLevelName('');
             setShowAddLevel(false);
         }
     };
 
     // Remove standalone level
-    const removeStandaloneLevel = (levelId: string) => {
+    const removeStandaloneLevel = (batchId: string) => {
+        if (!batchId) return;
         const standaloneSession = sessions.find((session) => session.id === 'standalone');
-        const levelToRemove = standaloneSession?.levels.find((level) => level.id === levelId);
-
         const updatedSessions = sessions.map((session) =>
             session.id === 'standalone'
                 ? {
                       ...session,
-                      levels: session.levels.filter((level) => level.id !== levelId),
+                      levels: session.levels.filter((level) => level.batchId !== batchId),
                   }
                 : session
         );
         setSessions(updatedSessions);
-
-        // Restore used batches when standalone level is removed
-        if (levelToRemove && levelToRemove.id !== 'DEFAULT') {
-            setUsedExistingBatchIds((prev) => {
-                const newSet = new Set(prev);
-                // Find the batch ID that corresponds to this level
-                existingBatches.forEach((batch) => {
-                    if (batch.level.id === levelToRemove.id) {
-                        newSet.delete(batch.id);
-                    }
-                });
-                return newSet;
-            });
-        }
+        setUsedExistingBatchIds((prev) => {
+            const newSet = new Set(prev);
+            newSet.delete(batchId);
+            return newSet;
+        });
     };
 
     // Function to handle checkbox changes
@@ -741,11 +703,17 @@ export const AddCourseStep2 = ({
     useEffect(() => {
         if (initialData) {
             setSelectedInstructors(form.getValues('selectedInstructors'));
-
             // Aggregate instructor mappings from session data
             const instructorMappingsFromSessions: InstructorMapping[] = [];
-
-            form.getValues('sessions')?.forEach((session) => {
+            const sessionsWithBatchIdLevels =
+                form.getValues('sessions')?.map((session) => ({
+                    ...session,
+                    levels: session.levels.map((level) => ({
+                        ...level,
+                        batchId: level.batchId || level.id,
+                    })),
+                })) || [];
+            sessionsWithBatchIdLevels.forEach((session) => {
                 session.levels?.forEach((level) => {
                     level.userIds?.forEach((instructor) => {
                         const sessionLevelMapping = {
@@ -753,8 +721,8 @@ export const AddCourseStep2 = ({
                             sessionName: session.name,
                             levelId: level.id,
                             levelName: level.name,
+                            batchId: level.batchId,
                         };
-
                         // Find or create mapping for this instructor
                         const mapping = instructorMappingsFromSessions.find(
                             (m) => m.id === instructor.id
@@ -778,7 +746,6 @@ export const AddCourseStep2 = ({
                     });
                 });
             });
-
             setInstructorMappings(instructorMappingsFromSessions);
         }
     }, [initialData]);
@@ -879,7 +846,12 @@ export const AddCourseStep2 = ({
                                                     setHasSessions(value);
                                                     // Clear sessions when switching to 'no'
                                                     if (value === 'no') {
-                                                        setSessions([]);
+                                                        setSessions(
+                                                            sessions.map((session) => ({
+                                                                ...session,
+                                                                levels: [],
+                                                            }))
+                                                        );
                                                     }
                                                 }}
                                                 className="flex gap-6"
@@ -1527,6 +1499,8 @@ export const AddCourseStep2 = ({
                                                                                                 .session
                                                                                                 .start_date,
                                                                                         levels: [],
+                                                                                        batchId:
+                                                                                            batch.id, // <-- set batchId here
                                                                                     };
                                                                                     newSessions.push(
                                                                                         session
@@ -1551,6 +1525,8 @@ export const AddCourseStep2 = ({
                                                                                                 .level_name,
                                                                                             userIds:
                                                                                                 [],
+                                                                                            batchId:
+                                                                                                batch.id, // <-- set batchId here
                                                                                         }
                                                                                     );
                                                                                 }
@@ -1576,14 +1552,17 @@ export const AddCourseStep2 = ({
                                                                                         )
                                                                                 );
                                                                         });
-                                                                        setSessions([
-                                                                            ...sessions,
-                                                                            ...newSessions.filter(
-                                                                                (s) =>
-                                                                                    s.levels
-                                                                                        .length > 0
-                                                                            ),
-                                                                        ]);
+                                                                        setSessions(
+                                                                            ensureBatchIdInLevels([
+                                                                                ...sessions,
+                                                                                ...newSessions.filter(
+                                                                                    (s) =>
+                                                                                        s.levels
+                                                                                            .length >
+                                                                                        0
+                                                                                ),
+                                                                            ])
+                                                                        );
 
                                                                         // Mark selected batches as used
                                                                         setUsedExistingBatchIds(
@@ -1642,15 +1621,19 @@ export const AddCourseStep2 = ({
                                                                                                     .session
                                                                                                     .start_date,
                                                                                             levels: [],
+                                                                                            batchId:
+                                                                                                batch.id, // <-- set batchId here
                                                                                         }
                                                                                     );
                                                                                 }
                                                                             }
                                                                         );
-                                                                        setSessions([
-                                                                            ...sessions,
-                                                                            ...newSessions,
-                                                                        ]);
+                                                                        setSessions(
+                                                                            ensureBatchIdInLevels([
+                                                                                ...sessions,
+                                                                                ...newSessions,
+                                                                            ])
+                                                                        );
 
                                                                         // Mark selected batches as used
                                                                         setUsedExistingBatchIds(
@@ -1710,6 +1693,8 @@ export const AddCourseStep2 = ({
                                                                                             .level
                                                                                             .level_name,
                                                                                         userIds: [],
+                                                                                        batchId:
+                                                                                            batch.id, // <-- set batchId here
                                                                                     });
                                                                                 }
                                                                             }
@@ -1727,9 +1712,11 @@ export const AddCourseStep2 = ({
                                                                                     ...standaloneSession.levels,
                                                                                     ...newLevels,
                                                                                 ];
-                                                                            setSessions([
-                                                                                ...sessions,
-                                                                            ]);
+                                                                            setSessions(
+                                                                                ensureBatchIdInLevels(
+                                                                                    [...sessions]
+                                                                                )
+                                                                            );
                                                                         } else {
                                                                             setSessions([
                                                                                 {
@@ -1793,12 +1780,21 @@ export const AddCourseStep2 = ({
                                         {/* Session Cards */}
                                         {sessions.map((session) => (
                                             <SessionCard
-                                                key={session.id}
+                                                key={session.batchId || session.id}
                                                 session={session}
                                                 hasLevels={hasLevels === 'yes'}
-                                                onRemoveSession={removeSession}
+                                                onRemoveSession={() =>
+                                                    removeSession(
+                                                        (session.batchId || session.id).toString()
+                                                    )
+                                                }
                                                 onAddLevel={addLevel}
-                                                onRemoveLevel={removeLevel}
+                                                onRemoveLevel={(sessionId, batchId) =>
+                                                    removeLevel(
+                                                        sessionId,
+                                                        (batchId || '').toString()
+                                                    )
+                                                }
                                                 existingBatches={availableExistingBatches}
                                                 onMarkBatchesAsUsed={(batchIds) => {
                                                     setUsedExistingBatchIds((prev) => {
@@ -2045,6 +2041,8 @@ export const AddCourseStep2 = ({
                                                                                         .level
                                                                                         .level_name,
                                                                                     userIds: [],
+                                                                                    batchId:
+                                                                                        batch.id, // <-- set batchId here
                                                                                 });
                                                                             }
                                                                         }
@@ -2061,7 +2059,11 @@ export const AddCourseStep2 = ({
                                                                             ...standaloneSession.levels,
                                                                             ...newLevels,
                                                                         ];
-                                                                        setSessions([...sessions]);
+                                                                        setSessions(
+                                                                            ensureBatchIdInLevels([
+                                                                                ...sessions,
+                                                                            ])
+                                                                        );
                                                                     } else {
                                                                         setSessions([
                                                                             {
@@ -2130,7 +2132,7 @@ export const AddCourseStep2 = ({
                                             .find((s) => s.id === 'standalone')
                                             ?.levels.map((level) => (
                                                 <div
-                                                    key={level.id}
+                                                    key={level.batchId}
                                                     className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-2"
                                                 >
                                                     <span className="text-sm font-medium text-gray-900">
@@ -2142,7 +2144,7 @@ export const AddCourseStep2 = ({
                                                         scale="medium"
                                                         layoutVariant="icon"
                                                         onClick={() =>
-                                                            removeStandaloneLevel(level.id)
+                                                            removeStandaloneLevel(level.batchId)
                                                         }
                                                         className="text-red-600 hover:text-red-700"
                                                     >
@@ -2991,9 +2993,9 @@ export default AddCourseStep2;
 const SessionCard: React.FC<{
     session: Session;
     hasLevels: boolean;
-    onRemoveSession: (sessionId: string) => void;
+    onRemoveSession: (sessionId: string, batchId?: string) => void;
     onAddLevel: (sessionId: string, levelName: string, levelId?: string) => void;
-    onRemoveLevel: (sessionId: string, levelId: string) => void;
+    onRemoveLevel: (sessionId: string, batchId: string) => void;
     existingBatches?: ExistingBatch[];
     onMarkBatchesAsUsed?: (batchIds: string[]) => void;
 }> = ({
@@ -3067,7 +3069,9 @@ const SessionCard: React.FC<{
                             buttonType="text"
                             scale="medium"
                             layoutVariant="icon"
-                            onClick={() => onRemoveSession(session.id)}
+                            onClick={() =>
+                                onRemoveSession((session.batchId || session.id).toString())
+                            }
                             className="text-red-600 hover:text-red-700"
                         >
                             <Trash2 className="size-3" />
@@ -3298,7 +3302,7 @@ const SessionCard: React.FC<{
                             <div className="space-y-2">
                                 {session.levels.map((level) => (
                                     <div
-                                        key={level.id}
+                                        key={level.batchId}
                                         className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-2"
                                     >
                                         <span className="text-sm font-medium text-gray-900">
@@ -3309,7 +3313,7 @@ const SessionCard: React.FC<{
                                             buttonType="text"
                                             scale="medium"
                                             layoutVariant="icon"
-                                            onClick={() => onRemoveLevel(session.id, level.id)}
+                                            onClick={() => onRemoveLevel(session.id, level.batchId)}
                                             className="text-red-600 hover:text-red-700"
                                         >
                                             <Trash2 className="size-3" />
@@ -3324,3 +3328,14 @@ const SessionCard: React.FC<{
         </Card>
     );
 };
+
+// Utility to ensure all levels in sessions have batchId
+function ensureBatchIdInLevels(sessions) {
+    return sessions.map((session) => ({
+        ...session,
+        levels: session.levels.map((level) => ({
+            ...level,
+            batchId: level.batchId || level.id,
+        })),
+    }));
+}
