@@ -486,6 +486,8 @@ export const convertToApiCourseFormatUpdate = (
 export function transformCourseData(course: CourseDetailsFormValues) {
     const sessions = course.courseData.sessions || [];
 
+    console.log(sessions);
+
     const hasLevels = sessions.some(
         (session) => Array.isArray(session.levelDetails) && session.levelDetails.length > 0
     )
@@ -520,6 +522,7 @@ export function transformCourseData(course: CourseDetailsFormValues) {
                     name: inst.name,
                     email: inst.email,
                     profilePicId: inst.profilePicId,
+                    roles: inst.roles,
                 })),
             })),
         })),
@@ -545,6 +548,7 @@ function extractInstructors(data: Session[]) {
                         name: instructor.name,
                         email: instructor.email,
                         profilePicId: instructor.profilePicId,
+                        roles: instructor.roles,
                     });
                 }
             }

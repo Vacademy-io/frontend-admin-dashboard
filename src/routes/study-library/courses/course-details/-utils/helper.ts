@@ -138,6 +138,7 @@ export const transformApiDataToCourseData = async (apiData: CourseWithSessionsTy
                             name: inst.full_name,
                             email: inst.email,
                             profilePicId: inst.profile_pic_file_id,
+                            roles: inst.roles,
                         })),
                         subjects: subjects.map((subject) => ({
                             id: subject.id,
