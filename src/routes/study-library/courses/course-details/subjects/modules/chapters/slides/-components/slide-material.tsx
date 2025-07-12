@@ -20,7 +20,7 @@ import {
     useSlidesMutations,
 } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-hooks/use-slides';
 import { toast } from 'sonner';
-import { Check, DownloadSimple, PencilSimpleLine } from 'phosphor-react';
+import { Check, DownloadSimple, PencilSimpleLine, Trash } from 'phosphor-react';
 import { AlertCircle } from 'lucide-react';
 import {
     converDataToAssignmentFormat,
@@ -351,6 +351,26 @@ export const SlideMaterial = ({
             return;
         }
 
+        // Check if the slide is deleted
+        if (activeItem.status === 'DELETED') {
+            setContent(
+                <div className="flex h-[500px] flex-col items-center justify-center rounded-lg py-10">
+                    <div className="text-center">
+                        <div className="mb-4 flex size-16 items-center justify-center rounded-full bg-red-100">
+                            <Trash size={24} className="text-red-500" />
+                        </div>
+                        <h3 className="mb-2 text-lg font-semibold text-slate-600">
+                            This slide has been deleted
+                        </h3>
+                        <p className="text-sm text-slate-400">
+                            The slide content is no longer available
+                        </p>
+                    </div>
+                </div>
+            );
+            return;
+        }
+
         if (activeItem.source_type === 'VIDEO') {
             // Check if this video slide is in split-screen mode
             if (activeItem.splitScreenMode && activeItem.splitScreenData) {
@@ -395,7 +415,7 @@ export const SlideMaterial = ({
                     hasAssignmentSlide: !!activeItem.assignment_slide,
                     assignmentSlideData: activeItem.assignment_slide,
                 });
-                
+
                 if (!activeItem.assignment_slide) {
                     console.warn('[Assignment] No assignment_slide data found, showing fallback');
                     setContent(
@@ -408,7 +428,7 @@ export const SlideMaterial = ({
                     );
                     return;
                 }
-                
+
                 setContent(<StudyLibraryAssignmentPreview activeItem={activeItem} />);
             } catch (error) {
                 console.error('Error rendering assignment preview:', error);

@@ -116,7 +116,10 @@ export default function ManageVolt() {
             console.log('[ManageVolt] Filtered presentations:', {
                 total: fetchedPresentations.length,
                 active: activePresentations.length,
-                deleted: fetchedPresentations.length - activePresentations.length
+                deleted: fetchedPresentations.length - activePresentations.length,
+                deletedIds: (fetchedPresentations as PresentationData[])
+                    .filter(p => p.status === 'DELETED')
+                    .map(p => ({ id: p.id, title: p.title, status: p.status }))
             });
             setPresentations(activePresentations);
         }
@@ -356,7 +359,7 @@ export default function ManageVolt() {
         setIsProcessingDelete(true);
         try {
             console.log('[Delete] Starting deletion for presentation:', presentationToDelete.id);
-            
+
             const accessToken = getTokenFromCookie(TokenKey.accessToken);
             if (!accessToken) {
                 toast.error('Authentication required. Please log in.');
@@ -370,7 +373,7 @@ export default function ManageVolt() {
                 setIsProcessingDelete(false);
                 return;
             }
-            
+
             console.log('[Delete] Making API call to delete presentation');
             const response = await authenticatedAxiosInstance.post(
                 EDIT_PRESENTATION,
@@ -386,23 +389,41 @@ export default function ManageVolt() {
                     headers: { 'Content-Type': 'application/json' },
                 }
             );
-            
+
             console.log('[Delete] API call successful:', response.data);
-            
-            // Invalidate and refetch the presentations list
-            await queryClient.invalidateQueries({ queryKey: ['GET_PRESNTATIONS'] });
-            await queryClient.refetchQueries({ queryKey: ['GET_PRESNTATIONS'] });
-            
+            console.log('[Delete] Response status:', response.status);
+            console.log('[Delete] Response headers:', response.headers);
+
+            // Immediately remove from local state to provide instant feedback
+            setPresentations(prev => prev.filter(p => p.id !== presentationToDelete.id));
+
+            // Clear cache completely and force fresh fetch
+            await queryClient.removeQueries({ queryKey: ['GET_PRESENTATIONS'] });
+            await queryClient.invalidateQueries({ queryKey: ['GET_PRESENTATIONS'] });
+            await queryClient.refetchQueries({ queryKey: ['GET_PRESENTATIONS'] });
+
             // Also manually refetch as a fallback
             await refetch();
-            
+
             console.log('[Delete] Query invalidated and refetched');
-            
+
             toast.success(`Volt "${presentationToDelete.title}" deleted successfully.`);
         } catch (error: any) {
             console.error('[Delete] Error details:', error);
             console.error('[Delete] Response data:', error.response?.data);
             console.error('[Delete] Status:', error.response?.status);
+
+            // If the API call failed, revert the local state change
+            if (presentationToDelete) {
+                setPresentations(prev => {
+                    const exists = prev.find(p => p.id === presentationToDelete.id);
+                    if (!exists) {
+                        return [...prev, presentationToDelete];
+                    }
+                    return prev;
+                });
+            }
+
             toast.error(
                 error.response?.data?.message || error.message || 'Failed to delete volt.'
             );
