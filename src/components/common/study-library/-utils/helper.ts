@@ -484,15 +484,25 @@ export const convertToApiCourseFormatUpdate = (
 };
 
 export function transformCourseData(course: CourseDetailsFormValues) {
-    const sessions = course.courseData.sessions || [];
+    const sessions = course.courseData.sessions ?? [];
 
-    console.log(sessions);
+    // ── session helpers ──────────────────────────────────────────────────────────
+    const hasAnySessions = sessions.length > 0;
+    const sessNameDefault = sessions.some(
+        (s) => (s.sessionDetails?.session_name ?? '').trim().toLowerCase() === 'default'
+    );
 
-    const hasLevels = sessions.some(
-        (session) => Array.isArray(session.levelDetails) && session.levelDetails.length > 0
-    )
-        ? 'yes'
-        : 'no';
+    // ── level helpers ────────────────────────────────────────────────────────────
+    const hasAnyLevels = sessions.some(
+        (s) => Array.isArray(s.levelDetails) && s.levelDetails.length > 0
+    );
+    const levelNameDefault = sessions.some((s) =>
+        (s.levelDetails ?? []).some((l) => (l.name ?? '').trim().toLowerCase() === 'default')
+    );
+
+    const hasSessions = hasAnySessions && !sessNameDefault ? 'yes' : 'no';
+    const hasLevels = hasAnyLevels && !levelNameDefault ? 'yes' : 'no';
+
     return {
         id: course.courseData.id || '',
         course: course.courseData.packageName || course.courseData.title || '',
@@ -506,15 +516,12 @@ export function transformCourseData(course: CourseDetailsFormValues) {
         tags: course.courseData.tags ?? [],
         levelStructure: course.courseData.courseStructure ?? 0,
         hasLevels,
-        hasSessions:
-            Array.isArray(course.courseData.sessions) && course.courseData.sessions.length > 0
-                ? 'yes'
-                : 'no',
-        sessions: (course.courseData.sessions || []).map((session) => ({
+        hasSessions,
+        sessions: sessions.map((session) => ({
             id: session.sessionDetails?.id ?? '',
             name: session.sessionDetails?.session_name ?? '',
             startDate: session.sessionDetails?.start_date ?? '',
-            levels: (session.levelDetails || []).map((level) => ({
+            levels: (session.levelDetails ?? []).map((level) => ({
                 id: level.id,
                 name: level.name,
                 userIds: level.instructors.map((inst) => ({
@@ -526,8 +533,8 @@ export function transformCourseData(course: CourseDetailsFormValues) {
                 })),
             })),
         })),
-        selectedInstructors: extractInstructors(course.courseData.sessions), // No data available in input
-        instructors: [], // No data available in input
+        selectedInstructors: extractInstructors(sessions),
+        instructors: [],
         publishToCatalogue: course.courseData.isCoursePublishedToCatalaouge ?? false,
     };
 }

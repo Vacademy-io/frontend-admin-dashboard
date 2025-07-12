@@ -248,8 +248,6 @@ export const AddCourseStep2 = ({
         },
     });
 
-    console.log(form.getValues());
-
     // Session management functions
     const addSession = () => {
         if (newSessionName.trim() && newSessionStartDate) {
