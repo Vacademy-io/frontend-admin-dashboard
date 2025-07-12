@@ -17,7 +17,13 @@ import { MultiSelectField } from '@/components/design-system/multi-select-field'
 import { RoleType } from '@/constants/dummy-data';
 
 interface InviteInstructorFormProps {
-    onInviteSuccess: (id: string, name: string, email: string, profilePicId: string) => void;
+    onInviteSuccess: (
+        id: string,
+        name: string,
+        email: string,
+        profilePicId: string,
+        roles?: string[]
+    ) => void;
     onCancel: () => void;
 }
 
@@ -43,7 +49,13 @@ const InviteInstructorForm = ({ onInviteSuccess, onCancel }: InviteInstructorFor
             data: z.infer<typeof inviteUsersSchema>;
         }) => handleInviteUsers(instituteId, data),
         onSuccess: (res, { data }) => {
-            onInviteSuccess(res.id, data.name, data.email, res.profile_pic_file_id || '');
+            onInviteSuccess(
+                res.id,
+                data.name,
+                data.email,
+                res.profile_pic_file_id || '',
+                res.roles
+            );
             form.reset();
             toast.success('Instructor invited successfully');
         },

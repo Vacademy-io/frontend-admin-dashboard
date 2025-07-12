@@ -45,6 +45,7 @@ interface Instructor {
     email: string;
     name: string;
     profilePicId: string;
+    roles?: string[];
 }
 
 // Update the schema
@@ -69,6 +70,7 @@ export const step2Schema = z.object({
                                     email: z.string(),
                                     name: z.string(),
                                     profilePicId: z.string(),
+                                    roles: z.array(z.string()).optional(),
                                 })
                             )
                             .default([]),
@@ -84,6 +86,7 @@ export const step2Schema = z.object({
                 name: z.string(),
                 email: z.string(),
                 profilePicId: z.string(),
+                roles: z.array(z.string()).optional(),
             })
         )
         .default([]),
@@ -94,6 +97,7 @@ export const step2Schema = z.object({
                 name: z.string(),
                 email: z.string(),
                 profilePicId: z.string(),
+                roles: z.array(z.string()).optional(),
             })
         )
         .optional(),
@@ -201,8 +205,9 @@ export const AddCourseStep2 = ({
     const [instructors, setInstructors] = useState<Instructor[]>([]);
 
     const [publishToCatalogue, setPublishToCatalogue] = useState(
-        initialData?.publishToCatalogue || false
+        initialData?.publishToCatalogue ? (initialData?.publishToCatalogue ? true : false) : true
     );
+
     const [showAssignmentCard, setShowAssignmentCard] = useState(false);
     const [selectedSessionLevels, setSelectedSessionLevels] = useState<
         Array<{
@@ -336,10 +341,16 @@ export const AddCourseStep2 = ({
         onSubmit(completeData);
     };
 
-    const handleInviteSuccess = (id: string, name: string, email: string, profilePicId: string) => {
+    const handleInviteSuccess = (
+        id: string,
+        name: string,
+        email: string,
+        profilePicId: string,
+        roles?: string[]
+    ) => {
         if (!id || !email || !name) return;
 
-        const newInstructor: Instructor = { id, name, email, profilePicId };
+        const newInstructor: Instructor = { id, name, email, profilePicId, roles };
 
         // Add to available instructors if not already there
         setInstructors((prev) => {
@@ -786,6 +797,7 @@ export const AddCourseStep2 = ({
                             email: instructor.email,
                             name: instructor.full_name,
                             profilePicId: instructor.profile_pic_file_id,
+                            roles: instructor.roles?.map((role) => role.role_name) || [],
                         }))
                         .filter((instr: UserRolesDataEntry) => {
                             return instr.id !== tokenData?.user;
@@ -1792,35 +1804,42 @@ export const AddCourseStep2 = ({
                                         )}
 
                                         {/* Session Cards */}
-                                        {sessions.map((session) => (
-                                            <SessionCard
-                                                key={session.batchId || session.id}
-                                                session={session}
-                                                hasLevels={hasLevels === 'yes'}
-                                                onRemoveSession={() =>
-                                                    removeSession(
-                                                        (session.batchId || session.id).toString()
-                                                    )
-                                                }
-                                                onAddLevel={addLevel}
-                                                onRemoveLevel={(sessionId, batchId) =>
-                                                    removeLevel(
-                                                        sessionId,
-                                                        (batchId || '').toString()
-                                                    )
-                                                }
-                                                existingBatches={availableExistingBatches}
-                                                onMarkBatchesAsUsed={(batchIds) => {
-                                                    setUsedExistingBatchIds((prev) => {
-                                                        const newSet = new Set(prev);
-                                                        batchIds.forEach((id) => {
-                                                            newSet.add(id);
+                                        {sessions
+                                            .filter(
+                                                (session) =>
+                                                    session.name.toLowerCase() !== 'default'
+                                            )
+                                            .map((session) => (
+                                                <SessionCard
+                                                    key={session.batchId || session.id}
+                                                    session={session}
+                                                    hasLevels={hasLevels === 'yes'}
+                                                    onRemoveSession={() =>
+                                                        removeSession(
+                                                            (
+                                                                session.batchId || session.id
+                                                            ).toString()
+                                                        )
+                                                    }
+                                                    onAddLevel={addLevel}
+                                                    onRemoveLevel={(sessionId, batchId) =>
+                                                        removeLevel(
+                                                            sessionId,
+                                                            (batchId || '').toString()
+                                                        )
+                                                    }
+                                                    existingBatches={availableExistingBatches}
+                                                    onMarkBatchesAsUsed={(batchIds) => {
+                                                        setUsedExistingBatchIds((prev) => {
+                                                            const newSet = new Set(prev);
+                                                            batchIds.forEach((id) => {
+                                                                newSet.add(id);
+                                                            });
+                                                            return newSet;
                                                         });
-                                                        return newSet;
-                                                    });
-                                                }}
-                                            />
-                                        ))}
+                                                    }}
+                                                />
+                                            ))}
                                     </div>
                                 )}
 
@@ -2192,8 +2211,20 @@ export const AddCourseStep2 = ({
 
                                     {showInviteDialog && (
                                         <InviteInstructorForm
-                                            onInviteSuccess={(id, name, email, profilePicId) => {
-                                                handleInviteSuccess(id, name, email, profilePicId);
+                                            onInviteSuccess={(
+                                                id,
+                                                name,
+                                                email,
+                                                profilePicId,
+                                                roles
+                                            ) => {
+                                                handleInviteSuccess(
+                                                    id,
+                                                    name,
+                                                    email,
+                                                    profilePicId,
+                                                    roles
+                                                );
                                                 setShowInviteDialog(false);
                                             }}
                                             onCancel={() => setShowInviteDialog(false)}
@@ -2232,6 +2263,7 @@ export const AddCourseStep2 = ({
                                                                 name: instructor?.name || '',
                                                                 profilePicId:
                                                                     instructor?.profilePicId || '',
+                                                                roles: instructor?.roles || [],
                                                             };
                                                         })
                                                         ?.filter((i) => i.id && i.email && i.name);
@@ -2275,6 +2307,19 @@ export const AddCourseStep2 = ({
                                                                                 {instructor.name}{' '}
                                                                                 --- &nbsp;
                                                                                 {instructor.email}
+                                                                                {instructor.roles &&
+                                                                                    instructor.roles
+                                                                                        .length >
+                                                                                        0 && (
+                                                                                        <>
+                                                                                            {' '}
+                                                                                            ---
+                                                                                            &nbsp;
+                                                                                            {instructor.roles.join(
+                                                                                                ', '
+                                                                                            )}
+                                                                                        </>
+                                                                                    )}
                                                                             </span>
                                                                             {(hasSessions ===
                                                                                 'yes' ||
