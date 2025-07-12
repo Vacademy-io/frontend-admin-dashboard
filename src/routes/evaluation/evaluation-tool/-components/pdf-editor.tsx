@@ -61,7 +61,7 @@ import { PiSidebarSimpleLight } from "react-icons/pi";
 import { useMarksStore } from "@/stores/evaluation/marks-store";
 import { LoadingOverlay, UploadingOverlay } from "./Overlay";
 
-pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.8.69/pdf.worker.mjs`;
+pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
 
 interface PDFEvaluatorProps {
     isFreeTool: boolean;
