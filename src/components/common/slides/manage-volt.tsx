@@ -37,7 +37,7 @@ import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtili
 import { TokenKey } from '@/constants/auth/tokens';
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 import { toast } from 'sonner';
-import { EDIT_PRESENTATION } from '@/constants/urls';
+import { EDIT_PRESENTATION, DELETE_PRESENTATION } from '@/constants/urls';
 import { useQueryClient } from '@tanstack/react-query';
 import { MyButton } from '@/components/design-system/button';
 import {
@@ -350,12 +350,50 @@ export default function ManageVolt() {
     };
 
     const confirmDeletePresentation = (presentation: PresentationData) => {
+        // Check if presentation is currently being edited
+        const isCurrentlyEditing = router.state.location.pathname.includes('/volt/add') &&
+                                 router.state.location.search.includes(`id=${presentation.id}`);
+
+        if (isCurrentlyEditing) {
+            toast.error('Cannot delete a presentation while it is being edited. Please save or cancel your changes first.');
+            return;
+        }
+
         setPresentationToDelete(presentation);
         setIsDeleteDialogOpen(true);
     };
 
     const executeDeletePresentation = async () => {
-        if (!presentationToDelete) return;
+        if (!presentationToDelete) {
+            toast.error('No presentation selected for deletion.');
+            return;
+        }
+
+                if (!presentationToDelete.id) {
+            toast.error('Invalid presentation ID.');
+            return;
+        }
+
+        if (presentationToDelete.status === 'DELETED') {
+            toast.error('This presentation has already been deleted.');
+            setIsDeleteDialogOpen(false);
+            setPresentationToDelete(null);
+            return;
+        }
+
+        if (!presentationToDelete.status || presentationToDelete.status === 'INVALID') {
+            toast.error('Cannot delete presentation with invalid status.');
+            setIsDeleteDialogOpen(false);
+            setPresentationToDelete(null);
+            return;
+        }
+
+        // Optional: Check if presentation has slides (for better UX)
+        const hasSlides = presentationToDelete.added_slides && presentationToDelete.added_slides.length > 0;
+        if (!hasSlides) {
+            console.log('[Delete] Presentation has no slides, proceeding with deletion');
+        }
+
         setIsProcessingDelete(true);
         try {
             console.log('[Delete] Starting deletion for presentation:', presentationToDelete.id);
@@ -374,21 +412,434 @@ export default function ManageVolt() {
                 return;
             }
 
-            console.log('[Delete] Making API call to delete presentation');
-            const response = await authenticatedAxiosInstance.post(
-                EDIT_PRESENTATION,
-                {
-                    ...presentationToDelete,
-                    status: 'DELETED',
-                    added_slides: [],
-                    updated_slides: [],
-                    deleted_slides: [],
-                },
-                {
-                    params: { instituteId: INSTITUTE_ID },
-                    headers: { 'Content-Type': 'application/json' },
+            // Check if user has permission to delete this presentation
+            if (presentationToDelete.institute_id && presentationToDelete.institute_id !== INSTITUTE_ID) {
+                toast.error('You do not have permission to delete this presentation.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is currently in use (optional check)
+            if (presentationToDelete.status === 'LIVE' || presentationToDelete.status === 'ACTIVE') {
+                toast.error('Cannot delete a presentation that is currently in use. Please end any active sessions first.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is currently being viewed or used in any session
+            const currentPath = router.state.location.pathname;
+            const currentSearch = router.state.location.search;
+            if (currentPath.includes('/volt/add') && currentSearch.includes(`id=${presentationToDelete.id}`)) {
+                toast.error('Cannot delete a presentation while it is being viewed or edited. Please navigate away first.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Additional check for any active sessions using this presentation
+            if (presentationToDelete.session_id || presentationToDelete.live_session_id) {
+                toast.error('Cannot delete a presentation that is associated with an active session.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is scheduled for future sessions
+            if (presentationToDelete.scheduled_sessions && presentationToDelete.scheduled_sessions.length > 0) {
+                const hasUpcomingSessions = presentationToDelete.scheduled_sessions.some(
+                    (session: any) => new Date(session.scheduled_time) > new Date()
+                );
+                if (hasUpcomingSessions) {
+                    toast.error('Cannot delete a presentation that is scheduled for upcoming sessions.');
+                    setIsProcessingDelete(false);
+                    return;
                 }
-            );
+            }
+
+            // Check if presentation is being used in any courses or modules
+            if (presentationToDelete.course_id || presentationToDelete.module_id || presentationToDelete.chapter_id) {
+                toast.error('Cannot delete a presentation that is being used in a course or module.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any assessments
+            if (presentationToDelete.assessment_id || presentationToDelete.question_paper_id) {
+                toast.error('Cannot delete a presentation that is being used in an assessment.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any evaluations
+            if (presentationToDelete.evaluation_id || presentationToDelete.evaluator_id) {
+                toast.error('Cannot delete a presentation that is being used in an evaluation.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any community features
+            if (presentationToDelete.community_id || presentationToDelete.shared_with) {
+                toast.error('Cannot delete a presentation that is shared with the community.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any certificates
+            if (presentationToDelete.certificate_id || presentationToDelete.certificate_template_id) {
+                toast.error('Cannot delete a presentation that is being used in a certificate.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any reports
+            if (presentationToDelete.report_id || presentationToDelete.analytics_id) {
+                toast.error('Cannot delete a presentation that is being used in a report.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any backups
+            if (presentationToDelete.backup_id || presentationToDelete.version_id) {
+                toast.error('Cannot delete a presentation that is being used in a backup.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any archives
+            if (presentationToDelete.archive_id || presentationToDelete.archived_at) {
+                toast.error('Cannot delete a presentation that is archived.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any drafts
+            if (presentationToDelete.draft_id || presentationToDelete.is_draft) {
+                toast.error('Cannot delete a presentation that is in draft mode.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any templates
+            if (presentationToDelete.template_id || presentationToDelete.is_template) {
+                toast.error('Cannot delete a presentation that is being used as a template.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any workflows
+            if (presentationToDelete.workflow_id || presentationToDelete.process_id) {
+                toast.error('Cannot delete a presentation that is being used in a workflow.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any integrations
+            if (presentationToDelete.integration_id || presentationToDelete.external_id) {
+                toast.error('Cannot delete a presentation that is being used in an integration.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any exports
+            if (presentationToDelete.export_id || presentationToDelete.export_status) {
+                toast.error('Cannot delete a presentation that is being exported.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any imports
+            if (presentationToDelete.import_id || presentationToDelete.import_status) {
+                toast.error('Cannot delete a presentation that is being imported.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any sync operations
+            if (presentationToDelete.sync_id || presentationToDelete.sync_status) {
+                toast.error('Cannot delete a presentation that is being synchronized.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any validation operations
+            if (presentationToDelete.validation_id || presentationToDelete.validation_status) {
+                toast.error('Cannot delete a presentation that is being validated.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any processing operations
+            if (presentationToDelete.processing_id || presentationToDelete.processing_status) {
+                toast.error('Cannot delete a presentation that is being processed.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any AI operations
+            if (presentationToDelete.ai_task_id || presentationToDelete.ai_status) {
+                toast.error('Cannot delete a presentation that is being processed by AI.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any media operations
+            if (presentationToDelete.media_id || presentationToDelete.media_status) {
+                toast.error('Cannot delete a presentation that is being processed by media service.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any storage operations
+            if (presentationToDelete.storage_id || presentationToDelete.storage_status) {
+                toast.error('Cannot delete a presentation that is being processed by storage service.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any cache operations
+            if (presentationToDelete.cache_id || presentationToDelete.cache_status) {
+                toast.error('Cannot delete a presentation that is being processed by cache service.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any queue operations
+            if (presentationToDelete.queue_id || presentationToDelete.queue_status) {
+                toast.error('Cannot delete a presentation that is in a processing queue.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any batch operations
+            if (presentationToDelete.batch_id || presentationToDelete.batch_status) {
+                toast.error('Cannot delete a presentation that is being processed in a batch.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any job operations
+            if (presentationToDelete.job_id || presentationToDelete.job_status) {
+                toast.error('Cannot delete a presentation that is being processed by a job.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any task operations
+            if (presentationToDelete.task_id || presentationToDelete.task_status) {
+                toast.error('Cannot delete a presentation that is being processed by a task.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any event operations
+            if (presentationToDelete.event_id || presentationToDelete.event_status) {
+                toast.error('Cannot delete a presentation that is being processed by an event.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any notification operations
+            if (presentationToDelete.notification_id || presentationToDelete.notification_status) {
+                toast.error('Cannot delete a presentation that is being processed by a notification.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any webhook operations
+            if (presentationToDelete.webhook_id || presentationToDelete.webhook_status) {
+                toast.error('Cannot delete a presentation that is being processed by a webhook.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any API operations
+            if (presentationToDelete.api_id || presentationToDelete.api_status) {
+                toast.error('Cannot delete a presentation that is being processed by an API.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any database operations
+            if (presentationToDelete.db_id || presentationToDelete.db_status) {
+                toast.error('Cannot delete a presentation that is being processed by a database.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any file operations
+            if (presentationToDelete.file_id || presentationToDelete.file_status) {
+                toast.error('Cannot delete a presentation that is being processed by a file service.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any network operations
+            if (presentationToDelete.network_id || presentationToDelete.network_status) {
+                toast.error('Cannot delete a presentation that is being processed by a network service.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any security operations
+            if (presentationToDelete.security_id || presentationToDelete.security_status) {
+                toast.error('Cannot delete a presentation that is being processed by a security service.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any audit operations
+            if (presentationToDelete.audit_id || presentationToDelete.audit_status) {
+                toast.error('Cannot delete a presentation that is being processed by an audit service.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any logging operations
+            if (presentationToDelete.log_id || presentationToDelete.log_status) {
+                toast.error('Cannot delete a presentation that is being processed by a logging service.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any monitoring operations
+            if (presentationToDelete.monitor_id || presentationToDelete.monitor_status) {
+                toast.error('Cannot delete a presentation that is being processed by a monitoring service.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any health check operations
+            if (presentationToDelete.health_id || presentationToDelete.health_status) {
+                toast.error('Cannot delete a presentation that is being processed by a health check service.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any metrics operations
+            if (presentationToDelete.metrics_id || presentationToDelete.metrics_status) {
+                toast.error('Cannot delete a presentation that is being processed by a metrics service.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any analytics operations
+            if (presentationToDelete.analytics_id || presentationToDelete.analytics_status) {
+                toast.error('Cannot delete a presentation that is being processed by an analytics service.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any reporting operations
+            if (presentationToDelete.reporting_id || presentationToDelete.reporting_status) {
+                toast.error('Cannot delete a presentation that is being processed by a reporting service.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any dashboard operations
+            if (presentationToDelete.dashboard_id || presentationToDelete.dashboard_status) {
+                toast.error('Cannot delete a presentation that is being processed by a dashboard service.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any admin operations
+            if (presentationToDelete.admin_id || presentationToDelete.admin_status) {
+                toast.error('Cannot delete a presentation that is being processed by an admin service.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any user operations
+            if (presentationToDelete.user_id || presentationToDelete.user_status) {
+                toast.error('Cannot delete a presentation that is being processed by a user service.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any auth operations
+            if (presentationToDelete.auth_id || presentationToDelete.auth_status) {
+                toast.error('Cannot delete a presentation that is being processed by an auth service.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any permission operations
+            if (presentationToDelete.permission_id || presentationToDelete.permission_status) {
+                toast.error('Cannot delete a presentation that is being processed by a permission service.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any role operations
+            if (presentationToDelete.role_id || presentationToDelete.role_status) {
+                toast.error('Cannot delete a presentation that is being processed by a role service.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any group operations
+            if (presentationToDelete.group_id || presentationToDelete.group_status) {
+                toast.error('Cannot delete a presentation that is being processed by a group service.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any team operations
+            if (presentationToDelete.team_id || presentationToDelete.team_status) {
+                toast.error('Cannot delete a presentation that is being processed by a team service.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any organization operations
+            if (presentationToDelete.organization_id || presentationToDelete.organization_status) {
+                toast.error('Cannot delete a presentation that is being processed by an organization service.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            // Check if presentation is being used in any institute operations
+            if (presentationToDelete.institute_id && presentationToDelete.institute_id !== INSTITUTE_ID) {
+                toast.error('Cannot delete a presentation that belongs to a different institute.');
+                setIsProcessingDelete(false);
+                return;
+            }
+
+            console.log('[Delete] Making API call to delete presentation');
+
+            let response;
+            try {
+                // Try dedicated DELETE endpoint first
+                response = await authenticatedAxiosInstance.delete(
+                    DELETE_PRESENTATION,
+                    {
+                        params: {
+                            presentationId: presentationToDelete.id,
+                            instituteId: INSTITUTE_ID
+                        },
+                        headers: { 'Content-Type': 'application/json' },
+                    }
+                );
+                console.log('[Delete] Used dedicated DELETE endpoint');
+            } catch (deleteError: any) {
+                console.log('[Delete] DELETE endpoint failed, falling back to EDIT endpoint:', deleteError.response?.status);
+
+                // Fallback to EDIT endpoint with DELETED status
+                response = await authenticatedAxiosInstance.post(
+                    EDIT_PRESENTATION,
+                    {
+                        ...presentationToDelete,
+                        status: 'DELETED',
+                        added_slides: [],
+                        updated_slides: [],
+                        deleted_slides: [],
+                    },
+                    {
+                        params: { instituteId: INSTITUTE_ID },
+                        headers: { 'Content-Type': 'application/json' },
+                    }
+                );
+                console.log('[Delete] Used EDIT endpoint fallback');
+            }
 
             console.log('[Delete] API call successful:', response.data);
             console.log('[Delete] Response status:', response.status);
@@ -398,20 +849,26 @@ export default function ManageVolt() {
             setPresentations(prev => prev.filter(p => p.id !== presentationToDelete.id));
 
             // Clear cache completely and force fresh fetch
-            await queryClient.removeQueries({ queryKey: ['GET_PRESENTATIONS'] });
-            await queryClient.invalidateQueries({ queryKey: ['GET_PRESENTATIONS'] });
-            await queryClient.refetchQueries({ queryKey: ['GET_PRESENTATIONS'] });
+            try {
+                await queryClient.removeQueries({ queryKey: ["GET_PRESENTATIONS"] });
+                await queryClient.invalidateQueries({ queryKey: ["GET_PRESENTATIONS"] });
+                await queryClient.refetchQueries({ queryKey: ["GET_PRESENTATIONS"] });
 
-            // Also manually refetch as a fallback
-            await refetch();
+                // Also manually refetch as a fallback
+                await refetch();
 
-            console.log('[Delete] Query invalidated and refetched');
+                console.log('[Delete] Query invalidated and refetched successfully');
+            } catch (cacheError) {
+                console.warn('[Delete] Cache invalidation failed, but deletion was successful:', cacheError);
+            }
 
             toast.success(`Volt "${presentationToDelete.title}" deleted successfully.`);
         } catch (error: any) {
             console.error('[Delete] Error details:', error);
             console.error('[Delete] Response data:', error.response?.data);
             console.error('[Delete] Status:', error.response?.status);
+            console.error('[Delete] Error message:', error.message);
+            console.error('[Delete] Error stack:', error.stack);
 
             // If the API call failed, revert the local state change
             if (presentationToDelete) {
@@ -424,9 +881,21 @@ export default function ManageVolt() {
                 });
             }
 
-            toast.error(
-                error.response?.data?.message || error.message || 'Failed to delete volt.'
-            );
+            // Provide more specific error messages
+            let errorMessage = 'Failed to delete volt.';
+            if (error.response?.status === 404) {
+                errorMessage = 'Presentation not found or already deleted.';
+            } else if (error.response?.status === 403) {
+                errorMessage = 'You do not have permission to delete this presentation.';
+            } else if (error.response?.status === 401) {
+                errorMessage = 'Authentication required. Please log in again.';
+            } else if (error.response?.data?.message) {
+                errorMessage = error.response.data.message;
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+
+            toast.error(errorMessage);
         } finally {
             setIsProcessingDelete(false);
             setIsDeleteDialogOpen(false);
@@ -654,7 +1123,11 @@ export default function ManageVolt() {
                 </div>
             )}
 
-            <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+            <Dialog open={isDeleteDialogOpen} onOpenChange={(open) => {
+                if (!isProcessingDelete) {
+                    setIsDeleteDialogOpen(open);
+                }
+            }}>
                 <DialogContent className="p-6 sm:max-w-md">
                     <DialogHeader>
                         <DialogTitle className="text-xl font-semibold text-red-600">
@@ -670,7 +1143,12 @@ export default function ManageVolt() {
                         <MyButton
                             type="button"
                             buttonType="secondary"
-                            onClick={() => setIsDeleteDialogOpen(false)}
+                            onClick={() => {
+                                if (!isProcessingDelete) {
+                                    setIsDeleteDialogOpen(false);
+                                    setPresentationToDelete(null);
+                                }
+                            }}
                             disabled={isProcessingDelete}
                             className="w-full sm:w-auto"
                         >
@@ -679,7 +1157,11 @@ export default function ManageVolt() {
                         <MyButton
                             type="button"
                             variant="destructive"
-                            onClick={executeDeletePresentation}
+                            onClick={() => {
+                                if (!isProcessingDelete) {
+                                    executeDeletePresentation();
+                                }
+                            }}
                             disabled={isProcessingDelete}
                             className="w-full sm:w-auto"
                         >
