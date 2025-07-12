@@ -201,8 +201,9 @@ export const AddCourseStep2 = ({
     const [instructors, setInstructors] = useState<Instructor[]>([]);
 
     const [publishToCatalogue, setPublishToCatalogue] = useState(
-        initialData?.publishToCatalogue || false
+        initialData?.publishToCatalogue ? (initialData?.publishToCatalogue ? true : false) : true
     );
+
     const [showAssignmentCard, setShowAssignmentCard] = useState(false);
     const [selectedSessionLevels, setSelectedSessionLevels] = useState<
         Array<{
