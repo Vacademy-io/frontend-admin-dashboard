@@ -37,45 +37,45 @@ export const PdfUploadSection = ({
     // Convert PDF to image using canvas
     const convertPdfToImage = useCallback(async (file: File): Promise<ImageTemplate> => {
         setProcessingStep('Reading PDF file...');
-        
+
         // Read file as ArrayBuffer
         const arrayBuffer = await file.arrayBuffer();
-        
+
         setProcessingStep('Loading PDF document...');
-        
+
         // Load PDF document
         const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
-        
+
         // For certificates, we typically only need the first page
         setProcessingStep('Rendering PDF to image...');
         const page = await pdf.getPage(1);
-        
+
         // Get viewport with high DPI for better quality
         const scale = 2; // 2x scale for better quality
         const viewport = page.getViewport({ scale });
-        
+
         // Create canvas
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         if (!ctx) {
             throw new Error('Failed to get canvas context');
         }
-        
+
         // Set canvas dimensions
         canvas.width = viewport.width;
         canvas.height = viewport.height;
-        
+
         // Render PDF page to canvas
         await page.render({
             canvasContext: ctx,
             viewport: viewport,
         }).promise;
-        
+
         setProcessingStep('Converting to image format...');
-        
+
         // Convert canvas to image data URL (PNG for better quality)
         const imageDataUrl = canvas.toDataURL('image/png', 1.0);
-        
+
         // Create image template
         const template: ImageTemplate = {
             id: nanoid(),
@@ -97,13 +97,13 @@ export const PdfUploadSection = ({
     // Convert image file to template
     const convertImageToTemplate = useCallback(async (file: File): Promise<ImageTemplate> => {
         setProcessingStep('Loading image...');
-        
+
         return new Promise((resolve, reject) => {
             const img = document.createElement('img');
-            
+
             img.onload = () => {
                 setProcessingStep('Processing image...');
-                
+
                 // Create canvas to get image data
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
@@ -111,18 +111,18 @@ export const PdfUploadSection = ({
                     reject(new Error('Failed to get canvas context'));
                     return;
                 }
-                
+
                 // Set canvas size to image size
                 canvas.width = img.width;
                 canvas.height = img.height;
-                
+
                 // Draw image to canvas
                 ctx.drawImage(img, 0, 0);
-                
+
                 // Get image data URL
                 const format = file.type.includes('png') ? 'png' : 'jpg';
                 const imageDataUrl = canvas.toDataURL(`image/${format}`, 0.9);
-                
+
                 const template: ImageTemplate = {
                     id: nanoid(),
                     fileName: file.name,
@@ -134,15 +134,15 @@ export const PdfUploadSection = ({
                     createdAt: new Date().toISOString(),
                     sourceType: 'image',
                 };
-                
+
                 setProcessingStep('');
                 resolve(template);
             };
-            
+
             img.onerror = () => {
                 reject(new Error('Failed to load image'));
             };
-            
+
             // Load image from file
             const reader = new FileReader();
             reader.onload = (e) => {
@@ -160,7 +160,7 @@ export const PdfUploadSection = ({
 
         try {
             let template: ImageTemplate;
-            
+
             if (file.type === 'application/pdf') {
                 template = await convertPdfToImage(file);
             } else {
@@ -182,7 +182,7 @@ export const PdfUploadSection = ({
 
         const file = acceptedFiles[0];
         if (!file) return;
-        
+
         try {
             const template = await processFile(file);
             onImageTemplateUpload(template);
@@ -207,11 +207,11 @@ export const PdfUploadSection = ({
         const confirmed = window.confirm(
             'Are you sure you want to remove this template? This will also clear all field mappings.'
         );
-        
+
         if (confirmed) {
             setIsRemoving(true);
             setError(null);
-            
+
             // Brief delay to show feedback
             setTimeout(() => {
                 if (onTemplateRemove) {
@@ -283,11 +283,11 @@ export const PdfUploadSection = ({
                         </MyButton>
                     </div>
                 </div>
-                
+
                 {/* Image Preview */}
                 <div className="mt-4 rounded-lg border border-green-200 bg-white p-2">
-                    <img 
-                        src={uploadedTemplate.imageDataUrl} 
+                    <img
+                        src={uploadedTemplate.imageDataUrl}
                         alt="Certificate template preview"
                         className="w-full h-auto max-h-64 object-contain rounded"
                     />
@@ -312,7 +312,7 @@ export const PdfUploadSection = ({
                 )}
             >
                 <input {...getInputProps()} />
-                
+
                 <div className="flex flex-col items-center gap-4">
                     <div className={cn(
                         'rounded-full p-4',
@@ -396,4 +396,4 @@ export const PdfUploadSection = ({
             )}
         </div>
     );
-}; 
+};
