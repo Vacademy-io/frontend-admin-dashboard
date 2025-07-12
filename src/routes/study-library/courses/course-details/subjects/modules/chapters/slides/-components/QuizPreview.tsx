@@ -161,7 +161,6 @@ const QuizPreview = ({ activeItem }: QuizPreviewProps) => {
         }
         closeRef.current?.click();
     };
-    //updated
 
     const handleAddQuestion = (questionType: string) => {
         setSelectedQuestionType(questionType);
