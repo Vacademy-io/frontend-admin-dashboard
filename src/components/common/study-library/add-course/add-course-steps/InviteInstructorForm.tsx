@@ -14,7 +14,7 @@ import { useMutation } from '@tanstack/react-query';
 import { getInstituteId } from '@/constants/helper';
 import { toast } from 'sonner';
 import { MultiSelectField } from '@/components/design-system/multi-select-field';
-import { RoleType } from '@/constants/dummy-data';
+import { RoleTypeExceptStudent } from '@/constants/dummy-data';
 
 interface InviteInstructorFormProps {
     onInviteSuccess: (
@@ -122,7 +122,7 @@ const InviteInstructorForm = ({ onInviteSuccess, onCancel }: InviteInstructorFor
                             form={form}
                             label="Role Type"
                             name="roleType"
-                            options={RoleType}
+                            options={RoleTypeExceptStudent}
                             control={form.control}
                             className="w-full"
                         />
