@@ -151,7 +151,7 @@ export const COPY_SLIDE = `${BASE_URL}/admin-core-service/slide/v1/copy`;
 export const MOVE_SLIDE = `${BASE_URL}/admin-core-service/slide/v1/move`;
 export const GET_SLIDES_COUNT = `${BASE_URL}/admin-core-service/slide/v1/slide-counts-by-source-type`;
 
-export const PDF_WORKER_URL = `https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js`;
+export const PDF_WORKER_URL = `https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`;
 
 export const INIT_FILTERS = `${BASE_URL}/community-service/init/question-filters`;
 export const GET_QUESTION_PAPER_FILTERED_DATA_PUBLIC = `${BASE_URL}/assessment-service/question-paper/public/view/v1/get-with-filters`;
