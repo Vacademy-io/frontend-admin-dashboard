@@ -8,7 +8,7 @@ import { Slide } from '../-hooks/use-slides';
 import { UploadQuestionPaperFormType } from '@/routes/assessment/question-papers/-components/QuestionPaperUpload';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTrigger, DialogClose } from '@/components/ui/dialog';
-import { PencilSimpleLine, Plus, Trash } from 'phosphor-react';
+import { PencilSimpleLine, Plus, Trash, Warning } from 'phosphor-react';
 import { MainViewComponentFactory } from '@/routes/assessment/question-papers/-components/QuestionPaperTemplatesTypes/MainViewComponentFactory';
 import { QuestionType } from '@/constants/dummy-data';
 import { useContentStore } from '../-stores/chapter-sidebar-store';
@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import { MCQS, MCQM, Numerical, TrueFalse, LongAnswer, SingleWord, CMCQS, CMCQM } from '@/svgs';
 import { QuestionType as QuestionTypeList } from '@/constants/dummy-data';
 import { Separator } from '@/components/ui/separator';
+import { MyButton } from '@/components/design-system/button';
 
 interface QuizPreviewProps {
     activeItem: Slide;
@@ -43,6 +44,38 @@ interface QuestionTypeProps {
 }
 
 const QuizPreview = ({ activeItem }: QuizPreviewProps) => {
+    // Check if the slide is deleted
+    if (activeItem?.status === 'DELETED') {
+        return (
+            <div className="flex size-full flex-col overflow-hidden rounded border border-neutral-200 bg-white shadow-sm">
+                {/* Header */}
+                <div className="flex items-center justify-between border-b bg-red-50 px-6 py-4">
+                    <h2 className="text-lg font-semibold text-red-700">Quiz Questions</h2>
+                    <div className="flex items-center gap-2">
+                        <span className="rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-600">
+                            DELETED
+                        </span>
+                    </div>
+                </div>
+
+                {/* Deleted Content */}
+                <div className="flex flex-1 flex-col items-center justify-center bg-white px-6 py-12">
+                    <div className="text-center">
+                        <div className="mb-4 flex size-16 items-center justify-center rounded-full bg-red-100">
+                            <Trash size={24} className="text-red-500" />
+                        </div>
+                        <h3 className="mb-2 text-lg font-medium text-slate-600">
+                            This quiz has been deleted
+                        </h3>
+                        <p className="text-sm text-slate-400">
+                            The quiz content is no longer available
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     const form = useForm<UploadQuestionPaperFormType>({
         resolver: zodResolver(uploadQuestionPaperFormSchema),
         mode: 'onChange',
@@ -71,6 +104,8 @@ const QuizPreview = ({ activeItem }: QuizPreviewProps) => {
     const [isAddQuestionDialogOpen, setIsAddQuestionDialogOpen] = useState(false);
     const [isQuestionTypeDialogOpen, setIsQuestionTypeDialogOpen] = useState(false);
     const [selectedQuestionType, setSelectedQuestionType] = useState<string>('');
+    const [isDeleteConfirmDialogOpen, setIsDeleteConfirmDialogOpen] = useState(false);
+    const [questionToDelete, setQuestionToDelete] = useState<number | null>(null);
 
     const editForm = useForm<UploadQuestionPaperFormType>({
         resolver: zodResolver(uploadQuestionPaperFormSchema),
@@ -174,9 +209,23 @@ const QuizPreview = ({ activeItem }: QuizPreviewProps) => {
     };
 
     const handleRemove = (index: number) => {
-        remove(index);
-        setTimeout(syncToStore, 0);
-        toast.success('Question removed successfully!');
+        setQuestionToDelete(index);
+        setIsDeleteConfirmDialogOpen(true);
+    };
+
+    const confirmDelete = () => {
+        if (questionToDelete !== null) {
+            remove(questionToDelete);
+            setTimeout(syncToStore, 0);
+            toast.success('Question removed successfully!');
+            setQuestionToDelete(null);
+        }
+        setIsDeleteConfirmDialogOpen(false);
+    };
+
+    const cancelDelete = () => {
+        setQuestionToDelete(null);
+        setIsDeleteConfirmDialogOpen(false);
     };
 
     const QuestionType = ({ icon, text, type = QuestionTypeList.MCQS }: QuestionTypeProps) => (
@@ -265,17 +314,24 @@ const QuizPreview = ({ activeItem }: QuizPreviewProps) => {
                                                     />
                                                 </FormProvider>
 
-                                                <div className="flex justify-end px-6 pb-4 pt-2">
+                                                <div className="flex justify-end gap-3 px-6 pb-4 pt-2">
                                                     <DialogClose asChild>
                                                         <button ref={closeRef} className="hidden" />
                                                     </DialogClose>
                                                     <Button
                                                         type="button"
-                                                        className="bg-primary-600 hover:bg-primary-700 text-white"
+                                                        variant="outline"
+                                                        onClick={() => setEditIndex(null)}
+                                                    >
+                                                        Cancel
+                                                    </Button>
+                                                    <MyButton
+                                                        type="button"
+                                                        // className="bg-primary-600 hover:bg-primary-700 text-white"
                                                         onClick={handleEditConfirm}
                                                     >
                                                         Save Changes
-                                                    </Button>
+                                                    </MyButton>
                                                 </div>
                                             </DialogContent>
                                         </Dialog>
@@ -295,11 +351,196 @@ const QuizPreview = ({ activeItem }: QuizPreviewProps) => {
 
                                 <div className="ml-11">
                                     <div className="mb-2 text-sm font-medium text-slate-700">
-                                        {field.questionName || 'Untitled Question'}
+                                        <div
+                                            dangerouslySetInnerHTML={{
+                                                __html: field.questionName || 'Untitled Question',
+                                            }}
+                                        />
                                     </div>
+
+                                    {/* Display Answer Options */}
+                                    {field.questionType === 'MCQS' && field.singleChoiceOptions && (
+                                        <div className="mt-3 space-y-2">
+                                            <div className="text-xs font-medium text-slate-600">
+                                                Options:
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                {field.singleChoiceOptions.map(
+                                                    (option, optionIndex) => (
+                                                        <div
+                                                            key={optionIndex}
+                                                            className={`flex items-center gap-2 rounded-md p-2 text-xs ${
+                                                                option.isSelected
+                                                                    ? 'border border-green-200 bg-green-50'
+                                                                    : 'border border-slate-200 bg-slate-50'
+                                                            }`}
+                                                        >
+                                                            <div
+                                                                className={`flex size-5 items-center justify-center rounded-full text-xs font-medium ${
+                                                                    option.isSelected
+                                                                        ? 'bg-green-500 text-white'
+                                                                        : 'bg-slate-300 text-slate-600'
+                                                                }`}
+                                                            >
+                                                                {String.fromCharCode(
+                                                                    65 + optionIndex
+                                                                )}
+                                                            </div>
+                                                            <div
+                                                                className="flex-1"
+                                                                dangerouslySetInnerHTML={{
+                                                                    __html: option.name || '',
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    )
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {field.questionType === 'MCQM' &&
+                                        field.multipleChoiceOptions && (
+                                            <div className="mt-3 space-y-2">
+                                                <div className="text-xs font-medium text-slate-600">
+                                                    Options:
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    {field.multipleChoiceOptions.map(
+                                                        (option, optionIndex) => (
+                                                            <div
+                                                                key={optionIndex}
+                                                                className={`flex items-center gap-2 rounded-md p-2 text-xs ${
+                                                                    option.isSelected
+                                                                        ? 'border border-green-200 bg-green-50'
+                                                                        : 'border border-slate-200 bg-slate-50'
+                                                                }`}
+                                                            >
+                                                                <div
+                                                                    className={`flex size-5 items-center justify-center rounded-full text-xs font-medium ${
+                                                                        option.isSelected
+                                                                            ? 'bg-green-500 text-white'
+                                                                            : 'bg-slate-300 text-slate-600'
+                                                                    }`}
+                                                                >
+                                                                    {String.fromCharCode(
+                                                                        65 + optionIndex
+                                                                    )}
+                                                                </div>
+                                                                <div
+                                                                    className="flex-1"
+                                                                    dangerouslySetInnerHTML={{
+                                                                        __html: option.name || '',
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                        )
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                    {field.questionType === 'TRUE_FALSE' &&
+                                        field.trueFalseOptions && (
+                                            <div className="mt-3 space-y-2">
+                                                <div className="text-xs font-medium text-slate-600">
+                                                    Options:
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    {field.trueFalseOptions.map(
+                                                        (option, optionIndex) => (
+                                                            <div
+                                                                key={optionIndex}
+                                                                className={`flex items-center gap-2 rounded-md p-2 text-xs ${
+                                                                    option.isSelected
+                                                                        ? 'border border-green-200 bg-green-50'
+                                                                        : 'border border-slate-200 bg-slate-50'
+                                                                }`}
+                                                            >
+                                                                <div
+                                                                    className={`flex size-5 items-center justify-center rounded-full text-xs font-medium ${
+                                                                        option.isSelected
+                                                                            ? 'bg-green-500 text-white'
+                                                                            : 'bg-slate-300 text-slate-600'
+                                                                    }`}
+                                                                >
+                                                                    {String.fromCharCode(
+                                                                        65 + optionIndex
+                                                                    )}
+                                                                </div>
+                                                                <div
+                                                                    className="flex-1"
+                                                                    dangerouslySetInnerHTML={{
+                                                                        __html: option.name || '',
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                        )
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                    {field.questionType === 'NUMERIC' && field.validAnswers && (
+                                        <div className="mt-3 space-y-2">
+                                            <div className="text-xs font-medium text-slate-600">
+                                                Correct Answer(s):
+                                            </div>
+                                            <div className="flex flex-wrap gap-2">
+                                                {field.validAnswers.map((answer, answerIndex) => (
+                                                    <div
+                                                        key={answerIndex}
+                                                        className="rounded-md border border-green-200 bg-green-50 px-3 py-1 text-xs font-medium text-green-700"
+                                                    >
+                                                        {answer}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {field.questionType === 'LONG_ANSWER' &&
+                                        field.subjectiveAnswerText && (
+                                            <div className="mt-3 space-y-2">
+                                                <div className="text-xs font-medium text-slate-600">
+                                                    Sample Answer:
+                                                </div>
+                                                <div className="rounded-md border border-blue-200 bg-blue-50 p-3 text-xs">
+                                                    <div
+                                                        dangerouslySetInnerHTML={{
+                                                            __html:
+                                                                field.subjectiveAnswerText || '',
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+
+                                    {field.questionType === 'ONE_WORD' &&
+                                        field.subjectiveAnswerText && (
+                                            <div className="mt-3 space-y-2">
+                                                <div className="text-xs font-medium text-slate-600">
+                                                    Correct Answer:
+                                                </div>
+                                                <div className="rounded-md border border-blue-200 bg-blue-50 p-3 text-xs">
+                                                    <div
+                                                        dangerouslySetInnerHTML={{
+                                                            __html:
+                                                                field.subjectiveAnswerText || '',
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+
                                     {field.explanation && (
-                                        <div className="text-xs text-slate-500">
-                                            Explanation: {field.explanation}
+                                        <div className="mt-3 text-xs text-slate-500">
+                                            <span className="font-medium">Explanation: </span>
+                                            <div
+                                                dangerouslySetInnerHTML={{
+                                                    __html: field.explanation,
+                                                }}
+                                            />
                                         </div>
                                     )}
                                 </div>
@@ -429,12 +670,39 @@ const QuizPreview = ({ activeItem }: QuizPreviewProps) => {
                             >
                                 Cancel
                             </Button>
-                            <Button
-                                type="button"
-                                className="bg-primary-600 hover:bg-primary-700 text-white"
-                                onClick={handleAddQuestionConfirm}
-                            >
+                            <MyButton type="button" className="" onClick={handleAddQuestionConfirm}>
                                 Add Question
+                            </MyButton>
+                        </div>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Delete Confirmation Dialog */}
+                <Dialog
+                    open={isDeleteConfirmDialogOpen}
+                    onOpenChange={setIsDeleteConfirmDialogOpen}
+                >
+                    <DialogContent className="max-w-md">
+                        <div className="flex items-center gap-3">
+                            <div className="flex size-10 items-center justify-center rounded-full bg-red-100">
+                                <Warning size={20} className="text-red-600" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-semibold text-slate-900">
+                                    Delete Question
+                                </h3>
+                                <p className="text-sm text-slate-600">
+                                    Are you sure you want to delete this question? This action
+                                    cannot be undone.
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex justify-end gap-3 pt-4">
+                            <Button type="button" variant="outline" onClick={cancelDelete}>
+                                Cancel
+                            </Button>
+                            <Button type="button" variant="destructive" onClick={confirmDelete}>
+                                Delete
                             </Button>
                         </div>
                     </DialogContent>

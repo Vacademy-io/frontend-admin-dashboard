@@ -128,14 +128,23 @@ const SlideItem = ({
                 </div>
             );
         }
+        if (status === 'DELETED') {
+            return (
+                <div className="inline-flex items-center rounded-full border border-red-200 bg-red-50 px-1 py-0.5 text-xs font-medium text-red-600">
+                    DEL
+                </div>
+            );
+        }
         return null;
     };
 
     return (
         <SortableItem value={slide.id} asChild className="group cursor-pointer">
             <div
-                className="w-full transition-all duration-300 ease-in-out animate-in fade-in slide-in-from-left-2 hover:scale-[1.01]"
-                onClick={onClick}
+                className={`w-full transition-all duration-300 ease-in-out animate-in fade-in slide-in-from-left-2 ${
+                    slide.status !== 'DELETED' ? 'hover:scale-[1.01]' : ''
+                }`}
+                onClick={slide.status === 'DELETED' ? undefined : onClick}
             >
                 <div
                     className={`
@@ -143,11 +152,13 @@ const SlideItem = ({
                         py-2 backdrop-blur-sm transition-all
                         duration-300 ease-in-out
                         ${
-                            isActive
-                                ? 'text-primary-600 border-primary-300 bg-primary-50/80 shadow-md shadow-primary-100/50'
-                                : 'hover:bg-primary-25 border-neutral-100 bg-white/60 text-neutral-600 hover:border-primary-200 hover:text-primary-500 hover:shadow-sm'
+                            slide.status === 'DELETED'
+                                ? 'opacity-50 cursor-not-allowed border-red-200 bg-red-50/30 text-red-600'
+                                : isActive
+                                  ? 'text-primary-600 border-primary-300 bg-primary-50/80 shadow-md shadow-primary-100/50'
+                                  : 'hover:bg-primary-25 border-neutral-100 bg-white/60 text-neutral-600 hover:border-primary-200 hover:text-primary-500 hover:shadow-sm'
                         }
-                        group-hover:shadow-md
+                        ${slide.status !== 'DELETED' ? 'group-hover:shadow-md' : ''}
                     `}
                 >
                     <TooltipProvider>
@@ -160,9 +171,11 @@ const SlideItem = ({
                                         flex size-6 items-center justify-center rounded-md text-xs font-bold transition-all
                                         duration-200 ease-in-out group-hover:scale-105
                                         ${
-                                            isActive
-                                                ? 'bg-primary-500 text-white shadow-sm'
-                                                : 'group-hover:text-primary-600 bg-neutral-100 text-neutral-500 group-hover:bg-primary-100'
+                                            slide.status === 'DELETED'
+                                                ? 'bg-red-200 text-red-600'
+                                                : isActive
+                                                  ? 'bg-primary-500 text-white shadow-sm'
+                                                  : 'group-hover:text-primary-600 bg-neutral-100 text-neutral-500 group-hover:bg-primary-100'
                                         }
                                     `}
                                     >
