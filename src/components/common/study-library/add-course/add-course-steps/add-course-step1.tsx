@@ -259,12 +259,18 @@ export const AddCourseStep1 = ({
                                                 <FormControl>
                                                     <MainViewQuillEditor
                                                         onChange={(value: string) => {
-                                                            const wordCount = value
+                                                            const plainText = value
                                                                 .replace(/<[^>]*>/g, '')
-                                                                .trim()
-                                                                .split(/\s+/).length;
-                                                            if (wordCount <= 30) {
+                                                                .trim();
+                                                            const words = plainText.split(/\s+/);
+                                                            if (words.length <= 30) {
                                                                 field.onChange(value);
+                                                            } else {
+                                                                // Truncate to first 30 words and update editor content
+                                                                const truncatedText = words
+                                                                    .slice(0, 30)
+                                                                    .join(' ');
+                                                                field.onChange(truncatedText);
                                                             }
                                                         }}
                                                         value={field.value}
@@ -276,6 +282,7 @@ export const AddCourseStep1 = ({
                                             </FormItem>
                                         )}
                                     />
+
                                     <span className="relative top-12 text-xs text-red-500">
                                         *Max 30 words allowed
                                     </span>
