@@ -1804,35 +1804,42 @@ export const AddCourseStep2 = ({
                                         )}
 
                                         {/* Session Cards */}
-                                        {sessions.map((session) => (
-                                            <SessionCard
-                                                key={session.batchId || session.id}
-                                                session={session}
-                                                hasLevels={hasLevels === 'yes'}
-                                                onRemoveSession={() =>
-                                                    removeSession(
-                                                        (session.batchId || session.id).toString()
-                                                    )
-                                                }
-                                                onAddLevel={addLevel}
-                                                onRemoveLevel={(sessionId, batchId) =>
-                                                    removeLevel(
-                                                        sessionId,
-                                                        (batchId || '').toString()
-                                                    )
-                                                }
-                                                existingBatches={availableExistingBatches}
-                                                onMarkBatchesAsUsed={(batchIds) => {
-                                                    setUsedExistingBatchIds((prev) => {
-                                                        const newSet = new Set(prev);
-                                                        batchIds.forEach((id) => {
-                                                            newSet.add(id);
+                                        {sessions
+                                            .filter(
+                                                (session) =>
+                                                    session.name.toLowerCase() !== 'default'
+                                            )
+                                            .map((session) => (
+                                                <SessionCard
+                                                    key={session.batchId || session.id}
+                                                    session={session}
+                                                    hasLevels={hasLevels === 'yes'}
+                                                    onRemoveSession={() =>
+                                                        removeSession(
+                                                            (
+                                                                session.batchId || session.id
+                                                            ).toString()
+                                                        )
+                                                    }
+                                                    onAddLevel={addLevel}
+                                                    onRemoveLevel={(sessionId, batchId) =>
+                                                        removeLevel(
+                                                            sessionId,
+                                                            (batchId || '').toString()
+                                                        )
+                                                    }
+                                                    existingBatches={availableExistingBatches}
+                                                    onMarkBatchesAsUsed={(batchIds) => {
+                                                        setUsedExistingBatchIds((prev) => {
+                                                            const newSet = new Set(prev);
+                                                            batchIds.forEach((id) => {
+                                                                newSet.add(id);
+                                                            });
+                                                            return newSet;
                                                         });
-                                                        return newSet;
-                                                    });
-                                                }}
-                                            />
-                                        ))}
+                                                    }}
+                                                />
+                                            ))}
                                     </div>
                                 )}
 
