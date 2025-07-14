@@ -86,6 +86,7 @@ export const AddCourseStep1 = ({
     const [youtubeUrl, setYoutubeUrl] = useState('');
     const [youtubeError, setYoutubeError] = useState('');
     const [showYoutubeInput, setShowYoutubeInput] = useState(false);
+    const youtubeInputRef = useRef<HTMLDivElement>(null);
     const [showMediaMenu, setShowMediaMenu] = useState(false);
     const mediaMenuRef = useRef<HTMLDivElement>(null);
 
@@ -100,6 +101,18 @@ export const AddCourseStep1 = ({
         document.addEventListener('mousedown', handleClick);
         return () => document.removeEventListener('mousedown', handleClick);
     }, [showMediaMenu]);
+
+    // Hide YouTube input when clicking outside
+    useEffect(() => {
+        if (!showYoutubeInput) return;
+        function handleClick(e: MouseEvent) {
+            if (youtubeInputRef.current && !youtubeInputRef.current.contains(e.target as Node)) {
+                setShowYoutubeInput(false);
+            }
+        }
+        document.addEventListener('mousedown', handleClick);
+        return () => document.removeEventListener('mousedown', handleClick);
+    }, [showYoutubeInput]);
 
     const form = useForm<Step1Data>({
         resolver: zodResolver(step1Schema),
@@ -653,7 +666,10 @@ export const AddCourseStep1 = ({
                                                 </div>
                                             )}
                                             {showYoutubeInput && (
-                                                <div className="z-[70] w-64 rounded bg-white p-4 shadow">
+                                                <div
+                                                    ref={youtubeInputRef}
+                                                    className=" w-64 rounded bg-white p-4 shadow"
+                                                >
                                                     <label className="mb-1 block text-sm font-medium text-gray-700">
                                                         Paste YouTube Link
                                                     </label>
