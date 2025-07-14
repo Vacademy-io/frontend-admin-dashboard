@@ -5,7 +5,6 @@ import { TokenKey } from '@/constants/auth/tokens';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 
 export type CourseFormData = Step1Data & Step2Data;
-
 interface AddFacultyToCourse {
     user: UserDetails;
     new_user: boolean;
@@ -29,37 +28,44 @@ interface UserDetails {
     root_user: boolean;
 }
 
-interface FormattedCourseData {
+interface GroupDetails {
+    id: string;
+    group_name: string;
+    group_value: string;
+    new_group: boolean;
+}
+
+interface LevelDetails {
+    id: string;
+    new_level: boolean;
+    level_name: string;
+    duration_in_days: number;
+    thumbnail_file_id: string;
+    package_id: string;
+    package_session_status?: string;
+    package_session_id?: string;
+    new_package_session?: boolean;
+    add_faculty_to_course: AddFacultyToCourse[];
+    group: GroupDetails;
+}
+
+export interface SessionDetails {
+    id: string;
+    session_name: string;
+    status: string;
+    start_date: string;
+    new_session: boolean;
+    levels: LevelDetails[];
+}
+
+export interface FormattedCourseData {
     id: string;
     new_course: boolean;
     course_name: string;
     thumbnail_file_id: string;
     course_html_description: string;
     contain_levels: boolean;
-    sessions: Array<{
-        id: string;
-        session_name: string;
-        status: string;
-        start_date: string;
-        new_session: boolean;
-        levels: Array<{
-            id: string;
-            new_level: boolean;
-            level_name: string;
-            duration_in_days: number;
-            thumbnail_file_id: string;
-            package_id: string;
-            add_faculty_to_course: AddFacultyToCourse[];
-            package_session_status?: string;
-            package_session_id?: string;
-            group: {
-                id: string;
-                group_name: string;
-                group_value: string;
-                new_group: boolean;
-            };
-        }>;
-    }>;
+    sessions: SessionDetails[];
     is_course_published_to_catalaouge: boolean;
     course_preview_image_media_id: string;
     course_banner_media_id: string;
