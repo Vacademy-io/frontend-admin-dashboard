@@ -1,11 +1,11 @@
 import { Separator } from '@/components/ui/separator';
 import { VacademyAssessLogo, VacademyLMSLogo } from '@/svgs';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { CreateOnboardingSidebar } from './CreateOnboardingSidebar';
 import { OnboardingSteps } from './OnboardingSteps';
 import { Route } from '..';
-import { handleOAuthCallback } from '@/hooks/signup/oauth-signup'; // ✅ Make sure this path is correct
-import { toast } from 'sonner';
+// import { handleOAuthCallback } from '@/hooks/signup/oauth-signup'; // ✅ Make sure this path is correct
+// import { toast } from 'sonner';
 
 export function OnboardingComponent() {
     const searchParams = Route.useSearch();
@@ -55,9 +55,11 @@ export function OnboardingComponent() {
         <div className="flex h-screen w-full">
             <div className="flex w-1/2 flex-col items-center justify-center bg-primary-50">
                 <div>
-                    <div className="flex items-center">
+                    <div className="grid grid-cols-2 gap-4">
                         {searchParams.assess && <VacademyAssessLogo />}
                         {searchParams.lms && <VacademyLMSLogo />}
+                        {searchParams.volt && <VacademyLMSLogo />}
+                        {searchParams.vsmart && <VacademyLMSLogo />}
                     </div>
                     <p>Fast-track your access in 3 steps—explore the tool now!</p>
                     <Separator className="my-6" />
