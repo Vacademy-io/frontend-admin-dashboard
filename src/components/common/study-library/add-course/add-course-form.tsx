@@ -78,9 +78,11 @@ export const AddCourseForm = ({
         setStep(2);
     };
 
-    function findIdByPackageId(data: BatchForSessionType[], packageId: string) {
-        const result = data?.find((item) => item.package_dto?.id === packageId);
-        return result?.id || '';
+    function findIdByPackageId(data: BatchForSessionType[], packageId: string): string {
+        return data
+            .filter((item) => item.package_dto?.id === packageId)
+            .map((item) => item.id)
+            .join(',');
     }
 
     const handleStep2Submit = (data: Step2Data) => {
