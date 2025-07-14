@@ -145,6 +145,13 @@ interface InstructorWithPicUrl {
     profilePicUrl: string;
 }
 
+// Utility to extract YouTube video ID
+const extractYouTubeVideoId = (url: string): string | null => {
+    const regExp = /^.*(?:youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return match && match[1] && match[1].length === 11 ? match[1] : null;
+};
+
 export const CourseDetailsPage = () => {
     const router = useRouter();
     const searchParams = router.state.location.search;
@@ -431,7 +438,22 @@ export const CourseDetailsPage = () => {
 
                         {/* Right side - Video Player */}
                         {form.watch('courseData').courseMediaId.id &&
-                            (form.watch('courseData').courseMediaId.type === 'video' ? (
+                            (form.watch('courseData').courseMediaId.type === 'youtube' ? (
+                                <div className="w-[400px] overflow-hidden rounded-lg shadow-xl">
+                                    <div className="relative flex aspect-video items-center justify-center bg-black">
+                                        <iframe
+                                            width="100%"
+                                            height="100%"
+                                            src={`https://www.youtube.com/embed/${extractYouTubeVideoId(form.watch('courseData').courseMediaId.id || '')}`}
+                                            title="YouTube video player"
+                                            frameBorder="0"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowFullScreen
+                                            className="size-full rounded-lg object-contain"
+                                        />
+                                    </div>
+                                </div>
+                            ) : form.watch('courseData').courseMediaId.type === 'video' ? (
                                 <div className="w-[400px] overflow-hidden rounded-lg shadow-xl">
                                     <div className="relative aspect-video bg-black">
                                         <video
