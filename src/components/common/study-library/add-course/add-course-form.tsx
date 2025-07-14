@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import {
     convertToApiCourseFormat,
     convertToApiCourseFormatUpdate,
+    SessionDetails,
     transformCourseData,
 } from '../-utils/helper';
 import { useAddCourse } from '@/services/study-library/course-operations/add-course';
@@ -78,9 +79,43 @@ export const AddCourseForm = ({
         setStep(2);
     };
 
-    function findIdByPackageId(data: BatchForSessionType[], packageId: string) {
-        const result = data?.find((item) => item.package_dto?.id === packageId);
-        return result?.id || '';
+    function findIdByPackageId(data: BatchForSessionType[], packageId: string): string {
+        return data
+            .filter((item) => item.package_dto?.id === packageId)
+            .map((item) => item.id)
+            .join(',');
+    }
+
+    function retainNewActiveLevels(sessions: SessionDetails[]) {
+        return sessions.map((session) => ({
+            ...session,
+            levels: (session.levels ?? []).filter(
+                (level) => level.new_level === false && level.package_session_status === 'ACTIVE'
+            ),
+        }));
+    }
+
+    function findUnmatchedBatchIds(
+        sessionsData: SessionDetails[],
+        batchesData: BatchForSessionType[],
+        courseId?: string
+    ): string[] {
+        /* ------- build a fast‑lookup map: sessionId → Set(levelIds) ------- */
+        const sessionLevelMap = new Map<string, Set<string>>();
+
+        sessionsData.forEach((session) => {
+            const levels = session.levels ?? [];
+            sessionLevelMap.set(session.id, new Set(levels.map((l) => l.id)));
+        });
+
+        /* ------- walk the batches and collect the “missing” ones ------- */
+        return batchesData
+            .filter((batch) => {
+                if (courseId && batch.package_dto?.id !== courseId) return false; // course filter
+                const levelSet = sessionLevelMap.get(batch.session.id);
+                return !levelSet || !levelSet.has(batch.level.id); // session missing OR level missing
+            })
+            .map((batch) => batch.id);
     }
 
     const handleStep2Submit = (data: Step2Data) => {
@@ -127,13 +162,60 @@ export const AddCourseForm = ({
             getPackageSessionId
         );
 
+        const previousSessions = retainNewActiveLevels(formattedDataUpdate.sessions);
+
         if (isEdit) {
             updateCourseMutation.mutate(
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-expect-error
                 { requestData: formattedDataUpdate },
                 {
-                    onSuccess: () => {
+                    onSuccess: async () => {
+                        const instituteDetails = await fetchInstituteDetails();
+
+                        const unmatchedPackageSessionIds = findUnmatchedBatchIds(
+                            previousSessions,
+                            instituteDetails?.batches_for_sessions || [],
+                            formattedDataUpdate.id
+                        );
+
+                        if (formattedData.course_depth === 2) {
+                            const subjectResponse = await addSubjectMutation.mutateAsync({
+                                subject: newSubject,
+                                packageSessionIds: unmatchedPackageSessionIds.join(','),
+                            });
+
+                            const moduleResponse = await addModuleMutation.mutateAsync({
+                                subjectId: subjectResponse.data.id,
+                                packageSessionIds: unmatchedPackageSessionIds.join(','),
+                                module: newModule,
+                            });
+
+                            await addChapterMutation.mutateAsync({
+                                subjectId: subjectResponse.data.id,
+                                moduleId: moduleResponse.data.id,
+                                commaSeparatedPackageSessionIds:
+                                    unmatchedPackageSessionIds.join(','),
+                                chapter: newChapter,
+                            });
+                        } else if (formattedData.course_depth === 3) {
+                            const subjectResponse = await addSubjectMutation.mutateAsync({
+                                subject: newSubject,
+                                packageSessionIds: unmatchedPackageSessionIds.join(','),
+                            });
+
+                            await addModuleMutation.mutateAsync({
+                                subjectId: subjectResponse.data.id,
+                                packageSessionIds: unmatchedPackageSessionIds.join(','),
+                                module: newModule,
+                            });
+                        } else if (formattedData.course_depth === 4) {
+                            await addSubjectMutation.mutateAsync({
+                                subject: newSubject,
+                                packageSessionIds: unmatchedPackageSessionIds.join(','),
+                            });
+                        }
+
                         toast.success('Course updated successfully');
                         setIsOpen(false);
                         setStep(1);
@@ -154,7 +236,6 @@ export const AddCourseForm = ({
                     onSuccess: async (response) => {
                         try {
                             const instituteDetails = await fetchInstituteDetails();
-
                             const packageSessionId = findIdByPackageId(
                                 instituteDetails?.batches_for_sessions || [],
                                 response.data
