@@ -8,6 +8,7 @@ const createOptionStructure = (option: any) => ({
     quiz_slide_question_id: '',
     text: { id: '', type: 'TEXT', content: option.name || '' },
     explanation_text: { id: '', type: 'TEXT', content: '' },
+    explanation_text_data: { id: '', type: 'TEXT', content: '' }, // Added for backend compatibility
     media_id: '',
 });
 
@@ -32,6 +33,7 @@ const transformOptionsByType = (question: any): Array<{
     quiz_slide_question_id: string;
     text: { id: string; type: string; content: string };
     explanation_text: { id: string; type: string; content: string };
+    explanation_text_data: { id: string; type: string; content: string };
     media_id: string;
 }> => {
     switch (question.questionType) {
@@ -79,32 +81,70 @@ const createAutoEvaluationJson = (question: any): string => {
     return '';
 };
 
+// Helper function to calculate question time in milliseconds
+const calculateQuestionTimeInMillis = (question: any): number => {
+    const duration = question.questionDuration;
+    if (duration) {
+        const hours = parseInt(duration.hrs || '0') * 60 * 60 * 1000; // Convert hours to milliseconds
+        const minutes = parseInt(duration.min || '0') * 60 * 1000; // Convert minutes to milliseconds
+        return hours + minutes;
+    }
+    return 0; // Default to 0 if no duration specified
+};
+
 // Helper function to create question structure
-const createQuestionStructure = (question: any, index: number, options: any[], questionResponseType: string, evaluationType: string): QuizSlideQuestion => ({
-    id: question.id || crypto.randomUUID(),
-    parent_rich_text: {
-        id: '',
-        type: 'TEXT',
-        content: question.questionName || '',
-    },
-    text: { id: '', type: 'TEXT', content: question.questionName || '' },
-    explanation_text: {
-        id: '',
-        type: 'TEXT',
-        content: question.explanation || '',
-    },
-    media_id: '',
-    status: question.status || 'ACTIVE',
-    question_response_type: questionResponseType,
-    question_type: question.questionType,
-    access_level: 'INSTITUTE',
-    auto_evaluation_json: createAutoEvaluationJson(question),
-    evaluation_type: evaluationType,
-    question_order: index + 1,
-    quiz_slide_id: '', // This will be set by the caller
-    can_skip: question.canSkip || false,
-    options: options,
-});
+const createQuestionStructure = (question: any, index: number, options: any[], questionResponseType: string, evaluationType: string): QuizSlideQuestion => {
+    const explanationContent = question.explanation || '';
+    
+    console.log('[API Helpers] Creating question structure:', {
+        questionId: question.id,
+        questionName: question.questionName,
+        explanation: explanationContent,
+        explanationLength: explanationContent.length,
+        questionType: question.questionType,
+        index: index
+    });
+
+    const questionStructure = {
+        id: question.id || crypto.randomUUID(),
+        parent_rich_text: {
+            id: '',
+            type: 'TEXT',
+            content: question.questionName || '',
+        },
+        text: { id: '', type: 'TEXT', content: question.questionName || '' },
+        text_data: { id: '', type: 'TEXT', content: question.questionName || '' }, // Added for backend compatibility
+        explanation_text: {
+            id: '',
+            type: 'TEXT',
+            content: explanationContent,
+        },
+        explanation_text_data: { id: '', type: 'TEXT', content: explanationContent }, // Added for backend compatibility
+        media_id: '',
+        status: question.status || 'ACTIVE',
+        question_response_type: questionResponseType,
+        question_type: question.questionType,
+        access_level: 'INSTITUTE',
+        auto_evaluation_json: createAutoEvaluationJson(question),
+        evaluation_type: evaluationType,
+        question_time_in_millis: calculateQuestionTimeInMillis(question), // Added for backend compatibility
+        question_order: index + 1,
+        quiz_slide_id: '', // This will be set by the caller
+        can_skip: question.canSkip || false,
+        new_question: true, // Added for backend compatibility
+        options: options,
+    };
+
+    console.log('[API Helpers] Created question structure:', {
+        questionId: questionStructure.id,
+        explanation_text: questionStructure.explanation_text,
+        explanation_text_data: questionStructure.explanation_text_data,
+        hasExplanation: !!explanationContent,
+        explanationContent: explanationContent
+    });
+
+    return questionStructure;
+};
 
 // Helper function to transform form questions to backend format
 export const transformFormQuestionsToBackend = (
@@ -123,7 +163,25 @@ export const createQuizSlidePayload = (
     questions: UploadQuestionPaperFormType['questions'],
     activeItem: Slide
 ): QuizSlidePayload => {
-    return {
+    const transformedQuestions = transformFormQuestionsToBackend(questions);
+    
+    console.log('[API Helpers] Creating quiz slide payload:', {
+        activeItemId: activeItem.id,
+        activeItemTitle: activeItem.title,
+        questionsCount: questions.length,
+        transformedQuestionsCount: transformedQuestions.length,
+        questionsWithExplanations: transformedQuestions.filter(q => q.explanation_text.content || q.explanation_text_data.content).length,
+        allExplanations: transformedQuestions.map(q => ({
+            questionId: q.id,
+            explanation_text: q.explanation_text,
+            explanation_text_data: q.explanation_text_data,
+            hasExplanation: !!(q.explanation_text.content || q.explanation_text_data.content),
+            explanationContent: q.explanation_text.content,
+            explanationDataContent: q.explanation_text_data.content
+        }))
+    });
+
+    const payload = {
         id: activeItem.id,
         source_id: activeItem.source_id || '',
         source_type: activeItem.source_type || 'QUIZ',
@@ -144,9 +202,24 @@ export const createQuizSlidePayload = (
                 content: '',
                 type: 'TEXT',
             },
-            questions: transformFormQuestionsToBackend(questions),
+            questions: transformedQuestions,
         },
         is_loaded: true,
         new_slide: false,
     };
+
+    console.log('[API Helpers] Final payload created:', {
+        payloadId: payload.id,
+        quizSlideId: payload.quiz_slide.id,
+        questionsInPayload: payload.quiz_slide.questions.length,
+        explanationsInPayload: payload.quiz_slide.questions.map(q => ({
+            questionId: q.id,
+            explanation_text: q.explanation_text,
+            explanation_text_data: q.explanation_text_data,
+            explanationContent: q.explanation_text.content,
+            explanationDataContent: q.explanation_text_data.content
+        }))
+    });
+
+    return payload;
 }; 

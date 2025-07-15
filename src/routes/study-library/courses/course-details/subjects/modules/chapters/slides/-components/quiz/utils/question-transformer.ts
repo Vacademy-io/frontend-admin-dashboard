@@ -72,6 +72,22 @@ const createBaseTransformedQuestion = (
     questionType: string,
     validAnswers: number[]
 ): TransformedQuestion => {
+    const explanation = question.explanation_text?.content || question.explanation || '';
+    
+    console.log('[QuestionTransformer] Creating base transformed question:', {
+        questionId: question.id,
+        questionText: questionText,
+        questionType: questionType,
+        explanation: explanation,
+        explanationLength: explanation.length,
+        explanation_text: question.explanation_text,
+        explanation_text_data: question.explanation_text_data,
+        hasExplanation: !!explanation,
+        backendExplanation: question.explanation,
+        backendExplanationText: question.explanation_text,
+        backendExplanationTextData: question.explanation_text_data
+    });
+
     return {
         questionName: questionText,
         questionType,
@@ -84,7 +100,7 @@ const createBaseTransformedQuestion = (
         id: question.id,
         status: question.status,
         validAnswers: validAnswers.length > 0 ? validAnswers : undefined,
-        explanation: question.explanation_text?.content || question.explanation || '',
+        explanation: explanation,
         canSkip: question.can_skip || question.canSkip || false,
         tags: question.tags || [],
         level: question.level,
@@ -208,6 +224,10 @@ export const transformQuestion = (question: BackendQuestion | any): TransformedQ
         optionsLength: question.options?.length || 0,
         hasAutoEvaluationJson: !!question.auto_evaluation_json,
         autoEvaluationJson: question.auto_evaluation_json,
+        explanation: question.explanation,
+        explanation_text: question.explanation_text,
+        explanation_text_data: question.explanation_text_data,
+        hasExplanation: !!(question.explanation || question.explanation_text?.content || question.explanation_text_data?.content)
     });
 
     const validAnswers = parseValidAnswers(question);
@@ -241,6 +261,9 @@ export const transformQuestion = (question: BackendQuestion | any): TransformedQ
         hasTrueFalseOptions: !!transformed.trueFalseOptions?.length,
         validAnswers: transformed.validAnswers,
         subjectiveAnswerText: transformed.subjectiveAnswerText,
+        explanation: transformed.explanation,
+        explanationLength: transformed.explanation?.length || 0,
+        hasExplanation: !!transformed.explanation
     });
 
     return transformed;

@@ -22,6 +22,7 @@ export interface BackendQuestion {
     auto_evaluation_json?: string;
     explanation?: string;
     explanation_text?: { content: string };
+    explanation_text_data?: { content: string }; // Added to match backend payload
     can_skip?: boolean;
     canSkip?: boolean;
     tags?: string[];

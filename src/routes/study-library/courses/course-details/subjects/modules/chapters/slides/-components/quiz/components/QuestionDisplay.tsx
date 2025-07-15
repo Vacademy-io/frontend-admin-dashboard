@@ -14,6 +14,17 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
     onEdit,
     onDelete,
 }) => {
+    // Debug logging for explanations
+    console.log('[QuestionDisplay] Rendering question:', {
+        questionIndex: questionIndex + 1,
+        questionType: question.questionType,
+        questionName: question.questionName,
+        explanation: question.explanation,
+        explanationLength: question.explanation?.length || 0,
+        hasExplanation: !!question.explanation,
+        explanationContent: question.explanation
+    });
+
     // Debug logging for subjective questions
     if (question.questionType === 'LONG_ANSWER' || question.questionType === 'ONE_WORD') {
         console.log('[QuestionDisplay] Subjective question data:', {
@@ -131,6 +142,24 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
         );
     };
 
+    const renderExplanation = (explanation: string) => {
+        if (!explanation || explanation.trim() === '') return null;
+        
+        return (
+            <div className="mt-4 space-y-2">
+                <div className="text-xs font-medium text-slate-600">Explanation:</div>
+                <div className="rounded-md border border-purple-200 bg-purple-50 p-3 text-xs">
+                    <div
+                        className="text-slate-700"
+                        dangerouslySetInnerHTML={{
+                            __html: explanation,
+                        }}
+                    />
+                </div>
+            </div>
+        );
+    };
+
     return (
         <div className="relative flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
             <div className="flex items-center justify-between">
@@ -233,16 +262,8 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
                         question.subjectiveAnswerText || ''
                     )}
 
-                {question.explanation && (
-                    <div className="mt-3 text-xs text-slate-500">
-                        <span className="font-medium">Explanation: </span>
-                        <div
-                            dangerouslySetInnerHTML={{
-                                __html: question.explanation,
-                            }}
-                        />
-                    </div>
-                )}
+                {/* Display Explanation */}
+                {renderExplanation(question.explanation || '')}
             </div>
         </div>
     );
