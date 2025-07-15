@@ -15,6 +15,7 @@ import { createFileRoute } from "@tanstack/react-router"
 import { Route as rootRoute } from "./routes/__root"
 import { Route as StudyLibraryIndexImport } from "./routes/study-library/index"
 import { Route as SignupIndexImport } from "./routes/signup/index"
+import { Route as SettingsIndexImport } from "./routes/settings/index"
 import { Route as ManageStudentsIndexImport } from "./routes/manage-students/index"
 import { Route as ManageInstituteIndexImport } from "./routes/manage-institute/index"
 import { Route as LoginIndexImport } from "./routes/login/index"
@@ -109,6 +110,12 @@ const StudyLibraryIndexRoute = StudyLibraryIndexImport.update({
 const SignupIndexRoute = SignupIndexImport.update({
   id: "/signup/",
   path: "/signup/",
+  getParentRoute: () => rootRoute,
+} as any)
+
+const SettingsIndexRoute = SettingsIndexImport.update({
+  id: "/settings/",
+  path: "/settings/",
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -636,6 +643,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof ManageStudentsIndexImport
       parentRoute: typeof rootRoute
     }
+    "/settings/": {
+      id: "/settings/"
+      path: "/settings"
+      fullPath: "/settings"
+      preLoaderRoute: typeof SettingsIndexImport
+      parentRoute: typeof rootRoute
+    }
     "/signup/": {
       id: "/signup/"
       path: "/signup"
@@ -1059,6 +1073,7 @@ export interface FileRoutesByFullPath {
   "/login": typeof LoginIndexRoute
   "/manage-institute": typeof ManageInstituteIndexRoute
   "/manage-students": typeof ManageStudentsIndexRoute
+  "/settings": typeof SettingsIndexRoute
   "/signup": typeof SignupIndexRoute
   "/study-library": typeof StudyLibraryIndexRoute
   "/login/oauth/redirect": typeof LoginOauthRedirectRoute
@@ -1131,6 +1146,7 @@ export interface FileRoutesByTo {
   "/login": typeof LoginIndexRoute
   "/manage-institute": typeof ManageInstituteIndexRoute
   "/manage-students": typeof ManageStudentsIndexRoute
+  "/settings": typeof SettingsIndexRoute
   "/signup": typeof SignupIndexRoute
   "/study-library": typeof StudyLibraryIndexRoute
   "/login/oauth/redirect": typeof LoginOauthRedirectRoute
@@ -1204,6 +1220,7 @@ export interface FileRoutesById {
   "/login/": typeof LoginIndexRoute
   "/manage-institute/": typeof ManageInstituteIndexRoute
   "/manage-students/": typeof ManageStudentsIndexRoute
+  "/settings/": typeof SettingsIndexRoute
   "/signup/": typeof SignupIndexRoute
   "/study-library/": typeof StudyLibraryIndexRoute
   "/login/oauth/redirect": typeof LoginOauthRedirectRoute
@@ -1278,6 +1295,7 @@ export interface FileRouteTypes {
     | "/login"
     | "/manage-institute"
     | "/manage-students"
+    | "/settings"
     | "/signup"
     | "/study-library"
     | "/login/oauth/redirect"
@@ -1349,6 +1367,7 @@ export interface FileRouteTypes {
     | "/login"
     | "/manage-institute"
     | "/manage-students"
+    | "/settings"
     | "/signup"
     | "/study-library"
     | "/login/oauth/redirect"
@@ -1420,6 +1439,7 @@ export interface FileRouteTypes {
     | "/login/"
     | "/manage-institute/"
     | "/manage-students/"
+    | "/settings/"
     | "/signup/"
     | "/study-library/"
     | "/login/oauth/redirect"
@@ -1493,6 +1513,7 @@ export interface RootRouteChildren {
   LoginIndexRoute: typeof LoginIndexRoute
   ManageInstituteIndexRoute: typeof ManageInstituteIndexRoute
   ManageStudentsIndexRoute: typeof ManageStudentsIndexRoute
+  SettingsIndexRoute: typeof SettingsIndexRoute
   SignupIndexRoute: typeof SignupIndexRoute
   StudyLibraryIndexRoute: typeof StudyLibraryIndexRoute
   LoginOauthRedirectRoute: typeof LoginOauthRedirectRoute
@@ -1565,6 +1586,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginIndexRoute: LoginIndexRoute,
   ManageInstituteIndexRoute: ManageInstituteIndexRoute,
   ManageStudentsIndexRoute: ManageStudentsIndexRoute,
+  SettingsIndexRoute: SettingsIndexRoute,
   SignupIndexRoute: SignupIndexRoute,
   StudyLibraryIndexRoute: StudyLibraryIndexRoute,
   LoginOauthRedirectRoute: LoginOauthRedirectRoute,
@@ -1670,6 +1692,7 @@ export const routeTree = rootRoute
         "/login/",
         "/manage-institute/",
         "/manage-students/",
+        "/settings/",
         "/signup/",
         "/study-library/",
         "/login/oauth/redirect",
@@ -1762,6 +1785,9 @@ export const routeTree = rootRoute
     },
     "/manage-students/": {
       "filePath": "manage-students/index.tsx"
+    },
+    "/settings/": {
+      "filePath": "settings/index.tsx"
     },
     "/signup/": {
       "filePath": "signup/index.tsx"

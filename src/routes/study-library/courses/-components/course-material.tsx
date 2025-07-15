@@ -20,6 +20,8 @@ import {
 import { useFileUpload } from '@/hooks/use-file-upload';
 import { useDeleteCourse } from '@/services/study-library/course-operations/delete-course';
 import { toast } from 'sonner';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import CourseListPage from './course-list-page';
 
 export interface AllCourseFilters {
@@ -344,7 +346,7 @@ export const CourseMaterial = () => {
     };
 
     useEffect(() => {
-        setNavHeading('Explore Courses');
+        setNavHeading(`Explore ${getTerminology(ContentTerms.Course, SystemTerms.Course) + 's'}`);
     }, []);
 
     // Update sort_columns in selectedFilters when sortBy changes and call handleGetCourses after update
@@ -421,17 +423,17 @@ export const CourseMaterial = () => {
         const tabs: { key: string; label: string; show: boolean }[] = [
             {
                 key: 'AllCourses',
-                label: 'All Courses',
+                label: `All ${getTerminology(ContentTerms.Course, SystemTerms.Course)}s`,
                 show: true,
             },
             {
                 key: 'AuthoredCourses',
-                label: 'Authored Courses',
+                label: `Authored ${getTerminology(ContentTerms.Course, SystemTerms.Course)}s`,
                 show: safeRoles.includes('ADMIN') || safeRoles.includes('TEACHER'),
             },
             {
                 key: 'CourseRequests',
-                label: 'Course Requests',
+                label: `${getTerminology(ContentTerms.Course, SystemTerms.Course)} Requests`,
                 show: safeRoles.includes('ADMIN') || safeRoles.includes('TEACHER'),
             },
         ];
@@ -495,8 +497,12 @@ export const CourseMaterial = () => {
     if (availableTabs.length === 0) {
         return (
             <div className="flex h-full flex-col items-center justify-center py-20">
-                <div className="mb-2 text-2xl font-semibold">No courses found</div>
-                <div className="mb-4 text-gray-500">Try adding a new course.</div>
+                <div className="mb-2 text-2xl font-semibold">
+                    No {getTerminology(ContentTerms.Course, SystemTerms.Course)}s found
+                </div>
+                <div className="mb-4 text-gray-500">
+                    Try adding a new {getTerminology(ContentTerms.Course, SystemTerms.Course)}.
+                </div>
                 <AddCourseButton />
             </div>
         );
@@ -509,7 +515,9 @@ export const CourseMaterial = () => {
             </div>
             <div className="flex items-center gap-8">
                 <div className="flex flex-col gap-2">
-                    <div className="text-h3 font-semibold">Explore Courses</div>
+                    <div className="text-h3 font-semibold">
+                        Explore {getTerminology(ContentTerms.Course, SystemTerms.Course)}s
+                    </div>
                     <div className="text-subtitle">
                         Effortlessly organize, upload, and track educational resources in one place.
                         Provide students with easy access to the materials they need to succeed,
@@ -551,7 +559,12 @@ export const CourseMaterial = () => {
                             if (!data || !data.content || data.content.length === 0) {
                                 return (
                                     <div className="flex h-40 flex-col items-center justify-center text-gray-500">
-                                        No courses found for this tab.
+                                        No{' '}
+                                        {getTerminology(
+                                            ContentTerms.Course,
+                                            SystemTerms.Course
+                                        ).toLocaleLowerCase()}
+                                        s found for this tab.
                                     </div>
                                 );
                             }

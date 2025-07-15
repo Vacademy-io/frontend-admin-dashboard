@@ -11,8 +11,8 @@ import {
 } from '@/components/common/students/enroll-manually/dropdownTypesForPackageItems';
 import { MyDropdown } from '@/components/common/students/enroll-manually/dropdownForPackageItems';
 import { EmptyBatchImage } from '@/assets/svgs';
-import { MyButton } from '@/components/design-system/button';
-import { Plus } from 'phosphor-react';
+import { ContentTerms, RoleTerms } from '@/routes/settings/-components/NamingSettings';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 
 export const ManageBatches = () => {
     const { setNavHeading } = useNavHeadingStore();
@@ -77,9 +77,13 @@ export const ManageBatches = () => {
         <div className="flex flex-col gap-8 p-2 text-neutral-700">
             <div className="flex items-center justify-between">
                 <div>
-                    <p className="text-xl font-semibold">Student Batches</p>
+                    <p className="text-xl font-semibold">
+                        {getTerminology(RoleTerms.Learner, 'Learner')} Batches
+                    </p>
                     <p className="text-sm text-neutral-500">
-                        Manage and organize your student batches by session.
+                        Manage and organize your{' '}
+                        {getTerminology(RoleTerms.Learner, 'Learner').toLocaleLowerCase()} batches
+                        by {getTerminology(ContentTerms.Session, 'Session').toLocaleLowerCase()}.
                     </p>
                 </div>
                 <div className="flex items-center gap-4">

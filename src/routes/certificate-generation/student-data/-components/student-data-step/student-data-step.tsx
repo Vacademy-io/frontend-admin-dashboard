@@ -1,14 +1,19 @@
 import { useState, useRef } from 'react';
-import { CertificateGenerationSession, CertificateStudentData } from '@/types/certificate/certificate-types';
+import {
+    CertificateGenerationSession,
+    CertificateStudentData,
+} from '@/types/certificate/certificate-types';
 import { MyTable } from '@/components/design-system/table';
 import { MyButton } from '@/components/design-system/button';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { CertificateStudentSidebar } from '../student-sidebar/certificate-student-sidebar';
 import { CsvUploadSection } from '../csv-upload/csv-upload-section';
 import { CsvValidationResults } from '../csv-validation/csv-validation-results';
-import { Download, Upload, Users, File, ArrowRight } from '@phosphor-icons/react';
+import { Download, Users, ArrowRight } from '@phosphor-icons/react';
 import { ColumnDef } from '@tanstack/react-table';
 import { cn } from '@/lib/utils';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 interface StudentDataStepProps {
     session: CertificateGenerationSession;
@@ -50,11 +55,7 @@ const studentColumns: ColumnDef<CertificateStudentData>[] = [
     },
 ];
 
-export const StudentDataStep = ({
-    session,
-    onSessionUpdate,
-    onNextStep,
-}: StudentDataStepProps) => {
+export const StudentDataStep = ({ session, onSessionUpdate, onNextStep }: StudentDataStepProps) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [selectedStudent, setSelectedStudent] = useState<CertificateStudentData | null>(null);
     const tableRef = useRef<HTMLDivElement>(null);
@@ -64,9 +65,13 @@ export const StudentDataStep = ({
         const headers = ['user_id', 'enrollment_number', 'student_name'];
         const csvContent = [
             headers.join(','),
-            ...session.selectedStudents.map(student => 
-                [student.user_id, student.institute_enrollment_id || '', student.full_name || ''].join(',')
-            )
+            ...session.selectedStudents.map((student) =>
+                [
+                    student.user_id,
+                    student.institute_enrollment_id || '',
+                    student.full_name || '',
+                ].join(',')
+            ),
         ].join('\n');
 
         // Create and download file
@@ -81,6 +86,7 @@ export const StudentDataStep = ({
         document.body.removeChild(link);
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const handleStudentClick = (student: CertificateStudentData) => {
         setSelectedStudent(student);
         setIsSidebarOpen(true);
@@ -99,14 +105,20 @@ export const StudentDataStep = ({
                         </div>
                         <div>
                             <h2 className="text-lg font-semibold text-neutral-700">
-                                Selected Students ({session.selectedStudents.length})
+                                Selected {getTerminology(RoleTerms.Learner, SystemTerms.Learner)}s (
+                                {session.selectedStudents.length})
                             </h2>
                             <p className="text-sm text-neutral-500">
-                                Review student data and upload dynamic information via CSV
+                                Review{' '}
+                                {getTerminology(
+                                    RoleTerms.Learner,
+                                    SystemTerms.Learner
+                                ).toLocaleLowerCase()}{' '}
+                                data and upload dynamic information via CSV
                             </p>
                         </div>
                     </div>
-                    
+
                     <MyButton
                         buttonType="secondary"
                         scale="medium"
@@ -119,16 +131,11 @@ export const StudentDataStep = ({
                 </div>
 
                 {/* CSV Upload Section */}
-                <CsvUploadSection 
-                    session={session}
-                    onSessionUpdate={onSessionUpdate}
-                />
+                <CsvUploadSection session={session} onSessionUpdate={onSessionUpdate} />
 
                 {/* Validation Results */}
                 {session.validationResult && (
-                    <CsvValidationResults 
-                        validationResult={session.validationResult}
-                    />
+                    <CsvValidationResults validationResult={session.validationResult} />
                 )}
             </div>
 
@@ -160,10 +167,7 @@ export const StudentDataStep = ({
                             tableState={{ columnVisibility: {} }}
                             currentPage={0}
                         />
-                        <CertificateStudentSidebar 
-                            student={selectedStudent}
-                            session={session}
-                        />
+                        <CertificateStudentSidebar student={selectedStudent} session={session} />
                     </SidebarProvider>
                 </div>
             </div>
@@ -177,9 +181,7 @@ export const StudentDataStep = ({
                     disabled={!canProceedToNext}
                     className={cn(
                         'flex items-center gap-2 transition-all duration-200',
-                        canProceedToNext 
-                            ? 'hover:scale-105' 
-                            : 'opacity-50 cursor-not-allowed'
+                        canProceedToNext ? 'hover:scale-105' : 'cursor-not-allowed opacity-50'
                     )}
                 >
                     Next: PDF Annotation
@@ -188,4 +190,4 @@ export const StudentDataStep = ({
             </div>
         </div>
     );
-}; 
+};
