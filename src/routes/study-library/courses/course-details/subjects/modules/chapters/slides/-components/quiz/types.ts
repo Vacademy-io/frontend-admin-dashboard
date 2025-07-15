@@ -40,9 +40,17 @@ export interface TransformedQuestion {
     explanation?: string;
     canSkip?: boolean;
     tags?: string[];
+    level?: string;
+    questionPoints?: string;
+    reattemptCount?: string;
+    decimals?: number;
+    numericType?: string;
+    parentRichTextContent?: string | null;
     singleChoiceOptions?: Array<{ id: string; name: string; isSelected: boolean }>;
     multipleChoiceOptions?: Array<{ id: string; name: string; isSelected: boolean }>;
     trueFalseOptions?: Array<{ id: string; name: string; isSelected: boolean }>;
+    csingleChoiceOptions?: Array<{ id: string; name: string; isSelected: boolean }>;
+    cmultipleChoiceOptions?: Array<{ id: string; name: string; isSelected: boolean }>;
     subjectiveAnswerText?: string;
 }
 
