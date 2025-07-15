@@ -76,32 +76,17 @@ export default defineConfig({
                 handler(level, log);
             },
             output: {
-                manualChunks: (id) => {
-                    // Handle node_modules
-                    if (id.includes('node_modules')) {
-                        // Separate pako to avoid initialization issues
-                        if (id.includes('pako')) {
-                            return 'compression-vendor';
-                        }
-                        // Group React related packages
-                        if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
-                            return 'react-vendor';
-                        }
-                        // Group PDF related packages (excluding pako)
-                        if (id.includes('pdfjs') || id.includes('pdf-lib') || id.includes('@pdfme')) {
-                            return 'pdf-vendor';
-                        }
-                        // Group large UI libraries
-                        if (id.includes('@radix-ui') || id.includes('lucide') || id.includes('framer-motion')) {
-                            return 'ui-vendor';
-                        }
-                        // Group utility libraries
-                        if (id.includes('lodash') || id.includes('date-fns') || id.includes('axios')) {
-                            return 'utils-vendor';
-                        }
-                        // All other vendor dependencies
-                        return 'vendor';
-                    }
+                manualChunks: {
+                    // Core React framework
+                    'react-vendor': ['react', 'react-dom'],
+                    // Router and state management
+                    'routing-vendor': ['react-router-dom', '@tanstack/react-router', 'zustand'],
+                    // All PDF related libraries together to avoid dependency issues
+                    'pdf-vendor': ['pdfjs-dist', 'pdf-lib', '@pdfme/generator', '@pdfme/common', 'pako'],
+                    // UI components
+                    'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select', '@radix-ui/react-toast', 'lucide-react'],
+                    // Utilities and data handling
+                    'utils-vendor': ['lodash', 'date-fns', 'axios', 'clsx', 'class-variance-authority'],
                 },
             },
             onwarn: (warning, warn) => {
@@ -179,8 +164,5 @@ export default defineConfig({
             },
         },
         force: true, // Force re-optimization to fix dependency issues
-    },
-    ssr: {
-        noExternal: ['pako'], // Ensure pako is handled properly in build
     },
 });
