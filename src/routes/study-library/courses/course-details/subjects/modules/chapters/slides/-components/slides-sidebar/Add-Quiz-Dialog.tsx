@@ -12,7 +12,12 @@ import { uploadQuestionPaperFormSchema } from '@/routes/assessment/question-pape
 import { useRef, useState } from 'react';
 import { useContentStore } from '../../-stores/chapter-sidebar-store';
 import { toast } from 'sonner';
-import { useSlidesMutations, useSlidesQuery, QuizSlidePayload } from '../../-hooks/use-slides';
+import {
+    useSlidesMutations,
+    useSlidesQuery,
+    QuizSlidePayload,
+    Slide,
+} from '../../-hooks/use-slides';
 import { Route } from '../..';
 import { convertToQuestionSlideFormat } from '../../-helper/helper';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
@@ -77,43 +82,107 @@ const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) =
     });
 
     const createSlide = async (
-        questionType: string,
-        questionPoints?: string,
-        reattemptCount?: string
+        questions: UploadQuestionPaperFormType['questions']
     ): Promise<string | null> => {
-        const responseData = {
-            id: '',
-            questionId: String(fields.length + 1),
-            questionName: 'What is 2 + 2?',
-            explanation: 'Basic addition example.',
-            questionType,
-            questionPenalty: '',
-            questionDuration: { hrs: '', min: '' },
-            questionMark: questionPoints ?? '1',
-            singleChoiceOptions: [
-                { id: '1', name: '2', isSelected: false },
-                { id: '2', name: '4', isSelected: true },
-                { id: '3', name: '6', isSelected: false },
-                { id: '4', name: '8', isSelected: false },
-            ],
-            multipleChoiceOptions: [],
-            csingleChoiceOptions: [],
-            cmultipleChoiceOptions: [],
-            trueFalseOptions: [],
-            parentRichTextContent: 'What is 2 + 2?',
-            decimals: 0,
-            numericType: '',
-            validAnswers: [1],
-            questionResponseType: 'OPTION',
-            subjectiveAnswerText: '',
-            reattemptCount: reattemptCount ?? '0',
-        };
+        if (!questions || questions.length === 0) {
+            toast.error('No questions provided for quiz creation.');
+            return null;
+        }
 
         const quizSlides = items.filter((slide) => slide.source_type === 'QUIZ');
         const quizIndex = quizSlides.length + 1;
         const autoTitle = `Quiz ${quizIndex}`;
 
         try {
+            // Transform form questions to backend format
+            const transformedQuestions = questions.map((question, index) => {
+                // Determine which options array to use based on question type
+                let options: Array<{
+                    id: string;
+                    quiz_slide_question_id: string;
+                    text: { id: string; type: string; content: string };
+                    explanation_text: { id: string; type: string; content: string };
+                    media_id: string;
+                }> = [];
+                let questionResponseType = 'OPTION';
+                let evaluationType = 'AUTO';
+
+                switch (question.questionType) {
+                    case 'MCQS':
+                        options = (question.singleChoiceOptions || []).map((option) => ({
+                            id: option.id || crypto.randomUUID(),
+                            quiz_slide_question_id: '',
+                            text: { id: '', type: 'TEXT', content: option.name || '' },
+                            explanation_text: { id: '', type: 'TEXT', content: '' },
+                            media_id: '',
+                        }));
+                        break;
+                    case 'MCQM':
+                        options = (question.multipleChoiceOptions || []).map((option) => ({
+                            id: option.id || crypto.randomUUID(),
+                            quiz_slide_question_id: '',
+                            text: { id: '', type: 'TEXT', content: option.name || '' },
+                            explanation_text: { id: '', type: 'TEXT', content: '' },
+                            media_id: '',
+                        }));
+                        break;
+                    case 'TRUE_FALSE':
+                        options = (question.trueFalseOptions || []).map((option) => ({
+                            id: option.id || crypto.randomUUID(),
+                            quiz_slide_question_id: '',
+                            text: { id: '', type: 'TEXT', content: option.name || '' },
+                            explanation_text: { id: '', type: 'TEXT', content: '' },
+                            media_id: '',
+                        }));
+                        break;
+                    case 'NUMERIC':
+                        questionResponseType = 'NUMERIC';
+                        evaluationType = 'AUTO';
+                        break;
+                    case 'LONG_ANSWER':
+                    case 'ONE_WORD':
+                        questionResponseType = 'TEXT';
+                        evaluationType = 'MANUAL';
+                        break;
+                    default:
+                        options = (question.singleChoiceOptions || []).map((option) => ({
+                            id: option.id || crypto.randomUUID(),
+                            quiz_slide_question_id: '',
+                            text: { id: '', type: 'TEXT', content: option.name || '' },
+                            explanation_text: { id: '', type: 'TEXT', content: '' },
+                            media_id: '',
+                        }));
+                }
+
+                return {
+                    id: crypto.randomUUID(),
+                    parent_rich_text: {
+                        id: '',
+                        type: 'TEXT',
+                        content: question.questionName || '',
+                    },
+                    text: { id: '', type: 'TEXT', content: question.questionName || '' },
+                    explanation_text: {
+                        id: '',
+                        type: 'TEXT',
+                        content: question.explanation || '',
+                    },
+                    media_id: '',
+                    status: 'ACTIVE',
+                    question_response_type: questionResponseType,
+                    question_type: question.questionType,
+                    access_level: 'INSTITUTE',
+                    auto_evaluation_json: question.validAnswers
+                        ? JSON.stringify({ correctAnswers: question.validAnswers })
+                        : '',
+                    evaluation_type: evaluationType,
+                    question_order: index + 1,
+                    quiz_slide_id: '',
+                    can_skip: question.canSkip || false,
+                    options: options,
+                };
+            });
+
             const response: string = await addUpdateQuizSlide({
                 id: `quiz-${crypto.randomUUID()}`,
                 source_id: '',
@@ -131,29 +200,7 @@ const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) =
                     id: crypto.randomUUID(),
                     title: autoTitle,
                     description: { id: '', content: '', type: 'TEXT' },
-                    questions: [{
-                        id: crypto.randomUUID(),
-                        parent_rich_text: { id: '', type: 'TEXT', content: responseData.questionName },
-                        text: { id: '', type: 'TEXT', content: responseData.questionName },
-                        explanation_text: { id: '', type: 'TEXT', content: responseData.explanation },
-                        media_id: '',
-                        status: 'ACTIVE',
-                        question_response_type: responseData.questionResponseType,
-                        question_type: responseData.questionType,
-                        access_level: 'INSTITUTE',
-                        auto_evaluation_json: '',
-                        evaluation_type: 'AUTO',
-                        question_order: 1,
-                        quiz_slide_id: '',
-                        can_skip: false,
-                        options: responseData.singleChoiceOptions.map((option, index) => ({
-                            id: option.id || crypto.randomUUID(),
-                            quiz_slide_question_id: '',
-                            text: { id: '', type: 'TEXT', content: option.name },
-                            explanation_text: { id: '', type: 'TEXT', content: '' },
-                            media_id: '',
-                        })),
-                    }],
+                    questions: transformedQuestions,
                 },
                 is_loaded: true,
                 new_slide: true,
@@ -180,6 +227,7 @@ const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) =
                 return response;
             }
         } catch (error) {
+            console.error('Error creating quiz slide:', error);
             toast.error('Failed to add quiz');
         }
 
@@ -222,38 +270,80 @@ const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) =
 
         if (!questions || questions.length === 0) {
             toast.error('Please add at least one question before creating the quiz.');
-            return null; // 🔴 Make sure to return null if validation fails
-        }
-
-        const question = questions[0];
-
-        if (!question) {
-            toast.error('No question found.');
             return null;
         }
 
-        const slideId = await createSlide(
-            question.questionType,
-            question.questionMark,
-            question.reattemptCount
-        );
+        // Validate that all questions have required fields
+        const invalidQuestions = questions.filter((q) => !q.questionName || !q.questionName.trim());
+        if (invalidQuestions.length > 0) {
+            toast.error('All questions must have a question name.');
+            return null;
+        }
+
+        console.log('[AddQuizDialog] Creating slide with questions:', questions);
+        const slideId = await createSlide(questions);
 
         if (!slideId) {
             toast.error('Quiz slide creation failed.');
-            return null; // 🔴 Again, return explicitly
+            return null;
         }
 
+        console.log('[AddQuizDialog] Slide created with ID:', slideId);
+
+        // Wait a bit for backend to process the quiz creation
+        console.log('[AddQuizDialog] Waiting for backend to process quiz...');
+        await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 2 seconds
+
+        // Now refetch and get fresh data
+        console.log('[AddQuizDialog] Refetching data after backend processing...');
         const refreshed = await refetch();
-        const slide = refreshed?.data?.find((s) => s.id === slideId);
+
+        if (!refreshed.data) {
+            console.error('[AddQuizDialog] Refetch failed or returned no data');
+            toast.error('Failed to refresh slide data');
+            return slideId;
+        }
+
+        console.log('[AddQuizDialog] Refreshed data:', {
+            refreshedDataLength: refreshed.data.length || 0,
+            allSlideIds: refreshed.data.map((s) => s.id),
+        });
+
+        // Find the newly created slide in the refreshed data
+        const slide = refreshed.data.find((s) => s.id === slideId);
+
+        console.log('[AddQuizDialog] Looking for slide:', {
+            slideId,
+            foundSlide: !!slide,
+            slideData: slide,
+            hasQuizSlide: !!slide?.quiz_slide,
+            questionsCount: slide?.quiz_slide?.questions?.length || 0,
+        });
 
         if (slide) {
-            setItems((refreshed.data || []) as any);
-            setActiveItem(slide as any);
+            console.log('[AddQuizDialog] Setting items and active item with fresh data:', slide);
+
+            // Update the store with fresh data from backend
+            setItems(refreshed.data as Slide[]);
+
+            // Set the newly created slide as active
+            setActiveItem(slide as Slide);
+
             openState?.(false);
-            return slideId; // ✅ ✅ ✅ This is the MOST IMPORTANT LINE
+
+            if (slide.quiz_slide?.questions && slide.quiz_slide.questions.length > 0) {
+                console.log('[AddQuizDialog] ✅ Quiz created successfully with questions!');
+                toast.success('Quiz created successfully with questions!');
+            } else {
+                console.log('[AddQuizDialog] ⚠️ Quiz created but questions not yet available');
+                toast.success('Quiz created! Questions may take a moment to appear.');
+            }
+
+            return slideId;
         } else {
+            console.warn('[AddQuizDialog] Quiz created but slide not found in refreshed data');
             toast.warning('Quiz created, but slide not found in refreshed list.');
-            return slideId; // Still return it so QuizPreview doesn't break
+            return slideId;
         }
     };
 
