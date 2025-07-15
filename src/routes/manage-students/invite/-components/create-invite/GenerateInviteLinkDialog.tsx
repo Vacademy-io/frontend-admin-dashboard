@@ -22,7 +22,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { ImageSquare, PencilSimpleLine, WarningCircle } from 'phosphor-react';
+import { Gift, ImageSquare, PencilSimpleLine, WarningCircle, CalendarBlank } from 'phosphor-react';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { TokenKey } from '@/constants/auth/tokens';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
@@ -35,6 +35,16 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { FileUploadComponent } from '@/components/design-system/file-upload';
+import {
+    Dialog as ShadDialog,
+    DialogContent as ShadDialogContent,
+    DialogHeader as ShadDialogHeader,
+    DialogTitle as ShadDialogTitle,
+    DialogDescription as ShadDialogDescription,
+} from '@/components/ui/dialog';
+import { useForm as useShadForm } from 'react-hook-form';
+import { z as zod } from 'zod';
+import { zodResolver as shadZodResolver } from '@hookform/resolvers/zod';
 
 export interface Course {
     id: string;
@@ -134,6 +144,90 @@ const GenerateInviteLinkDialog = ({
     const youtubeInputRef = useRef<HTMLDivElement>(null);
     const [showMediaMenu, setShowMediaMenu] = useState(false);
     const mediaMenuRef = useRef<HTMLDivElement>(null);
+
+    // Dummy payment plans
+    type PaymentPlan = {
+        id: string;
+        name: string;
+        description: string;
+        price?: string;
+    };
+    const [freePlans, setFreePlans] = useState<PaymentPlan[]>([
+        {
+            id: 'free1',
+            name: 'Free Basic',
+            description: 'Access to basic course content.',
+        },
+        {
+            id: 'free2',
+            name: 'Free Plus',
+            description: 'Access to all free resources.',
+        },
+    ]);
+    const [paidPlans, setPaidPlans] = useState<PaymentPlan[]>([
+        {
+            id: 'paid1',
+            name: 'Premium',
+            description: 'Full access to all course materials and support.',
+            price: '$49',
+        },
+        {
+            id: 'paid2',
+            name: 'Pro',
+            description: 'Premium plus 1-on-1 mentorship.',
+            price: '$99',
+        },
+    ]);
+    const [showPlansDialog, setShowPlansDialog] = useState(false);
+    const initialPlan: PaymentPlan = freePlans[0] ||
+        paidPlans[0] || { id: 'none', name: 'No Plan', description: '' };
+    const [selectedPlan, setSelectedPlan] = useState<PaymentPlan>(initialPlan);
+
+    // Add new plan dialog state
+    const [showAddPlanDialog, setShowAddPlanDialog] = useState(false);
+
+    // Add new plan form schema
+    const addPlanSchema = zod.object({
+        planType: zod.enum(['free', 'paid']),
+        name: zod.string().min(1, 'Plan name is required'),
+        description: zod.string().min(1, 'Description is required'),
+        price: zod.string().optional(),
+    });
+    type AddPlanFormValues = zod.infer<typeof addPlanSchema>;
+    const addPlanForm = useShadForm<AddPlanFormValues>({
+        resolver: shadZodResolver(addPlanSchema),
+        defaultValues: {
+            planType: 'free',
+            name: '',
+            description: '',
+            price: '',
+        },
+    });
+
+    const handleAddPlan = (values: AddPlanFormValues) => {
+        if (values.planType === 'free') {
+            setFreePlans((prev) => [
+                ...prev,
+                {
+                    id: `free${prev.length + 1}`,
+                    name: values.name,
+                    description: values.description,
+                },
+            ]);
+        } else {
+            setPaidPlans((prev) => [
+                ...prev,
+                {
+                    id: `paid${prev.length + 1}`,
+                    name: values.name,
+                    description: values.description,
+                    price: values.price || '',
+                },
+            ]);
+        }
+        setShowAddPlanDialog(false);
+        addPlanForm.reset();
+    };
 
     const extractYouTubeVideoId = (url: string): string | null => {
         const regExp = /^.*(?:youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -458,6 +552,42 @@ const GenerateInviteLinkDialog = ({
                                     />
                                 </CardContent>
                             </Card>
+                            {/* Payment Plan Section */}
+                            <div className="flex items-center justify-between py-2">
+                                <span className="text-base font-semibold">Payment Plan</span>
+                                <MyButton
+                                    type="button"
+                                    scale="small"
+                                    buttonType="secondary"
+                                    className="p-4"
+                                    onClick={() => setShowPlansDialog(true)}
+                                >
+                                    Change Payment Plans
+                                </MyButton>
+                            </div>
+                            {/* Show selected plan in a card */}
+                            {selectedPlan && (
+                                <Card className="mb-4 flex flex-col gap-0">
+                                    <div className="flex items-center gap-2 px-6 pt-6 text-lg font-semibold">
+                                        {selectedPlan.price ? (
+                                            <CalendarBlank size={20} />
+                                        ) : (
+                                            <Gift size={20} />
+                                        )}
+                                        <span>{selectedPlan.name}</span>
+                                    </div>
+                                    <CardContent className="">
+                                        <div className="text-sm text-gray-600">
+                                            {selectedPlan.description}
+                                        </div>
+                                        {selectedPlan.price && (
+                                            <div className="mt-2 text-base font-bold text-green-700">
+                                                {selectedPlan.price}
+                                            </div>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            )}
                             {/* Course Preview Card */}
                             <Card className="pb-4">
                                 <CardHeader>
@@ -1000,6 +1130,172 @@ const GenerateInviteLinkDialog = ({
                     </MyButton>
                 </div>
             </DialogContent>
+            {/* Payment Plans Dialog */}
+            <ShadDialog open={showPlansDialog} onOpenChange={setShowPlansDialog}>
+                <ShadDialogContent className="h-[80vh] min-w-[60vw] max-w-lg flex-col">
+                    <ShadDialogHeader>
+                        <ShadDialogTitle className="font-bold">
+                            Select a Payment Plan
+                        </ShadDialogTitle>
+                        <ShadDialogDescription className="mt-1">
+                            Choose a payment plan for this course
+                        </ShadDialogDescription>
+                    </ShadDialogHeader>
+                    <div className="flex-1 overflow-auto">
+                        <div className="mb-4">
+                            <div className="mb-2 mt-4 font-semibold">Free Plans</div>
+                            <div className="flex flex-col gap-4">
+                                {freePlans.map((plan) => (
+                                    <Card
+                                        key={plan.id}
+                                        className={`cursor-pointer border-2 ${selectedPlan?.id === plan.id ? 'border-primary' : 'border-gray-200'} transition-all`}
+                                        onClick={() => {
+                                            setSelectedPlan(plan);
+                                            setShowPlansDialog(false);
+                                        }}
+                                    >
+                                        <div className="flex items-center gap-3 p-4">
+                                            <Gift size={18} />
+                                            <div className="flex flex-col">
+                                                <span>{plan.name}</span>
+                                                <span className="text-neutral-600">
+                                                    {plan.description}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </Card>
+                                ))}
+                            </div>
+                        </div>
+                        <div>
+                            <div className="mb-2 font-semibold">Paid Plans</div>
+                            <div className="flex flex-col gap-4">
+                                {paidPlans.map((plan) => (
+                                    <Card
+                                        key={plan.id}
+                                        className={`cursor-pointer border-2 ${selectedPlan?.id === plan.id ? 'border-primary' : 'border-gray-200'} transition-all`}
+                                        onClick={() => {
+                                            setSelectedPlan(plan);
+                                            setShowPlansDialog(false);
+                                        }}
+                                    >
+                                        <div className="flex items-center gap-3 p-4">
+                                            <Gift size={18} />
+                                            <div className="flex flex-col">
+                                                <span>{plan.name}</span>
+                                                <span className="text-neutral-600">
+                                                    {plan.description}
+                                                </span>
+                                                <span className="text-neutral-600">
+                                                    {plan.price}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </Card>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                    <div className="-mb-2 flex justify-center border-t bg-white pt-4">
+                        <MyButton
+                            type="button"
+                            scale="small"
+                            buttonType="secondary"
+                            onClick={() => setShowAddPlanDialog(true)}
+                            className="p-4"
+                        >
+                            + Add New Payment Plan
+                        </MyButton>
+                    </div>
+                </ShadDialogContent>
+            </ShadDialog>
+            {/* Add New Payment Plan Dialog */}
+            <ShadDialog open={showAddPlanDialog} onOpenChange={setShowAddPlanDialog}>
+                <ShadDialogContent className="max-w-md">
+                    <ShadDialogHeader>
+                        <ShadDialogTitle>Add New Payment Plan</ShadDialogTitle>
+                    </ShadDialogHeader>
+                    <Form {...addPlanForm}>
+                        <form
+                            className="space-y-4"
+                            onSubmit={addPlanForm.handleSubmit(handleAddPlan)}
+                        >
+                            <FormField
+                                control={addPlanForm.control}
+                                name="planType"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Plan Type</FormLabel>
+                                        <FormControl>
+                                            <Select
+                                                value={field.value}
+                                                onValueChange={field.onChange}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select plan type" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="free">Free</SelectItem>
+                                                    <SelectItem value="paid">Paid</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={addPlanForm.control}
+                                name="name"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Plan Name</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Enter plan name" {...field} />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={addPlanForm.control}
+                                name="description"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Plan Description</FormLabel>
+                                        <FormControl>
+                                            <Textarea
+                                                placeholder="Enter plan description"
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            {addPlanForm.watch('planType') === 'paid' && (
+                                <FormField
+                                    control={addPlanForm.control}
+                                    name="price"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Plan Charges</FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    placeholder="Enter plan charges (e.g. $49)"
+                                                    {...field}
+                                                />
+                                            </FormControl>
+                                        </FormItem>
+                                    )}
+                                />
+                            )}
+                            <div className="flex justify-end">
+                                <MyButton type="submit" scale="small" buttonType="primary">
+                                    Save
+                                </MyButton>
+                            </div>
+                        </form>
+                    </Form>
+                </ShadDialogContent>
+            </ShadDialog>
         </Dialog>
     );
 };
