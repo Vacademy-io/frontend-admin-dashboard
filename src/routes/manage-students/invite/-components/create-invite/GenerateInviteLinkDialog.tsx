@@ -29,6 +29,9 @@ import {
     WarningCircle,
     CalendarBlank,
     Tag,
+    Users,
+    Gear,
+    TrendUp,
 } from 'phosphor-react';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { TokenKey } from '@/constants/auth/tokens';
@@ -659,100 +662,6 @@ const GenerateInviteLinkDialog = ({
                                     />
                                 </CardContent>
                             </Card>
-                            {/* Payment Plan Section */}
-                            <div className="flex items-center justify-between py-2">
-                                <span className="text-base font-semibold">Payment Plan</span>
-                                <MyButton
-                                    type="button"
-                                    scale="small"
-                                    buttonType="secondary"
-                                    className="p-4"
-                                    onClick={() => setShowPlansDialog(true)}
-                                >
-                                    Change Payment Plans
-                                </MyButton>
-                            </div>
-                            {/* Show selected plan in a card */}
-                            {selectedPlan && (
-                                <Card className="mb-4 flex flex-col gap-0">
-                                    <div className="flex items-center gap-2 px-6 pt-6 text-lg font-semibold">
-                                        {selectedPlan.price ? (
-                                            <CalendarBlank size={20} />
-                                        ) : (
-                                            <Gift size={20} />
-                                        )}
-                                        <span>{selectedPlan.name}</span>
-                                        <Badge variant="default" className="ml-2">
-                                            Default
-                                        </Badge>
-                                    </div>
-                                    <CardContent className="">
-                                        <div className="text-sm text-gray-600">
-                                            {selectedPlan.description}
-                                        </div>
-                                        {selectedPlan.price && (
-                                            <div className="mt-2 text-base font-bold text-green-700">
-                                                {selectedPlan.price}
-                                            </div>
-                                        )}
-                                    </CardContent>
-                                </Card>
-                            )}
-                            {/* Discount Settings Card */}
-                            <Card className="mb-4">
-                                <CardHeader className="flex flex-row items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <Tag size={22} />
-                                        <CardTitle className="text-2xl font-bold">
-                                            Discount Settings
-                                        </CardTitle>
-                                    </div>
-                                    <MyButton
-                                        type="button"
-                                        scale="small"
-                                        buttonType="secondary"
-                                        className="p-4"
-                                        onClick={() => setShowDiscountDialog(true)}
-                                    >
-                                        Change Discount Settings
-                                    </MyButton>
-                                </CardHeader>
-                                {selectedDiscountId &&
-                                    (() => {
-                                        const activeDiscount = discounts.find(
-                                            (d) => d.id === selectedDiscountId
-                                        );
-                                        if (!activeDiscount) return null;
-                                        return (
-                                            <Card className="mx-4 mb-4 border">
-                                                <div className="flex items-center justify-between p-4">
-                                                    <div className="flex items-center gap-2">
-                                                        <Tag size={16} />
-                                                        <span className="text-base font-semibold">
-                                                            {activeDiscount.title}
-                                                        </span>
-                                                        <span className="rounded bg-gray-100 px-2 py-1 font-mono text-xs text-gray-700">
-                                                            {activeDiscount.code}
-                                                        </span>
-                                                    </div>
-                                                    <Badge variant="default" className="ml-2">
-                                                        Active
-                                                    </Badge>
-                                                </div>
-                                                <div className="flex items-center gap-4 px-4 pb-4 text-sm">
-                                                    <span className="font-semibold text-green-700">
-                                                        {activeDiscount.type === 'percent'
-                                                            ? `${activeDiscount.value}% off`
-                                                            : `₹${activeDiscount.value} off`}
-                                                    </span>
-                                                    <span className="text-xs text-gray-500">
-                                                        Expires: {activeDiscount.expires}
-                                                    </span>
-                                                </div>
-                                            </Card>
-                                        );
-                                    })()}
-                            </Card>
                             {/* Course Preview Card */}
                             <Card className="pb-4">
                                 <CardHeader>
@@ -1276,6 +1185,176 @@ const GenerateInviteLinkDialog = ({
                                                     </div>
                                                 </div>
                                             </div>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                            {/* Payment Plan Section */}
+                            <div className="flex items-center justify-between py-2">
+                                <span className="text-base font-semibold">Payment Plan</span>
+                                <MyButton
+                                    type="button"
+                                    scale="small"
+                                    buttonType="secondary"
+                                    className="p-4"
+                                    onClick={() => setShowPlansDialog(true)}
+                                >
+                                    Change Payment Plans
+                                </MyButton>
+                            </div>
+                            {/* Show selected plan in a card */}
+                            {selectedPlan && (
+                                <Card className="mb-4 flex flex-col gap-0">
+                                    <div className="flex items-center gap-2 px-6 pt-6 text-lg font-semibold">
+                                        {selectedPlan.price ? (
+                                            <CalendarBlank size={20} />
+                                        ) : (
+                                            <Gift size={20} />
+                                        )}
+                                        <span>{selectedPlan.name}</span>
+                                        <Badge variant="default" className="ml-2">
+                                            Default
+                                        </Badge>
+                                    </div>
+                                    <CardContent className="">
+                                        <div className="text-sm text-gray-600">
+                                            {selectedPlan.description}
+                                        </div>
+                                        {selectedPlan.price && (
+                                            <div className="mt-2 text-base font-bold text-green-700">
+                                                {selectedPlan.price}
+                                            </div>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            )}
+                            {/* Discount Settings Card */}
+                            <Card className="mb-4">
+                                <CardHeader className="flex flex-row items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <Tag size={22} />
+                                        <CardTitle className="text-2xl font-bold">
+                                            Discount Settings
+                                        </CardTitle>
+                                    </div>
+                                    <MyButton
+                                        type="button"
+                                        scale="small"
+                                        buttonType="secondary"
+                                        className="p-4"
+                                        onClick={() => setShowDiscountDialog(true)}
+                                    >
+                                        Change Discount Settings
+                                    </MyButton>
+                                </CardHeader>
+                                {selectedDiscountId &&
+                                    (() => {
+                                        const activeDiscount = discounts.find(
+                                            (d) => d.id === selectedDiscountId
+                                        );
+                                        if (!activeDiscount) return null;
+                                        return (
+                                            <Card className="mx-4 mb-4 border">
+                                                <div className="flex items-center justify-between p-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <Tag size={16} />
+                                                        <span className="text-base font-semibold">
+                                                            {activeDiscount.title}
+                                                        </span>
+                                                        <span className="rounded bg-gray-100 px-2 py-1 font-mono text-xs text-gray-700">
+                                                            {activeDiscount.code}
+                                                        </span>
+                                                    </div>
+                                                    <Badge variant="default" className="ml-2">
+                                                        Active
+                                                    </Badge>
+                                                </div>
+                                                <div className="flex items-center gap-4 px-4 pb-4 text-sm">
+                                                    <span className="font-semibold text-green-700">
+                                                        {activeDiscount.type === 'percent'
+                                                            ? `${activeDiscount.value}% off`
+                                                            : `₹${activeDiscount.value} off`}
+                                                    </span>
+                                                    <span className="text-xs text-gray-500">
+                                                        Expires: {activeDiscount.expires}
+                                                    </span>
+                                                </div>
+                                            </Card>
+                                        );
+                                    })()}
+                            </Card>
+                            {/* Referral Program Card */}
+                            <div className="flex flex-col">
+                                <div className="flex flex-col">
+                                    <span className="font-medium">Referral Settings</span>
+                                    <span className="text-sm">
+                                        Configure rewards for referrers and referees when referral
+                                        codes are used
+                                    </span>
+                                </div>
+                            </div>
+                            <Card className="mb-4">
+                                <CardHeader className="-mb-5 flex flex-row items-center justify-between ">
+                                    <div className="flex items-center gap-2">
+                                        <span className="flex items-center gap-2 text-lg font-semibold">
+                                            <TrendUp size={20} />
+                                            <span>Referral Program</span>
+                                        </span>
+                                        <Badge variant="default" className="ml-2">
+                                            Default
+                                        </Badge>
+                                    </div>
+                                    <MyButton
+                                        type="button"
+                                        scale="small"
+                                        buttonType="secondary"
+                                        className="p-4"
+                                    >
+                                        Change Referral Settings
+                                    </MyButton>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    {/* Referee Benefit */}
+                                    <div className="mt-2 flex flex-col items-start gap-2">
+                                        <div className="flex items-center gap-2">
+                                            <Gift size={18} />
+                                            <span className="font-semibold">Referee Benefit</span>
+                                        </div>
+                                        <span className="ml-6 font-semibold text-green-700">
+                                            ₹200 off
+                                        </span>
+                                    </div>
+                                    {/* Referrer Tiers */}
+                                    <div className="mt-2 flex flex-col items-start gap-2">
+                                        <div className="flex items-center gap-2">
+                                            <Users size={18} />
+                                            <span className="font-semibold">Referrer Tiers</span>
+                                        </div>
+                                        <div className="ml-4 flex w-full items-center justify-between pr-4">
+                                            <span className="ml-2 text-gray-700">5 referrals</span>
+                                            <Gift size={16} className="ml-2 text-yellow-600" />
+                                        </div>
+                                        <div className="ml-4 flex w-full items-center justify-between pr-4">
+                                            <span className="ml-2 text-gray-700">10 referrals</span>
+                                            <CalendarBlank
+                                                size={16}
+                                                className="ml-2 text-blue-600"
+                                            />
+                                        </div>
+                                    </div>
+                                    {/* Program Settings */}
+                                    <div className="mt-4">
+                                        <div className="flex items-center gap-2">
+                                            <Gear size={18} />
+                                            <span className="font-semibold">Program Settings</span>
+                                        </div>
+                                        <div className="ml-6 mt-2 flex items-center justify-between">
+                                            <span className="text-gray-700">Vesting Period</span>
+                                            <span>30 days</span>
+                                        </div>
+                                        <div className="ml-6 mt-2 flex items-center justify-between">
+                                            <span className="text-gray-700">Combine Offers</span>
+                                            <span>Yes</span>
                                         </div>
                                     </div>
                                 </CardContent>
