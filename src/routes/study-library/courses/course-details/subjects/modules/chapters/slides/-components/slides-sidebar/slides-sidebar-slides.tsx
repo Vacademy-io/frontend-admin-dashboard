@@ -1,7 +1,13 @@
 import { Sortable, SortableDragHandle, SortableItem } from '@/components/ui/sortable';
 import { truncateString } from '@/lib/reusable/truncateString';
 import { useContentStore } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
-import { DotsSixVertical, FileDoc, FilePdf, PlayCircle } from '@phosphor-icons/react';
+import {
+    DotsSixVertical,
+    FileDoc,
+    FilePdf,
+    PlayCircle,
+    ClipboardText,
+} from '@phosphor-icons/react';
 import { ReactNode, useEffect } from 'react';
 import {
     Slide,
@@ -51,6 +57,10 @@ export const getIcon = (
         return <File className={`${iconClass} text-blue-500`} />;
     }
 
+    if (source_type === 'QUIZ') {
+        return <ClipboardText className={`${iconClass} text-orange-500`} />;
+    }
+
     const type =
         source_type === 'QUESTION'
             ? 'QUESTION'
@@ -93,12 +103,26 @@ const SlideItem = ({
     isActive: boolean;
     onClick: () => void;
 }) => {
+    // Add debugging for quiz slides
+    if (slide.source_type === 'QUIZ') {
+        console.log('[SlideItem] Quiz slide data:', {
+            id: slide.id,
+            title: slide.title,
+            source_type: slide.source_type,
+            hasQuizSlide: !!slide.quiz_slide,
+            quizSlideTitle: slide.quiz_slide?.title,
+            questionsCount: slide.quiz_slide?.questions?.length || 0,
+            isActive,
+        });
+    }
+
     const getSlideTitle = () => {
         return (
             (slide.source_type === 'DOCUMENT' && slide.document_slide?.title) ||
             (slide.source_type === 'VIDEO' && slide.video_slide?.title) ||
             (slide.source_type === 'QUESTION' && slide?.title) ||
             (slide.source_type === 'ASSIGNMENT' && slide?.title) ||
+            (slide.source_type === 'QUIZ' && (slide.quiz_slide?.title || slide.title)) ||
             'Untitled'
         );
     };
@@ -153,7 +177,7 @@ const SlideItem = ({
                         duration-300 ease-in-out
                         ${
                             slide.status === 'DELETED'
-                                ? 'opacity-50 cursor-not-allowed border-red-200 bg-red-50/30 text-red-600'
+                                ? 'cursor-not-allowed border-red-200 bg-red-50/30 text-red-600 opacity-50'
                                 : isActive
                                   ? 'text-primary-600 border-primary-300 bg-primary-50/80 shadow-md shadow-primary-100/50'
                                   : 'hover:bg-primary-25 border-neutral-100 bg-white/60 text-neutral-600 hover:border-primary-200 hover:text-primary-500 hover:shadow-sm'
@@ -221,11 +245,20 @@ const SlideItem = ({
                     </TooltipProvider>
 
                     {/* Drag handle with enhanced styling */}
-                    <div className="drag-handle-container opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                    <div className="drag-handle-container opacity-100 transition-opacity duration-200">
                         <SortableDragHandle
                             variant="ghost"
                             size="icon"
                             className="size-6 cursor-grab rounded-md transition-all duration-200 hover:scale-105 hover:bg-neutral-100 active:scale-95 active:cursor-grabbing"
+                            onClick={(e) => {
+                                // Prevent the slide click when clicking the drag handle
+                                e.stopPropagation();
+                                console.log('[SlideItem] Drag handle clicked for slide:', {
+                                    id: slide.id,
+                                    title: slide.title,
+                                    source_type: slide.source_type,
+                                });
+                            }}
                         >
                             <DotsSixVertical className="size-3 shrink-0 text-neutral-400" />
                         </SortableDragHandle>
@@ -309,6 +342,15 @@ export const ChapterSidebarSlides = ({
     });
 
     const handleMove = ({ activeIndex, overIndex }: { activeIndex: number; overIndex: number }) => {
+        console.log('[ChapterSidebarSlides] 🎯 Drag and drop event triggered:', {
+            activeIndex,
+            overIndex,
+            activeSlide: items[activeIndex]?.title || 'Unknown',
+            overSlide: items[overIndex]?.title || 'Unknown',
+            activeSlideType: items[activeIndex]?.source_type || 'Unknown',
+            overSlideType: items[overIndex]?.source_type || 'Unknown',
+        });
+
         move(activeIndex, overIndex);
 
         // Create order payload after move
@@ -319,6 +361,8 @@ export const ChapterSidebarSlides = ({
             slide_id: slide.id,
             slide_order: index + 1,
         }));
+
+        console.log('[ChapterSidebarSlides] 📋 Order payload created:', orderPayload);
 
         // Call the handler to update the order through API
         handleSlideOrderChange(orderPayload);
@@ -334,6 +378,21 @@ export const ChapterSidebarSlides = ({
             slidesData: slides?.slice(0, 3) || [], // Show first 3 slides for debugging
             currentStoreItemsCount: items?.length || 0,
         });
+
+        // Debug quiz slides specifically
+        const quizSlides = slides?.filter((slide) => slide.source_type === 'QUIZ') || [];
+        if (quizSlides.length > 0) {
+            console.log('[ChapterSidebarSlides] 🧩 Quiz slides found:', {
+                count: quizSlides.length,
+                quizSlides: quizSlides.map((slide) => ({
+                    id: slide.id,
+                    title: slide.title,
+                    hasQuizSlide: !!slide.quiz_slide,
+                    quizSlideTitle: slide.quiz_slide?.title,
+                    questionsCount: slide.quiz_slide?.questions?.length || 0,
+                })),
+            });
+        }
 
         if (slides?.length) {
             console.log(`[ChapterSidebarSlides] ✅ Processing ${slides.length} slides`);

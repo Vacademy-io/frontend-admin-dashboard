@@ -575,17 +575,9 @@ export const useSlidesMutations = (
             queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SUBJECTS_PROGRESS'] });
             queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SLIDES_PROGRESS'] });
 
-            // If this was a new slide creation, set first slide as active after refetch completes
-            if (result.isNewSlide) {
-                // Wait for the slides query to actually refetch and update the store
-                setTimeout(() => {
-                    const { setActiveItem, items } = useContentStore.getState();
-
-                    if (items && items.length > 0) {
-                        setActiveItem(items[0] as Slide);
-                    }
-                }, 1000); // Increased timeout to ensure refetch completes
-            }
+            // Note: We don't automatically set the first slide as active here anymore
+            // because AddQuizDialog handles setting the correct slide as active after refetch
+            console.log('[addUpdateQuizSlideMutation] Query invalidation completed');
         },
     });
 

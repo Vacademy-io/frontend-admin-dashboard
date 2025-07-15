@@ -22,18 +22,24 @@ interface QuizPreviewProps {
     activeItem: Slide;
 }
 
-interface QuizQuestion {
+interface BackendQuestion {
+    id: string;
+    parent_rich_text?: { content: string };
+    text?: { content: string };
     text_data?: { content: string };
     questionName?: string;
     question_type?: string;
+    question_response_type?: string;
     penalty?: string;
     mark?: string;
-    id?: string;
     status?: string;
-    validAnswers?: number[];
+    auto_evaluation_json?: string;
     explanation?: string;
+    explanation_text?: { content: string };
+    can_skip?: boolean;
     canSkip?: boolean;
     tags?: string[];
+    options?: Array<{ id?: string; text?: { content: string }; content?: string }>;
 }
 
 interface QuestionTypeProps {
@@ -44,38 +50,16 @@ interface QuestionTypeProps {
 }
 
 const QuizPreview = ({ activeItem }: QuizPreviewProps) => {
-    // Check if the slide is deleted
-    if (activeItem?.status === 'DELETED') {
-        return (
-            <div className="flex size-full flex-col overflow-hidden rounded border border-neutral-200 bg-white shadow-sm">
-                {/* Header */}
-                <div className="flex items-center justify-between border-b bg-red-50 px-6 py-4">
-                    <h2 className="text-lg font-semibold text-red-700">Quiz Questions</h2>
-                    <div className="flex items-center gap-2">
-                        <span className="rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-600">
-                            DELETED
-                        </span>
-                    </div>
-                </div>
-
-                {/* Deleted Content */}
-                <div className="flex flex-1 flex-col items-center justify-center bg-white px-6 py-12">
-                    <div className="text-center">
-                        <div className="mb-4 flex size-16 items-center justify-center rounded-full bg-red-100">
-                            <Trash size={24} className="text-red-500" />
-                        </div>
-                        <h3 className="mb-2 text-lg font-medium text-slate-600">
-                            This quiz has been deleted
-                        </h3>
-                        <p className="text-sm text-slate-400">
-                            The quiz content is no longer available
-                        </p>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
+    console.log('[QuizPreview] Component rendered with activeItem:', {
+        id: activeItem?.id,
+        title: activeItem?.title,
+        source_type: activeItem?.source_type,
+        hasQuizSlide: !!activeItem?.quiz_slide,
+        quizSlideId: activeItem?.quiz_slide?.id,
+        questionsCount: activeItem?.quiz_slide?.questions?.length || 0,
+        questions: activeItem?.quiz_slide?.questions,
+        timestamp: new Date().toISOString(),
+    });
     const form = useForm<UploadQuestionPaperFormType>({
         resolver: zodResolver(uploadQuestionPaperFormSchema),
         mode: 'onChange',
@@ -113,37 +97,190 @@ const QuizPreview = ({ activeItem }: QuizPreviewProps) => {
     });
 
     const closeRef = useRef<HTMLButtonElement | null>(null);
-    const { updateActiveSlideQuestions } = useContentStore();
+    const { setActiveItem } = useContentStore();
+
+    // Add watch subscription to automatically update store when form changes
+    useEffect(() => {
+        const subscription = form.watch((_, { name }) => {
+            if (name?.startsWith('questions')) {
+                const currentQuestions = form.getValues('questions');
+                console.log('[QuizPreview] Form data changed, updating store:', {
+                    changedField: name,
+                    questionsCount: currentQuestions.length,
+                });
+                // Update the store with the new questions data
+                setActiveItem({
+                    ...activeItem,
+                    quiz_slide: {
+                        id: activeItem.quiz_slide?.id || '',
+                        title: activeItem.quiz_slide?.title || '',
+                        description: activeItem.quiz_slide?.description || {
+                            id: '',
+                            content: '',
+                            type: 'TEXT',
+                        },
+                        questions: currentQuestions,
+                        // Add any other required fields with defaults if needed
+                    },
+                });
+            }
+        });
+
+        return () => subscription.unsubscribe(); // cleanup
+    }, [form, activeItem, setActiveItem]);
 
     useEffect(() => {
+        console.log('[QuizPreview] useEffect triggered with activeItem:', {
+            hasActiveItem: !!activeItem,
+            hasQuizSlide: !!activeItem?.quiz_slide,
+            hasQuestions: !!activeItem?.quiz_slide?.questions,
+            questionsLength: activeItem?.quiz_slide?.questions?.length || 0,
+            questions: activeItem?.quiz_slide?.questions,
+        });
+
         if (activeItem?.quiz_slide?.questions) {
             const questions = activeItem.quiz_slide.questions;
-            const transformedQuestions = questions.map((question: QuizQuestion) => ({
-                questionName: question.text_data?.content || question.questionName || '',
-                questionType: question.question_type || 'MCQ',
-                questionPenalty: question.penalty || '0',
-                questionDuration: {
-                    min: '0',
-                    hrs: '0',
-                },
-                questionMark: question.mark || '1',
-                id: question.id,
-                status: question.status,
-                validAnswers: question.validAnswers || [0],
-                explanation: question.explanation || '',
-                canSkip: question.canSkip || false,
-                tags: question.tags || [],
-            }));
+            console.log('[QuizPreview] Processing questions:', questions);
 
+            const transformedQuestions = questions.map((question: BackendQuestion) => {
+                // Parse auto_evaluation_json to get correct answers
+                let validAnswers = [0];
+                try {
+                    if (question.auto_evaluation_json) {
+                        const evaluationData = JSON.parse(question.auto_evaluation_json);
+                        validAnswers = evaluationData.correctAnswers || [0];
+                    }
+                } catch (error) {
+                    console.warn('[QuizPreview] Failed to parse auto_evaluation_json:', error);
+                }
+
+                // Get question text from parent_rich_text or other fields
+                const questionText =
+                    question.parent_rich_text?.content ||
+                    question.text?.content ||
+                    question.text_data?.content ||
+                    question.questionName ||
+                    '';
+
+                // Transform question based on type
+                const transformed: any = {
+                    questionName: questionText,
+                    questionType:
+                        question.question_type || question.question_response_type || 'MCQS',
+                    questionPenalty: question.penalty || '0',
+                    questionDuration: {
+                        min: '0',
+                        hrs: '0',
+                    },
+                    questionMark: question.mark || '1',
+                    id: question.id,
+                    status: question.status,
+                    validAnswers: validAnswers,
+                    explanation: question.explanation_text?.content || question.explanation || '',
+                    canSkip: question.can_skip || question.canSkip || false,
+                    tags: question.tags || [],
+
+                    // Handle options based on question type
+                    singleChoiceOptions: [],
+                    multipleChoiceOptions: [],
+                    trueFalseOptions: [],
+                    subjectiveAnswerText: '',
+                };
+
+                // For numeric questions, set the correct answer as subjective answer text
+                if (
+                    question.question_type === 'NUMERIC' ||
+                    question.question_response_type === 'NUMERIC'
+                ) {
+                    transformed.subjectiveAnswerText = validAnswers.join(', ');
+                }
+
+                // For other question types, process options if they exist
+                if (question.options && question.options.length > 0) {
+                    const options = question.options.map((opt, idx: number) => ({
+                        id: opt.id || `opt-${idx}`,
+                        name: opt.text?.content || opt.content || '',
+                        isSelected: validAnswers.includes(idx),
+                    }));
+
+                    if (
+                        question.question_type === 'MCQS' ||
+                        question.question_response_type === 'MCQS'
+                    ) {
+                        transformed.singleChoiceOptions = options;
+                    } else if (
+                        question.question_type === 'MCQM' ||
+                        question.question_response_type === 'MCQM'
+                    ) {
+                        transformed.multipleChoiceOptions = options;
+                    } else if (
+                        question.question_type === 'TRUE_FALSE' ||
+                        question.question_response_type === 'TRUE_FALSE'
+                    ) {
+                        transformed.trueFalseOptions = options;
+                    }
+                }
+
+                console.log('[QuizPreview] Transformed question:', transformed);
+                return transformed;
+            });
+
+            console.log('[QuizPreview] Setting transformed questions:', transformedQuestions);
             replace(transformedQuestions);
         } else {
+            console.log('[QuizPreview] No questions found, clearing form');
             replace([]);
         }
     }, [activeItem.quiz_slide?.questions, replace]);
 
+    // Check if the slide is deleted
+    if (activeItem?.status === 'DELETED') {
+        return (
+            <div className="flex size-full flex-col overflow-hidden rounded border border-neutral-200 bg-white shadow-sm">
+                {/* Header */}
+                <div className="flex items-center justify-between border-b bg-red-50 px-6 py-4">
+                    <h2 className="text-lg font-semibold text-red-700">Quiz Questions</h2>
+                    <div className="flex items-center gap-2">
+                        <span className="rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-600">
+                            DELETED
+                        </span>
+                    </div>
+                </div>
+
+                {/* Deleted Content */}
+                <div className="flex flex-1 flex-col items-center justify-center bg-white px-6 py-12">
+                    <div className="text-center">
+                        <div className="mb-4 flex size-16 items-center justify-center rounded-full bg-red-100">
+                            <Trash size={24} className="text-red-500" />
+                        </div>
+                        <h3 className="mb-2 text-lg font-medium text-slate-600">
+                            This quiz has been deleted
+                        </h3>
+                        <p className="text-sm text-slate-400">
+                            The quiz content is no longer available
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     const syncToStore = () => {
         const currentQuestions = form.getValues('questions');
-        updateActiveSlideQuestions(currentQuestions);
+        setActiveItem({
+            ...activeItem,
+            quiz_slide: {
+                id: activeItem.quiz_slide?.id || '',
+                title: activeItem.quiz_slide?.title || '',
+                description: activeItem.quiz_slide?.description || {
+                    id: '',
+                    content: '',
+                    type: 'TEXT',
+                },
+                questions: currentQuestions,
+                // Add any other required fields with defaults if needed
+            },
+        });
     };
 
     const handleEdit = (index: number) => {
