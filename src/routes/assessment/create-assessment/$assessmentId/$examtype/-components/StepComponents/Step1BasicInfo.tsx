@@ -36,7 +36,7 @@ import { useSectionDetailsStore } from '../../-utils/zustand-global-states/step2
 import { useTestAccessStore } from '../../-utils/zustand-global-states/step3-adding-participants';
 import { useAccessControlStore } from '../../-utils/zustand-global-states/step4-access-control';
 import { Steps } from '@/types/assessments/assessment-data-type';
-import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { ContentTerms, RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 
 export function convertDateFormat(dateStr: string) {
@@ -639,7 +639,12 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                 render={({ field }) => (
                                     <FormItem className="flex w-1/2 items-center justify-between">
                                         <FormLabel>
-                                            Allow students to switch between sections
+                                            Allow{' '}
+                                            {getTerminology(
+                                                RoleTerms.Learner,
+                                                SystemTerms.Learner
+                                            ).toLocaleLowerCase()}
+                                            s to switch between sections
                                             {getStepKey({
                                                 assessmentDetails,
                                                 currentStep,

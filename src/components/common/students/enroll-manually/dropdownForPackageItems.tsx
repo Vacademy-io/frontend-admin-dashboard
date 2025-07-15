@@ -163,11 +163,22 @@ export const MyDropdown = ({
                 { requestData: transformedData as unknown as AddSessionDataType },
                 {
                     onSuccess: () => {
-                        toast.success('Session added successfully');
+                        toast.success(
+                            ` ${getTerminology(
+                                ContentTerms.Session,
+                                SystemTerms.Session
+                            )} added successfully`
+                        );
                         setIsAddSessionDialogOpen(false);
                     },
                     onError: (error) => {
-                        toast.error(error.message || 'Failed to add session');
+                        toast.error(
+                            error.message ||
+                                `Failed to add ${getTerminology(
+                                    ContentTerms.Session,
+                                    SystemTerms.Session
+                                ).toLocaleLowerCase()}`
+                        );
                     },
                 }
             );

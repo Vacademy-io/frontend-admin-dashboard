@@ -31,29 +31,18 @@ export const CertificateStudentDataSection = () => {
         currentStep: 'student_data',
     });
 
-    console.log('🔍 State initialized, initial session:', session);
-
     useEffect(() => {
-        console.log('🔍 Setting nav heading to "Certificate Generation"');
         setNavHeading('Certificate Generation');
     }, [setNavHeading]);
 
     useEffect(() => {
         const loadSelectedStudents = async () => {
             try {
-                console.log('🔍 Certificate Generation - Starting to load students');
-                console.log('🔍 Raw search.students:', search.students);
-
                 if (!search.students) {
-                    console.log('❌ No students parameter found in URL');
                     setError('No students selected for certificate generation');
                     setIsLoading(false);
                     return;
                 }
-
-                console.log('🔍 Processing students parameter...');
-                console.log('🔍 search.students type:', typeof search.students);
-                console.log('🔍 search.students value:', search.students);
 
                 let studentIds: string[];
 
@@ -106,16 +95,12 @@ export const CertificateStudentDataSection = () => {
     };
 
     if (isLoading) {
-        console.log('🔄 Component is loading...');
         return <DashboardLoader />;
     }
 
     if (error) {
-        console.log('❌ Component has error:', error);
         return <RootErrorComponent />;
     }
-
-    console.log('🔍 About to render main component, session:', session);
 
     const steps = [
         { key: 'student_data', label: 'Student Data & CSV Upload', icon: FileText },
@@ -123,7 +108,6 @@ export const CertificateStudentDataSection = () => {
     ];
 
     try {
-        console.log('🎨 Rendering main component JSX...');
         return (
             <section className="animate-fadeIn flex max-w-full flex-col gap-6 overflow-visible">
                 {/* Header with back navigation */}
@@ -155,7 +139,12 @@ export const CertificateStudentDataSection = () => {
                                     Certificate Generation
                                 </h1>
                                 <p className="text-sm text-neutral-500">
-                                    {session.selectedStudents.length} students selected
+                                    {session.selectedStudents.length}{' '}
+                                    {getTerminology(
+                                        RoleTerms.Learner,
+                                        SystemTerms.Learner
+                                    ).toLocaleLowerCase()}
+                                    s selected
                                 </p>
                             </div>
                         </div>

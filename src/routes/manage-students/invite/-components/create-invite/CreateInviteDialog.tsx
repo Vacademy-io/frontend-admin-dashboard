@@ -19,6 +19,8 @@ import { AddCourseButton } from '@/components/common/study-library/add-course/ad
 import { useAddCourse } from '@/services/study-library/course-operations/add-course';
 import { CourseFormData } from '@/components/common/study-library/add-course/add-course-form';
 import { Plus } from 'phosphor-react';
+import { RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 
 interface CreateInviteDialogProps {
     initialValues?: InviteForm;
@@ -359,7 +361,12 @@ export const CreateInviteDialog = ({
                                                             htmlFor="contain_levels_false"
                                                             className="text-subtitle text-neutral-600"
                                                         >
-                                                            I want students to choose batches
+                                                            I want{' '}
+                                                            {getTerminology(
+                                                                RoleTerms.Learner,
+                                                                SystemTerms.Learner
+                                                            ).toLocaleLowerCase()}
+                                                            s to choose batches
                                                         </label>
                                                     </div>
                                                 </RadioGroup>

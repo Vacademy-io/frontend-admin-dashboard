@@ -13,6 +13,8 @@ import { useContentStore } from '@/routes/study-library/courses/course-details/s
 import { useState, useRef } from 'react';
 import { LogDetailsDialog } from '@/components/common/student-slide-tracking/log-details-dialog';
 import { useStudentSidebar } from '@/routes/manage-students/students-list/-context/selected-student-sidebar-context';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 interface CustomTableMeta {
     onSort?: (columnId: string, direction: string) => void;
@@ -448,7 +450,7 @@ export const myColumns: ColumnDef<StudentTable>[] = [
         size: 120,
         minSize: 100,
         maxSize: 160,
-        header: 'Session Expiry',
+        header: `${getTerminology(ContentTerms.Session, SystemTerms.Session)} Expiry`,
         cell: ({ row }) => <ExpiryDateCell row={row} />,
     },
     {

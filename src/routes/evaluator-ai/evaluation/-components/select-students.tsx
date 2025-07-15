@@ -243,8 +243,12 @@ export function StudentSelectionDialog({
                                                         <div className="flex items-center justify-center gap-2">
                                                             <Loader2 className="size-4 animate-spin" />
                                                             <span>
-                                                                Evaluating students with{' '}
-                                                                {selectedAssessment}...
+                                                                Evaluating{' '}
+                                                                {getTerminology(
+                                                                    RoleTerms.Learner,
+                                                                    SystemTerms.Learner
+                                                                ).toLocaleLowerCase()}
+                                                                s with {selectedAssessment}...
                                                             </span>
                                                         </div>
                                                     </TableCell>
@@ -345,7 +349,12 @@ export function StudentSelectionDialog({
 
                             {studentData.length === 0 && !isEvaluating ? (
                                 <div className="p-4 text-center text-sm text-muted-foreground">
-                                    No enrolled students found.
+                                    No enrolled{' '}
+                                    {getTerminology(
+                                        RoleTerms.Learner,
+                                        SystemTerms.Learner
+                                    ).toLocaleLowerCase()}
+                                    s found.
                                 </div>
                             ) : (
                                 !isEvaluating && (

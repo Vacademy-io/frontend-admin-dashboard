@@ -8,7 +8,7 @@ import { Plus } from '@phosphor-icons/react';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { NoCourseDialog } from '@/components/common/students/no-course-dialog';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
-import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { ContentTerms, RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 export default function SessionHeader() {
     const [disableAddButton, setDisableAddButton] = useState(true);
@@ -39,11 +39,22 @@ export default function SessionHeader() {
             { requestData: transformedData as unknown as AddSessionDataType },
             {
                 onSuccess: () => {
-                    toast.success('Session added successfully');
+                    toast.success(
+                        ` ${getTerminology(
+                            ContentTerms.Session,
+                            SystemTerms.Session
+                        )} added successfully`
+                    );
                     setIsAddSessionDiaogOpen(false);
                 },
                 onError: (error) => {
-                    toast.error(error.message || 'Failed to add session');
+                    toast.error(
+                        error.message ||
+                            `Failed to add ${getTerminology(
+                                ContentTerms.Session,
+                                SystemTerms.Session
+                            ).toLocaleLowerCase()}`
+                    );
                 },
             }
         );
@@ -79,8 +90,10 @@ export default function SessionHeader() {
                 </div>
                 <div className="text-base">
                     Effortlessly organize, upload, and track educational resources in one place.
-                    Provide students with easy access to the materials they need to succeed,
-                    ensuring a seamless learning experience.
+                    Provide{' '}
+                    {getTerminology(RoleTerms.Learner, SystemTerms.Learner).toLocaleLowerCase()}s
+                    with easy access to the materials they need to succeed, ensuring a seamless
+                    learning experience.
                 </div>
             </div>
             <div>
@@ -107,7 +120,8 @@ export default function SessionHeader() {
                         trigger={
                             <div className="flex flex-col items-center gap-1">
                                 <MyButton disable={!instituteDetails?.batches_for_sessions.length}>
-                                    <Plus /> Add New Session
+                                    <Plus /> Add New{' '}
+                                    {getTerminology(ContentTerms.Session, SystemTerms.Session)}
                                 </MyButton>
                             </div>
                         }
