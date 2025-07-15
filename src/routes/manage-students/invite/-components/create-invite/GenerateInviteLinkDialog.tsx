@@ -575,6 +575,9 @@ const GenerateInviteLinkDialog = ({
                                             <Gift size={20} />
                                         )}
                                         <span>{selectedPlan.name}</span>
+                                        <Badge variant="default" className="ml-2">
+                                            Default
+                                        </Badge>
                                     </div>
                                     <CardContent className="">
                                         <div className="text-sm text-gray-600">
@@ -1156,12 +1159,17 @@ const GenerateInviteLinkDialog = ({
                                     >
                                         <div className="flex items-center gap-3 p-4">
                                             <Gift size={18} />
-                                            <div className="flex flex-col">
+                                            <div className="flex flex-1 flex-col">
                                                 <span>{plan.name}</span>
                                                 <span className="text-neutral-600">
                                                     {plan.description}
                                                 </span>
                                             </div>
+                                            {selectedPlan?.id === plan.id && (
+                                                <Badge variant="default" className="ml-auto">
+                                                    Default
+                                                </Badge>
+                                            )}
                                         </div>
                                     </Card>
                                 ))}
@@ -1181,7 +1189,7 @@ const GenerateInviteLinkDialog = ({
                                     >
                                         <div className="flex items-center gap-3 p-4">
                                             <Gift size={18} />
-                                            <div className="flex flex-col">
+                                            <div className="flex flex-1 flex-col">
                                                 <span>{plan.name}</span>
                                                 <span className="text-neutral-600">
                                                     {plan.description}
@@ -1190,6 +1198,11 @@ const GenerateInviteLinkDialog = ({
                                                     {plan.price}
                                                 </span>
                                             </div>
+                                            {selectedPlan?.id === plan.id && (
+                                                <Badge variant="default" className="ml-auto">
+                                                    Default
+                                                </Badge>
+                                            )}
                                         </div>
                                     </Card>
                                 ))}
