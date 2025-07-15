@@ -7,7 +7,7 @@ import { MyRadioButton } from '@/components/design-system/radio';
 import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { AccessType, InputType } from '../../-constants/enums';
 import { useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { MyDropdown } from '@/components/common/students/enroll-manually/dropdownForPackageItems';
 import { DropdownValueType } from '@/components/common/students/enroll-manually/dropdownTypesForPackageItems';
 import { DropdownItemType } from '@/components/common/students/enroll-manually/dropdownTypesForPackageItems';
@@ -29,6 +29,7 @@ import { useLiveSessionStore } from '../-store/sessionIdstore';
 import { useNavigate } from '@tanstack/react-router';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { useSessionDetailsStore } from '../../-store/useSessionDetailsStore';
+import { useQueryClient } from '@tanstack/react-query';
 
 const TimeOptions = [
     { label: '5 minutes before', value: '5m' },
@@ -45,11 +46,22 @@ export default function ScheduleStep2() {
     const {clearSessionId} = useLiveSessionStore();
     const isEditState = useLiveSessionStore((state) => state.isEdit);
     const { sessionDetails } = useSessionDetailsStore();
+    const queryClient = useQueryClient();
 
     const navigate = useNavigate();
 
     // Get the institute details at component level
     const { instituteDetails } = useInstituteDetailsStore();
+
+    /**
+     * This ref helps us ensure that the heavy edit-mode form pre-population
+     * logic executes only ONCE. Without this, `form.setValue` & `setCurrentSession`
+     * could run on every re-render if any object reference in `sessionDetails` or
+     * `instituteDetails` changes (even when the actual data is identical), leading
+     * to an infinite render-refresh cycle in dev (observed as the app “refreshing
+     * again and again”).
+     */
+    const hasInitialisedEditState = useRef(false);
 
     useEffect(() => {
         if (!sessionId) {
@@ -59,7 +71,7 @@ export default function ScheduleStep2() {
     }, [sessionId, navigate]);
 
     useEffect(() => {
-        if (sessionDetails) {
+        if (sessionDetails && !hasInitialisedEditState.current) {
             form.setValue(
                 'accessType',
                 sessionDetails?.schedule?.access_type === 'public'
@@ -96,8 +108,49 @@ export default function ScheduleStep2() {
             });
 
             form.setValue('notifySettings', defaultNotifySettings);
+
+            // ------------------------------------------------------------------
+            // NEW: Pre-populate selected levels (batches) when editing a PRIVATE class
+            // ------------------------------------------------------------------
+            if (
+                sessionDetails.schedule.access_type === 'private' &&
+                instituteDetails &&
+                sessionDetails.schedule.package_session_ids?.length > 0
+            ) {
+                const selectedLevelsFromPackages = sessionDetails.schedule.package_session_ids
+                    .map((pkgId) => {
+                        const batch = instituteDetails.batches_for_sessions.find(
+                            (b) => b.id === pkgId
+                        );
+                        if (!batch) return null;
+                        return {
+                            courseId: batch.package_dto.id,
+                            sessionId: batch.session.id,
+                            levelId: batch.level.id,
+                        };
+                    })
+                    .filter(Boolean) as {
+                        courseId: string;
+                        sessionId: string;
+                        levelId: string;
+                    }[];
+
+                if (selectedLevelsFromPackages.length) {
+                    form.setValue('selectedLevels', selectedLevelsFromPackages);
+
+                    // Also set the currentSession dropdown so that UI immediately shows relevant levels
+                    const firstSessionId = selectedLevelsFromPackages[0].sessionId;
+                    const matchingSession = sessionList.find((s) => s.id === firstSessionId);
+                    if (matchingSession) {
+                        setCurrentSession(matchingSession);
+                    }
+                }
+            }
+
+            // Mark initialisation done so this block never runs again
+            hasInitialisedEditState.current = true;
         }
-    }, [sessionDetails]);
+    }, [sessionDetails, instituteDetails]);
 
     const sessionList: DropdownItemType[] = Array.from(
         new Map(
@@ -269,6 +322,16 @@ export default function ScheduleStep2() {
         try {
             const response = await createLiveSessionStep2(body);
             console.log('API Response:', response);
+
+            // Invalidate queries to refresh the data when redirecting to the live sessions page
+            await queryClient.invalidateQueries({ queryKey: ['liveSessions'] });
+            await queryClient.invalidateQueries({ queryKey: ['upcomingSessions'] });
+            await queryClient.invalidateQueries({ queryKey: ['pastSessions'] });
+            await queryClient.invalidateQueries({ queryKey: ['draftSessions'] });
+
+            // Clear the session ID after successful creation
+            clearSessionId();
+
             navigate({ to: '/study-library/live-session' });
         } catch (error) {
             console.error('Error submitting form:', error);
