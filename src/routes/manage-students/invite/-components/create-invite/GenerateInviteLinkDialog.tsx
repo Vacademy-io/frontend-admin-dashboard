@@ -58,6 +58,7 @@ import { zodResolver as shadZodResolver } from '@hookform/resolvers/zod';
 import { useForm as useDiscountForm } from 'react-hook-form';
 import { z as zodDiscount } from 'zod';
 import { zodResolver as discountZodResolver } from '@hookform/resolvers/zod';
+import { Switch as ShadSwitch } from '@/components/ui/switch';
 
 export interface Course {
     id: string;
@@ -455,6 +456,114 @@ const GenerateInviteLinkDialog = ({
 
     // State for selected/active discount
     const [selectedDiscountId, setSelectedDiscountId] = useState<string | null>(null);
+
+    // Referral Program type and dummy data
+    type ReferralProgram = {
+        id: string;
+        name: string;
+        refereeBenefit: string;
+        referrerTiers: Array<{
+            tier: string;
+            reward: string;
+            icon: React.ReactNode;
+        }>;
+        vestingPeriod: string;
+        combineOffers: boolean;
+    };
+    const [referralPrograms, setReferralPrograms] = useState<ReferralProgram[]>([
+        {
+            id: 'r1',
+            name: 'Default Referral',
+            refereeBenefit: '₹200 off',
+            referrerTiers: [
+                {
+                    tier: '5 referrals',
+                    reward: 'Gift',
+                    icon: <Gift size={16} className="text-yellow-600" />,
+                },
+                {
+                    tier: '10 referrals',
+                    reward: 'Calendar',
+                    icon: <CalendarBlank size={16} className="text-blue-600" />,
+                },
+            ],
+            vestingPeriod: '30 days',
+            combineOffers: true,
+        },
+        {
+            id: 'r2',
+            name: 'Super Saver',
+            refereeBenefit: '₹300 off',
+            referrerTiers: [
+                {
+                    tier: '3 referrals',
+                    reward: 'Gift',
+                    icon: <Gift size={16} className="text-yellow-600" />,
+                },
+                {
+                    tier: '8 referrals',
+                    reward: 'Calendar',
+                    icon: <CalendarBlank size={16} className="text-blue-600" />,
+                },
+            ],
+            vestingPeriod: '15 days',
+            combineOffers: false,
+        },
+    ]);
+    const [selectedReferralId, setSelectedReferralId] = useState<string>('r1');
+    const [showReferralDialog, setShowReferralDialog] = useState(false);
+    const [showAddReferralDialog, setShowAddReferralDialog] = useState(false);
+
+    // Add Referral Program form schema
+    const addReferralSchema = zod.object({
+        name: zod.string().min(1, 'Program name is required'),
+        refereeBenefit: zod.string().min(1, 'Referee benefit is required'),
+        referrerTiers: zod
+            .array(
+                zod.object({
+                    tier: zod.string().min(1, 'Tier is required'),
+                    reward: zod.string().min(1, 'Reward is required'),
+                })
+            )
+            .min(1, 'At least one tier is required'),
+        vestingPeriod: zod.string().min(1, 'Vesting period is required'),
+        combineOffers: zod.boolean(),
+    });
+    type AddReferralFormValues = zod.infer<typeof addReferralSchema>;
+    const addReferralForm = useShadForm<AddReferralFormValues>({
+        resolver: shadZodResolver(addReferralSchema),
+        defaultValues: {
+            name: '',
+            refereeBenefit: '',
+            referrerTiers: [{ tier: '', reward: '' }],
+            vestingPeriod: '',
+            combineOffers: false,
+        },
+    });
+    const handleAddReferral = (values: AddReferralFormValues) => {
+        const newId = `r${referralPrograms.length + 1}`;
+        setReferralPrograms((prev) => [
+            ...prev,
+            {
+                id: newId,
+                name: values.name,
+                refereeBenefit: values.refereeBenefit,
+                referrerTiers: values.referrerTiers.map((t) => ({
+                    ...t,
+                    icon: t.reward.toLowerCase().includes('gift') ? (
+                        <Gift size={16} className="text-yellow-600" />
+                    ) : (
+                        <CalendarBlank size={16} className="text-blue-600" />
+                    ),
+                })),
+                vestingPeriod: values.vestingPeriod,
+                combineOffers: values.combineOffers,
+            },
+        ]);
+        setSelectedReferralId(newId);
+        setShowAddReferralDialog(false);
+        addReferralForm.reset();
+    };
 
     return (
         <Dialog open={showSummaryDialog} onOpenChange={setShowSummaryDialog}>
@@ -1309,6 +1418,7 @@ const GenerateInviteLinkDialog = ({
                                         scale="small"
                                         buttonType="secondary"
                                         className="p-4"
+                                        onClick={() => setShowReferralDialog(true)}
                                     >
                                         Change Referral Settings
                                     </MyButton>
@@ -1321,7 +1431,11 @@ const GenerateInviteLinkDialog = ({
                                             <span className="font-semibold">Referee Benefit</span>
                                         </div>
                                         <span className="ml-6 font-semibold text-green-700">
-                                            ₹200 off
+                                            {
+                                                referralPrograms.find(
+                                                    (p) => p.id === selectedReferralId
+                                                )?.refereeBenefit
+                                            }
                                         </span>
                                     </div>
                                     {/* Referrer Tiers */}
@@ -1330,17 +1444,19 @@ const GenerateInviteLinkDialog = ({
                                             <Users size={18} />
                                             <span className="font-semibold">Referrer Tiers</span>
                                         </div>
-                                        <div className="ml-4 flex w-full items-center justify-between pr-4">
-                                            <span className="ml-2 text-gray-700">5 referrals</span>
-                                            <Gift size={16} className="ml-2 text-yellow-600" />
-                                        </div>
-                                        <div className="ml-4 flex w-full items-center justify-between pr-4">
-                                            <span className="ml-2 text-gray-700">10 referrals</span>
-                                            <CalendarBlank
-                                                size={16}
-                                                className="ml-2 text-blue-600"
-                                            />
-                                        </div>
+                                        {referralPrograms
+                                            .find((p) => p.id === selectedReferralId)
+                                            ?.referrerTiers.map((tier, idx) => (
+                                                <div
+                                                    key={idx}
+                                                    className="ml-4 flex w-full items-center justify-between pr-4"
+                                                >
+                                                    <span className="ml-2 text-gray-700">
+                                                        {tier.tier}
+                                                    </span>
+                                                    {tier.icon}
+                                                </div>
+                                            ))}
                                     </div>
                                     {/* Program Settings */}
                                     <div className="mt-4">
@@ -1350,11 +1466,23 @@ const GenerateInviteLinkDialog = ({
                                         </div>
                                         <div className="ml-6 mt-2 flex items-center justify-between">
                                             <span className="text-gray-700">Vesting Period</span>
-                                            <span>30 days</span>
+                                            <span>
+                                                {
+                                                    referralPrograms.find(
+                                                        (p) => p.id === selectedReferralId
+                                                    )?.vestingPeriod
+                                                }
+                                            </span>
                                         </div>
                                         <div className="ml-6 mt-2 flex items-center justify-between">
                                             <span className="text-gray-700">Combine Offers</span>
-                                            <span>Yes</span>
+                                            <span>
+                                                {referralPrograms.find(
+                                                    (p) => p.id === selectedReferralId
+                                                )?.combineOffers
+                                                    ? 'Yes'
+                                                    : 'No'}
+                                            </span>
                                         </div>
                                     </div>
                                 </CardContent>
@@ -1704,6 +1832,223 @@ const GenerateInviteLinkDialog = ({
                                         <FormLabel>Expiry Date</FormLabel>
                                         <FormControl>
                                             <Input type="date" {...field} />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            <div className="flex justify-end">
+                                <MyButton type="submit" scale="small" buttonType="primary">
+                                    Save
+                                </MyButton>
+                            </div>
+                        </form>
+                    </Form>
+                </ShadDialogContent>
+            </ShadDialog>
+            {/* Referral Program Selection Dialog */}
+            <ShadDialog open={showReferralDialog} onOpenChange={setShowReferralDialog}>
+                <ShadDialogContent className="flex h-[70vh] min-w-[60vw] max-w-lg flex-col">
+                    <ShadDialogHeader>
+                        <ShadDialogTitle>Select Referral Program</ShadDialogTitle>
+                        <ShadDialogDescription>
+                            Choose a referral program for this course
+                        </ShadDialogDescription>
+                    </ShadDialogHeader>
+                    <div className="mt-4 flex-1 space-y-4 overflow-auto">
+                        {referralPrograms.map((program) => (
+                            <Card
+                                key={program.id}
+                                className={`cursor-pointer flex-col gap-1 border-2 p-4 ${selectedReferralId === program.id ? 'border-primary' : 'border-gray-200'} transition-all`}
+                                onClick={() => {
+                                    setSelectedReferralId(program.id);
+                                    setShowReferralDialog(false);
+                                }}
+                            >
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <TrendUp size={16} />
+                                        <span className="text-base font-semibold">
+                                            {program.name}
+                                        </span>
+                                    </div>
+                                    {selectedReferralId === program.id && (
+                                        <Badge variant="default" className="ml-2">
+                                            Default
+                                        </Badge>
+                                    )}
+                                </div>
+                                <div className="mt-2 flex flex-col gap-2">
+                                    <div className="flex items-center gap-2">
+                                        <Gift size={16} />
+                                        <span className="font-semibold">Referee Benefit:</span>
+                                        <span className="text-green-700">
+                                            {program.refereeBenefit}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Users size={16} />
+                                        <span className="font-semibold">Referrer Tiers:</span>
+                                    </div>
+                                    {program.referrerTiers.map((tier, idx) => (
+                                        <div key={idx} className="ml-6 flex items-center gap-2">
+                                            <span className="text-gray-700">{tier.tier}</span>
+                                            {tier.icon}
+                                        </div>
+                                    ))}
+                                    <div className="flex items-center gap-2">
+                                        <Gear size={16} />
+                                        <span className="font-semibold">Program Settings:</span>
+                                    </div>
+                                    <div className="ml-6 flex items-center justify-between">
+                                        <span className="text-gray-700">Vesting Period</span>
+                                        <span>{program.vestingPeriod}</span>
+                                    </div>
+                                    <div className="ml-6 flex items-center justify-between">
+                                        <span className="text-gray-700">Combine Offers</span>
+                                        <span>{program.combineOffers ? 'Yes' : 'No'}</span>
+                                    </div>
+                                </div>
+                            </Card>
+                        ))}
+                    </div>
+                    <div className="-mb-2 flex justify-center border-t bg-white pt-4">
+                        <MyButton
+                            type="button"
+                            scale="small"
+                            buttonType="secondary"
+                            onClick={() => setShowAddReferralDialog(true)}
+                            className="p-4"
+                        >
+                            + Add New Referral Program
+                        </MyButton>
+                    </div>
+                </ShadDialogContent>
+            </ShadDialog>
+            {/* Add New Referral Program Dialog */}
+            <ShadDialog open={showAddReferralDialog} onOpenChange={setShowAddReferralDialog}>
+                <ShadDialogContent className="max-w-md">
+                    <ShadDialogHeader>
+                        <ShadDialogTitle>Add New Referral Program</ShadDialogTitle>
+                    </ShadDialogHeader>
+                    <Form {...addReferralForm}>
+                        <form
+                            className="space-y-4"
+                            onSubmit={addReferralForm.handleSubmit(handleAddReferral)}
+                        >
+                            <FormField
+                                control={addReferralForm.control}
+                                name="name"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Program Name</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Enter program name" {...field} />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={addReferralForm.control}
+                                name="refereeBenefit"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Referee Benefit</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="e.g. ₹200 off" {...field} />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={addReferralForm.control}
+                                name="referrerTiers"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Referrer Tiers</FormLabel>
+                                        <div className="space-y-2">
+                                            {field.value.map((tier, idx) => (
+                                                <div key={idx} className="flex items-center gap-2">
+                                                    <Input
+                                                        placeholder="e.g. 5 referrals"
+                                                        value={tier.tier}
+                                                        onChange={(e) => {
+                                                            const newTiers = [...field.value];
+                                                            if (newTiers[idx]) {
+                                                                newTiers[idx].tier = e.target.value;
+                                                                field.onChange(newTiers);
+                                                            }
+                                                        }}
+                                                    />
+                                                    <Input
+                                                        placeholder="Reward (Gift/Calendar)"
+                                                        value={tier.reward}
+                                                        onChange={(e) => {
+                                                            const newTiers = [...field.value];
+                                                            if (newTiers[idx]) {
+                                                                newTiers[idx].reward =
+                                                                    e.target.value;
+                                                                field.onChange(newTiers);
+                                                            }
+                                                        }}
+                                                    />
+                                                    <MyButton
+                                                        type="button"
+                                                        scale="small"
+                                                        buttonType="secondary"
+                                                        onClick={() => {
+                                                            const newTiers = field.value.filter(
+                                                                (_, i) => i !== idx
+                                                            );
+                                                            field.onChange(newTiers);
+                                                        }}
+                                                        className="px-2"
+                                                        disabled={field.value.length === 1}
+                                                    >
+                                                        Remove
+                                                    </MyButton>
+                                                </div>
+                                            ))}
+                                            <MyButton
+                                                type="button"
+                                                scale="small"
+                                                buttonType="secondary"
+                                                onClick={() =>
+                                                    field.onChange([
+                                                        ...field.value,
+                                                        { tier: '', reward: '' },
+                                                    ])
+                                                }
+                                                className="mt-1"
+                                            >
+                                                + Add Tier
+                                            </MyButton>
+                                        </div>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={addReferralForm.control}
+                                name="vestingPeriod"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Vesting Period</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="e.g. 30 days" {...field} />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={addReferralForm.control}
+                                name="combineOffers"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Combine Offers</FormLabel>
+                                        <FormControl>
+                                            <ShadSwitch
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                            />
                                         </FormControl>
                                     </FormItem>
                                 )}
