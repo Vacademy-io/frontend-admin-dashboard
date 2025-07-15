@@ -36,6 +36,7 @@ import EditDashboardProfileComponent from './-components/EditDashboardProfileCom
 import { handleGetAdminDetails } from '@/services/student-list-section/getAdminDetails';
 import { motion } from 'framer-motion';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { UnresolvedDoubtsWidget } from './-components/UnresolvedDoubtsWidget';
 
 export const Route = createFileRoute('/dashboard/')({
     component: DashboardPage,
@@ -203,6 +204,10 @@ export function DashboardComponent() {
             {/* Main content - Reduced top margin and gap */}
             <div className="mt-5 flex w-full flex-col gap-4">
                 {/* Reduced mt-8 to mt-5, gap-6 to gap-4 */}
+                
+                {/* Unresolved Doubts Widget - conditionally rendered if there are unresolved doubts */}
+                <UnresolvedDoubtsWidget instituteId={instituteDetails?.id || ''} />
+                
                 <Card className="grow bg-neutral-50 shadow-none">
                     <CardHeader className="p-4">
                         {' '}
