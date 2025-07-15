@@ -8,6 +8,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
+import GenerateInviteLinkDialog, { Batch, Course } from './GenerateInviteLinkDialog';
 
 const dummyCourses = [
     { id: 'c1', name: 'Mathematics' },
@@ -50,10 +51,8 @@ const dummyBatches = {
     ],
 };
 
-type Course = { id: string; name: string };
 type Level = { levelId: string; levelName: string };
 type Session = { sessionId: string; sessionName: string; levels: Level[] };
-type Batch = { sessionId: string; levelId: string; sessionName: string; levelName: string };
 
 type DummyBatchesType = {
     [key: string]: Session[];
@@ -69,6 +68,8 @@ const CreateInvite = () => {
     const [selectedLevel, setSelectedLevel] = useState<Level | null>(null);
     const [showLevelDropdown, setShowLevelDropdown] = useState(false);
     const [selectedBatches, setSelectedBatches] = useState<Batch[]>([]);
+    const [showSummaryDialog, setShowSummaryDialog] = useState(false);
+    const [dialogOpen, setDialogOpen] = useState(false);
 
     // Refs for dropdowns
     const courseDropdownRef = useRef<HTMLDivElement>(null);
@@ -157,8 +158,8 @@ const CreateInvite = () => {
     return (
         <>
             <div>
-                <Dialog>
-                    <DialogTrigger>
+                <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                    <DialogTrigger asChild>
                         <MyButton
                             type="button"
                             scale="medium"
@@ -382,7 +383,35 @@ const CreateInvite = () => {
                                 )}
                             </div>
                         )}
+                        {/* Action Buttons */}
+                        <div className="mt-8 flex justify-end gap-3">
+                            <MyButton
+                                type="button"
+                                scale="medium"
+                                buttonType="secondary"
+                                onClick={() => setDialogOpen(false)}
+                                className="bg-neutral-100 hover:border-none hover:bg-neutral-200"
+                            >
+                                Cancel
+                            </MyButton>
+                            <MyButton
+                                type="button"
+                                scale="medium"
+                                buttonType="primary"
+                                disable={selectedBatches.length === 0}
+                                onClick={() => setShowSummaryDialog(true)}
+                            >
+                                Continue
+                            </MyButton>
+                        </div>
                     </DialogContent>
+                    {/* Summary Dialog */}
+                    <GenerateInviteLinkDialog
+                        selectedCourse={selectedCourse}
+                        selectedBatches={selectedBatches}
+                        showSummaryDialog={showSummaryDialog}
+                        setShowSummaryDialog={setShowSummaryDialog}
+                    />
                 </Dialog>
             </div>
         </>
