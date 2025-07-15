@@ -239,7 +239,9 @@ export interface QuizSlideQuestion {
     id: string;
     parent_rich_text: TextData;
     text: TextData;
+    text_data: TextData; // Added for backend compatibility
     explanation_text: TextData;
+    explanation_text_data: TextData; // Added for backend compatibility
     media_id: string;
     status: string;
     question_response_type: string;
@@ -247,14 +249,17 @@ export interface QuizSlideQuestion {
     access_level: string;
     auto_evaluation_json: string;
     evaluation_type: string;
+    question_time_in_millis: number; // Added for backend compatibility
     question_order: number;
     quiz_slide_id: string;
     can_skip: boolean;
+    new_question: boolean; // Added for backend compatibility
     options: {
         id: string;
         quiz_slide_question_id: string;
         text: TextData;
         explanation_text: TextData;
+        explanation_text_data: TextData; // Added for backend compatibility
         media_id: string;
     }[];
 }

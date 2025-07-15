@@ -19,7 +19,6 @@ import {
     Slide,
 } from '../../-hooks/use-slides';
 import { Route } from '../..';
-import { convertToQuestionSlideFormat } from '../../-helper/helper';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import QuizQuestionDialogAddPreview from './QuizQuestionDialog';
 
@@ -34,7 +33,7 @@ export type QuestionPaperFormType = z.infer<typeof questionsFormSchema>;
 
 const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) => {
     const { getPackageSessionId } = useInstituteDetailsStore();
-    const { setActiveItem, setItems, getSlideById, items } = useContentStore();
+    const { setActiveItem, setItems, items } = useContentStore();
 
     const quizQuestionForm = useForm<UploadQuestionPaperFormType>({
         resolver: zodResolver(uploadQuestionPaperFormSchema),
@@ -93,15 +92,34 @@ const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) =
         const quizIndex = quizSlides.length + 1;
         const autoTitle = `Quiz ${quizIndex}`;
 
-        try {
-            // Transform form questions to backend format
-            const transformedQuestions = questions.map((question, index) => {
+        // Check for duplicate titles
+        const existingTitles = quizSlides.map((slide) => slide.title.toLowerCase().trim());
+        const proposedTitle = autoTitle.toLowerCase().trim();
+
+        let finalTitle = autoTitle;
+        if (existingTitles.includes(proposedTitle)) {
+            // Find the next available number
+            let counter = quizIndex + 1;
+            let newTitle = `Quiz ${counter}`;
+            while (existingTitles.includes(newTitle.toLowerCase().trim())) {
+                counter++;
+                newTitle = `Quiz ${counter}`;
+            }
+
+            console.log('[AddQuizDialog] Duplicate title detected, using:', newTitle);
+            finalTitle = newTitle;
+        }
+
+        // Helper function to transform questions
+        const transformQuestions = (questions: UploadQuestionPaperFormType['questions']) => {
+            return questions.map((question, index) => {
                 // Determine which options array to use based on question type
                 let options: Array<{
                     id: string;
                     quiz_slide_question_id: string;
                     text: { id: string; type: string; content: string };
                     explanation_text: { id: string; type: string; content: string };
+                    explanation_text_data: { id: string; type: string; content: string };
                     media_id: string;
                 }> = [];
                 let questionResponseType = 'OPTION';
@@ -109,20 +127,24 @@ const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) =
 
                 switch (question.questionType) {
                     case 'MCQS':
+                    case 'CMCQS':
                         options = (question.singleChoiceOptions || []).map((option) => ({
                             id: option.id || crypto.randomUUID(),
                             quiz_slide_question_id: '',
                             text: { id: '', type: 'TEXT', content: option.name || '' },
                             explanation_text: { id: '', type: 'TEXT', content: '' },
+                            explanation_text_data: { id: '', type: 'TEXT', content: '' },
                             media_id: '',
                         }));
                         break;
                     case 'MCQM':
+                    case 'CMCQM':
                         options = (question.multipleChoiceOptions || []).map((option) => ({
                             id: option.id || crypto.randomUUID(),
                             quiz_slide_question_id: '',
                             text: { id: '', type: 'TEXT', content: option.name || '' },
                             explanation_text: { id: '', type: 'TEXT', content: '' },
+                            explanation_text_data: { id: '', type: 'TEXT', content: '' },
                             media_id: '',
                         }));
                         break;
@@ -132,17 +154,22 @@ const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) =
                             quiz_slide_question_id: '',
                             text: { id: '', type: 'TEXT', content: option.name || '' },
                             explanation_text: { id: '', type: 'TEXT', content: '' },
+                            explanation_text_data: { id: '', type: 'TEXT', content: '' },
                             media_id: '',
                         }));
                         break;
                     case 'NUMERIC':
+                    case 'CNUMERIC':
                         questionResponseType = 'NUMERIC';
                         evaluationType = 'AUTO';
                         break;
                     case 'LONG_ANSWER':
-                    case 'ONE_WORD':
                         questionResponseType = 'TEXT';
                         evaluationType = 'MANUAL';
+                        break;
+                    case 'ONE_WORD':
+                        questionResponseType = 'TEXT';
+                        evaluationType = 'AUTO';
                         break;
                     default:
                         options = (question.singleChoiceOptions || []).map((option) => ({
@@ -150,9 +177,54 @@ const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) =
                             quiz_slide_question_id: '',
                             text: { id: '', type: 'TEXT', content: option.name || '' },
                             explanation_text: { id: '', type: 'TEXT', content: '' },
+                            explanation_text_data: { id: '', type: 'TEXT', content: '' },
                             media_id: '',
                         }));
                 }
+
+                // Calculate question time in milliseconds
+                const calculateQuestionTimeInMillis = (
+                    question: UploadQuestionPaperFormType['questions'][0]
+                ): number => {
+                    const duration = question.questionDuration;
+                    if (duration) {
+                        const hours = parseInt(duration.hrs || '0') * 60 * 60 * 1000;
+                        const minutes = parseInt(duration.min || '0') * 60 * 1000;
+                        return hours + minutes;
+                    }
+                    return 0;
+                };
+
+                // Create auto evaluation JSON
+                const createAutoEvaluationJson = (
+                    question: UploadQuestionPaperFormType['questions'][0]
+                ): string => {
+                    if (
+                        question.questionType === 'LONG_ANSWER' ||
+                        question.questionType === 'ONE_WORD'
+                    ) {
+                        if (
+                            question.subjectiveAnswerText &&
+                            question.subjectiveAnswerText.trim() !== ''
+                        ) {
+                            return JSON.stringify({
+                                data: {
+                                    answer:
+                                        question.questionType === 'LONG_ANSWER'
+                                            ? { content: question.subjectiveAnswerText }
+                                            : question.subjectiveAnswerText,
+                                },
+                            });
+                        } else if (question.validAnswers && question.validAnswers.length > 0) {
+                            return JSON.stringify({ correctAnswers: question.validAnswers });
+                        }
+                    } else {
+                        if (question.validAnswers && question.validAnswers.length > 0) {
+                            return JSON.stringify({ correctAnswers: question.validAnswers });
+                        }
+                    }
+                    return '';
+                };
 
                 return {
                     id: crypto.randomUUID(),
@@ -162,7 +234,13 @@ const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) =
                         content: question.questionName || '',
                     },
                     text: { id: '', type: 'TEXT', content: question.questionName || '' },
+                    text_data: { id: '', type: 'TEXT', content: question.questionName || '' },
                     explanation_text: {
+                        id: '',
+                        type: 'TEXT',
+                        content: question.explanation || '',
+                    },
+                    explanation_text_data: {
                         id: '',
                         type: 'TEXT',
                         content: question.explanation || '',
@@ -172,22 +250,26 @@ const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) =
                     question_response_type: questionResponseType,
                     question_type: question.questionType,
                     access_level: 'INSTITUTE',
-                    auto_evaluation_json: question.validAnswers
-                        ? JSON.stringify({ correctAnswers: question.validAnswers })
-                        : '',
+                    auto_evaluation_json: createAutoEvaluationJson(question),
                     evaluation_type: evaluationType,
+                    question_time_in_millis: calculateQuestionTimeInMillis(question),
                     question_order: index + 1,
                     quiz_slide_id: '',
                     can_skip: question.canSkip || false,
+                    new_question: true,
                     options: options,
                 };
             });
+        };
+
+        try {
+            const transformedQuestions = transformQuestions(questions);
 
             const response: string = await addUpdateQuizSlide({
                 id: `quiz-${crypto.randomUUID()}`,
                 source_id: '',
                 source_type: 'QUIZ',
-                title: autoTitle,
+                title: finalTitle,
                 description: 'Quiz',
                 image_file_id: '',
                 status: 'DRAFT',
@@ -198,7 +280,7 @@ const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) =
                 assignment_slide: null,
                 quiz_slide: {
                     id: crypto.randomUUID(),
-                    title: autoTitle,
+                    title: finalTitle,
                     description: { id: '', content: '', type: 'TEXT' },
                     questions: transformedQuestions,
                 },
@@ -290,59 +372,94 @@ const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) =
 
         console.log('[AddQuizDialog] Slide created with ID:', slideId);
 
-        // Wait a bit for backend to process the quiz creation
-        console.log('[AddQuizDialog] Waiting for backend to process quiz...');
-        await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 2 seconds
+        // Immediately update the store with the new quiz data
+        try {
+            // Create a temporary slide object with the questions data
+            const tempSlide: Slide = {
+                id: slideId,
+                source_id: slideId,
+                source_type: 'QUIZ',
+                title: `Quiz ${items.filter((slide) => slide.source_type === 'QUIZ').length + 1}`,
+                image_file_id: '',
+                description: 'Quiz',
+                status: 'DRAFT',
+                slide_order: 0,
+                video_slide: null,
+                document_slide: null,
+                question_slide: null,
+                assignment_slide: null,
+                quiz_slide: {
+                    id: crypto.randomUUID(),
+                    title: `Quiz ${items.filter((slide) => slide.source_type === 'QUIZ').length + 1}`,
+                    description: { id: '', content: '', type: 'TEXT' },
+                    questions: questions.map((question, index) => ({
+                        id: crypto.randomUUID(),
+                        parent_rich_text: {
+                            id: '',
+                            type: 'TEXT',
+                            content: question.questionName || '',
+                        },
+                        text: { id: '', type: 'TEXT', content: question.questionName || '' },
+                        explanation_text: {
+                            id: '',
+                            type: 'TEXT',
+                            content: question.explanation || '',
+                        },
+                        media_id: '',
+                        status: 'ACTIVE',
+                        question_response_type: 'OPTION',
+                        question_type: question.questionType,
+                        access_level: 'INSTITUTE',
+                        auto_evaluation_json: question.validAnswers
+                            ? JSON.stringify({ correctAnswers: question.validAnswers })
+                            : '',
+                        evaluation_type: 'AUTO',
+                        question_order: index + 1,
+                        quiz_slide_id: '',
+                        can_skip: question.canSkip || false,
+                        options: [],
+                    })),
+                },
+                is_loaded: true,
+                new_slide: true,
+            };
 
-        // Now refetch and get fresh data
-        console.log('[AddQuizDialog] Refetching data after backend processing...');
-        const refreshed = await refetch();
+            // Add the new slide to the items array
+            const updatedItems = [tempSlide, ...items];
+            setItems(updatedItems);
 
-        if (!refreshed.data) {
-            console.error('[AddQuizDialog] Refetch failed or returned no data');
-            toast.error('Failed to refresh slide data');
-            return slideId;
-        }
+            // Set the new slide as active immediately
+            setActiveItem(tempSlide);
 
-        console.log('[AddQuizDialog] Refreshed data:', {
-            refreshedDataLength: refreshed.data.length || 0,
-            allSlideIds: refreshed.data.map((s) => s.id),
-        });
-
-        // Find the newly created slide in the refreshed data
-        const slide = refreshed.data.find((s) => s.id === slideId);
-
-        console.log('[AddQuizDialog] Looking for slide:', {
-            slideId,
-            foundSlide: !!slide,
-            slideData: slide,
-            hasQuizSlide: !!slide?.quiz_slide,
-            questionsCount: slide?.quiz_slide?.questions?.length || 0,
-        });
-
-        if (slide) {
-            console.log('[AddQuizDialog] Setting items and active item with fresh data:', slide);
-
-            // Update the store with fresh data from backend
-            setItems(refreshed.data as Slide[]);
-
-            // Set the newly created slide as active
-            setActiveItem(slide as Slide);
+            console.log('[AddQuizDialog] ✅ Store updated immediately with new quiz data');
 
             openState?.(false);
+            toast.success('Quiz created successfully!');
 
-            if (slide.quiz_slide?.questions && slide.quiz_slide.questions.length > 0) {
-                console.log('[AddQuizDialog] ✅ Quiz created successfully with questions!');
-                toast.success('Quiz created successfully with questions!');
-            } else {
-                console.log('[AddQuizDialog] ⚠️ Quiz created but questions not yet available');
-                toast.success('Quiz created! Questions may take a moment to appear.');
-            }
+            // Refetch data in the background to get the complete backend data
+            setTimeout(async () => {
+                console.log('[AddQuizDialog] Refetching data in background...');
+                const refreshed = await refetch();
+
+                if (refreshed.data) {
+                    const refreshedSlide = refreshed.data.find((s) => s.id === slideId);
+                    if (refreshedSlide) {
+                        console.log(
+                            '[AddQuizDialog] ✅ Background refresh completed, updating with backend data'
+                        );
+                        setItems(refreshed.data as Slide[]);
+                        setActiveItem(refreshedSlide as Slide);
+                    }
+                }
+            }, 1000);
 
             return slideId;
-        } else {
-            console.warn('[AddQuizDialog] Quiz created but slide not found in refreshed data');
-            toast.warning('Quiz created, but slide not found in refreshed list.');
+        } catch (error) {
+            console.error('[AddQuizDialog] Error updating store immediately:', error);
+            // Fallback to the original approach
+            toast.warning(
+                'Quiz created, but there was an issue updating the preview. Please refresh the page.'
+            );
             return slideId;
         }
     };
