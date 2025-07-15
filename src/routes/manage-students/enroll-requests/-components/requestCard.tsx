@@ -6,6 +6,8 @@ import { ContentType } from '../-types/enroll-request-types';
 import { useEffect, useState } from 'react';
 import { StudentTable } from '@/types/student-table-types';
 import { InviteLink } from '@/routes/manage-students/-components/InviteLink';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 export const RequestCard = ({
     obj,
@@ -130,7 +132,10 @@ export const RequestCard = ({
                             Batch: {batchDetails ? batchDetails.level.level_name : 'N/A'}{' '}
                             {batchDetails?.package_dto.package_name}
                         </p>
-                        <p>Session: {batchDetails ? batchDetails.session.session_name : 'N/A'}</p>
+                        <p>
+                            {getTerminology(ContentTerms.Session, SystemTerms.Session)}:{' '}
+                            {batchDetails ? batchDetails.session.session_name : 'N/A'}
+                        </p>
                         <p>Email: {obj.learner_invitation_response_dto.email}</p>
                         <p>Mobile Number: {obj.learner_invitation_response_dto.contact_number}</p>
                         <p>

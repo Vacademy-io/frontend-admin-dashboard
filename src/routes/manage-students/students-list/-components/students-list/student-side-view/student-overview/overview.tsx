@@ -1,3 +1,5 @@
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { BatchForSessionType } from '@/schemas/student/student-list/institute-schema';
 import { StudentTable } from '@/types/student-table-types';
 
@@ -23,15 +25,23 @@ export const OverViewData = ({
 
     const generalDetailsContent = isShow
         ? [
-              `Session: ${na(packageSessionDetails?.session.session_name)}`,
+              `${getTerminology(ContentTerms.Session, SystemTerms.Session)}: ${na(
+                  packageSessionDetails?.session.session_name
+              )}`,
               `Preferred Batch: N/A`,
               `Enrollment No: ${na(selectedStudent.institute_enrollment_id)}`,
               `Gender: ${na(selectedStudent.gender)}`,
           ]
         : [
-              `Course: ${na(packageSessionDetails?.package_dto.package_name)}`,
-              `Level: ${na(packageSessionDetails?.level.level_name)}`,
-              `Session: ${na(packageSessionDetails?.session.session_name)}`,
+              `${getTerminology(ContentTerms.Course, SystemTerms.Course)}: ${na(
+                  packageSessionDetails?.package_dto.package_name
+              )}`,
+              `${getTerminology(ContentTerms.Level, SystemTerms.Level)}: ${na(
+                  packageSessionDetails?.level.level_name
+              )}`,
+              `${getTerminology(ContentTerms.Session, SystemTerms.Session)}: ${na(
+                  packageSessionDetails?.session.session_name
+              )}`,
               `Enrollment No: ${na(selectedStudent.institute_enrollment_id)}`,
               `Gender: ${na(selectedStudent.gender)}`,
               `School: ${na(selectedStudent.linked_institute_name)}`,

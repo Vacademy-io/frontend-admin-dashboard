@@ -34,6 +34,8 @@ import { handleGetSlideCountDetails } from '../-services/get-slides-count';
 import { CourseDetailsRatingsComponent } from './course-details-ratings-page';
 import { getInstructorsBySessionAndLevel, transformApiDataToCourseData } from '../-utils/helper';
 import { CourseStructureDetails } from './course-structure-details';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { AddCourseForm } from '@/components/common/study-library/add-course/add-course-form';
 import { MyButton } from '@/components/design-system/button';
 import { getPublicUrl } from '@/services/upload_file';
@@ -101,7 +103,7 @@ type SlideCountType = {
 const mockCourses: Course[] = [
     {
         id: '1',
-        title: '2-Level Course Structure',
+        title: `2-Level ${getTerminology(ContentTerms.Level, SystemTerms.Level)} Structure`,
         level: 2,
         structure: {
             courseName: 'Introduction to Web Development',
@@ -110,7 +112,7 @@ const mockCourses: Course[] = [
     },
     {
         id: '2',
-        title: '3-Level Course Structure',
+        title: `3-Level ${getTerminology(ContentTerms.Level, SystemTerms.Level)} Structure`,
         level: 3,
         structure: {
             courseName: 'Frontend Fundamentals',
@@ -119,7 +121,7 @@ const mockCourses: Course[] = [
     },
     {
         id: '3',
-        title: '4-Level Course Structure',
+        title: `4-Level ${getTerminology(ContentTerms.Level, SystemTerms.Level)} Structure`,
         level: 4,
         structure: {
             courseName: 'Full-Stack JavaScript Development Mastery',
@@ -128,7 +130,7 @@ const mockCourses: Course[] = [
     },
     {
         id: '4',
-        title: '5-Level Course Structure',
+        title: `5-Level ${getTerminology(ContentTerms.Level, SystemTerms.Level)} Structure`,
         level: 5,
         structure: {
             courseName: 'Advanced Software Engineering Principles',
@@ -507,13 +509,23 @@ export const CourseDetailsPage = () => {
                                     )
                                 ) : (
                                     <div className="flex flex-col gap-2">
-                                        <label className="text-sm font-medium">Session</label>
+                                        <label className="text-sm font-medium">
+                                            {getTerminology(
+                                                ContentTerms.Session,
+                                                SystemTerms.Session
+                                            )}
+                                        </label>
                                         <Select
                                             value={selectedSession}
                                             onValueChange={handleSessionChange}
                                         >
                                             <SelectTrigger className="w-48">
-                                                <SelectValue placeholder="Select Session" />
+                                                <SelectValue
+                                                    placeholder={`Select ${getTerminology(
+                                                        ContentTerms.Session,
+                                                        SystemTerms.Session
+                                                    )}`}
+                                                />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {sessionOptions.map((option) => (
@@ -538,14 +550,21 @@ export const CourseDetailsPage = () => {
                                     )
                                 ) : (
                                     <div className="flex flex-col gap-2">
-                                        <label className="text-sm font-medium">Level</label>
+                                        <label className="text-sm font-medium">
+                                            {getTerminology(ContentTerms.Level, SystemTerms.Level)}
+                                        </label>
                                         <Select
                                             value={selectedLevel}
                                             onValueChange={handleLevelChange}
                                             disabled={!selectedSession}
                                         >
                                             <SelectTrigger className="w-48">
-                                                <SelectValue placeholder="Select Level" />
+                                                <SelectValue
+                                                    placeholder={`Select ${getTerminology(
+                                                        ContentTerms.Level,
+                                                        SystemTerms.Level
+                                                    )}`}
+                                                />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {levelOptions.map((option) => (
@@ -586,8 +605,14 @@ export const CourseDetailsPage = () => {
 
                         {/* About Content Section */}
                         {form.getValues('courseData').aboutTheCourse && (
-                            <div className="mb-8 bg-white p-6">
-                                <h2 className="mb-4 text-2xl font-bold">About this course</h2>
+                            <div className="mb-8">
+                                <h2 className="mb-4 text-2xl font-bold">
+                                    About this{' '}
+                                    {getTerminology(
+                                        ContentTerms.Course,
+                                        SystemTerms.Course
+                                    ).toLocaleLowerCase()}
+                                </h2>
                                 <div className="rounded-lg">
                                     <p
                                         dangerouslySetInnerHTML={{
@@ -688,33 +713,64 @@ export const CourseDetailsPage = () => {
                                                     <>
                                                         <PlayCircle size={18} />
                                                         <span>
-                                                            {count.slide_count} Video slides
+                                                            {count.slide_count} Video{' '}
+                                                            {getTerminology(
+                                                                ContentTerms.Slides,
+                                                                SystemTerms.Slides
+                                                            ).toLocaleLowerCase()}
+                                                            s
                                                         </span>
                                                     </>
                                                 )}
                                                 {count.source_type === 'CODE' && (
                                                     <>
                                                         <Code size={18} />
-                                                        <span>{count.slide_count} Code slides</span>
+                                                        <span>
+                                                            {count.slide_count} Code{' '}
+                                                            {getTerminology(
+                                                                ContentTerms.Slides,
+                                                                SystemTerms.Slides
+                                                            ).toLocaleLowerCase()}
+                                                            s
+                                                        </span>
                                                     </>
                                                 )}
                                                 {count.source_type === 'PDF' && (
                                                     <>
                                                         <FilePdf size={18} />
-                                                        <span>{count.slide_count} PDF slides</span>
+                                                        <span>
+                                                            {count.slide_count} PDF{' '}
+                                                            {getTerminology(
+                                                                ContentTerms.Slides,
+                                                                SystemTerms.Slides
+                                                            ).toLocaleLowerCase()}
+                                                            s
+                                                        </span>
                                                     </>
                                                 )}
                                                 {count.source_type === 'DOCUMENT' && (
                                                     <>
                                                         <FileDoc size={18} />
-                                                        <span>{count.slide_count} Doc slides</span>
+                                                        <span>
+                                                            {count.slide_count} Doc{' '}
+                                                            {getTerminology(
+                                                                ContentTerms.Slides,
+                                                                SystemTerms.Slides
+                                                            ).toLocaleLowerCase()}
+                                                            s
+                                                        </span>
                                                     </>
                                                 )}
                                                 {count.source_type === 'QUESTION' && (
                                                     <>
                                                         <Question size={18} />
                                                         <span>
-                                                            {count.slide_count} Question slides
+                                                            {count.slide_count} Question{' '}
+                                                            {getTerminology(
+                                                                ContentTerms.Slides,
+                                                                SystemTerms.Slides
+                                                            ).toLocaleLowerCase()}
+                                                            s
                                                         </span>
                                                     </>
                                                 )}
@@ -722,7 +778,12 @@ export const CourseDetailsPage = () => {
                                                     <>
                                                         <File size={18} />
                                                         <span>
-                                                            {count.slide_count} Assignment slides
+                                                            {count.slide_count} Assignment{' '}
+                                                            {getTerminology(
+                                                                ContentTerms.Slides,
+                                                                SystemTerms.Slides
+                                                            ).toLocaleLowerCase()}
+                                                            s
                                                         </span>
                                                     </>
                                                 )}

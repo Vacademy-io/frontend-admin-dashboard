@@ -13,6 +13,7 @@ import { createFileRoute } from "@tanstack/react-router"
 import { Route as rootRouteImport } from "./routes/__root"
 import { Route as StudyLibraryIndexRouteImport } from "./routes/study-library/index"
 import { Route as SignupIndexRouteImport } from "./routes/signup/index"
+import { Route as SettingsIndexRouteImport } from "./routes/settings/index"
 import { Route as ManageStudentsIndexRouteImport } from "./routes/manage-students/index"
 import { Route as ManageInstituteIndexRouteImport } from "./routes/manage-institute/index"
 import { Route as LoginIndexRouteImport } from "./routes/login/index"
@@ -100,6 +101,11 @@ const StudyLibraryIndexRoute = StudyLibraryIndexRouteImport.update({
 const SignupIndexRoute = SignupIndexRouteImport.update({
   id: "/signup/",
   path: "/signup/",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsIndexRoute = SettingsIndexRouteImport.update({
+  id: "/settings/",
+  path: "/settings/",
   getParentRoute: () => rootRouteImport,
 } as any)
 const ManageStudentsIndexRoute = ManageStudentsIndexRouteImport.update({
@@ -500,6 +506,7 @@ export interface FileRoutesByFullPath {
   "/login": typeof LoginIndexRoute
   "/manage-institute": typeof ManageInstituteIndexRoute
   "/manage-students": typeof ManageStudentsIndexRoute
+  "/settings": typeof SettingsIndexRoute
   "/signup": typeof SignupIndexRoute
   "/study-library": typeof StudyLibraryIndexRoute
   "/login/oauth/redirect": typeof LoginOauthRedirectRoute
@@ -571,6 +578,7 @@ export interface FileRoutesByTo {
   "/login": typeof LoginIndexRoute
   "/manage-institute": typeof ManageInstituteIndexRoute
   "/manage-students": typeof ManageStudentsIndexRoute
+  "/settings": typeof SettingsIndexRoute
   "/signup": typeof SignupIndexRoute
   "/study-library": typeof StudyLibraryIndexRoute
   "/login/oauth/redirect": typeof LoginOauthRedirectRoute
@@ -643,6 +651,7 @@ export interface FileRoutesById {
   "/login/": typeof LoginIndexRoute
   "/manage-institute/": typeof ManageInstituteIndexRoute
   "/manage-students/": typeof ManageStudentsIndexRoute
+  "/settings/": typeof SettingsIndexRoute
   "/signup/": typeof SignupIndexRoute
   "/study-library/": typeof StudyLibraryIndexRoute
   "/login/oauth/redirect": typeof LoginOauthRedirectRoute
@@ -716,6 +725,7 @@ export interface FileRouteTypes {
     | "/login"
     | "/manage-institute"
     | "/manage-students"
+    | "/settings"
     | "/signup"
     | "/study-library"
     | "/login/oauth/redirect"
@@ -787,6 +797,7 @@ export interface FileRouteTypes {
     | "/login"
     | "/manage-institute"
     | "/manage-students"
+    | "/settings"
     | "/signup"
     | "/study-library"
     | "/login/oauth/redirect"
@@ -858,6 +869,7 @@ export interface FileRouteTypes {
     | "/login/"
     | "/manage-institute/"
     | "/manage-students/"
+    | "/settings/"
     | "/signup/"
     | "/study-library/"
     | "/login/oauth/redirect"
@@ -930,6 +942,7 @@ export interface RootRouteChildren {
   LoginIndexRoute: typeof LoginIndexRoute
   ManageInstituteIndexRoute: typeof ManageInstituteIndexRoute
   ManageStudentsIndexRoute: typeof ManageStudentsIndexRoute
+  SettingsIndexRoute: typeof SettingsIndexRoute
   SignupIndexRoute: typeof SignupIndexRoute
   StudyLibraryIndexRoute: typeof StudyLibraryIndexRoute
   LoginOauthRedirectRoute: typeof LoginOauthRedirectRoute
@@ -1018,6 +1031,13 @@ declare module "@tanstack/react-router" {
       path: "/signup"
       fullPath: "/signup"
       preLoaderRoute: typeof SignupIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/settings/": {
+      id: "/settings/"
+      path: "/settings"
+      fullPath: "/settings"
+      preLoaderRoute: typeof SettingsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/manage-students/": {
@@ -1490,6 +1510,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginIndexRoute: LoginIndexRoute,
   ManageInstituteIndexRoute: ManageInstituteIndexRoute,
   ManageStudentsIndexRoute: ManageStudentsIndexRoute,
+  SettingsIndexRoute: SettingsIndexRoute,
   SignupIndexRoute: SignupIndexRoute,
   StudyLibraryIndexRoute: StudyLibraryIndexRoute,
   LoginOauthRedirectRoute: LoginOauthRedirectRoute,

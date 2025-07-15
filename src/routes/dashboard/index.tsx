@@ -37,6 +37,8 @@ import { handleGetAdminDetails } from '@/services/student-list-section/getAdminD
 import { motion } from 'framer-motion';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { UnresolvedDoubtsWidget } from './-components/UnresolvedDoubtsWidget';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, RoleTerms, SystemTerms } from '../settings/-components/NamingSettings';
 
 export const Route = createFileRoute('/dashboard/')({
     component: DashboardPage,
@@ -210,25 +212,45 @@ export function DashboardComponent() {
                 
                 <Card className="grow bg-neutral-50 shadow-none">
                     <CardHeader className="p-4">
-                        {' '}
                         {/* Reduced padding */}
                         <div className="flex items-center justify-between">
                             <CardTitle className="text-sm font-semibold">
                                 Complete your institute profile
-                            </CardTitle>{' '}
+                            </CardTitle>
                             {/* Smaller title */}
                             <EditDashboardProfileComponent isEdit={false} />
                         </div>
                         <CardDescription className="mt-1 flex items-center gap-1.5 text-xs">
-                            {' '}
-                            {/* Reduced margin, gap, text size */}
                             <CompletionStatusComponent
                                 profileCompletionPercentage={data.profile_completion_percentage}
                             />
                             <span>{data.profile_completion_percentage}% complete</span>
                         </CardDescription>
                     </CardHeader>
+                    <CardHeader className="p-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex flex-col">
+                                <CardTitle className="text-sm font-semibold">
+                                    Naming Settings
+                                </CardTitle>
+                                <CardDescription className="text-xs">
+                                    Customize the naming conventions used throughout your institute
+                                </CardDescription>
+                            </div>
+                            <MyButton
+                                type="button"
+                                scale="medium"
+                                buttonType="secondary"
+                                layoutVariant="default"
+                                className="text-sm"
+                                onClick={() => navigate({ to: '/settings' })}
+                            >
+                                Naming Settings
+                            </MyButton>
+                        </div>
+                    </CardHeader>
                 </Card>
+
                 {/* AI Features Card - Compacted Internals */}
                 {!showForInstitutes([HOLISTIC_INSTITUTE_ID]) && (
                     <Card
@@ -318,7 +340,10 @@ export function DashboardComponent() {
                                         {/* Reduced gap */}
                                         {[
                                             {
-                                                label: 'Admin',
+                                                label: getTerminology(
+                                                    RoleTerms.Admin,
+                                                    SystemTerms.Admin
+                                                ),
                                                 count: roleTypeCount.ADMIN,
                                                 bg: 'bg-[#E6EFFC]',
                                                 textCol: 'text-blue-700',
@@ -327,14 +352,20 @@ export function DashboardComponent() {
                                             ...(!showForInstitutes([HOLISTIC_INSTITUTE_ID])
                                                 ? [
                                                       {
-                                                          label: 'Course Creator',
+                                                          label: getTerminology(
+                                                              RoleTerms.CourseCreator,
+                                                              SystemTerms.CourseCreator
+                                                          ),
                                                           count: roleTypeCount['COURSE CREATOR'],
                                                           bg: 'bg-[#E6FCEF]',
                                                           textCol: 'text-green-700',
                                                           borderCol: 'border-green-200',
                                                       },
                                                       {
-                                                          label: 'Assessment Creator',
+                                                          label: getTerminology(
+                                                              RoleTerms.AssessmentCreator,
+                                                              SystemTerms.AssessmentCreator
+                                                          ),
                                                           count: roleTypeCount[
                                                               'ASSESSMENT CREATOR'
                                                           ],
@@ -363,14 +394,20 @@ export function DashboardComponent() {
                                             {/* Reduced gap */}
                                             {[
                                                 {
-                                                    label: 'Teacher',
+                                                    label: getTerminology(
+                                                        RoleTerms.Teacher,
+                                                        SystemTerms.Teacher
+                                                    ),
                                                     count: roleTypeCount['TEACHER'],
                                                     bg: 'bg-[#FCE6E7]',
                                                     textCol: 'text-red-700',
                                                     borderCol: 'border-red-200',
                                                 }, // Example color, adjust as needed
                                                 {
-                                                    label: 'Evaluator',
+                                                    label: getTerminology(
+                                                        RoleTerms.Evaluator,
+                                                        SystemTerms.Evaluator
+                                                    ),
                                                     count: roleTypeCount.EVALUATOR,
                                                     bg: 'bg-[#F0E6FC]',
                                                     textCol: 'text-purple-700',
@@ -399,7 +436,8 @@ export function DashboardComponent() {
                                 {/* Reduced padding */}
                                 <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
                                     <CardTitle className="text-sm font-semibold sm:mb-0">
-                                        Enroll students
+                                        Enroll{' '}
+                                        {getTerminology(RoleTerms.Learner, SystemTerms.Learner)}
                                     </CardTitle>{' '}
                                     {/* Smaller title */}
                                     <MyButton
@@ -440,9 +478,12 @@ export function DashboardComponent() {
                                         }
                                     >
                                         <div className="flex items-center gap-0.5">
-                                            {' '}
-                                            {/* Reduced gap */}
-                                            <span>Students</span>
+                                            <span>
+                                                {getTerminology(
+                                                    RoleTerms.Learner,
+                                                    SystemTerms.Learner
+                                                )}
+                                            </span>
                                             <ArrowSquareOut size={14} /> {/* Smaller icon */}
                                         </div>
                                         <span className="font-medium text-primary-500">
@@ -472,7 +513,11 @@ export function DashboardComponent() {
                                                 className="w-full px-3 py-1.5 text-xs sm:w-auto" // Custom class
                                             >
                                                 <Plus size={16} /> {/* Smaller icon */}
-                                                Create Course
+                                                Create{' '}
+                                                {getTerminology(
+                                                    ContentTerms.Course,
+                                                    SystemTerms.Course
+                                                )}
                                             </MyButton>
                                             <MyButton
                                                 type="submit"
@@ -483,7 +528,11 @@ export function DashboardComponent() {
                                                 className="w-full px-3 py-1.5 text-xs sm:w-auto" // Custom class
                                             >
                                                 <Plus size={16} /> {/* Smaller icon */}
-                                                Add Study Slides
+                                                Add Study{' '}
+                                                {getTerminology(
+                                                    ContentTerms.Slides,
+                                                    SystemTerms.Slides
+                                                )}
                                             </MyButton>
                                         </div>
                                     </div>
@@ -497,9 +546,12 @@ export function DashboardComponent() {
                                             }
                                         >
                                             <div className="flex items-center gap-0.5">
-                                                {' '}
-                                                {/* Reduced gap */}
-                                                <span>Courses</span>
+                                                <span>
+                                                    {getTerminology(
+                                                        ContentTerms.Course,
+                                                        SystemTerms.Course
+                                                    )}
+                                                </span>
                                                 <ArrowSquareOut size={14} /> {/* Smaller icon */}
                                             </div>
                                             <span className="font-medium text-primary-500">
@@ -507,13 +559,23 @@ export function DashboardComponent() {
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-1">
-                                            <span>Level</span>
+                                            <span>
+                                                {getTerminology(
+                                                    ContentTerms.Level,
+                                                    SystemTerms.Level
+                                                )}
+                                            </span>
                                             <span className="font-medium text-primary-500">
                                                 {instituteDetails?.levels?.length}
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-1">
-                                            <span>Subjects</span>
+                                            <span>
+                                                {getTerminology(
+                                                    ContentTerms.Subjects,
+                                                    SystemTerms.Subjects
+                                                )}
+                                            </span>
                                             <span className="font-medium text-primary-500">
                                                 {instituteDetails?.subjects?.length}
                                             </span>

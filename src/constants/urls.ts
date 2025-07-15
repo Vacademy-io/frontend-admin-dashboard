@@ -262,3 +262,7 @@ export const START_SESSION_API_URL = `${BASE_URL}/community-service/engage/admin
 export const FINISH_SESSION_API_URL = `${BASE_URL}/community-service/engage/admin/finish`;
 // Note: GET_SINGLE_PRESENTATION_DATA for all slide details will reuse GET_PRESENTATION
 // Ensure GET_PRESENTATION endpoint returns all necessary slide data for live sessions.
+
+// Naming Settings
+export const CREATE_NAMING_SETTINGS = `${BASE_URL}/admin-core-service/institute/setting/v1/create-name-setting`;
+export const UPDATE_NAMING_SETTINGS = `${BASE_URL}/admin-core-service/institute/setting/v1/update-name-setting`;

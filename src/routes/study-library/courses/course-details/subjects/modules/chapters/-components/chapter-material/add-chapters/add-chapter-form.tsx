@@ -11,6 +11,8 @@ import { toast } from 'sonner';
 import { useUpdateChapter } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/-services/update-chapter';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { useGetPackageSessionId } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionId';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 const formSchema = z.object({
     chapterName: z.string().min(1, 'Chapter name is required'),
@@ -158,10 +160,14 @@ export const AddChapterForm = ({
                     chapter: newChapter,
                 });
 
-                toast.success('Chapter added successfully');
+                toast.success(
+                    `${getTerminology(ContentTerms.Chapters, SystemTerms.Chapters)} added successfully`
+                );
             } else {
                 if (!initialValues) {
-                    toast.error('No chapter to update');
+                    toast.error(
+                        `No ${getTerminology(ContentTerms.Chapters, SystemTerms.Chapters)} to update`
+                    );
                     return;
                 }
 
@@ -182,13 +188,17 @@ export const AddChapterForm = ({
                     chapter: updatedChapter,
                 });
 
-                toast.success('Chapter updated successfully');
+                toast.success(
+                    `${getTerminology(ContentTerms.Chapters, SystemTerms.Chapters)} updated successfully`
+                );
             }
 
             onSubmitSuccess();
         } catch (error) {
             console.error('Error handling chapter:', error);
-            toast.error(`Failed to ${mode} chapter. Please try again.`);
+            toast.error(
+                `Failed to ${mode} ${getTerminology(ContentTerms.Chapters, SystemTerms.Chapters)}. Please try again.`
+            );
         }
     };
 
@@ -209,7 +219,10 @@ export const AddChapterForm = ({
                         <FormItem>
                             <FormControl>
                                 <MyInput
-                                    label="Chapter Name"
+                                    label={`${getTerminology(
+                                        ContentTerms.Chapters,
+                                        SystemTerms.Chapters
+                                    )} Name`}
                                     required={true}
                                     inputType="text"
                                     className="w-full"
@@ -234,8 +247,8 @@ export const AddChapterForm = ({
                         {isPending
                             ? `${mode === 'create' ? 'Adding' : 'Updating'}...`
                             : mode === 'create'
-                              ? 'Add Chapter'
-                              : 'Edit Chapter'}
+                              ? `Add ${getTerminology(ContentTerms.Chapters, SystemTerms.Chapters)}`
+                              : `Edit ${getTerminology(ContentTerms.Chapters, SystemTerms.Chapters)}`}
                     </MyButton>
                 </div>
             </form>

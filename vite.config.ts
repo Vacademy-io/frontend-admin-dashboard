@@ -14,47 +14,104 @@ export default defineConfig({
         tsconfigPaths(),
         TanStackRouterVite(),
         svgr({ include: '**/*.svg' }),
-        VitePWA({
-            registerType: 'autoUpdate',
-            includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
-            manifest: {
-                name: 'Admin Dashboard',
-                short_name: 'Admin',
-                description: 'Admin Dashboard Application',
-                theme_color: '#ffffff',
-                icons: [
-                    {
-                        src: 'pwa-192x192.png',
-                        sizes: '192x192',
-                        type: 'image/png',
-                    },
-                    {
-                        src: 'pwa-512x512.png',
-                        sizes: '512x512',
-                        type: 'image/png',
-                    },
-                ],
-            },
-            workbox: {
-                maximumFileSizeToCacheInBytes: 30 * 1024 * 1024, // 30MB
-            },
-        }),
+        // Temporarily disabled PWA plugin due to build error
+        // VitePWA({
+        //     registerType: 'autoUpdate',
+        //     devOptions: {
+        //         enabled: false,
+        //     },
+        //     includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+        //     manifest: {
+        //         name: 'Admin Dashboard',
+        //         short_name: 'Admin',
+        //         description: 'Admin Dashboard Application',
+        //         theme_color: '#ffffff',
+        //         icons: [
+        //             {
+        //                 src: 'pwa-192x192.png',
+        //                 sizes: '192x192',
+        //                 type: 'image/png',
+        //             },
+        //             {
+        //                 src: 'pwa-512x512.png',
+        //                 sizes: '512x512',
+        //                 type: 'image/png',
+        //             },
+        //         ],
+        //     },
+        //     workbox: {
+        //         maximumFileSizeToCacheInBytes: 30 * 1024 * 1024, // 30MB
+        //         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,woff}'],
+        //         runtimeCaching: [
+        //             {
+        //                 urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+        //                 handler: 'CacheFirst',
+        //                 options: {
+        //                     cacheName: 'google-fonts-cache',
+        //                     expiration: {
+        //                         maxEntries: 10,
+        //                         maxAgeSeconds: 60 * 60 * 24 * 365, // <== 365 days
+        //                     },
+        //                     cacheableResponse: {
+        //                         statuses: [0, 200],
+        //                     },
+        //                 },
+        //             },
+        //         ],
+        //     },
+        // }),
     ],
     // plugins: [react(), tsconfigPaths(), svgr({ include: "**/*.svg" })],
 
     build: {
         rollupOptions: {
+            external: (id) => {
+                // Handle problematic dependencies
+                if (id.includes('woff2-wasm')) return true;
+                return false;
+            },
             output: {
-                manualChunks: {
-                    // Group vendor dependencies
-                    vendor: ['react', 'react-dom', 'react-router-dom'],
-                    // Group large libraries separately
-                    pdfjs: ['pdfjs-dist', 'pdf-lib'],
-
-                    // Add other large dependencies here
+                manualChunks: (id) => {
+                    // Handle node_modules
+                    if (id.includes('node_modules')) {
+                        // Group React related packages
+                        if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+                            return 'react-vendor';
+                        }
+                        // Group PDF related packages
+                        if (id.includes('pdfjs') || id.includes('pdf-lib') || id.includes('@pdfme')) {
+                            return 'pdf-vendor';
+                        }
+                        // Group large UI libraries
+                        if (id.includes('@radix-ui') || id.includes('lucide') || id.includes('framer-motion')) {
+                            return 'ui-vendor';
+                        }
+                        // Group utility libraries
+                        if (id.includes('lodash') || id.includes('date-fns') || id.includes('axios')) {
+                            return 'utils-vendor';
+                        }
+                        // All other vendor dependencies
+                        return 'vendor';
+                    }
                 },
             },
+            onwarn: (warning, warn) => {
+                // Suppress specific warnings that might cause issues
+                if (warning.code === 'CIRCULAR_DEPENDENCY') return;
+                if (warning.code === 'INVALID_ANNOTATION') return;
+                warn(warning);
+            },
         },
+        target: 'esnext',
+        minify: 'terser',
+        terserOptions: {
+            compress: {
+                drop_console: true,
+                drop_debugger: true,
+            },
+        },
+        chunkSizeWarningLimit: 1000,
+        assetsInlineLimit: 0, // Disable asset inlining to prevent issues
     },
     resolve: {
         alias: {
@@ -97,5 +154,19 @@ export default defineConfig({
     },
     optimizeDeps: {
         exclude: ['@ffmpeg/ffmpeg', '@ffmpeg/util'],
+        include: [
+            'react',
+            'react-dom',
+            'react-router-dom',
+            'axios',
+            'lodash',
+            'date-fns',
+        ],
+        esbuildOptions: {
+            target: 'esnext',
+            supported: {
+                bigint: true,
+            },
+        },
     },
 });
