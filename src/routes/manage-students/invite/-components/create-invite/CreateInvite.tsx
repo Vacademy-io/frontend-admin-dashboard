@@ -345,7 +345,7 @@ const CreateInvite = () => {
                                     type="button"
                                     scale="small"
                                     buttonType="secondary"
-                                    className="mt-1 w-full border-none bg-neutral-200 p-5 transition-transform duration-150 hover:border-none hover:bg-neutral-200 disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:opacity-50"
+                                    className="mt-2 w-full border-none bg-neutral-200 p-5 transition-transform duration-150 hover:border-none hover:bg-neutral-200 disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:opacity-50"
                                     disable={
                                         !(selectedSession && selectedLevel) ||
                                         selectedBatches.length > 0
