@@ -14,6 +14,17 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
     onEdit,
     onDelete,
 }) => {
+    // Debug logging for explanations
+    console.log('[QuestionDisplay] Rendering question:', {
+        questionIndex: questionIndex + 1,
+        questionType: question.questionType,
+        questionName: question.questionName,
+        explanation: question.explanation,
+        explanationLength: question.explanation?.length || 0,
+        hasExplanation: !!question.explanation,
+        explanationContent: question.explanation
+    });
+
     // Debug logging for subjective questions
     if (question.questionType === 'LONG_ANSWER' || question.questionType === 'ONE_WORD') {
         console.log('[QuestionDisplay] Subjective question data:', {
@@ -111,6 +122,44 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
         );
     };
 
+    const renderCorrectAnswerIndex = (validAnswers: number[], questionType: string) => {
+        if (!validAnswers || validAnswers.length === 0) return null;
+        
+        return (
+            <div className="mt-3 space-y-2">
+                <div className="text-xs font-medium text-slate-600">Correct Answer(s):</div>
+                <div className="flex flex-wrap gap-2">
+                    {validAnswers.map((answerIndex, index) => (
+                        <div
+                            key={index}
+                            className="rounded-md border border-green-200 bg-green-50 px-3 py-1 text-xs font-medium text-green-700"
+                        >
+                            Option {String.fromCharCode(65 + answerIndex)} (Index: {answerIndex})
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    };
+
+    const renderExplanation = (explanation: string) => {
+        if (!explanation || explanation.trim() === '') return null;
+        
+        return (
+            <div className="mt-4 space-y-2">
+                <div className="text-xs font-medium text-slate-600">Explanation:</div>
+                <div className="rounded-md border border-purple-200 bg-purple-50 p-3 text-xs">
+                    <div
+                        className="text-slate-700"
+                        dangerouslySetInnerHTML={{
+                            __html: explanation,
+                        }}
+                    />
+                </div>
+            </div>
+        );
+    };
+
     return (
         <div className="relative flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
             <div className="flex items-center justify-between">
@@ -160,16 +209,52 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
                 </div>
 
                 {/* Display Answer Options based on question type */}
-                {question.questionType === 'MCQS' && question.singleChoiceOptions && question.singleChoiceOptions.length > 0 && 
+                {(question.questionType === 'MCQS' || question.questionType === 'CMCQS') && 
+                    (question.singleChoiceOptions && question.singleChoiceOptions.length > 0) && 
                     renderOptions(question.singleChoiceOptions)}
 
-                {question.questionType === 'MCQM' && question.multipleChoiceOptions && question.multipleChoiceOptions.length > 0 && 
+                {(question.questionType === 'MCQM' || question.questionType === 'CMCQM') && 
+                    (question.multipleChoiceOptions && question.multipleChoiceOptions.length > 0) && 
                     renderOptions(question.multipleChoiceOptions)}
 
                 {question.questionType === 'TRUE_FALSE' && question.trueFalseOptions && question.trueFalseOptions.length > 0 && 
                     renderOptions(question.trueFalseOptions)}
 
-                {question.questionType === 'NUMERIC' && question.validAnswers && question.validAnswers.length > 0 && 
+                {/* Show message when options are expected but not found */}
+                {((question.questionType === 'MCQS' || question.questionType === 'CMCQS') && 
+                    (!question.singleChoiceOptions || question.singleChoiceOptions.length === 0)) && (
+                    <div className="mt-3 space-y-2">
+                        <div className="text-xs text-orange-600">
+                            <span className="font-medium">Note: </span>
+                            No options found for this {question.questionType} question
+                        </div>
+                        {question.validAnswers && renderCorrectAnswerIndex(question.validAnswers, question.questionType)}
+                    </div>
+                )}
+
+                {((question.questionType === 'MCQM' || question.questionType === 'CMCQM') && 
+                    (!question.multipleChoiceOptions || question.multipleChoiceOptions.length === 0)) && (
+                    <div className="mt-3 space-y-2">
+                        <div className="text-xs text-orange-600">
+                            <span className="font-medium">Note: </span>
+                            No options found for this {question.questionType} question
+                        </div>
+                        {question.validAnswers && renderCorrectAnswerIndex(question.validAnswers, question.questionType)}
+                    </div>
+                )}
+
+                {question.questionType === 'TRUE_FALSE' && 
+                    (!question.trueFalseOptions || question.trueFalseOptions.length === 0) && (
+                    <div className="mt-3 space-y-2">
+                        <div className="text-xs text-orange-600">
+                            <span className="font-medium">Note: </span>
+                            No True/False options found for this question
+                        </div>
+                        {question.validAnswers && renderCorrectAnswerIndex(question.validAnswers, question.questionType)}
+                    </div>
+                )}
+
+                {(question.questionType === 'NUMERIC' || question.questionType === 'CNUMERIC') && question.validAnswers && question.validAnswers.length > 0 && 
                     renderNumericAnswer(question.validAnswers)}
 
                 {(question.questionType === 'LONG_ANSWER' || question.questionType === 'ONE_WORD') &&
@@ -177,16 +262,8 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
                         question.subjectiveAnswerText || ''
                     )}
 
-                {question.explanation && (
-                    <div className="mt-3 text-xs text-slate-500">
-                        <span className="font-medium">Explanation: </span>
-                        <div
-                            dangerouslySetInnerHTML={{
-                                __html: question.explanation,
-                            }}
-                        />
-                    </div>
-                )}
+                {/* Display Explanation */}
+                {renderExplanation(question.explanation || '')}
             </div>
         </div>
     );

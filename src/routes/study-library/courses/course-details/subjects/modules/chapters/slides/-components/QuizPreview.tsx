@@ -136,6 +136,23 @@ const QuizPreview = ({ activeItem, routeParams }: QuizPreviewProps) => {
             const questions = activeItem.quiz_slide.questions;
             console.log('[QuizPreview] Processing questions:', questions);
 
+            // Debug explanations in backend data
+            console.log(
+                '[QuizPreview] Backend questions with explanations:',
+                questions.map((q) => ({
+                    questionId: q.id,
+                    questionName: q.text?.content || q.questionName,
+                    explanation: q.explanation,
+                    explanation_text: q.explanation_text?.content,
+                    explanation_text_data: q.explanation_text_data?.content,
+                    hasExplanation: !!(
+                        q.explanation ||
+                        q.explanation_text?.content ||
+                        q.explanation_text_data?.content
+                    ),
+                }))
+            );
+
             const transformedQuestions = questions.map((question: BackendQuestion) => {
                 const transformed = transformQuestion(question);
                 console.log('[QuizPreview] Transformed question:', transformed);
@@ -228,6 +245,21 @@ const QuizPreview = ({ activeItem, routeParams }: QuizPreviewProps) => {
                 // Create payload for API call
                 const payload = createQuizSlidePayload(currentQuestions, activeItem);
                 console.log('[QuizPreview] API payload created:', payload);
+
+                // Debug explanations in payload
+                console.log(
+                    '[QuizPreview] Explanations in API payload:',
+                    payload.quiz_slide.questions.map((q) => ({
+                        questionId: q.id,
+                        explanation_text: q.explanation_text,
+                        explanation_text_data: q.explanation_text_data,
+                        hasExplanation: !!(
+                            q.explanation_text.content || q.explanation_text_data.content
+                        ),
+                        explanationContent: q.explanation_text.content,
+                        explanationDataContent: q.explanation_text_data.content,
+                    }))
+                );
 
                 // Call the API to update the quiz slide
                 await addUpdateQuizSlide(payload);
