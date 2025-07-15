@@ -38,34 +38,37 @@ export const transformOptions = (
     }));
 };
 
-// Helper function to transform a single question
-export const transformQuestion = (question: BackendQuestion | any): TransformedQuestion => {
-    const validAnswers = parseValidAnswers(question);
-    const questionText = getQuestionText(question);
-    const questionType =
-        question.question_type ||
-        question.question_response_type ||
-        question.questionType ||
-        'MCQS';
+// Helper function to extract subjective answer from auto_evaluation_json
+const extractSubjectiveAnswer = (question: BackendQuestion, questionType: string): string => {
+    if (!question.auto_evaluation_json) return '';
 
-    // Extract subjective answer from backend data for ONE_WORD and LONG_ANSWER
-    let subjectiveAnswerText = '';
-    if (question.auto_evaluation_json) {
-        try {
-            const evaluationData = JSON.parse(question.auto_evaluation_json);
-            console.log('[QuestionTransformer] Parsed auto_evaluation_json for', questionType, ':', evaluationData);
-            if (questionType === 'ONE_WORD') {
-                subjectiveAnswerText = evaluationData?.data?.answer || evaluationData?.answer || '';
-            } else if (questionType === 'LONG_ANSWER') {
-                subjectiveAnswerText = evaluationData?.data?.answer?.content || evaluationData?.answer?.content || evaluationData?.answer || '';
-            }
-            console.log('[QuestionTransformer] Extracted subjectiveAnswerText:', subjectiveAnswerText);
-        } catch (error) {
-            console.warn('[QuizPreview] Failed to parse auto_evaluation_json:', error);
+    try {
+        const evaluationData = JSON.parse(question.auto_evaluation_json);
+        console.log('[QuestionTransformer] Parsed auto_evaluation_json for', questionType, ':', evaluationData);
+        
+        let subjectiveAnswerText = '';
+        if (questionType === 'ONE_WORD') {
+            subjectiveAnswerText = evaluationData?.data?.answer || evaluationData?.answer || '';
+        } else if (questionType === 'LONG_ANSWER') {
+            subjectiveAnswerText = evaluationData?.data?.answer?.content || evaluationData?.answer?.content || evaluationData?.answer || '';
         }
+        
+        console.log('[QuestionTransformer] Extracted subjectiveAnswerText:', subjectiveAnswerText);
+        return subjectiveAnswerText;
+    } catch (error) {
+        console.warn('[QuizPreview] Failed to parse auto_evaluation_json:', error);
+        return '';
     }
+};
 
-    const transformed: TransformedQuestion = {
+// Helper function to create base transformed question
+const createBaseTransformedQuestion = (
+    question: BackendQuestion | any,
+    questionText: string,
+    questionType: string,
+    validAnswers: number[]
+): TransformedQuestion => {
+    return {
         questionName: questionText,
         questionType,
         questionPenalty: question.penalty || question.questionPenalty || '0',
@@ -85,44 +88,56 @@ export const transformQuestion = (question: BackendQuestion | any): TransformedQ
         trueFalseOptions: [],
         subjectiveAnswerText: '',
     };
+};
 
-    // For subjective questions, don't set validAnswers if they're just default values
-    if (questionType === 'LONG_ANSWER' || questionType === 'ONE_WORD') {
-        console.log('[QuestionTransformer] Processing subjective question:', {
-            questionType,
-            validAnswers,
-            subjectiveAnswerText,
-        });
-        if (validAnswers.length === 0 || (validAnswers.length === 1 && validAnswers[0] === 0)) {
-            transformed.validAnswers = undefined;
-            console.log('[QuestionTransformer] Removed default validAnswers for subjective question');
-        }
-    }
+// Helper function to handle subjective questions
+const handleSubjectiveQuestion = (
+    transformed: TransformedQuestion,
+    question: BackendQuestion | any,
+    questionType: string,
+    validAnswers: number[],
+    subjectiveAnswerText: string
+): void => {
+    console.log('[QuestionTransformer] Processing subjective question:', {
+        questionType,
+        validAnswers,
+        subjectiveAnswerText,
+    });
 
-    // Handle numeric questions
-    if (questionType === 'NUMERIC') {
-        transformed.subjectiveAnswerText = validAnswers.join(', ');
-    }
-    // Handle one word questions
-    else if (questionType === 'ONE_WORD') {
-        if (subjectiveAnswerText) {
-            transformed.subjectiveAnswerText = subjectiveAnswerText;
-        } else if (question.subjectiveAnswerText) {
-            transformed.subjectiveAnswerText = question.subjectiveAnswerText;
-        }
-        // Don't set default answer for subjective questions
-    }
-    // Handle long answer questions
-    else if (questionType === 'LONG_ANSWER') {
-        if (subjectiveAnswerText) {
-            transformed.subjectiveAnswerText = subjectiveAnswerText;
-        } else if (question.subjectiveAnswerText) {
-            transformed.subjectiveAnswerText = question.subjectiveAnswerText;
-        }
-        // Don't set default answer for subjective questions
+    // Remove default validAnswers for subjective questions
+    if (validAnswers.length === 0 || (validAnswers.length === 1 && validAnswers[0] === 0)) {
+        transformed.validAnswers = undefined;
+        console.log('[QuestionTransformer] Removed default validAnswers for subjective question');
     }
 
-    // Handle options for other question types
+    // Set subjective answer text
+    if (subjectiveAnswerText) {
+        transformed.subjectiveAnswerText = subjectiveAnswerText;
+    } else if (question.subjectiveAnswerText) {
+        transformed.subjectiveAnswerText = question.subjectiveAnswerText;
+    } else if (question.answerText) {
+        // Check for answerText field from form
+        transformed.subjectiveAnswerText = question.answerText;
+    }
+
+    console.log(`[QuestionTransformer] ${questionType} question processed:`, {
+        subjectiveAnswerText: transformed.subjectiveAnswerText,
+        questionData: question
+    });
+};
+
+// Helper function to handle numeric questions
+const handleNumericQuestion = (transformed: TransformedQuestion, validAnswers: number[]): void => {
+    transformed.subjectiveAnswerText = validAnswers.join(', ');
+};
+
+// Helper function to handle options for different question types
+const handleQuestionOptions = (
+    transformed: TransformedQuestion,
+    question: BackendQuestion | any,
+    questionType: string,
+    validAnswers: number[]
+): void => {
     // First check if it's form data (has the options arrays)
     if (question.singleChoiceOptions && question.singleChoiceOptions.length > 0) {
         transformed.singleChoiceOptions = question.singleChoiceOptions;
@@ -143,6 +158,33 @@ export const transformQuestion = (question: BackendQuestion | any): TransformedQ
             transformed.trueFalseOptions = options;
         }
     }
+};
+
+// Main function to transform a single question
+export const transformQuestion = (question: BackendQuestion | any): TransformedQuestion => {
+    const validAnswers = parseValidAnswers(question);
+    const questionText = getQuestionText(question);
+    const questionType =
+        question.question_type ||
+        question.question_response_type ||
+        question.questionType ||
+        'MCQS';
+
+    // Extract subjective answer from backend data
+    const subjectiveAnswerText = extractSubjectiveAnswer(question, questionType);
+
+    // Create base transformed question
+    const transformed = createBaseTransformedQuestion(question, questionText, questionType, validAnswers);
+
+    // Handle different question types
+    if (questionType === 'NUMERIC') {
+        handleNumericQuestion(transformed, validAnswers);
+    } else if (questionType === 'ONE_WORD' || questionType === 'LONG_ANSWER') {
+        handleSubjectiveQuestion(transformed, question, questionType, validAnswers, subjectiveAnswerText);
+    }
+
+    // Handle options for all question types
+    handleQuestionOptions(transformed, question, questionType, validAnswers);
 
     return transformed;
 }; 

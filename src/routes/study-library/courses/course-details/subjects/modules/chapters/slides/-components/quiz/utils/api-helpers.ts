@@ -68,6 +68,35 @@ export const transformFormQuestionsToBackend = (
                 }));
         }
 
+        // Prepare auto_evaluation_json based on question type
+        let autoEvaluationJson = '';
+        
+        if (question.questionType === 'LONG_ANSWER' || question.questionType === 'ONE_WORD') {
+            // For subjective questions, store the answer text
+            if (question.subjectiveAnswerText && question.subjectiveAnswerText.trim() !== '') {
+                autoEvaluationJson = JSON.stringify({
+                    data: {
+                        answer: question.questionType === 'LONG_ANSWER' 
+                            ? { content: question.subjectiveAnswerText }
+                            : question.subjectiveAnswerText
+                    }
+                });
+                console.log('[API Helpers] Subjective question auto_evaluation_json:', {
+                    questionType: question.questionType,
+                    subjectiveAnswerText: question.subjectiveAnswerText,
+                    autoEvaluationJson
+                });
+            } else if (question.validAnswers && question.validAnswers.length > 0) {
+                // Fallback to validAnswers if no subjective answer
+                autoEvaluationJson = JSON.stringify({ correctAnswers: question.validAnswers });
+            }
+        } else {
+            // For other question types, use validAnswers
+            if (question.validAnswers && question.validAnswers.length > 0) {
+                autoEvaluationJson = JSON.stringify({ correctAnswers: question.validAnswers });
+            }
+        }
+
         return {
             id: question.id || crypto.randomUUID(),
             parent_rich_text: {
@@ -86,9 +115,7 @@ export const transformFormQuestionsToBackend = (
             question_response_type: questionResponseType,
             question_type: question.questionType,
             access_level: 'INSTITUTE',
-            auto_evaluation_json: question.validAnswers
-                ? JSON.stringify({ correctAnswers: question.validAnswers })
-                : '',
+            auto_evaluation_json: autoEvaluationJson,
             evaluation_type: evaluationType,
             question_order: index + 1,
             quiz_slide_id: '', // This will be set by the caller

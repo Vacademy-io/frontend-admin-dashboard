@@ -214,6 +214,8 @@ const QuizPreview = ({ activeItem, routeParams }: QuizPreviewProps) => {
 
     const handleEditConfirm = async () => {
         const updated = editForm.getValues(`questions.0`);
+        console.log('[QuizPreview] handleEditConfirm - updated question:', updated);
+
         if (editIndex !== null) {
             try {
                 // Update the question in the form
@@ -221,9 +223,11 @@ const QuizPreview = ({ activeItem, routeParams }: QuizPreviewProps) => {
 
                 // Get all current questions
                 const currentQuestions = form.getValues('questions');
+                console.log('[QuizPreview] All questions after update:', currentQuestions);
 
                 // Create payload for API call
                 const payload = createQuizSlidePayload(currentQuestions, activeItem);
+                console.log('[QuizPreview] API payload created:', payload);
 
                 // Call the API to update the quiz slide
                 await addUpdateQuizSlide(payload);
