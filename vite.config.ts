@@ -70,15 +70,24 @@ export default defineConfig({
                 if (id.includes('woff2-wasm')) return true;
                 return false;
             },
+            onLog(level, log, handler) {
+                // Suppress circular dependency warnings for known safe cases
+                if (log.code === 'CIRCULAR_DEPENDENCY' && log.message?.includes('pako')) return;
+                handler(level, log);
+            },
             output: {
                 manualChunks: (id) => {
                     // Handle node_modules
                     if (id.includes('node_modules')) {
+                        // Separate pako to avoid initialization issues
+                        if (id.includes('pako')) {
+                            return 'compression-vendor';
+                        }
                         // Group React related packages
                         if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
                             return 'react-vendor';
                         }
-                        // Group PDF related packages
+                        // Group PDF related packages (excluding pako)
                         if (id.includes('pdfjs') || id.includes('pdf-lib') || id.includes('@pdfme')) {
                             return 'pdf-vendor';
                         }
@@ -161,6 +170,7 @@ export default defineConfig({
             'axios',
             'lodash',
             'date-fns',
+            'pako',
         ],
         esbuildOptions: {
             target: 'esnext',
@@ -168,5 +178,9 @@ export default defineConfig({
                 bigint: true,
             },
         },
+        force: true, // Force re-optimization to fix dependency issues
+    },
+    ssr: {
+        noExternal: ['pako'], // Ensure pako is handled properly in build
     },
 });
