@@ -42,6 +42,24 @@ interface BackendQuestion {
     options?: Array<{ id?: string; text?: { content: string }; content?: string }>;
 }
 
+interface TransformedQuestion {
+    questionName: string;
+    questionType: string;
+    questionPenalty: string;
+    questionDuration: { min: string; hrs: string };
+    questionMark: string;
+    id: string;
+    status?: string;
+    validAnswers: number[];
+    explanation: string;
+    canSkip: boolean;
+    tags: string[];
+    singleChoiceOptions: Array<{ id: string; name: string; isSelected: boolean }>;
+    multipleChoiceOptions: Array<{ id: string; name: string; isSelected: boolean }>;
+    trueFalseOptions: Array<{ id: string; name: string; isSelected: boolean }>;
+    subjectiveAnswerText: string;
+}
+
 interface QuestionTypeProps {
     icon: React.ReactNode;
     text: string;
@@ -129,6 +147,92 @@ const QuizPreview = ({ activeItem }: QuizPreviewProps) => {
         return () => subscription.unsubscribe(); // cleanup
     }, [form, activeItem, setActiveItem]);
 
+    // Helper function to parse auto_evaluation_json
+    const parseValidAnswers = (question: BackendQuestion): number[] => {
+        try {
+            if (question.auto_evaluation_json) {
+                const evaluationData = JSON.parse(question.auto_evaluation_json);
+                return evaluationData.correctAnswers || [0];
+            }
+        } catch (error) {
+            console.warn('[QuizPreview] Failed to parse auto_evaluation_json:', error);
+        }
+        return [0];
+    };
+
+    // Helper function to get question text
+    const getQuestionText = (question: BackendQuestion): string => {
+        return (
+            question.parent_rich_text?.content ||
+            question.text?.content ||
+            question.text_data?.content ||
+            question.questionName ||
+            ''
+        );
+    };
+
+    // Helper function to transform options
+    const transformOptions = (
+        options: BackendQuestion['options'],
+        validAnswers: number[]
+    ): Array<{ id: string; name: string; isSelected: boolean }> => {
+        if (!options || options.length === 0) return [];
+
+        return options.map((opt, idx: number) => ({
+            id: opt.id || `opt-${idx}`,
+            name: opt.text?.content || opt.content || '',
+            isSelected: validAnswers.includes(idx),
+        }));
+    };
+
+    // Helper function to transform a single question
+    const transformQuestion = (question: BackendQuestion): TransformedQuestion => {
+        const validAnswers = parseValidAnswers(question);
+        const questionText = getQuestionText(question);
+        const questionType = question.question_type || question.question_response_type || 'MCQS';
+
+        const transformed: TransformedQuestion = {
+            questionName: questionText,
+            questionType,
+            questionPenalty: question.penalty || '0',
+            questionDuration: {
+                min: '0',
+                hrs: '0',
+            },
+            questionMark: question.mark || '1',
+            id: question.id,
+            status: question.status,
+            validAnswers,
+            explanation: question.explanation_text?.content || question.explanation || '',
+            canSkip: question.can_skip || question.canSkip || false,
+            tags: question.tags || [],
+            singleChoiceOptions: [],
+            multipleChoiceOptions: [],
+            trueFalseOptions: [],
+            subjectiveAnswerText: '',
+        };
+
+        // Handle numeric questions
+        if (questionType === 'NUMERIC') {
+            transformed.subjectiveAnswerText = validAnswers.join(', ');
+        }
+
+        // Handle options for other question types
+        if (question.options && question.options.length > 0) {
+            const options = transformOptions(question.options, validAnswers);
+
+            if (questionType === 'MCQS') {
+                transformed.singleChoiceOptions = options;
+            } else if (questionType === 'MCQM') {
+                transformed.multipleChoiceOptions = options;
+            } else if (questionType === 'TRUE_FALSE') {
+                transformed.trueFalseOptions = options;
+            }
+        }
+
+        return transformed;
+    };
+
     useEffect(() => {
         console.log('[QuizPreview] useEffect triggered with activeItem:', {
             hasActiveItem: !!activeItem,
@@ -143,84 +247,7 @@ const QuizPreview = ({ activeItem }: QuizPreviewProps) => {
             console.log('[QuizPreview] Processing questions:', questions);
 
             const transformedQuestions = questions.map((question: BackendQuestion) => {
-                // Parse auto_evaluation_json to get correct answers
-                let validAnswers = [0];
-                try {
-                    if (question.auto_evaluation_json) {
-                        const evaluationData = JSON.parse(question.auto_evaluation_json);
-                        validAnswers = evaluationData.correctAnswers || [0];
-                    }
-                } catch (error) {
-                    console.warn('[QuizPreview] Failed to parse auto_evaluation_json:', error);
-                }
-
-                // Get question text from parent_rich_text or other fields
-                const questionText =
-                    question.parent_rich_text?.content ||
-                    question.text?.content ||
-                    question.text_data?.content ||
-                    question.questionName ||
-                    '';
-
-                // Transform question based on type
-                const transformed: any = {
-                    questionName: questionText,
-                    questionType:
-                        question.question_type || question.question_response_type || 'MCQS',
-                    questionPenalty: question.penalty || '0',
-                    questionDuration: {
-                        min: '0',
-                        hrs: '0',
-                    },
-                    questionMark: question.mark || '1',
-                    id: question.id,
-                    status: question.status,
-                    validAnswers: validAnswers,
-                    explanation: question.explanation_text?.content || question.explanation || '',
-                    canSkip: question.can_skip || question.canSkip || false,
-                    tags: question.tags || [],
-
-                    // Handle options based on question type
-                    singleChoiceOptions: [],
-                    multipleChoiceOptions: [],
-                    trueFalseOptions: [],
-                    subjectiveAnswerText: '',
-                };
-
-                // For numeric questions, set the correct answer as subjective answer text
-                if (
-                    question.question_type === 'NUMERIC' ||
-                    question.question_response_type === 'NUMERIC'
-                ) {
-                    transformed.subjectiveAnswerText = validAnswers.join(', ');
-                }
-
-                // For other question types, process options if they exist
-                if (question.options && question.options.length > 0) {
-                    const options = question.options.map((opt, idx: number) => ({
-                        id: opt.id || `opt-${idx}`,
-                        name: opt.text?.content || opt.content || '',
-                        isSelected: validAnswers.includes(idx),
-                    }));
-
-                    if (
-                        question.question_type === 'MCQS' ||
-                        question.question_response_type === 'MCQS'
-                    ) {
-                        transformed.singleChoiceOptions = options;
-                    } else if (
-                        question.question_type === 'MCQM' ||
-                        question.question_response_type === 'MCQM'
-                    ) {
-                        transformed.multipleChoiceOptions = options;
-                    } else if (
-                        question.question_type === 'TRUE_FALSE' ||
-                        question.question_response_type === 'TRUE_FALSE'
-                    ) {
-                        transformed.trueFalseOptions = options;
-                    }
-                }
-
+                const transformed = transformQuestion(question);
                 console.log('[QuizPreview] Transformed question:', transformed);
                 return transformed;
             });
