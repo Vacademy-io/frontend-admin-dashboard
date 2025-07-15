@@ -25,6 +25,7 @@ export interface Instructor {
     email: string;
     name: string;
     profilePicId?: string;
+    roles?: string[];
 }
 
 // === Subject Details with optional modules ===

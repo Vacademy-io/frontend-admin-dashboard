@@ -1,4 +1,4 @@
-import { GET_USER_DETAILS } from '@/constants/urls';
+ import { GET_USER_DETAILS } from '@/constants/urls';
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 import { CertificateStudentData } from '@/types/certificate/certificate-types';
 
@@ -33,18 +33,25 @@ export interface RawStudentDetailsResponse {
     parents_to_mother_email?: string;
 }
 
-export const fetchStudentDetailsByIds = async (userIds: string[]): Promise<CertificateStudentData[]> => {
+export const fetchStudentDetailsByIds = async (
+    userIds: string[]
+): Promise<CertificateStudentData[]> => {
     console.log('🔍 Fetching student details for IDs:', userIds);
-    
+
     try {
         // Fetch all students in parallel
         const promises = userIds.map(async (userId) => {
-            const response = await authenticatedAxiosInstance.get<RawStudentDetailsResponse>(GET_USER_DETAILS, {
-                params: { userId }
-            });
-            
-            console.log(`✅ Fetched data for ${userId}: ${response.data.full_name} (${response.data.email})`);
-            
+            const response = await authenticatedAxiosInstance.get<RawStudentDetailsResponse>(
+                GET_USER_DETAILS,
+                {
+                    params: { userId },
+                }
+            );
+
+            console.log(
+                `✅ Fetched data for ${userId}: ${response.data.full_name} (${response.data.email})`
+            );
+
             // Transform the raw response to match CertificateStudentData interface
             const studentData: CertificateStudentData = {
                 id: response.data.id || userId,
@@ -61,6 +68,10 @@ export const fetchStudentDetailsByIds = async (userIds: string[]): Promise<Certi
                 gender: response.data.gender || '',
                 father_name: response.data.father_name || '',
                 mother_name: response.data.mother_name || '',
+                father_mobile_number: response.data.parents_mobile_number || '',
+                father_email: response.data.parents_email || '',
+                mother_mobile_number: response.data.parents_to_mother_mobile_number || '',
+                mother_email: response.data.parents_to_mother_email || '',
                 parents_mobile_number: response.data.parents_mobile_number || '',
                 parents_email: response.data.parents_email || '',
                 linked_institute_name: response.data.linked_institute_name || null,
@@ -72,21 +83,24 @@ export const fetchStudentDetailsByIds = async (userIds: string[]): Promise<Certi
                 session_expiry_days: response.data.session_expiry_days || 365,
                 institute_id: response.data.institute_id || '',
                 country: response.data.country || '',
-                expiry_date: response.data.expiry_date || Date.now() + (365 * 24 * 60 * 60 * 1000),
+                expiry_date: response.data.expiry_date || Date.now() + 365 * 24 * 60 * 60 * 1000,
                 face_file_id: response.data.face_file_id || null,
-                parents_to_mother_mobile_number: response.data.parents_to_mother_mobile_number || '',
+                parents_to_mother_mobile_number:
+                    response.data.parents_to_mother_mobile_number || '',
                 parents_to_mother_email: response.data.parents_to_mother_email || '',
             };
-            
+
             return studentData;
         });
 
         const results = await Promise.all(promises);
         console.log('✅ All student details fetched successfully:', results);
-        
+
         return results;
     } catch (error) {
         console.error('❌ Error fetching student details:', error);
-        throw new Error(`Failed to fetch student details: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        throw new Error(
+            `Failed to fetch student details: ${error instanceof Error ? error.message : 'Unknown error'}`
+        );
     }
-}; 
+};

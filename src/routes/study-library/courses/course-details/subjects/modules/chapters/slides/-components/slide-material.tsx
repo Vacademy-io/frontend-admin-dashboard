@@ -20,7 +20,7 @@ import {
     useSlidesMutations,
 } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-hooks/use-slides';
 import { toast } from 'sonner';
-import { Check, DownloadSimple, PencilSimpleLine } from 'phosphor-react';
+import { Check, DownloadSimple, PencilSimpleLine, Trash } from 'phosphor-react';
 import { AlertCircle } from 'lucide-react';
 import {
     converDataToAssignmentFormat,
@@ -51,6 +51,7 @@ import { SplitScreenSlide } from './split-screen-slide';
 import { getTokenFromCookie, getTokenDecodedData } from '@/lib/auth/sessionUtility';
 import { UploadFileInS3 } from '@/services/upload_file';
 import { TokenKey } from '@/constants/auth/tokens';
+import QuizPreview from './QuizPreview';
 
 // Inside your component
 // this toggles the DoubtResolutionSidebar
@@ -268,7 +269,8 @@ export const SlideMaterial = ({
                 // If the slide is PUBLISHED and being edited, change status to UNSYNC
                 if (activeItem.status === 'PUBLISHED') {
                     newStatus = 'UNSYNC';
-                }try {
+                }
+                try {
                     await addUpdateDocumentSlide({
                         id: activeItem.id,
                         title: activeItem.title || '',
@@ -316,7 +318,7 @@ export const SlideMaterial = ({
                                 : undefined,
                         };
                     }
-            } catch (error) {
+                } catch (error) {
                     console.error('Error auto-saving Excalidraw:', error);
                 } finally {
                     // Reset the flag after a short delay to allow for UI updates
@@ -344,6 +346,26 @@ export const SlideMaterial = ({
                 <div className="flex h-[500px] flex-col items-center justify-center rounded-lg py-10">
                     <EmptySlideMaterial />
                     <p className="mt-4 text-neutral-500">No study material has been added yet</p>
+                </div>
+            );
+            return;
+        }
+
+        // Check if the slide is deleted
+        if (activeItem.status === 'DELETED') {
+            setContent(
+                <div className="flex h-[500px] flex-col items-center justify-center rounded-lg py-10">
+                    <div className="text-center">
+                        <div className="mb-4 flex size-16 items-center justify-center rounded-full bg-red-100">
+                            <Trash size={24} className="text-red-500" />
+                        </div>
+                        <h3 className="mb-2 text-lg font-semibold text-slate-600">
+                            This slide has been deleted
+                        </h3>
+                        <p className="text-sm text-slate-400">
+                            The slide content is no longer available
+                        </p>
+                    </div>
                 </div>
             );
             return;
@@ -380,6 +402,48 @@ export const SlideMaterial = ({
                 setContent(<VideoSlidePreview activeItem={activeItem} />);
             }
 
+            return;
+        }
+
+        // ✅ Handle ASSIGNMENT slides (check source_type first)
+        if (activeItem.source_type === 'ASSIGNMENT') {
+            try {
+                console.log('[Assignment] Loading assignment preview for:', {
+                    slideId: activeItem.id,
+                    title: activeItem.title,
+                    status: activeItem.status,
+                    hasAssignmentSlide: !!activeItem.assignment_slide,
+                    assignmentSlideData: activeItem.assignment_slide,
+                });
+
+                if (!activeItem.assignment_slide) {
+                    console.warn('[Assignment] No assignment_slide data found, showing fallback');
+                    setContent(
+                        <div className="flex h-[500px] flex-col items-center justify-center rounded-lg py-10">
+                            <div className="text-center">
+                                <h3 className="mb-2 text-lg font-semibold">Assignment Loading</h3>
+                                <p className="text-gray-600">Assignment data is being loaded...</p>
+                            </div>
+                        </div>
+                    );
+                    return;
+                }
+
+                setContent(<StudyLibraryAssignmentPreview activeItem={activeItem} />);
+            } catch (error) {
+                console.error('Error rendering assignment preview:', error);
+                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                setContent(
+                    <div className="flex h-[500px] flex-col items-center justify-center rounded-lg py-10">
+                        <div className="text-center">
+                            <h3 className="mb-2 text-lg font-semibold text-red-600">Assignment Error</h3>
+                            <p className="text-gray-600">
+                                Failed to load assignment: {errorMessage}
+                            </p>
+                        </div>
+                    </div>
+                );
+            }
             return;
         }
 
@@ -422,7 +486,6 @@ export const SlideMaterial = ({
 
                                 // If operation just completed and we have a pending update, apply it
                                 if (wasBusy && !isBusy && pendingStateUpdateRef.current) {
-
 
                                     const pendingUpdate = pendingStateUpdateRef.current;
                                     setActiveItem(pendingUpdate);
@@ -895,30 +958,6 @@ export const SlideMaterial = ({
                 return;
             }
 
-            // ✅ Handle ASSIGNMENT first (before DOC)
-            if (documentType === 'ASSIGNMENT') {
-                try {
-                    const rawData =
-                        activeItem.status === 'PUBLISHED'
-                            ? activeItem.document_slide?.data ||
-                              activeItem.document_slide?.published_data
-                            : activeItem.document_slide?.data;
-
-                    const assignmentData = rawData ? JSON.parse(rawData) : null;
-
-                    setContent(
-                        <StudyLibraryAssignmentPreview
-
-                            activeItem={activeItem}
-                        />
-                    );
-                } catch (error) {
-                    console.error('Error rendering assignment preview:', error);
-                    setContent(<div>Error loading assignment</div>);
-                }
-                return;
-            }
-
             // 🔁 Then handle DOC
             if (documentType === 'DOC') {
                 try {
@@ -934,15 +973,32 @@ export const SlideMaterial = ({
             }
         }
 
-        if (activeItem.source_type === 'QUESTION') {
+       if (
+    activeItem.source_type?.toUpperCase() === 'QUIZ' ||
+    activeItem.id?.startsWith('quiz-')
+) {
+    console.log('activeItem.source_type:', activeItem.source_type);
+    console.log('activeItem.id:', activeItem.id);
+    console.log('activeItem.status:', activeItem.status);
+    console.log('activeItem.question_slide:', activeItem.question_slide);
+
+    try {
+        // For question slides, we don't need to parse data as it's already structured
+        console.log('🎯 Loading QuizPreview with question slide');
+        setContent(<QuizPreview activeItem={activeItem} />);
+    } catch (error) {
+        console.error('Error loading quiz questions:', error);
+        setContent(<div>Error loading quiz questions</div>);
+    }
+    return;
+}
+
+        if (
+            activeItem.source_type?.toUpperCase() === 'QUESTION') {
+            console.log('activeItem.source_type', activeItem.source_type);
             setContent(<StudyLibraryQuestionsPreview activeItem={activeItem} />);
             return;
         }
-
-        // if (activeItem.source_type === 'ASSIGNMENT') {
-        //     setContent(<StudyLibraryAssignmentPreview activeItem={activeItem} />);
-        //     return;
-        // }
 
         // Fallback
         setContent(

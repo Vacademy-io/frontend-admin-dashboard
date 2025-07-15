@@ -16,6 +16,9 @@ import { useRouter } from '@tanstack/react-router';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { ProgressBar } from '@/components/ui/custom-progress-bar';
 import { getPublicUrl } from '@/services/upload_file';
+import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
+import { getInstituteId } from '@/constants/helper';
 
 // Types for API Response
 interface User {
@@ -92,6 +95,12 @@ export function CourseDetailsRatingsComponent({
     currentSession: string;
     currentLevel: string;
 }) {
+    const instituteId = getInstituteId();
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const tokenData = getTokenDecodedData(accessToken);
+    const hasRoleAdmin = instituteId
+        ? tokenData?.authorities[instituteId]?.roles.includes('ADMIN')
+        : false;
     const queryClient = useQueryClient();
     const router = useRouter();
     const courseId = router.state.location.search.courseId;
@@ -394,29 +403,31 @@ export function CourseDetailsRatingsComponent({
                                         <ThumbsDown size={18} />
                                         <span className="text-xs">{review.dislikes}</span>
                                     </Button>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="flex items-center gap-1 text-neutral-400 hover:text-red-600"
-                                        onClick={() => {
-                                            handleUpdateRatingMutation.mutate({
-                                                id: review.id,
-                                                rating: review.rating,
-                                                source_id:
-                                                    getPackageSessionId({
-                                                        courseId: courseId || '',
-                                                        levelId: currentLevel,
-                                                        sessionId: currentSession,
-                                                    }) || '',
-                                                status: 'DELETED',
-                                                likes: review.likes,
-                                                dislikes: review.dislikes,
-                                            });
-                                        }}
-                                    >
-                                        <Trash size={18} />
-                                        <span className="text-xs">Delete</span>
-                                    </Button>
+                                    {hasRoleAdmin && (
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="flex items-center gap-1 text-neutral-400 hover:text-red-600"
+                                            onClick={() => {
+                                                handleUpdateRatingMutation.mutate({
+                                                    id: review.id,
+                                                    rating: review.rating,
+                                                    source_id:
+                                                        getPackageSessionId({
+                                                            courseId: courseId || '',
+                                                            levelId: currentLevel,
+                                                            sessionId: currentSession,
+                                                        }) || '',
+                                                    status: 'DELETED',
+                                                    likes: review.likes,
+                                                    dislikes: review.dislikes,
+                                                });
+                                            }}
+                                        >
+                                            <Trash size={18} />
+                                            <span className="text-xs">Delete</span>
+                                        </Button>
+                                    )}
                                 </div>
                             </div>
                         </div>

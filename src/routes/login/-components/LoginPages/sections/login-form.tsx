@@ -26,6 +26,8 @@ import { Link2Icon } from 'lucide-react';
 import { handleOAuthLogin } from '@/hooks/login/oauth-login';
 import { GitHubLogoIcon } from '@radix-ui/react-icons';
 import { FcGoogle } from 'react-icons/fc';
+import { EmailLogin } from './EmailOtpForm';
+import { useState } from 'react';
 
 type FormValues = z.infer<typeof loginSchema>;
 
@@ -33,6 +35,7 @@ export function LoginForm() {
     const queryClient = useQueryClient();
     const { hasSeenAnimation, setHasSeenAnimation } = useAnimationStore();
     const navigate = useNavigate();
+    const [isEmailLogin, setIsEmailLogin] = useState(false);
 
     const form = useForm<FormValues>({
         resolver: zodResolver(loginSchema),
@@ -144,6 +147,14 @@ export function LoginForm() {
         navigate({ to: '/evaluator-ai' });
     };
 
+    const handleSwitchToEmail = () => {
+        setIsEmailLogin(true);
+    };
+
+    const handleSwitchToUsername = () => {
+        setIsEmailLogin(false);
+    };
+
     return (
         <SplashScreen isAnimationEnabled={!hasSeenAnimation}>
             <div className="flex w-full flex-col items-center justify-center gap-20">
@@ -181,49 +192,29 @@ export function LoginForm() {
                         </div>
                     </div>
 
-                    <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">
-                            <div className="flex w-full flex-col items-center justify-center gap-8 px-16">
-                                <FormField
-                                    control={form.control}
-                                    name="username"
-                                    render={({ field: { onChange, value, ...field } }) => (
-                                        <FormItem>
-                                            <FormControl>
-                                                <MyInput
-                                                    inputType="text"
-                                                    inputPlaceholder="Enter your username"
-                                                    input={value}
-                                                    onChangeFunction={onChange}
-                                                    error={form.formState.errors.username?.message}
-                                                    required={true}
-                                                    size="large"
-                                                    label="Username"
-                                                    {...field}
-                                                    className="w-[348px]"
-                                                />
-                                            </FormControl>
-                                        </FormItem>
-                                    )}
-                                />
-                                <div className="flex flex-col gap-2">
+                    {isEmailLogin ? (
+                        <EmailLogin onSwitchToUsername={handleSwitchToUsername} />
+                    ) : (
+                        <Form {...form}>
+                            <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">
+                                <div className="flex w-full flex-col items-center justify-center gap-8 px-16">
                                     <FormField
                                         control={form.control}
-                                        name="password"
+                                        name="username"
                                         render={({ field: { onChange, value, ...field } }) => (
                                             <FormItem>
                                                 <FormControl>
                                                     <MyInput
-                                                        inputType="password"
-                                                        inputPlaceholder="••••••••"
+                                                        inputType="text"
+                                                        inputPlaceholder="Enter your username"
                                                         input={value}
                                                         onChangeFunction={onChange}
                                                         error={
-                                                            form.formState.errors.password?.message
+                                                            form.formState.errors.username?.message
                                                         }
                                                         required={true}
                                                         size="large"
-                                                        label="Password"
+                                                        label="Username"
                                                         {...field}
                                                         className="w-[348px]"
                                                     />
@@ -231,44 +222,91 @@ export function LoginForm() {
                                             </FormItem>
                                         )}
                                     />
-                                    <Link to="/login/forgot-password">
-                                        <div className="cursor-pointer pl-1 text-caption font-regular text-primary-500">
-                                            Forgot Password?
+                                    <div className="flex flex-col gap-2">
+                                        <FormField
+                                            control={form.control}
+                                            name="password"
+                                            render={({ field: { onChange, value, ...field } }) => (
+                                                <FormItem>
+                                                    <FormControl>
+                                                        <MyInput
+                                                            inputType="password"
+                                                            inputPlaceholder="••••••••"
+                                                            input={value}
+                                                            onChangeFunction={onChange}
+                                                            error={
+                                                                form.formState.errors.password
+                                                                    ?.message
+                                                            }
+                                                            required={true}
+                                                            size="large"
+                                                            label="Password"
+                                                            {...field}
+                                                            className="w-[348px]"
+                                                        />
+                                                    </FormControl>
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <div className="flex items-center justify-between pl-1">
+                                            <Link to="/login/forgot-password">
+                                                <div className="cursor-pointer text-caption font-regular text-primary-500">
+                                                    Forgot Password?
+                                                </div>
+                                            </Link>
                                         </div>
-                                    </Link>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="mt-20 flex flex-col items-center gap-1">
-                                <MyButton
-                                    type="submit"
-                                    scale="large"
-                                    buttonType="primary"
-                                    layoutVariant="default"
-                                    disabled={mutation.isPending}
+                                {/* <button
+                                    type="button"
+                                    onClick={handleSwitchToEmail}
+                                    className="hover:text-primary-600 cursor-pointer text-caption font-regular text-primary-500 transition-colors"
                                 >
-                                    {mutation.isPending ? 'Logging in...' : 'Login'}
-                                </MyButton>
-                                <p className="text-sm">
-                                    Don&apos;t have an account?&nbsp;&nbsp;
-                                    <span
-                                        className="cursor-pointer text-primary-500"
-                                        onClick={handleNavigateSignup}
+                                    Prefer email login?
+                                </button> */}
+
+                                <div className="mt-8 flex flex-col items-center gap-1">
+                                    <MyButton
+                                        type="submit"
+                                        scale="large"
+                                        buttonType="primary"
+                                        layoutVariant="default"
+                                        disabled={mutation.isPending}
                                     >
-                                        Create One
-                                    </span>
-                                </p>
-                                <p className="text-caption font-regular text-primary-500">
-                                    <span
-                                        className="cursor-pointer text-primary-500"
-                                        onClick={handleNavigateAiEvaluator}
-                                    >
-                                        <Link2Icon className="mr-1 inline size-4" />
-                                        Try Our AI Evaluator Tool
-                                    </span>
-                                </p>
-                            </div>
-                        </form>
-                    </Form>
+                                        {mutation.isPending ? 'Logging in...' : 'Login'}
+                                    </MyButton>
+                                    <div className="flex w-full items-center justify-center p-4">
+                                        <button
+                                            type="button"
+                                            onClick={handleSwitchToEmail}
+                                            className="hover:text-primary-600 cursor-pointer text-sm font-regular text-primary-500 transition-colors"
+                                        >
+                                            Prefer email login?
+                                        </button>
+                                    </div>
+
+                                    <p className="text-sm">
+                                        Don&apos;t have an account?&nbsp;&nbsp;
+                                        <span
+                                            className="cursor-pointer text-primary-500"
+                                            onClick={handleNavigateSignup}
+                                        >
+                                            Create One
+                                        </span>
+                                    </p>
+                                    <p className="text-caption font-regular text-primary-500">
+                                        <span
+                                            className="cursor-pointer text-primary-500"
+                                            onClick={handleNavigateAiEvaluator}
+                                        >
+                                            <Link2Icon className="mr-1 inline size-4" />
+                                            Try Our AI Evaluator Tool
+                                        </span>
+                                    </p>
+                                </div>
+                            </form>
+                        </Form>
+                    )}
                 </div>
             </div>
         </SplashScreen>

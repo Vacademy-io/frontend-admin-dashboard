@@ -107,7 +107,7 @@ export const StepFourForm = ({
                                         <FormControl>
                                             <MyInput
                                                 inputType="text"
-                                                label="Mother's Name"
+                                                label="Mother/Female Guardian's Name"
                                                 inputPlaceholder="Full Name (First and Last)"
                                                 input={value}
                                                 onChangeFunction={onChange}

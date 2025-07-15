@@ -31,12 +31,15 @@ const EditStudentDetailsFormSchema = z.object({
     gender: z.string().min(1, 'This field is required'),
     address_line: z.string().optional(),
     state: z.string().optional(),
+    city: z.string().optional(),
     pin_code: z.string().optional(),
     institute_name: z.string().optional(),
     father_name: z.string().optional(),
     mother_name: z.string().optional(),
-    parents_mobile_number: z.string().optional(),
-    parents_email: z.string().email('Invalid email').optional().or(z.literal('')),
+    father_mobile_number: z.string().optional(),
+    father_email: z.string().email('Invalid email').optional().or(z.literal('')),
+    mother_mobile_number: z.string().optional(),
+    mother_email: z.string().email('Invalid email').optional().or(z.literal('')),
     face_file_id: z.string().optional().or(z.literal('')),
 });
 
@@ -83,13 +86,16 @@ export const EditStudentDetails = () => {
                 contact_number: selectedStudent?.mobile_number || '',
                 gender: selectedStudent?.gender || '',
                 address_line: selectedStudent?.address_line || '',
+                city: selectedStudent?.city || '',
                 state: selectedStudent?.region || '',
                 pin_code: selectedStudent?.pin_code || '',
                 institute_name: selectedStudent?.linked_institute_name || '',
                 father_name: selectedStudent?.father_name || '',
                 mother_name: selectedStudent?.mother_name || '',
-                parents_mobile_number: selectedStudent?.parents_mobile_number || '',
-                parents_email: selectedStudent?.parents_email || '',
+                father_mobile_number: selectedStudent?.father_mobile_number || '',
+                father_email: selectedStudent?.father_email || '',
+                mother_mobile_number: selectedStudent?.mother_mobile_number || '',
+                mother_email: selectedStudent?.mother_email || '',
                 face_file_id: selectedStudent?.face_file_id || '',
             });
 
@@ -403,6 +409,25 @@ export const EditStudentDetails = () => {
                             </FormItem>
                         )}
                     />
+                    <FormField
+                        control={form.control}
+                        name="city"
+                        render={({ field }) => (
+                            <FormItem className="w-full">
+                                <FormControl className="w-full">
+                                    <MyInput
+                                        input={field.value}
+                                        onChangeFunction={(e) => field.onChange(e.target.value)}
+                                        inputType="text"
+                                        inputPlaceholder="City"
+                                        className="w-full"
+                                        label="City"
+                                        error={form.formState.errors.city?.message}
+                                    />
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
 
                     <FormField
                         control={form.control}
@@ -505,26 +530,20 @@ export const EditStudentDetails = () => {
                             </FormItem>
                         )}
                     />
-
                     <FormField
                         control={form.control}
-                        name="parents_mobile_number"
+                        name="father_mobile_number"
                         render={() => (
                             <FormItem className="w-full">
                                 <FormControl>
-                                    <div className="flex flex-col gap-1">
-                                        <PhoneInputField
-                                            label="Parents Mobile Number"
-                                            placeholder="123 456 7890"
-                                            name="mobileNumber"
-                                            control={form.control}
-                                            country="in"
-                                            required={false}
-                                        />
-                                        <p className="text-subtitle text-danger-600">
-                                            {form.formState.errors.parents_mobile_number?.message}
-                                        </p>
-                                    </div>
+                                    <PhoneInputField
+                                        label="Father/Male Guardian Mobile Number"
+                                        placeholder="123 456 7890"
+                                        name="fatherMobile"
+                                        control={form.control}
+                                        country="in"
+                                        required={false}
+                                    />
                                 </FormControl>
                             </FormItem>
                         )}
@@ -532,7 +551,7 @@ export const EditStudentDetails = () => {
 
                     <FormField
                         control={form.control}
-                        name="parents_email"
+                        name="father_email"
                         render={({ field }) => (
                             <FormItem className="w-full">
                                 <FormControl className="w-full">
@@ -540,10 +559,49 @@ export const EditStudentDetails = () => {
                                         input={field.value}
                                         onChangeFunction={(e) => field.onChange(e.target.value)}
                                         inputType="email"
-                                        inputPlaceholder="Parents Email"
+                                        inputPlaceholder="Father/Male Guardian Email"
                                         className="w-full"
-                                        label="Parents Email"
-                                        error={form.formState.errors.parents_email?.message}
+                                        label="Father/Male Guardian Email"
+                                        error={form.formState.errors.father_email?.message}
+                                    />
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="mother_mobile_number"
+                        render={() => (
+                            <FormItem className="w-full">
+                                <FormControl>
+                                    <PhoneInputField
+                                        label="Mother/Female Guardian Mobile Number"
+                                        placeholder="123 456 7890"
+                                        name="motherMobile"
+                                        control={form.control}
+                                        country="in"
+                                        required={false}
+                                    />
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="mother_email"
+                        render={({ field }) => (
+                            <FormItem className="w-full">
+                                <FormControl className="w-full">
+                                    <MyInput
+                                        input={field.value}
+                                        onChangeFunction={(e) => field.onChange(e.target.value)}
+                                        inputType="email"
+                                        inputPlaceholder="Mother/Female Guardian Email"
+                                        className="w-full"
+                                        label="Mother/Female Guardian Email"
+                                        error={form.formState.errors.mother_email?.message}
                                     />
                                 </FormControl>
                             </FormItem>

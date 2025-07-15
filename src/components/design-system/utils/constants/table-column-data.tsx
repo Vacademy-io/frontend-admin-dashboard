@@ -331,7 +331,7 @@ export const myColumns: ColumnDef<StudentTable>[] = [
         size: 150,
         minSize: 120,
         maxSize: 220,
-        header: "Mother's Name",
+        header: "Mother/Female Guardian's Name",
         cell: ({ row }) => <CreateClickableCell row={row} columnId="mother_name" />,
         enableHiding: true,
     },
