@@ -20,7 +20,7 @@ import { getInstituteId } from '@/constants/helper';
 import InviteInstructorForm from './InviteInstructorForm';
 import { UserRolesDataEntry } from '@/types/dashboard/user-roles';
 import { CODE_CIRCLE_INSTITUTE_ID } from '@/constants/urls';
-import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { ContentTerms, RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
@@ -1003,7 +1003,8 @@ export const AddCourseStep2 = ({
                                             )}{' '}
                                             or{' '}
                                             {getTerminology(ContentTerms.Level, SystemTerms.Level)}.
-                                            Students will directly access the{' '}
+                                            {getTerminology(RoleTerms.Learner, SystemTerms.Learner)}
+                                            s will directly access the{' '}
                                             {getTerminology(
                                                 ContentTerms.Course,
                                                 SystemTerms.Course

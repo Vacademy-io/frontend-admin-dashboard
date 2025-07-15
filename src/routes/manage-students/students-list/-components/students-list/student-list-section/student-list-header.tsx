@@ -207,7 +207,7 @@ export const StudentListHeader = ({
                         <NoCourseDialog
                             isOpen={isOpen}
                             setIsOpen={setIsOpen}
-                            type="Enroll Students"
+                            type={`Enroll ${getTerminology(RoleTerms.Learner, SystemTerms.Learner)}s`}
                             content="You need to create a course and add a subject in it before"
                             trigger={
                                 <MyButton

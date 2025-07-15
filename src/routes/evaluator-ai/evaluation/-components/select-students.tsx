@@ -36,6 +36,8 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import { RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 
 interface AttemptData {
     id: string;
@@ -181,7 +183,8 @@ export function StudentSelectionDialog({
                 <DialogContent className="w-[60vw]">
                     <DialogHeader className="mb-2">
                         <DialogTitle className="font-bold">
-                            {'Select Students for Evaluation'}
+                            Select {getTerminology(RoleTerms.Learner, SystemTerms.Learner)}s for
+                            Evaluation
                         </DialogTitle>
                     </DialogHeader>
                     <div className="mx-auto mb-4 w-full max-w-4xl">
