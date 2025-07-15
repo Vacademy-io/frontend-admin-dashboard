@@ -22,7 +22,14 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Gift, ImageSquare, PencilSimpleLine, WarningCircle, CalendarBlank } from 'phosphor-react';
+import {
+    Gift,
+    ImageSquare,
+    PencilSimpleLine,
+    WarningCircle,
+    CalendarBlank,
+    Tag,
+} from 'phosphor-react';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { TokenKey } from '@/constants/auth/tokens';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
@@ -45,6 +52,9 @@ import {
 import { useForm as useShadForm } from 'react-hook-form';
 import { z as zod } from 'zod';
 import { zodResolver as shadZodResolver } from '@hookform/resolvers/zod';
+import { useForm as useDiscountForm } from 'react-hook-form';
+import { z as zodDiscount } from 'zod';
+import { zodResolver as discountZodResolver } from '@hookform/resolvers/zod';
 
 export interface Course {
     id: string;
@@ -346,6 +356,100 @@ const GenerateInviteLinkDialog = ({
         return () => document.removeEventListener('mousedown', handleClick);
     }, [showYoutubeInput]);
 
+    // Discount dialog state and dummy data
+    const [showDiscountDialog, setShowDiscountDialog] = useState(false);
+    const [discounts, setDiscounts] = useState([
+        {
+            id: 'd1',
+            title: 'Early Bird',
+            code: 'EARLY20',
+            type: 'percent',
+            value: 20,
+            expires: '2024-07-31',
+        },
+        {
+            id: 'd2',
+            title: 'Flat 500 Off',
+            code: 'FLAT500',
+            type: 'rupees',
+            value: 500,
+            expires: '2024-08-15',
+        },
+        {
+            id: 'd3',
+            title: 'Summer Special',
+            code: 'SUMMER10',
+            type: 'percent',
+            value: 10,
+            expires: '2024-09-01',
+        },
+        {
+            id: 'd4',
+            title: 'Festive Bonanza',
+            code: 'FESTIVE25',
+            type: 'percent',
+            value: 25,
+            expires: '2024-10-10',
+        },
+        {
+            id: 'd5',
+            title: 'New User Offer',
+            code: 'NEWUSER100',
+            type: 'rupees',
+            value: 100,
+            expires: '2024-12-31',
+        },
+        {
+            id: 'd6',
+            title: 'Flash Sale',
+            code: 'FLASH50',
+            type: 'percent',
+            value: 50,
+            expires: '2024-08-01',
+        },
+        {
+            id: 'd7',
+            title: 'Refer & Earn',
+            code: 'REFER150',
+            type: 'rupees',
+            value: 150,
+            expires: '2024-09-15',
+        },
+    ]);
+
+    // Add new discount dialog state and form
+    const [showAddDiscountDialog, setShowAddDiscountDialog] = useState(false);
+    const addDiscountSchema = zodDiscount.object({
+        title: zodDiscount.string().min(1, 'Title is required'),
+        code: zodDiscount.string().min(1, 'Code is required'),
+        type: zodDiscount.enum(['percent', 'rupees']),
+        value: zodDiscount.number().min(1, 'Value is required'),
+        expires: zodDiscount.string().min(1, 'Expiry date is required'),
+    });
+    type AddDiscountFormValues = zodDiscount.infer<typeof addDiscountSchema>;
+    const addDiscountForm = useDiscountForm<AddDiscountFormValues>({
+        resolver: discountZodResolver(addDiscountSchema),
+        defaultValues: {
+            title: '',
+            code: '',
+            type: 'percent',
+            value: 0,
+            expires: '',
+        },
+    });
+
+    const handleAddDiscount = (values: AddDiscountFormValues) => {
+        setDiscounts((prev) => [
+            ...prev,
+            {
+                id: `d${prev.length + 1}`,
+                ...values,
+            },
+        ]);
+        setShowAddDiscountDialog(false);
+        addDiscountForm.reset();
+    };
+
     return (
         <Dialog open={showSummaryDialog} onOpenChange={setShowSummaryDialog}>
             <DialogContent className="animate-fadeIn flex min-h-[90vh] min-w-[85vw] flex-col">
@@ -591,6 +695,26 @@ const GenerateInviteLinkDialog = ({
                                     </CardContent>
                                 </Card>
                             )}
+                            {/* Discount Settings Card */}
+                            <Card className="mb-4">
+                                <CardHeader className="flex flex-row items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <Tag size={22} />
+                                        <CardTitle className="text-2xl font-bold">
+                                            Discount Settings
+                                        </CardTitle>
+                                    </div>
+                                    <MyButton
+                                        type="button"
+                                        scale="small"
+                                        buttonType="secondary"
+                                        className="p-4"
+                                        onClick={() => setShowDiscountDialog(true)}
+                                    >
+                                        Change Discount Settings
+                                    </MyButton>
+                                </CardHeader>
+                            </Card>
                             {/* Course Preview Card */}
                             <Card className="pb-4">
                                 <CardHeader>
@@ -1135,7 +1259,7 @@ const GenerateInviteLinkDialog = ({
             </DialogContent>
             {/* Payment Plans Dialog */}
             <ShadDialog open={showPlansDialog} onOpenChange={setShowPlansDialog}>
-                <ShadDialogContent className="h-[80vh] min-w-[60vw] max-w-lg flex-col">
+                <ShadDialogContent className="flex h-[80vh] min-w-[60vw] max-w-lg flex-col overflow-auto">
                     <ShadDialogHeader>
                         <ShadDialogTitle className="font-bold">
                             Select a Payment Plan
@@ -1300,6 +1424,161 @@ const GenerateInviteLinkDialog = ({
                                     )}
                                 />
                             )}
+                            <div className="flex justify-end">
+                                <MyButton type="submit" scale="small" buttonType="primary">
+                                    Save
+                                </MyButton>
+                            </div>
+                        </form>
+                    </Form>
+                </ShadDialogContent>
+            </ShadDialog>
+            {/* Discount Settings Dialog */}
+            <ShadDialog open={showDiscountDialog} onOpenChange={setShowDiscountDialog}>
+                <ShadDialogContent className="flex h-[70vh] min-w-[60vw] max-w-lg flex-col">
+                    <ShadDialogHeader>
+                        <ShadDialogTitle>Select Discount Settings</ShadDialogTitle>
+                        <ShadDialogDescription>
+                            Choose a discount coupon or create a new one
+                        </ShadDialogDescription>
+                    </ShadDialogHeader>
+                    <div className="mt-4 flex-1 space-y-4 overflow-auto">
+                        {discounts.map((discount) => (
+                            <Card key={discount.id} className="flex flex-col gap-1 p-4">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <Tag size={16} />
+                                        <span className="text-base font-semibold">
+                                            {discount.title}
+                                        </span>
+                                    </div>
+                                    <span className="rounded bg-gray-100 px-2 py-1 font-mono text-xs text-gray-700">
+                                        {discount.code}
+                                    </span>
+                                </div>
+                                <div className="mt-1 flex items-center gap-4 text-sm">
+                                    <span className="font-semibold text-green-700">
+                                        {discount.type === 'percent'
+                                            ? `${discount.value}% off`
+                                            : `₹${discount.value} off`}
+                                    </span>
+                                    <span className="text-xs text-gray-500">
+                                        Expires: {discount.expires}
+                                    </span>
+                                </div>
+                            </Card>
+                        ))}
+                    </div>
+                    <div className="-mb-2 flex justify-center border-t bg-white pt-4">
+                        <MyButton
+                            type="button"
+                            scale="small"
+                            buttonType="secondary"
+                            onClick={() => setShowAddDiscountDialog(true)}
+                            className="p-4"
+                        >
+                            + Add New Discount
+                        </MyButton>
+                    </div>
+                </ShadDialogContent>
+            </ShadDialog>
+            {/* Add New Discount Dialog */}
+            <ShadDialog open={showAddDiscountDialog} onOpenChange={setShowAddDiscountDialog}>
+                <ShadDialogContent className="max-w-md">
+                    <ShadDialogHeader>
+                        <ShadDialogTitle>Add New Discount</ShadDialogTitle>
+                    </ShadDialogHeader>
+                    <Form {...addDiscountForm}>
+                        <form
+                            className="space-y-4"
+                            onSubmit={addDiscountForm.handleSubmit(handleAddDiscount)}
+                        >
+                            <FormField
+                                control={addDiscountForm.control}
+                                name="title"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Discount Title</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Enter discount title" {...field} />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={addDiscountForm.control}
+                                name="code"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Discount Code</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Enter discount code" {...field} />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={addDiscountForm.control}
+                                name="type"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Discount Type</FormLabel>
+                                        <FormControl>
+                                            <Select
+                                                value={field.value}
+                                                onValueChange={field.onChange}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select type" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="percent">
+                                                        Percentage Off
+                                                    </SelectItem>
+                                                    <SelectItem value="rupees">
+                                                        Rupees Off
+                                                    </SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={addDiscountForm.control}
+                                name="value"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Discount Value</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                type="number"
+                                                placeholder={
+                                                    addDiscountForm.watch('type') === 'percent'
+                                                        ? 'Enter percentage (e.g. 10)'
+                                                        : 'Enter amount (e.g. 500)'
+                                                }
+                                                {...field}
+                                                onChange={(e) =>
+                                                    field.onChange(Number(e.target.value))
+                                                }
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={addDiscountForm.control}
+                                name="expires"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Expiry Date</FormLabel>
+                                        <FormControl>
+                                            <Input type="date" {...field} />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
                             <div className="flex justify-end">
                                 <MyButton type="submit" scale="small" buttonType="primary">
                                     Save
