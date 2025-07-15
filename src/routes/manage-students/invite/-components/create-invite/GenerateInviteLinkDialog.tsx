@@ -450,6 +450,9 @@ const GenerateInviteLinkDialog = ({
         addDiscountForm.reset();
     };
 
+    // State for selected/active discount
+    const [selectedDiscountId, setSelectedDiscountId] = useState<string | null>(null);
+
     return (
         <Dialog open={showSummaryDialog} onOpenChange={setShowSummaryDialog}>
             <DialogContent className="animate-fadeIn flex min-h-[90vh] min-w-[85vw] flex-col">
@@ -714,6 +717,41 @@ const GenerateInviteLinkDialog = ({
                                         Change Discount Settings
                                     </MyButton>
                                 </CardHeader>
+                                {selectedDiscountId &&
+                                    (() => {
+                                        const activeDiscount = discounts.find(
+                                            (d) => d.id === selectedDiscountId
+                                        );
+                                        if (!activeDiscount) return null;
+                                        return (
+                                            <Card className="mx-4 mb-4 border">
+                                                <div className="flex items-center justify-between p-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <Tag size={16} />
+                                                        <span className="text-base font-semibold">
+                                                            {activeDiscount.title}
+                                                        </span>
+                                                        <span className="rounded bg-gray-100 px-2 py-1 font-mono text-xs text-gray-700">
+                                                            {activeDiscount.code}
+                                                        </span>
+                                                    </div>
+                                                    <Badge variant="default" className="ml-2">
+                                                        Active
+                                                    </Badge>
+                                                </div>
+                                                <div className="flex items-center gap-4 px-4 pb-4 text-sm">
+                                                    <span className="font-semibold text-green-700">
+                                                        {activeDiscount.type === 'percent'
+                                                            ? `${activeDiscount.value}% off`
+                                                            : `₹${activeDiscount.value} off`}
+                                                    </span>
+                                                    <span className="text-xs text-gray-500">
+                                                        Expires: {activeDiscount.expires}
+                                                    </span>
+                                                </div>
+                                            </Card>
+                                        );
+                                    })()}
                             </Card>
                             {/* Course Preview Card */}
                             <Card className="pb-4">
@@ -1444,7 +1482,14 @@ const GenerateInviteLinkDialog = ({
                     </ShadDialogHeader>
                     <div className="mt-4 flex-1 space-y-4 overflow-auto">
                         {discounts.map((discount) => (
-                            <Card key={discount.id} className="flex flex-col gap-1 p-4">
+                            <Card
+                                key={discount.id}
+                                className={`cursor-pointer flex-col gap-1 border-2 p-4 ${selectedDiscountId === discount.id ? 'border-primary' : 'border-gray-200'} transition-all`}
+                                onClick={() => {
+                                    setSelectedDiscountId(discount.id);
+                                    setShowDiscountDialog(false);
+                                }}
+                            >
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                         <Tag size={16} />
@@ -1466,6 +1511,11 @@ const GenerateInviteLinkDialog = ({
                                         Expires: {discount.expires}
                                     </span>
                                 </div>
+                                {selectedDiscountId === discount.id && (
+                                    <Badge variant="default" className="ml-2">
+                                        Active
+                                    </Badge>
+                                )}
                             </Card>
                         ))}
                     </div>
