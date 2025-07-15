@@ -220,7 +220,7 @@ export default function NamingSettings() {
                     <p className="text-sm text-muted-foreground">
                         Customize the naming conventions used throughout your institute
                         <br />
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-xs  text-primary-500">
                             Please enter singular form of the term
                         </span>
                     </p>

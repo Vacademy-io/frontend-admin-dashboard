@@ -222,8 +222,6 @@ export function DashboardComponent() {
                             <span>{data.profile_completion_percentage}% complete</span>
                         </CardDescription>
                     </CardHeader>
-                </Card>
-                <Card className="grow bg-neutral-50 shadow-none">
                     <CardHeader className="p-4">
                         <div className="flex items-center justify-between">
                             <div className="flex flex-col">
@@ -247,6 +245,7 @@ export function DashboardComponent() {
                         </div>
                     </CardHeader>
                 </Card>
+
                 {/* AI Features Card - Compacted Internals */}
                 {!showForInstitutes([HOLISTIC_INSTITUTE_ID]) && (
                     <Card

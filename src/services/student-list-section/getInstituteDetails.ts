@@ -37,10 +37,13 @@ export const useInstituteQuery = () => {
             const tokenData = getTokenDecodedData(accessToken);
             const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
             const instituteSettings = JSON.parse(data?.setting || '{}');
-
-            if (!isNullOrEmptyOrUndefined(instituteSettings)) {
-                const namingSettings = instituteSettings.setting.NAMING_SETTING;
-                setValue(namingSettings.data.data);
+            try {
+                if (!isNullOrEmptyOrUndefined(instituteSettings)) {
+                    const namingSettings = instituteSettings.setting.NAMING_SETTING;
+                    setValue(namingSettings.data.data);
+                }
+            } catch (error) {
+                console.error('Error setting naming settings:', error);
             }
             // Set holistic theme for specific institute ID
             if (INSTITUTE_ID === HOLISTIC_INSTITUTE_ID) {

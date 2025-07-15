@@ -47,6 +47,8 @@ export const updateNamingSettings = async (nameRequest: NamingSettingsRequest): 
     const tokenData = getTokenDecodedData(accessToken);
     const instituteIds = Object.keys(tokenData?.authorities || {});
 
+    console.log('naming settings', nameRequest);
+
     if (instituteIds.length === 0) {
         throw new Error('No institute ID found in token');
     }
