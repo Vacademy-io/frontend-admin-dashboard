@@ -9,12 +9,12 @@ import { useGetBatchesQuery } from '@/routes/manage-institute/batches/-services/
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import RootErrorComponent from '@/components/core/deafult-error';
 import { InviteLink } from '@/routes/manage-students/-components/InviteLink';
-import { CreateInvite } from '@/routes/manage-students/invite/-components/create-invite/CreateInvite';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { NoCourseDialog } from '@/components/common/students/no-course-dialog';
 import { cn } from '@/lib/utils';
 import { UserPlus, ArrowRight, Users, GraduationCap, Calendar } from '@phosphor-icons/react';
 import { HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
+import CreateInvite from '@/routes/manage-students/invite/-components/create-invite/CreateInvite';
 
 const InviteLinksDialog = ({
     currentSession,

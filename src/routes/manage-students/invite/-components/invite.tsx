@@ -8,7 +8,7 @@ import { usePaginationState } from '@/hooks/pagination';
 import { useGetInviteList } from '../-services/get-invite-list';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { InviteLink } from '../../-components/InviteLink';
-import { CreateInvite } from './create-invite/CreateInvite';
+import CreateInvite from './create-invite/CreateInvite';
 
 export const Invite = () => {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
