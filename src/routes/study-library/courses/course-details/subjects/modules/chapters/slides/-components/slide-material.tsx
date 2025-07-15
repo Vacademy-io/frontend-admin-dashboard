@@ -83,8 +83,11 @@ export const SlideMaterial = ({
     const pendingStateUpdateRef = useRef<any>(null); // Store pending state updates
     const stableKeyRef = useRef<string>(''); // Stable key during operations
 
-    const { courseId, levelId, chapterId, slideId, moduleId, subjectId, sessionId } =
-        router.state.location.search;
+    const searchParams = router.state.location.search;
+    const { courseId, levelId, chapterId, slideId, moduleId, subjectId, sessionId } = searchParams;
+
+    console.log('🔍 Raw search params:', searchParams);
+    console.log('🔍 Extracted params:', { courseId, levelId, chapterId, slideId, moduleId, subjectId, sessionId });
     const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
     const [isUnpublishDialogOpen, setIsUnpublishDialogOpen] = useState(false);
     const { getPackageSessionId } = useInstituteDetailsStore();
@@ -985,7 +988,18 @@ export const SlideMaterial = ({
     try {
         // For question slides, we don't need to parse data as it's already structured
         console.log('🎯 Loading QuizPreview with question slide');
-        setContent(<QuizPreview activeItem={activeItem} />);
+        console.log('🔍 Route parameters:', { chapterId, moduleId, subjectId, sessionId });
+        setContent(
+            <QuizPreview
+                activeItem={activeItem}
+                routeParams={{
+                    chapterId,
+                    moduleId,
+                    subjectId,
+                    sessionId
+                }}
+            />
+        );
     } catch (error) {
         console.error('Error loading quiz questions:', error);
         setContent(<div>Error loading quiz questions</div>);
