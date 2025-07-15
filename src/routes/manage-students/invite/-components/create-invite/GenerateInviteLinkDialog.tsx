@@ -565,6 +565,9 @@ const GenerateInviteLinkDialog = ({
         addReferralForm.reset();
     };
 
+    // Add state for the new switch
+    const [restrictToSameBatch, setRestrictToSameBatch] = useState(false);
+
     return (
         <Dialog open={showSummaryDialog} onOpenChange={setShowSummaryDialog}>
             <DialogContent className="animate-fadeIn flex min-h-[90vh] min-w-[85vw] flex-col">
@@ -1486,6 +1489,23 @@ const GenerateInviteLinkDialog = ({
                                         </div>
                                     </div>
                                 </CardContent>
+                            </Card>
+                            {/* New Card for Restrict to Same Batch */}
+                            <Card className="mb-4 flex flex-row items-center justify-between p-4">
+                                <div className="flex flex-col">
+                                    <span className="font-semibold">
+                                        Check if the referrer is a part of the same course and
+                                        batch?
+                                    </span>
+                                    <span className="text-sm text-gray-600">
+                                        Enable this to restrict referrals to students from the same
+                                        batch
+                                    </span>
+                                </div>
+                                <ShadSwitch
+                                    checked={restrictToSameBatch}
+                                    onCheckedChange={setRestrictToSameBatch}
+                                />
                             </Card>
                         </form>
                     </Form>
