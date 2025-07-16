@@ -580,17 +580,18 @@ const GenerateInviteLinkDialog = ({
                 },
             ]);
         } else {
-            const freePlans = form.getValues('paidPlans');
+            const paidPlans = form.getValues('paidPlans');
             form.setValue('paidPlans', [
-                ...freePlans,
+                ...paidPlans,
                 {
-                    id: `paid${freePlans.length + 1}`,
+                    id: `paid${paidPlans.length + 1}`,
                     name: values.name,
                     description: values.description,
                     price: values.price || '',
                 },
             ]);
         }
+        form.setValue('showAddPlanDialog', false);
         addPlanForm.reset();
     };
 
@@ -692,14 +693,14 @@ const GenerateInviteLinkDialog = ({
 
     const handleAddDiscount = (values: AddDiscountFormValues) => {
         const prevDiscounts = form.getValues('discounts');
-
         form.setValue('discounts', [
-            ...form.getValues('discounts'),
+            ...prevDiscounts,
             {
                 id: `d${prevDiscounts.length + 1}`,
                 ...values,
             },
         ]);
+        form.setValue('showAddDiscountDialog', false);
         addDiscountForm.reset();
     };
 
@@ -735,8 +736,8 @@ const GenerateInviteLinkDialog = ({
                 combineOffers: values.combineOffers,
             },
         ]);
-
-        setValue('selectedReferralId', newId);
+        form.setValue('selectedReferralId', newId);
+        form.setValue('showAddReferralDialog', false);
         addReferralForm.reset();
     };
 
