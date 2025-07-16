@@ -249,6 +249,7 @@ const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) =
                     status: 'ACTIVE',
                     question_response_type: questionResponseType,
                     question_type: question.questionType,
+                    questionType: question.questionType, // Fix: Add questionType field for backend compatibility
                     access_level: 'INSTITUTE',
                     auto_evaluation_json: createAutoEvaluationJson(question),
                     evaluation_type: evaluationType,
@@ -409,6 +410,7 @@ const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) =
                         status: 'ACTIVE',
                         question_response_type: 'OPTION',
                         question_type: question.questionType,
+                        questionType: question.questionType, // Fix: Add questionType field for backend compatibility
                         access_level: 'INSTITUTE',
                         auto_evaluation_json: question.validAnswers
                             ? JSON.stringify({ correctAnswers: question.validAnswers })
