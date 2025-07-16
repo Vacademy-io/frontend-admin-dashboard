@@ -44,6 +44,7 @@ import {
     PencilSimple,
     Clock,
     CodeSimple,
+    Prohibit,
 } from 'phosphor-react';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { TokenKey } from '@/constants/auth/tokens';
@@ -1658,7 +1659,7 @@ const GenerateInviteLinkDialog = ({
                                     <Card className="mx-4 mb-4 border">
                                         <div className="flex items-center justify-between p-4">
                                             <div className="flex items-center gap-2">
-                                                <Tag size={16} />
+                                                <WarningCircle size={16} />
                                                 <span className="text-base font-semibold">
                                                     No Discount Applied
                                                 </span>
@@ -1680,13 +1681,28 @@ const GenerateInviteLinkDialog = ({
                                             <Card className="mx-4 mb-4 border">
                                                 <div className="flex items-center justify-between p-4">
                                                     <div className="flex items-center gap-2">
-                                                        <Tag size={16} />
+                                                        {activeDiscount.id === 'none' ? (
+                                                            <WarningCircle size={16} />
+                                                        ) : (
+                                                            <Tag size={16} />
+                                                        )}
                                                         <span className="text-base font-semibold">
                                                             {activeDiscount.title}
                                                         </span>
-                                                        <span className="rounded bg-gray-100 px-2 py-1 font-mono text-xs text-gray-700">
-                                                            {activeDiscount.code}
-                                                        </span>
+                                                        {selectedDiscountId ===
+                                                            activeDiscount.id && (
+                                                            <Badge
+                                                                variant="default"
+                                                                className="ml-2"
+                                                            >
+                                                                Active
+                                                            </Badge>
+                                                        )}
+                                                        {activeDiscount.code && (
+                                                            <span className="rounded bg-gray-100 px-2 py-1 font-mono text-xs text-gray-700">
+                                                                {activeDiscount.code}
+                                                            </span>
+                                                        )}
                                                     </div>
                                                     <Badge variant="default" className="ml-2">
                                                         Active
@@ -2699,7 +2715,11 @@ const GenerateInviteLinkDialog = ({
                             >
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
-                                        <Tag size={16} />
+                                        {discount.id === 'none' ? (
+                                            <Prohibit size={16} />
+                                        ) : (
+                                            <Tag size={16} />
+                                        )}
                                         <span className="text-base font-semibold">
                                             {discount.title}
                                         </span>
@@ -2708,12 +2728,12 @@ const GenerateInviteLinkDialog = ({
                                                 Active
                                             </Badge>
                                         )}
+                                        {discount.code && (
+                                            <span className="rounded bg-gray-100 px-2 py-1 font-mono text-xs text-gray-700">
+                                                {discount.code}
+                                            </span>
+                                        )}
                                     </div>
-                                    {discount.code && (
-                                        <span className="rounded bg-gray-100 px-2 py-1 font-mono text-xs text-gray-700">
-                                            {discount.code}
-                                        </span>
-                                    )}
                                 </div>
                                 {discount.id !== 'none' && (
                                     <div className="mt-1 flex items-center gap-4 text-sm">
