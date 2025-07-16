@@ -17,7 +17,7 @@ function RouteComponent() {
                     content="This page shows the live session list of the institute."
                 />
             </Helmet>
-            <SessionListPage />̥
+            <SessionListPage />
         </LayoutContainer>
     );
 }

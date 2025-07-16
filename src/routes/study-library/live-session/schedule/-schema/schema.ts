@@ -42,6 +42,43 @@ export const weeklyClassSchema = z.object({
     day: weekDaysEnum,
     isSelect: z.boolean(),
     sessions: z.array(sessionDetailsSchema),
+}).superRefine((data, ctx) => {
+    if (data.isSelect) {
+        data.sessions.forEach((session, sessionIndex) => {
+            if (!session.startTime || session.startTime.trim() === '') {
+                ctx.addIssue({
+                    code: 'custom',
+                    message: 'Start time is required for selected days',
+                    path: ['sessions', sessionIndex, 'startTime'],
+                });
+            }
+
+            const hours = parseInt(session.durationHours || '0') || 0;
+            const minutes = parseInt(session.durationMinutes || '0') || 0;
+
+            if (hours === 0 && minutes === 0) {
+                ctx.addIssue({
+                    code: 'custom',
+                    message: 'Duration is required for selected days',
+                    path: ['sessions', sessionIndex, 'durationHours'],
+                });
+            }
+
+            if (!session.link || session.link.trim() === '') {
+                ctx.addIssue({
+                    code: 'custom',
+                    message: 'Live class link is required for selected days',
+                    path: ['sessions', sessionIndex, 'link'],
+                });
+            } else if (session.link.trim() !== '' && !/^https?:\/\/.+/.test(session.link)) {
+                ctx.addIssue({
+                    code: 'custom',
+                    message: 'Invalid URL format',
+                    path: ['sessions', sessionIndex, 'link'],
+                });
+            }
+        });
+    }
 });
 
 export const sessionFormSchema = z
@@ -70,14 +107,14 @@ export const sessionFormSchema = z
             .optional(),
         timeZone: z.string().min(1, 'Time zone is required'),
         events: z.string().regex(/^\d+$/, 'Must be a number'),
-        description: z.string().optional(),
+        description: z.string().min(1, 'Description is required'),
         durationMinutes: z.string({
             required_error: 'Duration is required',
         }),
         durationHours: z.string({
             required_error: 'Duration is required',
         }),
-        defaultLink: z.string().url('Invalid URL').optional().or(z.literal('')),
+        defaultLink: z.string().min(1, 'Live class link is required').url('Invalid URL'),
         meetingType: z.nativeEnum(RecurringType),
         recurringSchedule: z.array(weeklyClassSchema).optional(),
     })
@@ -87,6 +124,23 @@ export const sessionFormSchema = z
                 code: 'custom',
                 message: 'End date is required for recurring meetings.',
                 path: ['endDate'],
+            });
+        }
+
+        // Validate that duration is not zero
+        const hours = parseInt(data.durationHours) || 0;
+        const minutes = parseInt(data.durationMinutes) || 0;
+
+        if (hours === 0 && minutes === 0) {
+            ctx.addIssue({
+                code: 'custom',
+                message: 'Duration must be at least 1 minute',
+                path: ['durationHours'],
+            });
+            ctx.addIssue({
+                code: 'custom',
+                message: 'Duration must be at least 1 minute',
+                path: ['durationMinutes'],
             });
         }
     });

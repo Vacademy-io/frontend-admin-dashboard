@@ -359,15 +359,21 @@ export default function ScheduleStep2() {
             <FormProvider {...form}>
                 <form
                     onSubmit={handleSubmit(onSubmitClick, onError)}
-                    className="flex flex-col gap-4"
+                    className="flex flex-col"
                 >
-                    <div className="m-0 flex items-center justify-between p-0">
-                        <h1>Add Participants</h1>
-                        <MyButton type="submit" scale="large" buttonType="primary">
-                            Finish
-                        </MyButton>
+                    {/* Fixed header with title and Finish button */}
+                    <div className="sticky top-0 z-10 bg-white border-b border-gray-200 py-4 px-6 -mx-6 mb-8">
+                        <div className="flex items-center justify-between">
+                            <h1>Add Participants</h1>
+                            <MyButton type="submit" scale="large" buttonType="primary">
+                                Finish
+                            </MyButton>
+                        </div>
                     </div>
-                    <Separator className="my-4" />
+
+                    {/* Form content with proper spacing */}
+                    <div className="flex flex-col gap-4">
+                        <Separator className="my-4" />
 
                     {/* Access Type */}
 
@@ -920,6 +926,7 @@ export default function ScheduleStep2() {
                                 )}
                             />
                         </div>
+                    </div>
                     </div>
                 </form>
                 {/* Preview Registration Form */}

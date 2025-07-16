@@ -41,6 +41,7 @@ import {
 import { useSessionDetailsStore } from '../../-store/useSessionDetailsStore';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
+import { toast } from 'sonner';
 // Constants
 const WAITING_ROOM_OPTIONS = [
     { value: '15', label: '15 minutes', _id: 1 },
@@ -75,6 +76,9 @@ export default function ScheduleStep1() {
         resolver: zodResolver(sessionFormSchema),
         defaultValues: {
             title: '',
+            description: '',
+            defaultLink: '',
+            startTime: '',
             meetingType:
                 sessionDetails?.schedule?.recurrence_type === 'weekly'
                     ? RecurringType.WEEKLY
@@ -84,7 +88,7 @@ export default function ScheduleStep1() {
                 isSelect: false,
                 sessions: [
                     {
-                        startTime: '00:00',
+                        startTime: '',
                         durationHours: '',
                         durationMinutes: '',
                         link: '',
@@ -102,8 +106,8 @@ export default function ScheduleStep1() {
             allowRewind: false,
             enableWaitingRoom: false,
             sessionPlatform: StreamingPlatform.OTHER,
-            durationMinutes: '00',
-            durationHours: '00',
+            durationMinutes: '',
+            durationHours: '',
         },
         mode: 'onChange',
     });
@@ -368,7 +372,7 @@ export default function ScheduleStep1() {
             thumbnailFileId,
             instituteDetails?.institute_logo_file_id
         );
-        try {
+                try {
             const response = await createLiveSessionStep1(body);
             useLiveSessionStore.getState().setSessionId(response.id);
             console.log(response.id);
@@ -376,11 +380,73 @@ export default function ScheduleStep1() {
             navigate({ to: '/study-library/live-session/schedule/step2' });
         } catch (error) {
             console.error(error);
+
+            // Show error toast for API failures
+            toast.error('Failed to create live session', {
+                description: 'Please try again or contact support if the problem persists',
+                duration: 4000,
+            });
         }
     };
 
-    const onError = (errors: FieldErrors<typeof sessionFormSchema>) => {
+    const onError = (errors: FieldErrors<z.infer<typeof sessionFormSchema>>) => {
         console.log('Validation errors:', errors);
+
+        // Show specific toast message for each missing mandatory field
+        if (errors.title) {
+            toast.error('Title is required', {
+                description: 'Please enter a title for your live session',
+                duration: 4000,
+            });
+            return;
+        }
+
+        if (errors.description) {
+            toast.error('Description is required', {
+                description: 'Please provide a description for your live session',
+                duration: 4000,
+            });
+            return;
+        }
+
+        if (errors.startTime) {
+            toast.error('Start Date & Time is required', {
+                description: 'Please select when your live session will start',
+                duration: 4000,
+            });
+            return;
+        }
+
+        if (errors.durationHours || errors.durationMinutes) {
+            toast.error('Duration is required', {
+                description: 'Please specify how long your live session will last (at least 1 minute)',
+                duration: 4000,
+            });
+            return;
+        }
+
+        if (errors.defaultLink) {
+            toast.error('Live Class Link is required', {
+                description: 'Please provide a valid link for your live session',
+                duration: 4000,
+            });
+            return;
+        }
+
+        // Handle recurring schedule errors
+        if (errors.recurringSchedule) {
+            toast.error('Recurring Schedule Error', {
+                description: 'Please complete all required fields for selected days in your recurring schedule',
+                duration: 4000,
+            });
+            return;
+        }
+
+        // Generic error message if no specific field error is found
+        toast.error('Required fields missing', {
+            description: 'Please fill in all mandatory fields marked with *',
+            duration: 4000,
+        });
     };
 
     // Recurring Schedule Handlers
@@ -477,7 +543,7 @@ export default function ScheduleStep1() {
                                     inputType="text"
                                     inputPlaceholder="Add Title"
                                     input={field.value}
-                                    labelStyle="font-thin"
+                                    labelStyle="text-sm font-medium text-gray-700"
                                     onChangeFunction={field.onChange}
                                     error={form.formState.errors.title?.message}
                                     required
@@ -493,7 +559,7 @@ export default function ScheduleStep1() {
                     <SelectField
                         label="Subject"
                         name="subject"
-                        labelStyle="font-thin"
+                        labelStyle="text-sm font-medium text-gray-700"
                         options={[
                             { value: 'none', label: 'Select Subject', _id: -1 },
                             ...SubjectFilterData.map((option, index) => ({
@@ -508,8 +574,13 @@ export default function ScheduleStep1() {
                 )}
             </div>
 
-            <div className="flex h-[280px] flex-col gap-6">
-                <h1 className="-mb-5 font-thin">Description</h1>
+            <div className="flex h-[320px] flex-col gap-6">
+                <div className="flex flex-col gap-2">
+                    <h1 className="text-sm font-medium text-gray-700">Description <span className="text-red-500">*</span></h1>
+                    <p className="text-sm text-gray-500 opacity-60 -mt-1">
+                        (Provide a brief overview of your live class. You can include text, emojis, images, or posters to give participants a quick idea of what the session is about.)
+                    </p>
+                </div>
                 <FormField
                     control={control}
                     name="description"
@@ -522,6 +593,9 @@ export default function ScheduleStep1() {
                                     CustomclasssName="h-[200px]"
                                 />
                             </FormControl>
+                            {form.formState.errors.description && (
+                                <p className="text-sm text-red-500">{form.formState.errors.description.message}</p>
+                            )}
                         </FormItem>
                     )}
                 />
@@ -556,7 +630,7 @@ export default function ScheduleStep1() {
                     name="startTime"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Start Date & Time</FormLabel>
+                            <FormLabel className="text-sm font-medium text-gray-700">Start Date & Time <span className="text-red-500">*</span></FormLabel>
                             <FormControl>
                                 <MyInput
                                     inputType="datetime-local"
@@ -564,11 +638,14 @@ export default function ScheduleStep1() {
                                     onChangeFunction={field.onChange}
                                 />
                             </FormControl>
+                            {form.formState.errors.startTime && (
+                                <p className="text-sm text-red-500">{form.formState.errors.startTime.message}</p>
+                            )}
                         </FormItem>
                     )}
                 />
                 <div>
-                    <div>duration</div>
+                    <div className="text-sm font-medium text-gray-700">Duration <span className="text-red-500">*</span></div>
                     <div className="mt-2 flex flex-row items-center gap-2">
                         <FormField
                             control={control}
@@ -637,6 +714,11 @@ export default function ScheduleStep1() {
                         />
                         <div>mins</div>
                     </div>
+                    {(form.formState.errors.durationHours || form.formState.errors.durationMinutes) && (
+                        <p className="text-sm text-red-500 mt-1">
+                            {form.formState.errors.durationHours?.message || form.formState.errors.durationMinutes?.message}
+                        </p>
+                    )}
                 </div>
             </div>
             {meetingType === RecurringType.WEEKLY && (
@@ -646,7 +728,7 @@ export default function ScheduleStep1() {
                         name="endDate"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>End Date</FormLabel>
+                                <FormLabel className="text-sm font-medium text-gray-700">End Date</FormLabel>
                                 <FormControl>
                                     <MyInput
                                         inputType="date"
@@ -669,13 +751,13 @@ export default function ScheduleStep1() {
                 name="defaultLink"
                 render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Live Class Link</FormLabel>
+                        <FormLabel className="text-sm font-medium text-gray-700">Live Class Link <span className="text-red-500">*</span></FormLabel>
                         <FormControl>
                             <MyInput
                                 inputType="text"
                                 inputPlaceholder="Add Link"
                                 input={field.value}
-                                labelStyle="font-thin"
+                                labelStyle="text-sm font-medium text-gray-700"
                                 onChangeFunction={field.onChange}
                                 error={form.formState.errors.defaultLink?.message}
                                 required
@@ -689,14 +771,14 @@ export default function ScheduleStep1() {
             <SelectField
                 label="Live Stream Platform"
                 name="sessionPlatform"
-                labelStyle="font-thin"
+                labelStyle="text-sm font-medium text-gray-700"
                 options={STREAMING_OPTIONS}
                 control={form.control}
                 className="mt-[8px] w-56 font-thin"
                 onSelect={handleSessionPlatformChange}
             />
             <div className="flex h-full flex-col items-start justify-around gap-2">
-                <div className="text-sm">Type of Live Class</div>
+                <div className="text-sm font-medium text-gray-700">Type of Live Class</div>
                 <FormField
                     control={control}
                     name="sessionType"
@@ -720,9 +802,14 @@ export default function ScheduleStep1() {
 
     const renderStreamingChoices = () => (
         <div className="flex flex-col items-start gap-8">
-            <div className="flex flex-row items-end gap-8">
+            <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-2">
+                    <div className="text-sm font-medium text-gray-700">Live Class Streaming</div>
+                    <p className="text-sm text-gray-500 opacity-60 -mt-1">
+                        (Do you want the students to view the class in the learner app, or do you want to redirect them to the app that is hosting the live session?)
+                    </p>
+                </div>
                 <div className="flex h-full flex-col items-start justify-around gap-2">
-                    <div className="text-sm">Live Class Streaming</div>
                     <FormField
                         control={control}
                         name="streamingType"
@@ -760,7 +847,7 @@ export default function ScheduleStep1() {
                         name={`allowRewind`}
                         render={({ field }) => (
                             <label className="flex items-center gap-2">
-                                <span className="text-sm">Allow rewind</span>
+                                <span className="text-sm font-medium text-gray-700">Allow rewind</span>
                                 <Switch checked={field.value} onCheckedChange={field.onChange} />
                             </label>
                         )}
@@ -774,7 +861,7 @@ export default function ScheduleStep1() {
                         name={`enableWaitingRoom`}
                         render={({ field }) => (
                             <label className="flex items-center gap-2">
-                                <span className="text-sm">Enable Waiting Room</span>
+                                <span className="text-sm font-medium text-gray-700">Enable Waiting Room</span>
                                 <Switch checked={field.value} onCheckedChange={field.onChange} />
                             </label>
                         )}
@@ -791,7 +878,7 @@ export default function ScheduleStep1() {
                     <SelectField
                         label="Open Waiting Room Before"
                         name="openWaitingRoomBefore"
-                        labelStyle="font-thin"
+                        labelStyle="text-sm font-medium text-gray-700"
                         options={WAITING_ROOM_OPTIONS}
                         control={form.control}
                         className="mt-[8px] w-56 font-thin"
@@ -883,9 +970,9 @@ export default function ScheduleStep1() {
                                 <SelectItem value="weekday">Mon-Fri</SelectItem>
                             </SelectContent>
                         </Select>
-                        <div className="w-[100px]">Start Time</div>
-                        <div className="w-[200px]">Duration</div>
-                        <div>Live Class link</div>
+                        <div className="w-[100px] text-sm font-medium text-gray-700">Start Time <span className="text-red-500">*</span></div>
+                        <div className="w-[200px] text-sm font-medium text-gray-700">Duration <span className="text-red-500">*</span></div>
+                        <div className="text-sm font-medium text-gray-700">Live Class Link <span className="text-red-500">*</span></div>
                     </div>
                 </div>
 
@@ -921,7 +1008,7 @@ export default function ScheduleStep1() {
                                                 <SelectField
                                                     label=""
                                                     name={`recurringSchedule.${dayIndex}.sessions.${sessionIndex}.startTime`}
-                                                    labelStyle="font-thin"
+                                                    labelStyle="text-sm font-medium text-gray-700"
                                                     options={timeOptions?.map((option, index) => ({
                                                         value: option,
                                                         label: option,
@@ -1054,14 +1141,18 @@ export default function ScheduleStep1() {
 
     return (
         <FormProvider {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit, onError)} className="flex flex-col gap-8">
-                <div className="m-0 flex items-center justify-between p-0">
-                    <h1>Live Session Information</h1>
-                    <MyButton type="submit" scale="large" buttonType="primary">
-                        Next
-                    </MyButton>
+            <form onSubmit={form.handleSubmit(onSubmit, onError)} className="flex flex-col">
+                {/* Fixed header with title and Next button */}
+                <div className="sticky top-0 z-10 bg-white border-b border-gray-200 py-4 px-6 -mx-6 mb-8">
+                    <div className="flex items-center justify-between">
+                        <h1>Live Session Information</h1>
+                        <MyButton type="submit" scale="large" buttonType="primary">
+                            Next
+                        </MyButton>
+                    </div>
                 </div>
 
+                {/* Form content with proper spacing */}
                 <div className="flex flex-col gap-8">
                     {renderBasicInformation()}
                     {renderMeetingTypeSelection()}
