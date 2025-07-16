@@ -25,6 +25,7 @@ import { DraftSession, getSessionBySessionId } from '../-services/utils';
 import { LiveSessionReport } from '../-services/utils';
 import { registrationColumns, REGISTRATION_WIDTH } from '../-constants/reportTable';
 import { MyTable } from '@/components/design-system/table';
+import DeleteRecurringDialog from './delete-recurring-dialog';
 
 interface LiveSessionCardProps {
     session: LiveSession;
@@ -33,6 +34,7 @@ interface LiveSessionCardProps {
 
 export default function LiveSessionCard({ session, isDraft = false }: LiveSessionCardProps) {
     const [openDialog, setOpenDialog] = useState<boolean>(false);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
     const [scheduledSessionDetails, setScheduleSessionDetails] =
         useState<SessionDetailsResponse | null>(null);
     const queryClient = useQueryClient();
@@ -63,6 +65,13 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
 
     const handleDelete = async (e: React.MouseEvent) => {
         e.stopPropagation();
+        if (session.recurrence_type && session.recurrence_type !== 'once') {
+            // Open recurring delete dialog for recurring sessions
+            setDeleteDialogOpen(true);
+            return;
+        }
+
+        // For non-recurring sessions, delete directly
         try {
             await deleteLiveSession(session.session_id);
             await queryClient.invalidateQueries({ queryKey: ['liveSessions'] });
@@ -235,6 +244,13 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
                     </div>
                 </div>
             </MyDialog>
+
+            {/* Delete recurring dialog */}
+            <DeleteRecurringDialog
+                open={deleteDialogOpen}
+                onOpenChange={setDeleteDialogOpen}
+                sessionId={session.session_id}
+            />
         </div>
     );
 }

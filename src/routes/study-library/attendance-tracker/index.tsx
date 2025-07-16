@@ -2,38 +2,32 @@ import { createFileRoute } from '@tanstack/react-router';
 import { LayoutContainer } from '@/components/common/layout-container/layout-container';
 import { Helmet } from 'react-helmet';
 import { useState, useEffect, createContext, useContext, useMemo } from 'react';
-import { MyInput } from '@/components/design-system/input';
 import { MyButton } from '@/components/design-system/button';
 import {
-    Envelope,
-    WhatsappLogo,
     Eye,
+    ArrowSquareOut,
     X,
     Phone,
     Clock,
-    Bell,
     Key,
     Copy,
     GraduationCap,
     Shield,
     MapPin,
     Users,
-    CaretDown,
-    CaretLeft,
-    CaretRight,
-    Calendar as CalendarIcon,
-    Check,
 } from 'phosphor-react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
 import { Sidebar, SidebarContent, SidebarHeader, useSidebar } from '@/components/ui/sidebar';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { Calendar } from '@/components/ui/calendar';
-import { format, addMonths, addYears, setMonth, setYear, subDays, subMonths, subYears, startOfDay } from 'date-fns';
+import { format, subDays, subMonths, subYears, startOfDay } from 'date-fns';
+import { MyPagination } from '@/components/design-system/pagination';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon as RadixCalendarIcon } from '@radix-ui/react-icons';
-import { DateRange } from 'react-day-picker';
-import { toast } from 'sonner';
+import { CalendarIcon } from '@radix-ui/react-icons';
+import { MyDropdown } from '@/components/design-system/dropdown';
+import { CaretUpDown, CaretDown, CaretUp } from '@phosphor-icons/react';
+import { Checkbox } from '@/components/ui/checkbox';
 
 export const Route = createFileRoute('/study-library/attendance-tracker/')({
     component: RouteComponent,
@@ -82,32 +76,13 @@ export const useStudentSidebar = () => {
 };
 
 // Student Sidebar Component
+
+// Student Sidebar Component
 const StudentDetailsSidebar = () => {
     const { state } = useSidebar();
     const { toggleSidebar } = useSidebar();
     const { selectedStudent } = useStudentSidebar();
     const [category, setCategory] = useState('overview');
-    const [copiedField, setCopiedField] = useState<string | null>(null);
-
-    const handleCopy = (text: string, fieldName: string) => {
-        if (navigator.clipboard) {
-            navigator.clipboard
-                .writeText(text)
-                .then(() => {
-                    setCopiedField(fieldName);
-                    toast.success(`${fieldName} copied to clipboard!`);
-                    setTimeout(() => {
-                        setCopiedField(null);
-                    }, 2000);
-                })
-                .catch((err) => {
-                    console.error('Failed to copy text: ', err);
-                    toast.error('Copy failed');
-                });
-        } else {
-            toast.error('Clipboard access not available in this browser');
-        }
-    };
 
     useEffect(() => {
         if (state === 'expanded') {
@@ -313,36 +288,6 @@ const StudentDetailsSidebar = () => {
                                 </div>
                             </div>
 
-                            {/* Send Notification Section */}
-                            <div className="rounded-lg border border-neutral-200/50 bg-gradient-to-br from-white to-neutral-50/30 p-3 transition-all duration-200 hover:border-primary-200/50 hover:shadow-md">
-                                <div className="mb-2 flex items-center gap-2.5">
-                                    <div className="rounded-md bg-gradient-to-br from-blue-50 to-blue-100 p-1.5">
-                                        <Bell className="size-4 text-blue-600" />
-                                    </div>
-                                    <div className="flex-1">
-                                        <h4 className="text-xs font-medium text-neutral-700">
-                                            Send Notification
-                                        </h4>
-                                        <p className="text-[10px] text-neutral-500">
-                                            Email or WhatsApp message
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {/* Notification action buttons */}
-                                <div className="flex gap-2">
-                                    <button className="hover:scale-102 group flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-md border border-blue-200 bg-white py-2 text-xs font-medium text-blue-700 transition-all duration-200 hover:border-blue-300 hover:bg-blue-50">
-                                        <Envelope className="size-3 transition-transform duration-200 group-hover:scale-110" />
-                                        Email
-                                    </button>
-
-                                    <button className="hover:scale-102 group flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-md border border-green-200 bg-white py-2 text-xs font-medium text-green-700 transition-all duration-200 hover:border-green-300 hover:bg-green-50">
-                                        <WhatsappLogo className="size-3 transition-transform duration-200 group-hover:scale-110" />
-                                        WhatsApp
-                                    </button>
-                                </div>
-                            </div>
-
                             {/* Account Credentials */}
                             <div className="rounded-lg border border-neutral-200/50 bg-gradient-to-br from-white to-neutral-50/30 p-3 transition-all duration-200 hover:border-primary-200/50 hover:shadow-md">
                                 <div className="mb-2 flex items-center justify-between">
@@ -368,10 +313,7 @@ const StudentDetailsSidebar = () => {
                                                 Username: {selectedStudent.username}
                                             </p>
                                         </div>
-                                        <button
-                                            onClick={() => handleCopy(selectedStudent.username, 'Username')}
-                                            className="text-neutral-400 hover:text-neutral-600"
-                                        >
+                                        <button className="text-neutral-400 hover:text-neutral-600">
                                             <Copy className="size-3.5" />
                                         </button>
                                     </div>
@@ -382,21 +324,8 @@ const StudentDetailsSidebar = () => {
                                                 Password: 123456
                                             </p>
                                         </div>
-                                        <button
-                                            onClick={() => handleCopy('123456', 'Password')}
-                                            className="group rounded-md p-1 hover:bg-neutral-100"
-                                            aria-label="Copy Password"
-                                        >
-                                            {copiedField === 'Password' ? (
-                                                <div className="text-primary-500">
-                                                    <Check size={14} />
-                                                </div>
-                                            ) : (
-                                                <Copy
-                                                    size={14}
-                                                    className="text-neutral-400 transition-colors group-hover:text-primary-500"
-                                                />
-                                            )}
+                                        <button className="text-neutral-400 hover:text-neutral-600">
+                                            <Copy className="size-3.5" />
                                         </button>
                                     </div>
                                 </div>
@@ -405,8 +334,8 @@ const StudentDetailsSidebar = () => {
                             {/* General Details */}
                             <div className="rounded-lg border border-neutral-200/50 bg-gradient-to-br from-white to-neutral-50/30 p-3 transition-all duration-200 hover:border-primary-200/50 hover:shadow-md">
                                 <div className="mb-2 flex items-center gap-2.5">
-                                    <div className="rounded-md bg-gradient-to-br from-blue-50 to-blue-100 p-1.5">
-                                        <GraduationCap className="size-4 text-blue-600" />
+                                    <div className="rounded-md bg-gradient-to-br from-primary-50 to-primary-100 p-1.5">
+                                        <GraduationCap className="text-primary-600 size-4" />
                                     </div>
                                     <h4 className="text-xs font-medium text-neutral-700">
                                         General Details
@@ -498,22 +427,9 @@ const StudentDetailsSidebar = () => {
                                                 Mobile No.: 919968858268
                                             </p>
                                         </div>
-                                        <button
-                                            onClick={() => handleCopy('919968858268', 'Mobile Number')}
-                                            className="group rounded-md p-1 hover:bg-neutral-100"
-                                            aria-label="Copy Mobile Number"
-                                        >
-                                            {copiedField === 'Mobile Number' ? (
-                                                <div className="text-primary-500">
-                                                    <Check size={14} />
-                                                </div>
-                                            ) : (
-                                                <Copy
-                                                    size={14}
-                                                    className="text-neutral-400 transition-colors group-hover:text-primary-500"
-                                                />
-                                            )}
-                                        </button>
+                                        <div className="text-neutral-400">
+                                            <Copy className="size-3.5" />
+                                        </div>
                                     </div>
                                     <div className="flex items-center justify-between rounded-md p-1.5 hover:bg-neutral-50">
                                         <div className="flex items-center gap-2">
@@ -522,22 +438,9 @@ const StudentDetailsSidebar = () => {
                                                 Email Id: {selectedStudent.email}
                                             </p>
                                         </div>
-                                        <button
-                                            onClick={() => handleCopy(selectedStudent.email, 'Email')}
-                                            className="group rounded-md p-1 hover:bg-neutral-100"
-                                            aria-label="Copy Email"
-                                        >
-                                            {copiedField === 'Email' ? (
-                                                <div className="text-primary-500">
-                                                    <Check size={14} />
-                                                </div>
-                                            ) : (
-                                                <Copy
-                                                    size={14}
-                                                    className="text-neutral-400 transition-colors group-hover:text-primary-500"
-                                                />
-                                            )}
-                                        </button>
+                                        <div className="text-neutral-400">
+                                            <Copy className="size-3.5" />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1159,32 +1062,32 @@ const AttendanceModal = ({ isOpen, onClose, student }: AttendanceModalProps) => 
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="flex max-h-[90vh] flex-col sm:max-w-[600px]">
-                <div className="flex items-center justify-between border-b border-neutral-200 p-6">
-                    <h2 className="text-xl font-semibold text-neutral-800">
+            <DialogContent className="flex max-h-[75vh] flex-col sm:max-w-[450px]">
+                <div className="flex items-center justify-between border-b border-neutral-200 p-4">
+                    <h2 className="text-lg font-semibold text-neutral-800">
                         {student.name} - Class Attendance
                     </h2>
                 </div>
 
-                <div className="flex flex-col gap-6 overflow-y-auto p-6">
+                <div className="flex flex-col gap-4 overflow-y-auto p-4">
                     {/* Overall Attendance */}
-                    <div className="rounded-lg bg-primary-50 p-6 text-center">
-                        <div className="text-5xl font-bold text-primary-500">
+                    <div className="rounded-lg bg-primary-50 p-4 text-center">
+                        <div className="text-4xl font-bold text-primary-500">
                             {student.attendancePercentage}%
                         </div>
-                        <div className="mt-2 text-lg text-neutral-600">Overall Attendance</div>
+                        <div className="mt-2 text-base text-neutral-600">Overall Attendance</div>
                     </div>
 
                     {/* Class List */}
-                    <div className="flex flex-col gap-4 overflow-y-auto">
+                    <div className="flex flex-col gap-3 overflow-y-auto">
                         {studentClasses.map((classItem) => (
                             <div
                                 key={classItem.id}
-                                className="rounded-lg border border-neutral-200 p-6"
+                                className="rounded-lg border border-neutral-200 p-4"
                             >
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <h3 className="text-lg font-medium text-neutral-800">
+                                        <h3 className="text-base font-medium text-neutral-800">
                                             {classItem.className}
                                         </h3>
                                         <p className="text-sm text-neutral-600">
@@ -1192,7 +1095,7 @@ const AttendanceModal = ({ isOpen, onClose, student }: AttendanceModalProps) => 
                                         </p>
                                     </div>
                                     <div
-                                        className={`rounded-full px-4 py-1 text-sm font-medium ${
+                                        className={`rounded-full px-3 py-1 text-xs font-medium ${
                                             classItem.status === 'Present'
                                                 ? 'bg-success-50 text-success-600'
                                                 : 'bg-danger-100 text-danger-600'
@@ -1210,206 +1113,8 @@ const AttendanceModal = ({ isOpen, onClose, student }: AttendanceModalProps) => 
     );
 };
 
-// Date range preset options
-type DateRangePreset = {
-    label: string;
-    value: () => DateRange;
-};
-
-const dateRangePresets: DateRangePreset[] = [
-    {
-        label: 'Past Week',
-        value: () => ({
-            from: startOfDay(subDays(new Date(), 7)),
-            to: new Date()
-        })
-    },
-    {
-        label: 'Past Month',
-        value: () => ({
-            from: startOfDay(subMonths(new Date(), 1)),
-            to: new Date()
-        })
-    },
-    {
-        label: 'Past 3 Months',
-        value: () => ({
-            from: startOfDay(subMonths(new Date(), 3)),
-            to: new Date()
-        })
-    },
-    {
-        label: 'Past 6 Months',
-        value: () => ({
-            from: startOfDay(subMonths(new Date(), 6)),
-            to: new Date()
-        })
-    },
-    {
-        label: 'Past Year',
-        value: () => ({
-            from: startOfDay(subYears(new Date(), 1)),
-            to: new Date()
-        })
-    }
-];
-
-// Enhanced Date Range Picker Component
-const EnhancedDateRangePicker = ({
-    startDate,
-    endDate,
-    onRangeChange,
-}: {
-    startDate: Date | undefined;
-    endDate: Date | undefined;
-    onRangeChange: (range: DateRange | undefined) => void;
-}) => {
-    const today = new Date();
-    const [month, setCurrentMonth] = useState<Date>(startDate || today);
-    const [isYearPickerOpen, setIsYearPickerOpen] = useState(false);
-    const [isMonthPickerOpen, setIsMonthPickerOpen] = useState(false);
-
-    const years = Array.from({ length: 20 }, (_, i) => today.getFullYear() - 10 + i);
-    const months = [
-        "January", "February", "March", "April", "May", "June",
-        "July", "August", "September", "October", "November", "December"
-    ];
-
-    const handlePrevMonth = () => {
-        setCurrentMonth(prev => addMonths(prev, -1));
-    };
-
-    const handleNextMonth = () => {
-        setCurrentMonth(prev => addMonths(prev, 1));
-    };
-
-    const handleYearChange = (year: number) => {
-        setCurrentMonth(setYear(month, year));
-        setIsYearPickerOpen(false);
-    };
-
-    const handleMonthChange = (monthIndex: number) => {
-        setCurrentMonth(setMonth(month, monthIndex));
-        setIsMonthPickerOpen(false);
-    };
-
-    const handlePresetSelect = (preset: DateRangePreset) => {
-        const range = preset.value();
-        onRangeChange(range);
-        setCurrentMonth(range.from || today);
-    };
-
-    return (
-        <div className="flex flex-col">
-            {/* Custom Header with Year/Month Selection */}
-            <div className="mb-2 flex items-center justify-between px-1">
-                <div className="flex gap-1">
-                    {/* Year Selector */}
-                    <div className="relative">
-                        <button
-                            onClick={() => {
-                                setIsYearPickerOpen(!isYearPickerOpen);
-                                setIsMonthPickerOpen(false);
-                            }}
-                            className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-2 py-1 text-sm hover:bg-neutral-50"
-                        >
-                            {format(month, "yyyy")}
-                            <CaretDown size={14} weight="bold" />
-                        </button>
-
-                        {isYearPickerOpen && (
-                            <div className="absolute left-0 top-full z-50 mt-1 max-h-[200px] w-[120px] overflow-y-auto rounded-md border border-neutral-200 bg-white p-1 shadow-md">
-                                {years.map((year) => (
-                                    <button
-                                        key={year}
-                                        onClick={() => handleYearChange(year)}
-                                        className={`w-full rounded-md px-2 py-1 text-left text-sm ${
-                                            year === month.getFullYear()
-                                                ? "bg-primary-50 text-primary-600 font-medium"
-                                                : "hover:bg-neutral-100"
-                                        }`}
-                                    >
-                                        {year}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Month Selector */}
-                    <div className="relative">
-                        <button
-                            onClick={() => {
-                                setIsMonthPickerOpen(!isMonthPickerOpen);
-                                setIsYearPickerOpen(false);
-                            }}
-                            className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-2 py-1 text-sm hover:bg-neutral-50"
-                        >
-                            {format(month, "MMMM")}
-                            <CaretDown size={14} weight="bold" />
-                        </button>
-
-                        {isMonthPickerOpen && (
-                            <div className="absolute left-0 top-full z-50 mt-1 max-h-[200px] w-[150px] overflow-y-auto rounded-md border border-neutral-200 bg-white p-1 shadow-md">
-                                {months.map((monthName, index) => (
-                                    <button
-                                        key={monthName}
-                                        onClick={() => handleMonthChange(index)}
-                                        className={`w-full rounded-md px-2 py-1 text-left text-sm ${
-                                            index === month.getMonth()
-                                                ? "bg-primary-50 text-primary-600 font-medium"
-                                                : "hover:bg-neutral-100"
-                                        }`}
-                                    >
-                                        {monthName}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
-
-            <div className="flex gap-3">
-                {/* Calendar Component */}
-                <Calendar
-                    mode="range"
-                    selected={{
-                        from: startDate,
-                        to: endDate
-                    }}
-                    onSelect={onRangeChange}
-                    month={month}
-                    onMonthChange={setCurrentMonth}
-                    numberOfMonths={1}
-                    disabled={{ before: new Date(2000, 0, 1) }}
-                    initialFocus
-                    showOutsideDays
-                    fixedWeeks
-                    className="border-r border-neutral-100 pr-3"
-                />
-
-                {/* Quick Presets */}
-                <div className="flex flex-col gap-2 pt-1">
-                    <h4 className="mb-1 text-xs font-medium text-neutral-500">Quick Select</h4>
-                    {dateRangePresets.map((preset) => (
-                        <button
-                            key={preset.label}
-                            onClick={() => handlePresetSelect(preset)}
-                            className="w-full rounded-md border border-neutral-200 bg-white px-3 py-1.5 text-xs text-left hover:bg-neutral-50 hover:border-neutral-300 transition-colors"
-                        >
-                            {preset.label}
-                        </button>
-                    ))}
-                </div>
-            </div>
-        </div>
-    );
-};
-
 function RouteComponent() {
     // State for filters
-    const [selectedDate, setSelectedDate] = useState('');
     const [startDate, setStartDate] = useState<Date | undefined>(undefined);
     const [endDate, setEndDate] = useState<Date | undefined>(undefined);
     const [searchQuery, setSearchQuery] = useState('');
@@ -1418,35 +1123,52 @@ function RouteComponent() {
     const [attendanceFilter, setAttendanceFilter] = useState('All');
     const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
-    // State for popovers
-    const [isBatchFilterOpen, setIsBatchFilterOpen] = useState(false);
-    const [isAttendanceFilterOpen, setIsAttendanceFilterOpen] = useState(false);
-    const [isClassFilterOpen, setIsClassFilterOpen] = useState(false);
+    // Pagination state
+    const pageSize = 5;
+    const [page, setPage] = useState(0);
 
-    // Batch options array
-    const batchOptions = [
-        'All Batches',
-        '7th course 3',
-        '8th course 2',
-        '9th course 1',
-        '10th course 4'
-    ];
+    // Row selection state for checkbox column
+    const [rowSelections, setRowSelections] = useState<Record<string, boolean>>({});
 
-    // Attendance filter options array
-    const attendanceOptions = [
-        { value: 'All', label: 'All Attendance %' },
-        { value: 'Above 75%', label: 'Above 75%' },
-        { value: '50% - 75%', label: '50% - 75%' },
-        { value: 'Below 50%', label: 'Below 50%' }
-    ];
+    // Sorting state
+    const [sortConfig, setSortConfig] = useState<{ key: string | null; direction: 'asc' | 'desc' }>(
+        {
+            key: null,
+            direction: 'asc',
+        }
+    );
 
-    // Class filter options
-    const classOptions = [
-        'All Live Classes',
-        'Physics',
-        'Chemistry',
-        'Mathematics'
-    ];
+    // handleSort removed; dropdown now directly sets sortConfig
+
+    const sortIconFor = (key: string) => {
+        if (sortConfig.key !== key) return <CaretUpDown className="inline" />;
+        return sortConfig.direction === 'asc' ? (
+            <CaretUp className="inline" />
+        ) : (
+            <CaretDown className="inline" />
+        );
+    };
+
+    const toggleSelectAll = (checked: boolean) => {
+        if (checked) {
+            const newSelections: Record<string, boolean> = {};
+            paginatedStudents.forEach((s) => {
+                newSelections[s.id] = true;
+            });
+            setRowSelections(newSelections);
+        } else {
+            setRowSelections({});
+        }
+    };
+
+    const toggleRowSelection = (id: string, checked: boolean) => {
+        setRowSelections((prev) => {
+            const newSel = { ...prev };
+            if (checked) newSel[id] = true;
+            else delete newSel[id];
+            return newSel;
+        });
+    };
 
     // State for modal
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -1457,9 +1179,6 @@ function RouteComponent() {
     // State for sidebar
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-    // State for date picker
-    const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
-
     // Set the navigation heading
     const { setNavHeading } = useNavHeadingStore();
 
@@ -1469,19 +1188,12 @@ function RouteComponent() {
 
     // Function to clear all filters
     const clearFilters = () => {
-        setSelectedDate('');
         setStartDate(undefined);
         setEndDate(undefined);
         setSearchQuery('');
         setSelectedBatch('All Batches');
         setSelectedClass('All Live Classes');
         setAttendanceFilter('All');
-    };
-
-    // Handle date range change
-    const handleDateRangeChange = (range: DateRange | undefined) => {
-        setStartDate(range?.from);
-        setEndDate(range?.to);
     };
 
     // Function to handle View More click
@@ -1497,17 +1209,8 @@ function RouteComponent() {
     };
 
     // Apply filters to student data
-    const hasActiveFilters = useMemo(() => {
-        return searchQuery !== '' ||
-            selectedBatch !== 'All Batches' ||
-            selectedClass !== 'All Live Classes' ||
-            attendanceFilter !== 'All' ||
-            startDate !== undefined ||
-            endDate !== undefined;
-    }, [searchQuery, selectedBatch, selectedClass, attendanceFilter, startDate, endDate]);
-
     const filteredStudents = useMemo(() => {
-        return mockStudentData.filter((student) => {
+        let res = mockStudentData.filter((student) => {
             // Search filter (case-insensitive)
             const searchLower = searchQuery.toLowerCase();
             const matchesSearch =
@@ -1518,27 +1221,106 @@ function RouteComponent() {
                 student.mobileNumber.toLowerCase().includes(searchLower);
 
             // Batch filter
-            const matchesBatch =
-                selectedBatch === 'All Batches' ||
-                student.batch === selectedBatch;
+            const matchesBatch = selectedBatch === 'All Batches' || student.batch === selectedBatch;
 
             // Class filter - simplified for mock data
-            // In a real app, you'd check if the student is enrolled in the selected class
             const matchesClass = selectedClass === 'All Live Classes';
 
             // Attendance percentage filter
             const matchesAttendance =
                 attendanceFilter === 'All' ||
                 (attendanceFilter === 'Above 75%' && student.attendancePercentage >= 75) ||
-                (attendanceFilter === '50% - 75%' && student.attendancePercentage >= 50 && student.attendancePercentage < 75) ||
+                (attendanceFilter === '50% - 75%' &&
+                    student.attendancePercentage >= 50 &&
+                    student.attendancePercentage < 75) ||
                 (attendanceFilter === 'Below 50%' && student.attendancePercentage < 50);
-
-            // Date filter logic would go here if we had actual dates in the student data
-            // For now, we'll just return true for date filters
 
             return matchesSearch && matchesBatch && matchesClass && matchesAttendance;
         });
-    }, [searchQuery, selectedBatch, selectedClass, attendanceFilter, startDate, endDate]);
+
+        // Apply sorting
+        if (sortConfig.key) {
+            const dir = sortConfig.direction === 'asc' ? 1 : -1;
+            res = [...res].sort((a, b) => {
+                const valA = String(a[sortConfig.key as keyof AttendanceStudent]).toLowerCase();
+                const valB = String(b[sortConfig.key as keyof AttendanceStudent]).toLowerCase();
+                if (valA < valB) return -1 * dir;
+                if (valA > valB) return 1 * dir;
+                return 0;
+            });
+        }
+
+        return res;
+    }, [searchQuery, selectedBatch, selectedClass, attendanceFilter, sortConfig]);
+
+    const totalPages = Math.max(1, Math.ceil(filteredStudents.length / pageSize));
+
+    // Ensure page within bounds when filters change
+    useEffect(() => {
+        if (page >= totalPages) setPage(totalPages - 1);
+    }, [totalPages]);
+
+    const paginatedStudents = useMemo(() => {
+        const start = page * pageSize;
+        return filteredStudents.slice(start, start + pageSize);
+    }, [filteredStudents, page]);
+
+    const allRowsSelected =
+        paginatedStudents.length > 0 && paginatedStudents.every((s) => rowSelections[s.id]);
+
+    // utility to convert rows to csv and trigger download
+    const downloadCSV = (filename: string, rows: string[][]) => {
+        const csvContent = rows
+            .map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(','))
+            .join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', filename);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const exportAccountDetails = (students: AttendanceStudent[]) => {
+        const headers = ['ID', 'Name', 'Username', 'Batch', 'Mobile Number', 'Email'];
+        const rows = [
+            headers,
+            ...students.map((s) => [s.id, s.name, s.username, s.batch, s.mobileNumber, s.email]),
+        ];
+        downloadCSV('account_details.csv', rows);
+    };
+
+    const exportFullData = (students: AttendanceStudent[]) => {
+        const headers = [
+            'ID',
+            'Name',
+            'Username',
+            'Batch',
+            'Mobile Number',
+            'Email',
+            'Attended Classes',
+            'Total Classes',
+            'Attendance %',
+        ];
+        const rows = [
+            headers,
+            ...students.map((s) => [
+                s.id,
+                s.name,
+                s.username,
+                s.batch,
+                s.mobileNumber,
+                s.email,
+                `${s.attendedClasses}`,
+                `${s.totalClasses}`,
+                `${s.attendancePercentage}`,
+            ]),
+        ];
+        downloadCSV('attendance_full_data.csv', rows);
+    };
 
     return (
         <StudentSidebarContext.Provider value={{ selectedStudent, setSelectedStudent }}>
@@ -1563,9 +1345,20 @@ function RouteComponent() {
                         {/* Search and Quick Filters Row */}
                         <div className="mb-4 flex flex-wrap items-center gap-3">
                             {/* Search with Icon */}
-                            <div className="relative flex-1 min-w-[240px]">
+                            <div className="relative min-w-[240px] flex-1">
                                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-400">
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="16"
+                                        height="16"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        className="text-neutral-400"
+                                    >
                                         <circle cx="11" cy="11" r="8"></circle>
                                         <path d="m21 21-4.3-4.3"></path>
                                     </svg>
@@ -1579,33 +1372,44 @@ function RouteComponent() {
                                 />
                             </div>
 
-                            {/* Enhanced Batch Filter with Popover */}
+                            {/* Batch Filter */}
                             <div className="w-[180px]">
-                                <Popover open={isBatchFilterOpen} onOpenChange={setIsBatchFilterOpen}>
+                                <Popover>
                                     <PopoverTrigger asChild>
                                         <button
-                                            className="flex h-9 w-full items-center justify-between rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                                            className={`flex h-9 w-full items-center justify-between overflow-hidden truncate whitespace-nowrap rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 ${
+                                                selectedBatch !== 'All Batches'
+                                                    ? 'text-neutral-900'
+                                                    : 'text-neutral-500'
+                                            }`}
                                         >
-                                            <span className={`${selectedBatch === 'All Batches' ? 'text-neutral-500' : 'text-neutral-900'}`}>
-                                                {selectedBatch}
-                                            </span>
-                                            <CaretDown size={14} weight="bold" className="text-neutral-500" />
+                                            {selectedBatch !== 'All Batches' ? (
+                                                selectedBatch
+                                            ) : (
+                                                <>Select batch</>
+                                            )}
+                                            <CaretDown className="ml-2 size-4 text-neutral-500" />
                                         </button>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-[200px] p-2" align="start">
-                                        <div className="flex flex-col gap-1 py-1">
-                                            <h4 className="mb-1 px-2 text-xs font-medium text-neutral-500">Select Batch</h4>
-                                            {batchOptions.map((batch) => (
+                                    <PopoverContent className="w-auto p-3" align="start">
+                                        <div className="flex flex-col gap-2">
+                                            <h4 className="mb-1 text-xs font-medium text-neutral-500">
+                                                Select batch
+                                            </h4>
+                                            {[
+                                                'All Batches',
+                                                '7th course 3',
+                                                '8th course 2',
+                                                '9th course 1',
+                                                '10th course 4',
+                                            ].map((batch) => (
                                                 <button
                                                     key={batch}
-                                                    onClick={() => {
-                                                        setSelectedBatch(batch);
-                                                        setIsBatchFilterOpen(false);
-                                                    }}
-                                                    className={`w-full rounded-md px-2 py-1.5 text-left text-sm ${
-                                                        batch === selectedBatch
-                                                            ? "bg-primary-50 text-primary-600 font-medium"
-                                                            : "hover:bg-neutral-100 text-neutral-700"
+                                                    onClick={() => setSelectedBatch(batch)}
+                                                    className={`w-full rounded-md border border-neutral-200 bg-white px-3 py-1.5 text-left text-xs hover:border-neutral-300 hover:bg-neutral-50 ${
+                                                        selectedBatch === batch
+                                                            ? 'text-primary-600 bg-primary-50'
+                                                            : ''
                                                     }`}
                                                 >
                                                     {batch}
@@ -1616,96 +1420,129 @@ function RouteComponent() {
                                 </Popover>
                             </div>
 
-                            {/* Enhanced Date Range Picker */}
+                            {/* Date Range Picker */}
                             <div className="w-[220px]">
-                                <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+                                <Popover>
                                     <PopoverTrigger asChild>
                                         <button
-                                            className={`flex h-9 w-full items-center justify-between rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 ${
-                                                startDate || endDate ? "text-neutral-900" : "text-neutral-500"
+                                            className={`flex h-9 w-full items-center justify-between overflow-hidden truncate whitespace-nowrap rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 ${
+                                                startDate || endDate
+                                                    ? 'text-neutral-900'
+                                                    : 'text-neutral-500'
                                             }`}
                                         >
-                                            <div className="max-w-[170px] truncate">
-                                                {startDate && endDate ? (
-                                                    <>
-                                                        {format(startDate, "dd/MM/yy")} - {format(endDate, "dd/MM/yy")}
-                                                    </>
-                                                ) : startDate ? (
-                                                    <>From {format(startDate, "dd/MM/yy")}</>
-                                                ) : (
-                                                    <>Select date range</>
-                                                )}
-                                            </div>
-                                            <CalendarIcon className="ml-2 shrink-0 size-4 text-neutral-500" weight="regular" />
+                                            {startDate && endDate ? (
+                                                <>
+                                                    {format(startDate, 'dd/MM/yy')} -{' '}
+                                                    {format(endDate, 'dd/MM/yy')}
+                                                </>
+                                            ) : startDate ? (
+                                                <>From {format(startDate, 'dd/MM/yy')}</>
+                                            ) : (
+                                                <>Select date range</>
+                                            )}
+                                            <CalendarIcon className="ml-2 size-4 text-neutral-500" />
                                         </button>
                                     </PopoverTrigger>
                                     <PopoverContent className="w-auto p-3" align="start">
-                                        <EnhancedDateRangePicker
-                                            startDate={startDate}
-                                            endDate={endDate}
-                                            onRangeChange={handleDateRangeChange}
-                                        />
-
-                                        <div className="mt-3 flex items-center justify-between border-t border-neutral-200 pt-3">
-                                            <button
-                                                onClick={() => {
-                                                    setStartDate(undefined);
-                                                    setEndDate(undefined);
+                                        <div className="flex gap-3">
+                                            <Calendar
+                                                mode="range"
+                                                className="border-r border-neutral-100 pr-3"
+                                                selected={{
+                                                    from: startDate,
+                                                    to: endDate,
                                                 }}
-                                                className="text-xs text-neutral-500 hover:text-neutral-700"
-                                            >
-                                                Clear
-                                            </button>
-                                            <div className="text-xs text-neutral-500">
-                                                {startDate && endDate && (
-                                                    <span title={`${format(startDate, "dd MMM yyyy")} - ${format(endDate, "dd MMM yyyy")}`}>
-                                                        {format(startDate, "dd MMM yyyy")} - {format(endDate, "dd MMM yyyy")}
-                                                    </span>
-                                                )}
+                                                onSelect={(range) => {
+                                                    setStartDate(range?.from);
+                                                    setEndDate(range?.to);
+                                                }}
+                                                initialFocus
+                                            />
+
+                                            {/* Quick Presets */}
+                                            <div className="flex flex-col gap-2 pt-1">
+                                                <h4 className="mb-1 text-xs font-medium text-neutral-500">
+                                                    Quick Select
+                                                </h4>
+                                                {[
+                                                    {
+                                                        label: 'Past Day',
+                                                        from: startOfDay(subDays(new Date(), 1)),
+                                                    },
+                                                    {
+                                                        label: 'Past Week',
+                                                        from: startOfDay(subDays(new Date(), 7)),
+                                                    },
+                                                    {
+                                                        label: 'Past Month',
+                                                        from: startOfDay(subMonths(new Date(), 1)),
+                                                    },
+                                                    {
+                                                        label: 'Past 6 Months',
+                                                        from: startOfDay(subMonths(new Date(), 6)),
+                                                    },
+                                                    {
+                                                        label: 'Past Year',
+                                                        from: startOfDay(subYears(new Date(), 1)),
+                                                    },
+                                                ].map((preset) => (
+                                                    <button
+                                                        key={preset.label}
+                                                        onClick={() => {
+                                                            setStartDate(preset.from);
+                                                            setEndDate(new Date());
+                                                        }}
+                                                        className="w-full rounded-md border border-neutral-200 bg-white px-3 py-1.5 text-left text-xs hover:border-neutral-300 hover:bg-neutral-50"
+                                                    >
+                                                        {preset.label}
+                                                    </button>
+                                                ))}
                                             </div>
-                                            <button
-                                                onClick={() => setIsDatePickerOpen(false)}
-                                                className="rounded-md bg-primary-500 px-3 py-1 text-xs font-medium text-white hover:bg-primary-600"
-                                            >
-                                                Apply
-                                            </button>
                                         </div>
                                     </PopoverContent>
                                 </Popover>
                             </div>
 
-                            {/* Enhanced Attendance Filter with Popover */}
+                            {/* Attendance Filter */}
                             <div className="w-[180px]">
-                                <Popover open={isAttendanceFilterOpen} onOpenChange={setIsAttendanceFilterOpen}>
+                                <Popover>
                                     <PopoverTrigger asChild>
                                         <button
-                                            className="flex h-9 w-full items-center justify-between rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                                            className={`flex h-9 w-full items-center justify-between overflow-hidden truncate whitespace-nowrap rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 ${
+                                                attendanceFilter !== 'All'
+                                                    ? 'text-neutral-900'
+                                                    : 'text-neutral-500'
+                                            }`}
                                         >
-                                            <span className={`${attendanceFilter === 'All' ? 'text-neutral-500' : 'text-neutral-900'}`}>
-                                                {attendanceOptions.find(opt => opt.value === attendanceFilter)?.label || 'All Attendance %'}
-                                            </span>
-                                            <CaretDown size={14} weight="bold" className="text-neutral-500" />
+                                            {attendanceFilter !== 'All' ? (
+                                                attendanceFilter
+                                            ) : (
+                                                <>Select attendance %</>
+                                            )}
+                                            <CaretDown className="ml-2 size-4 text-neutral-500" />
                                         </button>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-[200px] p-2" align="start">
-                                        <div className="flex flex-col gap-1 py-1">
-                                            <h4 className="mb-1 px-2 text-xs font-medium text-neutral-500">Filter by Attendance</h4>
-                                            {attendanceOptions.map((option) => (
-                                                <button
-                                                    key={option.value}
-                                                    onClick={() => {
-                                                        setAttendanceFilter(option.value);
-                                                        setIsAttendanceFilterOpen(false);
-                                                    }}
-                                                    className={`w-full rounded-md px-2 py-1.5 text-left text-sm ${
-                                                        option.value === attendanceFilter
-                                                            ? "bg-primary-50 text-primary-600 font-medium"
-                                                            : "hover:bg-neutral-100 text-neutral-700"
-                                                    }`}
-                                                >
-                                                    {option.label}
-                                                </button>
-                                            ))}
+                                    <PopoverContent className="w-auto p-3" align="start">
+                                        <div className="flex flex-col gap-2">
+                                            <h4 className="mb-1 text-xs font-medium text-neutral-500">
+                                                Select attendance %
+                                            </h4>
+                                            {['All', 'Above 75%', '50% - 75%', 'Below 50%'].map(
+                                                (filter) => (
+                                                    <button
+                                                        key={filter}
+                                                        onClick={() => setAttendanceFilter(filter)}
+                                                        className={`w-full rounded-md border border-neutral-200 bg-white px-3 py-1.5 text-left text-xs hover:border-neutral-300 hover:bg-neutral-50 ${
+                                                            attendanceFilter === filter
+                                                                ? 'text-primary-600 bg-primary-50'
+                                                                : ''
+                                                        }`}
+                                                    >
+                                                        {filter}
+                                                    </button>
+                                                )
+                                            )}
                                         </div>
                                     </PopoverContent>
                                 </Popover>
@@ -1733,12 +1570,22 @@ function RouteComponent() {
                                 </svg>
                             </button>
 
-                            {hasActiveFilters && (
+                            {filteredStudents.length !== mockStudentData.length && (
                                 <button
                                     onClick={clearFilters}
                                     className="ml-auto inline-flex h-9 items-center justify-center gap-1 rounded-md bg-neutral-100 px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-200"
                                 >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="14"
+                                        height="14"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    >
                                         <path d="M18 6 6 18"></path>
                                         <path d="m6 6 12 12"></path>
                                     </svg>
@@ -1751,39 +1598,50 @@ function RouteComponent() {
                         {showAdvancedFilters && (
                             <div className="mb-4 rounded-md border border-neutral-100 bg-neutral-50 p-3">
                                 <div className="mb-2 flex items-center justify-between">
-                                    <h4 className="text-xs font-medium text-neutral-700">Advanced Filters</h4>
+                                    <h4 className="text-xs font-medium text-neutral-700">
+                                        Advanced Filters
+                                    </h4>
                                 </div>
                                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                                    {/* Enhanced Class Filter */}
+                                    {/* Class Filter */}
                                     <div>
-                                        <label className="mb-1 block text-xs font-medium text-neutral-700">
-                                            Live Class
-                                        </label>
-                                        <Popover open={isClassFilterOpen} onOpenChange={setIsClassFilterOpen}>
+                                        <Popover>
                                             <PopoverTrigger asChild>
                                                 <button
-                                                    className="flex h-8 w-full items-center justify-between rounded-md border border-neutral-300 bg-white px-3 py-1 text-sm text-neutral-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                                                    className={`flex h-8 w-full items-center justify-between overflow-hidden truncate whitespace-nowrap rounded-md border border-neutral-300 bg-white px-3 py-1 text-sm text-neutral-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 ${
+                                                        selectedClass !== 'All Live Classes'
+                                                            ? 'text-neutral-900'
+                                                            : 'text-neutral-500'
+                                                    }`}
                                                 >
-                                                    <span className={`${selectedClass === 'All Live Classes' ? 'text-neutral-500' : 'text-neutral-900'}`}>
-                                                        {selectedClass}
-                                                    </span>
-                                                    <CaretDown size={14} weight="bold" className="text-neutral-500" />
+                                                    {selectedClass !== 'All Live Classes' ? (
+                                                        selectedClass
+                                                    ) : (
+                                                        <>Select live class</>
+                                                    )}
+                                                    <CaretDown className="ml-2 size-4 text-neutral-500" />
                                                 </button>
                                             </PopoverTrigger>
-                                            <PopoverContent className="w-[200px] p-2" align="start">
-                                                <div className="flex flex-col gap-1 py-1">
-                                                    <h4 className="mb-1 px-2 text-xs font-medium text-neutral-500">Select Live Class</h4>
-                                                    {classOptions.map((classOption) => (
+                                            <PopoverContent className="w-auto p-3" align="start">
+                                                <div className="flex flex-col gap-2">
+                                                    <h4 className="mb-1 text-xs font-medium text-neutral-500">
+                                                        Select live class
+                                                    </h4>
+                                                    {[
+                                                        'All Live Classes',
+                                                        'Physics',
+                                                        'Chemistry',
+                                                        'Mathematics',
+                                                    ].map((classOption) => (
                                                         <button
                                                             key={classOption}
-                                                            onClick={() => {
-                                                                setSelectedClass(classOption);
-                                                                setIsClassFilterOpen(false);
-                                                            }}
-                                                            className={`w-full rounded-md px-2 py-1.5 text-left text-sm ${
-                                                                classOption === selectedClass
-                                                                    ? "bg-primary-50 text-primary-600 font-medium"
-                                                                    : "hover:bg-neutral-100 text-neutral-700"
+                                                            onClick={() =>
+                                                                setSelectedClass(classOption)
+                                                            }
+                                                            className={`w-full rounded-md border border-neutral-200 bg-white px-3 py-1.5 text-left text-xs hover:border-neutral-300 hover:bg-neutral-50 ${
+                                                                selectedClass === classOption
+                                                                    ? 'text-primary-600 bg-primary-50'
+                                                                    : ''
                                                             }`}
                                                         >
                                                             {classOption}
@@ -1800,126 +1658,245 @@ function RouteComponent() {
                         {/* Students Count */}
                         <div className="flex items-center justify-between text-xs text-neutral-500">
                             <span>
-                                Showing <span className="font-medium text-neutral-700">{filteredStudents.length}</span>
-                                {filteredStudents.length !== mockStudentData.length &&
-                                    <> of <span className="font-medium text-neutral-700">{mockStudentData.length}</span></>
-                                } students
+                                Showing{' '}
+                                <span className="font-medium text-neutral-700">
+                                    {filteredStudents.length}
+                                </span>
+                                {filteredStudents.length !== mockStudentData.length && (
+                                    <>
+                                        {' '}
+                                        of{' '}
+                                        <span className="font-medium text-neutral-700">
+                                            {mockStudentData.length}
+                                        </span>
+                                    </>
+                                )}{' '}
+                                students
                             </span>
                         </div>
                     </div>
 
                     {/* Table Section */}
                     <div className="overflow-hidden rounded-lg border border-neutral-200">
-                        {/* Share Buttons */}
-                        <div className="flex justify-end gap-2 border-b border-neutral-200 p-4">
-                            <MyButton
-                                buttonType="secondary"
-                                scale="small"
-                                className="flex items-center gap-2"
-                            >
-                                <Envelope size={18} />
-                                <span className="hidden sm:inline">Share via Email</span>
-                                <span className="inline sm:hidden">Email</span>
-                            </MyButton>
-                            <MyButton
-                                buttonType="secondary"
-                                scale="small"
-                                className="flex items-center gap-2"
-                            >
-                                <WhatsappLogo size={18} />
-                                <span className="hidden sm:inline">Share via WhatsApp</span>
-                                <span className="inline sm:hidden">WhatsApp</span>
-                            </MyButton>
-                        </div>
-
                         {/* Table */}
                         <div className="w-full overflow-x-auto">
-                            <table className="w-full min-w-[800px] table-auto border-collapse">
-                                <thead>
-                                    <tr className="border-b border-neutral-200 bg-neutral-50 text-left text-sm font-medium text-neutral-600">
-                                        <th className="w-[60px] px-4 py-3">Details</th>
-                                        <th className="px-4 py-3">Learner Name</th>
-                                        <th className="px-4 py-3">Username</th>
-                                        <th className="px-4 py-3">Batch</th>
-                                        <th className="px-4 py-3">Mobile Number</th>
-                                        <th className="px-4 py-3">Email</th>
-                                        <th className="px-4 py-3">Live Classes and Attendance</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {filteredStudents.length > 0 ? (
-                                        filteredStudents.map((student) => (
-                                            <tr
-                                                key={student.id}
-                                                className="border-b border-neutral-200 text-sm text-neutral-600 hover:bg-neutral-50"
-                                            >
-                                                <td className="p-4">
+                            <div className="max-h-[400px] overflow-y-auto">
+                                <table className="w-full min-w-[800px] table-auto border-collapse">
+                                    <thead>
+                                        <tr className="relative overflow-visible border-b border-neutral-200 bg-primary-100 text-left text-sm font-medium text-neutral-600">
+                                            <th className="w-[40px] px-4 py-6">
+                                                <Checkbox
+                                                    checked={allRowsSelected}
+                                                    onCheckedChange={(val) =>
+                                                        toggleSelectAll(!!val)
+                                                    }
+                                                    className="border-neutral-400 bg-white text-neutral-600 data-[state=checked]:bg-primary-500 data-[state=checked]:text-white"
+                                                />
+                                            </th>
+                                            <th className="w-[60px] px-4 py-6">Details</th>
+                                            <th className="select-none px-4 py-6">
+                                                <MyDropdown
+                                                    dropdownList={['ASC', 'DESC']}
+                                                    onSelect={(val) =>
+                                                        setSortConfig({
+                                                            key: 'name',
+                                                            direction:
+                                                                val === 'ASC' ? 'asc' : 'desc',
+                                                        })
+                                                    }
+                                                >
                                                     <button
-                                                        className="text-neutral-500 hover:text-primary-500"
-                                                        onClick={() => handleViewDetailsClick(student)}
+                                                        type="button"
+                                                        className="flex items-center gap-1 text-neutral-700 hover:text-neutral-900 focus:outline-none"
+                                                        aria-label="Sort learner name"
                                                     >
-                                                        <Eye size={20} />
+                                                        <span>Learner Name</span>
+                                                        {sortIconFor('name')}
                                                     </button>
-                                                </td>
-                                                <td className="p-4">{student.name}</td>
-                                                <td className="p-4">{student.username}</td>
-                                                <td className="p-4">{student.batch}</td>
-                                                <td className="p-4">{student.mobileNumber}</td>
-                                                <td className="p-4">{student.email}</td>
-                                                <td className="p-4">
-                                                    <div className="flex flex-col">
-                                                        <span>
-                                                            {student.attendedClasses}/
-                                                            {student.totalClasses} Attended
-                                                        </span>
-                                                        <div className="mt-1 flex items-center gap-3">
-                                                            <button
-                                                                className="flex items-center gap-1 font-medium text-primary-500 hover:underline"
-                                                                onClick={() =>
-                                                                    handleViewMoreClick(student)
-                                                                }
-                                                            >
-                                                                <Eye size={14} />
-                                                                View More
-                                                            </button>
-                                                            <div className="h-4 w-px bg-neutral-300"></div>
-                                                            <span className={`rounded-full px-2 py-0.5 font-medium ${
-                                                                student.attendancePercentage >= 75
-                                                                    ? 'bg-success-50 text-success-600'
-                                                                    : student.attendancePercentage >= 50
-                                                                        ? 'bg-warning-50 text-warning-600'
-                                                                        : 'bg-danger-50 text-danger-600'
-                                                            }`}>
-                                                                {student.attendancePercentage}%
+                                                </MyDropdown>
+                                            </th>
+                                            <th className="px-4 py-6">Username</th>
+                                            <th className="px-4 py-6">Batch</th>
+                                            <th className="px-4 py-6">Mobile Number</th>
+                                            <th className="px-4 py-6">Email</th>
+                                            <th className="px-4 py-6">
+                                                Live Classes and Attendance
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {paginatedStudents.length > 0 ? (
+                                            paginatedStudents.map((student) => (
+                                                <tr
+                                                    key={student.id}
+                                                    className="border-b border-neutral-200 text-sm text-neutral-600 hover:bg-neutral-50"
+                                                >
+                                                    <td className="p-4">
+                                                        <Checkbox
+                                                            checked={!!rowSelections[student.id]}
+                                                            onCheckedChange={(val) =>
+                                                                toggleRowSelection(
+                                                                    student.id,
+                                                                    !!val
+                                                                )
+                                                            }
+                                                            className="flex size-4 items-center justify-center border-neutral-400 text-neutral-600 shadow-none data-[state=checked]:bg-primary-500 data-[state=checked]:text-white"
+                                                        />
+                                                    </td>
+                                                    <td className="p-4">
+                                                        <button
+                                                            className="text-neutral-500 hover:text-primary-500"
+                                                            onClick={() =>
+                                                                handleViewDetailsClick(student)
+                                                            }
+                                                        >
+                                                            <ArrowSquareOut size={20} />
+                                                        </button>
+                                                    </td>
+                                                    <td className="p-4">{student.name}</td>
+                                                    <td className="p-4">{student.username}</td>
+                                                    <td className="p-4">{student.batch}</td>
+                                                    <td className="p-4">{student.mobileNumber}</td>
+                                                    <td className="p-4">{student.email}</td>
+                                                    <td className="p-4">
+                                                        <div className="flex flex-col">
+                                                            <span>
+                                                                {student.attendedClasses}/
+                                                                {student.totalClasses} Attended
                                                             </span>
+                                                            <div className="mt-1 flex items-center gap-3">
+                                                                <button
+                                                                    className="flex items-center gap-1 font-medium text-primary-500 hover:underline"
+                                                                    onClick={() =>
+                                                                        handleViewMoreClick(student)
+                                                                    }
+                                                                >
+                                                                    <Eye size={14} />
+                                                                    View More
+                                                                </button>
+                                                                <div className="h-4 w-px bg-neutral-300"></div>
+                                                                <span
+                                                                    className={`rounded-full px-2 py-0.5 font-medium ${
+                                                                        student.attendancePercentage >=
+                                                                        75
+                                                                            ? 'bg-success-50 text-success-600'
+                                                                            : student.attendancePercentage >=
+                                                                                50
+                                                                              ? 'bg-warning-50 text-warning-600'
+                                                                              : 'bg-danger-50 text-danger-600'
+                                                                    }`}
+                                                                >
+                                                                    {student.attendancePercentage}%
+                                                                </span>
+                                                            </div>
                                                         </div>
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        ) : (
+                                            <tr>
+                                                <td
+                                                    colSpan={8}
+                                                    className="p-8 text-center text-neutral-500"
+                                                >
+                                                    <div className="flex flex-col items-center">
+                                                        <svg
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                            width="40"
+                                                            height="40"
+                                                            viewBox="0 0 24 24"
+                                                            fill="none"
+                                                            stroke="currentColor"
+                                                            strokeWidth="1"
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            className="mb-3 text-neutral-300"
+                                                        >
+                                                            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                                                            <line
+                                                                x1="12"
+                                                                y1="9"
+                                                                x2="12"
+                                                                y2="13"
+                                                            ></line>
+                                                            <line
+                                                                x1="12"
+                                                                y1="17"
+                                                                x2="12.01"
+                                                                y2="17"
+                                                            ></line>
+                                                        </svg>
+                                                        <p className="text-lg font-medium">
+                                                            No students found
+                                                        </p>
+                                                        <p className="mt-1 text-sm">
+                                                            Try adjusting your search or filter
+                                                            criteria
+                                                        </p>
+                                                        <button
+                                                            className="text-primary-600 mt-4 rounded-md bg-primary-50 px-4 py-2 text-sm font-medium hover:bg-primary-100"
+                                                            onClick={clearFilters}
+                                                        >
+                                                            Clear all filters
+                                                        </button>
                                                     </div>
                                                 </td>
                                             </tr>
-                                        ))
-                                    ) : (
-                                        <tr>
-                                            <td colSpan={7} className="p-8 text-center text-neutral-500">
-                                                <div className="flex flex-col items-center">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="mb-3 text-neutral-300">
-                                                        <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-                                                        <line x1="12" y1="9" x2="12" y2="13"></line>
-                                                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
-                                                    </svg>
-                                                    <p className="text-lg font-medium">No students found</p>
-                                                    <p className="mt-1 text-sm">Try adjusting your search or filter criteria</p>
-                                                    <button
-                                                        className="mt-4 rounded-md bg-primary-50 px-4 py-2 text-sm font-medium text-primary-600 hover:bg-primary-100"
-                                                        onClick={clearFilters}
-                                                    >
-                                                        Clear all filters
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {/* Pagination Controls */}
+                        <div className="flex flex-col gap-4 border-t border-neutral-200 p-4">
+                            {/* Bulk Actions Bar */}
+                            {Object.keys(rowSelections).length > 0 && (
+                                <div className="flex flex-wrap items-center justify-between gap-4 text-neutral-600">
+                                    <div className="flex gap-1 text-sm">
+                                        [{Object.keys(rowSelections).length}]<span> Selected</span>
+                                    </div>
+
+                                    <div className="flex items-center gap-3">
+                                        <MyButton
+                                            buttonType="secondary"
+                                            scale="medium"
+                                            onClick={() => setRowSelections({})}
+                                        >
+                                            Reset
+                                        </MyButton>
+
+                                        <MyDropdown
+                                            dropdownList={['Export Account Details', 'Export Data']}
+                                            onSelect={(value) => {
+                                                const sel = filteredStudents.filter(
+                                                    (s) => rowSelections[s.id]
+                                                );
+                                                if (value === 'Export Account Details') {
+                                                    exportAccountDetails(sel);
+                                                } else if (value === 'Export Data') {
+                                                    exportFullData(sel);
+                                                }
+                                            }}
+                                        >
+                                            <MyButton
+                                                buttonType="primary"
+                                                scale="medium"
+                                                className="flex items-center gap-1"
+                                            >
+                                                Bulk Actions
+                                                <CaretUpDown />
+                                            </MyButton>
+                                        </MyDropdown>
+                                    </div>
+                                </div>
+                            )}
+
+                            <MyPagination
+                                currentPage={page}
+                                totalPages={totalPages}
+                                onPageChange={(p) => setPage(p)}
+                            />
                         </div>
                     </div>
                 </div>

@@ -16,6 +16,8 @@ import { useNavigate } from '@tanstack/react-router';
 import { useSessionDetailsStore } from '../-store/useSessionDetailsStore';
 import { useQueryClient } from '@tanstack/react-query';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { useState } from 'react';
+import DeleteRecurringDialog from './delete-recurring-dialog';
 
 interface DraftSessionCardProps {
     session: DraftSession;
@@ -31,6 +33,7 @@ export default function DraftSessionCard({ session }: DraftSessionCardProps) {
     const { setSessionId } = useLiveSessionStore();
     const { setSessionDetails } = useSessionDetailsStore();
     const { showForInstitutes } = useInstituteDetailsStore();
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
     const handleEditSession = async () => {
         try {
@@ -46,6 +49,13 @@ export default function DraftSessionCard({ session }: DraftSessionCardProps) {
 
     const handleDelete = async (e: React.MouseEvent) => {
         e.stopPropagation();
+        if (session.recurrence_type && session.recurrence_type !== 'once') {
+            // Open recurring delete dialog for recurring sessions
+            setDeleteDialogOpen(true);
+            return;
+        }
+
+        // For non-recurring sessions, delete directly
         try {
             await deleteLiveSession(session.session_id);
             await queryClient.invalidateQueries({ queryKey: ['draftSessions'] });
@@ -161,6 +171,11 @@ export default function DraftSessionCard({ session }: DraftSessionCardProps) {
                     </MyButton>
                 </div>
             </div>
+            <DeleteRecurringDialog
+                open={deleteDialogOpen}
+                onOpenChange={setDeleteDialogOpen}
+                sessionId={session.session_id}
+            />
         </div>
     );
 }

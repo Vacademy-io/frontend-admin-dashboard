@@ -75,11 +75,14 @@ export const getLiveSessions = async (instituteId: string) => {
     return response.data;
 };
 
-export const deleteLiveSession = async (sessionId: string) => {
+export type DeleteScope = 'single' | 'following' | 'all';
+
+export const deleteLiveSession = async (sessionId: string, scope?: DeleteScope) => {
     try {
         const response = await authenticatedAxiosInstance.get(DELETE_LIVE_SESSION, {
             params: {
                 sessionId,
+                ...(scope && { scope }),
             },
         });
         return response.data;
