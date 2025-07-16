@@ -42,6 +42,7 @@ import {
     DotsSixVertical,
     Plus,
     PencilSimple,
+    Clock,
 } from 'phosphor-react';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { TokenKey } from '@/constants/auth/tokens';
@@ -793,6 +794,24 @@ const GenerateInviteLinkDialog = ({
         setIsDialogOpen(false);
         setTextFieldValue('');
         setDropdownOptions([]);
+    };
+
+    // Add state for learner access duration selection
+    const [accessDurationType, setAccessDurationType] = useState('define');
+    const [accessDurationDays, setAccessDurationDays] = useState('');
+
+    // Add state for invitee email input and list
+    const [inviteeEmail, setInviteeEmail] = useState('');
+    const [inviteeEmails, setInviteeEmails] = useState<string[]>([]);
+    const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    const handleAddInviteeEmail = () => {
+        if (isValidEmail(inviteeEmail) && !inviteeEmails.includes(inviteeEmail)) {
+            setInviteeEmails([...inviteeEmails, inviteeEmail]);
+            setInviteeEmail('');
+        }
+    };
+    const handleRemoveInviteeEmail = (email: string) => {
+        setInviteeEmails(inviteeEmails.filter((e) => e !== email));
     };
 
     return (
@@ -2180,6 +2199,126 @@ const GenerateInviteLinkDialog = ({
                                             </DialogContent>
                                         </Dialog>
                                     </div>
+                                </CardContent>
+                            </Card>
+                            <Card className="mb-4">
+                                <CardHeader>
+                                    <div className="flex items-center gap-2">
+                                        <Clock size={22} />
+                                        <CardTitle className="text-2xl font-bold">
+                                            Learner Access Duration
+                                        </CardTitle>
+                                    </div>
+                                </CardHeader>
+                                <CardContent>
+                                    <RadioGroup
+                                        value={accessDurationType}
+                                        onValueChange={setAccessDurationType}
+                                        className="flex flex-col gap-2"
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <RadioGroupItem value="define" id="define-validity" />
+                                            <label htmlFor="define-validity" className="text-base">
+                                                Define Validity (Days)
+                                            </label>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <RadioGroupItem value="session" id="same-session" />
+                                            <label htmlFor="same-session" className="text-base">
+                                                Same as Session Expiry
+                                            </label>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <RadioGroupItem value="payment" id="same-payment" />
+                                            <label htmlFor="same-payment" className="text-base">
+                                                Same as Payment Plan
+                                            </label>
+                                        </div>
+                                    </RadioGroup>
+                                    {accessDurationType === 'define' && (
+                                        <div className="mt-4 flex flex-col gap-1">
+                                            <label
+                                                htmlFor="access-duration-days"
+                                                className="text-sm font-medium"
+                                            >
+                                                Access Duration (Days)
+                                            </label>
+                                            <Input
+                                                id="access-duration-days"
+                                                type="number"
+                                                min={1}
+                                                value={accessDurationDays}
+                                                onChange={(e) => {
+                                                    setAccessDurationDays(e.target.value);
+                                                }}
+                                                placeholder="Enter number of days"
+                                                className="w-48"
+                                            />
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
+                            <Card className="mb-4">
+                                <CardHeader>
+                                    <CardTitle className="text-2xl font-bold">
+                                        Invite via email
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="flex w-full items-end gap-2">
+                                        <div className="flex-1">
+                                            <label
+                                                htmlFor="invitee-email-input"
+                                                className="mb-1 block text-sm font-medium"
+                                            >
+                                                Enter invitee email
+                                            </label>
+                                            <Input
+                                                id="invitee-email-input"
+                                                type="email"
+                                                value={inviteeEmail}
+                                                onChange={(e) => {
+                                                    setInviteeEmail(e.target.value);
+                                                }}
+                                                placeholder="you@email.com"
+                                                className="w-full"
+                                            />
+                                        </div>
+                                        <MyButton
+                                            type="button"
+                                            scale="medium"
+                                            buttonType="primary"
+                                            className="mb-0"
+                                            disable={
+                                                !isValidEmail(inviteeEmail) ||
+                                                inviteeEmails.includes(inviteeEmail)
+                                            }
+                                            onClick={handleAddInviteeEmail}
+                                        >
+                                            Add
+                                        </MyButton>
+                                    </div>
+                                    {inviteeEmails.length > 0 && (
+                                        <div className="mt-4 flex flex-wrap gap-2">
+                                            {inviteeEmails.map((email) => (
+                                                <span
+                                                    key={email}
+                                                    className="text-primary-700 flex items-center gap-1 rounded-full border border-primary-200 bg-primary-50 px-3 py-1 text-sm"
+                                                >
+                                                    {email}
+                                                    <button
+                                                        type="button"
+                                                        className="ml-1 text-primary-500 hover:text-danger-600"
+                                                        onClick={() => {
+                                                            handleRemoveInviteeEmail(email);
+                                                        }}
+                                                    >
+                                                        <X size={16} />
+                                                    </button>
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
                                 </CardContent>
                             </Card>
                         </form>
