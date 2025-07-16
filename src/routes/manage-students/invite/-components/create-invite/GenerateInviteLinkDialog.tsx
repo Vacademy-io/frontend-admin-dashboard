@@ -361,6 +361,14 @@ const GenerateInviteLinkDialog = ({
     const [showDiscountDialog, setShowDiscountDialog] = useState(false);
     const [discounts, setDiscounts] = useState([
         {
+            id: 'none',
+            title: 'No Discount Applied',
+            code: '',
+            type: '',
+            value: 0,
+            expires: '',
+        },
+        {
             id: 'd1',
             title: 'Early Bird',
             code: 'EARLY20',
@@ -422,7 +430,7 @@ const GenerateInviteLinkDialog = ({
     const [showAddDiscountDialog, setShowAddDiscountDialog] = useState(false);
 
     // State for selected/active discount
-    const [selectedDiscountId, setSelectedDiscountId] = useState<string | null>(null);
+    const [selectedDiscountId, setSelectedDiscountId] = useState<string | null>('none');
 
     const [referralPrograms, setReferralPrograms] = useState<ReferralProgram[]>([
         {
@@ -1646,7 +1654,23 @@ const GenerateInviteLinkDialog = ({
                                         Change Discount Settings
                                     </MyButton>
                                 </CardHeader>
+                                {selectedDiscountId === 'none' && (
+                                    <Card className="mx-4 mb-4 border">
+                                        <div className="flex items-center justify-between p-4">
+                                            <div className="flex items-center gap-2">
+                                                <Tag size={16} />
+                                                <span className="text-base font-semibold">
+                                                    No Discount Applied
+                                                </span>
+                                            </div>
+                                            <Badge variant="default" className="ml-2">
+                                                Active
+                                            </Badge>
+                                        </div>
+                                    </Card>
+                                )}
                                 {selectedDiscountId &&
+                                    selectedDiscountId !== 'none' &&
                                     (() => {
                                         const activeDiscount = discounts.find(
                                             (d) => d.id === selectedDiscountId
@@ -2679,25 +2703,29 @@ const GenerateInviteLinkDialog = ({
                                         <span className="text-base font-semibold">
                                             {discount.title}
                                         </span>
+                                        {selectedDiscountId === discount.id && (
+                                            <Badge variant="default" className="ml-2">
+                                                Active
+                                            </Badge>
+                                        )}
                                     </div>
-                                    <span className="rounded bg-gray-100 px-2 py-1 font-mono text-xs text-gray-700">
-                                        {discount.code}
-                                    </span>
+                                    {discount.code && (
+                                        <span className="rounded bg-gray-100 px-2 py-1 font-mono text-xs text-gray-700">
+                                            {discount.code}
+                                        </span>
+                                    )}
                                 </div>
-                                <div className="mt-1 flex items-center gap-4 text-sm">
-                                    <span className="font-semibold text-green-700">
-                                        {discount.type === 'percent'
-                                            ? `${discount.value}% off`
-                                            : `₹${discount.value} off`}
-                                    </span>
-                                    <span className="text-xs text-gray-500">
-                                        Expires: {discount.expires}
-                                    </span>
-                                </div>
-                                {selectedDiscountId === discount.id && (
-                                    <Badge variant="default" className="ml-2">
-                                        Active
-                                    </Badge>
+                                {discount.id !== 'none' && (
+                                    <div className="mt-1 flex items-center gap-4 text-sm">
+                                        <span className="font-semibold text-green-700">
+                                            {discount.type === 'percent'
+                                                ? `${discount.value}% off`
+                                                : `₹${discount.value} off`}
+                                        </span>
+                                        <span className="text-xs text-gray-500">
+                                            Expires: {discount.expires}
+                                        </span>
+                                    </div>
                                 )}
                             </Card>
                         ))}
