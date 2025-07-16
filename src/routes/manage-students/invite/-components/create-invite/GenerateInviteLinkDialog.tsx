@@ -74,6 +74,7 @@ import { Switch as ShadSwitch } from '@/components/ui/switch';
 import SelectField from '@/components/design-system/select-field';
 import { Sortable, SortableDragHandle, SortableItem } from '@/components/ui/sortable';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { PPTViewQuillEditor } from '@/components/quill/PPTViewQuillEditor';
 
 export interface Course {
     id: string;
@@ -2370,13 +2371,13 @@ const GenerateInviteLinkDialog = ({
                                     </div>
                                 </CardHeader>
                                 <CardContent>
-                                    <textarea
+                                    <PPTViewQuillEditor
                                         value={customHtml}
-                                        onChange={(e) => {
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                                             setCustomHtml(e.target.value);
                                         }}
                                         placeholder="Enter custom HTML code here..."
-                                        className="mt-3 min-h-[120px] w-full rounded border border-gray-300 p-2 font-mono text-sm focus:border-primary-500 focus:outline-none"
+                                        className="h-[100px]"
                                     />
                                 </CardContent>
                             </Card>
@@ -2403,7 +2404,7 @@ const GenerateInviteLinkDialog = ({
                                         <>
                                             <hr className="my-4 border-t border-gray-200" />
                                             <p className="mb-4">Related Courses</p>
-                                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 mb-2">
+                                            <div className="mb-2 grid grid-cols-1 gap-4 md:grid-cols-2">
                                                 {relatedCourses.map((course) => (
                                                     <Card
                                                         key={course.id}
@@ -2448,15 +2449,24 @@ const GenerateInviteLinkDialog = ({
                         </form>
                     </Form>
                 </div>
-                <div className="mt-6 flex justify-end">
+                <div className="mt-6 flex justify-end gap-4">
+                    <MyButton
+                        type="button"
+                        scale="small"
+                        buttonType="secondary"
+                        className="p-5"
+                        onClick={() => setShowSummaryDialog(false)}
+                    >
+                        Close
+                    </MyButton>
                     <MyButton
                         type="button"
                         scale="small"
                         buttonType="primary"
-                        className="px-6"
+                        className="p-5"
                         onClick={() => setShowSummaryDialog(false)}
                     >
-                        Close
+                        Create Invite Link
                     </MyButton>
                 </div>
             </DialogContent>
