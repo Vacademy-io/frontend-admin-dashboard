@@ -43,6 +43,7 @@ import {
     Plus,
     PencilSimple,
     Clock,
+    CodeSimple,
 } from 'phosphor-react';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { TokenKey } from '@/constants/auth/tokens';
@@ -813,6 +814,9 @@ const GenerateInviteLinkDialog = ({
     const handleRemoveInviteeEmail = (email: string) => {
         setInviteeEmails(inviteeEmails.filter((e) => e !== email));
     };
+
+    // Add state for custom HTML
+    const [customHtml, setCustomHtml] = useState('');
 
     return (
         <Dialog open={showSummaryDialog} onOpenChange={setShowSummaryDialog}>
@@ -2319,6 +2323,33 @@ const GenerateInviteLinkDialog = ({
                                             ))}
                                         </div>
                                     )}
+                                </CardContent>
+                            </Card>
+                            <Card className="mb-4">
+                                <CardHeader>
+                                    <div className="flex items-center gap-2">
+                                        <div>
+                                            <div className="flex items-center gap-2">
+                                                <CodeSimple size={22} />
+                                                <CardTitle className="text-2xl font-bold">
+                                                    Custom HTML
+                                                </CardTitle>
+                                            </div>
+                                            <span className="text-sm text-gray-600">
+                                                Add custom HTML content to the invite page
+                                            </span>
+                                        </div>
+                                    </div>
+                                </CardHeader>
+                                <CardContent>
+                                    <textarea
+                                        value={customHtml}
+                                        onChange={(e) => {
+                                            setCustomHtml(e.target.value);
+                                        }}
+                                        placeholder="Enter custom HTML code here..."
+                                        className="mt-3 min-h-[120px] w-full rounded border border-gray-300 p-2 font-mono text-sm focus:border-primary-500 focus:outline-none"
+                                    />
                                 </CardContent>
                             </Card>
                         </form>
