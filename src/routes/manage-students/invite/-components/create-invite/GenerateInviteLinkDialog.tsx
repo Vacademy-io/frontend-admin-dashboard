@@ -50,7 +50,7 @@ import { useInstituteDetailsStore } from '@/stores/students/students-list/useIns
 import { TokenKey } from '@/constants/auth/tokens';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { useFileUpload } from '@/hooks/use-file-upload';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { MyInput } from '@/components/design-system/input';
 import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
 import { Label } from '@/components/ui/label';
@@ -101,14 +101,6 @@ const relatedCourses = [
         tags: ['Writing', 'Creativity', 'Arts'],
     },
 ];
-
-// Dummy payment plans
-type PaymentPlan = {
-    id: string;
-    name: string;
-    description: string;
-    price?: string;
-};
 
 export interface Course {
     id: string;
@@ -548,6 +540,7 @@ const GenerateInviteLinkDialog = ({
     const customFields = getValues('custom_fields');
 
     const { instituteDetails } = useInstituteDetailsStore();
+    const allTags = instituteDetails?.tags || [];
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const data = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
@@ -557,53 +550,13 @@ const GenerateInviteLinkDialog = ({
     const coursePreviewRef = useRef<HTMLInputElement>(null);
     const courseBannerRef = useRef<HTMLInputElement>(null);
     const courseMediaRef = useRef<HTMLInputElement>(null);
-
-    const [tags, setTags] = useState<string[]>([]); // selected tags
-    const allTags = instituteDetails?.tags || [];
-    const [newTag, setNewTag] = useState<string>('');
-    const [filteredTags, setFilteredTags] = useState<string[]>([]);
-
-    // Remove dialog state
-    const [youtubeUrl, setYoutubeUrl] = useState('');
-    const [youtubeError, setYoutubeError] = useState('');
-    const [showYoutubeInput, setShowYoutubeInput] = useState(false);
-    const youtubeInputRef = useRef<HTMLDivElement>(null);
-    const [showMediaMenu, setShowMediaMenu] = useState(false);
     const mediaMenuRef = useRef<HTMLDivElement>(null);
+    const youtubeInputRef = useRef<HTMLDivElement>(null);
 
     const freePlans = form.getValues('freePlans');
     const paidPlans = form.getValues('paidPlans');
-
-    const [showPlansDialog, setShowPlansDialog] = useState(false);
-    const initialPlan: PaymentPlan = freePlans[0] ||
-        paidPlans[0] || { id: 'none', name: 'No Plan', description: '' };
-    const [selectedPlan, setSelectedPlan] = useState<PaymentPlan>(initialPlan);
-
-    // Add new plan dialog state
-    const [showAddPlanDialog, setShowAddPlanDialog] = useState(false);
-    // Discount dialog state and dummy data
-    const [showDiscountDialog, setShowDiscountDialog] = useState(false);
     const discounts = form.getValues('discounts');
-
-    // Add new discount dialog state and form
-    const [showAddDiscountDialog, setShowAddDiscountDialog] = useState(false);
-
-    // State for selected/active discount
-    const [selectedDiscountId, setSelectedDiscountId] = useState<string | null>('none');
-
     const referralPrograms = form.getValues('referralPrograms');
-    const [selectedReferralId, setSelectedReferralId] = useState<string>('r1');
-    const [showReferralDialog, setShowReferralDialog] = useState(false);
-    const [showAddReferralDialog, setShowAddReferralDialog] = useState(false);
-    // Add state for the new switch
-    const [restrictToSameBatch, setRestrictToSameBatch] = useState(false);
-
-    // Add state for learner access duration selection
-    const [accessDurationType, setAccessDurationType] = useState('define');
-    const [accessDurationDays, setAccessDurationDays] = useState('');
-
-    // Add state for related courses switch
-    const [showRelatedCourses, setShowRelatedCourses] = useState(false);
 
     const addPlanForm = useShadForm<AddPlanFormValues>({
         resolver: shadZodResolver(addPlanSchema),
@@ -638,7 +591,6 @@ const GenerateInviteLinkDialog = ({
                 },
             ]);
         }
-        setShowAddPlanDialog(false);
         addPlanForm.reset();
     };
 
@@ -694,38 +646,37 @@ const GenerateInviteLinkDialog = ({
 
     const handleTagInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const input = e.target.value;
-        setNewTag(input);
+        setValue('newTag', input);
 
         if (input.trim()) {
             const filtered = allTags
                 ?.filter(
-                    (tag) => tag.toLowerCase().includes(input.toLowerCase()) && !tags.includes(tag) // Exclude already selected tags
+                    (tag) =>
+                        tag.toLowerCase().includes(input.toLowerCase()) &&
+                        !form.watch('tags').includes(tag) // Exclude already selected tags
                 )
                 .slice(0, 5);
-            setFilteredTags(filtered);
+            setValue('filteredTags', filtered);
         } else {
-            setFilteredTags([]);
+            setValue('filteredTags', []);
         }
     };
 
     const addTag = (e?: React.MouseEvent | React.KeyboardEvent, selectedTag?: string) => {
         if (e) e.preventDefault();
-
-        const tagToAdd = selectedTag || newTag.trim();
-        if (tagToAdd && !tags.includes(tagToAdd)) {
-            const updatedTags = [...tags, tagToAdd];
-            setTags(updatedTags);
-            form.setValue('tags', updatedTags);
+        const newTagValue = (form.watch('newTag') || '').trim();
+        const tagToAdd = selectedTag || newTagValue;
+        if (tagToAdd && !form.watch('tags').includes(tagToAdd)) {
+            const updatedTags = [...form.watch('tags'), tagToAdd];
+            setValue('tags', updatedTags);
         }
-
-        setNewTag('');
-        setFilteredTags([]);
+        setValue('newTag', '');
+        setValue('filteredTags', []);
     };
 
     const removeTag = (tagToRemove: string) => {
-        const updatedTags = tags.filter((tag) => tag !== tagToRemove);
-        setTags(updatedTags);
-        form.setValue('tags', updatedTags);
+        const updatedTags = form.watch('tags').filter((tag) => tag !== tagToRemove);
+        setValue('tags', updatedTags);
     };
 
     const addDiscountForm = useDiscountForm<AddDiscountFormValues>({
@@ -749,7 +700,6 @@ const GenerateInviteLinkDialog = ({
                 ...values,
             },
         ]);
-        setShowAddDiscountDialog(false);
         addDiscountForm.reset();
     };
 
@@ -786,8 +736,7 @@ const GenerateInviteLinkDialog = ({
             },
         ]);
 
-        setSelectedReferralId(newId);
-        setShowAddReferralDialog(false);
+        setValue('selectedReferralId', newId);
         addReferralForm.reset();
     };
 
@@ -968,27 +917,27 @@ const GenerateInviteLinkDialog = ({
 
     // Hide menu when clicking outside
     useEffect(() => {
-        if (!showMediaMenu) return;
+        if (!form.watch('showMediaMenu')) return;
         function handleClick(e: MouseEvent) {
             if (mediaMenuRef.current && !mediaMenuRef.current.contains(e.target as Node)) {
-                setShowMediaMenu(false);
+                form.setValue('showMediaMenu', false);
             }
         }
         document.addEventListener('mousedown', handleClick);
         return () => document.removeEventListener('mousedown', handleClick);
-    }, [showMediaMenu]);
+    }, [form.watch('showMediaMenu')]);
 
     // Hide YouTube input when clicking outside
     useEffect(() => {
-        if (!showYoutubeInput) return;
+        if (!form.watch('showYoutubeInput')) return;
         function handleClick(e: MouseEvent) {
             if (youtubeInputRef.current && !youtubeInputRef.current.contains(e.target as Node)) {
-                setShowYoutubeInput(false);
+                form.setValue('showYoutubeInput', false);
             }
         }
         document.addEventListener('mousedown', handleClick);
         return () => document.removeEventListener('mousedown', handleClick);
-    }, [showYoutubeInput]);
+    }, [form.watch('showYoutubeInput')]);
 
     return (
         <Dialog open={showSummaryDialog} onOpenChange={setShowSummaryDialog}>
@@ -1288,7 +1237,7 @@ const GenerateInviteLinkDialog = ({
                                                     <Input
                                                         type="text"
                                                         placeholder="Enter a tag"
-                                                        value={newTag}
+                                                        value={form.watch('newTag')}
                                                         onChange={handleTagInputChange}
                                                         onKeyDown={(e) => {
                                                             if (e.key === 'Enter') {
@@ -1304,32 +1253,38 @@ const GenerateInviteLinkDialog = ({
                                                         scale="medium"
                                                         layoutVariant="default"
                                                         onClick={addTag}
-                                                        disable={!newTag.trim()}
+                                                        disable={
+                                                            !(form.watch('newTag') || '').trim()
+                                                        }
                                                     >
                                                         Add
                                                     </MyButton>
                                                 </div>
 
                                                 {/* Suggestions dropdown */}
-                                                {filteredTags?.length > 0 && (
+                                                {form.watch('filteredTags')?.length > 0 && (
                                                     <div className="w-full overflow-y-auto rounded-md border border-neutral-200 bg-white shadow-sm">
                                                         <div className="flex flex-wrap gap-1.5 p-2">
-                                                            {filteredTags.map((tag, index) => (
-                                                                <span
-                                                                    key={index}
-                                                                    className="hover:text-primary-600 cursor-pointer select-none rounded-full bg-neutral-100 px-2 py-1 text-xs text-neutral-700 transition-colors hover:bg-primary-100"
-                                                                    onClick={(e) => addTag(e, tag)}
-                                                                >
-                                                                    {tag}
-                                                                </span>
-                                                            ))}
+                                                            {form
+                                                                .watch('filteredTags')
+                                                                .map((tag, index) => (
+                                                                    <span
+                                                                        key={index}
+                                                                        className="hover:text-primary-600 cursor-pointer select-none rounded-full bg-neutral-100 px-2 py-1 text-xs text-neutral-700 transition-colors hover:bg-primary-100"
+                                                                        onClick={(e) =>
+                                                                            addTag(e, tag)
+                                                                        }
+                                                                    >
+                                                                        {tag}
+                                                                    </span>
+                                                                ))}
                                                         </div>
                                                     </div>
                                                 )}
 
-                                                {tags?.length > 0 && (
+                                                {form.watch('tags')?.length > 0 && (
                                                     <div className="flex flex-wrap gap-2">
-                                                        {tags?.map((tag, index) => (
+                                                        {form.watch('tags').map((tag, index) => (
                                                             <Badge
                                                                 key={index}
                                                                 variant="secondary"
@@ -1611,13 +1566,19 @@ const GenerateInviteLinkDialog = ({
                                                             scale="small"
                                                             className="bg-white hover:bg-white active:bg-white"
                                                             onClick={() => {
-                                                                setShowMediaMenu((prev) => !prev);
-                                                                setShowYoutubeInput(false);
+                                                                form.setValue(
+                                                                    'showMediaMenu',
+                                                                    !form.watch('showMediaMenu')
+                                                                );
+                                                                form.setValue(
+                                                                    'showYoutubeInput',
+                                                                    false
+                                                                );
                                                             }}
                                                         >
                                                             <PencilSimpleLine />
                                                         </MyButton>
-                                                        {showMediaMenu && (
+                                                        {form.watch('showMediaMenu') && (
                                                             <div
                                                                 ref={mediaMenuRef}
                                                                 className=" flex w-48 flex-col gap-2 rounded bg-white p-2 shadow"
@@ -1625,7 +1586,10 @@ const GenerateInviteLinkDialog = ({
                                                                 <button
                                                                     className="w-full rounded px-3 py-2 text-left text-sm hover:bg-gray-100"
                                                                     onClick={() => {
-                                                                        setShowMediaMenu(false);
+                                                                        form.setValue(
+                                                                            'showMediaMenu',
+                                                                            false
+                                                                        );
                                                                         courseMediaRef.current?.click();
                                                                     }}
                                                                 >
@@ -1634,15 +1598,21 @@ const GenerateInviteLinkDialog = ({
                                                                 <button
                                                                     className="w-full rounded px-3 py-2 text-left text-sm hover:bg-gray-100"
                                                                     onClick={() => {
-                                                                        setShowMediaMenu(false);
-                                                                        setShowYoutubeInput(true);
+                                                                        form.setValue(
+                                                                            'showMediaMenu',
+                                                                            false
+                                                                        );
+                                                                        form.setValue(
+                                                                            'showYoutubeInput',
+                                                                            true
+                                                                        );
                                                                     }}
                                                                 >
                                                                     YouTube Link
                                                                 </button>
                                                             </div>
                                                         )}
-                                                        {showYoutubeInput && (
+                                                        {form.watch('showYoutubeInput') && (
                                                             <div
                                                                 ref={youtubeInputRef}
                                                                 className=" w-64 rounded bg-white p-4 shadow"
@@ -1653,18 +1623,25 @@ const GenerateInviteLinkDialog = ({
                                                                 <Input
                                                                     type="text"
                                                                     placeholder="https://youtube.com/watch?v=..."
-                                                                    value={youtubeUrl || ''}
+                                                                    value={
+                                                                        form.watch('youtubeUrl') ||
+                                                                        ''
+                                                                    }
                                                                     onChange={(e) => {
-                                                                        setYoutubeUrl(
+                                                                        form.setValue(
+                                                                            'youtubeUrl',
                                                                             e.target.value
                                                                         );
-                                                                        setYoutubeError('');
+                                                                        form.setValue(
+                                                                            'youtubeError',
+                                                                            ''
+                                                                        );
                                                                     }}
                                                                     className="mb-2"
                                                                 />
-                                                                {youtubeError && (
+                                                                {form.watch('youtubeError') && (
                                                                     <div className="mb-2 text-xs text-red-500">
-                                                                        {youtubeError}
+                                                                        {form.watch('youtubeError')}
                                                                     </div>
                                                                 )}
                                                                 <MyButton
@@ -1675,10 +1652,13 @@ const GenerateInviteLinkDialog = ({
                                                                     onClick={() => {
                                                                         const id =
                                                                             extractYouTubeVideoId(
-                                                                                youtubeUrl
+                                                                                form.watch(
+                                                                                    'youtubeUrl'
+                                                                                )
                                                                             );
                                                                         if (!id) {
-                                                                            setYoutubeError(
+                                                                            form.setValue(
+                                                                                'youtubeError',
                                                                                 'Invalid YouTube link'
                                                                             );
                                                                             return;
@@ -1687,16 +1667,23 @@ const GenerateInviteLinkDialog = ({
                                                                             'courseMedia',
                                                                             {
                                                                                 type: 'youtube',
-                                                                                id: youtubeUrl,
+                                                                                id: form.watch(
+                                                                                    'youtubeUrl'
+                                                                                ),
                                                                             }
                                                                         );
                                                                         form.setValue(
                                                                             'courseMediaBlob',
-                                                                            youtubeUrl
+                                                                            form.watch('youtubeUrl')
                                                                         );
-                                                                        setShowYoutubeInput(false);
+                                                                        form.setValue(
+                                                                            'showYoutubeInput',
+                                                                            false
+                                                                        );
                                                                     }}
-                                                                    disable={!youtubeUrl}
+                                                                    disable={
+                                                                        !form.watch('youtubeUrl')
+                                                                    }
                                                                 >
                                                                     Save YouTube Link
                                                                 </MyButton>
@@ -1740,32 +1727,32 @@ const GenerateInviteLinkDialog = ({
                                     scale="small"
                                     buttonType="secondary"
                                     className="p-4"
-                                    onClick={() => setShowPlansDialog(true)}
+                                    onClick={() => form.setValue('showPlansDialog', true)}
                                 >
                                     Change Payment Plans
                                 </MyButton>
                             </div>
                             {/* Show selected plan in a card */}
-                            {selectedPlan && (
+                            {form.watch('selectedPlan') && (
                                 <Card className="mb-4 flex flex-col gap-0">
                                     <div className="flex items-center gap-2 px-6 pt-6 text-lg font-semibold">
-                                        {selectedPlan.price ? (
+                                        {form.watch('selectedPlan')?.price ? (
                                             <CalendarBlank size={20} />
                                         ) : (
                                             <Gift size={20} />
                                         )}
-                                        <span>{selectedPlan.name}</span>
+                                        <span>{form.watch('selectedPlan')?.name}</span>
                                         <Badge variant="default" className="ml-2">
                                             Default
                                         </Badge>
                                     </div>
                                     <CardContent className="">
                                         <div className="text-sm text-gray-600">
-                                            {selectedPlan.description}
+                                            {form.watch('selectedPlan')?.description}
                                         </div>
-                                        {selectedPlan.price && (
+                                        {form.watch('selectedPlan')?.price && (
                                             <div className="mt-2 text-base font-bold text-green-700">
-                                                {selectedPlan.price}
+                                                {form.watch('selectedPlan')?.price}
                                             </div>
                                         )}
                                     </CardContent>
@@ -1785,12 +1772,12 @@ const GenerateInviteLinkDialog = ({
                                         scale="small"
                                         buttonType="secondary"
                                         className="p-4"
-                                        onClick={() => setShowDiscountDialog(true)}
+                                        onClick={() => form.setValue('showDiscountDialog', true)}
                                     >
                                         Change Discount Settings
                                     </MyButton>
                                 </CardHeader>
-                                {selectedDiscountId === 'none' && (
+                                {form.watch('selectedDiscountId') === 'none' && (
                                     <Card className="mx-4 mb-4 border">
                                         <div className="flex items-center justify-between p-4">
                                             <div className="flex items-center gap-2">
@@ -1805,11 +1792,11 @@ const GenerateInviteLinkDialog = ({
                                         </div>
                                     </Card>
                                 )}
-                                {selectedDiscountId &&
-                                    selectedDiscountId !== 'none' &&
+                                {form.watch('selectedDiscountId') &&
+                                    form.watch('selectedDiscountId') !== 'none' &&
                                     (() => {
                                         const activeDiscount = discounts.find(
-                                            (d) => d.id === selectedDiscountId
+                                            (d) => d.id === form.watch('selectedDiscountId')
                                         );
                                         if (!activeDiscount) return null;
                                         return (
@@ -1824,7 +1811,7 @@ const GenerateInviteLinkDialog = ({
                                                         <span className="text-base font-semibold">
                                                             {activeDiscount.title}
                                                         </span>
-                                                        {selectedDiscountId ===
+                                                        {form.watch('selectedDiscountId') ===
                                                             activeDiscount.id && (
                                                             <Badge
                                                                 variant="default"
@@ -1883,7 +1870,7 @@ const GenerateInviteLinkDialog = ({
                                         scale="small"
                                         buttonType="secondary"
                                         className="p-4"
-                                        onClick={() => setShowReferralDialog(true)}
+                                        onClick={() => form.setValue('showReferralDialog', true)}
                                     >
                                         Change Referral Settings
                                     </MyButton>
@@ -1898,7 +1885,7 @@ const GenerateInviteLinkDialog = ({
                                         <span className="ml-6 font-semibold text-green-700">
                                             {
                                                 referralPrograms.find(
-                                                    (p) => p.id === selectedReferralId
+                                                    (p) => p.id === form.watch('selectedReferralId')
                                                 )?.refereeBenefit
                                             }
                                         </span>
@@ -1910,7 +1897,7 @@ const GenerateInviteLinkDialog = ({
                                             <span className="font-semibold">Referrer Tiers</span>
                                         </div>
                                         {referralPrograms
-                                            .find((p) => p.id === selectedReferralId)
+                                            .find((p) => p.id === form.watch('selectedReferralId'))
                                             ?.referrerTiers.map((tier, idx) => (
                                                 <div
                                                     key={idx}
@@ -1934,7 +1921,9 @@ const GenerateInviteLinkDialog = ({
                                             <span>
                                                 {
                                                     referralPrograms.find(
-                                                        (p) => p.id === selectedReferralId
+                                                        (p) =>
+                                                            p.id ===
+                                                            form.watch('selectedReferralId')
                                                     )?.vestingPeriod
                                                 }
                                             </span>
@@ -1943,7 +1932,7 @@ const GenerateInviteLinkDialog = ({
                                             <span className="text-gray-700">Combine Offers</span>
                                             <span>
                                                 {referralPrograms.find(
-                                                    (p) => p.id === selectedReferralId
+                                                    (p) => p.id === form.watch('selectedReferralId')
                                                 )?.combineOffers
                                                     ? 'Yes'
                                                     : 'No'}
@@ -1965,8 +1954,10 @@ const GenerateInviteLinkDialog = ({
                                     </span>
                                 </div>
                                 <ShadSwitch
-                                    checked={restrictToSameBatch}
-                                    onCheckedChange={setRestrictToSameBatch}
+                                    checked={form.watch('restrictToSameBatch')}
+                                    onCheckedChange={(value) =>
+                                        form.setValue('restrictToSameBatch', value)
+                                    }
                                 />
                             </Card>
                             {/* Customize Invite Form Card */}
@@ -2451,8 +2442,10 @@ const GenerateInviteLinkDialog = ({
                                 </CardHeader>
                                 <CardContent>
                                     <RadioGroup
-                                        value={accessDurationType}
-                                        onValueChange={setAccessDurationType}
+                                        value={form.watch('accessDurationType')}
+                                        onValueChange={(value) =>
+                                            form.setValue('accessDurationType', value)
+                                        }
                                         className="flex flex-col gap-2"
                                     >
                                         <div className="flex items-center gap-2">
@@ -2474,7 +2467,7 @@ const GenerateInviteLinkDialog = ({
                                             </label>
                                         </div>
                                     </RadioGroup>
-                                    {accessDurationType === 'define' && (
+                                    {form.watch('accessDurationType') === 'define' && (
                                         <div className="mt-4 flex flex-col gap-1">
                                             <label
                                                 htmlFor="access-duration-days"
@@ -2486,9 +2479,12 @@ const GenerateInviteLinkDialog = ({
                                                 id="access-duration-days"
                                                 type="number"
                                                 min={1}
-                                                value={accessDurationDays}
+                                                value={form.watch('accessDurationDays')}
                                                 onChange={(e) => {
-                                                    setAccessDurationDays(e.target.value);
+                                                    form.setValue(
+                                                        'accessDurationDays',
+                                                        e.target.value
+                                                    );
                                                 }}
                                                 placeholder="Enter number of days"
                                                 className="w-48"
@@ -2601,14 +2597,16 @@ const GenerateInviteLinkDialog = ({
                                 <CardContent>
                                     <div className="mt-2 flex items-center gap-3">
                                         <ShadSwitch
-                                            checked={showRelatedCourses}
-                                            onCheckedChange={setShowRelatedCourses}
+                                            checked={form.watch('showRelatedCourses')}
+                                            onCheckedChange={(value) =>
+                                                form.setValue('showRelatedCourses', value)
+                                            }
                                         />
                                         <span className="text-sm text-gray-700">
                                             Show related courses on invite page
                                         </span>
                                     </div>
-                                    {showRelatedCourses && (
+                                    {form.watch('showRelatedCourses') && (
                                         <>
                                             <hr className="my-4 border-t border-gray-200" />
                                             <p className="mb-4">Related Courses</p>
@@ -2679,7 +2677,10 @@ const GenerateInviteLinkDialog = ({
                 </div>
             </DialogContent>
             {/* Payment Plans Dialog */}
-            <ShadDialog open={showPlansDialog} onOpenChange={setShowPlansDialog}>
+            <ShadDialog
+                open={form.watch('showPlansDialog')}
+                onOpenChange={(open) => form.setValue('showPlansDialog', open)}
+            >
                 <ShadDialogContent className="flex h-[80vh] min-w-[60vw] max-w-lg flex-col overflow-auto">
                     <ShadDialogHeader>
                         <ShadDialogTitle className="font-bold">
@@ -2696,10 +2697,10 @@ const GenerateInviteLinkDialog = ({
                                 {freePlans.map((plan) => (
                                     <Card
                                         key={plan.id}
-                                        className={`cursor-pointer border-2 ${selectedPlan?.id === plan.id ? 'border-primary' : 'border-gray-200'} transition-all`}
+                                        className={`cursor-pointer border-2 ${form.watch('selectedPlan')?.id === plan.id ? 'border-primary' : 'border-gray-200'} transition-all`}
                                         onClick={() => {
-                                            setSelectedPlan(plan);
-                                            setShowPlansDialog(false);
+                                            form.setValue('selectedPlan', plan);
+                                            form.setValue('showPlansDialog', false);
                                         }}
                                     >
                                         <div className="flex items-center gap-3 p-4">
@@ -2710,7 +2711,7 @@ const GenerateInviteLinkDialog = ({
                                                     {plan.description}
                                                 </span>
                                             </div>
-                                            {selectedPlan?.id === plan.id && (
+                                            {form.watch('selectedPlan')?.id === plan.id && (
                                                 <Badge variant="default" className="ml-auto">
                                                     Default
                                                 </Badge>
@@ -2726,10 +2727,10 @@ const GenerateInviteLinkDialog = ({
                                 {paidPlans.map((plan) => (
                                     <Card
                                         key={plan.id}
-                                        className={`cursor-pointer border-2 ${selectedPlan?.id === plan.id ? 'border-primary' : 'border-gray-200'} transition-all`}
+                                        className={`cursor-pointer border-2 ${form.watch('selectedPlan')?.id === plan.id ? 'border-primary' : 'border-gray-200'} transition-all`}
                                         onClick={() => {
-                                            setSelectedPlan(plan);
-                                            setShowPlansDialog(false);
+                                            form.setValue('selectedPlan', plan);
+                                            form.setValue('showPlansDialog', false);
                                         }}
                                     >
                                         <div className="flex items-center gap-3 p-4">
@@ -2743,7 +2744,7 @@ const GenerateInviteLinkDialog = ({
                                                     {plan.price}
                                                 </span>
                                             </div>
-                                            {selectedPlan?.id === plan.id && (
+                                            {form.watch('selectedPlan')?.id === plan.id && (
                                                 <Badge variant="default" className="ml-auto">
                                                     Default
                                                 </Badge>
@@ -2759,7 +2760,7 @@ const GenerateInviteLinkDialog = ({
                             type="button"
                             scale="small"
                             buttonType="secondary"
-                            onClick={() => setShowAddPlanDialog(true)}
+                            onClick={() => form.setValue('showAddPlanDialog', true)}
                             className="p-4"
                         >
                             + Add New Payment Plan
@@ -2768,7 +2769,10 @@ const GenerateInviteLinkDialog = ({
                 </ShadDialogContent>
             </ShadDialog>
             {/* Add New Payment Plan Dialog */}
-            <ShadDialog open={showAddPlanDialog} onOpenChange={setShowAddPlanDialog}>
+            <ShadDialog
+                open={form.watch('showAddPlanDialog')}
+                onOpenChange={(open) => form.setValue('showAddPlanDialog', open)}
+            >
                 <ShadDialogContent className="max-w-md">
                     <ShadDialogHeader>
                         <ShadDialogTitle>Add New Payment Plan</ShadDialogTitle>
@@ -2855,7 +2859,10 @@ const GenerateInviteLinkDialog = ({
                 </ShadDialogContent>
             </ShadDialog>
             {/* Discount Settings Dialog */}
-            <ShadDialog open={showDiscountDialog} onOpenChange={setShowDiscountDialog}>
+            <ShadDialog
+                open={form.watch('showDiscountDialog')}
+                onOpenChange={(open) => form.setValue('showDiscountDialog', open)}
+            >
                 <ShadDialogContent className="flex h-[70vh] min-w-[60vw] max-w-lg flex-col">
                     <ShadDialogHeader>
                         <ShadDialogTitle>Select Discount Settings</ShadDialogTitle>
@@ -2867,10 +2874,10 @@ const GenerateInviteLinkDialog = ({
                         {discounts.map((discount) => (
                             <Card
                                 key={discount.id}
-                                className={`cursor-pointer flex-col gap-1 border-2 p-4 ${selectedDiscountId === discount.id ? 'border-primary' : 'border-gray-200'} transition-all`}
+                                className={`cursor-pointer flex-col gap-1 border-2 p-4 ${form.watch('selectedDiscountId') === discount.id ? 'border-primary' : 'border-gray-200'} transition-all`}
                                 onClick={() => {
-                                    setSelectedDiscountId(discount.id);
-                                    setShowDiscountDialog(false);
+                                    form.setValue('selectedDiscountId', discount.id);
+                                    form.setValue('showDiscountDialog', false);
                                 }}
                             >
                                 <div className="flex items-center justify-between">
@@ -2883,7 +2890,7 @@ const GenerateInviteLinkDialog = ({
                                         <span className="text-base font-semibold">
                                             {discount.title}
                                         </span>
-                                        {selectedDiscountId === discount.id && (
+                                        {form.watch('selectedDiscountId') === discount.id && (
                                             <Badge variant="default" className="ml-2">
                                                 Active
                                             </Badge>
@@ -2915,7 +2922,7 @@ const GenerateInviteLinkDialog = ({
                             type="button"
                             scale="small"
                             buttonType="secondary"
-                            onClick={() => setShowAddDiscountDialog(true)}
+                            onClick={() => form.setValue('showAddDiscountDialog', true)}
                             className="p-4"
                         >
                             + Add New Discount
@@ -2924,7 +2931,10 @@ const GenerateInviteLinkDialog = ({
                 </ShadDialogContent>
             </ShadDialog>
             {/* Add New Discount Dialog */}
-            <ShadDialog open={showAddDiscountDialog} onOpenChange={setShowAddDiscountDialog}>
+            <ShadDialog
+                open={form.watch('showAddDiscountDialog')}
+                onOpenChange={(open) => form.setValue('showAddDiscountDialog', open)}
+            >
                 <ShadDialogContent className="max-w-md">
                     <ShadDialogHeader>
                         <ShadDialogTitle>Add New Discount</ShadDialogTitle>
@@ -3030,7 +3040,10 @@ const GenerateInviteLinkDialog = ({
                 </ShadDialogContent>
             </ShadDialog>
             {/* Referral Program Selection Dialog */}
-            <ShadDialog open={showReferralDialog} onOpenChange={setShowReferralDialog}>
+            <ShadDialog
+                open={form.watch('showReferralDialog')}
+                onOpenChange={(open) => form.setValue('showReferralDialog', open)}
+            >
                 <ShadDialogContent className="flex h-[70vh] min-w-[60vw] max-w-lg flex-col">
                     <ShadDialogHeader>
                         <ShadDialogTitle>Select Referral Program</ShadDialogTitle>
@@ -3042,10 +3055,10 @@ const GenerateInviteLinkDialog = ({
                         {referralPrograms.map((program) => (
                             <Card
                                 key={program.id}
-                                className={`cursor-pointer flex-col gap-1 border-2 p-4 ${selectedReferralId === program.id ? 'border-primary' : 'border-gray-200'} transition-all`}
+                                className={`cursor-pointer flex-col gap-1 border-2 p-4 ${form.watch('selectedReferralId') === program.id ? 'border-primary' : 'border-gray-200'} transition-all`}
                                 onClick={() => {
-                                    setSelectedReferralId(program.id);
-                                    setShowReferralDialog(false);
+                                    form.setValue('selectedReferralId', program.id);
+                                    form.setValue('showReferralDialog', false);
                                 }}
                             >
                                 <div className="flex items-center justify-between">
@@ -3055,7 +3068,7 @@ const GenerateInviteLinkDialog = ({
                                             {program.name}
                                         </span>
                                     </div>
-                                    {selectedReferralId === program.id && (
+                                    {form.watch('selectedReferralId') === program.id && (
                                         <Badge variant="default" className="ml-2">
                                             Default
                                         </Badge>
@@ -3100,7 +3113,7 @@ const GenerateInviteLinkDialog = ({
                             type="button"
                             scale="small"
                             buttonType="secondary"
-                            onClick={() => setShowAddReferralDialog(true)}
+                            onClick={() => form.setValue('showAddReferralDialog', true)}
                             className="p-4"
                         >
                             + Add New Referral Program
@@ -3109,7 +3122,10 @@ const GenerateInviteLinkDialog = ({
                 </ShadDialogContent>
             </ShadDialog>
             {/* Add New Referral Program Dialog */}
-            <ShadDialog open={showAddReferralDialog} onOpenChange={setShowAddReferralDialog}>
+            <ShadDialog
+                open={form.watch('showAddReferralDialog')}
+                onOpenChange={(open) => form.setValue('showAddReferralDialog', open)}
+            >
                 <ShadDialogContent className="max-w-md">
                     <ShadDialogHeader>
                         <ShadDialogTitle>Add New Referral Program</ShadDialogTitle>
