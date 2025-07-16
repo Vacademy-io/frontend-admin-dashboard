@@ -13,6 +13,7 @@ import { ChevronLeft, ChevronRight, Maximize, Minimize, X, Tv2 } from 'lucide-re
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance'; // For API calls
 import { toast } from 'sonner'; // For notifications
 import { ParticipantsSidePanel } from '../slides/components/ParticipantsSidePanel'; // Implied import for ParticipantsSidePanel component
+import { RecommendationsSidePanel } from './components/RecommendationsSidePanel'; // New import for recommendations
 import { QuickQuestionFAB, type InsertionBehavior } from './components/QuickQuestionFAB';
 import { ResponseOverlay } from './components/ResponseOverlay';
 import { SlideTypeEnum } from './utils/types';
@@ -79,10 +80,11 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
     onAddQuickQuestion,
     onGenerateTranscript,
 }) => {
-    const { setCurrentSlideId: setGlobalCurrentSlideId } = useSlideStore();
+    const { setCurrentSlideId: setGlobalCurrentSlideId, recommendationBatches } = useSlideStore();
     const [currentSlideId, setCurrentSlideId] = useState<string | undefined>(initialSlideId);
     // const [participantsCount, setParticipantsCount] = useState(0); // Replaced by participantsList.length
     const [isWhiteboardOpen, setIsWhiteboardOpen] = useState(false);
+    const [isRecommendationsPanelOpen, setIsRecommendationsPanelOpen] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const presentationContainerRef = useRef<HTMLDivElement>(null);
 
@@ -252,6 +254,9 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
     const isQuestionSlideForResponses = 
         currentSlideData?.type === SlideTypeEnum.Quiz || 
         currentSlideData?.type === SlideTypeEnum.Feedback;
+    
+    // Calculate total recommendations count
+    const totalRecommendations = recommendationBatches.reduce((sum, batch) => sum + batch.slides.length, 0);
 
     const goToNextSlide = async () => {
         if (currentSlideIndex < slides.length - 1) {
@@ -387,6 +392,9 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
                 recordingDuration={recordingDuration}
                 sseStatus={sseStatus}
                 onGenerateTranscript={onGenerateTranscript}
+                onToggleRecommendations={() => setIsRecommendationsPanelOpen(!isRecommendationsPanelOpen)}
+                isRecommendationsPanelOpen={isRecommendationsPanelOpen}
+                recommendationsCount={totalRecommendations}
             />
 
             {/* Main content area for the slide */}
@@ -504,6 +512,19 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
                 />
                 </div>
             )}
+
+            {/* Enhanced Recommendations Side Panel */}
+            <div className={`fixed inset-0 z-[1007] transition-all duration-300 ease-in-out ${isRecommendationsPanelOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}>
+                {/* Backdrop */}
+                <div className={`absolute inset-0 bg-black/20 backdrop-blur-sm transition-opacity duration-300 ${isRecommendationsPanelOpen ? 'opacity-100' : 'opacity-0'}`} />
+                
+                <RecommendationsSidePanel
+                    isOpen={isRecommendationsPanelOpen}
+                    onClose={() => setIsRecommendationsPanelOpen(false)}
+                    onAddSlide={onAddQuickQuestion}
+                    topOffset="4rem" // Height of the LiveSessionActionBar
+                />
+            </div>
         </div>
     );
 }; 

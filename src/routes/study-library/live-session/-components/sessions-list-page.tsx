@@ -17,10 +17,15 @@ import { DraftSessionDay, LiveSession, SessionsByDate } from '../-services/utils
 import PreviousSessionCard from './previous-session-card';
 import DraftSessionCard from './draft-session-card';
 import { useSessionDetailsStore } from '../-store/useSessionDetailsStore';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { useLiveSessionStore } from '../schedule/-store/sessionIdstore';
 
 export default function SessionListPage() {
     const { setNavHeading } = useNavHeadingStore();
     const { clearSessionDetails } = useSessionDetailsStore();
+    const { clearSessionId } = useLiveSessionStore();
+
     const [selectedTab, setSelectedTab] = useState<SessionStatus>(SessionStatus.LIVE);
     const navigate = useNavigate();
 
@@ -55,14 +60,25 @@ export default function SessionListPage() {
     };
 
     useEffect(() => {
-        setNavHeading('Live Session');
+        setNavHeading(getTerminology(ContentTerms.LiveSession, SystemTerms.LiveSession) + 's');
         clearSessionDetails();
+        clearSessionId();
     }, []);
 
     const renderLiveSessions = (sessions: LiveSession[] | undefined) => {
         if (isLiveLoading) return <div>Loading...</div>;
         if (liveError) return <div>Error loading sessions: {liveError.message}</div>;
-        if (!sessions?.length) return <div>No live sessions found</div>;
+        if (!sessions?.length)
+            return (
+                <div>
+                    No{' '}
+                    {getTerminology(
+                        ContentTerms.LiveSession,
+                        SystemTerms.LiveSession
+                    ).toLocaleLowerCase()}{' '}
+                    found
+                </div>
+            );
         return sessions.map((session) => (
             <LiveSessionCard key={session.session_id} session={session} />
         ));
@@ -161,7 +177,10 @@ export default function SessionListPage() {
                         upcomingSessions,
                         isUpcomingLoading,
                         upcomingError,
-                        'No upcoming sessions found'
+                        `No upcoming ${getTerminology(
+                            ContentTerms.LiveSession,
+                            SystemTerms.LiveSession
+                        ).toLocaleLowerCase()} found`
                     )}
                 </TabsContent>
                 <TabsContent value={SessionStatus.PAST} className="space-y-4">
@@ -169,7 +188,10 @@ export default function SessionListPage() {
                         pastSessions,
                         isPastLoading,
                         pastError,
-                        'No past sessions found'
+                        `No past ${getTerminology(
+                            ContentTerms.LiveSession,
+                            SystemTerms.LiveSession
+                        ).toLocaleLowerCase()} found`
                     )}
                 </TabsContent>
                 <TabsContent value={SessionStatus.DRAFTS} className="space-y-4">
@@ -178,7 +200,10 @@ export default function SessionListPage() {
                         draftSessions,
                         isDraftLoading,
                         draftError,
-                        'No draft sessions found'
+                        `No draft ${getTerminology(
+                            ContentTerms.LiveSession,
+                            SystemTerms.LiveSession
+                        ).toLocaleLowerCase()} found`
                     )}
                 </TabsContent>
             </Tabs>

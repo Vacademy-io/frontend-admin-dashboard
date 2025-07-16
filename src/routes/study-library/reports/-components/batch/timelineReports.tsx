@@ -31,6 +31,8 @@ import { MyPagination } from '@/components/design-system/pagination';
 import { formatToTwoDecimalPlaces, convertMinutesToTimeFormat } from '../../-services/helper';
 import { usePacageDetails } from '../../-store/usePacageDetails';
 import { toast } from 'sonner';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 const formSchema = z
     .object({
@@ -321,7 +323,8 @@ export default function TimelineReports() {
                 <div className="flex flex-row items-center justify-between">
                     <div>
                         <div>
-                            Course <span className="text-red-600">*</span>
+                            {getTerminology(ContentTerms.Course, SystemTerms.Course)}{' '}
+                            <span className="text-red-600">*</span>
                         </div>
                         <Select
                             onValueChange={(value) => {
@@ -331,7 +334,12 @@ export default function TimelineReports() {
                             defaultValue=""
                         >
                             <SelectTrigger className="h-[40px] w-[320px]">
-                                <SelectValue placeholder="Select a Course" />
+                                <SelectValue
+                                    placeholder={`Select a ${getTerminology(
+                                        ContentTerms.Course,
+                                        SystemTerms.Course
+                                    )}`}
+                                />
                             </SelectTrigger>
                             <SelectContent>
                                 {courseList.map((course) => (
@@ -346,7 +354,8 @@ export default function TimelineReports() {
                     {!defaultSessionLevels && (
                         <div>
                             <div>
-                                Session <span className="text-red-600">*</span>
+                                {getTerminology(ContentTerms.Session, SystemTerms.Session)}{' '}
+                                <span className="text-red-600">*</span>
                             </div>
                             <Select
                                 // value={watch("session") === "" ? null : watch("session")}
@@ -358,7 +367,12 @@ export default function TimelineReports() {
                                 disabled={!sessionList.length}
                             >
                                 <SelectTrigger className="h-[40px] w-[320px]">
-                                    <SelectValue placeholder="Select a Session" />
+                                    <SelectValue
+                                        placeholder={`Select a ${getTerminology(
+                                            ContentTerms.Session,
+                                            SystemTerms.Session
+                                        )}`}
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {sessionList.map((session) => (
@@ -374,7 +388,8 @@ export default function TimelineReports() {
                     {!defaultSessionLevels && (
                         <div>
                             <div>
-                                Level <span className="text-red-600">*</span>
+                                {getTerminology(ContentTerms.Level, SystemTerms.Level)}{' '}
+                                <span className="text-red-600">*</span>
                             </div>
                             <Select
                                 onValueChange={(value) => {
@@ -385,7 +400,12 @@ export default function TimelineReports() {
                                 disabled={!levelList.length}
                             >
                                 <SelectTrigger className="h-[40px] w-[320px]">
-                                    <SelectValue placeholder="Select a Level" />
+                                    <SelectValue
+                                        placeholder={`Select a ${getTerminology(
+                                            ContentTerms.Level,
+                                            SystemTerms.Level
+                                        )}`}
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {levelList.map((level) => (
@@ -459,7 +479,10 @@ export default function TimelineReports() {
                     </div>
                     <div className="flex flex-row items-center justify-between">
                         <div className="flex flex-col items-center justify-center">
-                            <div className="text-h3 font-[600]">Course Completed by batch</div>
+                            <div className="text-h3 font-[600]">
+                                {getTerminology(ContentTerms.Course, SystemTerms.Course)} Completed
+                                by batch
+                            </div>
                             <div>{`${formatToTwoDecimalPlaces(
                                 reportData?.percentage_course_completed
                             )} %`}</div>

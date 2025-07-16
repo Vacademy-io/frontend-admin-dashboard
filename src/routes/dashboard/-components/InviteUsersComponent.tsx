@@ -12,6 +12,7 @@ import { useMutation } from '@tanstack/react-query';
 import { handleInviteUsers } from '../-services/dashboard-services';
 import { useState, useEffect, lazy, Suspense } from 'react'; // Added useEffect
 import { Loader2 } from 'lucide-react';
+import { mapRoleToCustomName } from '@/utils/roleUtils';
 
 const LazyBatchSubjectForm = lazy(() => import('./BatchAndSubjectSelection'));
 
@@ -171,7 +172,7 @@ const InviteUsersComponent = ({ refetchData }: { refetchData: () => void }) => {
                             name="roleType"
                             options={RoleType.map((option, index) => ({
                                 value: option.name,
-                                label: option.name,
+                                label: mapRoleToCustomName(option.name),
                                 _id: index,
                             }))}
                             control={form.control}

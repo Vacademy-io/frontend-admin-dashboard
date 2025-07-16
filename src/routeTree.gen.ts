@@ -15,6 +15,7 @@ import { createFileRoute } from "@tanstack/react-router"
 import { Route as rootRoute } from "./routes/__root"
 import { Route as StudyLibraryIndexImport } from "./routes/study-library/index"
 import { Route as SignupIndexImport } from "./routes/signup/index"
+import { Route as SettingsIndexImport } from "./routes/settings/index"
 import { Route as ManageStudentsIndexImport } from "./routes/manage-students/index"
 import { Route as ManageInstituteIndexImport } from "./routes/manage-institute/index"
 import { Route as LoginIndexImport } from "./routes/login/index"
@@ -45,6 +46,7 @@ import { Route as EvaluatorAiAssessmentIndexImport } from "./routes/evaluator-ai
 import { Route as EvaluationEvaluationsIndexImport } from "./routes/evaluation/evaluations/index"
 import { Route as EvaluationEvaluationToolIndexImport } from "./routes/evaluation/evaluation-tool/index"
 import { Route as CommunityQuestionPaperIndexImport } from "./routes/community/question-paper/index"
+import { Route as CertificateGenerationStudentDataIndexImport } from "./routes/certificate-generation/student-data/index"
 import { Route as AssessmentQuestionPapersIndexImport } from "./routes/assessment/question-papers/index"
 import { Route as AssessmentAssessmentListIndexImport } from "./routes/assessment/assessment-list/index"
 import { Route as AiCenterMyResourcesIndexImport } from "./routes/ai-center/my-resources/index"
@@ -108,6 +110,12 @@ const StudyLibraryIndexRoute = StudyLibraryIndexImport.update({
 const SignupIndexRoute = SignupIndexImport.update({
   id: "/signup/",
   path: "/signup/",
+  getParentRoute: () => rootRoute,
+} as any)
+
+const SettingsIndexRoute = SettingsIndexImport.update({
+  id: "/settings/",
+  path: "/settings/",
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -303,6 +311,13 @@ const CommunityQuestionPaperIndexRoute =
   CommunityQuestionPaperIndexImport.update({
     id: "/community/question-paper/",
     path: "/community/question-paper/",
+    getParentRoute: () => rootRoute,
+  } as any)
+
+const CertificateGenerationStudentDataIndexRoute =
+  CertificateGenerationStudentDataIndexImport.update({
+    id: "/certificate-generation/student-data/",
+    path: "/certificate-generation/student-data/",
     getParentRoute: () => rootRoute,
   } as any)
 
@@ -628,6 +643,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof ManageStudentsIndexImport
       parentRoute: typeof rootRoute
     }
+    "/settings/": {
+      id: "/settings/"
+      path: "/settings"
+      fullPath: "/settings"
+      preLoaderRoute: typeof SettingsIndexImport
+      parentRoute: typeof rootRoute
+    }
     "/signup/": {
       id: "/signup/"
       path: "/signup"
@@ -682,6 +704,13 @@ declare module "@tanstack/react-router" {
       path: "/assessment/question-papers"
       fullPath: "/assessment/question-papers"
       preLoaderRoute: typeof AssessmentQuestionPapersIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/certificate-generation/student-data/": {
+      id: "/certificate-generation/student-data/"
+      path: "/certificate-generation/student-data"
+      fullPath: "/certificate-generation/student-data"
+      preLoaderRoute: typeof CertificateGenerationStudentDataIndexImport
       parentRoute: typeof rootRoute
     }
     "/community/question-paper/": {
@@ -1044,6 +1073,7 @@ export interface FileRoutesByFullPath {
   "/login": typeof LoginIndexRoute
   "/manage-institute": typeof ManageInstituteIndexRoute
   "/manage-students": typeof ManageStudentsIndexRoute
+  "/settings": typeof SettingsIndexRoute
   "/signup": typeof SignupIndexRoute
   "/study-library": typeof StudyLibraryIndexRoute
   "/login/oauth/redirect": typeof LoginOauthRedirectRoute
@@ -1052,6 +1082,7 @@ export interface FileRoutesByFullPath {
   "/ai-center/my-resources": typeof AiCenterMyResourcesIndexRoute
   "/assessment/assessment-list": typeof AssessmentAssessmentListIndexRoute
   "/assessment/question-papers": typeof AssessmentQuestionPapersIndexRoute
+  "/certificate-generation/student-data": typeof CertificateGenerationStudentDataIndexRoute
   "/community/question-paper": typeof CommunityQuestionPaperIndexRoute
   "/evaluation/evaluation-tool": typeof EvaluationEvaluationToolIndexRoute
   "/evaluation/evaluations": typeof EvaluationEvaluationsIndexRoute
@@ -1115,6 +1146,7 @@ export interface FileRoutesByTo {
   "/login": typeof LoginIndexRoute
   "/manage-institute": typeof ManageInstituteIndexRoute
   "/manage-students": typeof ManageStudentsIndexRoute
+  "/settings": typeof SettingsIndexRoute
   "/signup": typeof SignupIndexRoute
   "/study-library": typeof StudyLibraryIndexRoute
   "/login/oauth/redirect": typeof LoginOauthRedirectRoute
@@ -1123,6 +1155,7 @@ export interface FileRoutesByTo {
   "/ai-center/my-resources": typeof AiCenterMyResourcesIndexRoute
   "/assessment/assessment-list": typeof AssessmentAssessmentListIndexRoute
   "/assessment/question-papers": typeof AssessmentQuestionPapersIndexRoute
+  "/certificate-generation/student-data": typeof CertificateGenerationStudentDataIndexRoute
   "/community/question-paper": typeof CommunityQuestionPaperIndexRoute
   "/evaluation/evaluation-tool": typeof EvaluationEvaluationToolIndexRoute
   "/evaluation/evaluations": typeof EvaluationEvaluationsIndexRoute
@@ -1187,6 +1220,7 @@ export interface FileRoutesById {
   "/login/": typeof LoginIndexRoute
   "/manage-institute/": typeof ManageInstituteIndexRoute
   "/manage-students/": typeof ManageStudentsIndexRoute
+  "/settings/": typeof SettingsIndexRoute
   "/signup/": typeof SignupIndexRoute
   "/study-library/": typeof StudyLibraryIndexRoute
   "/login/oauth/redirect": typeof LoginOauthRedirectRoute
@@ -1195,6 +1229,7 @@ export interface FileRoutesById {
   "/ai-center/my-resources/": typeof AiCenterMyResourcesIndexRoute
   "/assessment/assessment-list/": typeof AssessmentAssessmentListIndexRoute
   "/assessment/question-papers/": typeof AssessmentQuestionPapersIndexRoute
+  "/certificate-generation/student-data/": typeof CertificateGenerationStudentDataIndexRoute
   "/community/question-paper/": typeof CommunityQuestionPaperIndexRoute
   "/evaluation/evaluation-tool/": typeof EvaluationEvaluationToolIndexRoute
   "/evaluation/evaluations/": typeof EvaluationEvaluationsIndexRoute
@@ -1260,6 +1295,7 @@ export interface FileRouteTypes {
     | "/login"
     | "/manage-institute"
     | "/manage-students"
+    | "/settings"
     | "/signup"
     | "/study-library"
     | "/login/oauth/redirect"
@@ -1268,6 +1304,7 @@ export interface FileRouteTypes {
     | "/ai-center/my-resources"
     | "/assessment/assessment-list"
     | "/assessment/question-papers"
+    | "/certificate-generation/student-data"
     | "/community/question-paper"
     | "/evaluation/evaluation-tool"
     | "/evaluation/evaluations"
@@ -1330,6 +1367,7 @@ export interface FileRouteTypes {
     | "/login"
     | "/manage-institute"
     | "/manage-students"
+    | "/settings"
     | "/signup"
     | "/study-library"
     | "/login/oauth/redirect"
@@ -1338,6 +1376,7 @@ export interface FileRouteTypes {
     | "/ai-center/my-resources"
     | "/assessment/assessment-list"
     | "/assessment/question-papers"
+    | "/certificate-generation/student-data"
     | "/community/question-paper"
     | "/evaluation/evaluation-tool"
     | "/evaluation/evaluations"
@@ -1400,6 +1439,7 @@ export interface FileRouteTypes {
     | "/login/"
     | "/manage-institute/"
     | "/manage-students/"
+    | "/settings/"
     | "/signup/"
     | "/study-library/"
     | "/login/oauth/redirect"
@@ -1408,6 +1448,7 @@ export interface FileRouteTypes {
     | "/ai-center/my-resources/"
     | "/assessment/assessment-list/"
     | "/assessment/question-papers/"
+    | "/certificate-generation/student-data/"
     | "/community/question-paper/"
     | "/evaluation/evaluation-tool/"
     | "/evaluation/evaluations/"
@@ -1472,6 +1513,7 @@ export interface RootRouteChildren {
   LoginIndexRoute: typeof LoginIndexRoute
   ManageInstituteIndexRoute: typeof ManageInstituteIndexRoute
   ManageStudentsIndexRoute: typeof ManageStudentsIndexRoute
+  SettingsIndexRoute: typeof SettingsIndexRoute
   SignupIndexRoute: typeof SignupIndexRoute
   StudyLibraryIndexRoute: typeof StudyLibraryIndexRoute
   LoginOauthRedirectRoute: typeof LoginOauthRedirectRoute
@@ -1480,6 +1522,7 @@ export interface RootRouteChildren {
   AiCenterMyResourcesIndexRoute: typeof AiCenterMyResourcesIndexRoute
   AssessmentAssessmentListIndexRoute: typeof AssessmentAssessmentListIndexRoute
   AssessmentQuestionPapersIndexRoute: typeof AssessmentQuestionPapersIndexRoute
+  CertificateGenerationStudentDataIndexRoute: typeof CertificateGenerationStudentDataIndexRoute
   CommunityQuestionPaperIndexRoute: typeof CommunityQuestionPaperIndexRoute
   EvaluationEvaluationToolIndexRoute: typeof EvaluationEvaluationToolIndexRoute
   EvaluationEvaluationsIndexRoute: typeof EvaluationEvaluationsIndexRoute
@@ -1543,6 +1586,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginIndexRoute: LoginIndexRoute,
   ManageInstituteIndexRoute: ManageInstituteIndexRoute,
   ManageStudentsIndexRoute: ManageStudentsIndexRoute,
+  SettingsIndexRoute: SettingsIndexRoute,
   SignupIndexRoute: SignupIndexRoute,
   StudyLibraryIndexRoute: StudyLibraryIndexRoute,
   LoginOauthRedirectRoute: LoginOauthRedirectRoute,
@@ -1551,6 +1595,8 @@ const rootRouteChildren: RootRouteChildren = {
   AiCenterMyResourcesIndexRoute: AiCenterMyResourcesIndexRoute,
   AssessmentAssessmentListIndexRoute: AssessmentAssessmentListIndexRoute,
   AssessmentQuestionPapersIndexRoute: AssessmentQuestionPapersIndexRoute,
+  CertificateGenerationStudentDataIndexRoute:
+    CertificateGenerationStudentDataIndexRoute,
   CommunityQuestionPaperIndexRoute: CommunityQuestionPaperIndexRoute,
   EvaluationEvaluationToolIndexRoute: EvaluationEvaluationToolIndexRoute,
   EvaluationEvaluationsIndexRoute: EvaluationEvaluationsIndexRoute,
@@ -1646,6 +1692,7 @@ export const routeTree = rootRoute
         "/login/",
         "/manage-institute/",
         "/manage-students/",
+        "/settings/",
         "/signup/",
         "/study-library/",
         "/login/oauth/redirect",
@@ -1654,6 +1701,7 @@ export const routeTree = rootRoute
         "/ai-center/my-resources/",
         "/assessment/assessment-list/",
         "/assessment/question-papers/",
+        "/certificate-generation/student-data/",
         "/community/question-paper/",
         "/evaluation/evaluation-tool/",
         "/evaluation/evaluations/",
@@ -1738,6 +1786,9 @@ export const routeTree = rootRoute
     "/manage-students/": {
       "filePath": "manage-students/index.tsx"
     },
+    "/settings/": {
+      "filePath": "settings/index.tsx"
+    },
     "/signup/": {
       "filePath": "signup/index.tsx"
     },
@@ -1761,6 +1812,9 @@ export const routeTree = rootRoute
     },
     "/assessment/question-papers/": {
       "filePath": "assessment/question-papers/index.tsx"
+    },
+    "/certificate-generation/student-data/": {
+      "filePath": "certificate-generation/student-data/index.tsx"
     },
     "/community/question-paper/": {
       "filePath": "community/question-paper/index.tsx"

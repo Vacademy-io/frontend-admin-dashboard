@@ -188,16 +188,50 @@ const handleSSOLogin = (): boolean => {
 
 // Refresh tokens and update cookies
 async function refreshTokens(refreshToken: string): Promise<UnauthorizedResponse | Tokens> {
-    const response: AxiosResponse<Tokens> = await axios({
-        method: 'GET',
-        url: REFRESH_TOKEN_URL,
-        params: { token: refreshToken },
-    });
+    console.log('[Token Refresh] Starting token refresh...');
 
-    await setTokenInStorage(TokenKey.accessToken, response.data?.accessToken);
-    await setTokenInStorage(TokenKey.refreshToken, response.data?.refreshToken);
+    try {
+        const response: AxiosResponse<Tokens> = await axios({
+            method: 'GET',
+            url: REFRESH_TOKEN_URL,
+            params: { token: refreshToken },
+            timeout: 10000, // 10 second timeout
+        });
 
-    return response.data;
+        console.log('[Token Refresh] Refresh response received:', {
+            status: response.status,
+            hasAccessToken: !!response.data?.accessToken,
+            hasRefreshToken: !!response.data?.refreshToken,
+        });
+
+        if (!response.data?.accessToken || !response.data?.refreshToken) {
+            throw new Error('Invalid response from token refresh endpoint');
+        }
+
+        await setTokenInStorage(TokenKey.accessToken, response.data.accessToken);
+        await setTokenInStorage(TokenKey.refreshToken, response.data.refreshToken);
+
+        console.log('[Token Refresh] Tokens stored successfully');
+        return response.data;
+    } catch (error) {
+        console.error('[Token Refresh] Failed to refresh tokens:', error);
+
+        if (axios.isAxiosError(error)) {
+            console.error('[Token Refresh] Axios error details:', {
+                status: error.response?.status,
+                statusText: error.response?.statusText,
+                data: error.response?.data,
+                message: error.message,
+            });
+
+            // If it's a 511 error, this might indicate a network-level auth issue
+            if (error.response?.status === 511) {
+                throw new Error('Network authentication required. Please check your connection and try again.');
+            }
+        }
+
+        throw error;
+    }
 }
 
 // Clear cookies on logout with proper domain cleanup
@@ -209,6 +243,21 @@ const removeCookiesAndLogout = (): void => {
     // Remove from shared domain
     Cookies.remove(TokenKey.accessToken, { domain: SSO_CONFIG.SHARED_DOMAIN });
     Cookies.remove(TokenKey.refreshToken, { domain: SSO_CONFIG.SHARED_DOMAIN });
+};
+
+// Debug function to check token status
+const debugTokenStatus = (): void => {
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const refreshToken = getTokenFromCookie(TokenKey.refreshToken);
+
+    console.log('[Token Debug] Current token status:', {
+        hasAccessToken: !!accessToken,
+        accessTokenLength: accessToken?.length || 0,
+        hasRefreshToken: !!refreshToken,
+        refreshTokenLength: refreshToken?.length || 0,
+        isAccessTokenExpired: isTokenExpired(accessToken),
+        accessTokenData: accessToken ? getTokenDecodedData(accessToken) : null,
+    });
 };
 
 export {
@@ -225,5 +274,6 @@ export {
     getUserRoles,
     generateSSOUrl,
     handleSSOLogin,
+    debugTokenStatus,
     SSO_CONFIG,
 };

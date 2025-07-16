@@ -1,14 +1,10 @@
 import { AddCourseForm } from './add-course-form';
 import { MyButton } from '@/components/design-system/button';
-import {
-    Card,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
+import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { PencilSimpleLine, StarFour, Lightning } from 'phosphor-react';
 import { BrainCircuit } from 'lucide-react';
+import { getTerminology } from '../../layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 /**
  * Renders the options for creating a course. The user can either choose to
@@ -29,15 +25,15 @@ const CourseTypeButtons = () => {
                 {/* Manual Creation Card */}
                 <Card className="flex flex-col justify-between border-neutral-300 shadow-sm">
                     <CardHeader className="space-y-3">
-                        <div className="flex items-center gap-2 text-primary-600">
+                        <div className="text-primary-600 flex items-center gap-2">
                             <PencilSimpleLine size={22} />
                             <CardTitle className="text-base font-semibold">
                                 Create Manually
                             </CardTitle>
                         </div>
                         <CardDescription>
-                            Build your course step-by-step with full control over content
-                            and structure.
+                            Build your course step-by-step with full control over content and
+                            structure.
                         </CardDescription>
                     </CardHeader>
                     <CardFooter className="justify-start">
@@ -51,9 +47,9 @@ const CourseTypeButtons = () => {
                     <CardHeader className="space-y-3">
                         <div className="flex items-center justify-between">
                             {/* Left: Brain icon + Title */}
-                            <div className="flex items-center gap-2 text-primary-600">
+                            <div className="text-primary-600 flex items-center gap-2">
                                 <BrainCircuit size={20} />
-                                <CardTitle className="text-base font-semibold text-primary-600">
+                                <CardTitle className="text-primary-600 text-base font-semibold">
                                     Create with AI
                                 </CardTitle>
                             </div>
@@ -81,6 +77,17 @@ const CourseTypeButtons = () => {
                         </MyButton>
                     </CardFooter>
                 </Card>
+            </div>
+            <div className="flex flex-col items-center justify-center gap-4 p-4">
+                <AddCourseForm />
+                <MyButton
+                    type="button"
+                    scale="large"
+                    buttonType="secondary"
+                    className="font-medium"
+                >
+                    Create {getTerminology(ContentTerms.Course, SystemTerms.Course)} Through AI
+                </MyButton>
             </div>
         </div>
     );

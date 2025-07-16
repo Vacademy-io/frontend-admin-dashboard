@@ -4,6 +4,7 @@ import { QuestionType as QuestionTypeList } from '@/constants/dummy-data';
 export interface CollapsibleQuillEditorProps {
     value: string | null | undefined;
     onChange: (content: string) => void;
+    onBlur: () => void;
 }
 
 // export interface QuestionTypeProps {

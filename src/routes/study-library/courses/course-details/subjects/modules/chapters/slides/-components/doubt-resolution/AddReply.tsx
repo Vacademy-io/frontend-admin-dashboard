@@ -44,6 +44,7 @@ export const AddReply = ({ parent, refetch }: { parent: DoubtType; refetch: () =
         <div className="relative flex w-full items-center gap-2">
             <MainViewQuillEditor
                 value={teacherReply}
+                onBlur={() => {}}
                 onChange={setTeacherReply}
                 CustomclasssName="flex-grow min-h-[70px] max-h-[150px] w-full text-sm custom-quill-compact-padding ql-editor-flex-grow"
                 placeholder="Type your reply..."

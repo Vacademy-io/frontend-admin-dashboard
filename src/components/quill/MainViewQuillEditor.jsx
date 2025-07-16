@@ -64,6 +64,7 @@ const imageHandler = function () {
 export const MainViewQuillEditor = ({
     value,
     onChange,
+    onBlur,
     CustomclasssName = '',
     placeholder = '',
 }) => {
@@ -119,6 +120,7 @@ export const MainViewQuillEditor = ({
             theme="snow"
             value={value}
             onChange={onChange}
+            onBlur={onBlur}
             preserveWhitespace={true}
             className={CustomclasssName}
             placeholder={placeholder}

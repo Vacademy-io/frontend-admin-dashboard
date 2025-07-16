@@ -66,7 +66,7 @@ export const assessmentStatusStudentAttemptedColumnsInternal: ColumnDef<StudentT
                         }}
                     >
                         <button className="flex w-full cursor-pointer items-center justify-between">
-                            <div>Learner Name</div>
+                            <div>Name</div>
                             <div>
                                 <CaretUp />
                                 <CaretDown />
@@ -160,7 +160,7 @@ export const assessmentStatusStudentOngoingColumnsInternal: ColumnDef<StudentTab
                         }}
                     >
                         <button className="flex w-full cursor-pointer items-center justify-between">
-                            <div>Learner Name</div>
+                            <div>Name</div>
                             <div>
                                 <CaretUp />
                                 <CaretDown />
@@ -218,7 +218,7 @@ export const assessmentStatusStudentPendingColumnsInternal: ColumnDef<StudentTab
                         }}
                     >
                         <button className="flex w-full cursor-pointer items-center justify-between">
-                            <div>Learner Name</div>
+                            <div>Name</div>
                             <div>
                                 <CaretUp />
                                 <CaretDown />
@@ -272,7 +272,7 @@ export const assessmentStatusStudentAttemptedColumnsExternal: ColumnDef<StudentT
                         }}
                     >
                         <button className="flex w-full cursor-pointer items-center justify-between">
-                            <div>Learner Name</div>
+                            <div>Name</div>
                             <div>
                                 <CaretUp />
                                 <CaretDown />
@@ -362,7 +362,7 @@ export const assessmentStatusStudentOngoingColumnsExternal: ColumnDef<StudentTab
                         }}
                     >
                         <button className="flex w-full cursor-pointer items-center justify-between">
-                            <div>Learner Name</div>
+                            <div>Name</div>
                             <div>
                                 <CaretUp />
                                 <CaretDown />
@@ -420,7 +420,7 @@ export const assessmentStatusStudentPendingColumnsExternal: ColumnDef<StudentTab
                         }}
                     >
                         <button className="flex w-full cursor-pointer items-center justify-between">
-                            <div>Learner Name</div>
+                            <div>Name</div>
                             <div>
                                 <CaretUp />
                                 <CaretDown />
@@ -452,7 +452,7 @@ export const assessmentStatusStudentQuestionResponseInternal: ColumnDef<StudentT
                         }}
                     >
                         <button className="flex w-full cursor-pointer items-center justify-between">
-                            <div>Learner Name</div>
+                            <div>Name</div>
                             <div>
                                 <CaretUp />
                                 <CaretDown />
@@ -495,7 +495,7 @@ export const assessmentStatusStudentQuestionResponseExternal: ColumnDef<StudentT
                         }}
                     >
                         <button className="flex w-full cursor-pointer items-center justify-between">
-                            <div>Learner Name</div>
+                            <div>Name</div>
                             <div>
                                 <CaretUp />
                                 <CaretDown />
@@ -530,7 +530,7 @@ export const studentInternalOrCloseQuestionWise: ColumnDef<StudentTable>[] = [
                         }}
                     >
                         <button className="flex w-full cursor-pointer items-center justify-between">
-                            <div>Learner Name</div>
+                            <div>Name</div>
                             <div>
                                 <CaretUp />
                                 <CaretDown />
@@ -569,7 +569,7 @@ export const studentExternalQuestionWise: ColumnDef<StudentTable>[] = [
                         }}
                     >
                         <button className="flex w-full cursor-pointer items-center justify-between">
-                            <div>Learner Name</div>
+                            <div>Name</div>
                             <div>
                                 <CaretUp />
                                 <CaretDown />
@@ -600,7 +600,7 @@ export const step3ParticipantsListColumn: ColumnDef<StudentTable>[] = [
                         }}
                     >
                         <button className="flex w-full cursor-pointer items-center justify-between">
-                            <div>Learner Name</div>
+                            <div>Name</div>
                             <div>
                                 <CaretUp />
                                 <CaretDown />
@@ -655,7 +655,7 @@ export const step3ParticipantsListIndividualStudentColumn: ColumnDef<StudentTabl
                         }}
                     >
                         <button className="flex w-full cursor-pointer items-center justify-between">
-                            <div>Learner Name</div>
+                            <div>Name</div>
                             <div>
                                 <CaretUp />
                                 <CaretDown />

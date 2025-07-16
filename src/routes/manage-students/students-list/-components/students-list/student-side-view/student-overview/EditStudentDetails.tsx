@@ -20,6 +20,8 @@ import { useInstituteDetailsStore } from '@/stores/students/students-list/useIns
 import { DropdownValueType } from '@/components/common/students/enroll-manually/dropdownTypesForPackageItems';
 import { Menu, Transition } from '@headlessui/react';
 import { Pencil, Upload, Trash2 } from 'lucide-react';
+import { RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 
 const EditStudentDetailsFormSchema = z.object({
     user_id: z.string().min(1, 'This field is required'),
@@ -29,12 +31,15 @@ const EditStudentDetailsFormSchema = z.object({
     gender: z.string().min(1, 'This field is required'),
     address_line: z.string().optional(),
     state: z.string().optional(),
+    city: z.string().optional(),
     pin_code: z.string().optional(),
     institute_name: z.string().optional(),
     father_name: z.string().optional(),
     mother_name: z.string().optional(),
-    parents_mobile_number: z.string().optional(),
-    parents_email: z.string().email('Invalid email').optional().or(z.literal('')),
+    father_mobile_number: z.string().optional(),
+    father_email: z.string().email('Invalid email').optional().or(z.literal('')),
+    mother_mobile_number: z.string().optional(),
+    mother_email: z.string().email('Invalid email').optional().or(z.literal('')),
     face_file_id: z.string().optional().or(z.literal('')),
 });
 
@@ -68,7 +73,7 @@ export const EditStudentDetails = () => {
     const loadImage = async (fileId: string) => {
         if (fileId) {
             const url = await getPublicUrl(fileId);
-            setFaceUrl(url);
+            setFaceUrl(url || '');
         }
     };
 
@@ -81,13 +86,16 @@ export const EditStudentDetails = () => {
                 contact_number: selectedStudent?.mobile_number || '',
                 gender: selectedStudent?.gender || '',
                 address_line: selectedStudent?.address_line || '',
+                city: selectedStudent?.city || '',
                 state: selectedStudent?.region || '',
                 pin_code: selectedStudent?.pin_code || '',
                 institute_name: selectedStudent?.linked_institute_name || '',
                 father_name: selectedStudent?.father_name || '',
                 mother_name: selectedStudent?.mother_name || '',
-                parents_mobile_number: selectedStudent?.parents_mobile_number || '',
-                parents_email: selectedStudent?.parents_email || '',
+                father_mobile_number: selectedStudent?.father_mobile_number || '',
+                father_email: selectedStudent?.father_email || '',
+                mother_mobile_number: selectedStudent?.mother_mobile_number || '',
+                mother_email: selectedStudent?.mother_email || '',
                 face_file_id: selectedStudent?.face_file_id || '',
             });
 
@@ -130,40 +138,40 @@ export const EditStudentDetails = () => {
     };
 
     const editStudentDetailsMutation = useEditStudentDetails();
- const onSubmit = async (values: EditStudentDetailsFormValues) => {
-  try {
-    const face_file_id = form.getValues('face_file_id') ?? '';
+    const onSubmit = async (values: EditStudentDetailsFormValues) => {
+        try {
+            const face_file_id = form.getValues('face_file_id') ?? '';
 
-    const payload = { ...values, face_file_id };
+            const payload = { ...values, face_file_id };
 
-    await editStudentDetailsMutation.mutateAsync(payload);
+            await editStudentDetailsMutation.mutateAsync(payload);
 
-    if (selectedStudent) {
-      const updatedStudent = {
-        ...selectedStudent,
-        ...payload,
-        id: selectedStudent.id,
-        mobile_number: payload.contact_number,
-        region: payload.state ?? null,
-        linked_institute_name: payload.institute_name ?? null,
-        face_file_id: payload.face_file_id ?? '', // Ensure it's a string
-      };
+            if (selectedStudent) {
+                const updatedStudent = {
+                    ...selectedStudent,
+                    ...payload,
+                    id: selectedStudent.id,
+                    mobile_number: payload.contact_number,
+                    region: payload.state ?? null,
+                    linked_institute_name: payload.institute_name ?? null,
+                    face_file_id: payload.face_file_id ?? '', // Ensure it's a string
+                };
 
-      setSelectedStudent(updatedStudent);
-    }
+                setSelectedStudent(updatedStudent);
+            }
 
-    if (face_file_id) {
-      const newFaceUrl = await getPublicUrl(face_file_id);
-      setFaceUrl(newFaceUrl);
-    } else {
-      setFaceUrl(null); // if image was removed
-    }
+            if (face_file_id) {
+                const newFaceUrl = await getPublicUrl(face_file_id);
+                setFaceUrl(newFaceUrl || '');
+            } else {
+                setFaceUrl(null); // if image was removed
+            }
 
-    setOpenDialog(false);
-  } catch (err) {
-    console.error('Failed to update student:', err);
-  }
-};
+            setOpenDialog(false);
+        } catch (err) {
+            console.error('Failed to update student:', err);
+        }
+    };
 
     const submitButton = (
         <MyButton onClick={() => formRef.current?.requestSubmit()}>Save Changes</MyButton>
@@ -179,7 +187,7 @@ export const EditStudentDetails = () => {
                 </div>
             }
             footer={submitButton}
-            heading="Edit Student Details"
+            heading={`Edit ${getTerminology(RoleTerms.Learner, SystemTerms.Learner)} Details`}
             open={openDialog}
             onOpenChange={handleDialogChange}
             dialogWidth="w-[35vw]"
@@ -211,7 +219,7 @@ export const EditStudentDetails = () => {
                                     <div className="absolute bottom-3 right-3 z-10">
                                         <Menu as="div" className="relative inline-block text-left">
                                             <Menu.Button className="rounded-full bg-white p-1 shadow hover:bg-neutral-100">
-                                                <Pencil className="h-5 w-5 text-neutral-700" />
+                                                <Pencil className="size-5 text-neutral-700" />
                                             </Menu.Button>
                                             <Transition
                                                 enter="transition ease-out duration-100"
@@ -222,7 +230,7 @@ export const EditStudentDetails = () => {
                                                 leaveTo="transform opacity-0 scale-95"
                                             >
                                                 <Menu.Items className="absolute bottom-10 right-0 z-20 w-40 origin-bottom-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none">
-                                                    <div className="px-1 py-1">
+                                                    <div className="p-1">
                                                         <Menu.Item>
                                                             {({ active }) => (
                                                                 <button
@@ -234,9 +242,9 @@ export const EditStudentDetails = () => {
                                                                         active
                                                                             ? 'bg-neutral-100'
                                                                             : ''
-                                                                    } group flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm`}
+                                                                    } group flex w-full items-center gap-2 rounded-md p-2 text-sm`}
                                                                 >
-                                                                    <Upload className="h-4 w-4" />
+                                                                    <Upload className="size-4" />
                                                                     Upload New
                                                                 </button>
                                                             )}
@@ -250,9 +258,9 @@ export const EditStudentDetails = () => {
                                                                         active
                                                                             ? 'bg-neutral-100'
                                                                             : ''
-                                                                    } group flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm text-red-600`}
+                                                                    } group flex w-full items-center gap-2 rounded-md p-2 text-sm text-red-600`}
                                                                 >
-                                                                    <Trash2 className="h-4 w-4" />
+                                                                    <Trash2 className="size-4" />
                                                                     Remove Image
                                                                 </button>
                                                             )}
@@ -401,6 +409,25 @@ export const EditStudentDetails = () => {
                             </FormItem>
                         )}
                     />
+                    <FormField
+                        control={form.control}
+                        name="city"
+                        render={({ field }) => (
+                            <FormItem className="w-full">
+                                <FormControl className="w-full">
+                                    <MyInput
+                                        input={field.value}
+                                        onChangeFunction={(e) => field.onChange(e.target.value)}
+                                        inputType="text"
+                                        inputPlaceholder="City"
+                                        className="w-full"
+                                        label="City"
+                                        error={form.formState.errors.city?.message}
+                                    />
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
 
                     <FormField
                         control={form.control}
@@ -503,26 +530,20 @@ export const EditStudentDetails = () => {
                             </FormItem>
                         )}
                     />
-
                     <FormField
                         control={form.control}
-                        name="parents_mobile_number"
+                        name="father_mobile_number"
                         render={() => (
                             <FormItem className="w-full">
                                 <FormControl>
-                                    <div className="flex flex-col gap-1">
-                                        <PhoneInputField
-                                            label="Parents Mobile Number"
-                                            placeholder="123 456 7890"
-                                            name="mobileNumber"
-                                            control={form.control}
-                                            country="in"
-                                            required={false}
-                                        />
-                                        <p className="text-subtitle text-danger-600">
-                                            {form.formState.errors.parents_mobile_number?.message}
-                                        </p>
-                                    </div>
+                                    <PhoneInputField
+                                        label="Father/Male Guardian Mobile Number"
+                                        placeholder="123 456 7890"
+                                        name="fatherMobile"
+                                        control={form.control}
+                                        country="in"
+                                        required={false}
+                                    />
                                 </FormControl>
                             </FormItem>
                         )}
@@ -530,7 +551,7 @@ export const EditStudentDetails = () => {
 
                     <FormField
                         control={form.control}
-                        name="parents_email"
+                        name="father_email"
                         render={({ field }) => (
                             <FormItem className="w-full">
                                 <FormControl className="w-full">
@@ -538,10 +559,49 @@ export const EditStudentDetails = () => {
                                         input={field.value}
                                         onChangeFunction={(e) => field.onChange(e.target.value)}
                                         inputType="email"
-                                        inputPlaceholder="Parents Email"
+                                        inputPlaceholder="Father/Male Guardian Email"
                                         className="w-full"
-                                        label="Parents Email"
-                                        error={form.formState.errors.parents_email?.message}
+                                        label="Father/Male Guardian Email"
+                                        error={form.formState.errors.father_email?.message}
+                                    />
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="mother_mobile_number"
+                        render={() => (
+                            <FormItem className="w-full">
+                                <FormControl>
+                                    <PhoneInputField
+                                        label="Mother/Female Guardian Mobile Number"
+                                        placeholder="123 456 7890"
+                                        name="motherMobile"
+                                        control={form.control}
+                                        country="in"
+                                        required={false}
+                                    />
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="mother_email"
+                        render={({ field }) => (
+                            <FormItem className="w-full">
+                                <FormControl className="w-full">
+                                    <MyInput
+                                        input={field.value}
+                                        onChangeFunction={(e) => field.onChange(e.target.value)}
+                                        inputType="email"
+                                        inputPlaceholder="Mother/Female Guardian Email"
+                                        className="w-full"
+                                        label="Mother/Female Guardian Email"
+                                        error={form.formState.errors.mother_email?.message}
                                     />
                                 </FormControl>
                             </FormItem>

@@ -6,6 +6,8 @@ import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { MyInput } from '@/components/design-system/input';
 import { MyButton } from '@/components/design-system/button';
 import { Module } from '@/stores/study-library/use-modules-with-chapters-store';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 const formSchema = z.object({
     moduleName: z.string().min(1, 'Module name is required'),
@@ -54,10 +56,16 @@ export const AddModulesForm = ({ initialValues, onSubmitSuccess }: AddModulesFor
                         <FormItem>
                             <FormControl>
                                 <MyInput
-                                    label="Module Name"
+                                    label={`${getTerminology(
+                                        ContentTerms.Modules,
+                                        SystemTerms.Modules
+                                    )} Name`}
                                     required={true}
                                     inputType="text"
-                                    inputPlaceholder="Enter Module Name"
+                                    inputPlaceholder={`Enter ${getTerminology(
+                                        ContentTerms.Modules,
+                                        SystemTerms.Modules
+                                    )} name`}
                                     className="w-[352px]"
                                     input={field.value}
                                     onChangeFunction={(e) => field.onChange(e.target.value)}

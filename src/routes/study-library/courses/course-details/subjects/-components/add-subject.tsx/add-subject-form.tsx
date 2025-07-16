@@ -6,6 +6,8 @@ import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { SubjectType } from '@/stores/study-library/use-study-library-store';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 const formSchema = z.object({
     subjectName: z.string().min(1, 'Subject name is required'),
@@ -55,10 +57,16 @@ export const AddSubjectForm = ({ onSubmitSuccess, initialValues }: AddSubjectFor
                         <FormItem>
                             <FormControl>
                                 <MyInput
-                                    label="Subject"
+                                    label={`${getTerminology(
+                                        ContentTerms.Subjects,
+                                        SystemTerms.Subjects
+                                    )} Name`}
                                     required={true}
                                     inputType="text"
-                                    inputPlaceholder="Enter subject name"
+                                    inputPlaceholder={`Enter ${getTerminology(
+                                        ContentTerms.Subjects,
+                                        SystemTerms.Subjects
+                                    )} name`}
                                     className="w-[352px]"
                                     input={field.value}
                                     onChangeFunction={(e) => field.onChange(e.target.value)}

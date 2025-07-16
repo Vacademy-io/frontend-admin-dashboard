@@ -36,6 +36,8 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import { RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 
 interface AttemptData {
     id: string;
@@ -181,7 +183,8 @@ export function StudentSelectionDialog({
                 <DialogContent className="w-[60vw]">
                     <DialogHeader className="mb-2">
                         <DialogTitle className="font-bold">
-                            {'Select Students for Evaluation'}
+                            Select {getTerminology(RoleTerms.Learner, SystemTerms.Learner)}s for
+                            Evaluation
                         </DialogTitle>
                     </DialogHeader>
                     <div className="mx-auto mb-4 w-full max-w-4xl">
@@ -202,7 +205,7 @@ export function StudentSelectionDialog({
                                                 />
                                             </TableHead>
                                             <TableHead className="sticky left-12 z-10 bg-primary-50">
-                                                Learner Name
+                                                Name
                                             </TableHead>
                                             <TableHead>Enrollment ID</TableHead>
                                             <TableHead>Attempt Count</TableHead>
@@ -240,8 +243,12 @@ export function StudentSelectionDialog({
                                                         <div className="flex items-center justify-center gap-2">
                                                             <Loader2 className="size-4 animate-spin" />
                                                             <span>
-                                                                Evaluating students with{' '}
-                                                                {selectedAssessment}...
+                                                                Evaluating{' '}
+                                                                {getTerminology(
+                                                                    RoleTerms.Learner,
+                                                                    SystemTerms.Learner
+                                                                ).toLocaleLowerCase()}
+                                                                s with {selectedAssessment}...
                                                             </span>
                                                         </div>
                                                     </TableCell>
@@ -342,7 +349,12 @@ export function StudentSelectionDialog({
 
                             {studentData.length === 0 && !isEvaluating ? (
                                 <div className="p-4 text-center text-sm text-muted-foreground">
-                                    No enrolled students found.
+                                    No enrolled{' '}
+                                    {getTerminology(
+                                        RoleTerms.Learner,
+                                        SystemTerms.Learner
+                                    ).toLocaleLowerCase()}
+                                    s found.
                                 </div>
                             ) : (
                                 !isEvaluating && (

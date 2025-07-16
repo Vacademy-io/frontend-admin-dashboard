@@ -35,6 +35,8 @@ import { createAssesmentSteps } from '@/constants/intro/steps';
 import { useSectionDetailsStore } from '../../-utils/zustand-global-states/step2-add-questions';
 import { useTestAccessStore } from '../../-utils/zustand-global-states/step3-adding-participants';
 import { useAccessControlStore } from '../../-utils/zustand-global-states/step4-access-control';
+import { ContentTerms, RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 
 export function convertDateFormat(dateStr: string) {
     const date = new Date(dateStr);
@@ -333,7 +335,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                             key: 'subject_selection',
                         }) && (
                             <SelectField
-                                label="Subject"
+                                label={getTerminology(ContentTerms.Subjects, SystemTerms.Subjects)}
                                 name="testCreation.subject"
                                 labelStyle="font-thin"
                                 options={SubjectFilterData.map((option, index) => ({
@@ -363,6 +365,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                     <FormControl>
                                         <MainViewQuillEditor
                                             onChange={field.onChange}
+                                            onBlur={field.onBlur}
                                             value={field.value}
                                         />
                                     </FormControl>
@@ -612,7 +615,12 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                 render={({ field }) => (
                                     <FormItem className="flex w-1/2 items-center justify-between">
                                         <FormLabel>
-                                            Allow students to switch between sections
+                                            Allow{' '}
+                                            {getTerminology(
+                                                RoleTerms.Learner,
+                                                SystemTerms.Learner
+                                            ).toLocaleLowerCase()}
+                                            s to switch between sections
                                             {getStepKey({
                                                 assessmentDetails,
                                                 currentStep,

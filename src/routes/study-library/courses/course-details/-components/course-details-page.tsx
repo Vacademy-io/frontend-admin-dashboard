@@ -32,8 +32,13 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { handleGetSlideCountDetails } from '../-services/get-slides-count';
 import { CourseDetailsRatingsComponent } from './course-details-ratings-page';
-import { transformApiDataToCourseData } from '../-utils/helper';
+import { getInstructorsBySessionAndLevel, transformApiDataToCourseData } from '../-utils/helper';
 import { CourseStructureDetails } from './course-structure-details';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { AddCourseForm } from '@/components/common/study-library/add-course/add-course-form';
+import { MyButton } from '@/components/design-system/button';
+import { getPublicUrl } from '@/services/upload_file';
 
 type SlideType = {
     id: string;
@@ -98,7 +103,7 @@ type SlideCountType = {
 const mockCourses: Course[] = [
     {
         id: '1',
-        title: '2-Level Course Structure',
+        title: `2-Level ${getTerminology(ContentTerms.Level, SystemTerms.Level)} Structure`,
         level: 2,
         structure: {
             courseName: 'Introduction to Web Development',
@@ -107,7 +112,7 @@ const mockCourses: Course[] = [
     },
     {
         id: '2',
-        title: '3-Level Course Structure',
+        title: `3-Level ${getTerminology(ContentTerms.Level, SystemTerms.Level)} Structure`,
         level: 3,
         structure: {
             courseName: 'Frontend Fundamentals',
@@ -116,7 +121,7 @@ const mockCourses: Course[] = [
     },
     {
         id: '3',
-        title: '4-Level Course Structure',
+        title: `4-Level ${getTerminology(ContentTerms.Level, SystemTerms.Level)} Structure`,
         level: 4,
         structure: {
             courseName: 'Full-Stack JavaScript Development Mastery',
@@ -125,7 +130,7 @@ const mockCourses: Course[] = [
     },
     {
         id: '4',
-        title: '5-Level Course Structure',
+        title: `5-Level ${getTerminology(ContentTerms.Level, SystemTerms.Level)} Structure`,
         level: 5,
         structure: {
             courseName: 'Advanced Software Engineering Principles',
@@ -133,6 +138,21 @@ const mockCourses: Course[] = [
         },
     },
 ];
+
+interface InstructorWithPicUrl {
+    id: string;
+    name: string;
+    email: string;
+    profilePicId?: string;
+    profilePicUrl: string;
+}
+
+// Utility to extract YouTube video ID
+const extractYouTubeVideoId = (url: string): string | null => {
+    const regExp = /^.*(?:youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return match && match[1] && match[1].length === 11 ? match[1] : null;
+};
 
 export const CourseDetailsPage = () => {
     const router = useRouter();
@@ -163,7 +183,13 @@ export const CourseDetailsPage = () => {
                 isCoursePublishedToCatalaouge: false,
                 coursePreviewImageMediaId: '',
                 courseBannerMediaId: '',
-                courseMediaId: '',
+                courseMediaId: {
+                    type: '',
+                    id: '',
+                },
+                coursePreviewImageMediaPreview: '',
+                courseBannerMediaPreview: '',
+                courseMediaPreview: '',
                 courseHtmlDescription: '',
                 instructors: [],
                 sessions: [],
@@ -254,6 +280,8 @@ export const CourseDetailsPage = () => {
                     const transformedData = await transformApiDataToCourseData(courseDetailsData);
                     if (transformedData) {
                         form.reset({
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-expect-error
                             courseData: transformedData,
                             mockCourses: mockCourses,
                         });
@@ -273,20 +301,81 @@ export const CourseDetailsPage = () => {
         enabled: !!packageSessionIds,
     });
 
+    useEffect(() => {
+        form.setValue(
+            'courseData.instructors',
+            getInstructorsBySessionAndLevel(
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-expect-error
+                courseDetailsData?.sessions,
+                selectedSession,
+                selectedLevel
+            )
+        );
+    }, [currentLevel, currentSession]);
+
+    console.log(form.getValues('courseData.instructors'));
+    const [resolvedInstructors, setResolvedInstructors] = useState<InstructorWithPicUrl[]>([]);
+    const [loadingInstructors, setLoadingInstructors] = useState(false);
+    const instructors: Omit<InstructorWithPicUrl, 'profilePicUrl'>[] =
+        form.getValues('courseData').instructors || [];
+
+    useEffect(() => {
+        let isMounted = true;
+        async function preloadInstructorAvatars() {
+            setLoadingInstructors(true);
+            const uniqueProfilePicIds = [
+                ...new Set(
+                    instructors.map((i) => i.profilePicId).filter((id): id is string => Boolean(id))
+                ),
+            ];
+            const idToUrl: Record<string, string> = {};
+            await Promise.all(
+                uniqueProfilePicIds.map(async (id) => {
+                    try {
+                        idToUrl[id] = await getPublicUrl(id);
+                    } catch {
+                        idToUrl[id] = '';
+                    }
+                })
+            );
+            if (isMounted) {
+                setResolvedInstructors(
+                    instructors.map((inst) => ({
+                        ...inst,
+                        profilePicUrl:
+                            inst.profilePicId && idToUrl[inst.profilePicId]
+                                ? idToUrl[inst.profilePicId]
+                                : '',
+                    })) as InstructorWithPicUrl[]
+                );
+                setLoadingInstructors(false);
+            }
+        }
+        preloadInstructorAvatars();
+        return () => {
+            isMounted = false;
+        };
+    }, [JSON.stringify(instructors)]);
+
     return (
-        <div className="flex min-h-screen flex-col bg-white">
+        <div className="flex min-h-screen flex-col bg-gray-50">
             {/* Top Banner */}
-            <div className="relative h-[300px]">
+            <div
+                className={`relative ${form.getValues('courseData.isCoursePublishedToCatalaouge') ? 'h-[350px]' : 'h-[300px]'}`}
+            >
                 {/* Transparent black overlay */}
-                {form.watch('courseData').courseBannerMediaId && (
+                {form.watch('courseData').courseBannerMediaId ? (
                     <div className="pointer-events-none absolute inset-0 z-10 bg-black/50" />
+                ) : (
+                    <div className="pointer-events-none absolute inset-0 z-10 bg-black/10" />
                 )}
                 {!form.watch('courseData').courseBannerMediaId ? (
-                    <div className="absolute inset-0 z-0 bg-primary-500" />
+                    <div className="absolute inset-0 z-0 bg-transparent" />
                 ) : (
                     <div className="absolute inset-0 z-0 opacity-70">
                         <img
-                            src={form.watch('courseData').courseBannerMediaId}
+                            src={form.watch('courseData').courseBannerMediaPreview}
                             alt="Course Banner"
                             className="size-full object-cover"
                             onError={(e) => {
@@ -297,7 +386,9 @@ export const CourseDetailsPage = () => {
                     </div>
                 )}
                 {/* Primary color overlay with 70% opacity */}
-                <div className="container relative z-20 mx-auto px-4 py-12 text-white">
+                <div
+                    className={`container relative z-20 mx-auto px-4 py-12 ${!form.watch('courseData').courseBannerMediaId ? 'text-black' : 'text-white'}`}
+                >
                     <div className="flex items-start justify-between gap-8">
                         {/* Left side - Title and Description */}
                         <div className="max-w-2xl">
@@ -310,16 +401,6 @@ export const CourseDetailsPage = () => {
                                 </div>
                             ) : (
                                 <>
-                                    <div className="mb-4 flex gap-2">
-                                        {form.getValues('courseData').tags.map((tag, index) => (
-                                            <span
-                                                key={index}
-                                                className="rounded-full bg-blue-600 px-3 py-1 text-sm"
-                                            >
-                                                {tag}
-                                            </span>
-                                        ))}
-                                    </div>
                                     <h1 className="mb-4 text-4xl font-bold">
                                         {form.getValues('courseData').title}
                                     </h1>
@@ -329,42 +410,83 @@ export const CourseDetailsPage = () => {
                                             __html: form.getValues('courseData').description || '',
                                         }}
                                     />
+                                    {form.getValues('courseData.isCoursePublishedToCatalaouge') && (
+                                        <MyButton
+                                            type="button"
+                                            scale="large"
+                                            buttonType="primary"
+                                            className="mt-2 bg-success-100 font-medium !text-black hover:bg-success-100  focus:bg-success-100 active:bg-success-100"
+                                        >
+                                            Added to catalog
+                                        </MyButton>
+                                    )}
+                                    <div className="mt-4 flex gap-2">
+                                        {form.getValues('courseData').tags.map((tag, index) => (
+                                            <span
+                                                key={index}
+                                                className="rounded-md border px-3 py-1 text-sm shadow-lg"
+                                            >
+                                                {tag}
+                                            </span>
+                                        ))}
+                                    </div>
+                                    <AddCourseForm
+                                        isEdit={true}
+                                        initialCourseData={form.getValues()}
+                                    />
                                 </>
                             )}
                         </div>
 
                         {/* Right side - Video Player */}
-                        <div className="w-[400px] overflow-hidden rounded-lg shadow-xl">
-                            <div className="relative aspect-video bg-black">
-                                {!form.watch('courseData').courseMediaId ? (
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                        <div className="flex size-16 items-center justify-center rounded-full bg-white/20">
-                                            <svg
-                                                className="size-8 text-white"
-                                                fill="currentColor"
-                                                viewBox="0 0 24 24"
-                                            >
-                                                <path d="M8 5v14l11-7z" />
-                                            </svg>
-                                        </div>
+                        {form.watch('courseData').courseMediaId.id &&
+                            (form.watch('courseData').courseMediaId.type === 'youtube' ? (
+                                <div className="w-[400px] overflow-hidden rounded-lg shadow-xl">
+                                    <div className="relative flex aspect-video items-center justify-center bg-black">
+                                        <iframe
+                                            width="100%"
+                                            height="100%"
+                                            src={`https://www.youtube.com/embed/${extractYouTubeVideoId(form.watch('courseData').courseMediaId.id || '')}`}
+                                            title="YouTube video player"
+                                            frameBorder="0"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowFullScreen
+                                            className="size-full rounded-lg object-contain"
+                                        />
                                     </div>
-                                ) : (
-                                    <video
-                                        src={form.watch('courseData').courseMediaId}
-                                        controls
-                                        className="size-full rounded-lg object-contain"
-                                        onError={(e) => {
-                                            e.currentTarget.style.display = 'none';
-                                            e.currentTarget.parentElement?.classList.add(
-                                                'bg-black'
-                                            );
-                                        }}
-                                    >
-                                        Your browser does not support the video tag.
-                                    </video>
-                                )}
-                            </div>
-                        </div>
+                                </div>
+                            ) : form.watch('courseData').courseMediaId.type === 'video' ? (
+                                <div className="w-[400px] overflow-hidden rounded-lg shadow-xl">
+                                    <div className="relative aspect-video bg-black">
+                                        <video
+                                            src={form.watch('courseData').courseMediaPreview}
+                                            controls
+                                            controlsList="nodownload noremoteplayback"
+                                            disablePictureInPicture
+                                            disableRemotePlayback
+                                            className="size-full rounded-lg object-contain"
+                                            onError={(e) => {
+                                                e.currentTarget.style.display = 'none';
+                                                e.currentTarget.parentElement?.classList.add(
+                                                    'bg-black'
+                                                );
+                                            }}
+                                        >
+                                            Your browser does not support the video tag.
+                                        </video>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="w-[400px] overflow-hidden rounded-lg shadow-xl">
+                                    <div className="relative aspect-video bg-black">
+                                        <img
+                                            src={form.watch('courseData').courseMediaPreview}
+                                            alt="Course Banner"
+                                            className="size-full rounded-lg object-contain"
+                                        />
+                                    </div>
+                                </div>
+                            ))}
                     </div>
                 </div>
             </div>
@@ -380,36 +502,30 @@ export const CourseDetailsPage = () => {
                                 {sessionOptions.length === 1 ? (
                                     sessionOptions[0]?.label !== 'default' && (
                                         <div className="flex flex-col gap-2">
-                                            <label className="text-sm font-medium">Session</label>
-                                            <Select
-                                                value={selectedSession}
-                                                onValueChange={handleSessionChange}
-                                            >
-                                                <SelectTrigger className="w-48">
-                                                    <SelectValue placeholder="Select Session" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {sessionOptions.map((option) => (
-                                                        <SelectItem
-                                                            key={option._id}
-                                                            value={option.value}
-                                                        >
-                                                            {option.label}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
+                                            <label className="text-sm font-medium">
+                                                {sessionOptions[0]?.label}
+                                            </label>
                                         </div>
                                     )
                                 ) : (
                                     <div className="flex flex-col gap-2">
-                                        <label className="text-sm font-medium">Session</label>
+                                        <label className="text-sm font-medium">
+                                            {getTerminology(
+                                                ContentTerms.Session,
+                                                SystemTerms.Session
+                                            )}
+                                        </label>
                                         <Select
                                             value={selectedSession}
                                             onValueChange={handleSessionChange}
                                         >
                                             <SelectTrigger className="w-48">
-                                                <SelectValue placeholder="Select Session" />
+                                                <SelectValue
+                                                    placeholder={`Select ${getTerminology(
+                                                        ContentTerms.Session,
+                                                        SystemTerms.Session
+                                                    )}`}
+                                                />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {sessionOptions.map((option) => (
@@ -424,42 +540,31 @@ export const CourseDetailsPage = () => {
                                         </Select>
                                     </div>
                                 )}
-
                                 {levelOptions.length === 1 ? (
                                     levelOptions[0]?.label !== 'default' && (
                                         <div className="flex flex-col gap-2">
-                                            <label className="text-sm font-medium">Level</label>
-                                            <Select
-                                                value={selectedLevel}
-                                                onValueChange={handleLevelChange}
-                                                disabled={!selectedSession}
-                                            >
-                                                <SelectTrigger className="w-48">
-                                                    <SelectValue placeholder="Select Level" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {levelOptions.map((option) => (
-                                                        <SelectItem
-                                                            key={option._id}
-                                                            value={option.value}
-                                                        >
-                                                            {option.label}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
+                                            <label className="text-sm font-medium">
+                                                {levelOptions[0]?.label}
+                                            </label>
                                         </div>
                                     )
                                 ) : (
                                     <div className="flex flex-col gap-2">
-                                        <label className="text-sm font-medium">Level</label>
+                                        <label className="text-sm font-medium">
+                                            {getTerminology(ContentTerms.Level, SystemTerms.Level)}
+                                        </label>
                                         <Select
                                             value={selectedLevel}
                                             onValueChange={handleLevelChange}
                                             disabled={!selectedSession}
                                         >
                                             <SelectTrigger className="w-48">
-                                                <SelectValue placeholder="Select Level" />
+                                                <SelectValue
+                                                    placeholder={`Select ${getTerminology(
+                                                        ContentTerms.Level,
+                                                        SystemTerms.Level
+                                                    )}`}
+                                                />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {levelOptions.map((option) => (
@@ -485,7 +590,7 @@ export const CourseDetailsPage = () => {
 
                         {/* What You'll Learn Section */}
                         {form.getValues('courseData').whatYoullLearn && (
-                            <div className="mb-8">
+                            <div className="mb-8 mt-6 bg-white p-6">
                                 <h2 className="mb-4 text-2xl font-bold">What you&apos;ll learn?</h2>
                                 <div className="rounded-lg">
                                     <p
@@ -501,7 +606,13 @@ export const CourseDetailsPage = () => {
                         {/* About Content Section */}
                         {form.getValues('courseData').aboutTheCourse && (
                             <div className="mb-8">
-                                <h2 className="mb-4 text-2xl font-bold">About this course</h2>
+                                <h2 className="mb-4 text-2xl font-bold">
+                                    About this{' '}
+                                    {getTerminology(
+                                        ContentTerms.Course,
+                                        SystemTerms.Course
+                                    ).toLocaleLowerCase()}
+                                </h2>
                                 <div className="rounded-lg">
                                     <p
                                         dangerouslySetInnerHTML={{
@@ -515,7 +626,7 @@ export const CourseDetailsPage = () => {
 
                         {/* Who Should Join Section */}
                         {form.getValues('courseData').whoShouldLearn && (
-                            <div className="mb-8">
+                            <div className="mb-8 bg-white p-6">
                                 <h2 className="mb-4 text-2xl font-bold">Who should join?</h2>
                                 <div className="rounded-lg">
                                     <p
@@ -529,35 +640,42 @@ export const CourseDetailsPage = () => {
                         )}
 
                         {/* Instructors Section */}
-                        {form.getValues('courseData').instructors &&
-                            form.getValues('courseData').instructors.length > 0 && (
-                                <div className="mb-8">
-                                    <h2 className="mb-4 text-2xl font-bold">Instructors</h2>
-                                    {form
-                                        .getValues('courseData')
-                                        .instructors?.map((instructor, index) => (
-                                            <div
-                                                key={index}
-                                                className="flex gap-4 rounded-lg bg-gray-50 p-4"
-                                            >
-                                                <Avatar className="size-8">
-                                                    <AvatarImage src="" alt={instructor.email} />
+                        {instructors && instructors.length > 0 && (
+                            <div className="mb-8 bg-white p-6">
+                                <h2 className="mb-4 text-2xl font-bold">Authors</h2>
+                                {loadingInstructors ? (
+                                    <div>Loading instructors...</div>
+                                ) : (
+                                    resolvedInstructors.map((instructor, index) => (
+                                        <div key={index} className="flex gap-4 rounded-lg">
+                                            <Avatar className="size-8">
+                                                {instructor.profilePicUrl ? (
+                                                    <AvatarImage
+                                                        src={instructor.profilePicUrl}
+                                                        alt={instructor.email}
+                                                    />
+                                                ) : (
                                                     <AvatarFallback className="bg-[#3B82F6] text-xs font-medium text-white">
                                                         {getInitials(instructor.email)}
                                                     </AvatarFallback>
-                                                </Avatar>
-                                                <h3 className="text-lg">{instructor.name}</h3>
-                                            </div>
-                                        ))}
-                                </div>
-                            )}
+                                                )}
+                                            </Avatar>
+                                            <h3 className="text-lg">{instructor.name}</h3>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        )}
                     </div>
 
                     {/* Right Column - 1/3 width */}
                     <div className="w-1/3">
                         <div className="sticky top-4 rounded-lg border bg-white p-6 shadow-lg">
                             {/* Course Stats */}
-                            <h2 className="mb-4 text-lg font-bold">Scratch Programming Language</h2>
+                            <h2 className="mb-4 text-lg font-bold">
+                                {' '}
+                                {form.getValues('courseData').title}
+                            </h2>
                             <div className="space-y-4">
                                 {levelOptions[0]?.label !== 'default' && (
                                     <div className="flex items-center gap-2">
@@ -595,33 +713,64 @@ export const CourseDetailsPage = () => {
                                                     <>
                                                         <PlayCircle size={18} />
                                                         <span>
-                                                            {count.slide_count} Video slides
+                                                            {count.slide_count} Video{' '}
+                                                            {getTerminology(
+                                                                ContentTerms.Slides,
+                                                                SystemTerms.Slides
+                                                            ).toLocaleLowerCase()}
+                                                            s
                                                         </span>
                                                     </>
                                                 )}
                                                 {count.source_type === 'CODE' && (
                                                     <>
                                                         <Code size={18} />
-                                                        <span>{count.slide_count} Code slides</span>
+                                                        <span>
+                                                            {count.slide_count} Code{' '}
+                                                            {getTerminology(
+                                                                ContentTerms.Slides,
+                                                                SystemTerms.Slides
+                                                            ).toLocaleLowerCase()}
+                                                            s
+                                                        </span>
                                                     </>
                                                 )}
                                                 {count.source_type === 'PDF' && (
                                                     <>
                                                         <FilePdf size={18} />
-                                                        <span>{count.slide_count} PDF slides</span>
+                                                        <span>
+                                                            {count.slide_count} PDF{' '}
+                                                            {getTerminology(
+                                                                ContentTerms.Slides,
+                                                                SystemTerms.Slides
+                                                            ).toLocaleLowerCase()}
+                                                            s
+                                                        </span>
                                                     </>
                                                 )}
                                                 {count.source_type === 'DOCUMENT' && (
                                                     <>
                                                         <FileDoc size={18} />
-                                                        <span>{count.slide_count} Doc slides</span>
+                                                        <span>
+                                                            {count.slide_count} Doc{' '}
+                                                            {getTerminology(
+                                                                ContentTerms.Slides,
+                                                                SystemTerms.Slides
+                                                            ).toLocaleLowerCase()}
+                                                            s
+                                                        </span>
                                                     </>
                                                 )}
                                                 {count.source_type === 'QUESTION' && (
                                                     <>
                                                         <Question size={18} />
                                                         <span>
-                                                            {count.slide_count} Question slides
+                                                            {count.slide_count} Question{' '}
+                                                            {getTerminology(
+                                                                ContentTerms.Slides,
+                                                                SystemTerms.Slides
+                                                            ).toLocaleLowerCase()}
+                                                            s
                                                         </span>
                                                     </>
                                                 )}
@@ -629,7 +778,12 @@ export const CourseDetailsPage = () => {
                                                     <>
                                                         <File size={18} />
                                                         <span>
-                                                            {count.slide_count} Assignment slides
+                                                            {count.slide_count} Assignment{' '}
+                                                            {getTerminology(
+                                                                ContentTerms.Slides,
+                                                                SystemTerms.Slides
+                                                            ).toLocaleLowerCase()}
+                                                            s
                                                         </span>
                                                     </>
                                                 )}
