@@ -76,6 +76,39 @@ import { Sortable, SortableDragHandle, SortableItem } from '@/components/ui/sort
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { PPTViewQuillEditor } from '@/components/quill/PPTViewQuillEditor';
 
+// Dummy related courses data
+const relatedCourses = [
+    {
+        id: 'c1',
+        name: 'Advanced Mathematics',
+        description: 'Deep dive into calculus and algebra.',
+        image: '/public/related-math.png',
+        tags: ['Math', 'Advanced', 'STEM'],
+    },
+    {
+        id: 'c2',
+        name: 'Physics for Engineers',
+        description: 'Mechanics, thermodynamics, and more.',
+        image: '/public/related-physics.png',
+        tags: ['Physics', 'Engineering'],
+    },
+    {
+        id: 'c3',
+        name: 'Creative Writing',
+        description: 'Unlock your storytelling potential.',
+        image: '/public/related-writing.png',
+        tags: ['Writing', 'Creativity', 'Arts'],
+    },
+];
+
+// Dummy payment plans
+type PaymentPlan = {
+    id: string;
+    name: string;
+    description: string;
+    price?: string;
+};
+
 export interface Course {
     id: string;
     name: string;
@@ -94,6 +127,20 @@ export interface GenerateInviteLinkDialogProps {
     showSummaryDialog: boolean;
     setShowSummaryDialog: (open: boolean) => void;
 }
+
+// Referral Program type and dummy data
+type ReferralProgram = {
+    id: string;
+    name: string;
+    refereeBenefit: string;
+    referrerTiers: Array<{
+        tier: string;
+        reward: string;
+        icon: React.ReactNode;
+    }>;
+    vestingPeriod: string;
+    combineOffers: boolean;
+};
 
 const testInputFieldSchema = z.object({
     id: z.string(),
@@ -140,6 +187,42 @@ const inviteLinkSchema = z.object({
 
 type InviteLinkFormValues = z.infer<typeof inviteLinkSchema>;
 
+// Add new plan form schema
+const addPlanSchema = zod.object({
+    planType: zod.enum(['free', 'paid']),
+    name: zod.string().min(1, 'Plan name is required'),
+    description: zod.string().min(1, 'Description is required'),
+    price: zod.string().optional(),
+});
+
+type AddPlanFormValues = zod.infer<typeof addPlanSchema>;
+
+const addDiscountSchema = zodDiscount.object({
+    title: zodDiscount.string().min(1, 'Title is required'),
+    code: zodDiscount.string().min(1, 'Code is required'),
+    type: zodDiscount.enum(['percent', 'rupees']),
+    value: zodDiscount.number().min(1, 'Value is required'),
+    expires: zodDiscount.string().min(1, 'Expiry date is required'),
+});
+type AddDiscountFormValues = zodDiscount.infer<typeof addDiscountSchema>;
+
+// Add Referral Program form schema
+const addReferralSchema = zod.object({
+    name: zod.string().min(1, 'Program name is required'),
+    refereeBenefit: zod.string().min(1, 'Referee benefit is required'),
+    referrerTiers: zod
+        .array(
+            zod.object({
+                tier: zod.string().min(1, 'Tier is required'),
+                reward: zod.string().min(1, 'Reward is required'),
+            })
+        )
+        .min(1, 'At least one tier is required'),
+    vestingPeriod: zod.string().min(1, 'Vesting period is required'),
+    combineOffers: zod.boolean(),
+});
+type AddReferralFormValues = zod.infer<typeof addReferralSchema>;
+
 const GenerateInviteLinkDialog = ({
     showSummaryDialog,
     setShowSummaryDialog,
@@ -154,6 +237,7 @@ const GenerateInviteLinkDialog = ({
             disabled: boolean;
         }[]
     >([]);
+
     const form = useForm<InviteLinkFormValues>({
         resolver: zodResolver(inviteLinkSchema),
         defaultValues: {
@@ -240,13 +324,6 @@ const GenerateInviteLinkDialog = ({
     const [showMediaMenu, setShowMediaMenu] = useState(false);
     const mediaMenuRef = useRef<HTMLDivElement>(null);
 
-    // Dummy payment plans
-    type PaymentPlan = {
-        id: string;
-        name: string;
-        description: string;
-        price?: string;
-    };
     const [freePlans, setFreePlans] = useState<PaymentPlan[]>([
         {
             id: 'free1',
@@ -280,15 +357,133 @@ const GenerateInviteLinkDialog = ({
 
     // Add new plan dialog state
     const [showAddPlanDialog, setShowAddPlanDialog] = useState(false);
+    // Discount dialog state and dummy data
+    const [showDiscountDialog, setShowDiscountDialog] = useState(false);
+    const [discounts, setDiscounts] = useState([
+        {
+            id: 'd1',
+            title: 'Early Bird',
+            code: 'EARLY20',
+            type: 'percent',
+            value: 20,
+            expires: '2024-07-31',
+        },
+        {
+            id: 'd2',
+            title: 'Flat 500 Off',
+            code: 'FLAT500',
+            type: 'rupees',
+            value: 500,
+            expires: '2024-08-15',
+        },
+        {
+            id: 'd3',
+            title: 'Summer Special',
+            code: 'SUMMER10',
+            type: 'percent',
+            value: 10,
+            expires: '2024-09-01',
+        },
+        {
+            id: 'd4',
+            title: 'Festive Bonanza',
+            code: 'FESTIVE25',
+            type: 'percent',
+            value: 25,
+            expires: '2024-10-10',
+        },
+        {
+            id: 'd5',
+            title: 'New User Offer',
+            code: 'NEWUSER100',
+            type: 'rupees',
+            value: 100,
+            expires: '2024-12-31',
+        },
+        {
+            id: 'd6',
+            title: 'Flash Sale',
+            code: 'FLASH50',
+            type: 'percent',
+            value: 50,
+            expires: '2024-08-01',
+        },
+        {
+            id: 'd7',
+            title: 'Refer & Earn',
+            code: 'REFER150',
+            type: 'rupees',
+            value: 150,
+            expires: '2024-09-15',
+        },
+    ]);
 
-    // Add new plan form schema
-    const addPlanSchema = zod.object({
-        planType: zod.enum(['free', 'paid']),
-        name: zod.string().min(1, 'Plan name is required'),
-        description: zod.string().min(1, 'Description is required'),
-        price: zod.string().optional(),
-    });
-    type AddPlanFormValues = zod.infer<typeof addPlanSchema>;
+    // Add new discount dialog state and form
+    const [showAddDiscountDialog, setShowAddDiscountDialog] = useState(false);
+
+    // State for selected/active discount
+    const [selectedDiscountId, setSelectedDiscountId] = useState<string | null>(null);
+
+    const [referralPrograms, setReferralPrograms] = useState<ReferralProgram[]>([
+        {
+            id: 'r1',
+            name: 'Default Referral',
+            refereeBenefit: '₹200 off',
+            referrerTiers: [
+                {
+                    tier: '5 referrals',
+                    reward: 'Gift',
+                    icon: <Gift size={16} className="text-yellow-600" />,
+                },
+                {
+                    tier: '10 referrals',
+                    reward: 'Calendar',
+                    icon: <CalendarBlank size={16} className="text-blue-600" />,
+                },
+            ],
+            vestingPeriod: '30 days',
+            combineOffers: true,
+        },
+        {
+            id: 'r2',
+            name: 'Super Saver',
+            refereeBenefit: '₹300 off',
+            referrerTiers: [
+                {
+                    tier: '3 referrals',
+                    reward: 'Gift',
+                    icon: <Gift size={16} className="text-yellow-600" />,
+                },
+                {
+                    tier: '8 referrals',
+                    reward: 'Calendar',
+                    icon: <CalendarBlank size={16} className="text-blue-600" />,
+                },
+            ],
+            vestingPeriod: '15 days',
+            combineOffers: false,
+        },
+    ]);
+    const [selectedReferralId, setSelectedReferralId] = useState<string>('r1');
+    const [showReferralDialog, setShowReferralDialog] = useState(false);
+    const [showAddReferralDialog, setShowAddReferralDialog] = useState(false);
+    // Add state for the new switch
+    const [restrictToSameBatch, setRestrictToSameBatch] = useState(false);
+
+    // Add state for learner access duration selection
+    const [accessDurationType, setAccessDurationType] = useState('define');
+    const [accessDurationDays, setAccessDurationDays] = useState('');
+
+    // Add state for invitee email input and list
+    const [inviteeEmail, setInviteeEmail] = useState('');
+    const [inviteeEmails, setInviteeEmails] = useState<string[]>([]);
+
+    // Add state for custom HTML
+    const [customHtml, setCustomHtml] = useState('');
+
+    // Add state for related courses switch
+    const [showRelatedCourses, setShowRelatedCourses] = useState(false);
+
     const addPlanForm = useShadForm<AddPlanFormValues>({
         resolver: shadZodResolver(addPlanSchema),
         defaultValues: {
@@ -417,101 +612,6 @@ const GenerateInviteLinkDialog = ({
         form.setValue('tags', updatedTags);
     };
 
-    // Hide menu when clicking outside
-    useEffect(() => {
-        if (!showMediaMenu) return;
-        function handleClick(e: MouseEvent) {
-            if (mediaMenuRef.current && !mediaMenuRef.current.contains(e.target as Node)) {
-                setShowMediaMenu(false);
-            }
-        }
-        document.addEventListener('mousedown', handleClick);
-        return () => document.removeEventListener('mousedown', handleClick);
-    }, [showMediaMenu]);
-
-    // Hide YouTube input when clicking outside
-    useEffect(() => {
-        if (!showYoutubeInput) return;
-        function handleClick(e: MouseEvent) {
-            if (youtubeInputRef.current && !youtubeInputRef.current.contains(e.target as Node)) {
-                setShowYoutubeInput(false);
-            }
-        }
-        document.addEventListener('mousedown', handleClick);
-        return () => document.removeEventListener('mousedown', handleClick);
-    }, [showYoutubeInput]);
-
-    // Discount dialog state and dummy data
-    const [showDiscountDialog, setShowDiscountDialog] = useState(false);
-    const [discounts, setDiscounts] = useState([
-        {
-            id: 'd1',
-            title: 'Early Bird',
-            code: 'EARLY20',
-            type: 'percent',
-            value: 20,
-            expires: '2024-07-31',
-        },
-        {
-            id: 'd2',
-            title: 'Flat 500 Off',
-            code: 'FLAT500',
-            type: 'rupees',
-            value: 500,
-            expires: '2024-08-15',
-        },
-        {
-            id: 'd3',
-            title: 'Summer Special',
-            code: 'SUMMER10',
-            type: 'percent',
-            value: 10,
-            expires: '2024-09-01',
-        },
-        {
-            id: 'd4',
-            title: 'Festive Bonanza',
-            code: 'FESTIVE25',
-            type: 'percent',
-            value: 25,
-            expires: '2024-10-10',
-        },
-        {
-            id: 'd5',
-            title: 'New User Offer',
-            code: 'NEWUSER100',
-            type: 'rupees',
-            value: 100,
-            expires: '2024-12-31',
-        },
-        {
-            id: 'd6',
-            title: 'Flash Sale',
-            code: 'FLASH50',
-            type: 'percent',
-            value: 50,
-            expires: '2024-08-01',
-        },
-        {
-            id: 'd7',
-            title: 'Refer & Earn',
-            code: 'REFER150',
-            type: 'rupees',
-            value: 150,
-            expires: '2024-09-15',
-        },
-    ]);
-
-    // Add new discount dialog state and form
-    const [showAddDiscountDialog, setShowAddDiscountDialog] = useState(false);
-    const addDiscountSchema = zodDiscount.object({
-        title: zodDiscount.string().min(1, 'Title is required'),
-        code: zodDiscount.string().min(1, 'Code is required'),
-        type: zodDiscount.enum(['percent', 'rupees']),
-        value: zodDiscount.number().min(1, 'Value is required'),
-        expires: zodDiscount.string().min(1, 'Expiry date is required'),
-    });
-    type AddDiscountFormValues = zodDiscount.infer<typeof addDiscountSchema>;
     const addDiscountForm = useDiscountForm<AddDiscountFormValues>({
         resolver: discountZodResolver(addDiscountSchema),
         defaultValues: {
@@ -535,82 +635,6 @@ const GenerateInviteLinkDialog = ({
         addDiscountForm.reset();
     };
 
-    // State for selected/active discount
-    const [selectedDiscountId, setSelectedDiscountId] = useState<string | null>(null);
-
-    // Referral Program type and dummy data
-    type ReferralProgram = {
-        id: string;
-        name: string;
-        refereeBenefit: string;
-        referrerTiers: Array<{
-            tier: string;
-            reward: string;
-            icon: React.ReactNode;
-        }>;
-        vestingPeriod: string;
-        combineOffers: boolean;
-    };
-    const [referralPrograms, setReferralPrograms] = useState<ReferralProgram[]>([
-        {
-            id: 'r1',
-            name: 'Default Referral',
-            refereeBenefit: '₹200 off',
-            referrerTiers: [
-                {
-                    tier: '5 referrals',
-                    reward: 'Gift',
-                    icon: <Gift size={16} className="text-yellow-600" />,
-                },
-                {
-                    tier: '10 referrals',
-                    reward: 'Calendar',
-                    icon: <CalendarBlank size={16} className="text-blue-600" />,
-                },
-            ],
-            vestingPeriod: '30 days',
-            combineOffers: true,
-        },
-        {
-            id: 'r2',
-            name: 'Super Saver',
-            refereeBenefit: '₹300 off',
-            referrerTiers: [
-                {
-                    tier: '3 referrals',
-                    reward: 'Gift',
-                    icon: <Gift size={16} className="text-yellow-600" />,
-                },
-                {
-                    tier: '8 referrals',
-                    reward: 'Calendar',
-                    icon: <CalendarBlank size={16} className="text-blue-600" />,
-                },
-            ],
-            vestingPeriod: '15 days',
-            combineOffers: false,
-        },
-    ]);
-    const [selectedReferralId, setSelectedReferralId] = useState<string>('r1');
-    const [showReferralDialog, setShowReferralDialog] = useState(false);
-    const [showAddReferralDialog, setShowAddReferralDialog] = useState(false);
-
-    // Add Referral Program form schema
-    const addReferralSchema = zod.object({
-        name: zod.string().min(1, 'Program name is required'),
-        refereeBenefit: zod.string().min(1, 'Referee benefit is required'),
-        referrerTiers: zod
-            .array(
-                zod.object({
-                    tier: zod.string().min(1, 'Tier is required'),
-                    reward: zod.string().min(1, 'Reward is required'),
-                })
-            )
-            .min(1, 'At least one tier is required'),
-        vestingPeriod: zod.string().min(1, 'Vesting period is required'),
-        combineOffers: zod.boolean(),
-    });
-    type AddReferralFormValues = zod.infer<typeof addReferralSchema>;
     const addReferralForm = useShadForm<AddReferralFormValues>({
         resolver: shadZodResolver(addReferralSchema),
         defaultValues: {
@@ -645,9 +669,6 @@ const GenerateInviteLinkDialog = ({
         setShowAddReferralDialog(false);
         addReferralForm.reset();
     };
-
-    // Add state for the new switch
-    const [restrictToSameBatch, setRestrictToSameBatch] = useState(false);
 
     const handleDeleteOpenField = (id: string) => {
         const updatedFields = customFieldsArray
@@ -798,14 +819,8 @@ const GenerateInviteLinkDialog = ({
         setDropdownOptions([]);
     };
 
-    // Add state for learner access duration selection
-    const [accessDurationType, setAccessDurationType] = useState('define');
-    const [accessDurationDays, setAccessDurationDays] = useState('');
-
-    // Add state for invitee email input and list
-    const [inviteeEmail, setInviteeEmail] = useState('');
-    const [inviteeEmails, setInviteeEmails] = useState<string[]>([]);
     const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
     const handleAddInviteeEmail = () => {
         if (isValidEmail(inviteeEmail) && !inviteeEmails.includes(inviteeEmail)) {
             setInviteeEmails([...inviteeEmails, inviteeEmail]);
@@ -816,36 +831,29 @@ const GenerateInviteLinkDialog = ({
         setInviteeEmails(inviteeEmails.filter((e) => e !== email));
     };
 
-    // Add state for custom HTML
-    const [customHtml, setCustomHtml] = useState('');
+    // Hide menu when clicking outside
+    useEffect(() => {
+        if (!showMediaMenu) return;
+        function handleClick(e: MouseEvent) {
+            if (mediaMenuRef.current && !mediaMenuRef.current.contains(e.target as Node)) {
+                setShowMediaMenu(false);
+            }
+        }
+        document.addEventListener('mousedown', handleClick);
+        return () => document.removeEventListener('mousedown', handleClick);
+    }, [showMediaMenu]);
 
-    // Add state for related courses switch
-    const [showRelatedCourses, setShowRelatedCourses] = useState(false);
-
-    // Dummy related courses data
-    const relatedCourses = [
-        {
-            id: 'c1',
-            name: 'Advanced Mathematics',
-            description: 'Deep dive into calculus and algebra.',
-            image: '/public/related-math.png',
-            tags: ['Math', 'Advanced', 'STEM'],
-        },
-        {
-            id: 'c2',
-            name: 'Physics for Engineers',
-            description: 'Mechanics, thermodynamics, and more.',
-            image: '/public/related-physics.png',
-            tags: ['Physics', 'Engineering'],
-        },
-        {
-            id: 'c3',
-            name: 'Creative Writing',
-            description: 'Unlock your storytelling potential.',
-            image: '/public/related-writing.png',
-            tags: ['Writing', 'Creativity', 'Arts'],
-        },
-    ];
+    // Hide YouTube input when clicking outside
+    useEffect(() => {
+        if (!showYoutubeInput) return;
+        function handleClick(e: MouseEvent) {
+            if (youtubeInputRef.current && !youtubeInputRef.current.contains(e.target as Node)) {
+                setShowYoutubeInput(false);
+            }
+        }
+        document.addEventListener('mousedown', handleClick);
+        return () => document.removeEventListener('mousedown', handleClick);
+    }, [showYoutubeInput]);
 
     return (
         <Dialog open={showSummaryDialog} onOpenChange={setShowSummaryDialog}>
