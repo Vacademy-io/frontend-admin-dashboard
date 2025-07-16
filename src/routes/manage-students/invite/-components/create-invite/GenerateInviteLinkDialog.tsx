@@ -129,20 +129,6 @@ export interface GenerateInviteLinkDialogProps {
     setShowSummaryDialog: (open: boolean) => void;
 }
 
-// Referral Program type and dummy data
-type ReferralProgram = {
-    id: string;
-    name: string;
-    refereeBenefit: string;
-    referrerTiers: Array<{
-        tier: string;
-        reward: string;
-        icon: React.ReactNode;
-    }>;
-    vestingPeriod: string;
-    combineOffers: boolean;
-};
-
 const testInputFieldSchema = z.object({
     id: z.string(),
     type: z.string(),
@@ -183,7 +169,103 @@ const inviteLinkSchema = z.object({
     courseBannerBlob: z.string().optional(),
     courseMediaBlob: z.string().optional(),
     tags: z.array(z.string()).default([]),
+    newTag: z.string().default(''),
+    filteredTags: z.array(z.string()).default([]),
     custom_fields: z.array(testInputFieldSchema),
+    uploadingStates: z.object({
+        coursePreview: z.boolean().default(false),
+        courseBanner: z.boolean().default(false),
+        courseMedia: z.boolean().default(false),
+    }),
+    youtubeUrl: z.string().default(''),
+    youtubeError: z.string().default(''),
+    showYoutubeInput: z.boolean().default(false),
+    showMediaMenu: z.boolean().default(false),
+    freePlans: z
+        .array(
+            z.object({
+                id: z.string(),
+                name: z.string(),
+                description: z.string(),
+                price: z.string().optional(),
+            })
+        )
+        .default([]),
+    paidPlans: z
+        .array(
+            z.object({
+                id: z.string(),
+                name: z.string(),
+                description: z.string(),
+                price: z.string().optional(),
+            })
+        )
+        .default([]),
+    showPlansDialog: z.boolean().default(false),
+    selectedPlan: z
+        .object({
+            id: z.string(),
+            name: z.string(),
+            description: z.string(),
+            price: z.string().optional(),
+        })
+        .optional(),
+    showAddPlanDialog: z.boolean().default(false),
+    showDiscountDialog: z.boolean().default(false),
+    discounts: z
+        .array(
+            z.object({
+                id: z.string(),
+                title: z.string(),
+                code: z.string(),
+                type: z.string(),
+                value: z.number(),
+                expires: z.string(),
+            })
+        )
+        .default([]),
+    showAddDiscountDialog: z.boolean().default(false),
+    selectedDiscountId: z.string().default('none'),
+    referralPrograms: z
+        .array(
+            z.object({
+                id: z.string(),
+                name: z.string(),
+                refereeBenefit: z.string(),
+                referrerTiers: z.array(
+                    z.object({
+                        tier: z.string(),
+                        reward: z.string(),
+                        icon: z.any().optional(),
+                    })
+                ),
+                vestingPeriod: z.string(),
+                combineOffers: z.boolean(),
+            })
+        )
+        .default([]),
+    selectedReferralId: z.string().default('r1'),
+    showReferralDialog: z.boolean().default(false),
+    showAddReferralDialog: z.boolean().default(false),
+    restrictToSameBatch: z.boolean().default(false),
+    accessDurationType: z.string().default('define'),
+    accessDurationDays: z.string().default(''),
+    inviteeEmail: z.string().default(''),
+    inviteeEmails: z.array(z.string()).default([]),
+    customHtml: z.string().default(''),
+    showRelatedCourses: z.boolean().default(false),
+    selectedOptionValue: z.string().default('textfield'),
+    textFieldValue: z.string().default(''),
+    dropdownOptions: z
+        .array(
+            z.object({
+                id: z.string(),
+                value: z.string(),
+                disabled: z.boolean(),
+            })
+        )
+        .default([]),
+    isDialogOpen: z.boolean().default(false),
 });
 
 type InviteLinkFormValues = z.infer<typeof inviteLinkSchema>;
@@ -228,17 +310,6 @@ const GenerateInviteLinkDialog = ({
     showSummaryDialog,
     setShowSummaryDialog,
 }: GenerateInviteLinkDialogProps) => {
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [selectedOptionValue, setSelectedOptionValue] = useState('textfield');
-    const [textFieldValue, setTextFieldValue] = useState('');
-    const [dropdownOptions, setDropdownOptions] = useState<
-        {
-            id: string;
-            value: string;
-            disabled: boolean;
-        }[]
-    >([]);
-
     const form = useForm<InviteLinkFormValues>({
         resolver: zodResolver(inviteLinkSchema),
         defaultValues: {
@@ -285,6 +356,187 @@ const GenerateInviteLinkDialog = ({
                     order: 2,
                 },
             ],
+            uploadingStates: {
+                coursePreview: false,
+                courseBanner: false,
+                courseMedia: false,
+            },
+            youtubeUrl: '',
+            youtubeError: '',
+            showYoutubeInput: false,
+            showMediaMenu: false,
+            freePlans: [
+                {
+                    id: 'free1',
+                    name: 'Free Basic',
+                    description: 'Access to basic course content.',
+                },
+                {
+                    id: 'free2',
+                    name: 'Free Plus',
+                    description: 'Access to all free resources.',
+                },
+            ],
+            paidPlans: [
+                {
+                    id: 'paid1',
+                    name: 'Premium',
+                    description: 'Full access to all course materials and support.',
+                    price: '$49',
+                },
+                {
+                    id: 'paid2',
+                    name: 'Pro',
+                    description: 'Premium plus 1-on-1 mentorship.',
+                    price: '$99',
+                },
+            ],
+            showPlansDialog: false,
+            selectedPlan: {
+                id: 'free1',
+                name: 'Free Basic',
+                description: 'Access to basic course content.',
+            },
+            showAddPlanDialog: false,
+            showDiscountDialog: false,
+            discounts: [
+                {
+                    id: 'none',
+                    title: 'No Discount Applied',
+                    code: '',
+                    type: '',
+                    value: 0,
+                    expires: '',
+                },
+                {
+                    id: 'd1',
+                    title: 'Early Bird',
+                    code: 'EARLY20',
+                    type: 'percent',
+                    value: 20,
+                    expires: '2024-07-31',
+                },
+                {
+                    id: 'd2',
+                    title: 'Flat 500 Off',
+                    code: 'FLAT500',
+                    type: 'rupees',
+                    value: 500,
+                    expires: '2024-08-15',
+                },
+                {
+                    id: 'd3',
+                    title: 'Summer Special',
+                    code: 'SUMMER10',
+                    type: 'percent',
+                    value: 10,
+                    expires: '2024-09-01',
+                },
+                {
+                    id: 'd4',
+                    title: 'Festive Bonanza',
+                    code: 'FESTIVE25',
+                    type: 'percent',
+                    value: 25,
+                    expires: '2024-10-10',
+                },
+                {
+                    id: 'd5',
+                    title: 'New User Offer',
+                    code: 'NEWUSER100',
+                    type: 'rupees',
+                    value: 100,
+                    expires: '2024-12-31',
+                },
+                {
+                    id: 'd6',
+                    title: 'Flash Sale',
+                    code: 'FLASH50',
+                    type: 'percent',
+                    value: 50,
+                    expires: '2024-08-01',
+                },
+                {
+                    id: 'd7',
+                    title: 'Refer & Earn',
+                    code: 'REFER150',
+                    type: 'rupees',
+                    value: 150,
+                    expires: '2024-09-15',
+                },
+            ],
+            showAddDiscountDialog: false,
+            selectedDiscountId: 'none',
+            referralPrograms: [
+                {
+                    id: 'r1',
+                    name: 'Default Referral',
+                    refereeBenefit: '₹200 off',
+                    referrerTiers: [
+                        {
+                            tier: '5 referrals',
+                            reward: 'Gift',
+                            icon: <Gift size={16} className="text-yellow-600" />,
+                        },
+                        {
+                            tier: '10 referrals',
+                            reward: 'Calendar',
+                            icon: <CalendarBlank size={16} className="text-blue-600" />,
+                        },
+                    ],
+                    vestingPeriod: '30 days',
+                    combineOffers: true,
+                },
+                {
+                    id: 'r2',
+                    name: 'Super Saver',
+                    refereeBenefit: '₹300 off',
+                    referrerTiers: [
+                        {
+                            tier: '3 referrals',
+                            reward: 'Gift',
+                            icon: <Gift size={16} className="text-yellow-600" />,
+                        },
+                        {
+                            tier: '8 referrals',
+                            reward: 'Calendar',
+                            icon: <CalendarBlank size={16} className="text-blue-600" />,
+                        },
+                    ],
+                    vestingPeriod: '15 days',
+                    combineOffers: false,
+                },
+            ],
+            selectedReferralId: 'r1',
+            showReferralDialog: false,
+            showAddReferralDialog: false,
+            restrictToSameBatch: false,
+            accessDurationType: 'define',
+            accessDurationDays: '',
+            inviteeEmail: '',
+            inviteeEmails: [],
+            customHtml: '',
+            showRelatedCourses: false,
+            selectedOptionValue: 'textfield',
+            textFieldValue: '',
+            dropdownOptions: [
+                {
+                    id: '0',
+                    value: 'MALE',
+                    disabled: true,
+                },
+                {
+                    id: '1',
+                    value: 'FEMALE',
+                    disabled: true,
+                },
+                {
+                    id: '2',
+                    value: 'OTHER',
+                    disabled: true,
+                },
+            ],
+            isDialogOpen: false,
         },
     });
 
@@ -306,12 +558,6 @@ const GenerateInviteLinkDialog = ({
     const courseBannerRef = useRef<HTMLInputElement>(null);
     const courseMediaRef = useRef<HTMLInputElement>(null);
 
-    const [uploadingStates, setUploadingStates] = useState({
-        coursePreview: false,
-        courseBanner: false,
-        courseMedia: false,
-    });
-
     const [tags, setTags] = useState<string[]>([]); // selected tags
     const allTags = instituteDetails?.tags || [];
     const [newTag, setNewTag] = useState<string>('');
@@ -325,32 +571,9 @@ const GenerateInviteLinkDialog = ({
     const [showMediaMenu, setShowMediaMenu] = useState(false);
     const mediaMenuRef = useRef<HTMLDivElement>(null);
 
-    const [freePlans, setFreePlans] = useState<PaymentPlan[]>([
-        {
-            id: 'free1',
-            name: 'Free Basic',
-            description: 'Access to basic course content.',
-        },
-        {
-            id: 'free2',
-            name: 'Free Plus',
-            description: 'Access to all free resources.',
-        },
-    ]);
-    const [paidPlans, setPaidPlans] = useState<PaymentPlan[]>([
-        {
-            id: 'paid1',
-            name: 'Premium',
-            description: 'Full access to all course materials and support.',
-            price: '$49',
-        },
-        {
-            id: 'paid2',
-            name: 'Pro',
-            description: 'Premium plus 1-on-1 mentorship.',
-            price: '$99',
-        },
-    ]);
+    const freePlans = form.getValues('freePlans');
+    const paidPlans = form.getValues('paidPlans');
+
     const [showPlansDialog, setShowPlansDialog] = useState(false);
     const initialPlan: PaymentPlan = freePlans[0] ||
         paidPlans[0] || { id: 'none', name: 'No Plan', description: '' };
@@ -360,72 +583,7 @@ const GenerateInviteLinkDialog = ({
     const [showAddPlanDialog, setShowAddPlanDialog] = useState(false);
     // Discount dialog state and dummy data
     const [showDiscountDialog, setShowDiscountDialog] = useState(false);
-    const [discounts, setDiscounts] = useState([
-        {
-            id: 'none',
-            title: 'No Discount Applied',
-            code: '',
-            type: '',
-            value: 0,
-            expires: '',
-        },
-        {
-            id: 'd1',
-            title: 'Early Bird',
-            code: 'EARLY20',
-            type: 'percent',
-            value: 20,
-            expires: '2024-07-31',
-        },
-        {
-            id: 'd2',
-            title: 'Flat 500 Off',
-            code: 'FLAT500',
-            type: 'rupees',
-            value: 500,
-            expires: '2024-08-15',
-        },
-        {
-            id: 'd3',
-            title: 'Summer Special',
-            code: 'SUMMER10',
-            type: 'percent',
-            value: 10,
-            expires: '2024-09-01',
-        },
-        {
-            id: 'd4',
-            title: 'Festive Bonanza',
-            code: 'FESTIVE25',
-            type: 'percent',
-            value: 25,
-            expires: '2024-10-10',
-        },
-        {
-            id: 'd5',
-            title: 'New User Offer',
-            code: 'NEWUSER100',
-            type: 'rupees',
-            value: 100,
-            expires: '2024-12-31',
-        },
-        {
-            id: 'd6',
-            title: 'Flash Sale',
-            code: 'FLASH50',
-            type: 'percent',
-            value: 50,
-            expires: '2024-08-01',
-        },
-        {
-            id: 'd7',
-            title: 'Refer & Earn',
-            code: 'REFER150',
-            type: 'rupees',
-            value: 150,
-            expires: '2024-09-15',
-        },
-    ]);
+    const discounts = form.getValues('discounts');
 
     // Add new discount dialog state and form
     const [showAddDiscountDialog, setShowAddDiscountDialog] = useState(false);
@@ -433,46 +591,7 @@ const GenerateInviteLinkDialog = ({
     // State for selected/active discount
     const [selectedDiscountId, setSelectedDiscountId] = useState<string | null>('none');
 
-    const [referralPrograms, setReferralPrograms] = useState<ReferralProgram[]>([
-        {
-            id: 'r1',
-            name: 'Default Referral',
-            refereeBenefit: '₹200 off',
-            referrerTiers: [
-                {
-                    tier: '5 referrals',
-                    reward: 'Gift',
-                    icon: <Gift size={16} className="text-yellow-600" />,
-                },
-                {
-                    tier: '10 referrals',
-                    reward: 'Calendar',
-                    icon: <CalendarBlank size={16} className="text-blue-600" />,
-                },
-            ],
-            vestingPeriod: '30 days',
-            combineOffers: true,
-        },
-        {
-            id: 'r2',
-            name: 'Super Saver',
-            refereeBenefit: '₹300 off',
-            referrerTiers: [
-                {
-                    tier: '3 referrals',
-                    reward: 'Gift',
-                    icon: <Gift size={16} className="text-yellow-600" />,
-                },
-                {
-                    tier: '8 referrals',
-                    reward: 'Calendar',
-                    icon: <CalendarBlank size={16} className="text-blue-600" />,
-                },
-            ],
-            vestingPeriod: '15 days',
-            combineOffers: false,
-        },
-    ]);
+    const referralPrograms = form.getValues('referralPrograms');
     const [selectedReferralId, setSelectedReferralId] = useState<string>('r1');
     const [showReferralDialog, setShowReferralDialog] = useState(false);
     const [showAddReferralDialog, setShowAddReferralDialog] = useState(false);
@@ -482,13 +601,6 @@ const GenerateInviteLinkDialog = ({
     // Add state for learner access duration selection
     const [accessDurationType, setAccessDurationType] = useState('define');
     const [accessDurationDays, setAccessDurationDays] = useState('');
-
-    // Add state for invitee email input and list
-    const [inviteeEmail, setInviteeEmail] = useState('');
-    const [inviteeEmails, setInviteeEmails] = useState<string[]>([]);
-
-    // Add state for custom HTML
-    const [customHtml, setCustomHtml] = useState('');
 
     // Add state for related courses switch
     const [showRelatedCourses, setShowRelatedCourses] = useState(false);
@@ -505,19 +617,21 @@ const GenerateInviteLinkDialog = ({
 
     const handleAddPlan = (values: AddPlanFormValues) => {
         if (values.planType === 'free') {
-            setFreePlans((prev) => [
-                ...prev,
+            const freePlans = form.getValues('freePlans');
+            form.setValue('freePlans', [
+                ...freePlans,
                 {
-                    id: `free${prev.length + 1}`,
+                    id: `free${freePlans.length + 1}`,
                     name: values.name,
                     description: values.description,
                 },
             ]);
         } else {
-            setPaidPlans((prev) => [
-                ...prev,
+            const freePlans = form.getValues('paidPlans');
+            form.setValue('paidPlans', [
+                ...freePlans,
                 {
-                    id: `paid${prev.length + 1}`,
+                    id: `paid${freePlans.length + 1}`,
                     name: values.name,
                     description: values.description,
                     price: values.price || '',
@@ -539,18 +653,13 @@ const GenerateInviteLinkDialog = ({
         field: 'coursePreview' | 'courseBanner' | 'courseMedia'
     ) => {
         try {
-            setUploadingStates((prev) => ({
-                ...prev,
-                [field]: true,
-            }));
+            const prev = form.getValues('uploadingStates');
+            form.setValue('uploadingStates', { ...prev, [field]: true });
 
             const uploadedFileId = await uploadFile({
                 file,
                 setIsUploading: (state) =>
-                    setUploadingStates((prev) => ({
-                        ...prev,
-                        [field]: state,
-                    })),
+                    form.setValue('uploadingStates', { ...prev, [field]: state }),
                 userId: 'your-user-id',
                 source: INSTITUTE_ID,
                 sourceId: 'COURSES',
@@ -578,10 +687,8 @@ const GenerateInviteLinkDialog = ({
         } catch (error) {
             console.error('Upload failed:', error);
         } finally {
-            setUploadingStates((prev) => ({
-                ...prev,
-                [field]: false,
-            }));
+            const prev = form.getValues('uploadingStates');
+            form.setValue('uploadingStates', { ...prev, [field]: false });
         }
     };
 
@@ -633,10 +740,12 @@ const GenerateInviteLinkDialog = ({
     });
 
     const handleAddDiscount = (values: AddDiscountFormValues) => {
-        setDiscounts((prev) => [
-            ...prev,
+        const prevDiscounts = form.getValues('discounts');
+
+        form.setValue('discounts', [
+            ...form.getValues('discounts'),
             {
-                id: `d${prev.length + 1}`,
+                id: `d${prevDiscounts.length + 1}`,
                 ...values,
             },
         ]);
@@ -654,10 +763,12 @@ const GenerateInviteLinkDialog = ({
             combineOffers: false,
         },
     });
+
     const handleAddReferral = (values: AddReferralFormValues) => {
+        const referralPrograms = form.getValues('referralPrograms');
         const newId = `r${referralPrograms.length + 1}`;
-        setReferralPrograms((prev) => [
-            ...prev,
+        form.setValue('referralPrograms', [
+            ...referralPrograms,
             {
                 id: newId,
                 name: values.name,
@@ -674,6 +785,7 @@ const GenerateInviteLinkDialog = ({
                 combineOffers: values.combineOffers,
             },
         ]);
+
         setSelectedReferralId(newId);
         setShowAddReferralDialog(false);
         addReferralForm.reset();
@@ -773,7 +885,9 @@ const GenerateInviteLinkDialog = ({
     };
 
     const handleValueChange = (id: string, newValue: string) => {
-        setDropdownOptions((prevOptions) =>
+        const prevOptions = form.getValues('dropdownOptions');
+        form.setValue(
+            'dropdownOptions',
             prevOptions.map((option) =>
                 option.id === id ? { ...option, value: newValue } : option
             )
@@ -781,7 +895,9 @@ const GenerateInviteLinkDialog = ({
     };
 
     const handleEditClick = (id: string) => {
-        setDropdownOptions((prevOptions) =>
+        const prevOptions = form.getValues('dropdownOptions');
+        form.setValue(
+            'dropdownOptions',
             prevOptions.map((option) =>
                 option.id === id ? { ...option, disabled: !option.disabled } : option
             )
@@ -789,11 +905,16 @@ const GenerateInviteLinkDialog = ({
     };
 
     const handleDeleteOptionField = (id: string) => {
-        setDropdownOptions((prevFields) => prevFields.filter((field) => field.id !== id));
+        const prevOptions = form.getValues('dropdownOptions');
+        form.setValue(
+            'dropdownOptions',
+            prevOptions.filter((field) => field.id !== id)
+        );
     };
 
     const handleAddDropdownOptions = () => {
-        setDropdownOptions((prevOptions) => [
+        const prevOptions = form.getValues('dropdownOptions');
+        form.setValue('dropdownOptions', [
             ...prevOptions,
             {
                 id: String(prevOptions.length),
@@ -810,7 +931,7 @@ const GenerateInviteLinkDialog = ({
             type,
             name,
             oldKey,
-            ...(type === 'dropdown' && { options: dropdownOptions }), // Include options if type is dropdown
+            ...(type === 'dropdown' && { options: form.getValues('dropdownOptions') }), // Include options if type is dropdown
             isRequired: true,
             key: '',
             order: customFields.length,
@@ -823,21 +944,26 @@ const GenerateInviteLinkDialog = ({
         setValue('custom_fields', updatedFields);
 
         // Reset dialog and temporary values
-        setIsDialogOpen(false);
-        setTextFieldValue('');
-        setDropdownOptions([]);
+        form.setValue('isDialogOpen', false);
+        form.setValue('textFieldValue', '');
+        form.setValue('dropdownOptions', []);
     };
 
     const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
     const handleAddInviteeEmail = () => {
+        const inviteeEmail = form.getValues('inviteeEmail');
+        const inviteeEmails = form.getValues('inviteeEmails');
         if (isValidEmail(inviteeEmail) && !inviteeEmails.includes(inviteeEmail)) {
-            setInviteeEmails([...inviteeEmails, inviteeEmail]);
-            setInviteeEmail('');
+            const updatedEmails = [...inviteeEmails, inviteeEmail];
+            form.setValue('inviteeEmails', updatedEmails);
+            form.setValue('inviteeEmail', '');
         }
     };
     const handleRemoveInviteeEmail = (email: string) => {
-        setInviteeEmails(inviteeEmails.filter((e) => e !== email));
+        const inviteeEmails = form.getValues('inviteeEmails');
+        const updatedEmails = inviteeEmails.filter((e: string) => e !== email);
+        form.setValue('inviteeEmails', updatedEmails);
     };
 
     // Hide menu when clicking outside
@@ -1292,7 +1418,7 @@ const GenerateInviteLinkDialog = ({
                                                     card. Recommended size: 2:1 ratio
                                                 </p>
                                                 <div className="relative">
-                                                    {uploadingStates.coursePreview ? (
+                                                    {form.watch('uploadingStates').coursePreview ? (
                                                         <div className="flex h-[200px] items-center justify-center rounded-lg bg-gray-100">
                                                             <DashboardLoader />
                                                         </div>
@@ -1331,7 +1457,10 @@ const GenerateInviteLinkDialog = ({
                                                         onClick={() =>
                                                             coursePreviewRef.current?.click()
                                                         }
-                                                        disabled={uploadingStates.coursePreview}
+                                                        disabled={
+                                                            form.watch('uploadingStates')
+                                                                .coursePreview
+                                                        }
                                                         buttonType="secondary"
                                                         layoutVariant="icon"
                                                         scale="small"
@@ -1351,7 +1480,7 @@ const GenerateInviteLinkDialog = ({
                                                     ratio
                                                 </p>
                                                 <div className="relative">
-                                                    {uploadingStates.courseBanner ? (
+                                                    {form.watch('uploadingStates').courseBanner ? (
                                                         <div className="flex h-[200px] items-center justify-center rounded-lg bg-gray-100">
                                                             <DashboardLoader />
                                                         </div>
@@ -1388,7 +1517,10 @@ const GenerateInviteLinkDialog = ({
                                                         onClick={() =>
                                                             courseBannerRef.current?.click()
                                                         }
-                                                        disabled={uploadingStates.courseBanner}
+                                                        disabled={
+                                                            form.watch('uploadingStates')
+                                                                .courseBanner
+                                                        }
                                                         buttonType="secondary"
                                                         layoutVariant="icon"
                                                         scale="small"
@@ -1409,7 +1541,7 @@ const GenerateInviteLinkDialog = ({
                                                 </p>
                                                 <div className="flex flex-col gap-2">
                                                     {/* Preview logic remains unchanged */}
-                                                    {uploadingStates.courseMedia ? (
+                                                    {form.watch('uploadingStates').courseMedia ? (
                                                         <div className="flex h-[200px] items-center justify-center rounded-lg bg-gray-100">
                                                             <DashboardLoader />
                                                         </div>
@@ -1470,7 +1602,10 @@ const GenerateInviteLinkDialog = ({
                                                     <div className="-mt-10 mr-2 flex flex-col items-end justify-end">
                                                         <MyButton
                                                             type="button"
-                                                            disabled={uploadingStates.courseMedia}
+                                                            disabled={
+                                                                form.watch('uploadingStates')
+                                                                    .courseMedia
+                                                            }
                                                             buttonType="secondary"
                                                             layoutVariant="icon"
                                                             scale="small"
@@ -2004,14 +2139,19 @@ const GenerateInviteLinkDialog = ({
                                                 </MyButton>
                                             )}
                                             <Dialog
-                                                open={isDialogOpen}
-                                                onOpenChange={setIsDialogOpen}
+                                                open={form.watch('isDialogOpen')}
+                                                onOpenChange={(open) =>
+                                                    form.setValue('isDialogOpen', open)
+                                                }
                                             >
-                                                <DialogTrigger>
+                                                <DialogTrigger asChild>
                                                     <MyButton
                                                         type="button"
                                                         scale="medium"
                                                         buttonType="secondary"
+                                                        onClick={() =>
+                                                            form.setValue('isDialogOpen', true)
+                                                        }
                                                     >
                                                         <Plus size={32} /> Add Custom Field
                                                     </MyButton>
@@ -2026,9 +2166,14 @@ const GenerateInviteLinkDialog = ({
                                                             to add:
                                                         </h1>
                                                         <RadioGroup
-                                                            defaultValue={selectedOptionValue}
+                                                            defaultValue={form.watch(
+                                                                'selectedOptionValue'
+                                                            )}
                                                             onValueChange={(value) =>
-                                                                setSelectedOptionValue(value)
+                                                                form.setValue(
+                                                                    'selectedOptionValue',
+                                                                    value
+                                                                )
                                                             }
                                                             className="flex items-center gap-6"
                                                         >
@@ -2051,7 +2196,8 @@ const GenerateInviteLinkDialog = ({
                                                                 </Label>
                                                             </div>
                                                         </RadioGroup>
-                                                        {selectedOptionValue === 'textfield' ? (
+                                                        {form.watch('selectedOptionValue') ===
+                                                        'textfield' ? (
                                                             <div className="flex flex-col gap-1">
                                                                 <h1>
                                                                     Text Field Name
@@ -2062,9 +2208,12 @@ const GenerateInviteLinkDialog = ({
                                                                 <MyInput
                                                                     inputType="text"
                                                                     inputPlaceholder="Type Here"
-                                                                    input={textFieldValue}
+                                                                    input={form.watch(
+                                                                        'textFieldValue'
+                                                                    )}
                                                                     onChangeFunction={(e) =>
-                                                                        setTextFieldValue(
+                                                                        form.setValue(
+                                                                            'textFieldValue',
                                                                             e.target.value
                                                                         )
                                                                     }
@@ -2083,9 +2232,12 @@ const GenerateInviteLinkDialog = ({
                                                                 <MyInput
                                                                     inputType="text"
                                                                     inputPlaceholder="Type Here"
-                                                                    input={textFieldValue}
+                                                                    input={form.watch(
+                                                                        'textFieldValue'
+                                                                    )}
                                                                     onChangeFunction={(e) =>
-                                                                        setTextFieldValue(
+                                                                        form.setValue(
+                                                                            'textFieldValue',
                                                                             e.target.value
                                                                         )
                                                                     }
@@ -2096,8 +2248,9 @@ const GenerateInviteLinkDialog = ({
                                                                     Dropdown Options
                                                                 </h1>
                                                                 <div className="flex flex-col gap-4">
-                                                                    {dropdownOptions.map(
-                                                                        (option) => {
+                                                                    {form
+                                                                        .watch('dropdownOptions')
+                                                                        .map((option) => {
                                                                             return (
                                                                                 <div
                                                                                     className="flex w-full items-center justify-between rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-1"
@@ -2145,7 +2298,9 @@ const GenerateInviteLinkDialog = ({
                                                                                                 }
                                                                                             />
                                                                                         </MyButton>
-                                                                                        {dropdownOptions.length >
+                                                                                        {form.watch(
+                                                                                            'dropdownOptions'
+                                                                                        ).length >
                                                                                             1 && (
                                                                                             <MyButton
                                                                                                 type="button"
@@ -2164,8 +2319,7 @@ const GenerateInviteLinkDialog = ({
                                                                                     </div>
                                                                                 </div>
                                                                             );
-                                                                        }
-                                                                    )}
+                                                                        })}
                                                                 </div>
                                                                 <MyButton
                                                                     type="button"
@@ -2189,8 +2343,12 @@ const GenerateInviteLinkDialog = ({
                                                                 className="mt-4 w-fit"
                                                                 onClick={() =>
                                                                     handleCloseDialog(
-                                                                        selectedOptionValue,
-                                                                        textFieldValue,
+                                                                        form.watch(
+                                                                            'selectedOptionValue'
+                                                                        ),
+                                                                        form.watch(
+                                                                            'textFieldValue'
+                                                                        ),
                                                                         false
                                                                     )
                                                                 }
@@ -2357,9 +2515,9 @@ const GenerateInviteLinkDialog = ({
                                             <Input
                                                 id="invitee-email-input"
                                                 type="email"
-                                                value={inviteeEmail}
+                                                value={form.watch('inviteeEmail')}
                                                 onChange={(e) => {
-                                                    setInviteeEmail(e.target.value);
+                                                    form.setValue('inviteeEmail', e.target.value);
                                                 }}
                                                 placeholder="you@email.com"
                                                 className="w-full"
@@ -2371,17 +2529,19 @@ const GenerateInviteLinkDialog = ({
                                             buttonType="primary"
                                             className="mb-0"
                                             disable={
-                                                !isValidEmail(inviteeEmail) ||
-                                                inviteeEmails.includes(inviteeEmail)
+                                                !isValidEmail(form.watch('inviteeEmail')) ||
+                                                form
+                                                    .watch('inviteeEmails')
+                                                    .includes(form.watch('inviteeEmail'))
                                             }
                                             onClick={handleAddInviteeEmail}
                                         >
                                             Add
                                         </MyButton>
                                     </div>
-                                    {inviteeEmails.length > 0 && (
+                                    {form.watch('inviteeEmails').length > 0 && (
                                         <div className="mt-4 flex flex-wrap gap-2">
-                                            {inviteeEmails.map((email) => (
+                                            {form.watch('inviteeEmails').map((email) => (
                                                 <span
                                                     key={email}
                                                     className="text-primary-700 flex items-center gap-1 rounded-full border border-primary-200 bg-primary-50 px-3 py-1 text-sm"
@@ -2420,10 +2580,10 @@ const GenerateInviteLinkDialog = ({
                                 </CardHeader>
                                 <CardContent>
                                     <PPTViewQuillEditor
-                                        value={customHtml}
-                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                                            setCustomHtml(e.target.value);
-                                        }}
+                                        value={form.watch('customHtml')}
+                                        onChange={(value: string) =>
+                                            form.setValue('customHtml', value)
+                                        }
                                         placeholder="Enter custom HTML code here..."
                                         className="h-[100px]"
                                     />
