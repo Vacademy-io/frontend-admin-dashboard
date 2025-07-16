@@ -10,489 +10,1056 @@
 
 import { createFileRoute } from "@tanstack/react-router"
 
-import { Route as rootRouteImport } from "./routes/__root"
-import { Route as StudyLibraryIndexRouteImport } from "./routes/study-library/index"
-import { Route as SignupIndexRouteImport } from "./routes/signup/index"
-import { Route as SettingsIndexRouteImport } from "./routes/settings/index"
-import { Route as ManageStudentsIndexRouteImport } from "./routes/manage-students/index"
-import { Route as ManageInstituteIndexRouteImport } from "./routes/manage-institute/index"
-import { Route as LoginIndexRouteImport } from "./routes/login/index"
-import { Route as EvaluatorAiIndexRouteImport } from "./routes/evaluator-ai/index"
-import { Route as EvaluationIndexRouteImport } from "./routes/evaluation/index"
-import { Route as DashboardIndexRouteImport } from "./routes/dashboard/index"
-import { Route as CommunityIndexRouteImport } from "./routes/community/index"
-import { Route as AssessmentIndexRouteImport } from "./routes/assessment/index"
-import { Route as AiCenterIndexRouteImport } from "./routes/ai-center/index"
-import { Route as StudyLibraryVoltIndexRouteImport } from "./routes/study-library/volt/index"
-import { Route as StudyLibraryReportsIndexRouteImport } from "./routes/study-library/reports/index"
-import { Route as StudyLibraryLiveSessionIndexRouteImport } from "./routes/study-library/live-session/index"
-import { Route as StudyLibraryDoubtManagementIndexRouteImport } from "./routes/study-library/doubt-management/index"
-import { Route as StudyLibraryCoursesIndexRouteImport } from "./routes/study-library/courses/index"
-import { Route as SignupOnboardingIndexRouteImport } from "./routes/signup/onboarding/index"
-import { Route as ManageStudentsStudentsListIndexRouteImport } from "./routes/manage-students/students-list/index"
-import { Route as ManageStudentsInviteIndexRouteImport } from "./routes/manage-students/invite/index"
-import { Route as ManageStudentsEnrollRequestsIndexRouteImport } from "./routes/manage-students/enroll-requests/index"
-import { Route as ManageInstituteTeamsIndexRouteImport } from "./routes/manage-institute/teams/index"
-import { Route as ManageInstituteSessionsIndexRouteImport } from "./routes/manage-institute/sessions/index"
-import { Route as ManageInstituteBatchesIndexRouteImport } from "./routes/manage-institute/batches/index"
-import { Route as LoginForgotPasswordIndexRouteImport } from "./routes/login/forgot-password/index"
-import { Route as LoginKeyIndexRouteImport } from "./routes/login/$key/index"
-import { Route as HomeworkCreationAssessmentListIndexRouteImport } from "./routes/homework-creation/assessment-list/index"
-import { Route as EvaluatorAiStudentsIndexRouteImport } from "./routes/evaluator-ai/students/index"
-import { Route as EvaluatorAiEvaluationIndexRouteImport } from "./routes/evaluator-ai/evaluation/index"
-import { Route as EvaluatorAiAssessmentIndexRouteImport } from "./routes/evaluator-ai/assessment/index"
-import { Route as EvaluationEvaluationsIndexRouteImport } from "./routes/evaluation/evaluations/index"
-import { Route as EvaluationEvaluationToolIndexRouteImport } from "./routes/evaluation/evaluation-tool/index"
-import { Route as CommunityQuestionPaperIndexRouteImport } from "./routes/community/question-paper/index"
-import { Route as CertificateGenerationStudentDataIndexRouteImport } from "./routes/certificate-generation/student-data/index"
-import { Route as AssessmentQuestionPapersIndexRouteImport } from "./routes/assessment/question-papers/index"
-import { Route as AssessmentAssessmentListIndexRouteImport } from "./routes/assessment/assessment-list/index"
-import { Route as AiCenterMyResourcesIndexRouteImport } from "./routes/ai-center/my-resources/index"
-import { Route as AiCenterAiToolsIndexRouteImport } from "./routes/ai-center/ai-tools/index"
-import { Route as SignupOauthCallbackRouteImport } from "./routes/signup/oauth/callback"
-import { Route as LoginOauthRedirectRouteImport } from "./routes/login/oauth/redirect"
-import { Route as StudyLibraryVoltAddIndexRouteImport } from "./routes/study-library/volt/add/index"
-import { Route as StudyLibraryLiveSessionScheduleIndexRouteImport } from "./routes/study-library/live-session/schedule/index"
-import { Route as StudyLibraryCoursesCourseDetailsIndexRouteImport } from "./routes/study-library/courses/course-details/index"
-import { Route as EvaluatorAiEvaluationStudentSummaryIndexRouteImport } from "./routes/evaluator-ai/evaluation/student-summary/index"
-import { Route as EvaluatorAiAssessmentCreateAssessmentIndexRouteImport } from "./routes/evaluator-ai/assessment/create-assessment/index"
-import { Route as AssessmentExportAssessmentIdIndexRouteImport } from "./routes/assessment/export/$assessmentId/index"
-import { Route as AiCenterAiToolsVsmartUploadIndexRouteImport } from "./routes/ai-center/ai-tools/vsmart-upload/index"
-import { Route as AiCenterAiToolsVsmartSorterIndexRouteImport } from "./routes/ai-center/ai-tools/vsmart-sorter/index"
-import { Route as AiCenterAiToolsVsmartPromptIndexRouteImport } from "./routes/ai-center/ai-tools/vsmart-prompt/index"
-import { Route as AiCenterAiToolsVsmartOrganizerIndexRouteImport } from "./routes/ai-center/ai-tools/vsmart-organizer/index"
-import { Route as AiCenterAiToolsVsmartLectureIndexRouteImport } from "./routes/ai-center/ai-tools/vsmart-lecture/index"
-import { Route as AiCenterAiToolsVsmartImageIndexRouteImport } from "./routes/ai-center/ai-tools/vsmart-image/index"
-import { Route as AiCenterAiToolsVsmartFeedbackIndexRouteImport } from "./routes/ai-center/ai-tools/vsmart-feedback/index"
-import { Route as AiCenterAiToolsVsmartExtractIndexRouteImport } from "./routes/ai-center/ai-tools/vsmart-extract/index"
-import { Route as AiCenterAiToolsVsmartChatIndexRouteImport } from "./routes/ai-center/ai-tools/vsmart-chat/index"
-import { Route as AiCenterAiToolsVsmartAudioIndexRouteImport } from "./routes/ai-center/ai-tools/vsmart-audio/index"
-import { Route as StudyLibraryLiveSessionScheduleStep2IndexRouteImport } from "./routes/study-library/live-session/schedule/step2/index"
-import { Route as StudyLibraryLiveSessionScheduleStep1IndexRouteImport } from "./routes/study-library/live-session/schedule/step1/index"
-import { Route as StudyLibraryCoursesCourseDetailsSubjectsIndexRouteImport } from "./routes/study-library/courses/course-details/subjects/index"
-import { Route as HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRouteImport } from "./routes/homework-creation/create-assessment/$assessmentId/$examtype/index"
-import { Route as AssessmentCreateAssessmentAssessmentIdExamtypeIndexRouteImport } from "./routes/assessment/create-assessment/$assessmentId/$examtype/index"
-import { Route as StudyLibraryCoursesCourseDetailsSubjectsModulesIndexRouteImport } from "./routes/study-library/courses/course-details/subjects/modules/index"
-import { Route as EvaluationEvaluateAssessmentIdAttemptIdExamTypeIndexRouteImport } from "./routes/evaluation/evaluate/$assessmentId/$attemptId/$examType/index"
-import { Route as StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersIndexRouteImport } from "./routes/study-library/courses/course-details/subjects/modules/chapters/index"
-import { Route as EvaluationEvaluationsAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeIndexRouteImport } from "./routes/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType/index"
-import { Route as StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersSlidesIndexRouteImport } from "./routes/study-library/courses/course-details/subjects/modules/chapters/slides/index"
-import { Route as HomeworkCreationAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeAssessmentTabIndexRouteImport } from "./routes/homework-creation/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/index"
-import { Route as AssessmentAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeAssessmentTabIndexRouteImport } from "./routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/index"
+// Import Routes
 
-const PricingLazyRouteImport = createFileRoute("/pricing")()
-const LandingLazyRouteImport = createFileRoute("/landing")()
+import { Route as rootRoute } from "./routes/__root"
+import { Route as StudyLibraryIndexImport } from "./routes/study-library/index"
+import { Route as SignupIndexImport } from "./routes/signup/index"
+import { Route as SettingsIndexImport } from "./routes/settings/index"
+import { Route as ManageStudentsIndexImport } from "./routes/manage-students/index"
+import { Route as ManageInstituteIndexImport } from "./routes/manage-institute/index"
+import { Route as LoginIndexImport } from "./routes/login/index"
+import { Route as EvaluatorAiIndexImport } from "./routes/evaluator-ai/index"
+import { Route as EvaluationIndexImport } from "./routes/evaluation/index"
+import { Route as DashboardIndexImport } from "./routes/dashboard/index"
+import { Route as CommunityIndexImport } from "./routes/community/index"
+import { Route as AssessmentIndexImport } from "./routes/assessment/index"
+import { Route as AiCenterIndexImport } from "./routes/ai-center/index"
+import { Route as StudyLibraryVoltIndexImport } from "./routes/study-library/volt/index"
+import { Route as StudyLibraryReportsIndexImport } from "./routes/study-library/reports/index"
+import { Route as StudyLibraryLiveSessionIndexImport } from "./routes/study-library/live-session/index"
+import { Route as StudyLibraryDoubtManagementIndexImport } from "./routes/study-library/doubt-management/index"
+import { Route as StudyLibraryCoursesIndexImport } from "./routes/study-library/courses/index"
+import { Route as SignupOnboardingIndexImport } from "./routes/signup/onboarding/index"
+import { Route as ManageStudentsStudentsListIndexImport } from "./routes/manage-students/students-list/index"
+import { Route as ManageStudentsInviteIndexImport } from "./routes/manage-students/invite/index"
+import { Route as ManageStudentsEnrollRequestsIndexImport } from "./routes/manage-students/enroll-requests/index"
+import { Route as ManageInstituteTeamsIndexImport } from "./routes/manage-institute/teams/index"
+import { Route as ManageInstituteSessionsIndexImport } from "./routes/manage-institute/sessions/index"
+import { Route as ManageInstituteBatchesIndexImport } from "./routes/manage-institute/batches/index"
+import { Route as LoginForgotPasswordIndexImport } from "./routes/login/forgot-password/index"
+import { Route as LoginKeyIndexImport } from "./routes/login/$key/index"
+import { Route as HomeworkCreationAssessmentListIndexImport } from "./routes/homework-creation/assessment-list/index"
+import { Route as EvaluatorAiStudentsIndexImport } from "./routes/evaluator-ai/students/index"
+import { Route as EvaluatorAiEvaluationIndexImport } from "./routes/evaluator-ai/evaluation/index"
+import { Route as EvaluatorAiAssessmentIndexImport } from "./routes/evaluator-ai/assessment/index"
+import { Route as EvaluationEvaluationsIndexImport } from "./routes/evaluation/evaluations/index"
+import { Route as EvaluationEvaluationToolIndexImport } from "./routes/evaluation/evaluation-tool/index"
+import { Route as CommunityQuestionPaperIndexImport } from "./routes/community/question-paper/index"
+import { Route as CertificateGenerationStudentDataIndexImport } from "./routes/certificate-generation/student-data/index"
+import { Route as AssessmentQuestionPapersIndexImport } from "./routes/assessment/question-papers/index"
+import { Route as AssessmentAssessmentListIndexImport } from "./routes/assessment/assessment-list/index"
+import { Route as AiCenterMyResourcesIndexImport } from "./routes/ai-center/my-resources/index"
+import { Route as AiCenterAiToolsIndexImport } from "./routes/ai-center/ai-tools/index"
+import { Route as SignupOauthCallbackImport } from "./routes/signup/oauth/callback"
+import { Route as LoginOauthRedirectImport } from "./routes/login/oauth/redirect"
+import { Route as StudyLibraryVoltAddIndexImport } from "./routes/study-library/volt/add/index"
+import { Route as StudyLibraryLiveSessionScheduleIndexImport } from "./routes/study-library/live-session/schedule/index"
+import { Route as StudyLibraryCoursesCourseDetailsIndexImport } from "./routes/study-library/courses/course-details/index"
+import { Route as EvaluatorAiEvaluationStudentSummaryIndexImport } from "./routes/evaluator-ai/evaluation/student-summary/index"
+import { Route as EvaluatorAiAssessmentCreateAssessmentIndexImport } from "./routes/evaluator-ai/assessment/create-assessment/index"
+import { Route as AssessmentExportAssessmentIdIndexImport } from "./routes/assessment/export/$assessmentId/index"
+import { Route as AiCenterAiToolsVsmartUploadIndexImport } from "./routes/ai-center/ai-tools/vsmart-upload/index"
+import { Route as AiCenterAiToolsVsmartSorterIndexImport } from "./routes/ai-center/ai-tools/vsmart-sorter/index"
+import { Route as AiCenterAiToolsVsmartPromptIndexImport } from "./routes/ai-center/ai-tools/vsmart-prompt/index"
+import { Route as AiCenterAiToolsVsmartOrganizerIndexImport } from "./routes/ai-center/ai-tools/vsmart-organizer/index"
+import { Route as AiCenterAiToolsVsmartLectureIndexImport } from "./routes/ai-center/ai-tools/vsmart-lecture/index"
+import { Route as AiCenterAiToolsVsmartImageIndexImport } from "./routes/ai-center/ai-tools/vsmart-image/index"
+import { Route as AiCenterAiToolsVsmartFeedbackIndexImport } from "./routes/ai-center/ai-tools/vsmart-feedback/index"
+import { Route as AiCenterAiToolsVsmartExtractIndexImport } from "./routes/ai-center/ai-tools/vsmart-extract/index"
+import { Route as AiCenterAiToolsVsmartChatIndexImport } from "./routes/ai-center/ai-tools/vsmart-chat/index"
+import { Route as AiCenterAiToolsVsmartAudioIndexImport } from "./routes/ai-center/ai-tools/vsmart-audio/index"
+import { Route as StudyLibraryLiveSessionScheduleStep2IndexImport } from "./routes/study-library/live-session/schedule/step2/index"
+import { Route as StudyLibraryLiveSessionScheduleStep1IndexImport } from "./routes/study-library/live-session/schedule/step1/index"
+import { Route as StudyLibraryCoursesCourseDetailsSubjectsIndexImport } from "./routes/study-library/courses/course-details/subjects/index"
+import { Route as HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexImport } from "./routes/homework-creation/create-assessment/$assessmentId/$examtype/index"
+import { Route as AssessmentCreateAssessmentAssessmentIdExamtypeIndexImport } from "./routes/assessment/create-assessment/$assessmentId/$examtype/index"
+import { Route as StudyLibraryCoursesCourseDetailsSubjectsModulesIndexImport } from "./routes/study-library/courses/course-details/subjects/modules/index"
+import { Route as EvaluationEvaluateAssessmentIdAttemptIdExamTypeIndexImport } from "./routes/evaluation/evaluate/$assessmentId/$attemptId/$examType/index"
+import { Route as StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersIndexImport } from "./routes/study-library/courses/course-details/subjects/modules/chapters/index"
+import { Route as EvaluationEvaluationsAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeIndexImport } from "./routes/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType/index"
+import { Route as StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersSlidesIndexImport } from "./routes/study-library/courses/course-details/subjects/modules/chapters/slides/index"
+import { Route as HomeworkCreationAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeAssessmentTabIndexImport } from "./routes/homework-creation/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/index"
+import { Route as AssessmentAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeAssessmentTabIndexImport } from "./routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/index"
 
-const PricingLazyRoute = PricingLazyRouteImport.update({
+// Create Virtual Routes
+
+const PricingLazyImport = createFileRoute("/pricing")()
+const LandingLazyImport = createFileRoute("/landing")()
+
+// Create/Update Routes
+
+const PricingLazyRoute = PricingLazyImport.update({
   id: "/pricing",
   path: "/pricing",
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => rootRoute,
 } as any).lazy(() => import("./routes/pricing.lazy").then((d) => d.Route))
-const LandingLazyRoute = LandingLazyRouteImport.update({
+
+const LandingLazyRoute = LandingLazyImport.update({
   id: "/landing",
   path: "/landing",
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => rootRoute,
 } as any).lazy(() => import("./routes/landing.lazy").then((d) => d.Route))
-const StudyLibraryIndexRoute = StudyLibraryIndexRouteImport.update({
+
+const StudyLibraryIndexRoute = StudyLibraryIndexImport.update({
   id: "/study-library/",
   path: "/study-library/",
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => rootRoute,
 } as any)
-const SignupIndexRoute = SignupIndexRouteImport.update({
+
+const SignupIndexRoute = SignupIndexImport.update({
   id: "/signup/",
   path: "/signup/",
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => rootRoute,
 } as any)
-const SettingsIndexRoute = SettingsIndexRouteImport.update({
+
+const SettingsIndexRoute = SettingsIndexImport.update({
   id: "/settings/",
   path: "/settings/",
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => rootRoute,
 } as any)
-const ManageStudentsIndexRoute = ManageStudentsIndexRouteImport.update({
+
+const ManageStudentsIndexRoute = ManageStudentsIndexImport.update({
   id: "/manage-students/",
   path: "/manage-students/",
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => rootRoute,
 } as any)
-const ManageInstituteIndexRoute = ManageInstituteIndexRouteImport.update({
+
+const ManageInstituteIndexRoute = ManageInstituteIndexImport.update({
   id: "/manage-institute/",
   path: "/manage-institute/",
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => rootRoute,
 } as any)
-const LoginIndexRoute = LoginIndexRouteImport.update({
+
+const LoginIndexRoute = LoginIndexImport.update({
   id: "/login/",
   path: "/login/",
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => rootRoute,
 } as any)
-const EvaluatorAiIndexRoute = EvaluatorAiIndexRouteImport.update({
+
+const EvaluatorAiIndexRoute = EvaluatorAiIndexImport.update({
   id: "/evaluator-ai/",
   path: "/evaluator-ai/",
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => rootRoute,
 } as any)
-const EvaluationIndexRoute = EvaluationIndexRouteImport.update({
+
+const EvaluationIndexRoute = EvaluationIndexImport.update({
   id: "/evaluation/",
   path: "/evaluation/",
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => rootRoute,
 } as any)
-const DashboardIndexRoute = DashboardIndexRouteImport.update({
+
+const DashboardIndexRoute = DashboardIndexImport.update({
   id: "/dashboard/",
   path: "/dashboard/",
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => rootRoute,
 } as any)
-const CommunityIndexRoute = CommunityIndexRouteImport.update({
+
+const CommunityIndexRoute = CommunityIndexImport.update({
   id: "/community/",
   path: "/community/",
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => rootRoute,
 } as any)
-const AssessmentIndexRoute = AssessmentIndexRouteImport.update({
+
+const AssessmentIndexRoute = AssessmentIndexImport.update({
   id: "/assessment/",
   path: "/assessment/",
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => rootRoute,
 } as any)
-const AiCenterIndexRoute = AiCenterIndexRouteImport.update({
+
+const AiCenterIndexRoute = AiCenterIndexImport.update({
   id: "/ai-center/",
   path: "/ai-center/",
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => rootRoute,
 } as any)
-const StudyLibraryVoltIndexRoute = StudyLibraryVoltIndexRouteImport.update({
+
+const StudyLibraryVoltIndexRoute = StudyLibraryVoltIndexImport.update({
   id: "/study-library/volt/",
   path: "/study-library/volt/",
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => rootRoute,
 } as any)
-const StudyLibraryReportsIndexRoute =
-  StudyLibraryReportsIndexRouteImport.update({
-    id: "/study-library/reports/",
-    path: "/study-library/reports/",
-    getParentRoute: () => rootRouteImport,
-  } as any)
+
+const StudyLibraryReportsIndexRoute = StudyLibraryReportsIndexImport.update({
+  id: "/study-library/reports/",
+  path: "/study-library/reports/",
+  getParentRoute: () => rootRoute,
+} as any)
+
 const StudyLibraryLiveSessionIndexRoute =
-  StudyLibraryLiveSessionIndexRouteImport.update({
+  StudyLibraryLiveSessionIndexImport.update({
     id: "/study-library/live-session/",
     path: "/study-library/live-session/",
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => rootRoute,
   } as any)
+
 const StudyLibraryDoubtManagementIndexRoute =
-  StudyLibraryDoubtManagementIndexRouteImport.update({
+  StudyLibraryDoubtManagementIndexImport.update({
     id: "/study-library/doubt-management/",
     path: "/study-library/doubt-management/",
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => rootRoute,
   } as any)
-const StudyLibraryCoursesIndexRoute =
-  StudyLibraryCoursesIndexRouteImport.update({
-    id: "/study-library/courses/",
-    path: "/study-library/courses/",
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const SignupOnboardingIndexRoute = SignupOnboardingIndexRouteImport.update({
+
+const StudyLibraryCoursesIndexRoute = StudyLibraryCoursesIndexImport.update({
+  id: "/study-library/courses/",
+  path: "/study-library/courses/",
+  getParentRoute: () => rootRoute,
+} as any)
+
+const SignupOnboardingIndexRoute = SignupOnboardingIndexImport.update({
   id: "/signup/onboarding/",
   path: "/signup/onboarding/",
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => rootRoute,
 } as any)
+
 const ManageStudentsStudentsListIndexRoute =
-  ManageStudentsStudentsListIndexRouteImport.update({
+  ManageStudentsStudentsListIndexImport.update({
     id: "/manage-students/students-list/",
     path: "/manage-students/students-list/",
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => rootRoute,
   } as any)
-const ManageStudentsInviteIndexRoute =
-  ManageStudentsInviteIndexRouteImport.update({
-    id: "/manage-students/invite/",
-    path: "/manage-students/invite/",
-    getParentRoute: () => rootRouteImport,
-  } as any)
+
+const ManageStudentsInviteIndexRoute = ManageStudentsInviteIndexImport.update({
+  id: "/manage-students/invite/",
+  path: "/manage-students/invite/",
+  getParentRoute: () => rootRoute,
+} as any)
+
 const ManageStudentsEnrollRequestsIndexRoute =
-  ManageStudentsEnrollRequestsIndexRouteImport.update({
+  ManageStudentsEnrollRequestsIndexImport.update({
     id: "/manage-students/enroll-requests/",
     path: "/manage-students/enroll-requests/",
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => rootRoute,
   } as any)
-const ManageInstituteTeamsIndexRoute =
-  ManageInstituteTeamsIndexRouteImport.update({
-    id: "/manage-institute/teams/",
-    path: "/manage-institute/teams/",
-    getParentRoute: () => rootRouteImport,
-  } as any)
+
+const ManageInstituteTeamsIndexRoute = ManageInstituteTeamsIndexImport.update({
+  id: "/manage-institute/teams/",
+  path: "/manage-institute/teams/",
+  getParentRoute: () => rootRoute,
+} as any)
+
 const ManageInstituteSessionsIndexRoute =
-  ManageInstituteSessionsIndexRouteImport.update({
+  ManageInstituteSessionsIndexImport.update({
     id: "/manage-institute/sessions/",
     path: "/manage-institute/sessions/",
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => rootRoute,
   } as any)
+
 const ManageInstituteBatchesIndexRoute =
-  ManageInstituteBatchesIndexRouteImport.update({
+  ManageInstituteBatchesIndexImport.update({
     id: "/manage-institute/batches/",
     path: "/manage-institute/batches/",
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => rootRoute,
   } as any)
-const LoginForgotPasswordIndexRoute =
-  LoginForgotPasswordIndexRouteImport.update({
-    id: "/login/forgot-password/",
-    path: "/login/forgot-password/",
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const LoginKeyIndexRoute = LoginKeyIndexRouteImport.update({
+
+const LoginForgotPasswordIndexRoute = LoginForgotPasswordIndexImport.update({
+  id: "/login/forgot-password/",
+  path: "/login/forgot-password/",
+  getParentRoute: () => rootRoute,
+} as any)
+
+const LoginKeyIndexRoute = LoginKeyIndexImport.update({
   id: "/login/$key/",
   path: "/login/$key/",
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => rootRoute,
 } as any)
+
 const HomeworkCreationAssessmentListIndexRoute =
-  HomeworkCreationAssessmentListIndexRouteImport.update({
+  HomeworkCreationAssessmentListIndexImport.update({
     id: "/homework-creation/assessment-list/",
     path: "/homework-creation/assessment-list/",
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => rootRoute,
   } as any)
-const EvaluatorAiStudentsIndexRoute =
-  EvaluatorAiStudentsIndexRouteImport.update({
-    id: "/evaluator-ai/students/",
-    path: "/evaluator-ai/students/",
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const EvaluatorAiEvaluationIndexRoute =
-  EvaluatorAiEvaluationIndexRouteImport.update({
+
+const EvaluatorAiStudentsIndexRoute = EvaluatorAiStudentsIndexImport.update({
+  id: "/evaluator-ai/students/",
+  path: "/evaluator-ai/students/",
+  getParentRoute: () => rootRoute,
+} as any)
+
+const EvaluatorAiEvaluationIndexRoute = EvaluatorAiEvaluationIndexImport.update(
+  {
     id: "/evaluator-ai/evaluation/",
     path: "/evaluator-ai/evaluation/",
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const EvaluatorAiAssessmentIndexRoute =
-  EvaluatorAiAssessmentIndexRouteImport.update({
+    getParentRoute: () => rootRoute,
+  } as any,
+)
+
+const EvaluatorAiAssessmentIndexRoute = EvaluatorAiAssessmentIndexImport.update(
+  {
     id: "/evaluator-ai/assessment/",
     path: "/evaluator-ai/assessment/",
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const EvaluationEvaluationsIndexRoute =
-  EvaluationEvaluationsIndexRouteImport.update({
+    getParentRoute: () => rootRoute,
+  } as any,
+)
+
+const EvaluationEvaluationsIndexRoute = EvaluationEvaluationsIndexImport.update(
+  {
     id: "/evaluation/evaluations/",
     path: "/evaluation/evaluations/",
-    getParentRoute: () => rootRouteImport,
-  } as any)
+    getParentRoute: () => rootRoute,
+  } as any,
+)
+
 const EvaluationEvaluationToolIndexRoute =
-  EvaluationEvaluationToolIndexRouteImport.update({
+  EvaluationEvaluationToolIndexImport.update({
     id: "/evaluation/evaluation-tool/",
     path: "/evaluation/evaluation-tool/",
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => rootRoute,
   } as any)
+
 const CommunityQuestionPaperIndexRoute =
-  CommunityQuestionPaperIndexRouteImport.update({
+  CommunityQuestionPaperIndexImport.update({
     id: "/community/question-paper/",
     path: "/community/question-paper/",
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => rootRoute,
   } as any)
+
 const CertificateGenerationStudentDataIndexRoute =
-  CertificateGenerationStudentDataIndexRouteImport.update({
+  CertificateGenerationStudentDataIndexImport.update({
     id: "/certificate-generation/student-data/",
     path: "/certificate-generation/student-data/",
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => rootRoute,
   } as any)
+
 const AssessmentQuestionPapersIndexRoute =
-  AssessmentQuestionPapersIndexRouteImport.update({
+  AssessmentQuestionPapersIndexImport.update({
     id: "/assessment/question-papers/",
     path: "/assessment/question-papers/",
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => rootRoute,
   } as any)
+
 const AssessmentAssessmentListIndexRoute =
-  AssessmentAssessmentListIndexRouteImport.update({
+  AssessmentAssessmentListIndexImport.update({
     id: "/assessment/assessment-list/",
     path: "/assessment/assessment-list/",
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => rootRoute,
   } as any)
-const AiCenterMyResourcesIndexRoute =
-  AiCenterMyResourcesIndexRouteImport.update({
-    id: "/ai-center/my-resources/",
-    path: "/ai-center/my-resources/",
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const AiCenterAiToolsIndexRoute = AiCenterAiToolsIndexRouteImport.update({
+
+const AiCenterMyResourcesIndexRoute = AiCenterMyResourcesIndexImport.update({
+  id: "/ai-center/my-resources/",
+  path: "/ai-center/my-resources/",
+  getParentRoute: () => rootRoute,
+} as any)
+
+const AiCenterAiToolsIndexRoute = AiCenterAiToolsIndexImport.update({
   id: "/ai-center/ai-tools/",
   path: "/ai-center/ai-tools/",
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => rootRoute,
 } as any)
-const SignupOauthCallbackRoute = SignupOauthCallbackRouteImport.update({
+
+const SignupOauthCallbackRoute = SignupOauthCallbackImport.update({
   id: "/signup/oauth/callback",
   path: "/signup/oauth/callback",
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => rootRoute,
 } as any)
-const LoginOauthRedirectRoute = LoginOauthRedirectRouteImport.update({
+
+const LoginOauthRedirectRoute = LoginOauthRedirectImport.update({
   id: "/login/oauth/redirect",
   path: "/login/oauth/redirect",
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => rootRoute,
 } as any)
-const StudyLibraryVoltAddIndexRoute =
-  StudyLibraryVoltAddIndexRouteImport.update({
-    id: "/study-library/volt/add/",
-    path: "/study-library/volt/add/",
-    getParentRoute: () => rootRouteImport,
-  } as any)
+
+const StudyLibraryVoltAddIndexRoute = StudyLibraryVoltAddIndexImport.update({
+  id: "/study-library/volt/add/",
+  path: "/study-library/volt/add/",
+  getParentRoute: () => rootRoute,
+} as any)
+
 const StudyLibraryLiveSessionScheduleIndexRoute =
-  StudyLibraryLiveSessionScheduleIndexRouteImport.update({
+  StudyLibraryLiveSessionScheduleIndexImport.update({
     id: "/study-library/live-session/schedule/",
     path: "/study-library/live-session/schedule/",
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => rootRoute,
   } as any)
+
 const StudyLibraryCoursesCourseDetailsIndexRoute =
-  StudyLibraryCoursesCourseDetailsIndexRouteImport.update({
+  StudyLibraryCoursesCourseDetailsIndexImport.update({
     id: "/study-library/courses/course-details/",
     path: "/study-library/courses/course-details/",
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => rootRoute,
   } as any)
+
 const EvaluatorAiEvaluationStudentSummaryIndexRoute =
-  EvaluatorAiEvaluationStudentSummaryIndexRouteImport.update({
+  EvaluatorAiEvaluationStudentSummaryIndexImport.update({
     id: "/evaluator-ai/evaluation/student-summary/",
     path: "/evaluator-ai/evaluation/student-summary/",
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => rootRoute,
   } as any)
+
 const EvaluatorAiAssessmentCreateAssessmentIndexRoute =
-  EvaluatorAiAssessmentCreateAssessmentIndexRouteImport.update({
+  EvaluatorAiAssessmentCreateAssessmentIndexImport.update({
     id: "/evaluator-ai/assessment/create-assessment/",
     path: "/evaluator-ai/assessment/create-assessment/",
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => rootRoute,
   } as any)
+
 const AssessmentExportAssessmentIdIndexRoute =
-  AssessmentExportAssessmentIdIndexRouteImport.update({
+  AssessmentExportAssessmentIdIndexImport.update({
     id: "/assessment/export/$assessmentId/",
     path: "/assessment/export/$assessmentId/",
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => rootRoute,
   } as any)
+
 const AiCenterAiToolsVsmartUploadIndexRoute =
-  AiCenterAiToolsVsmartUploadIndexRouteImport.update({
+  AiCenterAiToolsVsmartUploadIndexImport.update({
     id: "/ai-center/ai-tools/vsmart-upload/",
     path: "/ai-center/ai-tools/vsmart-upload/",
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => rootRoute,
   } as any)
+
 const AiCenterAiToolsVsmartSorterIndexRoute =
-  AiCenterAiToolsVsmartSorterIndexRouteImport.update({
+  AiCenterAiToolsVsmartSorterIndexImport.update({
     id: "/ai-center/ai-tools/vsmart-sorter/",
     path: "/ai-center/ai-tools/vsmart-sorter/",
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => rootRoute,
   } as any)
+
 const AiCenterAiToolsVsmartPromptIndexRoute =
-  AiCenterAiToolsVsmartPromptIndexRouteImport.update({
+  AiCenterAiToolsVsmartPromptIndexImport.update({
     id: "/ai-center/ai-tools/vsmart-prompt/",
     path: "/ai-center/ai-tools/vsmart-prompt/",
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => rootRoute,
   } as any)
+
 const AiCenterAiToolsVsmartOrganizerIndexRoute =
-  AiCenterAiToolsVsmartOrganizerIndexRouteImport.update({
+  AiCenterAiToolsVsmartOrganizerIndexImport.update({
     id: "/ai-center/ai-tools/vsmart-organizer/",
     path: "/ai-center/ai-tools/vsmart-organizer/",
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => rootRoute,
   } as any)
+
 const AiCenterAiToolsVsmartLectureIndexRoute =
-  AiCenterAiToolsVsmartLectureIndexRouteImport.update({
+  AiCenterAiToolsVsmartLectureIndexImport.update({
     id: "/ai-center/ai-tools/vsmart-lecture/",
     path: "/ai-center/ai-tools/vsmart-lecture/",
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => rootRoute,
   } as any)
+
 const AiCenterAiToolsVsmartImageIndexRoute =
-  AiCenterAiToolsVsmartImageIndexRouteImport.update({
+  AiCenterAiToolsVsmartImageIndexImport.update({
     id: "/ai-center/ai-tools/vsmart-image/",
     path: "/ai-center/ai-tools/vsmart-image/",
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => rootRoute,
   } as any)
+
 const AiCenterAiToolsVsmartFeedbackIndexRoute =
-  AiCenterAiToolsVsmartFeedbackIndexRouteImport.update({
+  AiCenterAiToolsVsmartFeedbackIndexImport.update({
     id: "/ai-center/ai-tools/vsmart-feedback/",
     path: "/ai-center/ai-tools/vsmart-feedback/",
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => rootRoute,
   } as any)
+
 const AiCenterAiToolsVsmartExtractIndexRoute =
-  AiCenterAiToolsVsmartExtractIndexRouteImport.update({
+  AiCenterAiToolsVsmartExtractIndexImport.update({
     id: "/ai-center/ai-tools/vsmart-extract/",
     path: "/ai-center/ai-tools/vsmart-extract/",
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => rootRoute,
   } as any)
+
 const AiCenterAiToolsVsmartChatIndexRoute =
-  AiCenterAiToolsVsmartChatIndexRouteImport.update({
+  AiCenterAiToolsVsmartChatIndexImport.update({
     id: "/ai-center/ai-tools/vsmart-chat/",
     path: "/ai-center/ai-tools/vsmart-chat/",
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => rootRoute,
   } as any)
+
 const AiCenterAiToolsVsmartAudioIndexRoute =
-  AiCenterAiToolsVsmartAudioIndexRouteImport.update({
+  AiCenterAiToolsVsmartAudioIndexImport.update({
     id: "/ai-center/ai-tools/vsmart-audio/",
     path: "/ai-center/ai-tools/vsmart-audio/",
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => rootRoute,
   } as any)
+
 const StudyLibraryLiveSessionScheduleStep2IndexRoute =
-  StudyLibraryLiveSessionScheduleStep2IndexRouteImport.update({
+  StudyLibraryLiveSessionScheduleStep2IndexImport.update({
     id: "/study-library/live-session/schedule/step2/",
     path: "/study-library/live-session/schedule/step2/",
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => rootRoute,
   } as any)
+
 const StudyLibraryLiveSessionScheduleStep1IndexRoute =
-  StudyLibraryLiveSessionScheduleStep1IndexRouteImport.update({
+  StudyLibraryLiveSessionScheduleStep1IndexImport.update({
     id: "/study-library/live-session/schedule/step1/",
     path: "/study-library/live-session/schedule/step1/",
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => rootRoute,
   } as any)
+
 const StudyLibraryCoursesCourseDetailsSubjectsIndexRoute =
-  StudyLibraryCoursesCourseDetailsSubjectsIndexRouteImport.update({
+  StudyLibraryCoursesCourseDetailsSubjectsIndexImport.update({
     id: "/study-library/courses/course-details/subjects/",
     path: "/study-library/courses/course-details/subjects/",
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => rootRoute,
   } as any)
+
 const HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute =
-  HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRouteImport.update({
+  HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexImport.update({
     id: "/homework-creation/create-assessment/$assessmentId/$examtype/",
     path: "/homework-creation/create-assessment/$assessmentId/$examtype/",
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => rootRoute,
   } as any)
+
 const AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute =
-  AssessmentCreateAssessmentAssessmentIdExamtypeIndexRouteImport.update({
+  AssessmentCreateAssessmentAssessmentIdExamtypeIndexImport.update({
     id: "/assessment/create-assessment/$assessmentId/$examtype/",
     path: "/assessment/create-assessment/$assessmentId/$examtype/",
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => rootRoute,
   } as any)
+
 const StudyLibraryCoursesCourseDetailsSubjectsModulesIndexRoute =
-  StudyLibraryCoursesCourseDetailsSubjectsModulesIndexRouteImport.update({
+  StudyLibraryCoursesCourseDetailsSubjectsModulesIndexImport.update({
     id: "/study-library/courses/course-details/subjects/modules/",
     path: "/study-library/courses/course-details/subjects/modules/",
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => rootRoute,
   } as any)
+
 const EvaluationEvaluateAssessmentIdAttemptIdExamTypeIndexRoute =
-  EvaluationEvaluateAssessmentIdAttemptIdExamTypeIndexRouteImport.update({
+  EvaluationEvaluateAssessmentIdAttemptIdExamTypeIndexImport.update({
     id: "/evaluation/evaluate/$assessmentId/$attemptId/$examType/",
     path: "/evaluation/evaluate/$assessmentId/$attemptId/$examType/",
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => rootRoute,
   } as any)
+
 const StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersIndexRoute =
-  StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersIndexRouteImport.update(
-    {
-      id: "/study-library/courses/course-details/subjects/modules/chapters/",
-      path: "/study-library/courses/course-details/subjects/modules/chapters/",
-      getParentRoute: () => rootRouteImport,
-    } as any,
-  )
+  StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersIndexImport.update({
+    id: "/study-library/courses/course-details/subjects/modules/chapters/",
+    path: "/study-library/courses/course-details/subjects/modules/chapters/",
+    getParentRoute: () => rootRoute,
+  } as any)
+
 const EvaluationEvaluationsAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeIndexRoute =
-  EvaluationEvaluationsAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeIndexRouteImport.update(
+  EvaluationEvaluationsAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeIndexImport.update(
     {
       id: "/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType/",
       path: "/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType/",
-      getParentRoute: () => rootRouteImport,
+      getParentRoute: () => rootRoute,
     } as any,
   )
+
 const StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersSlidesIndexRoute =
-  StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersSlidesIndexRouteImport.update(
+  StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersSlidesIndexImport.update(
     {
       id: "/study-library/courses/course-details/subjects/modules/chapters/slides/",
       path: "/study-library/courses/course-details/subjects/modules/chapters/slides/",
-      getParentRoute: () => rootRouteImport,
+      getParentRoute: () => rootRoute,
     } as any,
   )
+
 const HomeworkCreationAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeAssessmentTabIndexRoute =
-  HomeworkCreationAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeAssessmentTabIndexRouteImport.update(
+  HomeworkCreationAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeAssessmentTabIndexImport.update(
     {
       id: "/homework-creation/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/",
       path: "/homework-creation/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/",
-      getParentRoute: () => rootRouteImport,
+      getParentRoute: () => rootRoute,
     } as any,
   )
+
 const AssessmentAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeAssessmentTabIndexRoute =
-  AssessmentAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeAssessmentTabIndexRouteImport.update(
+  AssessmentAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeAssessmentTabIndexImport.update(
     {
       id: "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/",
       path: "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/",
-      getParentRoute: () => rootRouteImport,
+      getParentRoute: () => rootRoute,
     } as any,
   )
+
+// Populate the FileRoutesByPath interface
+
+declare module "@tanstack/react-router" {
+  interface FileRoutesByPath {
+    "/landing": {
+      id: "/landing"
+      path: "/landing"
+      fullPath: "/landing"
+      preLoaderRoute: typeof LandingLazyImport
+      parentRoute: typeof rootRoute
+    }
+    "/pricing": {
+      id: "/pricing"
+      path: "/pricing"
+      fullPath: "/pricing"
+      preLoaderRoute: typeof PricingLazyImport
+      parentRoute: typeof rootRoute
+    }
+    "/ai-center/": {
+      id: "/ai-center/"
+      path: "/ai-center"
+      fullPath: "/ai-center"
+      preLoaderRoute: typeof AiCenterIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/assessment/": {
+      id: "/assessment/"
+      path: "/assessment"
+      fullPath: "/assessment"
+      preLoaderRoute: typeof AssessmentIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/community/": {
+      id: "/community/"
+      path: "/community"
+      fullPath: "/community"
+      preLoaderRoute: typeof CommunityIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/dashboard/": {
+      id: "/dashboard/"
+      path: "/dashboard"
+      fullPath: "/dashboard"
+      preLoaderRoute: typeof DashboardIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/evaluation/": {
+      id: "/evaluation/"
+      path: "/evaluation"
+      fullPath: "/evaluation"
+      preLoaderRoute: typeof EvaluationIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/evaluator-ai/": {
+      id: "/evaluator-ai/"
+      path: "/evaluator-ai"
+      fullPath: "/evaluator-ai"
+      preLoaderRoute: typeof EvaluatorAiIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/login/": {
+      id: "/login/"
+      path: "/login"
+      fullPath: "/login"
+      preLoaderRoute: typeof LoginIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/manage-institute/": {
+      id: "/manage-institute/"
+      path: "/manage-institute"
+      fullPath: "/manage-institute"
+      preLoaderRoute: typeof ManageInstituteIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/manage-students/": {
+      id: "/manage-students/"
+      path: "/manage-students"
+      fullPath: "/manage-students"
+      preLoaderRoute: typeof ManageStudentsIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/settings/": {
+      id: "/settings/"
+      path: "/settings"
+      fullPath: "/settings"
+      preLoaderRoute: typeof SettingsIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/signup/": {
+      id: "/signup/"
+      path: "/signup"
+      fullPath: "/signup"
+      preLoaderRoute: typeof SignupIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/study-library/": {
+      id: "/study-library/"
+      path: "/study-library"
+      fullPath: "/study-library"
+      preLoaderRoute: typeof StudyLibraryIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/login/oauth/redirect": {
+      id: "/login/oauth/redirect"
+      path: "/login/oauth/redirect"
+      fullPath: "/login/oauth/redirect"
+      preLoaderRoute: typeof LoginOauthRedirectImport
+      parentRoute: typeof rootRoute
+    }
+    "/signup/oauth/callback": {
+      id: "/signup/oauth/callback"
+      path: "/signup/oauth/callback"
+      fullPath: "/signup/oauth/callback"
+      preLoaderRoute: typeof SignupOauthCallbackImport
+      parentRoute: typeof rootRoute
+    }
+    "/ai-center/ai-tools/": {
+      id: "/ai-center/ai-tools/"
+      path: "/ai-center/ai-tools"
+      fullPath: "/ai-center/ai-tools"
+      preLoaderRoute: typeof AiCenterAiToolsIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/ai-center/my-resources/": {
+      id: "/ai-center/my-resources/"
+      path: "/ai-center/my-resources"
+      fullPath: "/ai-center/my-resources"
+      preLoaderRoute: typeof AiCenterMyResourcesIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/assessment/assessment-list/": {
+      id: "/assessment/assessment-list/"
+      path: "/assessment/assessment-list"
+      fullPath: "/assessment/assessment-list"
+      preLoaderRoute: typeof AssessmentAssessmentListIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/assessment/question-papers/": {
+      id: "/assessment/question-papers/"
+      path: "/assessment/question-papers"
+      fullPath: "/assessment/question-papers"
+      preLoaderRoute: typeof AssessmentQuestionPapersIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/certificate-generation/student-data/": {
+      id: "/certificate-generation/student-data/"
+      path: "/certificate-generation/student-data"
+      fullPath: "/certificate-generation/student-data"
+      preLoaderRoute: typeof CertificateGenerationStudentDataIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/community/question-paper/": {
+      id: "/community/question-paper/"
+      path: "/community/question-paper"
+      fullPath: "/community/question-paper"
+      preLoaderRoute: typeof CommunityQuestionPaperIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/evaluation/evaluation-tool/": {
+      id: "/evaluation/evaluation-tool/"
+      path: "/evaluation/evaluation-tool"
+      fullPath: "/evaluation/evaluation-tool"
+      preLoaderRoute: typeof EvaluationEvaluationToolIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/evaluation/evaluations/": {
+      id: "/evaluation/evaluations/"
+      path: "/evaluation/evaluations"
+      fullPath: "/evaluation/evaluations"
+      preLoaderRoute: typeof EvaluationEvaluationsIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/evaluator-ai/assessment/": {
+      id: "/evaluator-ai/assessment/"
+      path: "/evaluator-ai/assessment"
+      fullPath: "/evaluator-ai/assessment"
+      preLoaderRoute: typeof EvaluatorAiAssessmentIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/evaluator-ai/evaluation/": {
+      id: "/evaluator-ai/evaluation/"
+      path: "/evaluator-ai/evaluation"
+      fullPath: "/evaluator-ai/evaluation"
+      preLoaderRoute: typeof EvaluatorAiEvaluationIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/evaluator-ai/students/": {
+      id: "/evaluator-ai/students/"
+      path: "/evaluator-ai/students"
+      fullPath: "/evaluator-ai/students"
+      preLoaderRoute: typeof EvaluatorAiStudentsIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/homework-creation/assessment-list/": {
+      id: "/homework-creation/assessment-list/"
+      path: "/homework-creation/assessment-list"
+      fullPath: "/homework-creation/assessment-list"
+      preLoaderRoute: typeof HomeworkCreationAssessmentListIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/login/$key/": {
+      id: "/login/$key/"
+      path: "/login/$key"
+      fullPath: "/login/$key"
+      preLoaderRoute: typeof LoginKeyIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/login/forgot-password/": {
+      id: "/login/forgot-password/"
+      path: "/login/forgot-password"
+      fullPath: "/login/forgot-password"
+      preLoaderRoute: typeof LoginForgotPasswordIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/manage-institute/batches/": {
+      id: "/manage-institute/batches/"
+      path: "/manage-institute/batches"
+      fullPath: "/manage-institute/batches"
+      preLoaderRoute: typeof ManageInstituteBatchesIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/manage-institute/sessions/": {
+      id: "/manage-institute/sessions/"
+      path: "/manage-institute/sessions"
+      fullPath: "/manage-institute/sessions"
+      preLoaderRoute: typeof ManageInstituteSessionsIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/manage-institute/teams/": {
+      id: "/manage-institute/teams/"
+      path: "/manage-institute/teams"
+      fullPath: "/manage-institute/teams"
+      preLoaderRoute: typeof ManageInstituteTeamsIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/manage-students/enroll-requests/": {
+      id: "/manage-students/enroll-requests/"
+      path: "/manage-students/enroll-requests"
+      fullPath: "/manage-students/enroll-requests"
+      preLoaderRoute: typeof ManageStudentsEnrollRequestsIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/manage-students/invite/": {
+      id: "/manage-students/invite/"
+      path: "/manage-students/invite"
+      fullPath: "/manage-students/invite"
+      preLoaderRoute: typeof ManageStudentsInviteIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/manage-students/students-list/": {
+      id: "/manage-students/students-list/"
+      path: "/manage-students/students-list"
+      fullPath: "/manage-students/students-list"
+      preLoaderRoute: typeof ManageStudentsStudentsListIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/signup/onboarding/": {
+      id: "/signup/onboarding/"
+      path: "/signup/onboarding"
+      fullPath: "/signup/onboarding"
+      preLoaderRoute: typeof SignupOnboardingIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/study-library/courses/": {
+      id: "/study-library/courses/"
+      path: "/study-library/courses"
+      fullPath: "/study-library/courses"
+      preLoaderRoute: typeof StudyLibraryCoursesIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/study-library/doubt-management/": {
+      id: "/study-library/doubt-management/"
+      path: "/study-library/doubt-management"
+      fullPath: "/study-library/doubt-management"
+      preLoaderRoute: typeof StudyLibraryDoubtManagementIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/study-library/live-session/": {
+      id: "/study-library/live-session/"
+      path: "/study-library/live-session"
+      fullPath: "/study-library/live-session"
+      preLoaderRoute: typeof StudyLibraryLiveSessionIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/study-library/reports/": {
+      id: "/study-library/reports/"
+      path: "/study-library/reports"
+      fullPath: "/study-library/reports"
+      preLoaderRoute: typeof StudyLibraryReportsIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/study-library/volt/": {
+      id: "/study-library/volt/"
+      path: "/study-library/volt"
+      fullPath: "/study-library/volt"
+      preLoaderRoute: typeof StudyLibraryVoltIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/ai-center/ai-tools/vsmart-audio/": {
+      id: "/ai-center/ai-tools/vsmart-audio/"
+      path: "/ai-center/ai-tools/vsmart-audio"
+      fullPath: "/ai-center/ai-tools/vsmart-audio"
+      preLoaderRoute: typeof AiCenterAiToolsVsmartAudioIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/ai-center/ai-tools/vsmart-chat/": {
+      id: "/ai-center/ai-tools/vsmart-chat/"
+      path: "/ai-center/ai-tools/vsmart-chat"
+      fullPath: "/ai-center/ai-tools/vsmart-chat"
+      preLoaderRoute: typeof AiCenterAiToolsVsmartChatIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/ai-center/ai-tools/vsmart-extract/": {
+      id: "/ai-center/ai-tools/vsmart-extract/"
+      path: "/ai-center/ai-tools/vsmart-extract"
+      fullPath: "/ai-center/ai-tools/vsmart-extract"
+      preLoaderRoute: typeof AiCenterAiToolsVsmartExtractIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/ai-center/ai-tools/vsmart-feedback/": {
+      id: "/ai-center/ai-tools/vsmart-feedback/"
+      path: "/ai-center/ai-tools/vsmart-feedback"
+      fullPath: "/ai-center/ai-tools/vsmart-feedback"
+      preLoaderRoute: typeof AiCenterAiToolsVsmartFeedbackIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/ai-center/ai-tools/vsmart-image/": {
+      id: "/ai-center/ai-tools/vsmart-image/"
+      path: "/ai-center/ai-tools/vsmart-image"
+      fullPath: "/ai-center/ai-tools/vsmart-image"
+      preLoaderRoute: typeof AiCenterAiToolsVsmartImageIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/ai-center/ai-tools/vsmart-lecture/": {
+      id: "/ai-center/ai-tools/vsmart-lecture/"
+      path: "/ai-center/ai-tools/vsmart-lecture"
+      fullPath: "/ai-center/ai-tools/vsmart-lecture"
+      preLoaderRoute: typeof AiCenterAiToolsVsmartLectureIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/ai-center/ai-tools/vsmart-organizer/": {
+      id: "/ai-center/ai-tools/vsmart-organizer/"
+      path: "/ai-center/ai-tools/vsmart-organizer"
+      fullPath: "/ai-center/ai-tools/vsmart-organizer"
+      preLoaderRoute: typeof AiCenterAiToolsVsmartOrganizerIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/ai-center/ai-tools/vsmart-prompt/": {
+      id: "/ai-center/ai-tools/vsmart-prompt/"
+      path: "/ai-center/ai-tools/vsmart-prompt"
+      fullPath: "/ai-center/ai-tools/vsmart-prompt"
+      preLoaderRoute: typeof AiCenterAiToolsVsmartPromptIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/ai-center/ai-tools/vsmart-sorter/": {
+      id: "/ai-center/ai-tools/vsmart-sorter/"
+      path: "/ai-center/ai-tools/vsmart-sorter"
+      fullPath: "/ai-center/ai-tools/vsmart-sorter"
+      preLoaderRoute: typeof AiCenterAiToolsVsmartSorterIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/ai-center/ai-tools/vsmart-upload/": {
+      id: "/ai-center/ai-tools/vsmart-upload/"
+      path: "/ai-center/ai-tools/vsmart-upload"
+      fullPath: "/ai-center/ai-tools/vsmart-upload"
+      preLoaderRoute: typeof AiCenterAiToolsVsmartUploadIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/assessment/export/$assessmentId/": {
+      id: "/assessment/export/$assessmentId/"
+      path: "/assessment/export/$assessmentId"
+      fullPath: "/assessment/export/$assessmentId"
+      preLoaderRoute: typeof AssessmentExportAssessmentIdIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/evaluator-ai/assessment/create-assessment/": {
+      id: "/evaluator-ai/assessment/create-assessment/"
+      path: "/evaluator-ai/assessment/create-assessment"
+      fullPath: "/evaluator-ai/assessment/create-assessment"
+      preLoaderRoute: typeof EvaluatorAiAssessmentCreateAssessmentIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/evaluator-ai/evaluation/student-summary/": {
+      id: "/evaluator-ai/evaluation/student-summary/"
+      path: "/evaluator-ai/evaluation/student-summary"
+      fullPath: "/evaluator-ai/evaluation/student-summary"
+      preLoaderRoute: typeof EvaluatorAiEvaluationStudentSummaryIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/study-library/courses/course-details/": {
+      id: "/study-library/courses/course-details/"
+      path: "/study-library/courses/course-details"
+      fullPath: "/study-library/courses/course-details"
+      preLoaderRoute: typeof StudyLibraryCoursesCourseDetailsIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/study-library/live-session/schedule/": {
+      id: "/study-library/live-session/schedule/"
+      path: "/study-library/live-session/schedule"
+      fullPath: "/study-library/live-session/schedule"
+      preLoaderRoute: typeof StudyLibraryLiveSessionScheduleIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/study-library/volt/add/": {
+      id: "/study-library/volt/add/"
+      path: "/study-library/volt/add"
+      fullPath: "/study-library/volt/add"
+      preLoaderRoute: typeof StudyLibraryVoltAddIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/assessment/create-assessment/$assessmentId/$examtype/": {
+      id: "/assessment/create-assessment/$assessmentId/$examtype/"
+      path: "/assessment/create-assessment/$assessmentId/$examtype"
+      fullPath: "/assessment/create-assessment/$assessmentId/$examtype"
+      preLoaderRoute: typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/homework-creation/create-assessment/$assessmentId/$examtype/": {
+      id: "/homework-creation/create-assessment/$assessmentId/$examtype/"
+      path: "/homework-creation/create-assessment/$assessmentId/$examtype"
+      fullPath: "/homework-creation/create-assessment/$assessmentId/$examtype"
+      preLoaderRoute: typeof HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/study-library/courses/course-details/subjects/": {
+      id: "/study-library/courses/course-details/subjects/"
+      path: "/study-library/courses/course-details/subjects"
+      fullPath: "/study-library/courses/course-details/subjects"
+      preLoaderRoute: typeof StudyLibraryCoursesCourseDetailsSubjectsIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/study-library/live-session/schedule/step1/": {
+      id: "/study-library/live-session/schedule/step1/"
+      path: "/study-library/live-session/schedule/step1"
+      fullPath: "/study-library/live-session/schedule/step1"
+      preLoaderRoute: typeof StudyLibraryLiveSessionScheduleStep1IndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/study-library/live-session/schedule/step2/": {
+      id: "/study-library/live-session/schedule/step2/"
+      path: "/study-library/live-session/schedule/step2"
+      fullPath: "/study-library/live-session/schedule/step2"
+      preLoaderRoute: typeof StudyLibraryLiveSessionScheduleStep2IndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/evaluation/evaluate/$assessmentId/$attemptId/$examType/": {
+      id: "/evaluation/evaluate/$assessmentId/$attemptId/$examType/"
+      path: "/evaluation/evaluate/$assessmentId/$attemptId/$examType"
+      fullPath: "/evaluation/evaluate/$assessmentId/$attemptId/$examType"
+      preLoaderRoute: typeof EvaluationEvaluateAssessmentIdAttemptIdExamTypeIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/study-library/courses/course-details/subjects/modules/": {
+      id: "/study-library/courses/course-details/subjects/modules/"
+      path: "/study-library/courses/course-details/subjects/modules"
+      fullPath: "/study-library/courses/course-details/subjects/modules"
+      preLoaderRoute: typeof StudyLibraryCoursesCourseDetailsSubjectsModulesIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType/": {
+      id: "/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType/"
+      path: "/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType"
+      fullPath: "/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType"
+      preLoaderRoute: typeof EvaluationEvaluationsAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/study-library/courses/course-details/subjects/modules/chapters/": {
+      id: "/study-library/courses/course-details/subjects/modules/chapters/"
+      path: "/study-library/courses/course-details/subjects/modules/chapters"
+      fullPath: "/study-library/courses/course-details/subjects/modules/chapters"
+      preLoaderRoute: typeof StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/": {
+      id: "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/"
+      path: "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab"
+      fullPath: "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab"
+      preLoaderRoute: typeof AssessmentAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeAssessmentTabIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/homework-creation/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/": {
+      id: "/homework-creation/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/"
+      path: "/homework-creation/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab"
+      fullPath: "/homework-creation/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab"
+      preLoaderRoute: typeof HomeworkCreationAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeAssessmentTabIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/study-library/courses/course-details/subjects/modules/chapters/slides/": {
+      id: "/study-library/courses/course-details/subjects/modules/chapters/slides/"
+      path: "/study-library/courses/course-details/subjects/modules/chapters/slides"
+      fullPath: "/study-library/courses/course-details/subjects/modules/chapters/slides"
+      preLoaderRoute: typeof StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersSlidesIndexImport
+      parentRoute: typeof rootRoute
+    }
+  }
+}
+
+// Create and export the route tree
 
 export interface FileRoutesByFullPath {
   "/landing": typeof LandingLazyRoute
@@ -566,6 +1133,7 @@ export interface FileRoutesByFullPath {
   "/homework-creation/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab": typeof HomeworkCreationAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeAssessmentTabIndexRoute
   "/study-library/courses/course-details/subjects/modules/chapters/slides": typeof StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersSlidesIndexRoute
 }
+
 export interface FileRoutesByTo {
   "/landing": typeof LandingLazyRoute
   "/pricing": typeof PricingLazyRoute
@@ -638,8 +1206,9 @@ export interface FileRoutesByTo {
   "/homework-creation/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab": typeof HomeworkCreationAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeAssessmentTabIndexRoute
   "/study-library/courses/course-details/subjects/modules/chapters/slides": typeof StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersSlidesIndexRoute
 }
+
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport
+  __root__: typeof rootRoute
   "/landing": typeof LandingLazyRoute
   "/pricing": typeof PricingLazyRoute
   "/ai-center/": typeof AiCenterIndexRoute
@@ -711,6 +1280,7 @@ export interface FileRoutesById {
   "/homework-creation/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/": typeof HomeworkCreationAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeAssessmentTabIndexRoute
   "/study-library/courses/course-details/subjects/modules/chapters/slides/": typeof StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersSlidesIndexRoute
 }
+
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
@@ -930,6 +1500,7 @@ export interface FileRouteTypes {
     | "/study-library/courses/course-details/subjects/modules/chapters/slides/"
   fileRoutesById: FileRoutesById
 }
+
 export interface RootRouteChildren {
   LandingLazyRoute: typeof LandingLazyRoute
   PricingLazyRoute: typeof PricingLazyRoute
@@ -1001,501 +1572,6 @@ export interface RootRouteChildren {
   AssessmentAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeAssessmentTabIndexRoute: typeof AssessmentAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeAssessmentTabIndexRoute
   HomeworkCreationAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeAssessmentTabIndexRoute: typeof HomeworkCreationAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeAssessmentTabIndexRoute
   StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersSlidesIndexRoute: typeof StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersSlidesIndexRoute
-}
-
-declare module "@tanstack/react-router" {
-  interface FileRoutesByPath {
-    "/pricing": {
-      id: "/pricing"
-      path: "/pricing"
-      fullPath: "/pricing"
-      preLoaderRoute: typeof PricingLazyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/landing": {
-      id: "/landing"
-      path: "/landing"
-      fullPath: "/landing"
-      preLoaderRoute: typeof LandingLazyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/study-library/": {
-      id: "/study-library/"
-      path: "/study-library"
-      fullPath: "/study-library"
-      preLoaderRoute: typeof StudyLibraryIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/signup/": {
-      id: "/signup/"
-      path: "/signup"
-      fullPath: "/signup"
-      preLoaderRoute: typeof SignupIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/settings/": {
-      id: "/settings/"
-      path: "/settings"
-      fullPath: "/settings"
-      preLoaderRoute: typeof SettingsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/manage-students/": {
-      id: "/manage-students/"
-      path: "/manage-students"
-      fullPath: "/manage-students"
-      preLoaderRoute: typeof ManageStudentsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/manage-institute/": {
-      id: "/manage-institute/"
-      path: "/manage-institute"
-      fullPath: "/manage-institute"
-      preLoaderRoute: typeof ManageInstituteIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/login/": {
-      id: "/login/"
-      path: "/login"
-      fullPath: "/login"
-      preLoaderRoute: typeof LoginIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/evaluator-ai/": {
-      id: "/evaluator-ai/"
-      path: "/evaluator-ai"
-      fullPath: "/evaluator-ai"
-      preLoaderRoute: typeof EvaluatorAiIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/evaluation/": {
-      id: "/evaluation/"
-      path: "/evaluation"
-      fullPath: "/evaluation"
-      preLoaderRoute: typeof EvaluationIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/dashboard/": {
-      id: "/dashboard/"
-      path: "/dashboard"
-      fullPath: "/dashboard"
-      preLoaderRoute: typeof DashboardIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/community/": {
-      id: "/community/"
-      path: "/community"
-      fullPath: "/community"
-      preLoaderRoute: typeof CommunityIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/assessment/": {
-      id: "/assessment/"
-      path: "/assessment"
-      fullPath: "/assessment"
-      preLoaderRoute: typeof AssessmentIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/ai-center/": {
-      id: "/ai-center/"
-      path: "/ai-center"
-      fullPath: "/ai-center"
-      preLoaderRoute: typeof AiCenterIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/study-library/volt/": {
-      id: "/study-library/volt/"
-      path: "/study-library/volt"
-      fullPath: "/study-library/volt"
-      preLoaderRoute: typeof StudyLibraryVoltIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/study-library/reports/": {
-      id: "/study-library/reports/"
-      path: "/study-library/reports"
-      fullPath: "/study-library/reports"
-      preLoaderRoute: typeof StudyLibraryReportsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/study-library/live-session/": {
-      id: "/study-library/live-session/"
-      path: "/study-library/live-session"
-      fullPath: "/study-library/live-session"
-      preLoaderRoute: typeof StudyLibraryLiveSessionIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/study-library/doubt-management/": {
-      id: "/study-library/doubt-management/"
-      path: "/study-library/doubt-management"
-      fullPath: "/study-library/doubt-management"
-      preLoaderRoute: typeof StudyLibraryDoubtManagementIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/study-library/courses/": {
-      id: "/study-library/courses/"
-      path: "/study-library/courses"
-      fullPath: "/study-library/courses"
-      preLoaderRoute: typeof StudyLibraryCoursesIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/signup/onboarding/": {
-      id: "/signup/onboarding/"
-      path: "/signup/onboarding"
-      fullPath: "/signup/onboarding"
-      preLoaderRoute: typeof SignupOnboardingIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/manage-students/students-list/": {
-      id: "/manage-students/students-list/"
-      path: "/manage-students/students-list"
-      fullPath: "/manage-students/students-list"
-      preLoaderRoute: typeof ManageStudentsStudentsListIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/manage-students/invite/": {
-      id: "/manage-students/invite/"
-      path: "/manage-students/invite"
-      fullPath: "/manage-students/invite"
-      preLoaderRoute: typeof ManageStudentsInviteIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/manage-students/enroll-requests/": {
-      id: "/manage-students/enroll-requests/"
-      path: "/manage-students/enroll-requests"
-      fullPath: "/manage-students/enroll-requests"
-      preLoaderRoute: typeof ManageStudentsEnrollRequestsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/manage-institute/teams/": {
-      id: "/manage-institute/teams/"
-      path: "/manage-institute/teams"
-      fullPath: "/manage-institute/teams"
-      preLoaderRoute: typeof ManageInstituteTeamsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/manage-institute/sessions/": {
-      id: "/manage-institute/sessions/"
-      path: "/manage-institute/sessions"
-      fullPath: "/manage-institute/sessions"
-      preLoaderRoute: typeof ManageInstituteSessionsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/manage-institute/batches/": {
-      id: "/manage-institute/batches/"
-      path: "/manage-institute/batches"
-      fullPath: "/manage-institute/batches"
-      preLoaderRoute: typeof ManageInstituteBatchesIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/login/forgot-password/": {
-      id: "/login/forgot-password/"
-      path: "/login/forgot-password"
-      fullPath: "/login/forgot-password"
-      preLoaderRoute: typeof LoginForgotPasswordIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/login/$key/": {
-      id: "/login/$key/"
-      path: "/login/$key"
-      fullPath: "/login/$key"
-      preLoaderRoute: typeof LoginKeyIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/homework-creation/assessment-list/": {
-      id: "/homework-creation/assessment-list/"
-      path: "/homework-creation/assessment-list"
-      fullPath: "/homework-creation/assessment-list"
-      preLoaderRoute: typeof HomeworkCreationAssessmentListIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/evaluator-ai/students/": {
-      id: "/evaluator-ai/students/"
-      path: "/evaluator-ai/students"
-      fullPath: "/evaluator-ai/students"
-      preLoaderRoute: typeof EvaluatorAiStudentsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/evaluator-ai/evaluation/": {
-      id: "/evaluator-ai/evaluation/"
-      path: "/evaluator-ai/evaluation"
-      fullPath: "/evaluator-ai/evaluation"
-      preLoaderRoute: typeof EvaluatorAiEvaluationIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/evaluator-ai/assessment/": {
-      id: "/evaluator-ai/assessment/"
-      path: "/evaluator-ai/assessment"
-      fullPath: "/evaluator-ai/assessment"
-      preLoaderRoute: typeof EvaluatorAiAssessmentIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/evaluation/evaluations/": {
-      id: "/evaluation/evaluations/"
-      path: "/evaluation/evaluations"
-      fullPath: "/evaluation/evaluations"
-      preLoaderRoute: typeof EvaluationEvaluationsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/evaluation/evaluation-tool/": {
-      id: "/evaluation/evaluation-tool/"
-      path: "/evaluation/evaluation-tool"
-      fullPath: "/evaluation/evaluation-tool"
-      preLoaderRoute: typeof EvaluationEvaluationToolIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/community/question-paper/": {
-      id: "/community/question-paper/"
-      path: "/community/question-paper"
-      fullPath: "/community/question-paper"
-      preLoaderRoute: typeof CommunityQuestionPaperIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/certificate-generation/student-data/": {
-      id: "/certificate-generation/student-data/"
-      path: "/certificate-generation/student-data"
-      fullPath: "/certificate-generation/student-data"
-      preLoaderRoute: typeof CertificateGenerationStudentDataIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/assessment/question-papers/": {
-      id: "/assessment/question-papers/"
-      path: "/assessment/question-papers"
-      fullPath: "/assessment/question-papers"
-      preLoaderRoute: typeof AssessmentQuestionPapersIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/assessment/assessment-list/": {
-      id: "/assessment/assessment-list/"
-      path: "/assessment/assessment-list"
-      fullPath: "/assessment/assessment-list"
-      preLoaderRoute: typeof AssessmentAssessmentListIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/ai-center/my-resources/": {
-      id: "/ai-center/my-resources/"
-      path: "/ai-center/my-resources"
-      fullPath: "/ai-center/my-resources"
-      preLoaderRoute: typeof AiCenterMyResourcesIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/ai-center/ai-tools/": {
-      id: "/ai-center/ai-tools/"
-      path: "/ai-center/ai-tools"
-      fullPath: "/ai-center/ai-tools"
-      preLoaderRoute: typeof AiCenterAiToolsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/signup/oauth/callback": {
-      id: "/signup/oauth/callback"
-      path: "/signup/oauth/callback"
-      fullPath: "/signup/oauth/callback"
-      preLoaderRoute: typeof SignupOauthCallbackRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/login/oauth/redirect": {
-      id: "/login/oauth/redirect"
-      path: "/login/oauth/redirect"
-      fullPath: "/login/oauth/redirect"
-      preLoaderRoute: typeof LoginOauthRedirectRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/study-library/volt/add/": {
-      id: "/study-library/volt/add/"
-      path: "/study-library/volt/add"
-      fullPath: "/study-library/volt/add"
-      preLoaderRoute: typeof StudyLibraryVoltAddIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/study-library/live-session/schedule/": {
-      id: "/study-library/live-session/schedule/"
-      path: "/study-library/live-session/schedule"
-      fullPath: "/study-library/live-session/schedule"
-      preLoaderRoute: typeof StudyLibraryLiveSessionScheduleIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/study-library/courses/course-details/": {
-      id: "/study-library/courses/course-details/"
-      path: "/study-library/courses/course-details"
-      fullPath: "/study-library/courses/course-details"
-      preLoaderRoute: typeof StudyLibraryCoursesCourseDetailsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/evaluator-ai/evaluation/student-summary/": {
-      id: "/evaluator-ai/evaluation/student-summary/"
-      path: "/evaluator-ai/evaluation/student-summary"
-      fullPath: "/evaluator-ai/evaluation/student-summary"
-      preLoaderRoute: typeof EvaluatorAiEvaluationStudentSummaryIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/evaluator-ai/assessment/create-assessment/": {
-      id: "/evaluator-ai/assessment/create-assessment/"
-      path: "/evaluator-ai/assessment/create-assessment"
-      fullPath: "/evaluator-ai/assessment/create-assessment"
-      preLoaderRoute: typeof EvaluatorAiAssessmentCreateAssessmentIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/assessment/export/$assessmentId/": {
-      id: "/assessment/export/$assessmentId/"
-      path: "/assessment/export/$assessmentId"
-      fullPath: "/assessment/export/$assessmentId"
-      preLoaderRoute: typeof AssessmentExportAssessmentIdIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/ai-center/ai-tools/vsmart-upload/": {
-      id: "/ai-center/ai-tools/vsmart-upload/"
-      path: "/ai-center/ai-tools/vsmart-upload"
-      fullPath: "/ai-center/ai-tools/vsmart-upload"
-      preLoaderRoute: typeof AiCenterAiToolsVsmartUploadIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/ai-center/ai-tools/vsmart-sorter/": {
-      id: "/ai-center/ai-tools/vsmart-sorter/"
-      path: "/ai-center/ai-tools/vsmart-sorter"
-      fullPath: "/ai-center/ai-tools/vsmart-sorter"
-      preLoaderRoute: typeof AiCenterAiToolsVsmartSorterIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/ai-center/ai-tools/vsmart-prompt/": {
-      id: "/ai-center/ai-tools/vsmart-prompt/"
-      path: "/ai-center/ai-tools/vsmart-prompt"
-      fullPath: "/ai-center/ai-tools/vsmart-prompt"
-      preLoaderRoute: typeof AiCenterAiToolsVsmartPromptIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/ai-center/ai-tools/vsmart-organizer/": {
-      id: "/ai-center/ai-tools/vsmart-organizer/"
-      path: "/ai-center/ai-tools/vsmart-organizer"
-      fullPath: "/ai-center/ai-tools/vsmart-organizer"
-      preLoaderRoute: typeof AiCenterAiToolsVsmartOrganizerIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/ai-center/ai-tools/vsmart-lecture/": {
-      id: "/ai-center/ai-tools/vsmart-lecture/"
-      path: "/ai-center/ai-tools/vsmart-lecture"
-      fullPath: "/ai-center/ai-tools/vsmart-lecture"
-      preLoaderRoute: typeof AiCenterAiToolsVsmartLectureIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/ai-center/ai-tools/vsmart-image/": {
-      id: "/ai-center/ai-tools/vsmart-image/"
-      path: "/ai-center/ai-tools/vsmart-image"
-      fullPath: "/ai-center/ai-tools/vsmart-image"
-      preLoaderRoute: typeof AiCenterAiToolsVsmartImageIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/ai-center/ai-tools/vsmart-feedback/": {
-      id: "/ai-center/ai-tools/vsmart-feedback/"
-      path: "/ai-center/ai-tools/vsmart-feedback"
-      fullPath: "/ai-center/ai-tools/vsmart-feedback"
-      preLoaderRoute: typeof AiCenterAiToolsVsmartFeedbackIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/ai-center/ai-tools/vsmart-extract/": {
-      id: "/ai-center/ai-tools/vsmart-extract/"
-      path: "/ai-center/ai-tools/vsmart-extract"
-      fullPath: "/ai-center/ai-tools/vsmart-extract"
-      preLoaderRoute: typeof AiCenterAiToolsVsmartExtractIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/ai-center/ai-tools/vsmart-chat/": {
-      id: "/ai-center/ai-tools/vsmart-chat/"
-      path: "/ai-center/ai-tools/vsmart-chat"
-      fullPath: "/ai-center/ai-tools/vsmart-chat"
-      preLoaderRoute: typeof AiCenterAiToolsVsmartChatIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/ai-center/ai-tools/vsmart-audio/": {
-      id: "/ai-center/ai-tools/vsmart-audio/"
-      path: "/ai-center/ai-tools/vsmart-audio"
-      fullPath: "/ai-center/ai-tools/vsmart-audio"
-      preLoaderRoute: typeof AiCenterAiToolsVsmartAudioIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/study-library/live-session/schedule/step2/": {
-      id: "/study-library/live-session/schedule/step2/"
-      path: "/study-library/live-session/schedule/step2"
-      fullPath: "/study-library/live-session/schedule/step2"
-      preLoaderRoute: typeof StudyLibraryLiveSessionScheduleStep2IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/study-library/live-session/schedule/step1/": {
-      id: "/study-library/live-session/schedule/step1/"
-      path: "/study-library/live-session/schedule/step1"
-      fullPath: "/study-library/live-session/schedule/step1"
-      preLoaderRoute: typeof StudyLibraryLiveSessionScheduleStep1IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/study-library/courses/course-details/subjects/": {
-      id: "/study-library/courses/course-details/subjects/"
-      path: "/study-library/courses/course-details/subjects"
-      fullPath: "/study-library/courses/course-details/subjects"
-      preLoaderRoute: typeof StudyLibraryCoursesCourseDetailsSubjectsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/homework-creation/create-assessment/$assessmentId/$examtype/": {
-      id: "/homework-creation/create-assessment/$assessmentId/$examtype/"
-      path: "/homework-creation/create-assessment/$assessmentId/$examtype"
-      fullPath: "/homework-creation/create-assessment/$assessmentId/$examtype"
-      preLoaderRoute: typeof HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/assessment/create-assessment/$assessmentId/$examtype/": {
-      id: "/assessment/create-assessment/$assessmentId/$examtype/"
-      path: "/assessment/create-assessment/$assessmentId/$examtype"
-      fullPath: "/assessment/create-assessment/$assessmentId/$examtype"
-      preLoaderRoute: typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/study-library/courses/course-details/subjects/modules/": {
-      id: "/study-library/courses/course-details/subjects/modules/"
-      path: "/study-library/courses/course-details/subjects/modules"
-      fullPath: "/study-library/courses/course-details/subjects/modules"
-      preLoaderRoute: typeof StudyLibraryCoursesCourseDetailsSubjectsModulesIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/evaluation/evaluate/$assessmentId/$attemptId/$examType/": {
-      id: "/evaluation/evaluate/$assessmentId/$attemptId/$examType/"
-      path: "/evaluation/evaluate/$assessmentId/$attemptId/$examType"
-      fullPath: "/evaluation/evaluate/$assessmentId/$attemptId/$examType"
-      preLoaderRoute: typeof EvaluationEvaluateAssessmentIdAttemptIdExamTypeIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/study-library/courses/course-details/subjects/modules/chapters/": {
-      id: "/study-library/courses/course-details/subjects/modules/chapters/"
-      path: "/study-library/courses/course-details/subjects/modules/chapters"
-      fullPath: "/study-library/courses/course-details/subjects/modules/chapters"
-      preLoaderRoute: typeof StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType/": {
-      id: "/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType/"
-      path: "/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType"
-      fullPath: "/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType"
-      preLoaderRoute: typeof EvaluationEvaluationsAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/study-library/courses/course-details/subjects/modules/chapters/slides/": {
-      id: "/study-library/courses/course-details/subjects/modules/chapters/slides/"
-      path: "/study-library/courses/course-details/subjects/modules/chapters/slides"
-      fullPath: "/study-library/courses/course-details/subjects/modules/chapters/slides"
-      preLoaderRoute: typeof StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersSlidesIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/homework-creation/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/": {
-      id: "/homework-creation/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/"
-      path: "/homework-creation/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab"
-      fullPath: "/homework-creation/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab"
-      preLoaderRoute: typeof HomeworkCreationAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeAssessmentTabIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/": {
-      id: "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/"
-      path: "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab"
-      fullPath: "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab"
-      preLoaderRoute: typeof AssessmentAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeAssessmentTabIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-  }
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -1594,6 +1670,299 @@ const rootRouteChildren: RootRouteChildren = {
   StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersSlidesIndexRoute:
     StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersSlidesIndexRoute,
 }
-export const routeTree = rootRouteImport
+
+export const routeTree = rootRoute
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+/* ROUTE_MANIFEST_START
+{
+  "routes": {
+    "__root__": {
+      "filePath": "__root.tsx",
+      "children": [
+        "/landing",
+        "/pricing",
+        "/ai-center/",
+        "/assessment/",
+        "/community/",
+        "/dashboard/",
+        "/evaluation/",
+        "/evaluator-ai/",
+        "/login/",
+        "/manage-institute/",
+        "/manage-students/",
+        "/settings/",
+        "/signup/",
+        "/study-library/",
+        "/login/oauth/redirect",
+        "/signup/oauth/callback",
+        "/ai-center/ai-tools/",
+        "/ai-center/my-resources/",
+        "/assessment/assessment-list/",
+        "/assessment/question-papers/",
+        "/certificate-generation/student-data/",
+        "/community/question-paper/",
+        "/evaluation/evaluation-tool/",
+        "/evaluation/evaluations/",
+        "/evaluator-ai/assessment/",
+        "/evaluator-ai/evaluation/",
+        "/evaluator-ai/students/",
+        "/homework-creation/assessment-list/",
+        "/login/$key/",
+        "/login/forgot-password/",
+        "/manage-institute/batches/",
+        "/manage-institute/sessions/",
+        "/manage-institute/teams/",
+        "/manage-students/enroll-requests/",
+        "/manage-students/invite/",
+        "/manage-students/students-list/",
+        "/signup/onboarding/",
+        "/study-library/courses/",
+        "/study-library/doubt-management/",
+        "/study-library/live-session/",
+        "/study-library/reports/",
+        "/study-library/volt/",
+        "/ai-center/ai-tools/vsmart-audio/",
+        "/ai-center/ai-tools/vsmart-chat/",
+        "/ai-center/ai-tools/vsmart-extract/",
+        "/ai-center/ai-tools/vsmart-feedback/",
+        "/ai-center/ai-tools/vsmart-image/",
+        "/ai-center/ai-tools/vsmart-lecture/",
+        "/ai-center/ai-tools/vsmart-organizer/",
+        "/ai-center/ai-tools/vsmart-prompt/",
+        "/ai-center/ai-tools/vsmart-sorter/",
+        "/ai-center/ai-tools/vsmart-upload/",
+        "/assessment/export/$assessmentId/",
+        "/evaluator-ai/assessment/create-assessment/",
+        "/evaluator-ai/evaluation/student-summary/",
+        "/study-library/courses/course-details/",
+        "/study-library/live-session/schedule/",
+        "/study-library/volt/add/",
+        "/assessment/create-assessment/$assessmentId/$examtype/",
+        "/homework-creation/create-assessment/$assessmentId/$examtype/",
+        "/study-library/courses/course-details/subjects/",
+        "/study-library/live-session/schedule/step1/",
+        "/study-library/live-session/schedule/step2/",
+        "/evaluation/evaluate/$assessmentId/$attemptId/$examType/",
+        "/study-library/courses/course-details/subjects/modules/",
+        "/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType/",
+        "/study-library/courses/course-details/subjects/modules/chapters/",
+        "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/",
+        "/homework-creation/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/",
+        "/study-library/courses/course-details/subjects/modules/chapters/slides/"
+      ]
+    },
+    "/landing": {
+      "filePath": "landing.lazy.tsx"
+    },
+    "/pricing": {
+      "filePath": "pricing.lazy.tsx"
+    },
+    "/ai-center/": {
+      "filePath": "ai-center/index.tsx"
+    },
+    "/assessment/": {
+      "filePath": "assessment/index.tsx"
+    },
+    "/community/": {
+      "filePath": "community/index.tsx"
+    },
+    "/dashboard/": {
+      "filePath": "dashboard/index.tsx"
+    },
+    "/evaluation/": {
+      "filePath": "evaluation/index.tsx"
+    },
+    "/evaluator-ai/": {
+      "filePath": "evaluator-ai/index.tsx"
+    },
+    "/login/": {
+      "filePath": "login/index.tsx"
+    },
+    "/manage-institute/": {
+      "filePath": "manage-institute/index.tsx"
+    },
+    "/manage-students/": {
+      "filePath": "manage-students/index.tsx"
+    },
+    "/settings/": {
+      "filePath": "settings/index.tsx"
+    },
+    "/signup/": {
+      "filePath": "signup/index.tsx"
+    },
+    "/study-library/": {
+      "filePath": "study-library/index.tsx"
+    },
+    "/login/oauth/redirect": {
+      "filePath": "login/oauth/redirect.tsx"
+    },
+    "/signup/oauth/callback": {
+      "filePath": "signup/oauth/callback.tsx"
+    },
+    "/ai-center/ai-tools/": {
+      "filePath": "ai-center/ai-tools/index.tsx"
+    },
+    "/ai-center/my-resources/": {
+      "filePath": "ai-center/my-resources/index.tsx"
+    },
+    "/assessment/assessment-list/": {
+      "filePath": "assessment/assessment-list/index.tsx"
+    },
+    "/assessment/question-papers/": {
+      "filePath": "assessment/question-papers/index.tsx"
+    },
+    "/certificate-generation/student-data/": {
+      "filePath": "certificate-generation/student-data/index.tsx"
+    },
+    "/community/question-paper/": {
+      "filePath": "community/question-paper/index.tsx"
+    },
+    "/evaluation/evaluation-tool/": {
+      "filePath": "evaluation/evaluation-tool/index.tsx"
+    },
+    "/evaluation/evaluations/": {
+      "filePath": "evaluation/evaluations/index.tsx"
+    },
+    "/evaluator-ai/assessment/": {
+      "filePath": "evaluator-ai/assessment/index.tsx"
+    },
+    "/evaluator-ai/evaluation/": {
+      "filePath": "evaluator-ai/evaluation/index.tsx"
+    },
+    "/evaluator-ai/students/": {
+      "filePath": "evaluator-ai/students/index.tsx"
+    },
+    "/homework-creation/assessment-list/": {
+      "filePath": "homework-creation/assessment-list/index.tsx"
+    },
+    "/login/$key/": {
+      "filePath": "login/$key/index.tsx"
+    },
+    "/login/forgot-password/": {
+      "filePath": "login/forgot-password/index.tsx"
+    },
+    "/manage-institute/batches/": {
+      "filePath": "manage-institute/batches/index.tsx"
+    },
+    "/manage-institute/sessions/": {
+      "filePath": "manage-institute/sessions/index.tsx"
+    },
+    "/manage-institute/teams/": {
+      "filePath": "manage-institute/teams/index.tsx"
+    },
+    "/manage-students/enroll-requests/": {
+      "filePath": "manage-students/enroll-requests/index.tsx"
+    },
+    "/manage-students/invite/": {
+      "filePath": "manage-students/invite/index.tsx"
+    },
+    "/manage-students/students-list/": {
+      "filePath": "manage-students/students-list/index.tsx"
+    },
+    "/signup/onboarding/": {
+      "filePath": "signup/onboarding/index.tsx"
+    },
+    "/study-library/courses/": {
+      "filePath": "study-library/courses/index.tsx"
+    },
+    "/study-library/doubt-management/": {
+      "filePath": "study-library/doubt-management/index.tsx"
+    },
+    "/study-library/live-session/": {
+      "filePath": "study-library/live-session/index.tsx"
+    },
+    "/study-library/reports/": {
+      "filePath": "study-library/reports/index.tsx"
+    },
+    "/study-library/volt/": {
+      "filePath": "study-library/volt/index.tsx"
+    },
+    "/ai-center/ai-tools/vsmart-audio/": {
+      "filePath": "ai-center/ai-tools/vsmart-audio/index.tsx"
+    },
+    "/ai-center/ai-tools/vsmart-chat/": {
+      "filePath": "ai-center/ai-tools/vsmart-chat/index.tsx"
+    },
+    "/ai-center/ai-tools/vsmart-extract/": {
+      "filePath": "ai-center/ai-tools/vsmart-extract/index.tsx"
+    },
+    "/ai-center/ai-tools/vsmart-feedback/": {
+      "filePath": "ai-center/ai-tools/vsmart-feedback/index.tsx"
+    },
+    "/ai-center/ai-tools/vsmart-image/": {
+      "filePath": "ai-center/ai-tools/vsmart-image/index.tsx"
+    },
+    "/ai-center/ai-tools/vsmart-lecture/": {
+      "filePath": "ai-center/ai-tools/vsmart-lecture/index.tsx"
+    },
+    "/ai-center/ai-tools/vsmart-organizer/": {
+      "filePath": "ai-center/ai-tools/vsmart-organizer/index.tsx"
+    },
+    "/ai-center/ai-tools/vsmart-prompt/": {
+      "filePath": "ai-center/ai-tools/vsmart-prompt/index.tsx"
+    },
+    "/ai-center/ai-tools/vsmart-sorter/": {
+      "filePath": "ai-center/ai-tools/vsmart-sorter/index.tsx"
+    },
+    "/ai-center/ai-tools/vsmart-upload/": {
+      "filePath": "ai-center/ai-tools/vsmart-upload/index.tsx"
+    },
+    "/assessment/export/$assessmentId/": {
+      "filePath": "assessment/export/$assessmentId/index.tsx"
+    },
+    "/evaluator-ai/assessment/create-assessment/": {
+      "filePath": "evaluator-ai/assessment/create-assessment/index.tsx"
+    },
+    "/evaluator-ai/evaluation/student-summary/": {
+      "filePath": "evaluator-ai/evaluation/student-summary/index.tsx"
+    },
+    "/study-library/courses/course-details/": {
+      "filePath": "study-library/courses/course-details/index.tsx"
+    },
+    "/study-library/live-session/schedule/": {
+      "filePath": "study-library/live-session/schedule/index.tsx"
+    },
+    "/study-library/volt/add/": {
+      "filePath": "study-library/volt/add/index.tsx"
+    },
+    "/assessment/create-assessment/$assessmentId/$examtype/": {
+      "filePath": "assessment/create-assessment/$assessmentId/$examtype/index.tsx"
+    },
+    "/homework-creation/create-assessment/$assessmentId/$examtype/": {
+      "filePath": "homework-creation/create-assessment/$assessmentId/$examtype/index.tsx"
+    },
+    "/study-library/courses/course-details/subjects/": {
+      "filePath": "study-library/courses/course-details/subjects/index.tsx"
+    },
+    "/study-library/live-session/schedule/step1/": {
+      "filePath": "study-library/live-session/schedule/step1/index.tsx"
+    },
+    "/study-library/live-session/schedule/step2/": {
+      "filePath": "study-library/live-session/schedule/step2/index.tsx"
+    },
+    "/evaluation/evaluate/$assessmentId/$attemptId/$examType/": {
+      "filePath": "evaluation/evaluate/$assessmentId/$attemptId/$examType/index.tsx"
+    },
+    "/study-library/courses/course-details/subjects/modules/": {
+      "filePath": "study-library/courses/course-details/subjects/modules/index.tsx"
+    },
+    "/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType/": {
+      "filePath": "evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType/index.tsx"
+    },
+    "/study-library/courses/course-details/subjects/modules/chapters/": {
+      "filePath": "study-library/courses/course-details/subjects/modules/chapters/index.tsx"
+    },
+    "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/": {
+      "filePath": "assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/index.tsx"
+    },
+    "/homework-creation/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/": {
+      "filePath": "homework-creation/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/index.tsx"
+    },
+    "/study-library/courses/course-details/subjects/modules/chapters/slides/": {
+      "filePath": "study-library/courses/course-details/subjects/modules/chapters/slides/index.tsx"
+    }
+  }
+}
+ROUTE_MANIFEST_END */
