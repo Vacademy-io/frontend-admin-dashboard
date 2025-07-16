@@ -357,7 +357,7 @@ export function CourseDetailsRatingsComponent({
                             key={review.id}
                             className="flex flex-col bg-white p-5 md:items-start md:gap-4"
                         >
-                            {/* Avatar and Admin Actions */}
+                            {/* Avatar and User Info */}
                             <div className="flex w-full items-center justify-between">
                                 <div className="flex shrink-0 items-center justify-center gap-2">
                                     <Avatar>
@@ -386,57 +386,6 @@ export function CourseDetailsRatingsComponent({
                                         </span>
                                     </div>
                                 </div>
-                                {/* Admin Actions - Right Aligned */}
-                                {hasRoleAdmin && review.status === 'PENDING' && (
-                                    <div className="flex items-center gap-2">
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="flex items-center gap-1 text-neutral-400 hover:text-green-600"
-                                            onClick={() => {
-                                                handleUpdateRatingMutation.mutate({
-                                                    id: review.id,
-                                                    rating: review.rating,
-                                                    source_id:
-                                                        getPackageSessionId({
-                                                            courseId: courseId || '',
-                                                            levelId: currentLevel,
-                                                            sessionId: currentSession,
-                                                        }) || '',
-                                                    status: 'APPROVED',
-                                                    likes: review.likes,
-                                                    dislikes: review.dislikes,
-                                                });
-                                            }}
-                                        >
-                                            <Check size={18} />
-                                            <span className="text-xs">Approve</span>
-                                        </Button>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="flex items-center gap-1 text-neutral-400 hover:text-red-600"
-                                            onClick={() => {
-                                                handleUpdateRatingMutation.mutate({
-                                                    id: review.id,
-                                                    rating: review.rating,
-                                                    source_id:
-                                                        getPackageSessionId({
-                                                            courseId: courseId || '',
-                                                            levelId: currentLevel,
-                                                            sessionId: currentSession,
-                                                        }) || '',
-                                                    status: 'DELETED',
-                                                    likes: review.likes,
-                                                    dislikes: review.dislikes,
-                                                });
-                                            }}
-                                        >
-                                            <X size={18} />
-                                            <span className="text-xs">Decline</span>
-                                        </Button>
-                                    </div>
-                                )}
                             </div>
                             <div className="flex flex-col">
                                 <div className="mt-1 flex items-center gap-2">
@@ -447,76 +396,129 @@ export function CourseDetailsRatingsComponent({
                                 </div>
                                 <div className="mt-2 text-neutral-700">{review.description}</div>
                                 <div className="mt-3 flex items-center justify-start gap-4">
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="flex items-center gap-1 text-neutral-500 hover:text-blue-600"
-                                        onClick={() => {
-                                            handleUpdateRatingMutation.mutate({
-                                                id: review.id,
-                                                rating: review.rating,
-                                                source_id:
-                                                    getPackageSessionId({
-                                                        courseId: courseId || '',
-                                                        levelId: currentLevel,
-                                                        sessionId: currentSession,
-                                                    }) || '',
-                                                status: 'ACTIVE',
-                                                likes: review.likes + 1,
-                                                dislikes: review.dislikes,
-                                            });
-                                        }}
-                                    >
-                                        <ThumbsUp size={18} />
-                                        <span className="text-xs">{review.likes}</span>
-                                    </Button>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="flex items-center gap-1 text-neutral-500 hover:text-red-500"
-                                        onClick={() => {
-                                            handleUpdateRatingMutation.mutate({
-                                                id: review.id,
-                                                rating: review.rating,
-                                                source_id:
-                                                    getPackageSessionId({
-                                                        courseId: courseId || '',
-                                                        levelId: currentLevel,
-                                                        sessionId: currentSession,
-                                                    }) || '',
-                                                status: 'ACTIVE',
-                                                likes: review.likes,
-                                                dislikes: review.dislikes + 1,
-                                            });
-                                        }}
-                                    >
-                                        <ThumbsDown size={18} />
-                                        <span className="text-xs">{review.dislikes}</span>
-                                    </Button>
-                                    {hasRoleAdmin && (
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="flex items-center gap-1 text-neutral-500 hover:text-red-600"
-                                            onClick={() => {
-                                                handleUpdateRatingMutation.mutate({
-                                                    id: review.id,
-                                                    rating: review.rating,
-                                                    source_id:
-                                                        getPackageSessionId({
-                                                            courseId: courseId || '',
-                                                            levelId: currentLevel,
-                                                            sessionId: currentSession,
-                                                        }) || '',
-                                                    status: 'DELETED',
-                                                    likes: review.likes,
-                                                    dislikes: review.dislikes,
-                                                });
-                                            }}
-                                        >
-                                            <Trash size={18} />
-                                            <span className="text-xs">Delete</span>
-                                        </Button>
+                                    {review.status === 'PENDING' && hasRoleAdmin ? (
+                                        <>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="flex items-center gap-1 text-neutral-400 hover:text-green-600"
+                                                onClick={() => {
+                                                    handleUpdateRatingMutation.mutate({
+                                                        id: review.id,
+                                                        rating: review.rating,
+                                                        source_id:
+                                                            getPackageSessionId({
+                                                                courseId: courseId || '',
+                                                                levelId: currentLevel,
+                                                                sessionId: currentSession,
+                                                            }) || '',
+                                                        status: 'APPROVED',
+                                                        likes: review.likes,
+                                                        dislikes: review.dislikes,
+                                                    });
+                                                }}
+                                            >
+                                                <Check size={18} />
+                                                <span className="text-xs">Approve</span>
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="flex items-center gap-1 text-neutral-400 hover:text-red-600"
+                                                onClick={() => {
+                                                    handleUpdateRatingMutation.mutate({
+                                                        id: review.id,
+                                                        rating: review.rating,
+                                                        source_id:
+                                                            getPackageSessionId({
+                                                                courseId: courseId || '',
+                                                                levelId: currentLevel,
+                                                                sessionId: currentSession,
+                                                            }) || '',
+                                                        status: 'DELETED',
+                                                        likes: review.likes,
+                                                        dislikes: review.dislikes,
+                                                    });
+                                                }}
+                                            >
+                                                <X size={18} />
+                                                <span className="text-xs">Decline</span>
+                                            </Button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="flex items-center gap-1 text-neutral-500 hover:text-blue-600"
+                                                onClick={() => {
+                                                    handleUpdateRatingMutation.mutate({
+                                                        id: review.id,
+                                                        rating: review.rating,
+                                                        source_id:
+                                                            getPackageSessionId({
+                                                                courseId: courseId || '',
+                                                                levelId: currentLevel,
+                                                                sessionId: currentSession,
+                                                            }) || '',
+                                                        status: 'ACTIVE',
+                                                        likes: review.likes + 1,
+                                                        dislikes: review.dislikes,
+                                                    });
+                                                }}
+                                            >
+                                                <ThumbsUp size={18} />
+                                                <span className="text-xs">{review.likes}</span>
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="flex items-center gap-1 text-neutral-500 hover:text-red-500"
+                                                onClick={() => {
+                                                    handleUpdateRatingMutation.mutate({
+                                                        id: review.id,
+                                                        rating: review.rating,
+                                                        source_id:
+                                                            getPackageSessionId({
+                                                                courseId: courseId || '',
+                                                                levelId: currentLevel,
+                                                                sessionId: currentSession,
+                                                            }) || '',
+                                                        status: 'ACTIVE',
+                                                        likes: review.likes,
+                                                        dislikes: review.dislikes + 1,
+                                                    });
+                                                }}
+                                            >
+                                                <ThumbsDown size={18} />
+                                                <span className="text-xs">{review.dislikes}</span>
+                                            </Button>
+                                            {hasRoleAdmin && (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="flex items-center gap-1 text-neutral-500 hover:text-red-600"
+                                                    onClick={() => {
+                                                        handleUpdateRatingMutation.mutate({
+                                                            id: review.id,
+                                                            rating: review.rating,
+                                                            source_id:
+                                                                getPackageSessionId({
+                                                                    courseId: courseId || '',
+                                                                    levelId: currentLevel,
+                                                                    sessionId: currentSession,
+                                                                }) || '',
+                                                            status: 'DELETED',
+                                                            likes: review.likes,
+                                                            dislikes: review.dislikes,
+                                                        });
+                                                    }}
+                                                >
+                                                    <Trash size={18} />
+                                                    <span className="text-xs">Delete</span>
+                                                </Button>
+                                            )}
+                                        </>
                                     )}
                                 </div>
                             </div>
