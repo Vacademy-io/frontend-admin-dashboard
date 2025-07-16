@@ -97,9 +97,12 @@ export default function ScheduleStep1() {
             timeZone: '(GMT 5:30) India Standard Time (Asia/Kolkata)',
             events: '1',
 <<<<<<< HEAD
+<<<<<<< HEAD
             openWaitingRoomBefore: '15',
             sessionType: '',
 =======
+=======
+>>>>>>> origin
             sessionType: SessionType.LIVE,
 >>>>>>> main
             streamingType: sessionDetails?.schedule?.session_streaming_service_type
@@ -415,10 +418,13 @@ export default function ScheduleStep1() {
             const response = await createLiveSessionStep1(body);
             useLiveSessionStore.getState().setSessionId(response.id);
 <<<<<<< HEAD
+<<<<<<< HEAD
             console.log(response.id);
             setSessionId(response.id);
 =======
 >>>>>>> main
+=======
+>>>>>>> origin
             navigate({ to: '/study-library/live-session/schedule/step2' });
         } catch (error) {
             console.error(error);
