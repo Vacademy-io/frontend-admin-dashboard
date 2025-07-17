@@ -171,10 +171,16 @@ export function EmailLogin({ onSwitchToUsername }: { onSwitchToUsername: () => v
             setAuthorizationCookie(TokenKey.accessToken, response.data.accessToken);
             setAuthorizationCookie(TokenKey.refreshToken, response.data.refreshToken);
 
-            // Invalidate queries and get user roles
-            queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
+            // Clear all queries to ensure fresh data fetch
+            queryClient.clear();
+
+            // Get user roles
             const userRoles = getUserRoles(response.data.accessToken);
-            handlePostLoginRedirect(userRoles);
+
+            // Add a small delay to ensure tokens are properly set before navigation
+            setTimeout(() => {
+                handlePostLoginRedirect(userRoles);
+            }, 100);
         },
         onError: (error: AxiosError) => {
             console.error('[OTP Verification] Error:', error);
