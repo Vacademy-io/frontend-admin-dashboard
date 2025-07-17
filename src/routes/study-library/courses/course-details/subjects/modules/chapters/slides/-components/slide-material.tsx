@@ -52,6 +52,7 @@ import { getTokenFromCookie, getTokenDecodedData } from '@/lib/auth/sessionUtili
 import { UploadFileInS3 } from '@/services/upload_file';
 import { TokenKey } from '@/constants/auth/tokens';
 import QuizPreview from './QuizPreview';
+import { createQuizSlidePayload } from './quiz/utils/api-helpers';
 
 // Inside your component
 // this toggles the DoubtResolutionSidebar
@@ -92,7 +93,7 @@ export const SlideMaterial = ({
     const [isUnpublishDialogOpen, setIsUnpublishDialogOpen] = useState(false);
     const { getPackageSessionId } = useInstituteDetailsStore();
     const { setOpen: setSidebarOpen } = useSidebar();
-    const { addUpdateDocumentSlide } = useSlidesMutations(
+    const { addUpdateDocumentSlide, addUpdateQuizSlide } = useSlidesMutations(
         chapterId || '',
         moduleId || '',
         subjectId || '',
@@ -1155,6 +1156,26 @@ export const SlideMaterial = ({
                 return;
             }
 
+            if (activeItem?.source_type === 'QUIZ') {
+                try {
+                    // Use the createQuizSlidePayload function to properly transform the data
+                    const payload = createQuizSlidePayload(
+                        activeItem.quiz_slide?.questions || [],
+                        {
+                            ...activeItem,
+                            status: status // Use the determined status
+                        }
+                    );
+
+                    await addUpdateQuizSlide(payload);
+                    toast.success(`Quiz saved in draft successfully!`);
+                } catch (error) {
+                    console.error('Error saving quiz slide:', error);
+                    toast.error('Error saving quiz slide');
+                }
+                return;
+            }
+
             if (
                 activeItem?.source_type == 'DOCUMENT' &&
                 activeItem?.document_slide?.type == 'PRESENTATION'
@@ -1570,6 +1591,7 @@ export const SlideMaterial = ({
                                 activeItem?.document_slide?.type === 'SCRATCH' ||
                                 activeItem?.source_type === 'QUESTION' ||
                                 activeItem?.source_type === 'ASSIGNMENT' ||
+                                activeItem?.source_type === 'QUIZ' ||
                                 (activeItem?.source_type === 'VIDEO' &&
                                     activeItem?.splitScreenMode)) && (
                                 <MyButton
@@ -1626,6 +1648,7 @@ export const SlideMaterial = ({
                                             addUpdateVideoSlide,
                                             updateQuestionOrder,
                                             updateAssignmentOrder,
+                                            addUpdateQuizSlide,
                                             SaveDraft,
                                             playerRef
                                         )
@@ -1650,6 +1673,7 @@ export const SlideMaterial = ({
                                                 addUpdateVideoSlide,
                                                 updateQuestionOrder,
                                                 updateAssignmentOrder,
+                                                addUpdateQuizSlide,
                                                 SaveDraft,
                                                 playerRef
                                             );

@@ -246,6 +246,7 @@ export interface QuizSlideQuestion {
     status: string;
     question_response_type: string;
     question_type: string;
+    questionType?: string; // Fix: Add questionType field for backend compatibility
     access_level: string;
     auto_evaluation_json: string;
     evaluation_type: string;

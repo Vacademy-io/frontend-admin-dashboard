@@ -57,7 +57,7 @@ const createAutoEvaluationJson = (question: any): string => {
         if (question.subjectiveAnswerText && question.subjectiveAnswerText.trim() !== '') {
             const autoEvaluationJson = JSON.stringify({
                 data: {
-                    answer: question.questionType === 'LONG_ANSWER' 
+                    answer: question.questionType === 'LONG_ANSWER'
                         ? { content: question.subjectiveAnswerText }
                         : question.subjectiveAnswerText
                 }
@@ -95,7 +95,7 @@ const calculateQuestionTimeInMillis = (question: any): number => {
 // Helper function to create question structure
 const createQuestionStructure = (question: any, index: number, options: any[], questionResponseType: string, evaluationType: string): QuizSlideQuestion => {
     const explanationContent = question.explanation || '';
-    
+
     console.log('[API Helpers] Creating question structure:', {
         questionId: question.id,
         questionName: question.questionName,
@@ -124,6 +124,7 @@ const createQuestionStructure = (question: any, index: number, options: any[], q
         status: question.status || 'ACTIVE',
         question_response_type: questionResponseType,
         question_type: question.questionType,
+        questionType: question.questionType, // Fix: Add questionType field for backend compatibility
         access_level: 'INSTITUTE',
         auto_evaluation_json: createAutoEvaluationJson(question),
         evaluation_type: evaluationType,
@@ -153,7 +154,7 @@ export const transformFormQuestionsToBackend = (
     return questions.map((question, index) => {
         const { questionResponseType, evaluationType } = getQuestionResponseConfig(question.questionType);
         const options = transformOptionsByType(question);
-        
+
         return createQuestionStructure(question, index, options, questionResponseType, evaluationType);
     });
 };
@@ -164,7 +165,7 @@ export const createQuizSlidePayload = (
     activeItem: Slide
 ): QuizSlidePayload => {
     const transformedQuestions = transformFormQuestionsToBackend(questions);
-    
+
     console.log('[API Helpers] Creating quiz slide payload:', {
         activeItemId: activeItem.id,
         activeItemTitle: activeItem.title,
@@ -222,4 +223,4 @@ export const createQuizSlidePayload = (
     });
 
     return payload;
-}; 
+};

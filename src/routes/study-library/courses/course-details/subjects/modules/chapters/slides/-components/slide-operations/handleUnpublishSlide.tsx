@@ -1,6 +1,6 @@
 import { Dispatch, SetStateAction, RefObject } from 'react';
 import { toast } from 'sonner';
-import { DocumentSlidePayload, Slide, VideoSlidePayload } from '../../-hooks/use-slides';
+import { DocumentSlidePayload, Slide, VideoSlidePayload, QuizSlidePayload } from '../../-hooks/use-slides';
 import { UseMutateAsyncFunction } from '@tanstack/react-query';
 import { SlideQuestionsDataInterface } from '@/types/study-library/study-library-slides-type';
 import {
@@ -9,6 +9,7 @@ import {
     convertToQuestionBackendSlideFormat,
 } from '../../-helper/helper';
 import { YTPlayer } from '../youtube-player';
+import { createQuizSlidePayload } from '../quiz/utils/api-helpers';
 
 type SlideResponse = {
     id: string;
@@ -41,6 +42,7 @@ export const handleUnpublishSlide = async (
         SlideQuestionsDataInterface,
         unknown
     >,
+    addUpdateQuizSlide: UseMutateAsyncFunction<SlideResponse, Error, QuizSlidePayload, unknown>,
     SaveDraft: (activeItem: Slide) => Promise<void>,
     playerRef?: RefObject<YTPlayer> // Optional: in case needed for recalculating duration
 ) => {
@@ -171,6 +173,27 @@ export const handleUnpublishSlide = async (
             setIsOpen(false);
         } catch {
             toast.error(`Error in unpublishing the slide`);
+        }
+    }
+
+    if (activeItem?.source_type === 'QUIZ') {
+        try {
+            // Use the createQuizSlidePayload function to properly transform the data
+            const payload = createQuizSlidePayload(
+                activeItem.quiz_slide?.questions || [],
+                {
+                    ...activeItem,
+                    status: 'DRAFT' // Override status to DRAFT
+                }
+            );
+
+            // Call the API to unpublish the quiz slide
+            await addUpdateQuizSlide(payload);
+            toast.success('Quiz unpublished successfully!');
+            setIsOpen(false);
+        } catch (error) {
+            console.error('Error unpublishing quiz slide:', error);
+            toast.error('Failed to unpublish quiz');
         }
     }
 };
