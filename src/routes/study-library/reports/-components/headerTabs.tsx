@@ -21,6 +21,8 @@ import { TokenKey } from '@/constants/auth/tokens';
 import { useMutation } from '@tanstack/react-query';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { toast } from 'sonner';
+import { RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 
 const reportTypes = [
     ReportDurationEnum.DAILY,
@@ -174,7 +176,7 @@ export default function HeaderTabs() {
                                     : 'border-none bg-transparent'
                             }`}
                         >
-                            Student
+                            {getTerminology(RoleTerms.Learner, SystemTerms.Learner)}
                         </TabsTrigger>
                     </TabsList>
                     <MyButton

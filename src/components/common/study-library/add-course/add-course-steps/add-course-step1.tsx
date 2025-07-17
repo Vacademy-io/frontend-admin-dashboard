@@ -23,6 +23,9 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 // Step 1 Schema
@@ -45,6 +48,13 @@ export const step1Schema = z.object({
     tags: z.array(z.string()).default([]),
 });
 export type Step1Data = z.infer<typeof step1Schema>;
+
+// Utility to extract YouTube video ID
+const extractYouTubeVideoId = (url: string): string | null => {
+    const regExp = /^.*(?:youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return match && match[1] && match[1].length === 11 ? match[1] : null;
+};
 
 export const AddCourseStep1 = ({
     onNext,
@@ -74,6 +84,38 @@ export const AddCourseStep1 = ({
     const allTags = instituteDetails?.tags || [];
     const [newTag, setNewTag] = useState<string>('');
     const [filteredTags, setFilteredTags] = useState<string[]>([]);
+
+    // Remove dialog state
+    const [youtubeUrl, setYoutubeUrl] = useState('');
+    const [youtubeError, setYoutubeError] = useState('');
+    const [showYoutubeInput, setShowYoutubeInput] = useState(false);
+    const youtubeInputRef = useRef<HTMLDivElement>(null);
+    const [showMediaMenu, setShowMediaMenu] = useState(false);
+    const mediaMenuRef = useRef<HTMLDivElement>(null);
+
+    // Hide menu when clicking outside
+    useEffect(() => {
+        if (!showMediaMenu) return;
+        function handleClick(e: MouseEvent) {
+            if (mediaMenuRef.current && !mediaMenuRef.current.contains(e.target as Node)) {
+                setShowMediaMenu(false);
+            }
+        }
+        document.addEventListener('mousedown', handleClick);
+        return () => document.removeEventListener('mousedown', handleClick);
+    }, [showMediaMenu]);
+
+    // Hide YouTube input when clicking outside
+    useEffect(() => {
+        if (!showYoutubeInput) return;
+        function handleClick(e: MouseEvent) {
+            if (youtubeInputRef.current && !youtubeInputRef.current.contains(e.target as Node)) {
+                setShowYoutubeInput(false);
+            }
+        }
+        document.addEventListener('mousedown', handleClick);
+        return () => document.removeEventListener('mousedown', handleClick);
+    }, [showYoutubeInput]);
 
     const form = useForm<Step1Data>({
         resolver: zodResolver(step1Schema),
@@ -221,7 +263,10 @@ export const AddCourseStep1 = ({
                 {/* Scrollable Content */}
                 <div className="flex-1 overflow-y-auto">
                     <div className="p-8">
-                        <h1 className="mb-8">Step 1: Course Overview</h1>
+                        <h1 className="mb-8">
+                            Step 1: {getTerminology(ContentTerms.Course, SystemTerms.Course)}{' '}
+                            Overview
+                        </h1>
                         <div className="grid grid-cols-2 gap-8">
                             {/* Left Column - Form Fields */}
                             <div className="space-y-6">
@@ -234,7 +279,10 @@ export const AddCourseStep1 = ({
                                                 <MyInput
                                                     id="course-name"
                                                     required={true}
-                                                    label="Course"
+                                                    label={getTerminology(
+                                                        ContentTerms.Course,
+                                                        SystemTerms.Course
+                                                    )}
                                                     inputType="text"
                                                     inputPlaceholder="Enter course name"
                                                     className="w-full"
@@ -259,23 +307,33 @@ export const AddCourseStep1 = ({
                                                 <FormControl>
                                                     <MainViewQuillEditor
                                                         onChange={(value: string) => {
-                                                            const wordCount = value
+                                                            const plainText = value
                                                                 .replace(/<[^>]*>/g, '')
-                                                                .trim()
-                                                                .split(/\s+/).length;
-                                                            if (wordCount <= 30) {
+                                                                .trim();
+                                                            const words = plainText.split(/\s+/);
+                                                            if (words.length <= 30) {
                                                                 field.onChange(value);
+                                                            } else {
+                                                                // Truncate to first 30 words and update editor content
+                                                                const truncatedText = words
+                                                                    .slice(0, 30)
+                                                                    .join(' ');
+                                                                field.onChange(truncatedText);
                                                             }
                                                         }}
                                                         value={field.value}
                                                         onBlur={field.onBlur}
                                                         CustomclasssName="h-[120px]"
-                                                        placeholder="Enter course description (max 30 words)"
+                                                        placeholder={`Enter ${getTerminology(
+                                                            ContentTerms.Course,
+                                                            SystemTerms.Course
+                                                        )} description`}
                                                     />
                                                 </FormControl>
                                             </FormItem>
                                         )}
                                     />
+
                                     <span className="relative top-12 text-xs text-red-500">
                                         *Max 30 words allowed
                                     </span>
@@ -283,7 +341,10 @@ export const AddCourseStep1 = ({
 
                                 {/* Tags Section */}
                                 <div className="space-y-2 pt-10">
-                                    <Label className="font-medium text-gray-900">Course Tags</Label>
+                                    <Label className="text-normal font-medium text-gray-900">
+                                        {getTerminology(ContentTerms.Course, SystemTerms.Course)}{' '}
+                                        Tags
+                                    </Label>
                                     <p className="text-sm text-gray-600">
                                         Add tags to help categorize and find your course easily
                                     </p>
@@ -373,7 +434,13 @@ export const AddCourseStep1 = ({
                                         name="aboutCourse"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>About the course</FormLabel>
+                                                <FormLabel>
+                                                    About the{' '}
+                                                    {getTerminology(
+                                                        ContentTerms.Course,
+                                                        SystemTerms.Course
+                                                    )}
+                                                </FormLabel>
                                                 <FormControl>
                                                     <MainViewQuillEditor
                                                         onChange={field.onChange}
@@ -413,7 +480,10 @@ export const AddCourseStep1 = ({
                             <div className="space-y-6">
                                 {/* Course Preview */}
                                 <div className="flex flex-col gap-1">
-                                    <FormLabel>Course Preview Image</FormLabel>
+                                    <FormLabel>
+                                        {getTerminology(ContentTerms.Course, SystemTerms.Course)}{' '}
+                                        Preview Image
+                                    </FormLabel>
                                     <p className="text-sm text-gray-500">
                                         This is the thumbnail that appears on the course card.
                                         Recommended size: 2:1 ratio
@@ -467,7 +537,10 @@ export const AddCourseStep1 = ({
 
                                 {/* Course Banner */}
                                 <div className="flex flex-col gap-1">
-                                    <FormLabel>Course Banner Image</FormLabel>
+                                    <FormLabel>
+                                        {getTerminology(ContentTerms.Course, SystemTerms.Course)}{' '}
+                                        Banner Image
+                                    </FormLabel>
                                     <p className="text-sm text-gray-500">
                                         A wide background image displayed on top of the course
                                         detail page. Recommended size: 2.64:1 ratio
@@ -521,18 +594,23 @@ export const AddCourseStep1 = ({
 
                                 {/* Course Media */}
                                 <div className="flex flex-col gap-1">
-                                    <FormLabel>Course Media (Image or Video)</FormLabel>
+                                    <FormLabel>
+                                        {getTerminology(ContentTerms.Course, SystemTerms.Course)}{' '}
+                                        Media (Image or Video)
+                                    </FormLabel>
                                     <p className="text-sm text-gray-500">
                                         A featured media block within the course page; this can
                                         visually represent the content or offer a teaser. For
                                         videos, recommended format: MP4
                                     </p>
-                                    <div className="relative">
+                                    <div className="flex flex-col gap-2">
+                                        {/* Preview logic remains unchanged */}
                                         {uploadingStates.courseMedia ? (
                                             <div className="flex h-[200px] items-center justify-center rounded-lg bg-gray-100">
                                                 <DashboardLoader />
                                             </div>
-                                        ) : form.watch('courseMedia')?.id ? (
+                                        ) : form.watch('courseMedia')?.id &&
+                                          form.watch('courseMedia')?.type !== 'youtube' ? (
                                             form.watch('courseMedia')?.type === 'video' ? (
                                                 <div className="h-[200px] w-full rounded-lg bg-gray-100">
                                                     <video
@@ -555,6 +633,20 @@ export const AddCourseStep1 = ({
                                                     />
                                                 </div>
                                             )
+                                        ) : form.watch('courseMedia')?.type === 'youtube' &&
+                                          form.watch('courseMedia')?.id ? (
+                                            <div className="mt-2 flex h-[200px] w-full items-center justify-center rounded-lg bg-gray-100">
+                                                <iframe
+                                                    width="100%"
+                                                    height="100%"
+                                                    src={`https://www.youtube.com/embed/${extractYouTubeVideoId(form.watch('courseMedia')?.id || '')}`}
+                                                    title="YouTube video player"
+                                                    frameBorder="0"
+                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                    allowFullScreen
+                                                    className="size-full rounded-lg object-contain"
+                                                />
+                                            </div>
                                         ) : (
                                             <div className="flex h-[200px] items-center justify-center rounded-lg bg-gray-100">
                                                 <p className="text-white">
@@ -562,34 +654,121 @@ export const AddCourseStep1 = ({
                                                 </p>
                                             </div>
                                         )}
-                                        <FileUploadComponent
-                                            fileInputRef={courseMediaRef}
-                                            onFileSubmit={(file) =>
-                                                handleFileUpload(file, 'courseMedia')
-                                            }
-                                            control={form.control}
-                                            name="courseMedia"
-                                            acceptedFileTypes={[
-                                                'image/jpeg',
-                                                'image/png',
-                                                'image/svg+xml',
-                                                'video/mp4',
-                                                'video/quicktime',
-                                                'video/x-msvideo',
-                                                'video/webm',
-                                            ]}
-                                        />
-                                        <MyButton
-                                            type="button"
-                                            onClick={() => courseMediaRef.current?.click()}
-                                            disabled={uploadingStates.courseMedia}
-                                            buttonType="secondary"
-                                            layoutVariant="icon"
-                                            scale="small"
-                                            className="absolute bottom-2 right-2 bg-white hover:bg-white"
-                                        >
-                                            <PencilSimpleLine />
-                                        </MyButton>
+                                        {/* Pen icon and dropdown logic */}
+                                        <div className="-mt-10 mr-2 flex flex-col items-end justify-end">
+                                            <MyButton
+                                                type="button"
+                                                disabled={uploadingStates.courseMedia}
+                                                buttonType="secondary"
+                                                layoutVariant="icon"
+                                                scale="small"
+                                                className="bg-white hover:bg-white active:bg-white"
+                                                onClick={() => {
+                                                    setShowMediaMenu((prev) => !prev);
+                                                    setShowYoutubeInput(false);
+                                                }}
+                                            >
+                                                <PencilSimpleLine />
+                                            </MyButton>
+                                            {showMediaMenu && (
+                                                <div
+                                                    ref={mediaMenuRef}
+                                                    className=" flex w-48 flex-col gap-2 rounded bg-white p-2 shadow"
+                                                >
+                                                    <button
+                                                        className="w-full rounded px-3 py-2 text-left text-sm hover:bg-gray-100"
+                                                        onClick={() => {
+                                                            setShowMediaMenu(false);
+                                                            courseMediaRef.current?.click();
+                                                        }}
+                                                    >
+                                                        Upload Image/Video
+                                                    </button>
+                                                    <button
+                                                        className="w-full rounded px-3 py-2 text-left text-sm hover:bg-gray-100"
+                                                        onClick={() => {
+                                                            setShowMediaMenu(false);
+                                                            setShowYoutubeInput(true);
+                                                        }}
+                                                    >
+                                                        YouTube Link
+                                                    </button>
+                                                </div>
+                                            )}
+                                            {showYoutubeInput && (
+                                                <div
+                                                    ref={youtubeInputRef}
+                                                    className=" w-64 rounded bg-white p-4 shadow"
+                                                >
+                                                    <label className="mb-1 block text-sm font-medium text-gray-700">
+                                                        Paste YouTube Link
+                                                    </label>
+                                                    <Input
+                                                        type="text"
+                                                        placeholder="https://youtube.com/watch?v=..."
+                                                        value={youtubeUrl || ''}
+                                                        onChange={(e) => {
+                                                            setYoutubeUrl(e.target.value);
+                                                            setYoutubeError('');
+                                                        }}
+                                                        className="mb-2"
+                                                    />
+                                                    {youtubeError && (
+                                                        <div className="mb-2 text-xs text-red-500">
+                                                            {youtubeError}
+                                                        </div>
+                                                    )}
+                                                    <MyButton
+                                                        buttonType="primary"
+                                                        scale="medium"
+                                                        layoutVariant="default"
+                                                        className="w-full"
+                                                        onClick={() => {
+                                                            const id =
+                                                                extractYouTubeVideoId(youtubeUrl);
+                                                            if (!id) {
+                                                                setYoutubeError(
+                                                                    'Invalid YouTube link'
+                                                                );
+                                                                return;
+                                                            }
+                                                            form.setValue('courseMedia', {
+                                                                type: 'youtube',
+                                                                id: youtubeUrl,
+                                                            });
+                                                            form.setValue(
+                                                                'courseMediaBlob',
+                                                                youtubeUrl
+                                                            );
+                                                            setShowYoutubeInput(false);
+                                                        }}
+                                                        disable={!youtubeUrl}
+                                                    >
+                                                        Save YouTube Link
+                                                    </MyButton>
+                                                </div>
+                                            )}
+                                        </div>
+                                        {/* Always render the FileUploadComponent, but hide it visually */}
+                                        <div style={{ display: 'none' }}>
+                                            <FileUploadComponent
+                                                fileInputRef={courseMediaRef}
+                                                onFileSubmit={(file) =>
+                                                    handleFileUpload(file, 'courseMedia')
+                                                }
+                                                control={form.control}
+                                                name="courseMedia"
+                                                acceptedFileTypes={[
+                                                    'image/jpeg',
+                                                    'image/png',
+                                                    'image/svg+xml',
+                                                    'video/mp4',
+                                                    'video/quicktime',
+                                                    'video/x-msvideo',
+                                                    'video/webm',
+                                                ]}
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             </div>

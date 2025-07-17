@@ -13,6 +13,8 @@ import { MyButton } from '@/components/design-system/button';
 import { TrashSimple } from 'phosphor-react';
 import { useNavigate } from '@tanstack/react-router';
 import { MyPagination } from '@/components/design-system/pagination';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { Eye, EyeSlash } from '@phosphor-icons/react';
 
 interface CourseListPageProps {
@@ -91,7 +93,9 @@ const CourseListPage = ({
                             </div>
                         )}
                     </div>
-                    <div className="mb-1 text-sm font-semibold">Levels</div>
+                    <div className="mb-1 text-sm font-semibold">
+                        {getTerminology(ContentTerms.Level, SystemTerms.Level)}s
+                    </div>
                     <div className="flex flex-col gap-2">
                         {levels.map((level: { id: string; name: string }) => (
                             <label
@@ -137,7 +141,9 @@ const CourseListPage = ({
                     {/* Users Section */}
                     {Array.isArray(accessControlUsers) && accessControlUsers.length > 0 && (
                         <>
-                            <div className="mb-1 mt-4 text-sm font-semibold">Instructors</div>
+                            <div className="mb-1 mt-4 text-sm font-semibold">
+                                {getTerminology(RoleTerms.Teacher, SystemTerms.Teacher)}s
+                            </div>
                             <div className="flex flex-col gap-2">
                                 {(accessControlUsers as UserRolesDataEntry[]).map(
                                     (user: UserRolesDataEntry) => (
@@ -376,7 +382,11 @@ const CourseListPage = ({
                                                         })
                                                     }
                                                 >
-                                                    View Course
+                                                    View{' '}
+                                                    {getTerminology(
+                                                        ContentTerms.Course,
+                                                        SystemTerms.Course
+                                                    )}
                                                 </MyButton>
                                                 <button
                                                     onClick={() => handleCourseDelete(course.id)}

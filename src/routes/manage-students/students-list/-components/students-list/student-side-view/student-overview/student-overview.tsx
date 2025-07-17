@@ -28,6 +28,8 @@ import { useGetStudentDetails } from '@/services/get-student-details';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { StudentTable } from '@/types/student-table-types';
 import { HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 
 export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean }) => {
     const { selectedStudent } = useStudentSidebar();
@@ -94,6 +96,10 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
             gender: studentDetails?.gender || '',
             father_name: '',
             mother_name: '',
+            father_mobile_number: '',
+            father_email: '',
+            mother_mobile_number: '',
+            mother_email: '',
             parents_mobile_number: '',
             parents_email: '',
             linked_institute_name: '',
@@ -164,7 +170,7 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
                     </div>
                     <div className="flex-1">
                         <h4 className="mb-0.5 text-xs font-medium text-neutral-700">
-                            Session Expiry
+                            {getTerminology(ContentTerms.Session, SystemTerms.Session)} Expiry
                         </h4>
                         <div className="flex items-center gap-1.5">
                             <span

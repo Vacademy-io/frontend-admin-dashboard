@@ -12,6 +12,10 @@ import { routeTree } from './routeTree.gen';
 import './i18n';
 import { Toaster } from './components/ui/sonner';
 import { ThemeProvider } from './providers/theme/theme-provider';
+import { initializeAmplitude } from './lib/amplitude';
+
+// Initialize Amplitude Analytics
+initializeAmplitude();
 
 const queryClient = new QueryClient();
 
