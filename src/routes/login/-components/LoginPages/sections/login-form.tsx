@@ -66,9 +66,14 @@ export function LoginForm() {
                 login_method: 'sso',
                 timestamp: new Date().toISOString()
             });
-            
-            queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
-            navigate({ to: '/dashboard' });
+
+            // Clear all queries to ensure fresh data fetch
+            queryClient.clear();
+
+            // Add a small delay to ensure tokens are properly set before navigation
+            setTimeout(() => {
+                navigate({ to: '/dashboard' });
+            }, 100);
             return;
         }
         const urlParams = new URLSearchParams(window.location.search);
@@ -78,7 +83,9 @@ export function LoginForm() {
         if (accessToken && refreshToken) {
             setAuthorizationCookie(TokenKey.accessToken, accessToken);
             setAuthorizationCookie(TokenKey.refreshToken, refreshToken);
-            queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
+
+            // Clear all queries to ensure fresh data fetch
+            queryClient.clear();
 
             // Track OAuth login success
             amplitudeEvents.signIn('oauth');
@@ -89,7 +96,11 @@ export function LoginForm() {
 
             // Check user roles and redirect accordingly
             const userRoles = getUserRoles(accessToken);
-            handlePostLoginRedirect(userRoles);
+
+            // Add a small delay to ensure tokens are properly set before navigation
+            setTimeout(() => {
+                handlePostLoginRedirect(userRoles);
+            }, 100);
         }
     }, [navigate, queryClient]);
 
@@ -125,13 +136,16 @@ export function LoginForm() {
         mutationFn: (values: FormValues) => loginUser(values.username, values.password),
         onSuccess: (response) => {
             if (response) {
-                queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
+                // Store tokens in cookies first
                 setAuthorizationCookie(TokenKey.accessToken, response.accessToken);
                 setAuthorizationCookie(TokenKey.refreshToken, response.refreshToken);
 
+                // Clear all queries to ensure fresh data fetch
+                queryClient.clear();
+
                 // Track successful login
                 amplitudeEvents.signIn('username_password');
-                
+
                 // Identify user if you have user information
                 // You can add more user properties here based on the response
                 const userRoles = getUserRoles(response.accessToken);
@@ -141,7 +155,10 @@ export function LoginForm() {
                     timestamp: new Date().toISOString()
                 });
 
-                handlePostLoginRedirect(userRoles);
+                // Add a small delay to ensure tokens are properly set before navigation
+                setTimeout(() => {
+                    handlePostLoginRedirect(userRoles);
+                }, 100);
             } else {
                 // Track failed login
                 trackEvent('Login Failed', {
@@ -149,7 +166,7 @@ export function LoginForm() {
                     error_reason: 'invalid_credentials',
                     timestamp: new Date().toISOString()
                 });
-                
+
                 toast.error('Login Error', {
                     description: 'Invalid credentials',
                     className: 'error-toast',
@@ -159,7 +176,7 @@ export function LoginForm() {
         },
         onError: (error) => {
             console.error('Login error:', error);
-            
+
             // Track login error
             trackEvent('Login Failed', {
                 login_method: 'username_password',
@@ -167,7 +184,7 @@ export function LoginForm() {
                 error_message: error?.message || 'Unknown error',
                 timestamp: new Date().toISOString()
             });
-            
+
             toast.error('Login Error', {
                 description: 'Invalid username or password',
                 className: 'error-toast',
