@@ -37,6 +37,7 @@ import { CourseStructureDetails } from './course-structure-details';
 import { AddCourseForm } from '@/components/common/study-library/add-course/add-course-form';
 import { MyButton } from '@/components/design-system/button';
 import { getPublicUrl } from '@/services/upload_file';
+import InviteDetailsComponent from './invite-details-component';
 
 type SlideType = {
     id: string;
@@ -196,6 +197,8 @@ export const CourseDetailsPage = () => {
         },
         mode: 'onChange',
     });
+
+    console.log(form.getValues());
 
     const getInitials = (email: string) => {
         const name = email.split('@')[0];
@@ -561,6 +564,11 @@ export const CourseDetailsPage = () => {
                                     </div>
                                 )}
                             </div>
+                            <InviteDetailsComponent
+                                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                // @ts-expect-error
+                                sessionsData={form.getValues('courseData.sessions')}
+                            />
                         </div>
 
                         <CourseStructureDetails

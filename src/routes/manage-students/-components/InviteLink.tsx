@@ -22,7 +22,7 @@ export const InviteLink = ({ inviteCode, linkLen }: { inviteCode: string; linkLe
             });
     };
     return (
-        <>
+        <div className="flex items-center gap-4">
             <TooltipProvider>
                 <Tooltip>
                     <TooltipTrigger>
@@ -61,6 +61,6 @@ export const InviteLink = ({ inviteCode, linkLen }: { inviteCode: string; linkLe
                     </div>
                 )}
             </div>
-        </>
+        </div>
     );
 };
