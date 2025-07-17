@@ -21,6 +21,7 @@
         "build-storybook": "pnpm build:tailwind && storybook build"
     },
     "dependencies": {
+        "@amplitude/analytics-browser": "^2.19.0",
         "@braintree/sanitize-url": "6.0.2",
         "@dnd-kit/core": "^6.2.0",
         "@dnd-kit/modifiers": "^8.0.0",
