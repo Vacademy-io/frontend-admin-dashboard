@@ -111,8 +111,18 @@ export const CourseStructureDetails = ({
     }, [searchParams.courseId, searchParams.levelId, getSessionFromPackage]);
 
     useEffect(() => {
-        setCurrentSession({ id: sessionList[0]?.id || '', name: sessionList[0]?.name || '' });
-    }, [sessionList]);
+        if (selectedSession) {
+            // Find the session name from sessionList based on selectedSession ID
+            const foundSession = sessionList.find(session => session.id === selectedSession);
+            setCurrentSession({ 
+                id: selectedSession, 
+                name: foundSession?.name || '' 
+            });
+        } else {
+            // Fallback to first session if no selectedSession
+            setCurrentSession({ id: sessionList[0]?.id || '', name: sessionList[0]?.name || '' });
+        }
+    }, [sessionList, selectedSession]);
 
     const [selectedTab, setSelectedTab] = useState<string>(TabType.OUTLINE);
     const handleTabChange = (value: string) => setSelectedTab(value);
@@ -134,16 +144,16 @@ export const CourseStructureDetails = ({
         steps: studyLibrarySteps.addSubjectStep,
     });
 
-    const initialSubjects = getCourseSubjects(courseId, currentSession?.id ?? '', levelId);
+    const initialSubjects = getCourseSubjects(courseId, selectedSession || '', levelId);
     const [subjects, setSubjects] = useState(initialSubjects);
 
     useEffect(() => {
-        const newSubjects = getCourseSubjects(courseId, currentSession?.id ?? '', levelId);
+        const newSubjects = getCourseSubjects(courseId, selectedSession || '', levelId);
         setSubjects(newSubjects);
-    }, [currentSession, studyLibraryData, courseId, levelId]);
+    }, [selectedSession, studyLibraryData, courseId, levelId]);
 
     const packageSessionIds =
-        useGetPackageSessionId(courseId, currentSession?.id ?? '', levelId) || '';
+        useGetPackageSessionId(courseId, selectedSession || '', levelId) || '';
 
     const useSlidesByChapterMutation = () => {
         return useMutation({
@@ -203,7 +213,7 @@ export const CourseStructureDetails = ({
                     getPackageSessionId({
                         courseId: courseId,
                         levelId: levelId,
-                        sessionId: currentSession?.id || '',
+                        sessionId: selectedSession || '',
                     }) || '',
                 module,
             },
@@ -211,7 +221,7 @@ export const CourseStructureDetails = ({
                 onSuccess: async () => {
                     const updatedSubjects = getCourseSubjects(
                         courseId,
-                        currentSession?.id ?? '',
+                        selectedSession || '',
                         levelId
                     );
                     if (updatedSubjects.length > 0 && packageSessionIds) {

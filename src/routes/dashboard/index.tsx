@@ -28,6 +28,7 @@ import {
 } from './-services/dashboard-services';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { HOLISTIC_INSTITUTE_ID, SSDC_INSTITUTE_ID } from '@/constants/urls';
+import { amplitudeEvents, trackPageView, trackEvent } from '@/lib/amplitude';
 import { Helmet } from 'react-helmet';
 import { getModuleFlags } from '@/components/common/layout-container/sidebar/helper';
 import RoleTypeComponent from './-components/RoleTypeComponent';
@@ -36,6 +37,7 @@ import EditDashboardProfileComponent from './-components/EditDashboardProfileCom
 import { handleGetAdminDetails } from '@/services/student-list-section/getAdminDetails';
 import { motion } from 'framer-motion';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { UnresolvedDoubtsWidget } from './-components/UnresolvedDoubtsWidget';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { ContentTerms, RoleTerms, SystemTerms } from '../settings/-components/NamingSettings';
 
@@ -133,6 +135,14 @@ export function DashboardComponent() {
     });
 
     const handleAssessmentTypeRoute = (type: string) => {
+        // Track assessment creation initiation
+        amplitudeEvents.createAssessment();
+        trackEvent('Assessment Creation Started', {
+            assessment_type: type,
+            source: 'dashboard',
+            timestamp: new Date().toISOString()
+        });
+        
         navigate({
             to: '/assessment/create-assessment/$assessmentId/$examtype',
             params: {
@@ -154,6 +164,13 @@ export function DashboardComponent() {
     };
 
     const handleAICenterNavigation = () => {
+        // Track AI Center access
+        amplitudeEvents.useFeature('ai_center', { source: 'dashboard' });
+        trackEvent('AI Center Accessed', {
+            source: 'dashboard_navigation',
+            timestamp: new Date().toISOString()
+        });
+        
         router.navigate({
             to: '/ai-center',
         });
@@ -162,7 +179,16 @@ export function DashboardComponent() {
     useEffect(() => {
         // Slightly more compact nav heading
         setNavHeading(<h1 className="text-md font-medium">Dashboard</h1>);
-    }, [setNavHeading]);
+        
+        // Track dashboard page view
+        trackPageView('Dashboard', {
+            user_role: adminDetails?.roles?.join(',') || 'unknown',
+            institute_id: instituteDetails?.id,
+            timestamp: new Date().toISOString()
+        });
+        
+        amplitudeEvents.navigateToPage('dashboard');
+    }, [setNavHeading, adminDetails?.roles, instituteDetails?.id]);
 
     useEffect(() => {
         if (location.pathname !== '/dashboard') {
@@ -205,6 +231,10 @@ export function DashboardComponent() {
             {/* Main content - Reduced top margin and gap */}
             <div className="mt-5 flex w-full flex-col gap-4">
                 {/* Reduced mt-8 to mt-5, gap-6 to gap-4 */}
+                
+                {/* Unresolved Doubts Widget - conditionally rendered if there are unresolved doubts */}
+                <UnresolvedDoubtsWidget instituteId={instituteDetails?.id || ''} />
+                
                 <Card className="grow bg-neutral-50 shadow-none">
                     <CardHeader className="p-4">
                         {/* Reduced padding */}

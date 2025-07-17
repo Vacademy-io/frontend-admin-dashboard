@@ -6,8 +6,8 @@ export const SHUBHAM_INSTITUTE_ID = 'd0de8707-f36c-43a0-953c-019ca507c81d';
 export const CODE_CIRCLE_INSTITUTE_ID = 'dd9b9687-56ee-467a-9fc4-8c5835eae7f9';
 export const HOLISTIC_INSTITUTE_ID = 'bd9f2362-84d1-4e01-9762-a5196f9bac80';
 
-export const REQUEST_OTP = `${BASE_URL}/notification-service/v1/send-email-otp`;
-export const LOGIN_OTP = `${BASE_URL}/notification-service/v1/verify-email-otp`;
+export const REQUEST_OTP = `${BASE_URL}/auth-service/v1/request-otp`;
+export const LOGIN_OTP = `${BASE_URL}/auth-service/v1/login-otp`;
 
 // urls
 export const LOGIN_URL = `${BASE_URL}/auth-service/v1/login-root`;

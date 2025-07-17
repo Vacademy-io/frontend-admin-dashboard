@@ -8,7 +8,7 @@ const forgotPasswordResponseSchema = z.object({
 
 async function forgotPassword(email: string) {
     const encodedEmail = encodeURIComponent(email);
-    const url = `${FORGOT_PASSWORD}?email=${encodedEmail}`;
+    const url = `${FORGOT_PASSWORD}?email=${encodedEmail}&clientName=ADMIN`;
 
     const response = await fetch(url, {
         method: 'POST',
@@ -20,10 +20,11 @@ async function forgotPassword(email: string) {
 
     const contentType = response.headers.get('Content-Type') || '';
 
-    let data: any;
+    let data: Record<string, unknown>;
 
     if (contentType.includes('application/json')) {
-        data = await response.json();
+        const jsonData = (await response.json()) as Record<string, unknown>;
+        data = jsonData;
 
         // ✅ Patch missing status if needed
         if (!data.status) {
