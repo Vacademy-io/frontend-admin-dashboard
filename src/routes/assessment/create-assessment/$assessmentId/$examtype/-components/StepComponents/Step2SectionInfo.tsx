@@ -387,6 +387,7 @@ export const Step2SectionInfo = ({
                                 <FormControl>
                                     <MainViewQuillEditor
                                         onChange={field.onChange}
+                                        onBlur={field.onBlur}
                                         value={field.value}
                                     />
                                 </FormControl>

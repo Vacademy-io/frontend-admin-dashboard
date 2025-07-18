@@ -151,6 +151,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                     <FormControl>
                                         <MainViewQuillEditor
                                             onChange={field.onChange}
+                                            onBlur={field.onBlur}
                                             value={field.value}
                                         />
                                     </FormControl>

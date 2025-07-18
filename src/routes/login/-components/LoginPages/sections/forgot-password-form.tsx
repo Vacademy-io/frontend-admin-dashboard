@@ -58,9 +58,11 @@ export function ForgotPassword() {
                 });
             }
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
+            const errorMessage =
+                error instanceof Error ? error.message : 'Unable to process your request';
             toast.error('Something went wrong', {
-                description: error?.message || 'Unable to process your request',
+                description: errorMessage,
                 className: 'error-toast',
                 duration: 3000,
             });

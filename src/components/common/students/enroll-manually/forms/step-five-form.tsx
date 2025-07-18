@@ -16,6 +16,8 @@ import { useInstituteDetailsStore } from '@/stores/students/students-list/useIns
 import { toast } from 'sonner';
 import { StudentTable, StudentCredentialsType } from '@/types/student-table-types';
 import { useReEnrollStudent } from '@/hooks/student-list-section/enroll-student-manually/useReEnrollStudent';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 export const StepFiveForm = ({
     initialValues,
     handleNextButtonDisable,
@@ -129,7 +131,11 @@ export const StepFiveForm = ({
             });
 
             toast.success(
-                isReEnroll ? 'Learner re-enrolled successfully' : 'Learner enrolled successfully'
+                isReEnroll
+                    ? getTerminology(RoleTerms.Learner, SystemTerms.Learner).toLocaleLowerCase() +
+                          ' re-enrolled successfully'
+                    : getTerminology(RoleTerms.Learner, SystemTerms.Learner).toLocaleLowerCase() +
+                          ' enrolled successfully'
             );
 
             resetForm();
@@ -137,7 +143,11 @@ export const StepFiveForm = ({
         } catch (error) {
             console.error('Enrollment Error:', error);
             toast.error(
-                isReEnroll ? 'Failed to re-enroll the Learner' : 'Failed to enroll the Learner'
+                isReEnroll
+                    ? getTerminology(RoleTerms.Learner, SystemTerms.Learner).toLocaleLowerCase() +
+                          ' failed to re-enroll'
+                    : getTerminology(RoleTerms.Learner, SystemTerms.Learner).toLocaleLowerCase() +
+                          ' failed to enroll'
             );
         }
     };
@@ -177,7 +187,12 @@ export const StepFiveForm = ({
                             <FormItemWrapper<StepFiveData> control={form.control} name="username">
                                 <div className="flex flex-col items-center justify-center gap-5">
                                     <div className="text-subtitle">
-                                        Auto-generate student&apos;s username and password
+                                        Auto-generate{' '}
+                                        {getTerminology(
+                                            RoleTerms.Learner,
+                                            SystemTerms.Learner
+                                        ).toLocaleLowerCase()}
+                                        &apos;s username and password
                                     </div>
                                     <MyButton
                                         buttonType="primary"

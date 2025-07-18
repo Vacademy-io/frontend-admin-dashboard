@@ -36,6 +36,7 @@ export interface LiveSessionStep1RequestDTO {
     waiting_room_time?: number;
     link_type?: string;
     allow_rewind?: boolean;
+    allow_play_pause?: boolean;
     is_live?: boolean;
     session_streaming_service_type?: string;
     cover_file_id?: string | null;
@@ -122,10 +123,12 @@ export function transformFormToDTOStep1(
         defaultLink,
         meetingType,
         recurringSchedule = [],
+        enableWaitingRoom,
         openWaitingRoomBefore,
         streamingType,
         sessionPlatform,
         allowRewind,
+        allowPause,
     } = form;
 
     // Convert hours and minutes to total duration in hours
@@ -210,9 +213,10 @@ export function transformFormToDTOStep1(
         institute_id: instituteId,
         background_score_file_id: musicFileId,
         thumbnail_file_id: thumbnailFileId,
-        waiting_room_time: Number(openWaitingRoomBefore),
+        waiting_room_time: enableWaitingRoom ? Number(openWaitingRoomBefore) : 0,
         link_type: sessionPlatform,
         allow_rewind: allowRewind,
+        allow_play_pause: allowPause,
         session_streaming_service_type: streamingType,
         cover_file_id: coverFileId,
     };
@@ -293,7 +297,6 @@ export function transformFormToDTOStep2(
             update_fields: [] as CustomFieldDTO[],
         }
     );
-      
 
     return {
         session_id: sessionId,

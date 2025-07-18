@@ -119,6 +119,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                     <MainViewQuillEditor
                                         value={field.value}
                                         onChange={field.onChange}
+                                        onBlur={field.onBlur}
                                     />
                                 </FormControl>
                                 <FormMessage />
@@ -141,6 +142,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                 <MainViewQuillEditor
                                     value={field.value}
                                     onChange={field.onChange}
+                                    onBlur={field.onBlur}
                                 />
                             </FormControl>
                             <FormMessage />
@@ -170,6 +172,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                             <MainViewQuillEditor
                                                 value={field.value}
                                                 onChange={field.onChange}
+                                                onBlur={field.onBlur}
                                             />
                                         </FormControl>
                                         <FormMessage />
@@ -224,6 +227,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                             <MainViewQuillEditor
                                                 value={field.value}
                                                 onChange={field.onChange}
+                                                onBlur={field.onBlur}
                                             />
                                         </FormControl>
                                         <FormMessage />
@@ -279,6 +283,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                         <FormControl>
                                             <MainViewQuillEditor
                                                 value={field.value}
+                                                onBlur={field.onBlur}
                                                 onChange={field.onChange}
                                             />
                                         </FormControl>
@@ -333,6 +338,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                         <FormControl>
                                             <MainViewQuillEditor
                                                 value={field.value}
+                                                 onBlur={field.onBlur}
                                                 onChange={field.onChange}
                                             />
                                         </FormControl>
@@ -382,6 +388,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                             <FormControl>
                                 <MainViewQuillEditor
                                     value={field.value}
+                                    onBlur={field.onBlur}
                                     onChange={field.onChange}
                                 />
                             </FormControl>

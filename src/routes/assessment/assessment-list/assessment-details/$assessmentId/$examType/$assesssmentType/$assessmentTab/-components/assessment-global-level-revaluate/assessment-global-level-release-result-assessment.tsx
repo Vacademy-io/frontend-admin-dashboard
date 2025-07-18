@@ -8,6 +8,8 @@ import { getInstituteId } from '@/constants/helper';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { MyButton } from '@/components/design-system/button';
 import { WarningCircle } from 'phosphor-react';
+import { RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 
 export const AssessmentGlobalLevelReleaseResultAssessment = () => {
     const { assessmentId } = Route.useParams();
@@ -64,14 +66,18 @@ export const AssessmentGlobalLevelReleaseResultAssessment = () => {
             </DialogTrigger>
             <DialogContent className="flex flex-col p-0">
                 <h1 className="rounded-md bg-primary-50 p-4 text-primary-500">
-                    Release Result For All Students
+                    Release Result For All {getTerminology(RoleTerms.Learner, SystemTerms.Learner)}s
                 </h1>
                 <div className="flex flex-col gap-2 p-4">
                     <div className="flex items-center text-danger-600">
                         <p>Attention</p>
                         <WarningCircle size={18} />
                     </div>
-                    <h1>Are you sure you want to release result for all students?</h1>
+                    <h1>
+                        Are you sure you want to release result for all{' '}
+                        {getTerminology(RoleTerms.Learner, SystemTerms.Learner).toLocaleLowerCase()}
+                        s?
+                    </h1>
                     <div className="flex justify-end">
                         <MyButton
                             type="button"

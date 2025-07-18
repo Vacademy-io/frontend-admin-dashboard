@@ -52,12 +52,13 @@ export const sessionFormSchema = z
             .string()
             .transform((val) => (val === 'none' ? '' : val))
             .optional(),
-        openWaitingRoomBefore: z.string(),
+        openWaitingRoomBefore: z.string().optional(),
         sessionType: z.string(),
         sessionPlatform: z.string(),
         enableWaitingRoom: z.boolean(),
         streamingType: z.string(),
         allowRewind: z.boolean(),
+        allowPause: z.boolean(),
         startTime: z.string({
             required_error: 'Start time is required',
             invalid_type_error: 'Invalid date',

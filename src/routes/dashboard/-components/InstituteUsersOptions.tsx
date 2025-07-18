@@ -21,6 +21,7 @@ import {
     handleDeleteDisableDashboardUsers,
 } from '../-services/dashboard-services';
 import { toast } from 'sonner';
+import { mapRoleToCustomName } from '@/utils/roleUtils';
 export const inviteUsersSchema = z.object({
     roleType: z.array(z.string()).min(1, 'At least one role type is required'),
 });
@@ -98,7 +99,7 @@ const ChangeRoleTypeComponent: React.FC<ChangeRoleTypeComponentProps> = ({
                         name="roleType"
                         options={RoleType.map((option, index) => ({
                             value: option.name,
-                            label: option.name,
+                            label: mapRoleToCustomName(option.name),
                             _id: index,
                         }))}
                         control={form.control}

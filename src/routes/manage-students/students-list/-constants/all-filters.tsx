@@ -1,4 +1,6 @@
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { FilterConfig } from '@/routes/manage-students/students-list/-types/students-list-types';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { InstituteDetailsType } from '@/schemas/student/student-list/institute-schema';
 
 export const GetFilterData = (instituteDetails: InstituteDetailsType, currentSession: string) => {
@@ -43,7 +45,7 @@ export const GetFilterData = (instituteDetails: InstituteDetailsType, currentSes
         },
         {
             id: 'session_expiry_days',
-            title: 'Session Expiry',
+            title: `${getTerminology(ContentTerms.Session, SystemTerms.Session)} Expiry`,
             filterList: sessionExpiry || [],
         },
     ];
