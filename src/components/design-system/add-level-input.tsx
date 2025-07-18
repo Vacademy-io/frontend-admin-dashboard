@@ -1,7 +1,9 @@
 import { MyButton } from '@/components/design-system/button';
 import { MyInput } from '@/components/design-system/input';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { Plus, X } from '@phosphor-icons/react';
 import { Dispatch, SetStateAction, useState } from 'react';
+import { getTerminology } from '../common/layout-container/sidebar/utils';
 
 interface AddLevelInputProps {
     newLevelName: string;
@@ -33,7 +35,7 @@ export const AddLevelInput = ({
                             input={newLevelName}
                             onChangeFunction={(e) => setNewLevelName(e.target.value)}
                             required={true}
-                            label="Level"
+                            label={getTerminology(ContentTerms.Level, SystemTerms.Level)}
                         />
                         <MyInput
                             inputType="number"
@@ -91,7 +93,7 @@ export const AddLevelInput = ({
                     id="add-level-button"
                     className="w-fit text-primary-500 hover:bg-white active:bg-white"
                 >
-                    <Plus /> Add Level
+                    <Plus /> Add {getTerminology(ContentTerms.Level, SystemTerms.Level)}
                 </MyButton>
             )}
         </>

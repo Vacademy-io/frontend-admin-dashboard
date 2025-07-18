@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable react-hooks/exhaustive-deps */
 import { MyButton } from '@/components/design-system/button';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Separator } from '@radix-ui/react-separator';
@@ -66,7 +68,9 @@ export default function ScheduleStep1() {
     const [selectedMusicFile, setSelectedMusicFile] = useState<File | null>(null);
     const musicFileInputRef = useRef<HTMLInputElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [scheduleType, setScheduleType] = useState<'everyday' | 'weekday' | 'exceptSunday' | 'custom' | null>(null);
+    const [scheduleType, setScheduleType] = useState<
+        'everyday' | 'weekday' | 'exceptSunday' | 'custom' | null
+    >(null);
 
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
     const { SubjectFilterData } = useFilterDataForAssesment(instituteDetails);
@@ -97,7 +101,7 @@ export default function ScheduleStep1() {
             timeZone: '(GMT 5:30) India Standard Time (Asia/Kolkata)',
             events: '1',
             openWaitingRoomBefore: '15',
-            sessionType: '',
+            sessionType: SessionType.LIVE,
             streamingType: sessionDetails?.schedule?.session_streaming_service_type
                 ? sessionDetails?.schedule?.session_streaming_service_type
                 : '',
@@ -142,7 +146,6 @@ export default function ScheduleStep1() {
                 } else {
                     form.setValue('sessionPlatform', StreamingPlatform.OTHER);
                     form.setValue('streamingType', SessionPlatform.REDIRECT_TO_OTHER_PLATFORM);
-
                 }
             }
         });
@@ -522,7 +525,7 @@ export default function ScheduleStep1() {
         currentSchedule.forEach((day, index) => {
             const weekDay = WEEK_DAYS.find((d) => d.label === day.day);
             const isWeekday = weekDay?.value
-                ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri' , 'Sat'].includes(weekDay.value)
+                ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].includes(weekDay.value)
                 : false;
             form.setValue(`recurringSchedule.${index}.isSelect`, isWeekday);
 
@@ -548,9 +551,7 @@ export default function ScheduleStep1() {
 
         currentSchedule.forEach((day, index) => {
             const weekDay = WEEK_DAYS.find((d) => d.label === day.day);
-            const isWeekday = weekDay?.value
-                ? [''].includes(weekDay.value)
-                : false;
+            const isWeekday = weekDay?.value ? [''].includes(weekDay.value) : false;
             form.setValue(`recurringSchedule.${index}.isSelect`, isWeekday);
 
             const dh = form.getValues('durationHours');
@@ -626,6 +627,7 @@ export default function ScheduleStep1() {
                                 <MainViewQuillEditor
                                     onChange={field.onChange}
                                     value={field.value}
+                                    onBlur={field.onBlur}
                                     CustomclasssName="h-[200px]"
                                 />
                             </FormControl>
@@ -862,54 +864,58 @@ export default function ScheduleStep1() {
                     />
                 </div>
             </div>
-        {/* Lock video playback settings */}
-        <div className="flex flex-col items-start gap-4">
-            <h4 className="text-sm font-semibold">Lock video playback settings</h4>
-            <div className="flex flex-row items-center gap-4">
-                <Controller
-                    control={control}
-                    name="allowRewind"
-                    render={({ field }) => (
-                        <label className="flex items-center gap-2">
-                            <span className="text-sm">Allow rewind</span>
-                            <Switch
-                                disabled={watch('streamingType') !== SessionPlatform.EMBED_IN_APP}
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                            />
-                        </label>
-                    )}
-                />
-                <Controller
-                    control={control}
-                    name="allowPause"
-                    render={({ field }) => (
-                        <label className="flex items-center gap-2">
-                            <span className="text-sm">Allow play pause</span>
-                            <Switch
-                                disabled={watch('streamingType') !== SessionPlatform.EMBED_IN_APP}
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                            />
-                        </label>
-                    )}
-                />
+            {/* Lock video playback settings */}
+            <div className="flex flex-col items-start gap-4">
+                <h4 className="text-sm font-semibold">Lock video playback settings</h4>
+                <div className="flex flex-row items-center gap-4">
+                    <Controller
+                        control={control}
+                        name="allowRewind"
+                        render={({ field }) => (
+                            <label className="flex items-center gap-2">
+                                <span className="text-sm">Allow rewind</span>
+                                <Switch
+                                    disabled={
+                                        watch('streamingType') !== SessionPlatform.EMBED_IN_APP
+                                    }
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                />
+                            </label>
+                        )}
+                    />
+                    <Controller
+                        control={control}
+                        name="allowPause"
+                        render={({ field }) => (
+                            <label className="flex items-center gap-2">
+                                <span className="text-sm">Allow play pause</span>
+                                <Switch
+                                    disabled={
+                                        watch('streamingType') !== SessionPlatform.EMBED_IN_APP
+                                    }
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                />
+                            </label>
+                        )}
+                    />
+                </div>
             </div>
-        </div>
-        <div>
-            <div className="flex h-full flex-row items-start gap-4">
-                <Controller
-                    control={control}
-                    name={`enableWaitingRoom`}
-                    render={({ field }) => (
-                        <label className="flex items-center gap-2">
-                            <span className="text-sm">Enable Waiting Room</span>
-                            <Switch checked={field.value} onCheckedChange={field.onChange} />
-                        </label>
-                    )}
-                />
+            <div>
+                <div className="flex h-full flex-row items-start gap-4">
+                    <Controller
+                        control={control}
+                        name={`enableWaitingRoom`}
+                        render={({ field }) => (
+                            <label className="flex items-center gap-2">
+                                <span className="text-sm">Enable Waiting Room</span>
+                                <Switch checked={field.value} onCheckedChange={field.onChange} />
+                            </label>
+                        )}
+                    />
+                </div>
             </div>
-        </div>
         </div>
     );
 
@@ -995,15 +1001,17 @@ export default function ScheduleStep1() {
                     <div className="flex flex-row items-center gap-2">
                         <Select
                             value={scheduleType || ''}
-                            onValueChange={(value: 'everyday' | 'weekday' | 'exceptSunday' | 'custom') => {
+                            onValueChange={(
+                                value: 'everyday' | 'weekday' | 'exceptSunday' | 'custom'
+                            ) => {
                                 setScheduleType(value);
                                 if (value === 'everyday') {
                                     toggleEveryDay();
                                 } else if (value === 'weekday') {
                                     toggleMonToFri();
-                                } else if(value === 'exceptSunday'){
+                                } else if (value === 'exceptSunday') {
                                     toggleMonToSat();
-                                } else if(value === 'custom'){
+                                } else if (value === 'custom') {
                                     toggleCustom();
                                 }
                             }}

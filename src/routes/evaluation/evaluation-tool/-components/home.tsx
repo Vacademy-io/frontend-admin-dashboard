@@ -1,4 +1,6 @@
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { Button } from '@/components/ui/button';
+import { RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { Link } from '@tanstack/react-router';
 import { ArrowRight, CheckCircle } from 'lucide-react';
 
@@ -16,7 +18,12 @@ export default function HeroSection() {
                             <p className="max-w-[600px] text-gray-500 md:text-xl">
                                 Streamline your manual evaluation process with our smart answer
                                 sheet evaluation tool. Save time, reduce errors, and provide better
-                                feedback to your students.
+                                feedback to your{' '}
+                                {getTerminology(
+                                    RoleTerms.Learner,
+                                    SystemTerms.Learner
+                                ).toLocaleLowerCase()}
+                                s.
                             </p>
                         </div>
                         <div className="flex flex-col gap-2 min-[400px]:flex-row">

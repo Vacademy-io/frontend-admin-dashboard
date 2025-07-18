@@ -275,7 +275,15 @@ export function getAllSessions(data: BatchData[]): { id: string; name: string }[
 
 export const convertToUTC = (dateString: string) => {
     if (dateString === '') return '';
-    // Parse the input ISO 8601 date string into a Date object
+
+    // Handle datetime-local input format (YYYY-MM-DDTHH:mm)
+    if (dateString.includes('T') && !dateString.includes('Z') && !dateString.includes('+')) {
+        // This is a datetime-local input, treat it as local time and convert to UTC
+        const date = new Date(dateString);
+        return date.toISOString();
+    }
+
+    // Handle other date formats
     const date = new Date(dateString);
     return date.toISOString();
 };

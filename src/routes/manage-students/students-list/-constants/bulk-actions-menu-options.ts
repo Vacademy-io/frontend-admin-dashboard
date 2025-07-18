@@ -12,4 +12,5 @@ export const BulkActionDropdownList = [
     'Share Credentials',
     'Send WhatsApp Message',
     'Send Email',
+    'Create Certificate',
 ];

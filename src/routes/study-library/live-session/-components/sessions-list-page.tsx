@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
 import { useEffect, useState, useMemo } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -13,7 +14,7 @@ import {
 } from '../-hooks/useLiveSessions';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
-import { LiveSession, SessionsByDate } from '../-services/utils';
+import { DraftSessionDay, LiveSession, SessionsByDate } from '../-services/utils';
 import PreviousSessionCard from './previous-session-card';
 import DraftSessionCard from './draft-session-card';
 import { useSessionDetailsStore } from '../-store/useSessionDetailsStore';
@@ -28,11 +29,17 @@ import { useInstituteQuery } from '@/services/student-list-section/getInstituteD
 import { useFilterDataForAssesment } from '@/routes/assessment/assessment-list/-utils.ts/useFiltersData';
 import { MyPagination } from '@/components/design-system/pagination';
 import { RecurringType, AccessType } from '../-constants/enums';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+// import { useLiveSessionStore } from '../schedule/-store/sessionIdstore';
 
 export default function SessionListPage() {
     const { setNavHeading } = useNavHeadingStore();
     const { clearSessionDetails } = useSessionDetailsStore();
     const { clearSessionId } = useLiveSessionStore();
+
+    // const [selectedTab, setSelectedTab] = useState<SessionStatus>(SessionStatus.LIVE);
+    // const navigate = useNavigate();
 
     // Filter state
     const [searchQuery, setSearchQuery] = useState<string>('');
@@ -455,10 +462,87 @@ export default function SessionListPage() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        setNavHeading('Live Sessions');
+        setNavHeading(getTerminology(ContentTerms.LiveSession, SystemTerms.LiveSession) + 's');
         clearSessionDetails();
         clearSessionId();
     }, []);
+
+    const renderLiveSessions = (sessions: LiveSession[] | undefined) => {
+        if (isLiveLoading) return <div>Loading...</div>;
+        if (liveError) return <div>Error loading sessions: {liveError.message}</div>;
+        if (!sessions?.length)
+            return (
+                <div>
+                    No{' '}
+                    {getTerminology(
+                        ContentTerms.LiveSession,
+                        SystemTerms.LiveSession
+                    ).toLocaleLowerCase()}{' '}
+                    found
+                </div>
+            );
+        return sessions.map((session) => (
+            <LiveSessionCard key={session.session_id} session={session} />
+        ));
+    };
+
+    const renderSessionsByDate = (
+        sessions: SessionsByDate[] | undefined,
+        isLoading: boolean,
+        error: Error | null,
+        emptyMessage: string
+    ) => {
+        if (isLoading) return <div>Loading...</div>;
+        if (error) return <div>Error loading sessions: {error.message}</div>;
+        if (!sessions?.length) return <div>{emptyMessage}</div>;
+
+        return sessions.map((day) => (
+            <div key={day.date} className="mb-4">
+                <h2 className="mb-2 text-lg font-semibold">{day.date}</h2>
+                {day.sessions.map((session) => (
+                    <LiveSessionCard
+                        key={`${session.session_id}-${session.schedule_id}`}
+                        session={session}
+                    />
+                ))}
+            </div>
+        ));
+    };
+    const renderDraftSessions = (
+        sessions: DraftSessionDay[] | undefined,
+        isLoading: boolean,
+        error: Error | null,
+        emptyMessage: string
+    ) => {
+        if (isLoading) return <div>Loading...</div>;
+        if (error) return <div>Error loading sessions: {error.message}</div>;
+        if (!sessions?.length) return <div>{emptyMessage}</div>;
+
+        return sessions.map((day) => <DraftSessionCard key={day.session_id} session={day} />);
+    };
+
+    const renderPreviousSessions = (
+        sessions: SessionsByDate[] | undefined,
+        isLoading: boolean,
+        error: Error | null,
+        emptyMessage: string
+    ) => {
+        if (isLoading) return <div>Loading...</div>;
+        if (error) return <div>Error loading sessions: {error.message}</div>;
+        if (!sessions?.length) return <div>{emptyMessage}</div>;
+
+        return sessions.map((day) => (
+            <div key={day.date} className="mb-4">
+                <h2 className="mb-2 text-lg font-semibold">{day.date}</h2>
+                {day.sessions.map((session) => (
+                    <PreviousSessionCard
+                        key={`${session.session_id}-${session.schedule_id}`}
+                        session={session}
+                    />
+                ))}
+            </div>
+        ));
+    };
 
     return (
         <>
@@ -504,6 +588,10 @@ export default function SessionListPage() {
                         upcomingError,
                         SessionStatus.UPCOMING,
                         LiveSessionCard
+                        // `No upcoming ${getTerminology(
+                        //     ContentTerms.LiveSession,
+                        //     SystemTerms.LiveSession
+                        // ).toLocaleLowerCase()} found`
                     )}
                 </TabsContent>
                 <TabsContent value={SessionStatus.PAST} className="space-y-4">
@@ -513,6 +601,10 @@ export default function SessionListPage() {
                         pastError,
                         SessionStatus.PAST,
                         PreviousSessionCard
+                        // `No past ${getTerminology(
+                        //     ContentTerms.LiveSession,
+                        //     SystemTerms.LiveSession
+                        // ).toLocaleLowerCase()} found`
                     )}
                 </TabsContent>
                 <TabsContent value={SessionStatus.DRAFTS} className="space-y-4">
@@ -522,6 +614,10 @@ export default function SessionListPage() {
                         draftError,
                         SessionStatus.DRAFTS,
                         DraftSessionCard
+                        // `No draft ${getTerminology(
+                        //     ContentTerms.LiveSession,
+                        //     SystemTerms.LiveSession
+                        // ).toLocaleLowerCase()} found`
                     )}
                 </TabsContent>
             </Tabs>

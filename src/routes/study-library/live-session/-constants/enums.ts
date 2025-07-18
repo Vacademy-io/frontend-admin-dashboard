@@ -33,7 +33,7 @@ export enum SessionPlatform {
 }
 export enum StreamingPlatform {
     YOUTUBE = 'youtube',
-    MEET = 'meet',
+    MEET = 'google meet',
     ZOOM = 'zoom',
     OTHER = 'other',
 }

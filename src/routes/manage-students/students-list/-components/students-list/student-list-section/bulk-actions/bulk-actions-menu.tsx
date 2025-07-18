@@ -5,6 +5,7 @@ import { BulkActionInfo } from '@/routes/manage-students/students-list/-types/bu
 import { StudentTable } from '@/types/student-table-types';
 import { ReactNode } from 'react';
 import { BulkActionDropdownList } from '@/routes/manage-students/students-list/-constants/bulk-actions-menu-options';
+import { useRouter } from '@tanstack/react-router';
 
 interface BulkActionsMenuProps {
     selectedCount: number;
@@ -14,6 +15,7 @@ interface BulkActionsMenuProps {
 }
 
 export const BulkActionsMenu = ({ selectedStudents, trigger }: BulkActionsMenuProps) => {
+    const router = useRouter();
     const {
         openBulkChangeBatchDialog,
         openBulkReRegisterDialog,
@@ -61,6 +63,15 @@ export const BulkActionsMenu = ({ selectedStudents, trigger }: BulkActionsMenuPr
                 break;
             case 'Send Email':
                 openBulkSendEmailDialog(bulkActionInfo);
+                break;
+            case 'Create Certificate':
+                // Navigate to certificate generation with selected students
+                router.navigate({ 
+                    to: '/certificate-generation/student-data',
+                    search: { 
+                        students: encodeURIComponent(JSON.stringify(validStudents.map(s => s.user_id))) 
+                    }
+                });
                 break;
         }
     };

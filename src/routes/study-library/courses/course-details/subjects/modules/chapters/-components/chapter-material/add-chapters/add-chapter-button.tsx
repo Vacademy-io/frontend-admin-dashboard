@@ -3,6 +3,8 @@ import { MyDialog } from '@/components/design-system/dialog';
 import { Plus } from '@phosphor-icons/react';
 import { useState } from 'react';
 import { AddChapterForm } from './add-chapter-form';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 interface AddChapterButtonProps {
     isTextButton?: boolean;
@@ -27,11 +29,11 @@ export const AddChapterButton = ({
             className="!m-0 flex w-fit cursor-pointer flex-row items-center justify-start gap-2 px-0 pl-2 text-primary-500"
             id="add-chapters"
         >
-            <Plus /> Add Chapter
+            <Plus /> Add {getTerminology(ContentTerms.Chapters, SystemTerms.Chapters)}
         </MyButton>
     ) : (
         <MyButton scale="large" id="add-chapters">
-            <Plus /> Add Chapter
+            <Plus /> Add {getTerminology(ContentTerms.Chapters, SystemTerms.Chapters)}
         </MyButton>
     );
 
@@ -46,7 +48,7 @@ export const AddChapterButton = ({
     return (
         <MyDialog
             trigger={triggerButton}
-            heading="Add Chapter"
+            heading={`Add ${getTerminology(ContentTerms.Chapters, SystemTerms.Chapters)}`}
             dialogWidth="min-w-[400px]"
             open={openDialog}
             onOpenChange={handleOpenChange}

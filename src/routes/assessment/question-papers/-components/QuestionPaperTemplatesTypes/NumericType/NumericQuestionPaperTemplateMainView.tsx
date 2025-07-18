@@ -22,8 +22,6 @@ export const NumericQuestionPaperTemplateMainView = ({
     currentQuestionIndex,
     className,
 }: QuestionPaperTemplateFormProps) => {
-    const [isMultipleAnswersAllowed, setIsMultipleAnswersAllowed] = useState(false);
-
     const { control, getValues, trigger, watch } = form;
 
     const numericType = watch(`questions.${currentQuestionIndex}.numericType`);
@@ -41,10 +39,6 @@ export const NumericQuestionPaperTemplateMainView = ({
         if (!validAnswrs) {
             form.setValue(`questions.${currentQuestionIndex}.validAnswers`, [0]);
         }
-    }, []);
-
-    useEffect(() => {
-        if (validAnswers && validAnswers?.length > 1) setIsMultipleAnswersAllowed(true);
     }, []);
     useEffect(() => {
         trigger(`questions.${currentQuestionIndex}.validAnswers`);
@@ -112,6 +106,7 @@ export const NumericQuestionPaperTemplateMainView = ({
                                 <FormControl>
                                     <CollapsibleQuillEditor
                                         value={field.value}
+                                        onBlur={field.onBlur}
                                         onChange={field.onChange}
                                     />
                                 </FormControl>
@@ -139,6 +134,7 @@ export const NumericQuestionPaperTemplateMainView = ({
                             <FormControl>
                                 <MainViewQuillEditor
                                     value={field.value}
+                                    onBlur={field.onBlur}
                                     onChange={field.onChange}
                                 />
                             </FormControl>
@@ -166,27 +162,6 @@ export const NumericQuestionPaperTemplateMainView = ({
                             <FormControl>
                                 <div className="flex flex-row justify-between">
                                     <div>{answersType}</div>
-                                    <div className="flex flex-row items-center gap-2">
-                                        <Checkbox
-                                            checked={isMultipleAnswersAllowed}
-                                            onCheckedChange={(checked) => {
-                                                // const check =
-                                                //     !!checked ||
-                                                //     (validAnswers
-                                                //         ? validAnswers?.length > 1
-                                                //         : false);
-                                                setIsMultipleAnswersAllowed(!!checked);
-                                                if (!checked) {
-                                                    // If unchecked, keep only the first answer
-                                                    form.setValue(
-                                                        `questions.${currentQuestionIndex}.validAnswers`,
-                                                        field.value ? [field.value[0] || 0] : [0]
-                                                    );
-                                                }
-                                            }}
-                                        />
-                                        <div>Contains Multiple Answers</div>
-                                    </div>
                                 </div>
                             </FormControl>
                             <FormMessage />
@@ -218,35 +193,31 @@ export const NumericQuestionPaperTemplateMainView = ({
                                                     inputType="number"
                                                 />
                                                 {/* Remove button for each answer */}
-                                                {isMultipleAnswersAllowed && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            field.onChange(
-                                                                field.value?.filter(
-                                                                    (_, i) => i !== index
-                                                                )
-                                                            );
-                                                        }}
-                                                    >
-                                                        <X />
-                                                    </button>
-                                                )}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        field.onChange(
+                                                            field.value?.filter(
+                                                                (_, i) => i !== index
+                                                            )
+                                                        );
+                                                    }}
+                                                >
+                                                    <X />
+                                                </button>
                                             </div>
                                         ))}
                                     {/* Add new answer */}
-                                    {isMultipleAnswersAllowed && (
-                                        <Button
-                                            variant="outline"
-                                            type="button"
-                                            className="cursor-pointer"
-                                            onClick={() => {
-                                                field.onChange([...(field.value || []), 0]);
-                                            }}
-                                        >
-                                            <Plus size={20} />
-                                        </Button>
-                                    )}
+                                    <Button
+                                        variant="outline"
+                                        type="button"
+                                        className="cursor-pointer"
+                                        onClick={() => {
+                                            field.onChange([...(field.value || []), 0]);
+                                        }}
+                                    >
+                                        <Plus size={20} />
+                                    </Button>
                                 </div>
                             </FormControl>
                             <FormMessage />
@@ -264,6 +235,7 @@ export const NumericQuestionPaperTemplateMainView = ({
                             <FormControl>
                                 <MainViewQuillEditor
                                     value={field.value}
+                                    onBlur={field.onBlur}
                                     onChange={field.onChange}
                                 />
                             </FormControl>

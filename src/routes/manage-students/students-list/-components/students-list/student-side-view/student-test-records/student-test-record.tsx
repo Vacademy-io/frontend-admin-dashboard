@@ -10,7 +10,7 @@ import {
     handleStudentReportData,
     viewStudentReport,
 } from '@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-services/assessment-details-services';
-import { DashboardLoader, ErrorBoundary } from '@/components/core/dashboard-loader';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { MyPagination } from '@/components/design-system/pagination';
 import { AssessmentDetailsSearchComponent } from '@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-components/SearchComponent';
 import { getSubjectNameById } from '@/routes/assessment/question-papers/-utils/helper';
@@ -27,6 +27,8 @@ import {
     ShieldCheck,
     Info,
 } from '@phosphor-icons/react';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 
 export interface StudentReportFilterInterface {
     name: string;
@@ -40,13 +42,13 @@ const ErrorDisplay = ({
     onRetry,
     context = 'data',
 }: {
+    // eslint-disable-next-line
     error: any;
     onRetry: () => void;
     context?: string;
 }) => {
     const isUnauthorized = error?.response?.status === 403;
     const isServerError = error?.response?.status >= 500;
-    const isNetworkError = !error?.response;
 
     return (
         <div className="flex flex-col items-center justify-center px-4 py-12 text-center">
@@ -118,7 +120,8 @@ const EmptyState = () => (
         </div>
         <h3 className="mb-2 text-lg font-semibold text-neutral-700">No Test Records</h3>
         <p className="max-w-md text-sm text-neutral-500">
-            This student hasn't taken any assessments yet, or the test records are not available.
+            This student hasn&apos;t taken any assessments yet, or the test records are not
+            available.
         </p>
     </div>
 );
@@ -173,6 +176,7 @@ export const StudentTestRecord = ({
             pageSize: 10,
             selectedFilter,
         }),
+        // eslint-disable-next-line
         retry: (failureCount, error: any) => {
             // Don't retry on 403 errors
             if (error?.response?.status === 403) return false;
@@ -224,6 +228,7 @@ export const StudentTestRecord = ({
                 // Continue with partial data instead of failing completely
             }
         },
+        // eslint-disable-next-line
         onError: (error: any) => {
             console.error('Failed to view student report:', error);
         },
@@ -263,6 +268,7 @@ export const StudentTestRecord = ({
         onSuccess: (data) => {
             setStudentReportData(data);
         },
+        // eslint-disable-next-line
         onError: (error: any) => {
             console.error('Failed to fetch student report:', error);
         },
@@ -455,7 +461,13 @@ export const StudentTestRecord = ({
                                     <div className="flex w-full flex-col gap-4">
                                         <div className="grid grid-cols-1 gap-3 text-sm">
                                             <div className="flex items-center gap-2">
-                                                <span className="text-neutral-600">Subject:</span>
+                                                <span className="text-neutral-600">
+                                                    {getTerminology(
+                                                        ContentTerms.Subjects,
+                                                        SystemTerms.Subjects
+                                                    )}
+                                                    :
+                                                </span>
                                                 <span className="font-medium text-neutral-800">
                                                     {getSubjectNameById(
                                                         instituteDetails?.subjects || [],

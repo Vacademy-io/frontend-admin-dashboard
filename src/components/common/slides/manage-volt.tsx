@@ -65,7 +65,7 @@ export default function ManageVolt() {
     const { setNavHeading } = useNavHeadingStore();
     const queryClient = useQueryClient();
 
-    const { data: fetchedPresentations, isLoading } = useGetPresntation();
+    const { data: fetchedPresentations, isLoading, refetch } = useGetPresntation();
     const [presentations, setPresentations] = useState<PresentationData[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const { uploadFile, getPublicUrl, isUploading: isUploadingFile } = useFileUpload();
@@ -109,7 +109,19 @@ export default function ManageVolt() {
 
     useEffect(() => {
         if (fetchedPresentations) {
-            setPresentations(fetchedPresentations as PresentationData[]);
+            // Filter out deleted presentations
+            const activePresentations = (fetchedPresentations as PresentationData[]).filter(
+                (presentation) => presentation.status !== 'DELETED'
+            );
+            console.log('[ManageVolt] Filtered presentations:', {
+                total: fetchedPresentations.length,
+                active: activePresentations.length,
+                deleted: fetchedPresentations.length - activePresentations.length,
+                deletedIds: (fetchedPresentations as PresentationData[])
+                    .filter(p => p.status === 'DELETED')
+                    .map(p => ({ id: p.id, title: p.title, status: p.status }))
+            });
+            setPresentations(activePresentations);
         }
     }, [fetchedPresentations]);
 
@@ -346,6 +358,8 @@ export default function ManageVolt() {
         if (!presentationToDelete) return;
         setIsProcessingDelete(true);
         try {
+            console.log('[Delete] Starting deletion for presentation:', presentationToDelete.id);
+
             const accessToken = getTokenFromCookie(TokenKey.accessToken);
             if (!accessToken) {
                 toast.error('Authentication required. Please log in.');
@@ -359,7 +373,9 @@ export default function ManageVolt() {
                 setIsProcessingDelete(false);
                 return;
             }
-            await authenticatedAxiosInstance.post(
+
+            console.log('[Delete] Making API call to delete presentation');
+            const response = await authenticatedAxiosInstance.post(
                 EDIT_PRESENTATION,
                 {
                     ...presentationToDelete,
@@ -373,10 +389,41 @@ export default function ManageVolt() {
                     headers: { 'Content-Type': 'application/json' },
                 }
             );
-            await queryClient.refetchQueries({ queryKey: ['GET_PRESNTATIONS'] });
+
+            console.log('[Delete] API call successful:', response.data);
+            console.log('[Delete] Response status:', response.status);
+            console.log('[Delete] Response headers:', response.headers);
+
+            // Immediately remove from local state to provide instant feedback
+            setPresentations(prev => prev.filter(p => p.id !== presentationToDelete.id));
+
+            // Clear cache completely and force fresh fetch
+            await queryClient.removeQueries({ queryKey: ['GET_PRESENTATIONS'] });
+            await queryClient.invalidateQueries({ queryKey: ['GET_PRESENTATIONS'] });
+            await queryClient.refetchQueries({ queryKey: ['GET_PRESENTATIONS'] });
+
+            // Also manually refetch as a fallback
+            await refetch();
+
+            console.log('[Delete] Query invalidated and refetched');
+
             toast.success(`Volt "${presentationToDelete.title}" deleted successfully.`);
         } catch (error: any) {
-            console.error('Delete error:', error);
+            console.error('[Delete] Error details:', error);
+            console.error('[Delete] Response data:', error.response?.data);
+            console.error('[Delete] Status:', error.response?.status);
+
+            // If the API call failed, revert the local state change
+            if (presentationToDelete) {
+                setPresentations(prev => {
+                    const exists = prev.find(p => p.id === presentationToDelete.id);
+                    if (!exists) {
+                        return [...prev, presentationToDelete];
+                    }
+                    return prev;
+                });
+            }
+
             toast.error(
                 error.response?.data?.message || error.message || 'Failed to delete volt.'
             );

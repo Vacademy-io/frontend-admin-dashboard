@@ -1,6 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import {
     Form,
@@ -52,41 +52,76 @@ export const QuizSlide: React.FC<QuizSlideProps> = ({
 
     const { control, getValues, setValue, watch, reset } = form;
 
-    useEffect(() => {
-        if (formdata) {
-            reset(formdata);
-        } else {
-            // Reset to empty structure if formdata is null/undefined to clear previous slide's data
-            reset({ questionName: '', singleChoiceOptions: [], feedbackAnswer: '' });
-        }
-    }, [formdata, reset]);
-
     // Using watch() on the entire form could be expensive.
     // It's better to use useEffect with specific field watches or a debounced submit.
     const watchedFormValues = watch();
 
-    // Debounce the function that updates the Zustand store
-    const debouncedUpdateStore = useMemo(
-        () =>
-            debounce((data: QuestionFormData) => {
-                if (!isPresentationMode) {
-                    // console.log("QuizSlide: Debounced update to store for slide", currentSlideId, data);
-                    updateQuizFeedbackSlide(currentSlideId, data);
-                }
-            }, 500), // 500ms delay, adjust as needed
-        [currentSlideId, isPresentationMode, updateQuizFeedbackSlide]
-    );
+    // Use refs to store previous values for comparison and track initialization
+    const hasInitialized = useRef(false);
+    const previousSlideId = useRef(currentSlideId);
+    const previousFormValues = useRef<QuestionFormData>(watchedFormValues);
 
     useEffect(() => {
-        // Call the debounced function when form values change
-        debouncedUpdateStore(watchedFormValues);
+        // Only reset if the slide ID changed (different slide) or if this is the first initialization
+        const slideChanged = previousSlideId.current !== currentSlideId;
+        
+        if (!hasInitialized.current || slideChanged) {
+            const resetData = formdata || { questionName: '', singleChoiceOptions: [], feedbackAnswer: '' };
+            reset(resetData);
+            
+            // Initialize the previous form values ref
+            previousFormValues.current = resetData;
+            
+            hasInitialized.current = true;
+            previousSlideId.current = currentSlideId;
+        }
+    }, [formdata, reset, currentSlideId]);
+    
+    // Function to update store - called on blur events instead of during typing
+    const updateStoreIfChanged = useCallback((data: QuestionFormData) => {
+        if (!isPresentationMode && hasInitialized.current) {
+            const hasChanged = JSON.stringify(previousFormValues.current) !== JSON.stringify(data);
+            if (hasChanged) {
+                // console.log("QuizSlide: Update to store for slide", currentSlideId, data);
+                updateQuizFeedbackSlide(currentSlideId, data);
+                previousFormValues.current = data;
+            }
+        }
+    }, [currentSlideId, isPresentationMode, updateQuizFeedbackSlide]);
 
-        // Cleanup function to cancel any pending debounced calls if the component unmounts
-        // or if the dependencies of debouncedUpdateStore change.
-        return () => {
-            debouncedUpdateStore.cancel();
-        };
-    }, [watchedFormValues, debouncedUpdateStore]);
+    // Handle blur events for question name editor
+    const handleQuestionNameBlur = useCallback(() => {
+        const currentValues = getValues();
+        updateStoreIfChanged(currentValues);
+    }, [getValues, updateStoreIfChanged]);
+
+    // Handle blur events for option editors
+    const handleOptionBlur = useCallback(() => {
+        const currentValues = getValues();
+        updateStoreIfChanged(currentValues);
+    }, [getValues, updateStoreIfChanged]);
+
+    // Update store immediately for option changes (adding/removing/selecting) since these don't involve typing
+    const lastOptionsLength = useRef(watchedFormValues.singleChoiceOptions?.length || 0);
+    useEffect(() => {
+        if (hasInitialized.current) {
+            const currentValues = getValues();
+            const currentOptions = currentValues.singleChoiceOptions || [];
+            const previousOptions = previousFormValues.current.singleChoiceOptions || [];
+            
+            // Check for structural changes (length change or selection change)
+            const lengthChanged = currentOptions.length !== previousOptions.length;
+            const selectionChanged = currentOptions.some((opt, idx) => 
+                opt.isSelected !== previousOptions[idx]?.isSelected
+            );
+            
+            if (lengthChanged || selectionChanged) {
+                updateStoreIfChanged(currentValues);
+            }
+            
+            lastOptionsLength.current = currentOptions.length;
+        }
+    }, [watchedFormValues.singleChoiceOptions, getValues, updateStoreIfChanged]);
 
     const handleOptionSelectionChange = (optionIndex: number) => {
         if (isPresentationMode) return;
@@ -286,6 +321,7 @@ export const QuizSlide: React.FC<QuizSlideProps> = ({
                                         <MainViewQuillEditor
                                             value={field.value || ''}
                                             onChange={field.onChange}
+                                            onBlur={handleQuestionNameBlur}
                                             placeholder="Type your question or prompt here..."
                                         />
                                             </div>
@@ -350,6 +386,7 @@ export const QuizSlide: React.FC<QuizSlideProps> = ({
                                                         <MainViewQuillEditor
                                                             value={field.value || ''}
                                                             onChange={field.onChange}
+                                                            onBlur={handleOptionBlur}
                                                             placeholder={`Option ${String.fromCharCode(65 + idx)} content`}
                                                             className="text-sm"
                                                         />
@@ -400,6 +437,7 @@ export const QuizSlide: React.FC<QuizSlideProps> = ({
                                             <MainViewQuillEditor
                                                 value={field.value || ''}
                                                 onChange={field.onChange}
+                                                onBlur={handleQuestionNameBlur}
                                                 placeholder="Configure feedback prompt or display area..."
                                             />
                                                 </div>

@@ -20,7 +20,6 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
     className,
     selectedSectionIndex,
 }: SectionQuestionPaperFormProps) => {
-    const [isMultipleAnswersAllowed, setIsMultipleAnswersAllowed] = useState(false);
     const { control, getValues, trigger, watch } = form;
 
     const numericType = watch(
@@ -29,9 +28,6 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
     const validAnswers = watch(
         `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.validAnswers`
     );
-    useEffect(() => {
-        if (validAnswers && validAnswers?.length > 1) setIsMultipleAnswersAllowed(true);
-    });
     useEffect(() => {
         trigger(`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.validAnswers`);
     }, [numericType, currentQuestionIndex, trigger]);
@@ -48,9 +44,10 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
     interface CollapsibleQuillEditorProps {
         value: string | null | undefined;
         onChange: (content: string) => void;
+        onBlur: () => void;
     }
 
-    const CollapsibleQuillEditor: React.FC<CollapsibleQuillEditorProps> = ({ value, onChange }) => {
+    const CollapsibleQuillEditor: React.FC<CollapsibleQuillEditorProps> = ({ value, onChange, onBlur }) => {
         return (
             <div className="">
                 {!isExpanded ? (
@@ -69,7 +66,7 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
                 ) : (
                     // Render full Quill Editor when expanded
                     <div className="border bg-primary-100 p-2">
-                        <MainViewQuillEditor value={value} onChange={onChange} />
+                        <MainViewQuillEditor value={value} onChange={onChange} onBlur={onBlur} />
                         <button
                             className="mt-2 text-body text-blue-500"
                             onClick={() => setIsExpanded(false)}
@@ -178,6 +175,7 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
                                 <CollapsibleQuillEditor
                                     value={field.value}
                                     onChange={field.onChange}
+                                    onBlur={field.onBlur}
                                 />
                             </FormControl>
                             <FormMessage />
@@ -201,6 +199,7 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
                                 <MainViewQuillEditor
                                     value={field.value}
                                     onChange={field.onChange}
+                                    onBlur={field.onBlur}
                                 />
                             </FormControl>
                             <FormMessage />
@@ -218,22 +217,7 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
                             <FormControl>
                                 <div className="flex flex-row justify-between">
                                     <div>{answersType}</div>
-                                    <div className="flex flex-row items-center gap-2">
-                                        <Checkbox
-                                            checked={isMultipleAnswersAllowed}
-                                            onCheckedChange={(checked) => {
-                                                setIsMultipleAnswersAllowed(!!checked);
-                                                if (!checked) {
-                                                    // If unchecked, keep only the first answer
-                                                    form.setValue(
-                                                        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.validAnswers`,
-                                                        field.value ? [field.value[0] || 0] : [0]
-                                                    );
-                                                }
-                                            }}
-                                        />
-                                        <div>Contains Multiple Answers</div>
-                                    </div>
+
                                 </div>
                             </FormControl>
                             <FormMessage />
@@ -265,35 +249,31 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
                                                     inputType="number"
                                                 />
                                                 {/* Remove button for each answer */}
-                                                {isMultipleAnswersAllowed && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            field.onChange(
-                                                                field.value?.filter(
-                                                                    (_, i) => i !== index
-                                                                )
-                                                            );
-                                                        }}
-                                                    >
-                                                        <X />
-                                                    </button>
-                                                )}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        field.onChange(
+                                                            field.value?.filter(
+                                                                (_, i) => i !== index
+                                                            )
+                                                        );
+                                                    }}
+                                                >
+                                                    <X />
+                                                </button>
                                             </div>
                                         ))}
                                     {/* Add new answer */}
-                                    {isMultipleAnswersAllowed && (
-                                        <Button
-                                            variant="outline"
-                                            type="button"
-                                            className="cursor-pointer"
-                                            onClick={() => {
-                                                field.onChange([...(field.value || []), 0]);
-                                            }}
-                                        >
-                                            <Plus size={20} />
-                                        </Button>
-                                    )}
+                                    <Button
+                                        variant="outline"
+                                        type="button"
+                                        className="cursor-pointer"
+                                        onClick={() => {
+                                            field.onChange([...(field.value || []), 0]);
+                                        }}
+                                    >
+                                        <Plus size={20} />
+                                    </Button>
                                 </div>
                             </FormControl>
                             <FormMessage />
@@ -312,6 +292,7 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
                                 <MainViewQuillEditor
                                     value={field.value}
                                     onChange={field.onChange}
+                                    onBlur={field.onBlur}
                                 />
                             </FormControl>
                             <FormMessage />

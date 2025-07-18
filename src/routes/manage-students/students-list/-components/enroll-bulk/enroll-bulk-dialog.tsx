@@ -18,6 +18,8 @@ import { useAddSession } from '@/services/study-library/session-management/addSe
 import { useAddLevel } from '@/routes/study-library/courses/course-details/-services/add-level';
 import { AddSessionDataType } from '@/routes/manage-institute/sessions/-components/session-operations/add-session/add-session-form';
 import { AddLevelData } from '@/routes/study-library/courses/course-details/-components/add-course-details-form';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 
 export const EnrollBulkDialog = () => {
     const { getCourseFromPackage, getSessionFromPackage, getLevelsFromPackage, instituteDetails } =
@@ -120,10 +122,21 @@ export const EnrollBulkDialog = () => {
             { requestData: transformedData as unknown as AddSessionDataType },
             {
                 onSuccess: () => {
-                    toast.success('Session added successfully');
+                    toast.success(
+                        ` ${getTerminology(
+                            ContentTerms.Session,
+                            SystemTerms.Session
+                        )} added successfully`
+                    );
                 },
                 onError: (error) => {
-                    toast.error(error.message || 'Failed to add session');
+                    toast.error(
+                        error.message ||
+                            `Failed to add ${getTerminology(
+                                ContentTerms.Session,
+                                SystemTerms.Session
+                            ).toLocaleLowerCase()}`
+                    );
                 },
             }
         );
@@ -230,7 +243,10 @@ export const EnrollBulkDialog = () => {
                                         <FormControl>
                                             <div className="flex flex-col gap-1">
                                                 <div>
-                                                    Course
+                                                    {getTerminology(
+                                                        ContentTerms.Course,
+                                                        SystemTerms.Course
+                                                    )}
                                                     <span className="text-subtitle text-danger-600">
                                                         *
                                                     </span>
@@ -239,7 +255,10 @@ export const EnrollBulkDialog = () => {
                                                     currentValue={value.name}
                                                     dropdownList={courseList}
                                                     handleChange={onChange}
-                                                    placeholder="Select Course"
+                                                    placeholder={`Select ${getTerminology(
+                                                        ContentTerms.Course,
+                                                        SystemTerms.Course
+                                                    )}`}
                                                     error={
                                                         form.formState.errors.course?.id?.message ||
                                                         form.formState.errors.course?.name?.message
@@ -261,7 +280,10 @@ export const EnrollBulkDialog = () => {
                                         <FormControl>
                                             <div className="flex flex-col gap-1">
                                                 <div>
-                                                    Session{' '}
+                                                    {getTerminology(
+                                                        ContentTerms.Session,
+                                                        SystemTerms.Session
+                                                    )}{' '}
                                                     <span className="text-subtitle text-danger-600">
                                                         *
                                                     </span>
@@ -270,7 +292,10 @@ export const EnrollBulkDialog = () => {
                                                     currentValue={value.name}
                                                     dropdownList={sessionList}
                                                     handleChange={onChange}
-                                                    placeholder="Select Session"
+                                                    placeholder={`Select ${getTerminology(
+                                                        ContentTerms.Session,
+                                                        SystemTerms.Session
+                                                    )}`}
                                                     error={
                                                         form.formState.errors.session?.id
                                                             ?.message ||
@@ -294,7 +319,10 @@ export const EnrollBulkDialog = () => {
                                         <FormControl>
                                             <div className="flex flex-col gap-1">
                                                 <div>
-                                                    Level{' '}
+                                                    {getTerminology(
+                                                        ContentTerms.Level,
+                                                        SystemTerms.Level
+                                                    )}{' '}
                                                     <span className="text-subtitle text-danger-600">
                                                         *
                                                     </span>
@@ -303,7 +331,10 @@ export const EnrollBulkDialog = () => {
                                                     currentValue={value.name}
                                                     dropdownList={levelList}
                                                     handleChange={onChange}
-                                                    placeholder="Select Level"
+                                                    placeholder={`Select ${getTerminology(
+                                                        ContentTerms.Level,
+                                                        SystemTerms.Level
+                                                    )}`}
                                                     error={
                                                         form.formState.errors.level?.id?.message ||
                                                         form.formState.errors.level?.name?.message
