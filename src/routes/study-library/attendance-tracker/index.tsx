@@ -1210,8 +1210,7 @@ function RouteComponent() {
     };
 
     // Apply filters to student data
-    const filteredStudents = useMemo(() => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const filteredStudents: AttendanceStudent[] = useMemo(() => {
         const res = mockStudentData.filter((student) => {
             // Search filter (case-insensitive)
             const searchLower = searchQuery.toLowerCase();
@@ -1239,7 +1238,32 @@ function RouteComponent() {
 
             return matchesSearch && matchesBatch && matchesClass && matchesAttendance;
         });
+
+        // Ensure we actually return the filtered array
+        return res;
     }, [searchQuery, selectedBatch, selectedClass, attendanceFilter]);
+
+    // Pagination helpers
+    const totalPages = Math.max(1, Math.ceil(filteredStudents.length / pageSize));
+
+    const paginatedStudents: AttendanceStudent[] = useMemo(() => {
+        const startIdx = page * pageSize;
+        return filteredStudents.slice(startIdx, startIdx + pageSize);
+    }, [filteredStudents, page, pageSize]);
+
+    // All rows selected checker
+    const allRowsSelected =
+        paginatedStudents.length > 0 && paginatedStudents.every((s) => rowSelections[s.id]);
+
+    // Placeholder export functions
+    const exportAccountDetails = (sel: typeof mockStudentData) => {
+        // TODO: implement actual export
+        console.log('Exporting account details for', sel.length, 'students');
+    };
+
+    const exportFullData = (sel: typeof mockStudentData) => {
+        console.log('Exporting full data for', sel.length, 'students');
+    };
 
     return (
         <StudentSidebarContext.Provider value={{ selectedStudent, setSelectedStudent }}>
