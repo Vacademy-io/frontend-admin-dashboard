@@ -1,6 +1,6 @@
 import { AddCourseForm } from './add-course-form';
 import { MyButton } from '@/components/design-system/button';
-import { AddCourseForm } from './add-course-form';
+// import { AddCourseForm } from './add-course-form';
 
 const CourseTypeButtons = () => {
     return (

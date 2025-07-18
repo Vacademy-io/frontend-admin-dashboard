@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { MyDialog } from '@/components/design-system/dialog';
 import { MyButton } from '@/components/design-system/button';
 import { MyRadioButton } from '@/components/design-system/radio';
-import { deleteLiveSession, DeleteScope } from '../schedule/-services/utils';
+import { deleteLiveSession } from '../schedule/-services/utils';
 import { getSessionBySessionId, SessionBySessionIdResponse } from '../-services/utils';
 import { useQueryClient } from '@tanstack/react-query';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -61,11 +61,12 @@ function generateOccurrences(
             Saturday: 6,
         };
 
-        let currentDate = new Date(startDate);
+        const currentDate = new Date(startDate);
         while (currentDate <= endDate) {
             const currentDayOfWeek = currentDate.getDay();
             for (const pattern of weeklyPattern) {
-                const dayKey = pattern.day.charAt(0).toUpperCase() + pattern.day.slice(1).toLowerCase();
+                const dayKey =
+                    pattern.day.charAt(0).toUpperCase() + pattern.day.slice(1).toLowerCase();
                 if (dayMap[dayKey] === currentDayOfWeek) {
                     const occurrenceDate = new Date(currentDate);
                     pushOccurrence(occurrenceDate, pattern.id, pattern.startTime);
@@ -106,7 +107,7 @@ export default function DeleteRecurringDialog({
     sessionId,
     onSuccess,
 }: DeleteRecurringDialogProps) {
-    type Choice = DeleteScope | 'manual';
+    type Choice = 'single' | 'following' | 'manual';
     const [choice, setChoice] = useState<Choice>('single');
     const [loading, setLoading] = useState(false);
     const queryClient = useQueryClient();
@@ -134,7 +135,7 @@ export default function DeleteRecurringDialog({
                     const details = await getSessionBySessionId(sessionId);
                     setSessionDetails(details);
                 } catch (err) {
-                    console.error("Failed to fetch session details:", err);
+                    console.error('Failed to fetch session details:', err);
                 } finally {
                     setLoading(false);
                 }
@@ -147,7 +148,9 @@ export default function DeleteRecurringDialog({
         if (choice === 'manual') {
             // NOTE: Implement API call for manual deletion once backend supports manual scope
             console.log('Manually selected dates to delete:', Array.from(selectedDates));
-            alert("Manual deletion API is not yet implemented. Check the console for selected dates.");
+            alert(
+                'Manual deletion API is not yet implemented. Check the console for selected dates.'
+            );
             return;
         }
 
@@ -194,11 +197,14 @@ export default function DeleteRecurringDialog({
 
                 {choice === 'manual' && (
                     <div className="border-t pt-4">
-                        <h3 className="font-semibold mb-2">Select dates to remove:</h3>
+                        <h3 className="mb-2 font-semibold">Select dates to remove:</h3>
                         {loading && <div>Loading schedule...</div>}
-                        <div className="max-h-60 overflow-y-auto pr-2 flex flex-col gap-2">
+                        <div className="flex max-h-60 flex-col gap-2 overflow-y-auto pr-2">
                             {occurrences.map((occ) => (
-                                <div key={occ.id} className="flex items-center gap-3 p-2 rounded-md hover:bg-neutral-50">
+                                <div
+                                    key={occ.id}
+                                    className="flex items-center gap-3 rounded-md p-2 hover:bg-neutral-50"
+                                >
                                     {(() => {
                                         const dateTime = new Date(occ.date);
                                         const [h, m] = parseHM(occ.time);
@@ -224,7 +230,7 @@ export default function DeleteRecurringDialog({
                     </div>
                 )}
 
-                <div className="flex justify-end gap-4 pt-2 border-t">
+                <div className="flex justify-end gap-4 border-t pt-2">
                     <MyButton
                         type="button"
                         buttonType="text"
