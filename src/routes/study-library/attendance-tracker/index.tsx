@@ -1259,6 +1259,7 @@ function RouteComponent() {
     // Ensure page within bounds when filters change
     useEffect(() => {
         if (page >= totalPages) setPage(totalPages - 1);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [totalPages]);
 
     const paginatedStudents = useMemo(() => {
