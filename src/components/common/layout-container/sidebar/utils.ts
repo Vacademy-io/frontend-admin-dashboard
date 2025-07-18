@@ -104,6 +104,10 @@ export const SidebarItemsData: SidebarItemsType[] = [
                 subItemLink: '/study-library/live-session',
             },
             {
+                subItem: 'Attendance Tracker',
+                subItemLink: '/study-library/attendance-tracker',
+            },
+            {
                 subItem: 'Reports',
                 subItemLink: '/study-library/reports',
             },
