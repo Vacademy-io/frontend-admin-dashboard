@@ -13,6 +13,8 @@ import { useAddSession } from '@/services/study-library/session-management/addSe
 import { AddSessionDataType } from '@/routes/manage-institute/sessions/-components/session-operations/add-session/add-session-form';
 import { toast } from 'sonner';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 export const StudentFilters = ({
     currentSession,
@@ -62,11 +64,22 @@ export const StudentFilters = ({
             { requestData: transformedData as unknown as AddSessionDataType },
             {
                 onSuccess: () => {
-                    toast.success('Session added successfully');
+                    toast.success(
+                        ` ${getTerminology(
+                            ContentTerms.Session,
+                            SystemTerms.Session
+                        )} added successfully`
+                    );
                     setIsAddSessionDiaogOpen(false);
                 },
                 onError: (error) => {
-                    toast.error(error.message || 'Failed to add session');
+                    toast.error(
+                        error.message ||
+                            `Failed to add ${getTerminology(
+                                ContentTerms.Session,
+                                SystemTerms.Session
+                            ).toLocaleLowerCase()}`
+                    );
                 },
             }
         );

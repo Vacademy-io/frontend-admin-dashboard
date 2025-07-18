@@ -26,6 +26,9 @@ import { Link2Icon } from 'lucide-react';
 import { handleOAuthLogin } from '@/hooks/login/oauth-login';
 import { GitHubLogoIcon } from '@radix-ui/react-icons';
 import { FcGoogle } from 'react-icons/fc';
+import { EmailLogin } from './EmailOtpForm';
+import { useState } from 'react';
+import { amplitudeEvents, identifyUser, trackEvent } from '@/lib/amplitude';
 
 type FormValues = z.infer<typeof loginSchema>;
 
@@ -33,6 +36,7 @@ export function LoginForm() {
     const queryClient = useQueryClient();
     const { hasSeenAnimation, setHasSeenAnimation } = useAnimationStore();
     const navigate = useNavigate();
+    const [isEmailLogin, setIsEmailLogin] = useState(false);
 
     const form = useForm<FormValues>({
         resolver: zodResolver(loginSchema),
@@ -56,8 +60,20 @@ export function LoginForm() {
         const ssoLoginSuccess = handleSSOLogin();
 
         if (ssoLoginSuccess) {
-            queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
-            navigate({ to: '/dashboard' });
+            // Track SSO login success
+            amplitudeEvents.signIn('sso');
+            trackEvent('Login Success', {
+                login_method: 'sso',
+                timestamp: new Date().toISOString()
+            });
+
+            // Clear all queries to ensure fresh data fetch
+            queryClient.clear();
+
+            // Add a small delay to ensure tokens are properly set before navigation
+            setTimeout(() => {
+                navigate({ to: '/dashboard' });
+            }, 100);
             return;
         }
         const urlParams = new URLSearchParams(window.location.search);
@@ -67,11 +83,24 @@ export function LoginForm() {
         if (accessToken && refreshToken) {
             setAuthorizationCookie(TokenKey.accessToken, accessToken);
             setAuthorizationCookie(TokenKey.refreshToken, refreshToken);
-            queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
+
+            // Clear all queries to ensure fresh data fetch
+            queryClient.clear();
+
+            // Track OAuth login success
+            amplitudeEvents.signIn('oauth');
+            trackEvent('Login Success', {
+                login_method: 'oauth',
+                timestamp: new Date().toISOString()
+            });
 
             // Check user roles and redirect accordingly
             const userRoles = getUserRoles(accessToken);
-            handlePostLoginRedirect(userRoles);
+
+            // Add a small delay to ensure tokens are properly set before navigation
+            setTimeout(() => {
+                handlePostLoginRedirect(userRoles);
+            }, 100);
         }
     }, [navigate, queryClient]);
 
@@ -107,14 +136,37 @@ export function LoginForm() {
         mutationFn: (values: FormValues) => loginUser(values.username, values.password),
         onSuccess: (response) => {
             if (response) {
-                queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
+                // Store tokens in cookies first
                 setAuthorizationCookie(TokenKey.accessToken, response.accessToken);
                 setAuthorizationCookie(TokenKey.refreshToken, response.refreshToken);
 
-                // Get user roles and handle redirect
+                // Clear all queries to ensure fresh data fetch
+                queryClient.clear();
+
+                // Track successful login
+                amplitudeEvents.signIn('username_password');
+
+                // Identify user if you have user information
+                // You can add more user properties here based on the response
                 const userRoles = getUserRoles(response.accessToken);
-                handlePostLoginRedirect(userRoles);
+                trackEvent('Login Success', {
+                    login_method: 'username_password',
+                    user_roles: userRoles,
+                    timestamp: new Date().toISOString()
+                });
+
+                // Add a small delay to ensure tokens are properly set before navigation
+                setTimeout(() => {
+                    handlePostLoginRedirect(userRoles);
+                }, 100);
             } else {
+                // Track failed login
+                trackEvent('Login Failed', {
+                    login_method: 'username_password',
+                    error_reason: 'invalid_credentials',
+                    timestamp: new Date().toISOString()
+                });
+
                 toast.error('Login Error', {
                     description: 'Invalid credentials',
                     className: 'error-toast',
@@ -124,6 +176,15 @@ export function LoginForm() {
         },
         onError: (error) => {
             console.error('Login error:', error);
+
+            // Track login error
+            trackEvent('Login Failed', {
+                login_method: 'username_password',
+                error_reason: 'network_error',
+                error_message: error?.message || 'Unknown error',
+                timestamp: new Date().toISOString()
+            });
+
             toast.error('Login Error', {
                 description: 'Invalid username or password',
                 className: 'error-toast',
@@ -144,6 +205,14 @@ export function LoginForm() {
         navigate({ to: '/evaluator-ai' });
     };
 
+    const handleSwitchToEmail = () => {
+        setIsEmailLogin(true);
+    };
+
+    const handleSwitchToUsername = () => {
+        setIsEmailLogin(false);
+    };
+
     return (
         <SplashScreen isAnimationEnabled={!hasSeenAnimation}>
             <div className="flex w-full flex-col items-center justify-center gap-20">
@@ -156,7 +225,14 @@ export function LoginForm() {
                     <div className="flex w-full max-w-[348px] flex-col gap-4">
                         <button
                             className="flex w-full items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 shadow-sm transition-colors hover:bg-neutral-50"
-                            onClick={() => handleOAuthLogin('google', { isSignup: false })}
+                            onClick={() => {
+                                trackEvent('OAuth Login Initiated', {
+                                    provider: 'google',
+                                    action: 'login',
+                                    timestamp: new Date().toISOString()
+                                });
+                                handleOAuthLogin('google', { isSignup: false });
+                            }}
                             type="button"
                         >
                             {FcGoogle({ size: 20 })}
@@ -164,7 +240,14 @@ export function LoginForm() {
                         </button>
                         <button
                             className="flex w-full items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 shadow-sm transition-colors hover:bg-neutral-50"
-                            onClick={() => handleOAuthLogin('github', { isSignup: false })}
+                            onClick={() => {
+                                trackEvent('OAuth Login Initiated', {
+                                    provider: 'github',
+                                    action: 'login',
+                                    timestamp: new Date().toISOString()
+                                });
+                                handleOAuthLogin('github', { isSignup: false });
+                            }}
                             type="button"
                         >
                             <GitHubLogoIcon className="size-5" />
@@ -181,49 +264,29 @@ export function LoginForm() {
                         </div>
                     </div>
 
-                    <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">
-                            <div className="flex w-full flex-col items-center justify-center gap-8 px-16">
-                                <FormField
-                                    control={form.control}
-                                    name="username"
-                                    render={({ field: { onChange, value, ...field } }) => (
-                                        <FormItem>
-                                            <FormControl>
-                                                <MyInput
-                                                    inputType="text"
-                                                    inputPlaceholder="Enter your username"
-                                                    input={value}
-                                                    onChangeFunction={onChange}
-                                                    error={form.formState.errors.username?.message}
-                                                    required={true}
-                                                    size="large"
-                                                    label="Username"
-                                                    {...field}
-                                                    className="w-[348px]"
-                                                />
-                                            </FormControl>
-                                        </FormItem>
-                                    )}
-                                />
-                                <div className="flex flex-col gap-2">
+                    {isEmailLogin ? (
+                        <EmailLogin onSwitchToUsername={handleSwitchToUsername} />
+                    ) : (
+                        <Form {...form}>
+                            <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">
+                                <div className="flex w-full flex-col items-center justify-center gap-8 px-16">
                                     <FormField
                                         control={form.control}
-                                        name="password"
+                                        name="username"
                                         render={({ field: { onChange, value, ...field } }) => (
                                             <FormItem>
                                                 <FormControl>
                                                     <MyInput
-                                                        inputType="password"
-                                                        inputPlaceholder="••••••••"
+                                                        inputType="text"
+                                                        inputPlaceholder="Enter your username"
                                                         input={value}
                                                         onChangeFunction={onChange}
                                                         error={
-                                                            form.formState.errors.password?.message
+                                                            form.formState.errors.username?.message
                                                         }
                                                         required={true}
                                                         size="large"
-                                                        label="Password"
+                                                        label="Username"
                                                         {...field}
                                                         className="w-[348px]"
                                                     />
@@ -231,44 +294,91 @@ export function LoginForm() {
                                             </FormItem>
                                         )}
                                     />
-                                    <Link to="/login/forgot-password">
-                                        <div className="cursor-pointer pl-1 text-caption font-regular text-primary-500">
-                                            Forgot Password?
+                                    <div className="flex flex-col gap-2">
+                                        <FormField
+                                            control={form.control}
+                                            name="password"
+                                            render={({ field: { onChange, value, ...field } }) => (
+                                                <FormItem>
+                                                    <FormControl>
+                                                        <MyInput
+                                                            inputType="password"
+                                                            inputPlaceholder="••••••••"
+                                                            input={value}
+                                                            onChangeFunction={onChange}
+                                                            error={
+                                                                form.formState.errors.password
+                                                                    ?.message
+                                                            }
+                                                            required={true}
+                                                            size="large"
+                                                            label="Password"
+                                                            {...field}
+                                                            className="w-[348px]"
+                                                        />
+                                                    </FormControl>
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <div className="flex items-center justify-between pl-1">
+                                            <Link to="/login/forgot-password">
+                                                <div className="cursor-pointer text-caption font-regular text-primary-500">
+                                                    Forgot Password?
+                                                </div>
+                                            </Link>
                                         </div>
-                                    </Link>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="mt-20 flex flex-col items-center gap-1">
-                                <MyButton
-                                    type="submit"
-                                    scale="large"
-                                    buttonType="primary"
-                                    layoutVariant="default"
-                                    disabled={mutation.isPending}
+                                {/* <button
+                                    type="button"
+                                    onClick={handleSwitchToEmail}
+                                    className="hover:text-primary-600 cursor-pointer text-caption font-regular text-primary-500 transition-colors"
                                 >
-                                    {mutation.isPending ? 'Logging in...' : 'Login'}
-                                </MyButton>
-                                <p className="text-sm">
-                                    Don&apos;t have an account?&nbsp;&nbsp;
-                                    <span
-                                        className="cursor-pointer text-primary-500"
-                                        onClick={handleNavigateSignup}
+                                    Prefer email login?
+                                </button> */}
+
+                                <div className="mt-8 flex flex-col items-center gap-1">
+                                    <MyButton
+                                        type="submit"
+                                        scale="large"
+                                        buttonType="primary"
+                                        layoutVariant="default"
+                                        disabled={mutation.isPending}
                                     >
-                                        Create One
-                                    </span>
-                                </p>
-                                <p className="text-caption font-regular text-primary-500">
-                                    <span
-                                        className="cursor-pointer text-primary-500"
-                                        onClick={handleNavigateAiEvaluator}
-                                    >
-                                        <Link2Icon className="mr-1 inline size-4" />
-                                        Try Our AI Evaluator Tool
-                                    </span>
-                                </p>
-                            </div>
-                        </form>
-                    </Form>
+                                        {mutation.isPending ? 'Logging in...' : 'Login'}
+                                    </MyButton>
+                                    <div className="flex w-full items-center justify-center p-4">
+                                        <button
+                                            type="button"
+                                            onClick={handleSwitchToEmail}
+                                            className="hover:text-primary-600 cursor-pointer text-sm font-regular text-primary-500 transition-colors"
+                                        >
+                                            Prefer email login?
+                                        </button>
+                                    </div>
+
+                                    <p className="text-sm">
+                                        Don&apos;t have an account?&nbsp;&nbsp;
+                                        <span
+                                            className="cursor-pointer text-primary-500"
+                                            onClick={handleNavigateSignup}
+                                        >
+                                            Create One
+                                        </span>
+                                    </p>
+                                    <p className="text-caption font-regular text-primary-500">
+                                        <span
+                                            className="cursor-pointer text-primary-500"
+                                            onClick={handleNavigateAiEvaluator}
+                                        >
+                                            <Link2Icon className="mr-1 inline size-4" />
+                                            Try Our AI Evaluator Tool
+                                        </span>
+                                    </p>
+                                </div>
+                            </form>
+                        </Form>
+                    )}
                 </div>
             </div>
         </SplashScreen>

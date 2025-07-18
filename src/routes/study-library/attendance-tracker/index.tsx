@@ -1,3 +1,4 @@
+/* eslint-disable tailwindcss/no-custom-classname */
 import { createFileRoute } from '@tanstack/react-router';
 import { LayoutContainer } from '@/components/common/layout-container/layout-container';
 import { Helmet } from 'react-helmet';
@@ -485,7 +486,7 @@ const StudentDetailsSidebar = () => {
                                         <Users className="size-4 text-purple-600" />
                                     </div>
                                     <h4 className="text-xs font-medium text-neutral-700">
-                                        Parent/Guardian's Details
+                                        Parent/Guardian&lsquo;s Details
                                     </h4>
                                 </div>
 
@@ -494,7 +495,7 @@ const StudentDetailsSidebar = () => {
                                         <div className="flex items-center gap-2">
                                             <div className="size-1.5 rounded-full bg-neutral-300"></div>
                                             <p className="text-xs text-neutral-600">
-                                                Father/Male Guardian's Name: N/A
+                                                Father/Male Guardian&lsquo;s Name: N/A
                                             </p>
                                         </div>
                                         <div className="text-neutral-400">
@@ -505,7 +506,7 @@ const StudentDetailsSidebar = () => {
                                         <div className="flex items-center gap-2">
                                             <div className="size-1.5 rounded-full bg-neutral-300"></div>
                                             <p className="text-xs text-neutral-600">
-                                                Mother/Male Guardian's Name: N/A
+                                                Mother/Male Guardian&lsquo;s Name: N/A
                                             </p>
                                         </div>
                                         <div className="text-neutral-400">
@@ -1062,32 +1063,32 @@ const AttendanceModal = ({ isOpen, onClose, student }: AttendanceModalProps) => 
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="flex max-h-[90vh] flex-col sm:max-w-[600px]">
-                <div className="flex items-center justify-between border-b border-neutral-200 p-6">
-                    <h2 className="text-xl font-semibold text-neutral-800">
+            <DialogContent className="flex max-h-[75vh] flex-col sm:max-w-[450px]">
+                <div className="flex items-center justify-between border-b border-neutral-200 p-4">
+                    <h2 className="text-lg font-semibold text-neutral-800">
                         {student.name} - Class Attendance
                     </h2>
                 </div>
 
-                <div className="flex flex-col gap-6 overflow-y-auto p-6">
+                <div className="flex flex-col gap-4 overflow-y-auto p-4">
                     {/* Overall Attendance */}
-                    <div className="rounded-lg bg-primary-50 p-6 text-center">
-                        <div className="text-5xl font-bold text-primary-500">
+                    <div className="rounded-lg bg-primary-50 p-4 text-center">
+                        <div className="text-4xl font-bold text-primary-500">
                             {student.attendancePercentage}%
                         </div>
-                        <div className="mt-2 text-lg text-neutral-600">Overall Attendance</div>
+                        <div className="mt-2 text-base text-neutral-600">Overall Attendance</div>
                     </div>
 
                     {/* Class List */}
-                    <div className="flex flex-col gap-4 overflow-y-auto">
+                    <div className="flex flex-col gap-3 overflow-y-auto">
                         {studentClasses.map((classItem) => (
                             <div
                                 key={classItem.id}
-                                className="rounded-lg border border-neutral-200 p-6"
+                                className="rounded-lg border border-neutral-200 p-4"
                             >
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <h3 className="text-lg font-medium text-neutral-800">
+                                        <h3 className="text-base font-medium text-neutral-800">
                                             {classItem.className}
                                         </h3>
                                         <p className="text-sm text-neutral-600">
@@ -1095,7 +1096,7 @@ const AttendanceModal = ({ isOpen, onClose, student }: AttendanceModalProps) => 
                                         </p>
                                     </div>
                                     <div
-                                        className={`rounded-full px-4 py-1 text-sm font-medium ${
+                                        className={`rounded-full px-3 py-1 text-xs font-medium ${
                                             classItem.status === 'Present'
                                                 ? 'bg-success-50 text-success-600'
                                                 : 'bg-danger-100 text-danger-600'
@@ -1152,7 +1153,7 @@ function RouteComponent() {
     const toggleSelectAll = (checked: boolean) => {
         if (checked) {
             const newSelections: Record<string, boolean> = {};
-            paginatedStudents.forEach((s) => {
+            paginatedStudents.forEach((s: { id: string | number }) => {
                 newSelections[s.id] = true;
             });
             setRowSelections(newSelections);
@@ -1210,7 +1211,8 @@ function RouteComponent() {
 
     // Apply filters to student data
     const filteredStudents = useMemo(() => {
-        let res = mockStudentData.filter((student) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const res = mockStudentData.filter((student) => {
             // Search filter (case-insensitive)
             const searchLower = searchQuery.toLowerCase();
             const matchesSearch =
@@ -1237,90 +1239,7 @@ function RouteComponent() {
 
             return matchesSearch && matchesBatch && matchesClass && matchesAttendance;
         });
-
-        // Apply sorting
-        if (sortConfig.key) {
-            const dir = sortConfig.direction === 'asc' ? 1 : -1;
-            res = [...res].sort((a, b) => {
-                const valA = String(a[sortConfig.key as keyof AttendanceStudent]).toLowerCase();
-                const valB = String(b[sortConfig.key as keyof AttendanceStudent]).toLowerCase();
-                if (valA < valB) return -1 * dir;
-                if (valA > valB) return 1 * dir;
-                return 0;
-            });
-        }
-
-        return res;
-    }, [searchQuery, selectedBatch, selectedClass, attendanceFilter, sortConfig]);
-
-    const totalPages = Math.max(1, Math.ceil(filteredStudents.length / pageSize));
-
-    // Ensure page within bounds when filters change
-    useEffect(() => {
-        if (page >= totalPages) setPage(totalPages - 1);
-    }, [totalPages]);
-
-    const paginatedStudents = useMemo(() => {
-        const start = page * pageSize;
-        return filteredStudents.slice(start, start + pageSize);
-    }, [filteredStudents, page]);
-
-    const allRowsSelected =
-        paginatedStudents.length > 0 && paginatedStudents.every((s) => rowSelections[s.id]);
-
-    // utility to convert rows to csv and trigger download
-    const downloadCSV = (filename: string, rows: string[][]) => {
-        const csvContent = rows
-            .map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(','))
-            .join('\n');
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.setAttribute('href', url);
-        link.setAttribute('download', filename);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
-
-    const exportAccountDetails = (students: AttendanceStudent[]) => {
-        const headers = ['ID', 'Name', 'Username', 'Batch', 'Mobile Number', 'Email'];
-        const rows = [
-            headers,
-            ...students.map((s) => [s.id, s.name, s.username, s.batch, s.mobileNumber, s.email]),
-        ];
-        downloadCSV('account_details.csv', rows);
-    };
-
-    const exportFullData = (students: AttendanceStudent[]) => {
-        const headers = [
-            'ID',
-            'Name',
-            'Username',
-            'Batch',
-            'Mobile Number',
-            'Email',
-            'Attended Classes',
-            'Total Classes',
-            'Attendance %',
-        ];
-        const rows = [
-            headers,
-            ...students.map((s) => [
-                s.id,
-                s.name,
-                s.username,
-                s.batch,
-                s.mobileNumber,
-                s.email,
-                `${s.attendedClasses}`,
-                `${s.totalClasses}`,
-                `${s.attendancePercentage}`,
-            ]),
-        ];
-        downloadCSV('attendance_full_data.csv', rows);
-    };
+    }, [searchQuery, selectedBatch, selectedClass, attendanceFilter]);
 
     return (
         <StudentSidebarContext.Provider value={{ selectedStudent, setSelectedStudent }}>

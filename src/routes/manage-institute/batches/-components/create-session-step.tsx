@@ -10,6 +10,8 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/comp
 import { MyButton } from '@/components/design-system/button';
 import { X } from 'phosphor-react';
 import { Session } from '@/components/common/study-library/add-course/add-course-form';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 export const CreateSessionStep = () => {
     const [newSessionName, setNewSessionName] = useState('');
@@ -49,7 +51,7 @@ export const CreateSessionStep = () => {
                 render={({ field }) => (
                     <FormItem className="space-y-3">
                         <FormLabel className="text-base font-medium text-neutral-700">
-                            Session Selection
+                            {getTerminology(ContentTerms.Session, SystemTerms.Session)} Selection
                         </FormLabel>
                         <FormControl>
                             <RadioGroup
@@ -69,7 +71,11 @@ export const CreateSessionStep = () => {
                                         htmlFor="existing-session"
                                         className="cursor-pointer font-normal text-neutral-600"
                                     >
-                                        Select existing session
+                                        Select existing{' '}
+                                        {getTerminology(
+                                            ContentTerms.Session,
+                                            SystemTerms.Session
+                                        ).toLocaleLowerCase()}
                                     </FormLabel>
                                 </FormItem>
                                 <FormItem className="flex items-center space-x-2 space-y-0">
@@ -80,7 +86,11 @@ export const CreateSessionStep = () => {
                                         htmlFor="new-session"
                                         className="cursor-pointer font-normal text-neutral-600"
                                     >
-                                        Create new session
+                                        Create new{' '}
+                                        {getTerminology(
+                                            ContentTerms.Session,
+                                            SystemTerms.Session
+                                        ).toLocaleLowerCase()}
                                     </FormLabel>
                                 </FormItem>
                             </RadioGroup>
@@ -98,7 +108,8 @@ export const CreateSessionStep = () => {
                     render={({ field }) => (
                         <FormItem className="flex flex-col gap-1.5">
                             <FormLabel className="text-neutral-700">
-                                Session <span className="text-danger-500">*</span>
+                                {getTerminology(ContentTerms.Session, SystemTerms.Session)}{' '}
+                                <span className="text-danger-500">*</span>
                             </FormLabel>
                             <FormControl>
                                 <MyDropdown
@@ -108,7 +119,10 @@ export const CreateSessionStep = () => {
                                         name: session.name,
                                     }))}
                                     handleChange={field.onChange}
-                                    placeholder="Select a session"
+                                    placeholder={`Select a ${getTerminology(
+                                        ContentTerms.Session,
+                                        SystemTerms.Session
+                                    ).toLocaleLowerCase()}`}
                                     disable={sessionList.length === 0}
                                 />
                             </FormControl>

@@ -5,6 +5,10 @@ import { HOLISTIC_INSTITUTE_ID, INIT_INSTITUTE } from '@/constants/urls';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
 import { useTheme } from '@/providers/theme/theme-provider';
+import { StorageKey } from '@/constants/storage/storage';
+import useLocalStorage from '@/hooks/use-local-storage';
+import { isNullOrEmptyOrUndefined } from '@/lib/utils';
+import { NamingSettingsType } from '@/routes/settings/-constants/terms';
 
 export const fetchInstituteDetails = async (): Promise<InstituteDetailsType> => {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
@@ -19,6 +23,10 @@ export const fetchInstituteDetails = async (): Promise<InstituteDetailsType> => 
 
 export const useInstituteQuery = () => {
     const setInstituteDetails = useInstituteDetailsStore((state) => state.setInstituteDetails);
+    const { setValue } = useLocalStorage<NamingSettingsType[] | null>(
+        StorageKey.NAMING_SETTINGS,
+        null
+    );
     const { setPrimaryColor } = useTheme();
 
     return {
@@ -28,7 +36,15 @@ export const useInstituteQuery = () => {
             const accessToken = getTokenFromCookie(TokenKey.accessToken);
             const tokenData = getTokenDecodedData(accessToken);
             const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
-
+            const instituteSettings = JSON.parse(data?.setting || '{}');
+            try {
+                if (!isNullOrEmptyOrUndefined(instituteSettings)) {
+                    const namingSettings = instituteSettings.setting.NAMING_SETTING;
+                    setValue(namingSettings.data.data);
+                }
+            } catch (error) {
+                console.error('Error setting naming settings:', error);
+            }
             // Set holistic theme for specific institute ID
             if (INSTITUTE_ID === HOLISTIC_INSTITUTE_ID) {
                 setPrimaryColor('holistic');

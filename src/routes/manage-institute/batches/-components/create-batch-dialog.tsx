@@ -206,9 +206,9 @@ export const CreateBatchDialog = () => {
             const courseData: CourseFormData =
                 data.courseCreationType === 'new'
                     ? {
+                          id: data.selectedCourse?.id || '',
                           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                           // @ts-expect-error
-                          id: data.selectedCourse?.id || '',
                           course_name: data.selectedCourse?.name || '',
                           thumbnail_file_id: '',
                           new_course: true,

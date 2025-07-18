@@ -9,9 +9,30 @@ import {
     MonitorPlay,
 } from '@phosphor-icons/react';
 import { SidebarItemsType } from '../../../../types/layout-container/layout-container-types';
-import { NotePencil, UsersFour } from 'phosphor-react';
+import { GearSix, Notepad, NotePencil, UsersFour } from 'phosphor-react';
 import { getInstituteId } from '@/constants/helper';
 import { HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
+import { StorageKey } from '@/constants/storage/storage';
+import { ContentTerms, RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { NamingSettingsType } from '@/routes/settings/-constants/terms';
+
+// Utility function to get naming settings from localStorage
+const getNamingSettings = (): NamingSettingsType[] => {
+    try {
+        const saved = localStorage.getItem(StorageKey.NAMING_SETTINGS);
+        return saved ? JSON.parse(saved) : [];
+    } catch (error) {
+        console.error('Failed to parse naming settings from localStorage:', error);
+        return [];
+    }
+};
+
+// Utility function to get custom terminology with fallback to default
+export const getTerminology = (key: string, defaultValue: string): string => {
+    const settings = getNamingSettings();
+    const setting = settings.find((item) => item.key === key);
+    return setting?.customValue || defaultValue;
+};
 
 export const SidebarItemsData: SidebarItemsType[] = [
     {
@@ -30,7 +51,7 @@ export const SidebarItemsData: SidebarItemsType[] = [
                 subItemLink: '/manage-institute/batches',
             },
             {
-                subItem: 'Session',
+                subItem: getTerminology(ContentTerms.Session, 'Session'), // Session
                 subItemLink: '/manage-institute/sessions',
             },
             {
@@ -41,11 +62,11 @@ export const SidebarItemsData: SidebarItemsType[] = [
     },
     {
         icon: Users,
-        title: `Manage ${getInstituteId() === HOLISTIC_INSTITUTE_ID ? 'Members' : 'Learner'}`,
+        title: `Manage ${getTerminology(RoleTerms.Learner, 'Learner')}`, // Student
         id: 'student-mangement',
         subItems: [
             {
-                subItem: `${getInstituteId() === HOLISTIC_INSTITUTE_ID ? 'Member' : 'Learner'} list`,
+                subItem: `${getTerminology(RoleTerms.Learner, 'Learner')} list`, // Student
                 subItemLink: '/manage-students/students-list',
             },
             ...(getInstituteId() !== HOLISTIC_INSTITUTE_ID
@@ -70,16 +91,23 @@ export const SidebarItemsData: SidebarItemsType[] = [
         showForInstitute: HOLISTIC_INSTITUTE_ID,
     },
     {
+        icon: Notepad,
+        title: 'Attendance Tracker',
+        id: 'attendance-tracker',
+        to: '/study-library/attendance-tracker',
+        showForInstitute: HOLISTIC_INSTITUTE_ID,
+    },
+    {
         icon: BookOpen,
         title: 'Learning Center',
         id: 'study-library',
         subItems: [
             {
-                subItem: 'Courses',
+                subItem: getTerminology(ContentTerms.Course, SystemTerms.Course), // Course
                 subItemLink: '/study-library/courses',
             },
             {
-                subItem: 'Live Session',
+                subItem: `${getTerminology(ContentTerms.LiveSession, SystemTerms.LiveSession)}`, // LiveSession
                 subItemLink: '/study-library/live-session',
             },
             {
@@ -158,5 +186,11 @@ export const SidebarItemsData: SidebarItemsType[] = [
                 subItemLink: '/ai-center/my-resources',
             },
         ],
+    },
+    {
+        icon: GearSix,
+        id: 'settings',
+        title: 'Settings',
+        to: '/settings',
     },
 ];

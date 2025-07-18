@@ -94,6 +94,7 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
                             <FormControl>
                                 <MainViewQuillEditor
                                     value={field.value}
+                                    onBlur={field.onBlur}
                                     onChange={field.onChange}
                                 />
                             </FormControl>
@@ -117,6 +118,7 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
                             <FormControl>
                                 <MainViewQuillEditor
                                     value={field.value}
+                                    onBlur={field.onBlur}
                                     onChange={field.onChange}
                                 />
                             </FormControl>
@@ -149,6 +151,7 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
                                             <FormControl>
                                                 <MainViewQuillEditor
                                                     value={field.value}
+                                                    onBlur={field.onBlur}
                                                     onChange={field.onChange}
                                                 />
                                             </FormControl>
@@ -201,6 +204,7 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
                                             <FormControl>
                                                 <MainViewQuillEditor
                                                     value={field.value}
+                                                    onBlur={field.onBlur}
                                                     onChange={field.onChange}
                                                 />
                                             </FormControl>
@@ -255,6 +259,7 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
                                             <FormControl>
                                                 <MainViewQuillEditor
                                                     value={field.value}
+                                                    onBlur={field.onBlur}
                                                     onChange={field.onChange}
                                                 />
                                             </FormControl>
@@ -307,6 +312,7 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
                                             <FormControl>
                                                 <MainViewQuillEditor
                                                     value={field.value}
+                                                    onBlur={field.onBlur}
                                                     onChange={field.onChange}
                                                 />
                                             </FormControl>
@@ -352,6 +358,7 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
                             <FormControl>
                                 <MainViewQuillEditor
                                     value={field.value}
+                                    onBlur={field.onBlur}
                                     onChange={field.onChange}
                                 />
                             </FormControl>

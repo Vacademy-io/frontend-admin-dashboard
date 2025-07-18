@@ -29,6 +29,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { MyDialog } from '@/components/design-system/dialog';
 import { useBulkDialog } from '../../-context/bulk-dialog-context';
+import { RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 
 interface FileState {
     file: File | null;
@@ -453,15 +455,16 @@ export const UploadCSVButton = ({
                             layoutVariant="default"
                             onClick={() => handleNotificationConfirm(true)}
                         >
-                            Notify Students
+                            Notify {getTerminology(RoleTerms.Learner, SystemTerms.Learner)}s
                         </MyButton>
                     </div>
                 }
             >
                 <div className="p-4">
                     <p className="text-neutral-600">
-                        Would you like to send notification emails to the students about their
-                        enrollment?
+                        Would you like to send notification emails to the{' '}
+                        {getTerminology(RoleTerms.Learner, SystemTerms.Learner).toLocaleLowerCase()}
+                        s about their enrollment?
                     </p>
                 </div>
             </MyDialog>

@@ -3,6 +3,7 @@ import { TabsContent } from '@/components/ui/tabs';
 import { RoleTypeEmptyScreen } from '@/svgs';
 import InviteUsersOptions from './InviteUsersOptions';
 import { RolesDummyDataType, UserRolesDataEntry } from '@/types/dashboard/user-roles';
+import { mapRoleToCustomName } from '@/utils/roleUtils';
 
 interface InviteUsersTabProps {
     selectedTab: keyof RolesDummyDataType;
@@ -32,6 +33,9 @@ const InviteUsersTab: React.FC<InviteUsersTabProps> = ({
                                         <div className="flex items-center gap-4">
                                             <p>{item.full_name}</p>
                                             {item.roles?.map((role, index) => {
+                                                const customRoleName = mapRoleToCustomName(
+                                                    role.role_name
+                                                );
                                                 return (
                                                     <Badge
                                                         key={index}
@@ -47,7 +51,7 @@ const InviteUsersTab: React.FC<InviteUsersTabProps> = ({
                                                                     : 'bg-[#F5F0FF]'
                                                         }`}
                                                     >
-                                                        {role.role_name}
+                                                        {customRoleName}
                                                     </Badge>
                                                 );
                                             })}

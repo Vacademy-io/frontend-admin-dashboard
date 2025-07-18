@@ -5,16 +5,27 @@ import {
     isTokenExpired,
     refreshTokens,
     removeCookiesAndLogout,
+    debugTokenStatus,
 } from './sessionUtility';
 
 const authenticatedAxiosInstance = axios.create();
+
+// Debug function that can be called from browser console
+const debugAuthStatus = () => {
+    debugTokenStatus();
+};
+
+// Attach debug function to window for console access
+if (typeof window !== 'undefined') {
+    (window as any).debugAuth = debugAuthStatus;
+}
 
 authenticatedAxiosInstance.interceptors.request.use(
     async (request) => {
         let accessToken = getTokenFromCookie(TokenKey.accessToken);
 
         if (!accessToken) {
-            // No token found: logout
+            console.error('[Axios Request] No access token found');
             removeCookiesAndLogout();
             return Promise.reject(new Error('No access token found'));
         }
@@ -23,6 +34,7 @@ authenticatedAxiosInstance.interceptors.request.use(
             const refreshToken = getTokenFromCookie(TokenKey.refreshToken);
 
             if (!refreshToken) {
+                console.error('[Axios Request] No refresh token found');
                 removeCookiesAndLogout();
                 return Promise.reject(new Error('Refresh token missing or expired'));
             }
@@ -31,7 +43,7 @@ authenticatedAxiosInstance.interceptors.request.use(
                 await refreshTokens(refreshToken); // This should also update the cookies
                 accessToken = getTokenFromCookie(TokenKey.accessToken); // Get the new token
             } catch (error) {
-                console.error('Token refresh failed. Logging out ...');
+                console.error('[Axios Request] Token refresh failed:', error);
                 removeCookiesAndLogout();
                 return Promise.reject(new Error('Token refresh failed'));
             }
@@ -43,6 +55,61 @@ authenticatedAxiosInstance.interceptors.request.use(
     },
 
     async (error) => {
+        console.error('[Axios Request] Request interceptor error:', error);
+        return Promise.reject(error);
+    }
+);
+
+// Add response interceptor to handle authentication errors
+authenticatedAxiosInstance.interceptors.response.use(
+    (response) => {
+        return response;
+    },
+    async (error) => {
+        const { response } = error;
+
+        console.error('[Axios Response] Request failed:', {
+            url: error.config?.url,
+            status: response?.status,
+            statusText: response?.statusText,
+            data: response?.data,
+        });
+
+        // Handle 511 Network Authentication Required
+        if (response?.status === 511) {
+            console.error(
+                '[Axios Response] 511 Network Authentication Required - Token may be invalid or expired'
+            );
+            console.error('[Axios Response] Response data:', response.data);
+            console.error('[Axios Response] Running auth debug...');
+            debugAuthStatus();
+            removeCookiesAndLogout();
+            return Promise.reject(
+                new Error('Network authentication required. Please log in again.')
+            );
+        }
+
+        // Handle 401 Unauthorized
+        if (response?.status === 401) {
+            console.error('[Axios Response] 401 Unauthorized - Token is invalid');
+            console.error('[Axios Response] Response data:', response.data);
+            removeCookiesAndLogout();
+            return Promise.reject(new Error('Authentication failed. Please log in again.'));
+        }
+
+        // Handle 403 Forbidden
+        if (response?.status === 403) {
+            console.error('[Axios Response] 403 Forbidden - Insufficient permissions');
+            console.error('[Axios Response] Response data:', response.data);
+            return Promise.reject(new Error('You do not have permission to perform this action.'));
+        }
+
+        // Handle other authentication-related errors
+        if (response?.status >= 500 && response?.status < 600) {
+            console.error(`[Axios Response] Server error ${response.status}:`, response.data);
+            return Promise.reject(new Error('Server error. Please try again later.'));
+        }
+
         return Promise.reject(error);
     }
 );

@@ -11,6 +11,8 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/comp
 import { useAddCourse } from '@/services/study-library/course-operations/add-course';
 import { CourseFormData } from '@/components/common/study-library/add-course/add-course-form';
 import { toast } from 'sonner';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 
 interface CreateCourseStepProps {
     handleOpenManageBatchDialog: (open: boolean) => void;
@@ -55,7 +57,7 @@ export const CreateCourseStep = ({ handleOpenManageBatchDialog }: CreateCourseSt
                 render={({ field }) => (
                     <FormItem className="space-y-3">
                         <FormLabel className="text-base font-medium text-neutral-700">
-                            Course Selection
+                            {getTerminology(ContentTerms.Course, SystemTerms.Course)} Selection
                         </FormLabel>
                         <FormControl>
                             <RadioGroup
@@ -78,7 +80,11 @@ export const CreateCourseStep = ({ handleOpenManageBatchDialog }: CreateCourseSt
                                         htmlFor="existing-course"
                                         className={`cursor-pointer font-normal ${courseList.length === 0 ? 'text-neutral-400' : 'text-neutral-600'}`}
                                     >
-                                        Select existing course
+                                        Select existing{' '}
+                                        {getTerminology(
+                                            ContentTerms.Course,
+                                            SystemTerms.Course
+                                        ).toLocaleLowerCase()}
                                     </FormLabel>
                                 </FormItem>
                                 <FormItem className="flex items-center space-x-2 space-y-0">
@@ -89,7 +95,11 @@ export const CreateCourseStep = ({ handleOpenManageBatchDialog }: CreateCourseSt
                                         htmlFor="new-course"
                                         className="cursor-pointer font-normal text-neutral-600"
                                     >
-                                        Create new course
+                                        Create new{' '}
+                                        {getTerminology(
+                                            ContentTerms.Course,
+                                            SystemTerms.Course
+                                        ).toLocaleLowerCase()}
                                     </FormLabel>
                                 </FormItem>
                             </RadioGroup>
@@ -107,14 +117,18 @@ export const CreateCourseStep = ({ handleOpenManageBatchDialog }: CreateCourseSt
                     render={({ field }) => (
                         <FormItem className="flex flex-col gap-1.5">
                             <FormLabel className="text-neutral-700">
-                                Course <span className="text-danger-500">*</span>
+                                {getTerminology(ContentTerms.Course, SystemTerms.Course)}{' '}
+                                <span className="text-danger-500">*</span>
                             </FormLabel>
                             <FormControl>
                                 <MyDropdown
                                     currentValue={field.value}
                                     dropdownList={courseList}
                                     handleChange={field.onChange}
-                                    placeholder="Select a course"
+                                    placeholder={`Select a ${getTerminology(
+                                        ContentTerms.Course,
+                                        SystemTerms.Course
+                                    ).toLocaleLowerCase()}`}
                                     disable={courseList.length === 0}
                                 />
                             </FormControl>

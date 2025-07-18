@@ -81,6 +81,7 @@ export const OneWordQuestionPaperTemplateMainView = ({
                                 <FormControl>
                                     <CollapsibleQuillEditor
                                         value={field.value}
+                                        onBlur={field.onBlur}
                                         onChange={field.onChange}
                                     />
                                 </FormControl>
@@ -105,6 +106,7 @@ export const OneWordQuestionPaperTemplateMainView = ({
                             <FormControl>
                                 <MainViewQuillEditor
                                     value={field.value}
+                                    onBlur={field.onBlur}
                                     onChange={field.onChange}
                                 />
                             </FormControl>
@@ -147,6 +149,7 @@ export const OneWordQuestionPaperTemplateMainView = ({
                             <FormControl>
                                 <MainViewQuillEditor
                                     value={field.value}
+                                    onBlur={field.onBlur}
                                     onChange={field.onChange}
                                 />
                             </FormControl>

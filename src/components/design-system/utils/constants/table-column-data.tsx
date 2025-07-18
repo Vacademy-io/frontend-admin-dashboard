@@ -13,6 +13,8 @@ import { useContentStore } from '@/routes/study-library/courses/course-details/s
 import { useState, useRef } from 'react';
 import { LogDetailsDialog } from '@/components/common/student-slide-tracking/log-details-dialog';
 import { useStudentSidebar } from '@/routes/manage-students/students-list/-context/selected-student-sidebar-context';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 interface CustomTableMeta {
     onSort?: (columnId: string, direction: string) => void;
@@ -247,7 +249,7 @@ export const myColumns: ColumnDef<StudentTable>[] = [
                         }}
                     >
                         <button className="flex w-full cursor-pointer items-center justify-between">
-                            <div>Learner Name</div>
+                            <div>Name</div>
                             <div>
                                 <CaretUpDown />
                             </div>
@@ -329,7 +331,7 @@ export const myColumns: ColumnDef<StudentTable>[] = [
         size: 150,
         minSize: 120,
         maxSize: 220,
-        header: "Mother's Name",
+        header: "Mother/Female Guardian's Name",
         cell: ({ row }) => <CreateClickableCell row={row} columnId="mother_name" />,
         enableHiding: true,
     },
@@ -448,7 +450,7 @@ export const myColumns: ColumnDef<StudentTable>[] = [
         size: 120,
         minSize: 100,
         maxSize: 160,
-        header: 'Session Expiry',
+        header: `${getTerminology(ContentTerms.Session, SystemTerms.Session)} Expiry`,
         cell: ({ row }) => <ExpiryDateCell row={row} />,
     },
     {
@@ -560,7 +562,7 @@ export const ActivityStatsColumns: ColumnDef<ActivityStatsColumnsType>[] = [
     },
     {
         accessorKey: 'full_name',
-        header: 'Learner Name',
+        header: 'Name',
         size: 220,
         minSize: 180,
         maxSize: 280,

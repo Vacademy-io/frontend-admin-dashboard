@@ -20,6 +20,8 @@ import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { getBatchNamesByIds } from '../assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-utils/helper';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 
 const ScheduleTestDetails = ({
     scheduleTestContent,
@@ -144,7 +146,7 @@ const ScheduleTestDetails = ({
                 <div className="flex flex-col gap-4">
                     <p>Created on: {convertToLocalDateTime(scheduleTestContent.created_at)}</p>
                     <p>
-                        Subject:{' '}
+                        {getTerminology(ContentTerms.Subjects, SystemTerms.Subjects)}:{' '}
                         {getSubjectNameById(
                             instituteDetails?.subjects || [],
                             scheduleTestContent.subject_id || ''

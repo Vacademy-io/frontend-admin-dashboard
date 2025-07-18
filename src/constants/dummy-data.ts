@@ -81,6 +81,15 @@ export const RoleType = [
     { id: '5', name: 'TEACHER' },
     { id: '6', name: 'STUDENT' },
 ];
+
+export const RoleTypeExceptStudent = [
+    { id: '1', name: 'ADMIN' },
+    { id: '2', name: 'COURSE CREATOR' },
+    { id: '3', name: 'ASSESSMENT CREATOR' },
+    { id: '4', name: 'EVALUATOR' },
+    { id: '5', name: 'TEACHER' },
+];
+
 export const RoleTypeUserStatus = [
     { id: '1', name: 'ACTIVE' },
     { id: '2', name: 'DISABLED' },

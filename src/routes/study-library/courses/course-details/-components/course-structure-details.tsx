@@ -37,6 +37,8 @@ import Assessments from '../subjects/-components/assessment-list';
 import { getIcon } from '../subjects/modules/chapters/slides/-components/slides-sidebar/slides-sidebar-slides';
 import { useContentStore } from '../subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
 import { TeachersList } from '../subjects/-components/teacher-list';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 // Interfaces (assuming these are unchanged)
 export interface Chapter {
@@ -109,8 +111,18 @@ export const CourseStructureDetails = ({
     }, [searchParams.courseId, searchParams.levelId, getSessionFromPackage]);
 
     useEffect(() => {
-        setCurrentSession({ id: sessionList[0]?.id || '', name: sessionList[0]?.name || '' });
-    }, [sessionList]);
+        if (selectedSession) {
+            // Find the session name from sessionList based on selectedSession ID
+            const foundSession = sessionList.find(session => session.id === selectedSession);
+            setCurrentSession({ 
+                id: selectedSession, 
+                name: foundSession?.name || '' 
+            });
+        } else {
+            // Fallback to first session if no selectedSession
+            setCurrentSession({ id: sessionList[0]?.id || '', name: sessionList[0]?.name || '' });
+        }
+    }, [sessionList, selectedSession]);
 
     const [selectedTab, setSelectedTab] = useState<string>(TabType.OUTLINE);
     const handleTabChange = (value: string) => setSelectedTab(value);
@@ -132,16 +144,16 @@ export const CourseStructureDetails = ({
         steps: studyLibrarySteps.addSubjectStep,
     });
 
-    const initialSubjects = getCourseSubjects(courseId, currentSession?.id ?? '', levelId);
+    const initialSubjects = getCourseSubjects(courseId, selectedSession || '', levelId);
     const [subjects, setSubjects] = useState(initialSubjects);
 
     useEffect(() => {
-        const newSubjects = getCourseSubjects(courseId, currentSession?.id ?? '', levelId);
+        const newSubjects = getCourseSubjects(courseId, selectedSession || '', levelId);
         setSubjects(newSubjects);
-    }, [currentSession, studyLibraryData, courseId, levelId]);
+    }, [selectedSession, studyLibraryData, courseId, levelId]);
 
     const packageSessionIds =
-        useGetPackageSessionId(courseId, currentSession?.id ?? '', levelId) || '';
+        useGetPackageSessionId(courseId, selectedSession || '', levelId) || '';
 
     const useSlidesByChapterMutation = () => {
         return useMutation({
@@ -201,7 +213,7 @@ export const CourseStructureDetails = ({
                     getPackageSessionId({
                         courseId: courseId,
                         levelId: levelId,
-                        sessionId: currentSession?.id || '',
+                        sessionId: selectedSession || '',
                     }) || '',
                 module,
             },
@@ -209,7 +221,7 @@ export const CourseStructureDetails = ({
                 onSuccess: async () => {
                     const updatedSubjects = getCourseSubjects(
                         courseId,
-                        currentSession?.id ?? '',
+                        selectedSession || '',
                         levelId
                     );
                     if (updatedSubjects.length > 0 && packageSessionIds) {
@@ -372,7 +384,7 @@ export const CourseStructureDetails = ({
     const toggleChapter = (id: string) => toggleOpenState(id, setOpenChapters);
     const tabContent: Record<TabType, React.ReactNode> = {
         [TabType.OUTLINE]: (
-            <div className="space-y-4">
+            <div className="p-6 py-2">
                 <div className="max-w-3xl space-y-1 rounded-lg border border-gray-200 px-2">
                     {courseStructure === 5 && (
                         <AddSubjectButton isTextButton onAddSubject={handleAddSubject} />
@@ -579,8 +591,11 @@ export const CourseStructureDetails = ({
                                                                                                     className="text-primary-400 group-hover:text-primary-500"
                                                                                                 />
                                                                                                 <span className="font-medium">
-                                                                                                    Add
-                                                                                                    Slide
+                                                                                                    Add{' '}
+                                                                                                    {getTerminology(
+                                                                                                        ContentTerms.Slides,
+                                                                                                        SystemTerms.Slides
+                                                                                                    )}
                                                                                                 </span>
                                                                                             </MyButton>
 
@@ -595,8 +610,11 @@ export const CourseStructureDetails = ({
                                                                                                 .length ===
                                                                                             0 ? (
                                                                                                 <div className="px-2 py-1 text-xs text-gray-400">
-                                                                                                    No
-                                                                                                    slides
+                                                                                                    No{' '}
+                                                                                                    {getTerminology(
+                                                                                                        ContentTerms.Slides,
+                                                                                                        SystemTerms.Slides
+                                                                                                    )}{' '}
                                                                                                     in
                                                                                                     this
                                                                                                     chapter.
@@ -849,8 +867,11 @@ export const CourseStructureDetails = ({
                                                                                                     className="text-primary-400 group-hover:text-primary-500"
                                                                                                 />
                                                                                                 <span className="font-medium">
-                                                                                                    Add
-                                                                                                    Slide
+                                                                                                    Add{' '}
+                                                                                                    {getTerminology(
+                                                                                                        ContentTerms.Slides,
+                                                                                                        SystemTerms.Slides
+                                                                                                    )}
                                                                                                 </span>
                                                                                             </MyButton>
 
@@ -865,8 +886,11 @@ export const CourseStructureDetails = ({
                                                                                                 .length ===
                                                                                             0 ? (
                                                                                                 <div className="px-2 py-1 text-xs text-gray-400">
-                                                                                                    No
-                                                                                                    slides
+                                                                                                    No{' '}
+                                                                                                    {getTerminology(
+                                                                                                        ContentTerms.Slides,
+                                                                                                        SystemTerms.Slides
+                                                                                                    )}{' '}
                                                                                                     in
                                                                                                     this
                                                                                                     chapter.
@@ -1074,8 +1098,11 @@ export const CourseStructureDetails = ({
                                                                                                 className="text-primary-400 group-hover:text-primary-500"
                                                                                             />
                                                                                             <span className="font-medium">
-                                                                                                Add
-                                                                                                Slide
+                                                                                                Add{' '}
+                                                                                                {getTerminology(
+                                                                                                    ContentTerms.Slides,
+                                                                                                    SystemTerms.Slides
+                                                                                                )}
                                                                                             </span>
                                                                                         </MyButton>
 
@@ -1088,8 +1115,11 @@ export const CourseStructureDetails = ({
                                                                                         ).length ===
                                                                                         0 ? (
                                                                                             <div className="px-2 py-1 text-xs text-gray-400">
-                                                                                                No
-                                                                                                slides
+                                                                                                No{' '}
+                                                                                                {getTerminology(
+                                                                                                    ContentTerms.Slides,
+                                                                                                    SystemTerms.Slides
+                                                                                                )}{' '}
                                                                                                 in
                                                                                                 this
                                                                                                 chapter.
@@ -1243,8 +1273,11 @@ export const CourseStructureDetails = ({
                                                                                             className="text-primary-400 group-hover:text-primary-500"
                                                                                         />
                                                                                         <span className="font-medium">
-                                                                                            Add
-                                                                                            Slide
+                                                                                            Add{' '}
+                                                                                            {getTerminology(
+                                                                                                ContentTerms.Modules,
+                                                                                                SystemTerms.Modules
+                                                                                            )}
                                                                                         </span>
                                                                                     </MyButton>
 
@@ -1257,8 +1290,11 @@ export const CourseStructureDetails = ({
                                                                                     ).length ===
                                                                                     0 ? (
                                                                                         <div className="px-2 py-1 text-xs text-gray-400">
-                                                                                            No
-                                                                                            slides
+                                                                                            No{' '}
+                                                                                            {getTerminology(
+                                                                                                ContentTerms.Slides,
+                                                                                                SystemTerms.Slides
+                                                                                            )}{' '}
                                                                                             in this
                                                                                             chapter.
                                                                                         </div>
@@ -1337,7 +1373,7 @@ export const CourseStructureDetails = ({
             </div>
         ),
         [TabType.STUDENT]: (
-            <div className="rounded-md bg-white p-3 text-sm text-gray-600 shadow-sm">
+            <div className="rounded-md bg-white p-6 py-2 text-sm text-gray-600 shadow-sm">
                 {currentSession && (
                     <Students
                         packageSessionId={packageSessionIds ?? ''}
@@ -1347,12 +1383,19 @@ export const CourseStructureDetails = ({
             </div>
         ),
         [TabType.TEACHERS]: (
-            <div className="space-y-3">
+            <div className="p-6 py-2">
                 <div className="flex flex-col items-start justify-between gap-2 md:flex-row md:items-center">
                     <div className="flex-1">
-                        <h2 className="text-base font-semibold text-gray-800">Manage Teachers</h2>
+                        <h2 className="text-base font-semibold text-gray-800">
+                            Manage {getTerminology(RoleTerms.Teacher, SystemTerms.Teacher)}
+                        </h2>
                         <p className="mt-0.5 text-xs text-gray-500">
-                            View and manage teachers assigned to this batch.
+                            View and manage{' '}
+                            {getTerminology(
+                                RoleTerms.Teacher,
+                                SystemTerms.Teacher
+                            ).toLocaleLowerCase()}
+                            s assigned to this batch.
                         </p>
                     </div>
                     <AddTeachers packageSessionId={packageSessionIds} />
@@ -1361,7 +1404,7 @@ export const CourseStructureDetails = ({
             </div>
         ),
         [TabType.ASSESSMENT]: (
-            <div className="rounded-md bg-white p-3 text-sm text-gray-600 shadow-sm">
+            <div className="rounded-md bg-white p-6 py-2 text-sm text-gray-600 shadow-sm">
                 <Assessments packageSessionId={packageSessionIds ?? ''} />
             </div>
         ),
