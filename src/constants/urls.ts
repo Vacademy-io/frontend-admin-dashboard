@@ -266,3 +266,12 @@ export const FINISH_SESSION_API_URL = `${BASE_URL}/community-service/engage/admi
 // Naming Settings
 export const CREATE_NAMING_SETTINGS = `${BASE_URL}/admin-core-service/institute/setting/v1/create-name-setting`;
 export const UPDATE_NAMING_SETTINGS = `${BASE_URL}/admin-core-service/institute/setting/v1/update-name-setting`;
+
+export const ANALYTICS_USER_ACTIVITY = `${BASE_URL}/auth-service/v1/analytics/user-activity`;
+export const ANALYTICS_ACTIVE_USERS_REALTIME = `${BASE_URL}/auth-service/v1/analytics/active-users/real-time`;
+export const ANALYTICS_ACTIVE_USERS = `${BASE_URL}/auth-service/v1/analytics/active-users`;
+export const ANALYTICS_ACTIVITY_TODAY = `${BASE_URL}/auth-service/v1/analytics/activity/today`;
+export const ANALYTICS_SERVICE_USAGE = `${BASE_URL}/auth-service/v1/analytics/service-usage`;
+export const ANALYTICS_ENGAGEMENT_TRENDS = `${BASE_URL}/auth-service/v1/analytics/engagement/trends`;
+export const ANALYTICS_MOST_ACTIVE_USERS = `${BASE_URL}/auth-service/v1/analytics/users/most-active`;
+export const ANALYTICS_CURRENTLY_ACTIVE_USERS = `${BASE_URL}/auth-service/v1/analytics/users/currently-active`;

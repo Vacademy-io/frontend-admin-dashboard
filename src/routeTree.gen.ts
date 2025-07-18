@@ -17,6 +17,7 @@ import { Route as SettingsIndexRouteImport } from "./routes/settings/index"
 import { Route as ManageStudentsIndexRouteImport } from "./routes/manage-students/index"
 import { Route as ManageInstituteIndexRouteImport } from "./routes/manage-institute/index"
 import { Route as LoginIndexRouteImport } from "./routes/login/index"
+import { Route as LearnerInsightsIndexRouteImport } from "./routes/learner-insights/index"
 import { Route as EvaluatorAiIndexRouteImport } from "./routes/evaluator-ai/index"
 import { Route as EvaluationIndexRouteImport } from "./routes/evaluation/index"
 import { Route as DashboardIndexRouteImport } from "./routes/dashboard/index"
@@ -82,6 +83,7 @@ import { Route as HomeworkCreationAssessmentListAssessmentDetailsAssessmentIdExa
 import { Route as AssessmentAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeAssessmentTabIndexRouteImport } from "./routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/index"
 
 const PricingLazyRouteImport = createFileRoute("/pricing")()
+const LearnerInsightsLazyRouteImport = createFileRoute("/learner-insights")()
 const LandingLazyRouteImport = createFileRoute("/landing")()
 
 const PricingLazyRoute = PricingLazyRouteImport.update({
@@ -89,6 +91,13 @@ const PricingLazyRoute = PricingLazyRouteImport.update({
   path: "/pricing",
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() => import("./routes/pricing.lazy").then((d) => d.Route))
+const LearnerInsightsLazyRoute = LearnerInsightsLazyRouteImport.update({
+  id: "/learner-insights",
+  path: "/learner-insights",
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() =>
+  import("./routes/learner-insights.lazy").then((d) => d.Route),
+)
 const LandingLazyRoute = LandingLazyRouteImport.update({
   id: "/landing",
   path: "/landing",
@@ -123,6 +132,11 @@ const LoginIndexRoute = LoginIndexRouteImport.update({
   id: "/login/",
   path: "/login/",
   getParentRoute: () => rootRouteImport,
+} as any)
+const LearnerInsightsIndexRoute = LearnerInsightsIndexRouteImport.update({
+  id: "/",
+  path: "/",
+  getParentRoute: () => LearnerInsightsLazyRoute,
 } as any)
 const EvaluatorAiIndexRoute = EvaluatorAiIndexRouteImport.update({
   id: "/evaluator-ai/",
@@ -503,6 +517,7 @@ const AssessmentAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTy
 
 export interface FileRoutesByFullPath {
   "/landing": typeof LandingLazyRoute
+  "/learner-insights": typeof LearnerInsightsLazyRouteWithChildren
   "/pricing": typeof PricingLazyRoute
   "/ai-center": typeof AiCenterIndexRoute
   "/assessment": typeof AssessmentIndexRoute
@@ -510,6 +525,7 @@ export interface FileRoutesByFullPath {
   "/dashboard": typeof DashboardIndexRoute
   "/evaluation": typeof EvaluationIndexRoute
   "/evaluator-ai": typeof EvaluatorAiIndexRoute
+  "/learner-insights/": typeof LearnerInsightsIndexRoute
   "/login": typeof LoginIndexRoute
   "/manage-institute": typeof ManageInstituteIndexRoute
   "/manage-students": typeof ManageStudentsIndexRoute
@@ -583,6 +599,7 @@ export interface FileRoutesByTo {
   "/dashboard": typeof DashboardIndexRoute
   "/evaluation": typeof EvaluationIndexRoute
   "/evaluator-ai": typeof EvaluatorAiIndexRoute
+  "/learner-insights": typeof LearnerInsightsIndexRoute
   "/login": typeof LoginIndexRoute
   "/manage-institute": typeof ManageInstituteIndexRoute
   "/manage-students": typeof ManageStudentsIndexRoute
@@ -650,6 +667,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   "/landing": typeof LandingLazyRoute
+  "/learner-insights": typeof LearnerInsightsLazyRouteWithChildren
   "/pricing": typeof PricingLazyRoute
   "/ai-center/": typeof AiCenterIndexRoute
   "/assessment/": typeof AssessmentIndexRoute
@@ -657,6 +675,7 @@ export interface FileRoutesById {
   "/dashboard/": typeof DashboardIndexRoute
   "/evaluation/": typeof EvaluationIndexRoute
   "/evaluator-ai/": typeof EvaluatorAiIndexRoute
+  "/learner-insights/": typeof LearnerInsightsIndexRoute
   "/login/": typeof LoginIndexRoute
   "/manage-institute/": typeof ManageInstituteIndexRoute
   "/manage-students/": typeof ManageStudentsIndexRoute
@@ -725,6 +744,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | "/landing"
+    | "/learner-insights"
     | "/pricing"
     | "/ai-center"
     | "/assessment"
@@ -732,6 +752,7 @@ export interface FileRouteTypes {
     | "/dashboard"
     | "/evaluation"
     | "/evaluator-ai"
+    | "/learner-insights/"
     | "/login"
     | "/manage-institute"
     | "/manage-students"
@@ -805,6 +826,7 @@ export interface FileRouteTypes {
     | "/dashboard"
     | "/evaluation"
     | "/evaluator-ai"
+    | "/learner-insights"
     | "/login"
     | "/manage-institute"
     | "/manage-students"
@@ -871,6 +893,7 @@ export interface FileRouteTypes {
   id:
     | "__root__"
     | "/landing"
+    | "/learner-insights"
     | "/pricing"
     | "/ai-center/"
     | "/assessment/"
@@ -878,6 +901,7 @@ export interface FileRouteTypes {
     | "/dashboard/"
     | "/evaluation/"
     | "/evaluator-ai/"
+    | "/learner-insights/"
     | "/login/"
     | "/manage-institute/"
     | "/manage-students/"
@@ -945,6 +969,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   LandingLazyRoute: typeof LandingLazyRoute
+  LearnerInsightsLazyRoute: typeof LearnerInsightsLazyRouteWithChildren
   PricingLazyRoute: typeof PricingLazyRoute
   AiCenterIndexRoute: typeof AiCenterIndexRoute
   AssessmentIndexRoute: typeof AssessmentIndexRoute
@@ -1026,6 +1051,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof PricingLazyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    "/learner-insights": {
+      id: "/learner-insights"
+      path: "/learner-insights"
+      fullPath: "/learner-insights"
+      preLoaderRoute: typeof LearnerInsightsLazyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     "/landing": {
       id: "/landing"
       path: "/landing"
@@ -1074,6 +1106,13 @@ declare module "@tanstack/react-router" {
       fullPath: "/login"
       preLoaderRoute: typeof LoginIndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    "/learner-insights/": {
+      id: "/learner-insights/"
+      path: "/"
+      fullPath: "/learner-insights/"
+      preLoaderRoute: typeof LearnerInsightsIndexRouteImport
+      parentRoute: typeof LearnerInsightsLazyRoute
     }
     "/evaluator-ai/": {
       id: "/evaluator-ai/"
@@ -1519,8 +1558,20 @@ declare module "@tanstack/react-router" {
   }
 }
 
+interface LearnerInsightsLazyRouteChildren {
+  LearnerInsightsIndexRoute: typeof LearnerInsightsIndexRoute
+}
+
+const LearnerInsightsLazyRouteChildren: LearnerInsightsLazyRouteChildren = {
+  LearnerInsightsIndexRoute: LearnerInsightsIndexRoute,
+}
+
+const LearnerInsightsLazyRouteWithChildren =
+  LearnerInsightsLazyRoute._addFileChildren(LearnerInsightsLazyRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   LandingLazyRoute: LandingLazyRoute,
+  LearnerInsightsLazyRoute: LearnerInsightsLazyRouteWithChildren,
   PricingLazyRoute: PricingLazyRoute,
   AiCenterIndexRoute: AiCenterIndexRoute,
   AssessmentIndexRoute: AssessmentIndexRoute,

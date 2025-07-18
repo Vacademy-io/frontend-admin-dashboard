@@ -7,6 +7,7 @@ import {
     FileMagnifyingGlass,
     HeadCircuit,
     MonitorPlay,
+    ChartLineUp,
 } from '@phosphor-icons/react';
 import { SidebarItemsType } from '../../../../types/layout-container/layout-container-types';
 import { GearSix, Notepad, NotePencil, UsersFour } from 'phosphor-react';
@@ -40,6 +41,12 @@ export const SidebarItemsData: SidebarItemsType[] = [
         title: 'Dashboard',
         id: 'dashboard',
         to: '/dashboard',
+    },
+    {
+        icon: ChartLineUp,
+        title: 'Learner Live Activities',
+        id: 'learner-insights',
+        to: '/learner-insights',
     },
     {
         icon: UsersFour,
