@@ -150,6 +150,7 @@ export const GET_STUDENT_SLIDE_PROGRESS = `${BASE_URL}/admin-core-service/slide/
 export const COPY_SLIDE = `${BASE_URL}/admin-core-service/slide/v1/copy`;
 export const MOVE_SLIDE = `${BASE_URL}/admin-core-service/slide/v1/move`;
 export const GET_SLIDES_COUNT = `${BASE_URL}/admin-core-service/slide/v1/slide-counts-by-source-type`;
+export const GET_INVITE_LINKS = `${BASE_URL}/admin-core-service/v1/enroll-invite/get-enroll-invite`;
 
 export const PDF_WORKER_URL = `https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`;
 

@@ -315,7 +315,6 @@ export const CourseDetailsPage = () => {
         );
     }, [currentLevel, currentSession]);
 
-    console.log(form.getValues('courseData.instructors'));
     const [resolvedInstructors, setResolvedInstructors] = useState<InstructorWithPicUrl[]>([]);
     const [loadingInstructors, setLoadingInstructors] = useState(false);
     const instructors: Omit<InstructorWithPicUrl, 'profilePicUrl'>[] =

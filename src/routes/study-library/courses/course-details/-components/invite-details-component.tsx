@@ -8,8 +8,14 @@ import {
 } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { InviteLink } from '@/routes/manage-students/-components/InviteLink';
-import { useNavigate } from '@tanstack/react-router';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { useNavigate, useRouter } from '@tanstack/react-router';
 import { ArrowRight, Calendar, Plus } from 'phosphor-react';
+import { handleFetchInviteLinks } from '../-services/get-invite-links';
+import { MyPagination } from '@/components/design-system/pagination';
+import { usePaginationState } from '@/hooks/pagination';
+import { InviteLinkDataInterface } from '@/schemas/study-library/invite-links-schema';
 
 // Inline types to fix linter errors
 interface Instructor {
@@ -41,8 +47,32 @@ interface SessionData {
 const InviteDetailsComponent = ({ sessionsData }: { sessionsData: SessionData[] }) => {
     // Flatten all levels for all sessions to count cards
     const navigate = useNavigate();
-    const allCards = sessionsData.flatMap((session) => session.levelDetails);
-    const shouldScroll = allCards.length > 3;
+    const { getPackageSessionId, getDetailsFromPackageSessionId } = useInstituteDetailsStore();
+    const router = useRouter();
+    const { courseId } = router.state.location.search;
+
+    // Generate array of packageSessionIds for each level in each session
+    const packageSessionIds: string[] = sessionsData.flatMap((session) =>
+        session.levelDetails.map(
+            (level) =>
+                getPackageSessionId({
+                    courseId: courseId || '',
+                    levelId: level.id,
+                    sessionId: session.sessionDetails.id,
+                }) || ''
+        )
+    );
+
+    const { page, pageSize, handlePageChange } = usePaginationState({
+        initialPage: 0,
+        initialPageSize: 10,
+    });
+
+    const { data: inviteLinks } = useSuspenseQuery(
+        handleFetchInviteLinks(packageSessionIds, page, pageSize)
+    );
+
+    const shouldScroll = inviteLinks.content.length > 3;
 
     return (
         <Dialog>
@@ -68,8 +98,8 @@ const InviteDetailsComponent = ({ sessionsData }: { sessionsData: SessionData[] 
                     className={`space-y-4 p-4 ${shouldScroll ? 'overflow-y-auto' : ''}`}
                     style={shouldScroll ? { maxHeight: '60vh' } : {}}
                 >
-                    {sessionsData.flatMap((session) =>
-                        session.levelDetails.map((level, index) => (
+                    {inviteLinks.content.map(
+                        (inviteLink: InviteLinkDataInterface, index: number) => (
                             <div
                                 className="animate-fadeIn group flex flex-col gap-3 rounded-lg border border-neutral-200 bg-white p-4 transition-all duration-200 hover:border-primary-200 hover:shadow-md"
                                 key={index}
@@ -86,14 +116,24 @@ const InviteDetailsComponent = ({ sessionsData }: { sessionsData: SessionData[] 
                                                 </div>
                                                 <span className="font-medium">Level:</span>
                                                 <span className="text-neutral-700">
-                                                    {level.name}
+                                                    {
+                                                        getDetailsFromPackageSessionId({
+                                                            packageSessionId:
+                                                                '7ccc1b00-ade5-4d59-a8af-7e3d96a82949',
+                                                        })?.level.level_name
+                                                    }
                                                 </span>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <Calendar className="size-3.5 text-neutral-400" />
                                                 <span className="font-medium">Session:</span>
                                                 <span className="text-neutral-700">
-                                                    {session.sessionDetails.session_name}
+                                                    {
+                                                        getDetailsFromPackageSessionId({
+                                                            packageSessionId:
+                                                                '7ccc1b00-ade5-4d59-a8af-7e3d96a82949',
+                                                        })?.session.session_name
+                                                    }
                                                 </span>
                                             </div>
                                         </div>
@@ -105,11 +145,16 @@ const InviteDetailsComponent = ({ sessionsData }: { sessionsData: SessionData[] 
                                     <div className="mb-2 text-xs font-medium text-neutral-600">
                                         Invite Link:
                                     </div>
-                                    <InviteLink inviteCode={level.inviteLink} linkLen={50} />
+                                    <InviteLink inviteCode={inviteLink.invite_code} linkLen={50} />
                                 </div>
                             </div>
-                        ))
+                        )
                     )}
+                    <MyPagination
+                        currentPage={page}
+                        totalPages={inviteLinks.totalPages}
+                        onPageChange={handlePageChange}
+                    />
                 </div>
                 <Separator />
                 <div className="p-4 pt-0">
