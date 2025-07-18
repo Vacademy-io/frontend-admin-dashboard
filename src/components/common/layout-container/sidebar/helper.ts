@@ -53,7 +53,8 @@ export function filterMenuItems(menuList: SidebarItemsType[], instituteId: strin
                 item.id === 'dashboard' ||
                 item.id === 'student-mangement' ||
                 item.id === 'live-classes' ||
-                item.id === 'settings'
+                item.id === 'settings' ||
+                item.id === 'attendance-tracker'
         );
     }
 

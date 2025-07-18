@@ -9,7 +9,7 @@ import {
     MonitorPlay,
 } from '@phosphor-icons/react';
 import { SidebarItemsType } from '../../../../types/layout-container/layout-container-types';
-import { GearSix, NotePencil, UsersFour } from 'phosphor-react';
+import { GearSix, Notepad, NotePencil, UsersFour } from 'phosphor-react';
 import { getInstituteId } from '@/constants/helper';
 import { HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
 import { StorageKey } from '@/constants/storage/storage';
@@ -88,6 +88,13 @@ export const SidebarItemsData: SidebarItemsType[] = [
         title: 'Live Classes',
         id: 'live-classes',
         to: '/study-library/live-session',
+        showForInstitute: HOLISTIC_INSTITUTE_ID,
+    },
+    {
+        icon: Notepad,
+        title: 'Attendance Tracker',
+        id: 'attendance-tracker',
+        to: '/study-library/attendance-tracker',
         showForInstitute: HOLISTIC_INSTITUTE_ID,
     },
     {
