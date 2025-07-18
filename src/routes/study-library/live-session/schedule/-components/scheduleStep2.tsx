@@ -27,6 +27,7 @@ import { transformFormToDTOStep2 } from '../../-constants/helper';
 import { createLiveSessionStep2 } from '../-services/utils';
 import { useLiveSessionStore } from '../-store/sessionIdstore';
 import { useNavigate } from '@tanstack/react-router';
+import { useQueryClient } from '@tanstack/react-query';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { useSessionDetailsStore } from '../../-store/useSessionDetailsStore';
 
@@ -40,6 +41,7 @@ const TimeOptions = [
 export default function ScheduleStep2() {
     const { studyLibraryData } = useStudyLibraryStore();
     const [addCustomFieldDialog, setAddCustomFieldDialog] = useState<boolean>(false);
+    const queryClient = useQueryClient();
     const [previewDialog, setPreviewDialog] = useState<boolean>(false);
     const { sessionId } = useLiveSessionStore();
     const isEditState = useLiveSessionStore((state) => state.isEdit);
@@ -52,7 +54,7 @@ export default function ScheduleStep2() {
 
     useEffect(() => {
         if (!sessionId) {
-            console.log("here " , sessionId)
+            console.log('here ', sessionId);
             navigate({ to: '/study-library/live-session' });
         }
     }, [sessionId, navigate]);
@@ -193,6 +195,7 @@ export default function ScheduleStep2() {
         if (isEditState) {
             if (accessType === AccessType.PUBLIC) {
                 const fields =
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     sessionDetails?.notifications?.addedFields.map((field: any) => ({
                         id: field.id,
                         label: field.label,
@@ -268,6 +271,11 @@ export default function ScheduleStep2() {
         try {
             const response = await createLiveSessionStep2(body);
             console.log('API Response:', response);
+            // Invalidate session queries so list page shows fresh data
+            await queryClient.invalidateQueries({ queryKey: ['liveSessions'] });
+            await queryClient.invalidateQueries({ queryKey: ['upcomingSessions'] });
+            await queryClient.invalidateQueries({ queryKey: ['pastSessions'] });
+            await queryClient.invalidateQueries({ queryKey: ['draftSessions'] });
             navigate({ to: '/study-library/live-session' });
         } catch (error) {
             console.error('Error submitting form:', error);
