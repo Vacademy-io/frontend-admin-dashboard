@@ -87,7 +87,7 @@ function DashboardPage() {
                     transition={{ delay: 1, duration: 0.5 }}
                     className="absolute bottom-10 text-sm text-slate-400"
                 >
-                    Redirecting
+                    Redirecting you to your workspace...
                 </motion.p>
             </div>
         );
