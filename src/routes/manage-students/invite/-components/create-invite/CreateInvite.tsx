@@ -9,47 +9,9 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog';
 import GenerateInviteLinkDialog from './GenerateInviteLinkDialog';
-
-const dummyCourses = [
-    { id: 'c1', name: 'Mathematics' },
-    { id: 'c2', name: 'Physics' },
-    { id: 'c3', name: 'Chemistry' },
-];
-
-const dummyBatches = {
-    c1: [
-        {
-            sessionId: 's1',
-            sessionName: 'Session 1',
-            levels: [
-                { levelId: 'l1', levelName: 'Level A' },
-                { levelId: 'l2', levelName: 'Level B' },
-            ],
-        },
-        {
-            sessionId: 's2',
-            sessionName: 'Session 2',
-            levels: [{ levelId: 'l3', levelName: 'Level C' }],
-        },
-    ],
-    c2: [
-        {
-            sessionId: 's3',
-            sessionName: 'Session 3',
-            levels: [{ levelId: 'l4', levelName: 'Level D' }],
-        },
-    ],
-    c3: [
-        {
-            sessionId: 's4',
-            sessionName: 'Session 4',
-            levels: [
-                { levelId: 'l5', levelName: 'Level E' },
-                { levelId: 'l6', levelName: 'Level F' },
-            ],
-        },
-    ],
-};
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { useStudyLibraryQuery } from '@/routes/study-library/courses/-services/getStudyLibraryDetails';
+import { transformApiDataToDummyStructure } from './-utils/helper';
 
 type Level = { levelId: string; levelName: string };
 type Session = { sessionId: string; sessionName: string; levels: Level[] };
@@ -70,9 +32,11 @@ interface Course {
     name: string;
 }
 
-const dummyBatchesTyped: DummyBatchesType = dummyBatches;
-
 const CreateInvite = () => {
+    const { data: studyLibraryCoursesData } = useSuspenseQuery(useStudyLibraryQuery());
+    const dummyCourses = transformApiDataToDummyStructure(studyLibraryCoursesData).dummyCourses;
+    const dummyBatches = transformApiDataToDummyStructure(studyLibraryCoursesData).dummyBatches;
+    const dummyBatchesTyped: DummyBatchesType = dummyBatches;
     const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
     const [showCourseDropdown, setShowCourseDropdown] = useState(false);
     const [selectedSession, setSelectedSession] = useState<Session | null>(null);
