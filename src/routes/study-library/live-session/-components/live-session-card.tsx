@@ -21,6 +21,7 @@ import { useLiveSessionReport } from '../-hooks/useLiveSessionReport';
 import { useLiveSessionStore } from '../schedule/-store/sessionIdstore';
 import { useNavigate } from '@tanstack/react-router';
 import { useSessionDetailsStore } from '../-store/useSessionDetailsStore';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { DraftSession, getSessionBySessionId } from '../-services/utils';
 import { LiveSessionReport } from '../-services/utils';
 import { registrationColumns, REGISTRATION_WIDTH } from '../-constants/reportTable';
@@ -32,9 +33,11 @@ interface LiveSessionCardProps {
     isDraft?: boolean;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default function LiveSessionCard({ session, isDraft = false }: LiveSessionCardProps) {
     const [openDialog, setOpenDialog] = useState<boolean>(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [scheduledSessionDetails, setScheduleSessionDetails] =
         useState<SessionDetailsResponse | null>(null);
     const queryClient = useQueryClient();

@@ -485,7 +485,7 @@ const StudentDetailsSidebar = () => {
                                         <Users className="size-4 text-purple-600" />
                                     </div>
                                     <h4 className="text-xs font-medium text-neutral-700">
-                                        Parent/Guardian's Details
+                                        Parent/Guardian&lsquo;s Details
                                     </h4>
                                 </div>
 
@@ -494,7 +494,7 @@ const StudentDetailsSidebar = () => {
                                         <div className="flex items-center gap-2">
                                             <div className="size-1.5 rounded-full bg-neutral-300"></div>
                                             <p className="text-xs text-neutral-600">
-                                                Father/Male Guardian's Name: N/A
+                                                Father/Male Guardian&lsquo;s Name: N/A
                                             </p>
                                         </div>
                                         <div className="text-neutral-400">
@@ -505,7 +505,7 @@ const StudentDetailsSidebar = () => {
                                         <div className="flex items-center gap-2">
                                             <div className="size-1.5 rounded-full bg-neutral-300"></div>
                                             <p className="text-xs text-neutral-600">
-                                                Mother/Male Guardian's Name: N/A
+                                                Mother/Male Guardian&lsquo;s Name: N/A
                                             </p>
                                         </div>
                                         <div className="text-neutral-400">

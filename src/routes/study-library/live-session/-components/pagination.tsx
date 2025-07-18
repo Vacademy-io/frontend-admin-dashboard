@@ -1,5 +1,6 @@
 import React from 'react';
 import { CaretLeft, CaretRight } from 'phosphor-react';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { MyButton } from '@/components/design-system/button';
 
 interface PaginationProps {
@@ -29,7 +30,7 @@ export default function Pagination({
                     <button
                         key={i}
                         onClick={() => onPageChange(i)}
-                        className={`px-3 py-1.5 text-sm rounded ${
+                        className={`rounded px-3 py-1.5 text-sm ${
                             currentPage === i
                                 ? 'bg-primary-500 text-white'
                                 : 'text-gray-600 hover:bg-gray-100'
@@ -45,7 +46,7 @@ export default function Pagination({
                 <button
                     key={1}
                     onClick={() => onPageChange(1)}
-                    className={`px-3 py-1.5 text-sm rounded ${
+                    className={`rounded px-3 py-1.5 text-sm ${
                         currentPage === 1
                             ? 'bg-primary-500 text-white'
                             : 'text-gray-600 hover:bg-gray-100'
@@ -70,7 +71,7 @@ export default function Pagination({
                     <button
                         key={currentPage}
                         onClick={() => onPageChange(currentPage)}
-                        className="px-3 py-1.5 text-sm rounded bg-primary-500 text-white"
+                        className="rounded bg-primary-500 px-3 py-1.5 text-sm text-white"
                     >
                         {currentPage}
                     </button>
@@ -92,7 +93,7 @@ export default function Pagination({
                     <button
                         key={totalPages}
                         onClick={() => onPageChange(totalPages)}
-                        className={`px-3 py-1.5 text-sm rounded ${
+                        className={`rounded px-3 py-1.5 text-sm ${
                             currentPage === totalPages
                                 ? 'bg-primary-500 text-white'
                                 : 'text-gray-600 hover:bg-gray-100'
@@ -108,14 +109,14 @@ export default function Pagination({
     };
 
     return (
-        <div className="flex items-center justify-center gap-2 mt-6">
+        <div className="mt-6 flex items-center justify-center gap-2">
             {/* Previous Button */}
             <button
                 onClick={onPrevious}
                 disabled={currentPage === 1}
-                className={`flex items-center gap-1 px-3 py-1.5 text-sm rounded ${
+                className={`flex items-center gap-1 rounded px-3 py-1.5 text-sm ${
                     currentPage === 1
-                        ? 'text-gray-400 cursor-not-allowed'
+                        ? 'cursor-not-allowed text-gray-400'
                         : 'text-gray-600 hover:bg-gray-100'
                 }`}
             >
@@ -124,17 +125,15 @@ export default function Pagination({
             </button>
 
             {/* Page Numbers */}
-            <div className="flex items-center gap-1">
-                {renderPageNumbers()}
-            </div>
+            <div className="flex items-center gap-1">{renderPageNumbers()}</div>
 
             {/* Next Button */}
             <button
                 onClick={onNext}
                 disabled={currentPage === totalPages}
-                className={`flex items-center gap-1 px-3 py-1.5 text-sm rounded ${
+                className={`flex items-center gap-1 rounded px-3 py-1.5 text-sm ${
                     currentPage === totalPages
-                        ? 'text-gray-400 cursor-not-allowed'
+                        ? 'cursor-not-allowed text-gray-400'
                         : 'text-gray-600 hover:bg-gray-100'
                 }`}
             >
@@ -143,13 +142,13 @@ export default function Pagination({
             </button>
 
             {/* Go to page input */}
-            <div className="flex items-center gap-2 ml-4">
+            <div className="ml-4 flex items-center gap-2">
                 <span className="text-sm text-gray-600">Go to</span>
                 <input
                     type="number"
                     min={1}
                     max={totalPages}
-                    className="w-16 px-2 py-1 text-sm border border-gray-300 rounded"
+                    className="w-16 rounded border border-gray-300 px-2 py-1 text-sm"
                     placeholder="1"
                     onKeyPress={(e) => {
                         if (e.key === 'Enter') {

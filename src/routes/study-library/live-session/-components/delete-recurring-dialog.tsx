@@ -8,6 +8,14 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Checkbox } from '@/components/ui/checkbox';
 import { format } from 'date-fns';
 
+// Safely parse 'HH:mm' string into numeric hours & minutes
+function parseHM(time: string): [number, number] {
+    const [hStr = '0', mStr = '0'] = time.split(':');
+    const h = Number(hStr);
+    const m = Number(mStr);
+    return [isNaN(h) ? 0 : h, isNaN(m) ? 0 : m];
+}
+
 interface DeleteRecurringDialogProps {
     open: boolean;
     onOpenChange: (val: boolean) => void;
@@ -16,43 +24,79 @@ interface DeleteRecurringDialogProps {
 }
 
 // Helper to generate all dates for a recurring weekly schedule
-function generateOccurrences(scheduleData: SessionBySessionIdResponse['schedule']) {
-    if (scheduleData.recurrence_type !== 'weekly' || !scheduleData.session_end_date) {
-        return [];
-    }
-
+function generateOccurrences(
+    scheduleData: SessionBySessionIdResponse['schedule']
+): Array<{ id: string; date: Date; day: string; time: string }> {
     const occurrences: Array<{ id: string; date: Date; day: string; time: string }> = [];
-    const startDate = new Date(scheduleData.start_time);
-    const endDate = new Date(scheduleData.session_end_date);
-    const weeklyPattern = scheduleData.added_schedules;
 
-    // Map day names to numbers (0=Sun, 1=Mon, ...)
-    const dayMap: { [key: string]: number } = {
-        Sunday: 0,
-        Monday: 1,
-        Tuesday: 2,
-        Wednesday: 3,
-        Thursday: 4,
-        Friday: 5,
-        Saturday: 6,
+    // Helper to format day & time when pushing to occurrences
+    const pushOccurrence = (dateObj: Date, idSeed: string, time: string) => {
+        occurrences.push({
+            id: `${idSeed}_${format(dateObj, 'yyyy-MM-dd')}`,
+            date: dateObj,
+            day: format(dateObj, 'eeee'),
+            time,
+        });
     };
 
-    let currentDate = new Date(startDate);
-    while (currentDate <= endDate) {
-        const currentDayOfWeek = currentDate.getDay();
-        for (const pattern of weeklyPattern) {
-            if (dayMap[pattern.day] === currentDayOfWeek) {
-                const occurrenceDate = new Date(currentDate);
-                occurrences.push({
-                    id: `${pattern.id}_${format(occurrenceDate, 'yyyy-MM-dd')}`,
-                    date: occurrenceDate,
-                    day: pattern.day,
-                    time: pattern.startTime,
-                });
+    // 1. Handle weekly recurring sessions (existing behaviour, with a fallback if end date missing)
+    if (scheduleData.recurrence_type === 'weekly') {
+        const weeklyPattern = scheduleData.added_schedules;
+        if (!weeklyPattern || weeklyPattern.length === 0) return occurrences;
+
+        const startDate = new Date(scheduleData.start_time);
+        // If session_end_date is unavailable, generate occurrences for the next 6 months by default
+        const endDate = scheduleData.session_end_date
+            ? new Date(scheduleData.session_end_date)
+            : new Date(startDate.getTime() + 180 /*days*/ * 24 * 60 * 60 * 1000);
+
+        // Map day names to numbers (0=Sun, 1=Mon, ...)
+        const dayMap: { [key: string]: number } = {
+            Sunday: 0,
+            Monday: 1,
+            Tuesday: 2,
+            Wednesday: 3,
+            Thursday: 4,
+            Friday: 5,
+            Saturday: 6,
+        };
+
+        let currentDate = new Date(startDate);
+        while (currentDate <= endDate) {
+            const currentDayOfWeek = currentDate.getDay();
+            for (const pattern of weeklyPattern) {
+                const dayKey = pattern.day.charAt(0).toUpperCase() + pattern.day.slice(1).toLowerCase();
+                if (dayMap[dayKey] === currentDayOfWeek) {
+                    const occurrenceDate = new Date(currentDate);
+                    pushOccurrence(occurrenceDate, pattern.id, pattern.startTime);
+                }
             }
+            currentDate.setDate(currentDate.getDate() + 1);
         }
-        currentDate.setDate(currentDate.getDate() + 1);
+        // do not return here; continue to common sorting/return at bottom
     }
+
+    // 2. Handle one-time or non-recurring sessions (if no weekly recurrence)
+    if (scheduleData.recurrence_type !== 'weekly') {
+        const singleDate = new Date(scheduleData.start_time);
+        pushOccurrence(
+            singleDate,
+            scheduleData.schedule_id || scheduleData.session_id || 'single',
+            format(singleDate, 'HH:mm')
+        );
+    }
+
+    // Sort ascending by date/time for a cleaner list (applies to both weekly & single)
+    occurrences.sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        const [hA, mA] = parseHM(a.time);
+        const [hB, mB] = parseHM(b.time);
+        dateA.setHours(hA, mA, 0, 0);
+        dateB.setHours(hB, mB, 0, 0);
+        return dateA.getTime() - dateB.getTime();
+    });
+
     return occurrences;
 }
 
@@ -155,11 +199,22 @@ export default function DeleteRecurringDialog({
                         <div className="max-h-60 overflow-y-auto pr-2 flex flex-col gap-2">
                             {occurrences.map((occ) => (
                                 <div key={occ.id} className="flex items-center gap-3 p-2 rounded-md hover:bg-neutral-50">
-                                    <Checkbox
-                                        id={occ.id}
-                                        checked={selectedDates.has(occ.id)}
-                                        onCheckedChange={(checked) => handleDateSelect(occ.id, !!checked)}
-                                    />
+                                    {(() => {
+                                        const dateTime = new Date(occ.date);
+                                        const [h, m] = parseHM(occ.time);
+                                        dateTime.setHours(h, m, 0, 0);
+                                        const isPast = dateTime < new Date();
+                                        return (
+                                            <Checkbox
+                                                id={occ.id}
+                                                checked={selectedDates.has(occ.id)}
+                                                onCheckedChange={(checked) =>
+                                                    handleDateSelect(occ.id, !!checked)
+                                                }
+                                                disabled={isPast}
+                                            />
+                                        );
+                                    })()}
                                     <label htmlFor={occ.id} className="cursor-pointer">
                                         {format(occ.date, 'eeee, MMMM dd, yyyy')}
                                     </label>
