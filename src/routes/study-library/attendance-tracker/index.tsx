@@ -1,3 +1,4 @@
+/* eslint-disable tailwindcss/no-custom-classname */
 import { createFileRoute } from '@tanstack/react-router';
 import { LayoutContainer } from '@/components/common/layout-container/layout-container';
 import { Helmet } from 'react-helmet';
@@ -1258,6 +1259,7 @@ function RouteComponent() {
     // Ensure page within bounds when filters change
     useEffect(() => {
         if (page >= totalPages) setPage(totalPages - 1);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [totalPages]);
 
     const paginatedStudents = useMemo(() => {
