@@ -415,11 +415,14 @@ export default function ScheduleStep2() {
         try {
             const response = await createLiveSessionStep2(body);
             console.log('API Response:', response);
-            // Invalidate session queries so list page shows fresh data
             await queryClient.invalidateQueries({ queryKey: ['liveSessions'] });
             await queryClient.invalidateQueries({ queryKey: ['upcomingSessions'] });
             await queryClient.invalidateQueries({ queryKey: ['pastSessions'] });
             await queryClient.invalidateQueries({ queryKey: ['draftSessions'] });
+
+            // Clear the session ID after successful creation
+            clearSessionId();
+
             navigate({ to: '/study-library/live-session' });
         } catch (error) {
             console.error('Error submitting form:', error);
@@ -1191,4 +1194,7 @@ export default function ScheduleStep2() {
             </MyDialog>
         </>
     );
+}
+function clearSessionId() {
+    throw new Error('Function not implemented.');
 }
