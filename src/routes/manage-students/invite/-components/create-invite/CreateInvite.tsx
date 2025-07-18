@@ -8,7 +8,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
-import GenerateInviteLinkDialog, { Batch, Course } from './GenerateInviteLinkDialog';
+import GenerateInviteLinkDialog from './GenerateInviteLinkDialog';
 
 const dummyCourses = [
     { id: 'c1', name: 'Mathematics' },
@@ -57,6 +57,18 @@ type Session = { sessionId: string; sessionName: string; levels: Level[] };
 type DummyBatchesType = {
     [key: string]: Session[];
 };
+
+interface Batch {
+    sessionId: string;
+    levelId: string;
+    sessionName: string;
+    levelName: string;
+}
+
+interface Course {
+    id: string;
+    name: string;
+}
 
 const dummyBatchesTyped: DummyBatchesType = dummyBatches;
 
