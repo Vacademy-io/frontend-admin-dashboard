@@ -1196,5 +1196,6 @@ export default function ScheduleStep2() {
     );
 }
 function clearSessionId() {
-    throw new Error('Function not implemented.');
+    // Reset the stored session ID and edit state after successful submission
+    useLiveSessionStore.getState().clearSessionId();
 }
