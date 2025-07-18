@@ -58,6 +58,7 @@ export const sessionFormSchema = z
         enableWaitingRoom: z.boolean(),
         streamingType: z.string(),
         allowRewind: z.boolean(),
+        allowPause: z.boolean(),
         startTime: z.string({
             required_error: 'Start time is required',
             invalid_type_error: 'Invalid date',
