@@ -9,7 +9,7 @@ import {
     MonitorPlay,
 } from '@phosphor-icons/react';
 import { SidebarItemsType } from '../../../../types/layout-container/layout-container-types';
-import { GearSix, NotePencil, UsersFour } from 'phosphor-react';
+import { GearSix, Notepad, NotePencil, UsersFour } from 'phosphor-react';
 import { getInstituteId } from '@/constants/helper';
 import { HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
 import { StorageKey } from '@/constants/storage/storage';
@@ -62,11 +62,11 @@ export const SidebarItemsData: SidebarItemsType[] = [
     },
     {
         icon: Users,
-        title: `Manage ${getInstituteId() === HOLISTIC_INSTITUTE_ID ? 'Members' : getTerminology(RoleTerms.Learner, 'Learner')}`, // Student
+        title: `Manage ${getTerminology(RoleTerms.Learner, 'Learner')}`, // Student
         id: 'student-mangement',
         subItems: [
             {
-                subItem: `${getInstituteId() === HOLISTIC_INSTITUTE_ID ? 'Member' : getTerminology(RoleTerms.Learner, 'Learner')} list`, // Student
+                subItem: `${getTerminology(RoleTerms.Learner, 'Learner')} list`, // Student
                 subItemLink: '/manage-students/students-list',
             },
             ...(getInstituteId() !== HOLISTIC_INSTITUTE_ID
@@ -91,6 +91,13 @@ export const SidebarItemsData: SidebarItemsType[] = [
         showForInstitute: HOLISTIC_INSTITUTE_ID,
     },
     {
+        icon: Notepad,
+        title: 'Attendance Tracker',
+        id: 'attendance-tracker',
+        to: '/study-library/attendance-tracker',
+        showForInstitute: HOLISTIC_INSTITUTE_ID,
+    },
+    {
         icon: BookOpen,
         title: 'Learning Center',
         id: 'study-library',
@@ -102,6 +109,10 @@ export const SidebarItemsData: SidebarItemsType[] = [
             {
                 subItem: `${getTerminology(ContentTerms.LiveSession, SystemTerms.LiveSession)}`, // LiveSession
                 subItemLink: '/study-library/live-session',
+            },
+            {
+                subItem: 'Attendance Tracker',
+                subItemLink: '/study-library/attendance-tracker',
             },
             {
                 subItem: 'Reports',
@@ -178,7 +189,7 @@ export const SidebarItemsData: SidebarItemsType[] = [
     },
     {
         icon: GearSix,
-        id: 'Settings',
+        id: 'settings',
         title: 'Settings',
         to: '/settings',
     },

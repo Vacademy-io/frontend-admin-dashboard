@@ -320,16 +320,6 @@ export const AddCourseForm = ({
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger>
-                <MyButton
-                    type="button"
-                    buttonType="secondary"
-                    layoutVariant="default"
-                    scale="large"
-                    id="add-course-button"
-                    className="w-full font-medium"
-                >
-                    Create Course Manually
-                </MyButton>
                 {!isEdit ? (
                     <MyButton
                         type="button"

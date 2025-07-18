@@ -258,21 +258,6 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
             >
                 <div className="flex h-full flex-col gap-3 p-4 text-sm">
                     <div className="mt-4 h-full rounded-lg">
-<<<<<<< HEAD
-<<<<<<< HEAD
-                        <h3 className="mb-2 text-lg font-semibold">Registrations</h3>
-                        <MyTable
-                            data={tableData}
-                            columns={registrationColumns}
-                            isLoading={isPending}
-                            error={error as Error | null}
-                            columnWidths={REGISTRATION_WIDTH}
-                            currentPage={0}
-                            className="!h-[70%] !w-fit"
-                        />
-=======
-=======
->>>>>>> origin
                         <Tabs value={selectedTab} onValueChange={handleTabChange}>
                             <div className="flex flex-row justify-between">
                                 <TabsList className="inline-flex h-auto justify-start gap-4 rounded-none border-b !bg-transparent p-0">
@@ -303,14 +288,10 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
 
                             <TabsContent value={'Registration'} className="space-y-4">
                                 {isPending ? (
-                                    <>
-                                        <DashboardLoader></DashboardLoader>
-                                    </>
+                                    <DashboardLoader />
                                 ) : (
                                     <>
-                                        <h3 className="mb-2 text-lg font-semibold">
-                                            Registrations
-                                        </h3>
+                                        <h3 className="mb-2 text-lg font-semibold">Registrations</h3>
                                         <MyTable
                                             data={tableData}
                                             columns={registrationColumns}
@@ -325,9 +306,7 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
                             </TabsContent>
                             <TabsContent value={'Attendance'} className="space-y-4">
                                 {isPending ? (
-                                    <>
-                                        <DashboardLoader></DashboardLoader>
-                                    </>
+                                    <DashboardLoader />
                                 ) : (
                                     <>
                                         <h3 className="mb-2 text-lg font-semibold">Attendance</h3>
@@ -370,10 +349,6 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
                         >
                             No
                         </MyButton>
-<<<<<<< HEAD
->>>>>>> main
-=======
->>>>>>> origin
                     </div>
                 </div>
             </MyDialog>

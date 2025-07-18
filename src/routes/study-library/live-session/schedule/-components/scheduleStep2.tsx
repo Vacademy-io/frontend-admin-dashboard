@@ -7,7 +7,7 @@ import { MyRadioButton } from '@/components/design-system/radio';
 import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { AccessType, InputType } from '../../-constants/enums';
 import { useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { MyDropdown } from '@/components/common/students/enroll-manually/dropdownForPackageItems';
 import { DropdownValueType } from '@/components/common/students/enroll-manually/dropdownTypesForPackageItems';
 import { DropdownItemType } from '@/components/common/students/enroll-manually/dropdownTypesForPackageItems';
@@ -27,8 +27,10 @@ import { transformFormToDTOStep2 } from '../../-constants/helper';
 import { createLiveSessionStep2 } from '../-services/utils';
 import { useLiveSessionStore } from '../-store/sessionIdstore';
 import { useNavigate } from '@tanstack/react-router';
+import { useQueryClient } from '@tanstack/react-query';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { useSessionDetailsStore } from '../../-store/useSessionDetailsStore';
+// import { useQueryClient } from '@tanstack/react-query';
 
 const TimeOptions = [
     { label: '5 minutes before', value: '5m' },
@@ -40,10 +42,12 @@ const TimeOptions = [
 export default function ScheduleStep2() {
     const { studyLibraryData } = useStudyLibraryStore();
     const [addCustomFieldDialog, setAddCustomFieldDialog] = useState<boolean>(false);
+    // const queryClient = useQueryClient();
     const [previewDialog, setPreviewDialog] = useState<boolean>(false);
     const { sessionId } = useLiveSessionStore();
     const isEditState = useLiveSessionStore((state) => state.isEdit);
     const { sessionDetails } = useSessionDetailsStore();
+    const queryClient = useQueryClient();
 
     const navigate = useNavigate();
 
@@ -52,85 +56,46 @@ export default function ScheduleStep2() {
 
     useEffect(() => {
         if (!sessionId) {
-            console.log("here " , sessionId)
+            console.log('here ', sessionId);
             navigate({ to: '/study-library/live-session' });
         }
     }, [sessionId, navigate]);
 
-    useEffect(() => {
-        if (sessionDetails) {
-            form.setValue(
-                'accessType',
-                sessionDetails?.schedule?.access_type === 'public'
-                    ? AccessType.PUBLIC
-                    : AccessType.PRIVATE
-            );
-            const defaultNotifySettings = {
-                onCreate: false,
-                beforeLive: false,
-                beforeLiveTime: [] as { time: string }[],
-                onLive: false,
-            };
-
-            let mail = false;
-            let whatsapp = false;
-
-            sessionDetails?.notifications?.addedNotificationActions.forEach((action) => {
-                const { type, notify, notifyBy, time } = action;
-
-                if (type === 'ON_CREATE') {
-                    defaultNotifySettings.onCreate = notify;
-                } else if (type === 'ON_LIVE') {
-                    defaultNotifySettings.onLive = notify;
-                } else if (type === 'BEFORE_LIVE') {
-                    defaultNotifySettings.beforeLive = notify;
-                    if (time) {
-                        defaultNotifySettings.beforeLiveTime = [{ time }];
-                    }
-                }
-
-                // Merge mail & whatsapp flags
-                mail = mail || notifyBy.mail;
-                whatsapp = whatsapp || notifyBy.whatsapp;
-            });
-
-            form.setValue('notifySettings', defaultNotifySettings);
-        }
-    }, [sessionDetails]);
-
-    const sessionList: DropdownItemType[] = Array.from(
-        new Map(
-            (
-                studyLibraryData?.flatMap((item) =>
-                    item.sessions.map((session) => ({
-                        name: session.session_dto.session_name,
-                        id: session.session_dto.id,
-                    }))
-                ) ?? []
-            ).map((item) => [item.id, item])
-        ).values()
+    // Prepare session data first
+    const sessionList: DropdownItemType[] = useMemo(
+        () =>
+            Array.from(
+                new Map(
+                    (
+                        studyLibraryData?.flatMap((item) =>
+                            item.sessions.map((session) => ({
+                                name: session.session_dto.session_name,
+                                id: session.session_dto.id,
+                            }))
+                        ) ?? []
+                    ).map((item) => [item.id, item])
+                ).values()
+            ),
+        [studyLibraryData]
     );
 
-    const courses = studyLibraryData?.flatMap((item) =>
-        item.sessions.map((session) => ({
-            courseName: item.course.package_name,
-            courseId: item.course.id,
-            sessionId: session.session_dto.id,
-            levels: session.level_with_details.map((level) => ({
-                name: level.name,
-                id: level.id,
-            })),
-        }))
+    const courses = useMemo(
+        () =>
+            studyLibraryData?.flatMap((item) =>
+                item.sessions.map((session) => ({
+                    courseName: item.course.package_name,
+                    courseId: item.course.id,
+                    sessionId: session.session_dto.id,
+                    levels: session.level_with_details.map((level) => ({
+                        name: level.name,
+                        id: level.id,
+                    })),
+                }))
+            ),
+        [studyLibraryData]
     );
 
-    const initialSession: DropdownItemType | undefined = {
-        id: sessionList[0]?.id || '',
-        name: sessionList[0]?.name || '',
-    };
-    const [currentSession, setCurrentSession] = useState<DropdownItemType | undefined>(
-        () => initialSession
-    );
-
+    // Initialize form with default values
     const form = useForm<z.infer<typeof addParticipantsSchema>>({
         resolver: zodResolver(addParticipantsSchema),
         defaultValues: {
@@ -155,12 +120,103 @@ export default function ScheduleStep2() {
             fields: [],
         },
     });
+
+    // Set up current session
+    const [currentSession, setCurrentSession] = useState<DropdownItemType | undefined>(() =>
+        sessionList.length > 0 ? sessionList[0] : undefined
+    );
+
+    // Update form when session details are available
+    useEffect(() => {
+        if (!sessionDetails || !instituteDetails) return;
+
+        // Set access type
+        form.setValue(
+            'accessType',
+            sessionDetails.schedule.access_type === 'public'
+                ? AccessType.PUBLIC
+                : AccessType.PRIVATE
+        );
+
+        // Set notification settings
+        const defaultNotifySettings = {
+            onCreate: false,
+            beforeLive: false,
+            beforeLiveTime: [] as { time: string }[],
+            onLive: false,
+        };
+
+        let mail = false;
+        let whatsapp = false;
+
+        sessionDetails.notifications?.addedNotificationActions.forEach((action) => {
+            const { type, notify, notifyBy, time } = action;
+
+            if (type === 'ON_CREATE') {
+                defaultNotifySettings.onCreate = notify;
+            } else if (type === 'ON_LIVE') {
+                defaultNotifySettings.onLive = notify;
+            } else if (type === 'BEFORE_LIVE') {
+                defaultNotifySettings.beforeLive = notify;
+                if (time) {
+                    defaultNotifySettings.beforeLiveTime = [{ time }];
+                }
+            }
+
+            // Merge mail & whatsapp flags
+            mail = mail || notifyBy.mail;
+            whatsapp = whatsapp || notifyBy.whatsapp;
+        });
+
+        form.setValue('notifySettings', defaultNotifySettings);
+        form.setValue('notifyBy', { mail, whatsapp });
+
+        // Load previously selected levels for PRIVATE sessions
+        if (
+            sessionDetails.schedule.access_type === 'private' &&
+            sessionDetails.schedule.package_session_ids &&
+            sessionDetails.schedule.package_session_ids.length > 0
+        ) {
+            // Initialize array for selected levels
+            const selectedLevels: { courseId: string; sessionId: string; levelId: string }[] = [];
+
+            // Process each package_session_id
+            sessionDetails.schedule.package_session_ids.forEach((packageSessionId) => {
+                // Find the matching batch in institute details
+                const matchingBatch = instituteDetails.batches_for_sessions.find(
+                    (batch) => batch.id === packageSessionId
+                );
+
+                if (matchingBatch) {
+                    selectedLevels.push({
+                        courseId: matchingBatch.package_dto.id,
+                        sessionId: matchingBatch.session.id,
+                        levelId: matchingBatch.level.id,
+                    });
+                }
+            });
+
+            // Set the selected levels in the form
+            if (selectedLevels.length > 0) {
+                form.setValue('selectedLevels', selectedLevels);
+
+                // If we have any selections, set the current session to match the first selected level
+                const firstSelectedLevel = selectedLevels[0];
+                const matchingSession = sessionList.find(
+                    (session) => session.id === firstSelectedLevel?.sessionId
+                );
+                if (matchingSession) {
+                    setCurrentSession(matchingSession);
+                }
+            }
+        }
+    }, [sessionDetails, instituteDetails, sessionList, form]);
+
     const addCustomFieldform = useForm<z.infer<typeof addCustomFiledSchema>>({
         resolver: zodResolver(addCustomFiledSchema),
         defaultValues: {
             fieldType: 'text',
             options: [],
-            // options: [{ optionField: 'Option 1' }, { optionField: 'Option 2' }],
         },
     });
 
@@ -193,6 +249,7 @@ export default function ScheduleStep2() {
         if (isEditState) {
             if (accessType === AccessType.PUBLIC) {
                 const fields =
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     sessionDetails?.notifications?.addedFields.map((field: any) => ({
                         id: field.id,
                         label: field.label,
@@ -268,6 +325,11 @@ export default function ScheduleStep2() {
         try {
             const response = await createLiveSessionStep2(body);
             console.log('API Response:', response);
+            // Invalidate session queries so list page shows fresh data
+            await queryClient.invalidateQueries({ queryKey: ['liveSessions'] });
+            await queryClient.invalidateQueries({ queryKey: ['upcomingSessions'] });
+            await queryClient.invalidateQueries({ queryKey: ['pastSessions'] });
+            await queryClient.invalidateQueries({ queryKey: ['draftSessions'] });
             navigate({ to: '/study-library/live-session' });
         } catch (error) {
             console.error('Error submitting form:', error);
@@ -1039,4 +1101,8 @@ export default function ScheduleStep2() {
             </MyDialog>
         </>
     );
+}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function clearSessionId() {
+    throw new Error('Function not implemented.');
 }

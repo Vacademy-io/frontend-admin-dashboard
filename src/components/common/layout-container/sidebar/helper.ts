@@ -52,7 +52,9 @@ export function filterMenuItems(menuList: SidebarItemsType[], instituteId: strin
             (item) =>
                 item.id === 'dashboard' ||
                 item.id === 'student-mangement' ||
-                item.id === 'live-classes'
+                item.id === 'live-classes' ||
+                item.id === 'settings' ||
+                item.id === 'attendance-tracker'
         );
     }
 

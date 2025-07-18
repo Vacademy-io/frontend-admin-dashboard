@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable react-hooks/exhaustive-deps */
 import { MyButton } from '@/components/design-system/button';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Separator } from '@radix-ui/react-separator';
@@ -66,7 +68,9 @@ export default function ScheduleStep1() {
     const [selectedMusicFile, setSelectedMusicFile] = useState<File | null>(null);
     const musicFileInputRef = useRef<HTMLInputElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [scheduleType, setScheduleType] = useState<'everyday' | 'weekday' | 'exceptSunday' | 'custom' | null>(null);
+    const [scheduleType, setScheduleType] = useState<
+        'everyday' | 'weekday' | 'exceptSunday' | 'custom' | null
+    >(null);
 
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
     const { SubjectFilterData } = useFilterDataForAssesment(instituteDetails);
@@ -96,19 +100,13 @@ export default function ScheduleStep1() {
             subject: 'none',
             timeZone: '(GMT 5:30) India Standard Time (Asia/Kolkata)',
             events: '1',
-<<<<<<< HEAD
-<<<<<<< HEAD
             openWaitingRoomBefore: '15',
-            sessionType: '',
-=======
-=======
->>>>>>> origin
             sessionType: SessionType.LIVE,
->>>>>>> main
             streamingType: sessionDetails?.schedule?.session_streaming_service_type
                 ? sessionDetails?.schedule?.session_streaming_service_type
                 : '',
             allowRewind: false,
+            allowPause: false,
             enableWaitingRoom: false,
             sessionPlatform: StreamingPlatform.OTHER,
             durationMinutes: '00',
@@ -148,7 +146,6 @@ export default function ScheduleStep1() {
                 } else {
                     form.setValue('sessionPlatform', StreamingPlatform.OTHER);
                     form.setValue('streamingType', SessionPlatform.REDIRECT_TO_OTHER_PLATFORM);
-                    
                 }
             }
         });
@@ -416,15 +413,7 @@ export default function ScheduleStep1() {
         );
         try {
             const response = await createLiveSessionStep1(body);
-            useLiveSessionStore.getState().setSessionId(response.id);
-<<<<<<< HEAD
-<<<<<<< HEAD
-            console.log(response.id);
             setSessionId(response.id);
-=======
->>>>>>> main
-=======
->>>>>>> origin
             navigate({ to: '/study-library/live-session/schedule/step2' });
         } catch (error) {
             console.error(error);
@@ -534,7 +523,7 @@ export default function ScheduleStep1() {
         currentSchedule.forEach((day, index) => {
             const weekDay = WEEK_DAYS.find((d) => d.label === day.day);
             const isWeekday = weekDay?.value
-                ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri' , 'Sat'].includes(weekDay.value)
+                ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].includes(weekDay.value)
                 : false;
             form.setValue(`recurringSchedule.${index}.isSelect`, isWeekday);
 
@@ -560,9 +549,7 @@ export default function ScheduleStep1() {
 
         currentSchedule.forEach((day, index) => {
             const weekDay = WEEK_DAYS.find((d) => d.label === day.day);
-            const isWeekday = weekDay?.value
-                ? [''].includes(weekDay.value)
-                : false;
+            const isWeekday = weekDay?.value ? [''].includes(weekDay.value) : false;
             form.setValue(`recurringSchedule.${index}.isSelect`, isWeekday);
 
             const dh = form.getValues('durationHours');
@@ -848,7 +835,7 @@ export default function ScheduleStep1() {
                         name="streamingType"
                         render={({ field }) => (
                             <MyRadioButton
-                                name="meetingType"
+                                name="streamingType"
                                 value={field.value}
                                 onChange={field.onChange}
                                 options={[
@@ -874,14 +861,40 @@ export default function ScheduleStep1() {
                         )}
                     />
                 </div>
-                <div className="flex h-full flex-row items-start gap-4">
+            </div>
+            {/* Lock video playback settings */}
+            <div className="flex flex-col items-start gap-4">
+                <h4 className="text-sm font-semibold">Lock video playback settings</h4>
+                <div className="flex flex-row items-center gap-4">
                     <Controller
                         control={control}
-                        name={`allowRewind`}
+                        name="allowRewind"
                         render={({ field }) => (
                             <label className="flex items-center gap-2">
                                 <span className="text-sm">Allow rewind</span>
-                                <Switch checked={field.value} onCheckedChange={field.onChange} />
+                                <Switch
+                                    disabled={
+                                        watch('streamingType') !== SessionPlatform.EMBED_IN_APP
+                                    }
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                />
+                            </label>
+                        )}
+                    />
+                    <Controller
+                        control={control}
+                        name="allowPause"
+                        render={({ field }) => (
+                            <label className="flex items-center gap-2">
+                                <span className="text-sm">Allow play pause</span>
+                                <Switch
+                                    disabled={
+                                        watch('streamingType') !== SessionPlatform.EMBED_IN_APP
+                                    }
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                />
                             </label>
                         )}
                     />
@@ -986,15 +999,17 @@ export default function ScheduleStep1() {
                     <div className="flex flex-row items-center gap-2">
                         <Select
                             value={scheduleType || ''}
-                            onValueChange={(value: 'everyday' | 'weekday' | 'exceptSunday' | 'custom') => {
+                            onValueChange={(
+                                value: 'everyday' | 'weekday' | 'exceptSunday' | 'custom'
+                            ) => {
                                 setScheduleType(value);
                                 if (value === 'everyday') {
                                     toggleEveryDay();
                                 } else if (value === 'weekday') {
                                     toggleMonToFri();
-                                } else if(value === 'exceptSunday'){
+                                } else if (value === 'exceptSunday') {
                                     toggleMonToSat();
-                                } else if(value === 'custom'){
+                                } else if (value === 'custom') {
                                     toggleCustom();
                                 }
                             }}

@@ -24,7 +24,7 @@ import { useSelectedSessionStore } from '@/stores/study-library/selected-session
 import { useContentStore } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
 import { SidebarSimple } from '@phosphor-icons/react';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { useSuspenseQuery } from '@tanstack/react-query';
+import { useSuspenseQuery, useQueryClient } from '@tanstack/react-query';
 import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
 import { Separator } from '@/components/ui/separator';
 import EditDashboardProfileComponent from '@/routes/dashboard/-components/EditDashboardProfileComponent';
@@ -44,6 +44,7 @@ export function Navbar() {
         TEACHER: '#FFF4F5',
         EVALUATOR: '#F5F0FF',
     };
+    const queryClient = useQueryClient();
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
     const { data: adminDetails } = useSuspenseQuery(handleGetAdminDetails());
     const { resetStore } = useInstituteDetailsStore();
@@ -65,6 +66,11 @@ export function Navbar() {
 
     const handleLogout = async (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         event.preventDefault(); // Prevents dropdown from closing immediately
+
+        // Clear all React Query cache to prevent data persistence between users
+        queryClient.clear();
+
+        // Reset all Zustand stores
         resetStore();
         resetStudyLibraryStore();
         resetModulesWithChaptersStore();

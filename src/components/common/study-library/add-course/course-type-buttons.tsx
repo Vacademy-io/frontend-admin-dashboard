@@ -1,17 +1,12 @@
 import { AddCourseForm } from './add-course-form';
 import { MyButton } from '@/components/design-system/button';
-import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardHeader, CardFooter, CardTitle, CardDescription } from '@/components/ui/card';
 import { PencilSimpleLine, StarFour, Lightning } from 'phosphor-react';
 import { BrainCircuit } from 'lucide-react';
-import { getTerminology } from '../../layout-container/sidebar/utils';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+// import { AddCourseForm } from './add-course-form';
 
-/**
- * Renders the options for creating a course. The user can either choose to
- * create the course manually (opens a multi-step form) or let the AI generate
- * the course structure. The design follows a card-based layout that matches
- * the updated mock-ups shared by the design team.
- */
 const CourseTypeButtons = () => {
     return (
         <div className="flex flex-col gap-6 p-4">
@@ -78,7 +73,7 @@ const CourseTypeButtons = () => {
                     </CardFooter>
                 </Card>
             </div>
-            <div className="flex flex-col items-center justify-center gap-4 p-4">
+            {/* <div className="flex flex-col items-center justify-center gap-4 p-4">
                 <AddCourseForm />
                 <MyButton
                     type="button"
@@ -88,7 +83,7 @@ const CourseTypeButtons = () => {
                 >
                     Create {getTerminology(ContentTerms.Course, SystemTerms.Course)} Through AI
                 </MyButton>
-            </div>
+            </div> */}
         </div>
     );
 };
