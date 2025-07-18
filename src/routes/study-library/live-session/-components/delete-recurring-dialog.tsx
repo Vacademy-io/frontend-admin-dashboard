@@ -145,7 +145,7 @@ export default function DeleteRecurringDialog({
 
     const handleConfirm = async () => {
         if (choice === 'manual') {
-            // TODO: Implement API call for manual deletion
+            // NOTE: Implement API call for manual deletion once backend supports manual scope
             console.log('Manually selected dates to delete:', Array.from(selectedDates));
             alert("Manual deletion API is not yet implemented. Check the console for selected dates.");
             return;
