@@ -50,6 +50,8 @@ import { MyButton } from '@/components/design-system/button';
 import { useContentStore } from '../modules/chapters/slides/-stores/chapter-sidebar-store';
 import { TeachersList } from './teacher-list';
 import AddTeachers from '@/routes/dashboard/-components/AddTeachers';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 // Interfaces (assuming these are unchanged)
 export interface Chapter {
@@ -458,7 +460,7 @@ export const SubjectMaterial = () => {
                                 onOpenChange={() => toggleSubject(subject.id)}
                                 className="group"
                             >
-                                <CollapsibleTrigger className="flex w-full items-center rounded-md px-2 py-2 text-left text-sm font-semibold text-gray-800 transition-colors duration-150 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
+                                <CollapsibleTrigger className="flex w-full items-center rounded-md p-2 text-left text-sm font-semibold text-gray-800 transition-colors duration-150 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
                                     <div className="flex flex-1 items-center gap-2.5">
                                         {isSubjectOpen ? (
                                             <CaretDown
@@ -817,8 +819,9 @@ export const SubjectMaterial = () => {
                         Missing Information
                     </h2>
                     <p className="text-sm text-gray-600">
-                        Course ID or Level ID is missing. Please ensure these are provided to
-                        proceed.
+                        {getTerminology(ContentTerms.Course, SystemTerms.Course)} ID or{' '}
+                        {getTerminology(ContentTerms.Level, SystemTerms.Level)} ID is missing.
+                        Please ensure these are provided to proceed.
                     </p>
                 </div>
             </div>

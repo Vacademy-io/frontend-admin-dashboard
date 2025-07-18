@@ -53,6 +53,8 @@ import { convertDateFormat } from './Step1BasicInfo';
 import { handleGetIndividualStudentList } from '@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-services/assessment-details-services';
 import { getInstituteId } from '@/constants/helper';
 import { Step3ParticipantsListIndiviudalStudentInterface } from '@/types/assessments/student-questionwise-status';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 type TestAccessFormType = z.infer<typeof testAccessSchema>;
 
 const Step3AddingParticipants: React.FC<StepContentProps> = ({
@@ -536,7 +538,12 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                             Restrict the Assessment to specific
                                                             participants by assigning it to
                                                             institute batches or selecting
-                                                            individual students.
+                                                            individual{' '}
+                                                            {getTerminology(
+                                                                RoleTerms.Learner,
+                                                                SystemTerms.Learner
+                                                            ).toLocaleLowerCase()}
+                                                            s.
                                                         </span>
                                                     </FormLabel>
                                                 </FormItem>
@@ -555,7 +562,11 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                         <span className="font-thin">
                                                             Allow anyone to register for this
                                                             Assessment via a shared link. Institute
-                                                            students can also be pre-registered by
+                                                            {getTerminology(
+                                                                RoleTerms.Learner,
+                                                                SystemTerms.Learner
+                                                            ).toLocaleLowerCase()}
+                                                            s can also be pre-registered by
                                                             selecting batches or individuals.
                                                         </span>
                                                     </FormLabel>

@@ -19,6 +19,7 @@ import {
     ChevronDown,
     MessageSquareText,
     FileText,
+    Lightbulb,
 } from 'lucide-react'; // Removed QrCodeIcon since we won't need it
 import { toast } from 'sonner';
 import {
@@ -65,6 +66,10 @@ interface LiveSessionActionBarProps {
     audioBlobUrl?: string | null; // Still needed for download link
     onDownloadAudio?: (format?: 'webm' | 'mp3') => void; // Modified to accept format
     recordingDuration?: number; // New prop
+    // Recommendations Props
+    onToggleRecommendations?: () => void;
+    isRecommendationsPanelOpen?: boolean;
+    recommendationsCount?: number;
 }
 
 // Helper to format seconds into MM:SS
@@ -96,6 +101,9 @@ export const LiveSessionActionBar: React.FC<LiveSessionActionBarProps> = ({
     audioBlobUrl, // Keep for download
     onDownloadAudio, // New prop
     recordingDuration,
+    onToggleRecommendations,
+    isRecommendationsPanelOpen,
+    recommendationsCount,
 }) => {
     const [isAudioMenuOpen, setIsAudioMenuOpen] = useState(false);
     const qrRef = useRef<HTMLDivElement>(null); // Ref for QR code display
@@ -344,6 +352,29 @@ export const LiveSessionActionBar: React.FC<LiveSessionActionBarProps> = ({
                         <span className="text-blue-300 font-bold">({participantsCount})</span>
                     </span>
                 </Button>
+                
+                {/* Recommendations Button */}
+                {onToggleRecommendations && (
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={onToggleRecommendations}
+                        className={`h-10 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white backdrop-blur-sm transition-all duration-300 ease-out hover:scale-105 shadow-lg px-3 lg:px-4 ${
+                            isRecommendationsPanelOpen 
+                                ? 'bg-orange-500/30 border-orange-400/50 text-orange-200 shadow-orange-500/25' 
+                                : 'hover:border-orange-400/30'
+                        }`}
+                        title="Toggle AI Recommendations"
+                    >
+                        <Lightbulb size={16} className="mr-0 sm:mr-2 transition-transform duration-200 group-hover:scale-110" />
+                        <span className="hidden sm:inline font-medium">
+                            {recommendationsCount !== undefined && recommendationsCount > 0 && (
+                                <span className="text-orange-300 font-bold">({recommendationsCount})</span>
+                            )}
+                            <span className="hidden lg:inline ml-1">AI Ideas</span>
+                        </span>
+                    </Button>
+                )}
                 
                 <Button
                     variant="ghost"

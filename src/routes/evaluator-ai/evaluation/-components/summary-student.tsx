@@ -273,7 +273,7 @@ export default function EvaluationSummary() {
 
                 <div className="-mt-4 flex flex-wrap justify-between px-1 text-sm">
                     <div className="flex gap-2">
-                        <span className="text-gray-600">Learner Name:</span>
+                        <span className="text-gray-600">Name:</span>
                         <span>{studentSummary?.name}</span>
                     </div>
                     <div className="flex gap-2">

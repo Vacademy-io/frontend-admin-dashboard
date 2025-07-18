@@ -1,5 +1,7 @@
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { MyButton } from '@/components/design-system/button';
 import { MyDialog } from '@/components/design-system/dialog';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { useDeleteSession } from '@/services/study-library/session-management/deleteSession';
 import { SessionData } from '@/types/study-library/session-types';
 import { useState } from 'react';
@@ -25,11 +27,22 @@ export const DeleteSessionDialog = ({
             { requestData: [session.session.id] },
             {
                 onSuccess: () => {
-                    toast.success('Session deleted successfully!');
+                    toast.success(
+                        ` ${getTerminology(
+                            ContentTerms.Session,
+                            SystemTerms.Session
+                        )} deleted successfully!`
+                    );
                     setOpen(false);
                 },
-                onError: () => {
-                    toast.error('Failed to delete session');
+                onError: (error) => {
+                    toast.error(
+                        error.message ||
+                            `Failed to delete ${getTerminology(
+                                ContentTerms.Session,
+                                SystemTerms.Session
+                            ).toLocaleLowerCase()}`
+                    );
                 },
             }
         );
@@ -37,7 +50,7 @@ export const DeleteSessionDialog = ({
 
     return (
         <MyDialog
-            heading="Delete Session"
+            heading={`Delete ${getTerminology(ContentTerms.Session, SystemTerms.Session)}`}
             trigger={triggerButton}
             open={open}
             onOpenChange={handleOpenChange}
@@ -47,8 +60,16 @@ export const DeleteSessionDialog = ({
                 <div>
                     <p className="text-danger-600">Attention</p>
                     <p>
-                        All the data in the session will be deleted. Are you sure you want to delete
-                        the session{' '}
+                        All the data in the{' '}
+                        {getTerminology(
+                            ContentTerms.Session,
+                            SystemTerms.Session
+                        ).toLocaleLowerCase()}{' '}
+                        will be deleted. Are you sure you want to delete the{' '}
+                        {getTerminology(
+                            ContentTerms.Session,
+                            SystemTerms.Session
+                        ).toLocaleLowerCase()}{' '}
                         <span className="text-primary-500">{session.session.session_name}</span>?
                     </p>
                 </div>

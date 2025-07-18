@@ -5,6 +5,7 @@ import { UseMutateAsyncFunction } from '@tanstack/react-query';
 import {
     DocumentSlidePayload,
     VideoSlidePayload,
+    QuizSlidePayload,
 } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-hooks/use-slides';
 import { SlideQuestionsDataInterface } from '@/types/study-library/study-library-slides-type';
 import {
@@ -12,6 +13,7 @@ import {
     converDataToVideoFormat,
     convertToQuestionBackendSlideFormat,
 } from '../../-helper/helper';
+import { createQuizSlidePayload } from '../quiz/utils/api-helpers';
 
 type SlideResponse = {
     id: string;
@@ -47,6 +49,7 @@ export const handlePublishSlide = async (
         SlideQuestionsDataInterface,
         unknown
     >,
+    addUpdateQuizSlide: UseMutateAsyncFunction<SlideResponse, Error, QuizSlidePayload, unknown>,
     SaveDraft: (activeItem: Slide) => Promise<void>,
     playerRef?: RefObject<YTPlayer> // Optional YouTube player ref
 ) => {
@@ -156,6 +159,27 @@ export const handlePublishSlide = async (
             setIsOpen(false);
         } catch {
             toast.error(`Error in publishing the slide`);
+        }
+    }
+
+    if (activeItem?.source_type === 'QUIZ') {
+        try {
+            // Use the createQuizSlidePayload function to properly transform the data
+            const payload = createQuizSlidePayload(
+                activeItem.quiz_slide?.questions || [],
+                {
+                    ...activeItem,
+                    status: 'PUBLISHED' // Override status to PUBLISHED
+                }
+            );
+
+            // Call the API to publish the quiz slide
+            await addUpdateQuizSlide(payload);
+            toast.success('Quiz published successfully!');
+            setIsOpen(false);
+        } catch (error) {
+            console.error('Error publishing quiz slide:', error);
+            toast.error('Failed to publish quiz');
         }
     }
 };

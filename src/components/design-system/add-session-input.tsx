@@ -2,6 +2,8 @@ import { MyButton } from '@/components/design-system/button';
 import { MyInput } from '@/components/design-system/input';
 import { Plus, X } from '@phosphor-icons/react';
 import { Dispatch, SetStateAction, useState } from 'react';
+import { getTerminology } from '../common/layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 interface AddSessionInputProps {
     newSessionName: string;
@@ -31,7 +33,7 @@ export const AddSessionInput = ({
                             input={newSessionName}
                             onChangeFunction={(e) => setNewSessionName(e.target.value)}
                             required={true}
-                            label="New Session"
+                            label={`New ${getTerminology(ContentTerms.Session, SystemTerms.Session)}`}
                         />
                         <MyInput
                             inputType="date"
@@ -80,7 +82,8 @@ export const AddSessionInput = ({
                     id="add-session-button"
                     className="w-fit text-primary-500 hover:bg-white active:bg-white"
                 >
-                    <Plus /> Add Session
+                    <Plus /> Add{' '}
+                    {getTerminology(ContentTerms.Session, SystemTerms.Session).toLocaleLowerCase()}
                 </MyButton>
             )}
         </>

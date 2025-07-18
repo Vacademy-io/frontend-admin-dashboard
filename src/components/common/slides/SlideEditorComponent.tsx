@@ -591,7 +591,7 @@ const SlidesEditorComponent = ({
         try {
             // 1. Transcribe audio
             const client = new AssemblyAI({ apiKey: ASSEMBLYAI_API_KEY });
-            toast.info(`Generating recommendations from audio (${recommendationBatchCounter * 5}-${(recommendationBatchCounter + 1) * 5} mins)...`);
+            toast.info(`Generating recommendations from audio (${recommendationBatchCounter * 2}-${(recommendationBatchCounter + 1) * 2} mins)...`);
             const transcript = await client.transcripts.transcribe({ audio: audioBlob });
 
             if (transcript.status !== 'completed' || !transcript.text) {
@@ -650,7 +650,7 @@ const SlidesEditorComponent = ({
             
             if (recommendedSlides.length > 0) {
                 // 4. Add to store
-                const batchTimestamp = `${recommendationBatchCounter * 5}-${(recommendationBatchCounter + 1) * 5} mins`;
+                const batchTimestamp = `${recommendationBatchCounter * 2}-${(recommendationBatchCounter + 1) * 2} mins`;
                 useSlideStore.getState().addRecommendationBatch({
                     timestamp: batchTimestamp,
                     slides: recommendedSlides,
@@ -675,7 +675,7 @@ const SlidesEditorComponent = ({
         setRecommendationBatchCounter(0);
 
         recommendationIntervalRef.current = setInterval(() => {
-            console.log('[Rec AI] 5-minute interval reached.');
+            console.log('[Rec AI] 2-minute interval reached.');
             // Stop the current recording to process the chunk
             recommendationMediaRecorderRef.current?.stop();
             // The ondataavailable handles pushing the blob, then we process it
@@ -689,7 +689,7 @@ const SlidesEditorComponent = ({
             }, 500);
             
             setRecommendationBatchCounter(prev => prev + 1);
-        }, 300000); // 300000 ms = 5 minutes
+        }, 120000); // 120000 ms = 2 minutes
     };
 
     const stopRecommendationInterval = () => {

@@ -20,10 +20,12 @@ import { getInstituteId } from '@/constants/helper';
 import InviteInstructorForm from './InviteInstructorForm';
 import { UserRolesDataEntry } from '@/types/dashboard/user-roles';
 import { CODE_CIRCLE_INSTITUTE_ID } from '@/constants/urls';
+import { ContentTerms, RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
-import { RoleType } from '@/constants/dummy-data';
+import { RoleTypeExceptStudent } from '@/constants/dummy-data';
 
 interface Level {
     id: string;
@@ -45,6 +47,7 @@ interface Instructor {
     email: string;
     name: string;
     profilePicId: string;
+    roles?: string[];
 }
 
 // Update the schema
@@ -69,6 +72,7 @@ export const step2Schema = z.object({
                                     email: z.string(),
                                     name: z.string(),
                                     profilePicId: z.string(),
+                                    roles: z.array(z.string()).optional(),
                                 })
                             )
                             .default([]),
@@ -84,6 +88,7 @@ export const step2Schema = z.object({
                 name: z.string(),
                 email: z.string(),
                 profilePicId: z.string(),
+                roles: z.array(z.string()).optional(),
             })
         )
         .default([]),
@@ -94,6 +99,7 @@ export const step2Schema = z.object({
                 name: z.string(),
                 email: z.string(),
                 profilePicId: z.string(),
+                roles: z.array(z.string()).optional(),
             })
         )
         .optional(),
@@ -201,8 +207,9 @@ export const AddCourseStep2 = ({
     const [instructors, setInstructors] = useState<Instructor[]>([]);
 
     const [publishToCatalogue, setPublishToCatalogue] = useState(
-        initialData?.publishToCatalogue || false
+        initialData?.publishToCatalogue ? (initialData?.publishToCatalogue ? true : false) : true
     );
+
     const [showAssignmentCard, setShowAssignmentCard] = useState(false);
     const [selectedSessionLevels, setSelectedSessionLevels] = useState<
         Array<{
@@ -336,10 +343,16 @@ export const AddCourseStep2 = ({
         onSubmit(completeData);
     };
 
-    const handleInviteSuccess = (id: string, name: string, email: string, profilePicId: string) => {
+    const handleInviteSuccess = (
+        id: string,
+        name: string,
+        email: string,
+        profilePicId: string,
+        roles?: string[]
+    ) => {
         if (!id || !email || !name) return;
 
-        const newInstructor: Instructor = { id, name, email, profilePicId };
+        const newInstructor: Instructor = { id, name, email, profilePicId, roles };
 
         // Add to available instructors if not already there
         setInstructors((prev) => {
@@ -775,7 +788,7 @@ export const AddCourseStep2 = ({
 
     useEffect(() => {
         fetchInstituteDashboardUsers(instituteId, {
-            roles: RoleType,
+            roles: RoleTypeExceptStudent,
             status: [{ id: '1', name: 'ACTIVE' }],
         })
             .then((res) => {
@@ -786,6 +799,7 @@ export const AddCourseStep2 = ({
                             email: instructor.email,
                             name: instructor.full_name,
                             profilePicId: instructor.profile_pic_file_id,
+                            roles: instructor.roles?.map((role) => role.role_name) || [],
                         }))
                         .filter((instr: UserRolesDataEntry) => {
                             return instr.id !== tokenData?.user;
@@ -813,7 +827,11 @@ export const AddCourseStep2 = ({
                                     <div className="mt-1 flex items-center gap-2">
                                         <span className="text-sm text-gray-600">Step 2</span>
                                         <span className="text-sm font-medium text-gray-900">
-                                            Course Structure
+                                            {getTerminology(
+                                                ContentTerms.Course,
+                                                SystemTerms.Course
+                                            )}{' '}
+                                            Structure
                                         </span>
                                     </div>
                                 </div>
@@ -824,9 +842,23 @@ export const AddCourseStep2 = ({
                                 {!isEdit && (
                                     <div className="rounded-lg border border-red-200 bg-red-50 p-3">
                                         <p className="text-sm text-red-700">
-                                            <strong>Note:</strong> Once you create the course, its
-                                            structure—including sessions and levels—cannot be
-                                            changed. Please review carefully before proceeding.
+                                            <strong>Note:</strong> Once you create the{' '}
+                                            {getTerminology(
+                                                ContentTerms.Course,
+                                                SystemTerms.Course
+                                            )}{' '}
+                                            the , its structure—including{' '}
+                                            {getTerminology(
+                                                ContentTerms.Session,
+                                                SystemTerms.Session
+                                            ).toLocaleLowerCase()}
+                                            s and{' '}
+                                            {getTerminology(
+                                                ContentTerms.Level,
+                                                SystemTerms.Level
+                                            ).toLocaleLowerCase()}
+                                            s cannot be changed. Please review carefully before
+                                            proceeding.
                                         </p>
                                     </div>
                                 )}
@@ -847,12 +879,25 @@ export const AddCourseStep2 = ({
                                         {!isEdit && <Separator className="bg-gray-200" />}
                                         <div className="space-y-2">
                                             <Label className="block text-base font-medium text-gray-900">
-                                                Contains Sessions?
+                                                Contains{' '}
+                                                {getTerminology(
+                                                    ContentTerms.Session,
+                                                    SystemTerms.Session
+                                                )}
+                                                s?
                                             </Label>
                                             <p className="text-sm text-gray-600">
-                                                Sessions organize a course into different batches or
-                                                time periods. For eg: January 2025 Batch, February
-                                                2025 Batch
+                                                {getTerminology(
+                                                    ContentTerms.Session,
+                                                    SystemTerms.Session
+                                                )}{' '}
+                                                organize a{' '}
+                                                {getTerminology(
+                                                    ContentTerms.Course,
+                                                    SystemTerms.Course
+                                                ).toLocaleLowerCase()}{' '}
+                                                into different batches or time periods. For eg:
+                                                January 2025 Batch, February 2025 Batch
                                             </p>
                                             <RadioGroup
                                                 value={hasSessions}
@@ -898,13 +943,24 @@ export const AddCourseStep2 = ({
                                 {/* Contains Levels Radio */}
                                 <div className="space-y-2">
                                     <Label className="block text-base font-medium text-gray-900">
-                                        Contains Levels?
+                                        Contains{' '}
+                                        {getTerminology(ContentTerms.Level, SystemTerms.Level)}s?
                                     </Label>
                                     <p className="text-sm text-gray-600">
-                                        Levels organize a course into structured learning stages.
-                                        These stages may represent increasing difficulty, different
-                                        modules, or key milestones within the course. For eg: Basic,
-                                        Advanced
+                                        {getTerminology(ContentTerms.Level, SystemTerms.Level)}{' '}
+                                        organize a{' '}
+                                        {getTerminology(
+                                            ContentTerms.Course,
+                                            SystemTerms.Course
+                                        ).toLocaleLowerCase()}{' '}
+                                        into structured learning stages. These stages may represent
+                                        increasing difficulty, different modules, or key milestones
+                                        within the{' '}
+                                        {getTerminology(
+                                            ContentTerms.Course,
+                                            SystemTerms.Course
+                                        ).toLocaleLowerCase()}{' '}
+                                        . For eg: Basic, Advanced
                                     </p>
                                     <RadioGroup
                                         value={hasLevels}
@@ -947,8 +1003,25 @@ export const AddCourseStep2 = ({
                                 {hasSessions !== 'yes' && hasLevels !== 'yes' && (
                                     <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
                                         <p className="text-sm text-blue-700">
-                                            This course will not have any sessions or levels.
-                                            Students will directly access the course content.
+                                            This{' '}
+                                            {getTerminology(
+                                                ContentTerms.Course,
+                                                SystemTerms.Course
+                                            ).toLocaleLowerCase()}{' '}
+                                            will not have any{' '}
+                                            {getTerminology(
+                                                ContentTerms.Session,
+                                                SystemTerms.Session
+                                            )}{' '}
+                                            or{' '}
+                                            {getTerminology(ContentTerms.Level, SystemTerms.Level)}.
+                                            {getTerminology(RoleTerms.Learner, SystemTerms.Learner)}
+                                            s will directly access the{' '}
+                                            {getTerminology(
+                                                ContentTerms.Course,
+                                                SystemTerms.Course
+                                            ).toLocaleLowerCase()}{' '}
+                                            content.
                                         </p>
                                     </div>
                                 )}
@@ -959,12 +1032,29 @@ export const AddCourseStep2 = ({
                                         <div className="flex items-center justify-between">
                                             <div>
                                                 <Label className="text-base font-medium text-gray-900">
-                                                    Course Sessions
+                                                    {getTerminology(
+                                                        ContentTerms.Session,
+                                                        SystemTerms.Session
+                                                    )}
+                                                    s
                                                 </Label>
                                                 <p className="text-sm text-gray-600">
                                                     {hasLevels === 'yes'
-                                                        ? 'Create sessions and add levels within each session'
-                                                        : 'Create sessions for your course'}
+                                                        ? `Create ${getTerminology(
+                                                              ContentTerms.Session,
+                                                              SystemTerms.Session
+                                                          )} and add ${getTerminology(
+                                                              ContentTerms.Level,
+                                                              SystemTerms.Level
+                                                          )} within each ${getTerminology(
+                                                              ContentTerms.Session,
+                                                              SystemTerms.Session
+                                                          )}`
+                                                        : 'Create sessions for your ' +
+                                                          getTerminology(
+                                                              ContentTerms.Course,
+                                                              SystemTerms.Course
+                                                          ).toLocaleLowerCase()}
                                                 </p>
                                             </div>
                                             <MyButton
@@ -976,7 +1066,11 @@ export const AddCourseStep2 = ({
                                                 className="font-light"
                                             >
                                                 <Plus />
-                                                Add Session
+                                                Add{' '}
+                                                {getTerminology(
+                                                    ContentTerms.Session,
+                                                    SystemTerms.Session
+                                                )}
                                             </MyButton>
                                         </div>
 
@@ -1005,10 +1099,19 @@ export const AddCourseStep2 = ({
                                                                     New{' '}
                                                                     {hasSessions === 'yes' &&
                                                                     hasLevels === 'yes'
-                                                                        ? 'Session'
+                                                                        ? `${getTerminology(
+                                                                              ContentTerms.Session,
+                                                                              SystemTerms.Session
+                                                                          )}`
                                                                         : hasSessions === 'yes'
-                                                                          ? 'Session'
-                                                                          : 'Level'}
+                                                                          ? `${getTerminology(
+                                                                                ContentTerms.Session,
+                                                                                SystemTerms.Session
+                                                                            )}`
+                                                                          : `${getTerminology(
+                                                                                ContentTerms.Level,
+                                                                                SystemTerms.Level
+                                                                            )}`}
                                                                 </Label>
                                                             </div>
                                                             <div className="flex items-center space-x-2">
@@ -1022,10 +1125,19 @@ export const AddCourseStep2 = ({
                                                                 >
                                                                     {hasSessions === 'yes' &&
                                                                     hasLevels === 'yes'
-                                                                        ? 'Existing Sessions'
+                                                                        ? `Existing ${getTerminology(
+                                                                              ContentTerms.Session,
+                                                                              SystemTerms.Session
+                                                                          )}s`
                                                                         : hasSessions === 'yes'
-                                                                          ? 'Existing Sessions'
-                                                                          : 'Existing Levels'}
+                                                                          ? `Existing ${getTerminology(
+                                                                                ContentTerms.Session,
+                                                                                SystemTerms.Session
+                                                                            )}s`
+                                                                          : `Existing ${getTerminology(
+                                                                                ContentTerms.Level,
+                                                                                SystemTerms.Level
+                                                                            )}s`}
                                                                 </Label>
                                                             </div>
                                                         </RadioGroup>
@@ -1035,7 +1147,11 @@ export const AddCourseStep2 = ({
                                                             {hasSessions === 'yes' && (
                                                                 <div>
                                                                     <Label className="mb-1 block text-sm font-medium text-gray-700">
-                                                                        Session Name
+                                                                        {getTerminology(
+                                                                            ContentTerms.Session,
+                                                                            SystemTerms.Session
+                                                                        )}{' '}
+                                                                        Name
                                                                     </Label>
                                                                     <Input
                                                                         placeholder="e.g., January 2025 Batch"
@@ -1070,7 +1186,11 @@ export const AddCourseStep2 = ({
                                                                 hasLevels === 'yes' && (
                                                                     <div className="col-span-2">
                                                                         <Label className="mb-1 block text-sm font-medium text-gray-700">
-                                                                            Level Name
+                                                                            {getTerminology(
+                                                                                ContentTerms.Level,
+                                                                                SystemTerms.Level
+                                                                            )}{' '}
+                                                                            Name
                                                                         </Label>
                                                                         <Input
                                                                             placeholder="Enter level name (e.g., Basic)"
@@ -1213,7 +1333,12 @@ export const AddCourseStep2 = ({
                                                                 hasLevels !== 'yes' && (
                                                                     <>
                                                                         <Label className="mb-2 block text-sm font-medium text-gray-700">
-                                                                            Select Sessions
+                                                                            Select{' '}
+                                                                            {getTerminology(
+                                                                                ContentTerms.Session,
+                                                                                SystemTerms.Session
+                                                                            )}
+                                                                            s
                                                                         </Label>
                                                                         {availableExistingBatches.length ===
                                                                         0 ? (
@@ -1327,7 +1452,12 @@ export const AddCourseStep2 = ({
                                                                 hasLevels === 'yes' && (
                                                                     <>
                                                                         <Label className="mb-2 block text-sm font-medium text-gray-700">
-                                                                            Select Levels
+                                                                            Select{' '}
+                                                                            {getTerminology(
+                                                                                ContentTerms.Level,
+                                                                                SystemTerms.Level
+                                                                            )}
+                                                                            s
                                                                         </Label>
                                                                         {availableExistingBatches.length ===
                                                                         0 ? (
@@ -1461,8 +1591,14 @@ export const AddCourseStep2 = ({
                                                                 }
                                                             >
                                                                 {hasSessions === 'yes'
-                                                                    ? 'Add Session'
-                                                                    : 'Add Level'}
+                                                                    ? `Add ${getTerminology(
+                                                                          ContentTerms.Session,
+                                                                          SystemTerms.Session
+                                                                      )}`
+                                                                    : `Add ${getTerminology(
+                                                                          ContentTerms.Level,
+                                                                          SystemTerms.Level
+                                                                      )}`}
                                                             </MyButton>
                                                         )}
                                                         {addSessionMode === 'existing' && (
@@ -1792,35 +1928,42 @@ export const AddCourseStep2 = ({
                                         )}
 
                                         {/* Session Cards */}
-                                        {sessions.map((session) => (
-                                            <SessionCard
-                                                key={session.batchId || session.id}
-                                                session={session}
-                                                hasLevels={hasLevels === 'yes'}
-                                                onRemoveSession={() =>
-                                                    removeSession(
-                                                        (session.batchId || session.id).toString()
-                                                    )
-                                                }
-                                                onAddLevel={addLevel}
-                                                onRemoveLevel={(sessionId, batchId) =>
-                                                    removeLevel(
-                                                        sessionId,
-                                                        (batchId || '').toString()
-                                                    )
-                                                }
-                                                existingBatches={availableExistingBatches}
-                                                onMarkBatchesAsUsed={(batchIds) => {
-                                                    setUsedExistingBatchIds((prev) => {
-                                                        const newSet = new Set(prev);
-                                                        batchIds.forEach((id) => {
-                                                            newSet.add(id);
+                                        {sessions
+                                            .filter(
+                                                (session) =>
+                                                    session.name.toLowerCase() !== 'default'
+                                            )
+                                            .map((session) => (
+                                                <SessionCard
+                                                    key={session.batchId || session.id}
+                                                    session={session}
+                                                    hasLevels={hasLevels === 'yes'}
+                                                    onRemoveSession={() =>
+                                                        removeSession(
+                                                            (
+                                                                session.batchId || session.id
+                                                            ).toString()
+                                                        )
+                                                    }
+                                                    onAddLevel={addLevel}
+                                                    onRemoveLevel={(sessionId, batchId) =>
+                                                        removeLevel(
+                                                            sessionId,
+                                                            (batchId || '').toString()
+                                                        )
+                                                    }
+                                                    existingBatches={availableExistingBatches}
+                                                    onMarkBatchesAsUsed={(batchIds) => {
+                                                        setUsedExistingBatchIds((prev) => {
+                                                            const newSet = new Set(prev);
+                                                            batchIds.forEach((id) => {
+                                                                newSet.add(id);
+                                                            });
+                                                            return newSet;
                                                         });
-                                                        return newSet;
-                                                    });
-                                                }}
-                                            />
-                                        ))}
+                                                    }}
+                                                />
+                                            ))}
                                     </div>
                                 )}
 
@@ -1830,10 +1973,23 @@ export const AddCourseStep2 = ({
                                         <div className="flex items-center justify-between">
                                             <div>
                                                 <Label className="text-base font-medium text-gray-900">
-                                                    Course Levels
+                                                    {getTerminology(
+                                                        ContentTerms.Level,
+                                                        SystemTerms.Level
+                                                    )}
+                                                    s
                                                 </Label>
                                                 <p className="text-sm text-gray-600">
-                                                    Create levels for your course
+                                                    Create{' '}
+                                                    {getTerminology(
+                                                        ContentTerms.Level,
+                                                        SystemTerms.Level
+                                                    )}{' '}
+                                                    for your{' '}
+                                                    {getTerminology(
+                                                        ContentTerms.Course,
+                                                        SystemTerms.Course
+                                                    ).toLocaleLowerCase()}
                                                 </p>
                                             </div>
                                             <MyButton
@@ -1845,7 +2001,11 @@ export const AddCourseStep2 = ({
                                                 className="font-light"
                                             >
                                                 <Plus />
-                                                Add Level
+                                                Add{' '}
+                                                {getTerminology(
+                                                    ContentTerms.Level,
+                                                    SystemTerms.Level
+                                                )}
                                             </MyButton>
                                         </div>
 
@@ -1871,7 +2031,11 @@ export const AddCourseStep2 = ({
                                                                     htmlFor="add-level-new"
                                                                     className="text-sm font-normal"
                                                                 >
-                                                                    New Level
+                                                                    New{' '}
+                                                                    {getTerminology(
+                                                                        ContentTerms.Level,
+                                                                        SystemTerms.Level
+                                                                    )}
                                                                 </Label>
                                                             </div>
                                                             <div className="flex items-center space-x-2">
@@ -1883,7 +2047,12 @@ export const AddCourseStep2 = ({
                                                                     htmlFor="add-level-existing"
                                                                     className="text-sm font-normal"
                                                                 >
-                                                                    Existing Levels
+                                                                    Existing{' '}
+                                                                    {getTerminology(
+                                                                        ContentTerms.Level,
+                                                                        SystemTerms.Level
+                                                                    )}
+                                                                    s
                                                                 </Label>
                                                             </div>
                                                         </RadioGroup>
@@ -1891,7 +2060,11 @@ export const AddCourseStep2 = ({
                                                     {addLevelMode === 'new' && (
                                                         <div>
                                                             <Label className="mb-1 block text-sm font-medium text-gray-700">
-                                                                Level Name
+                                                                {getTerminology(
+                                                                    ContentTerms.Level,
+                                                                    SystemTerms.Level
+                                                                )}{' '}
+                                                                Name
                                                             </Label>
                                                             <Input
                                                                 placeholder="Enter level name (e.g., Basic)"
@@ -1906,12 +2079,22 @@ export const AddCourseStep2 = ({
                                                     {addLevelMode === 'existing' && (
                                                         <div className="mt-2">
                                                             <Label className="mb-2 block text-sm font-medium text-gray-700">
-                                                                Select Levels
+                                                                Select{' '}
+                                                                {getTerminology(
+                                                                    ContentTerms.Level,
+                                                                    SystemTerms.Level
+                                                                )}
+                                                                s
                                                             </Label>
                                                             {availableExistingBatches.length ===
                                                             0 ? (
                                                                 <div className="text-sm text-gray-500">
-                                                                    No existing levels found.
+                                                                    No existing{' '}
+                                                                    {getTerminology(
+                                                                        ContentTerms.Level,
+                                                                        SystemTerms.Level
+                                                                    ).toLocaleLowerCase()}
+                                                                    s found.
                                                                 </div>
                                                             ) : (
                                                                 <>
@@ -2012,7 +2195,11 @@ export const AddCourseStep2 = ({
                                                                 onClick={addStandaloneLevel}
                                                                 disable={!newLevelName.trim()}
                                                             >
-                                                                Add Level
+                                                                Add{' '}
+                                                                {getTerminology(
+                                                                    ContentTerms.Level,
+                                                                    SystemTerms.Level
+                                                                )}
                                                             </MyButton>
                                                         )}
                                                         {addLevelMode === 'existing' && (
@@ -2175,7 +2362,12 @@ export const AddCourseStep2 = ({
                                 <div className="space-y-3">
                                     <div className="flex items-center justify-between">
                                         <Label className="text-base font-medium text-gray-900">
-                                            Add Authors to Course
+                                            Add Authors to{' '}
+                                            {getTerminology(
+                                                ContentTerms.Course,
+                                                SystemTerms.Course
+                                            )}
+                                            s
                                         </Label>
                                         <MyButton
                                             type="button"
@@ -2192,8 +2384,20 @@ export const AddCourseStep2 = ({
 
                                     {showInviteDialog && (
                                         <InviteInstructorForm
-                                            onInviteSuccess={(id, name, email, profilePicId) => {
-                                                handleInviteSuccess(id, name, email, profilePicId);
+                                            onInviteSuccess={(
+                                                id,
+                                                name,
+                                                email,
+                                                profilePicId,
+                                                roles
+                                            ) => {
+                                                handleInviteSuccess(
+                                                    id,
+                                                    name,
+                                                    email,
+                                                    profilePicId,
+                                                    roles
+                                                );
                                                 setShowInviteDialog(false);
                                             }}
                                             onCancel={() => setShowInviteDialog(false)}
@@ -2232,6 +2436,7 @@ export const AddCourseStep2 = ({
                                                                 name: instructor?.name || '',
                                                                 profilePicId:
                                                                     instructor?.profilePicId || '',
+                                                                roles: instructor?.roles || [],
                                                             };
                                                         })
                                                         ?.filter((i) => i.id && i.email && i.name);
@@ -2275,6 +2480,19 @@ export const AddCourseStep2 = ({
                                                                                 {instructor.name}{' '}
                                                                                 --- &nbsp;
                                                                                 {instructor.email}
+                                                                                {instructor.roles &&
+                                                                                    instructor.roles
+                                                                                        .length >
+                                                                                        0 && (
+                                                                                        <>
+                                                                                            {' '}
+                                                                                            ---
+                                                                                            &nbsp;
+                                                                                            {instructor.roles.join(
+                                                                                                ', '
+                                                                                            )}
+                                                                                        </>
+                                                                                    )}
                                                                             </span>
                                                                             {(hasSessions ===
                                                                                 'yes' ||
@@ -2924,12 +3142,26 @@ export const AddCourseStep2 = ({
                                             htmlFor="publish-catalogue"
                                             className="text-base font-medium text-gray-900"
                                         >
-                                            Publish to Course Catalogue
+                                            Publish to{' '}
+                                            {getTerminology(
+                                                ContentTerms.Course,
+                                                SystemTerms.Course
+                                            )}{' '}
+                                            Catalogue
                                         </Label>
                                     </div>
                                     <p className="ml-7 text-sm text-gray-600">
-                                        The course will be added to the course catalogue which will
-                                        be viewed by the learners.
+                                        The{' '}
+                                        {getTerminology(
+                                            ContentTerms.Course,
+                                            SystemTerms.Course
+                                        ).toLocaleLowerCase()}{' '}
+                                        will be added to the{' '}
+                                        {getTerminology(
+                                            ContentTerms.Course,
+                                            SystemTerms.Course
+                                        ).toLocaleLowerCase()}{' '}
+                                        catalogue which will be viewed by the learners.
                                     </p>
                                 </div>
 
@@ -3075,7 +3307,7 @@ const SessionCard: React.FC<{
                                 className="font-light"
                             >
                                 <Plus />
-                                Add Level
+                                Add {getTerminology(ContentTerms.Level, SystemTerms.Level)}
                             </MyButton>
                         )}
                         <MyButton

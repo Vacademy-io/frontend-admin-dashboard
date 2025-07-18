@@ -11,6 +11,7 @@ import {
     UPDATE_DASHBOARD_URL,
     UPDATE_USER_INVITATION_URL,
     GET_ALL_FACULTY,
+    GET_DOUBTS,
 } from '@/constants/urls';
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 import { RoleTypeSelectedFilter } from '../-components/RoleTypeComponent';
@@ -25,6 +26,8 @@ import { getInstituteId } from '@/constants/helper';
 import { getModifiedAdminRoles } from '../-utils/helper';
 import { UserRole } from '@/services/student-list-section/getAdminDetails';
 import { inviteTeacherSchema } from '../-components/AddTeachers';
+import { queryOptions } from '@tanstack/react-query';
+import { DoubtFilter, PaginatedDoubtResponse } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-types/get-doubts-type';
 
 export interface FacultyFilterParams {
     name?: string;
@@ -362,4 +365,42 @@ export const handleUpdateAdminDetails = async (
         },
     });
     return response?.data;
+};
+
+export const getUnresolvedDoubtsCount = (instituteId: string, batchIds: string[] = []) => {
+    return queryOptions({
+        queryKey: ['GET_UNRESOLVED_DOUBTS_COUNT', instituteId, batchIds],
+        queryFn: async () => {
+            // Calculate date range for last 7 days
+            const endDate = new Date();
+            endDate.setDate(endDate.getDate() + 1); // Set to tomorrow to include today's doubts
+            const startDate = new Date();
+            startDate.setDate(startDate.getDate() - 7);
+
+            const filter: DoubtFilter = {
+                name: '',
+                start_date: startDate.toISOString(),
+                end_date: endDate.toISOString(),
+                user_ids: [],
+                content_positions: [],
+                content_types: [],
+                sources: [],
+                source_ids: [],
+                status: ['ACTIVE'], // Only unresolved doubts
+                sort_columns: {},
+                batch_ids: batchIds, // Use provided batch IDs
+            };
+
+            const response = await authenticatedAxiosInstance.post<PaginatedDoubtResponse>(
+                `${GET_DOUBTS}?pageNo=0&pageSize=1`,
+                filter
+            );
+            
+            return {
+                count: response.data.total_elements,
+                hasUnresolvedDoubts: response.data.total_elements > 0
+            };
+        },
+        enabled: !!instituteId && batchIds.length > 0,
+    });
 };

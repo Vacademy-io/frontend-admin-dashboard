@@ -9,26 +9,34 @@ import { Presentation } from "../types";
 
 
 export const fetchPresntation = async () => {
+    console.log('[fetchPresntation] Starting fetch...');
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
+
+    console.log('[fetchPresntation] Institute ID:', INSTITUTE_ID);
+
     const response = await authenticatedAxiosInstance.get(GET_PRESENTATION_LIST, {
         params: {
             instituteId: INSTITUTE_ID,
         },
     });
+
+    console.log('[fetchPresntation] API response:', response.data);
     return response.data;
 };
 
 export const useGetPresntation = () => {
     return useQuery<Presentation[] | null>({
-        queryKey: ["GET_PRESNTATIONS"],
+        queryKey: ["GET_PRESENTATIONS"],
         queryFn: async () => {
-            const response =await fetchPresntation();
+            console.log('[useGetPresntation] Fetching presentations...');
+            const response = await fetchPresntation();
+            console.log('[useGetPresntation] Fetched presentations:', response);
             return response;
         },
-        staleTime:0,
-       
+        staleTime: 0,
+        refetchOnWindowFocus: false,
     });
 };
 

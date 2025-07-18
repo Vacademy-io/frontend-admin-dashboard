@@ -88,11 +88,16 @@ export const transformApiDataToCourseData = async (apiData: CourseWithSessionsTy
 
         const courseBannerMediaId = await getPublicUrl(apiData.course.course_banner_media_id);
 
-        const courseMediaId = await getPublicUrl(
-            isJson(apiData.course.course_media_id)
-                ? courseMediaImage.id
-                : apiData.course.course_media_id
-        );
+        let courseMediaPreview = '';
+        if (isJson(apiData.course.course_media_id) && courseMediaImage.type === 'youtube') {
+            courseMediaPreview = courseMediaImage.id;
+        } else {
+            courseMediaPreview = await getPublicUrl(
+                isJson(apiData.course.course_media_id)
+                    ? courseMediaImage.id
+                    : apiData.course.course_media_id
+            );
+        }
 
         return {
             id: apiData.course.id,
@@ -116,7 +121,7 @@ export const transformApiDataToCourseData = async (apiData: CourseWithSessionsTy
             },
             coursePreviewImageMediaPreview: coursePreviewImageMediaId,
             courseBannerMediaPreview: courseBannerMediaId,
-            courseMediaPreview: courseMediaId ?? '',
+            courseMediaPreview: courseMediaPreview ?? '',
             courseHtmlDescription: apiData.course.course_html_description,
             instructors: [], // This should be populated from your API if available
             sessions: apiData.sessions.map((session) => ({
@@ -138,6 +143,7 @@ export const transformApiDataToCourseData = async (apiData: CourseWithSessionsTy
                             name: inst.full_name,
                             email: inst.email,
                             profilePicId: inst.profile_pic_file_id,
+                            roles: inst.roles,
                         })),
                         subjects: subjects.map((subject) => ({
                             id: subject.id,

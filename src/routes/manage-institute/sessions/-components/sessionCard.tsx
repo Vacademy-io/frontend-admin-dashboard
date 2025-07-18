@@ -14,6 +14,8 @@ import { useRef, useState } from 'react';
 import { AddSessionDataType } from './session-operations/add-session/add-session-form';
 import { useEditSession } from '@/services/study-library/session-management/editSession';
 import { toast } from 'sonner';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 
 interface SessionCardProps {
     data: SessionData;
@@ -60,11 +62,22 @@ export function SessionCard({ data }: SessionCardProps) {
             { requestData: requestData, sessionId: sessionData.id || '' },
             {
                 onSuccess: () => {
-                    toast.success('Session edited successfully');
+                    toast.success(
+                        ` ${getTerminology(
+                            ContentTerms.Session,
+                            SystemTerms.Session
+                        )} edited successfully`
+                    );
                     setIsAddSessionDiaogOpen(false);
                 },
                 onError: (error) => {
-                    toast.error(error.message || 'Failed to edit session');
+                    toast.error(
+                        error.message ||
+                            `Failed to edit ${getTerminology(
+                                ContentTerms.Session,
+                                SystemTerms.Session
+                            ).toLocaleLowerCase()}`
+                    );
                 },
             }
         );
@@ -120,7 +133,7 @@ export function SessionCard({ data }: SessionCardProps) {
                             handleSubmit={handleEditSession}
                             trigger={
                                 <MyButton buttonType="text" className="text-neutral-600">
-                                    Edit Session
+                                    Edit {getTerminology(ContentTerms.Session, SystemTerms.Session)}
                                 </MyButton>
                             }
                             initialValues={data}
@@ -135,7 +148,8 @@ export function SessionCard({ data }: SessionCardProps) {
                             <DeleteSessionDialog
                                 triggerButton={
                                     <MyButton buttonType="text" className="text-neutral-600">
-                                        Delete Session
+                                        Delete{' '}
+                                        {getTerminology(ContentTerms.Session, SystemTerms.Session)}
                                     </MyButton>
                                 }
                                 session={data}

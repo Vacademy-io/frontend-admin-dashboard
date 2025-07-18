@@ -45,8 +45,12 @@ const getAdminDetails = async (): Promise<UserProfile> => {
 };
 
 export const handleGetAdminDetails = () => {
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const data = getTokenDecodedData(accessToken);
+    const userId = data?.user;
+
     return {
-        queryKey: ['GET_ADMIN_DETAILS'],
+        queryKey: ['GET_ADMIN_DETAILS', userId],
         queryFn: () => getAdminDetails(),
         staleTime: 3600000,
     };
