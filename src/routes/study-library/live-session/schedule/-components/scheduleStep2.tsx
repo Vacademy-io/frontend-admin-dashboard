@@ -54,36 +54,44 @@ export default function ScheduleStep2() {
 
     useEffect(() => {
         if (!sessionId) {
-            console.log("here ", sessionId);
+            console.log('here ', sessionId);
             navigate({ to: '/study-library/live-session' });
         }
     }, [sessionId, navigate]);
 
     // Prepare session data first
-    const sessionList: DropdownItemType[] = useMemo(() => Array.from(
-        new Map(
-            (
-                studyLibraryData?.flatMap((item) =>
-                    item.sessions.map((session) => ({
-                        name: session.session_dto.session_name,
-                        id: session.session_dto.id,
-                    }))
-                ) ?? []
-            ).map((item) => [item.id, item])
-        ).values()
-    ), [studyLibraryData]);
+    const sessionList: DropdownItemType[] = useMemo(
+        () =>
+            Array.from(
+                new Map(
+                    (
+                        studyLibraryData?.flatMap((item) =>
+                            item.sessions.map((session) => ({
+                                name: session.session_dto.session_name,
+                                id: session.session_dto.id,
+                            }))
+                        ) ?? []
+                    ).map((item) => [item.id, item])
+                ).values()
+            ),
+        [studyLibraryData]
+    );
 
-    const courses = useMemo(() => studyLibraryData?.flatMap((item) =>
-        item.sessions.map((session) => ({
-            courseName: item.course.package_name,
-            courseId: item.course.id,
-            sessionId: session.session_dto.id,
-            levels: session.level_with_details.map((level) => ({
-                name: level.name,
-                id: level.id,
-            })),
-        }))
-    ), [studyLibraryData]);
+    const courses = useMemo(
+        () =>
+            studyLibraryData?.flatMap((item) =>
+                item.sessions.map((session) => ({
+                    courseName: item.course.package_name,
+                    courseId: item.course.id,
+                    sessionId: session.session_dto.id,
+                    levels: session.level_with_details.map((level) => ({
+                        name: level.name,
+                        id: level.id,
+                    })),
+                }))
+            ),
+        [studyLibraryData]
+    );
 
     // Initialize form with default values
     const form = useForm<z.infer<typeof addParticipantsSchema>>({
@@ -112,8 +120,8 @@ export default function ScheduleStep2() {
     });
 
     // Set up current session
-    const [currentSession, setCurrentSession] = useState<DropdownItemType | undefined>(
-        () => sessionList.length > 0 ? sessionList[0] : undefined
+    const [currentSession, setCurrentSession] = useState<DropdownItemType | undefined>(() =>
+        sessionList.length > 0 ? sessionList[0] : undefined
     );
 
     // Update form when session details are available
@@ -162,25 +170,26 @@ export default function ScheduleStep2() {
         form.setValue('notifyBy', { mail, whatsapp });
 
         // Load previously selected levels for PRIVATE sessions
-        if (sessionDetails.schedule.access_type === 'private' &&
+        if (
+            sessionDetails.schedule.access_type === 'private' &&
             sessionDetails.schedule.package_session_ids &&
-            sessionDetails.schedule.package_session_ids.length > 0) {
-
+            sessionDetails.schedule.package_session_ids.length > 0
+        ) {
             // Initialize array for selected levels
-            const selectedLevels: { courseId: string; sessionId: string; levelId: string; }[] = [];
+            const selectedLevels: { courseId: string; sessionId: string; levelId: string }[] = [];
 
             // Process each package_session_id
-            sessionDetails.schedule.package_session_ids.forEach(packageSessionId => {
+            sessionDetails.schedule.package_session_ids.forEach((packageSessionId) => {
                 // Find the matching batch in institute details
                 const matchingBatch = instituteDetails.batches_for_sessions.find(
-                    batch => batch.id === packageSessionId
+                    (batch) => batch.id === packageSessionId
                 );
 
                 if (matchingBatch) {
                     selectedLevels.push({
                         courseId: matchingBatch.package_dto.id,
                         sessionId: matchingBatch.session.id,
-                        levelId: matchingBatch.level.id
+                        levelId: matchingBatch.level.id,
                     });
                 }
             });
@@ -191,8 +200,8 @@ export default function ScheduleStep2() {
 
                 // If we have any selections, set the current session to match the first selected level
                 const firstSelectedLevel = selectedLevels[0];
-                const matchingSession = sessionList.find(session =>
-                    session.id === firstSelectedLevel.sessionId
+                const matchingSession = sessionList.find(
+                    (session) => session.id === firstSelectedLevel?.sessionId
                 );
                 if (matchingSession) {
                     setCurrentSession(matchingSession);
@@ -238,6 +247,7 @@ export default function ScheduleStep2() {
         if (isEditState) {
             if (accessType === AccessType.PUBLIC) {
                 const fields =
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     sessionDetails?.notifications?.addedFields.map((field: any) => ({
                         id: field.id,
                         label: field.label,
@@ -1094,4 +1104,7 @@ export default function ScheduleStep2() {
             </MyDialog>
         </>
     );
+}
+function clearSessionId() {
+    throw new Error('Function not implemented.');
 }
