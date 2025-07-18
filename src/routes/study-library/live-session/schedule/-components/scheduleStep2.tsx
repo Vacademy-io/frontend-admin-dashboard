@@ -7,7 +7,7 @@ import { MyRadioButton } from '@/components/design-system/radio';
 import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { AccessType, InputType } from '../../-constants/enums';
 import { useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { MyDropdown } from '@/components/common/students/enroll-manually/dropdownForPackageItems';
 import { DropdownValueType } from '@/components/common/students/enroll-manually/dropdownTypesForPackageItems';
 import { DropdownItemType } from '@/components/common/students/enroll-manually/dropdownTypesForPackageItems';
@@ -30,7 +30,6 @@ import { useNavigate } from '@tanstack/react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { useSessionDetailsStore } from '../../-store/useSessionDetailsStore';
-// import { useQueryClient } from '@tanstack/react-query';
 
 const TimeOptions = [
     { label: '5 minutes before', value: '5m' },
@@ -42,17 +41,26 @@ const TimeOptions = [
 export default function ScheduleStep2() {
     const { studyLibraryData } = useStudyLibraryStore();
     const [addCustomFieldDialog, setAddCustomFieldDialog] = useState<boolean>(false);
-    // const queryClient = useQueryClient();
+    const queryClient = useQueryClient();
     const [previewDialog, setPreviewDialog] = useState<boolean>(false);
     const { sessionId } = useLiveSessionStore();
     const isEditState = useLiveSessionStore((state) => state.isEdit);
     const { sessionDetails } = useSessionDetailsStore();
-    const queryClient = useQueryClient();
 
     const navigate = useNavigate();
 
     // Get the institute details at component level
     const { instituteDetails } = useInstituteDetailsStore();
+
+    /**
+     * This ref helps us ensure that the heavy edit-mode form pre-population
+     * logic executes only ONCE. Without this, `form.setValue` & `setCurrentSession`
+     * could run on every re-render if any object reference in `sessionDetails` or
+     * `instituteDetails` changes (even when the actual data is identical), leading
+     * to an infinite render-refresh cycle in dev (observed as the app “refreshing
+     * again and again”).
+     */
+    const hasInitialisedEditState = useRef(false);
 
     useEffect(() => {
         if (!sessionId) {
@@ -60,6 +68,88 @@ export default function ScheduleStep2() {
             navigate({ to: '/study-library/live-session' });
         }
     }, [sessionId, navigate]);
+
+    useEffect(() => {
+        if (sessionDetails && !hasInitialisedEditState.current) {
+            form.setValue(
+                'accessType',
+                sessionDetails?.schedule?.access_type === 'public'
+                    ? AccessType.PUBLIC
+                    : AccessType.PRIVATE
+            );
+            const defaultNotifySettings = {
+                onCreate: false,
+                beforeLive: false,
+                beforeLiveTime: [] as { time: string }[],
+                onLive: false,
+            };
+
+            let mail = false;
+            let whatsapp = false;
+
+            sessionDetails?.notifications?.addedNotificationActions.forEach((action) => {
+                const { type, notify, notifyBy, time } = action;
+
+                if (type === 'ON_CREATE') {
+                    defaultNotifySettings.onCreate = notify;
+                } else if (type === 'ON_LIVE') {
+                    defaultNotifySettings.onLive = notify;
+                } else if (type === 'BEFORE_LIVE') {
+                    defaultNotifySettings.beforeLive = notify;
+                    if (time) {
+                        defaultNotifySettings.beforeLiveTime = [{ time }];
+                    }
+                }
+
+                // Merge mail & whatsapp flags
+                mail = mail || notifyBy.mail;
+                whatsapp = whatsapp || notifyBy.whatsapp;
+            });
+
+            form.setValue('notifySettings', defaultNotifySettings);
+
+            // ------------------------------------------------------------------
+            // NEW: Pre-populate selected levels (batches) when editing a PRIVATE class
+            // ------------------------------------------------------------------
+            if (
+                sessionDetails.schedule.access_type === 'private' &&
+                instituteDetails &&
+                sessionDetails.schedule.package_session_ids?.length > 0
+            ) {
+                const selectedLevelsFromPackages = sessionDetails.schedule.package_session_ids
+                    .map((pkgId) => {
+                        const batch = instituteDetails.batches_for_sessions.find(
+                            (b) => b.id === pkgId
+                        );
+                        if (!batch) return null;
+                        return {
+                            courseId: batch.package_dto.id,
+                            sessionId: batch.session.id,
+                            levelId: batch.level.id,
+                        };
+                    })
+                    .filter(Boolean) as {
+                    courseId: string;
+                    sessionId: string;
+                    levelId: string;
+                }[];
+
+                if (selectedLevelsFromPackages.length) {
+                    form.setValue('selectedLevels', selectedLevelsFromPackages);
+
+                    // Also set the currentSession dropdown so that UI immediately shows relevant levels
+                    const firstSessionId = selectedLevelsFromPackages[0]!.sessionId;
+                    const matchingSession = sessionList.find((s) => s.id === firstSessionId);
+                    if (matchingSession) {
+                        setCurrentSession(matchingSession);
+                    }
+                }
+            }
+
+            // Mark initialisation done so this block never runs again
+            hasInitialisedEditState.current = true;
+        }
+    }, [sessionDetails, instituteDetails]);
 
     // Prepare session data first
     const sessionList: DropdownItemType[] = useMemo(
@@ -325,11 +415,14 @@ export default function ScheduleStep2() {
         try {
             const response = await createLiveSessionStep2(body);
             console.log('API Response:', response);
-            // Invalidate session queries so list page shows fresh data
             await queryClient.invalidateQueries({ queryKey: ['liveSessions'] });
             await queryClient.invalidateQueries({ queryKey: ['upcomingSessions'] });
             await queryClient.invalidateQueries({ queryKey: ['pastSessions'] });
             await queryClient.invalidateQueries({ queryKey: ['draftSessions'] });
+
+            // Clear the session ID after successful creation
+            clearSessionId();
+
             navigate({ to: '/study-library/live-session' });
         } catch (error) {
             console.error('Error submitting form:', error);
@@ -1102,7 +1195,6 @@ export default function ScheduleStep2() {
         </>
     );
 }
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function clearSessionId() {
     throw new Error('Function not implemented.');
 }
