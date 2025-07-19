@@ -42,6 +42,10 @@ import LearnerAccessDurationCard from './-components/LearnerAccessDurationCard';
 import InviteViaEmailCard from './-components/InviteViaEmailCard';
 import CustomHTMLCard from './-components/CustomHTMLCard';
 import ShowRelatedCoursesCard from './-components/ShowRelatedCoursesCard';
+import { toast } from 'sonner';
+import { AxiosError } from 'axios';
+import { handleEnrollInvite } from './-services/enroll-invite';
+import { useMutation } from '@tanstack/react-query';
 
 const GenerateInviteLinkDialog = ({
     showSummaryDialog,
@@ -277,7 +281,7 @@ const GenerateInviteLinkDialog = ({
         },
     });
 
-    const { control, setValue, getValues } = form;
+    const { control, setValue, getValues, handleSubmit } = form;
     const { fields: customFieldsArray } = useFieldArray({
         control,
         name: 'custom_fields',
@@ -297,6 +301,41 @@ const GenerateInviteLinkDialog = ({
     const courseMediaRef = useRef<HTMLInputElement>(null);
     const mediaMenuRef = useRef<HTMLDivElement>(null);
     const youtubeInputRef = useRef<HTMLDivElement>(null);
+
+    const handleSubmitRatingMutation = useMutation({
+        mutationFn: async ({ data }: { data: InviteLinkFormValues }) => {
+            return handleEnrollInvite({ data });
+        },
+        onSuccess: () => {
+            toast.success('Your invite link has been created successfully!', {
+                className: 'success-toast',
+                duration: 2000,
+            });
+            form.reset();
+            setShowSummaryDialog(false);
+        },
+        onError: (error: unknown) => {
+            if (error instanceof AxiosError) {
+                toast.error(error?.response?.data?.ex, {
+                    className: 'error-toast',
+                    duration: 2000,
+                });
+            } else {
+                toast.error('An unexpected error occurred', {
+                    className: 'error-toast',
+                    duration: 2000,
+                });
+                console.error('Unexpected error:', error);
+            }
+        },
+    });
+    const onSubmit = (data: InviteLinkFormValues) => {
+        handleSubmitRatingMutation.mutate({ data });
+    };
+
+    const onInvalid = (err: unknown) => {
+        console.error(err);
+    };
 
     const addPlanForm = useShadForm<AddPlanFormValues>({
         resolver: shadZodResolver(addPlanSchema),
@@ -760,7 +799,7 @@ const GenerateInviteLinkDialog = ({
                         scale="small"
                         buttonType="primary"
                         className="p-5"
-                        onClick={() => setShowSummaryDialog(false)}
+                        onClick={handleSubmit(onSubmit, onInvalid)}
                     >
                         Create Invite Link
                     </MyButton>
