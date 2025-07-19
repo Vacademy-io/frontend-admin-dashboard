@@ -161,13 +161,12 @@ export function CourseDetailsRatingsComponent({
         async function preloadAvatars() {
             setLoadingAvatars(true);
             // Get all unique avatar IDs (filter out empty strings)
-            const uniqueAvatarIds = [
-                ...new Set(reviews.map((r) => r.user.avatarUrl).filter((id) => !!id)),
-            ];
+            const avatarUrls = reviews.map((r: Review) => r.user.avatarUrl).filter((id: string) => !!id);
+            const uniqueAvatarIds = Array.from(new Set(avatarUrls)) as string[];
             // Fetch all public URLs in parallel
             const idToUrl: Record<string, string> = {};
             await Promise.all(
-                uniqueAvatarIds.map(async (id) => {
+                uniqueAvatarIds.map(async (id: string) => {
                     try {
                         idToUrl[id] = await getPublicUrl(id);
                     } catch {
@@ -178,7 +177,7 @@ export function CourseDetailsRatingsComponent({
             // Map reviews to use the resolved URL
             if (isMounted) {
                 setResolvedReviews(
-                    reviews.map((review) => ({
+                    reviews.map((review: Review) => ({
                         ...review,
                         user: {
                             ...review.user,
