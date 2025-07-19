@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 import { MyPagination } from '@/components/design-system/pagination';
 import { AxiosError } from 'axios';
 import { toast } from 'sonner';
-import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import {
     handleGetOverAllRatingDetails,
     handleGetRatingDetails,
@@ -113,35 +113,47 @@ export function CourseDetailsRatingsComponent({
 
     const { getPackageSessionId } = useInstituteDetailsStore();
 
-    const { data: ratingData } = useSuspenseQuery<PaginatedResponse>(
-        handleGetRatingDetails({
+    const packageSessionId = getPackageSessionId({
+        courseId: courseId || '',
+        levelId: currentLevel || '',
+        sessionId: currentSession || '',
+    });
+
+    const { data: ratingData, isError: ratingError } = useQuery({
+        ...handleGetRatingDetails({
             pageNo: page,
             pageSize: 10,
             data: {
-                source_id:
-                    getPackageSessionId({
-                        courseId: courseId || '',
-                        levelId: currentLevel || '',
-                        sessionId: currentSession || '',
-                    }) || '',
+                source_id: packageSessionId || '',
                 source_type: 'PACKAGE_SESSION',
             },
-        })
-    );
+        }),
+        enabled: !!packageSessionId, // Only run query if packageSessionId exists
+    });
 
-    const { data: overallRatingData } = useSuspenseQuery(
-        handleGetOverAllRatingDetails({
-            source_id:
-                getPackageSessionId({
-                    courseId: courseId || '',
-                    levelId: currentLevel || '',
-                    sessionId: currentSession || '',
-                }) || '',
-        })
-    );
+    const { data: overallRatingData, isError: overallRatingError } = useQuery({
+        ...handleGetOverAllRatingDetails({
+            source_id: packageSessionId || '',
+        }),
+        enabled: !!packageSessionId, // Only run query if packageSessionId exists
+    });
+
+    // Handle errors
+    if (ratingError || overallRatingError) {
+        return (
+            <div className="flex flex-col gap-5 bg-white p-8">
+                <h1 className="mb-1 text-2xl font-bold text-neutral-600">Ratings & Reviews</h1>
+                <div className="text-center text-neutral-500">
+                    {!packageSessionId
+                        ? 'Unable to load ratings - missing course information'
+                        : 'Unable to load ratings. Please try again later.'}
+                </div>
+            </div>
+        );
+    }
 
     // Transform API data to reviews format
-    const reviews = ratingData?.content.map(transformRatingToReview) || [];
+    const reviews = ratingData?.content?.map(transformRatingToReview) || [];
     const totalPages = ratingData?.totalPages || 0;
 
     useEffect(() => {
@@ -149,13 +161,12 @@ export function CourseDetailsRatingsComponent({
         async function preloadAvatars() {
             setLoadingAvatars(true);
             // Get all unique avatar IDs (filter out empty strings)
-            const uniqueAvatarIds = [
-                ...new Set(reviews.map((r) => r.user.avatarUrl).filter((id) => !!id)),
-            ];
+            const avatarUrls = reviews.map((r: Review) => r.user.avatarUrl).filter((id: string) => !!id);
+            const uniqueAvatarIds = Array.from(new Set(avatarUrls)) as string[];
             // Fetch all public URLs in parallel
             const idToUrl: Record<string, string> = {};
             await Promise.all(
-                uniqueAvatarIds.map(async (id) => {
+                uniqueAvatarIds.map(async (id: string) => {
                     try {
                         idToUrl[id] = await getPublicUrl(id);
                     } catch {
@@ -166,7 +177,7 @@ export function CourseDetailsRatingsComponent({
             // Map reviews to use the resolved URL
             if (isMounted) {
                 setResolvedReviews(
-                    reviews.map((review) => ({
+                    reviews.map((review: Review) => ({
                         ...review,
                         user: {
                             ...review.user,
@@ -412,7 +423,7 @@ export function CourseDetailsRatingsComponent({
                                                                 levelId: currentLevel,
                                                                 sessionId: currentSession,
                                                             }) || '',
-                                                        status: 'APPROVED',
+                                                        status: 'ACTIVE',
                                                         likes: review.likes,
                                                         dislikes: review.dislikes,
                                                     });
