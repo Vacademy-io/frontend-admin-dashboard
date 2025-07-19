@@ -8,7 +8,7 @@ import { ResponseDistributionModal } from './ResponseDistributionModal';
 import type { QuizSlideData } from '../utils/types';
 import { WordCloudModal } from './WordCloudModal';
 
-const RESPONSES_API_URL_BASE = 'https://backend-stage.vacademy.io/community-service/engage/admin/';
+const RESPONSES_API_URL_BASE = `${import.meta.env.VITE_BACKEND_URL || 'https://backend-stage.vacademy.io'}/community-service/engage/admin/`;
 
 interface ResponseData {
     username: string;
@@ -85,7 +85,7 @@ export const ResponseOverlay: React.FC<ResponseOverlayProps> = ({ sessionId, sli
             <div className="absolute bottom-14 left-1/2 z-[1005] flex -translate-x-1/2 items-center gap-3 rounded-2xl bg-black/30 backdrop-blur-xl border border-white/10 p-3 text-white shadow-2xl transition-all duration-300 ease-in-out">
                 {/* Enhanced background effects */}
                 <div className="absolute inset-0 bg-gradient-to-r from-slate-900/20 via-transparent to-slate-900/20 rounded-2xl pointer-events-none" />
-                
+
                 {/* Response counter section */}
                 <div className="relative flex items-center gap-3 border-r border-white/20 pr-4">
                     <div className="p-2 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl shadow-lg">
@@ -103,7 +103,7 @@ export const ResponseOverlay: React.FC<ResponseOverlayProps> = ({ sessionId, sli
                         </div>
                     </div>
                 </div>
-                
+
                 {/* Action buttons */}
                 <div className="relative flex items-center gap-2">
                 <Button
@@ -115,7 +115,7 @@ export const ResponseOverlay: React.FC<ResponseOverlayProps> = ({ sessionId, sli
                     <Trophy size={16} className="mr-2" />
                         <span className="hidden sm:inline">Leaderboard</span>
                 </Button>
-                    
+
                 {isMcqQuestion ? (
                     <Button
                         variant="outline"

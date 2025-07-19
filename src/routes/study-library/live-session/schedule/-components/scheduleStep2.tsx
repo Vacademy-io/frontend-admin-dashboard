@@ -351,11 +351,11 @@ export default function ScheduleStep2() {
                 form.setValue('fields', fields);
                 form.setValue(
                     'joinLink',
-                    `https://learner.vacademy.io/register/live-class?sessionId=${sessionId}`
+                    `${import.meta.env.VITE_LEARNER_DASHBOARD_URL || 'https://learner.vacademy.io'}/register/live-class?sessionId=${sessionId}`
                 );
             } else {
                 form.setValue('fields', []);
-                form.setValue('joinLink', 'https://learner.vacademy.io/study-library/live-class');
+                form.setValue('joinLink', `${import.meta.env.VITE_LEARNER_DASHBOARD_URL || 'https://learner.vacademy.io'}/study-library/live-class`);
             }
             return;
         }
@@ -369,11 +369,11 @@ export default function ScheduleStep2() {
             ]);
             form.setValue(
                 'joinLink',
-                `https://learner.vacademy.io/register/live-class?sessionId=${sessionId}`
+                                    `${import.meta.env.VITE_LEARNER_DASHBOARD_URL || 'https://learner.vacademy.io'}/register/live-class?sessionId=${sessionId}`
             );
         } else {
             form.setValue('fields', []);
-            form.setValue('joinLink', 'https://learner.vacademy.io/study-library/live-class');
+            form.setValue('joinLink', `${import.meta.env.VITE_LEARNER_DASHBOARD_URL || 'https://learner.vacademy.io'}/study-library/live-class`);
         }
     }, [accessType]);
     const {

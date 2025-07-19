@@ -1,6 +1,8 @@
-export const BASE_URL = 'https://backend-stage.vacademy.io';
-export const BASE_URL_LEARNER_DASHBOARD = 'https://learner.vacademy.io';
+export const BASE_URL = import.meta.env.VITE_BACKEND_URL || 'https://backend-stage.vacademy.io';
+export const BASE_URL_LEARNER_DASHBOARD =
+    import.meta.env.VITE_LEARNER_DASHBOARD_URL || 'https://learner.vacademy.io';
 
+// These hardcoded institute IDs should be removed in multi-org deployment
 export const SSDC_INSTITUTE_ID = '69ca11c6-54e1-4e99-9498-50c9a4272ce6';
 export const SHUBHAM_INSTITUTE_ID = 'd0de8707-f36c-43a0-953c-019ca507c81d';
 export const CODE_CIRCLE_INSTITUTE_ID = 'dd9b9687-56ee-467a-9fc4-8c5835eae7f9';

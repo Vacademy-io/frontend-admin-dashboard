@@ -54,7 +54,7 @@ const qrCodeInstance = new QRCodeStyling({
 });
 
 const ADMIN_SSE_URL_BASE_WAITING =
-    'https://backend-stage.vacademy.io/community-service/engage/admin/';
+            `${import.meta.env.VITE_BACKEND_URL || 'https://backend-stage.vacademy.io'}/community-service/engage/admin/`;
 
 export const WaitingRoom: React.FC<WaitingRoomProps> = ({
     sessionDetails,
@@ -72,7 +72,7 @@ export const WaitingRoom: React.FC<WaitingRoomProps> = ({
     const { session_id: sessionId, invite_code: inviteCode } = sessionDetails;
     const voltTitle =
         sessionDetails.title || sessionDetails.slides?.title || 'Live Session Starting Soon';
-    const invitationLink = `https://engage.vacademy.io/${inviteCode}`;
+            const invitationLink = `https://${import.meta.env.VITE_ENGAGE_DOMAIN || 'engage.vacademy.io'}/${inviteCode}`;
 
     useEffect(() => {
         if (qrRef.current && invitationLink) {

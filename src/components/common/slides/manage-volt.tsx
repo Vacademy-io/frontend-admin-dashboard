@@ -57,7 +57,8 @@ import { useFileUpload } from "@/hooks/use-file-upload";
 
 import type { PresentationData } from './types';
 
-const IMPORT_PPT_API_URL = 'https://backend-stage.vacademy.io/media-service/convert-presentations/import-ppt';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://backend-stage.vacademy.io';
+const IMPORT_PPT_API_URL = `${BACKEND_URL}/media-service/convert-presentations/import-ppt`;
 const VOLT_FIRST_VISIT_KEY = 'volt-has-visited';
 
 export default function ManageVolt() {
@@ -218,7 +219,7 @@ export default function ManageVolt() {
 
         try {
             const response = await authenticatedAxiosInstance.post(
-                'https://backend-stage.vacademy.io/media-service/ai/presentation/generateFromData',
+                `${BACKEND_URL}/media-service/ai/presentation/generateFromData`,
                 {
                     language: aiLanguage,
                     text: aiTopic,
@@ -582,7 +583,7 @@ export default function ManageVolt() {
                                         className="h-8 w-8 rounded-md text-neutral-500 hover:bg-blue-100 hover:text-blue-600"
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            const shareUrl = `https://engage.vacademy.io/volt/public/${p.id}`;
+                                            const shareUrl = `https://${import.meta.env.VITE_ENGAGE_DOMAIN || 'engage.vacademy.io'}/volt/public/${p.id}`;
                                             window.open(shareUrl, '_blank');
                                             toast.info(`Public ${PRODUCT_NAME.toLowerCase()} link opened!`);
                                         }}

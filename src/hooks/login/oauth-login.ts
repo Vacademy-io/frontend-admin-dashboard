@@ -30,7 +30,7 @@ export const handleOAuthLogin = (provider: OAuthProvider, options: OAuthLoginOpt
 
         const base64State = btoa(JSON.stringify(stateObj));
 
-        const loginUrl = `https://backend-stage.vacademy.io/auth-service/oauth2/authorization/${provider}?state=${encodeURIComponent(
+        const loginUrl = `${import.meta.env.VITE_BACKEND_URL || 'https://backend-stage.vacademy.io'}/auth-service/oauth2/authorization/${provider}?state=${encodeURIComponent(
             base64State
         )}`;
 
