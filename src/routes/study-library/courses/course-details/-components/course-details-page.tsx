@@ -17,7 +17,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { CourseDetailsFormValues, courseDetailsSchema } from './course-details-schema';
@@ -206,6 +206,72 @@ export const CourseDetailsPage = () => {
 
     const [selectedSession, setSelectedSession] = useState<string>('');
     const [selectedLevel, setSelectedLevel] = useState<string>('');
+    const [isRestoringSelections, setIsRestoringSelections] = useState<boolean>(false);
+
+    // Use refs to preserve selections across re-renders and data fetches
+    const preservedSessionRef = useRef<string>('');
+    const preservedLevelRef = useRef<string>('');
+    const isInitialLoadRef = useRef<boolean>(true);
+    const hasRestoredOnceRef = useRef<boolean>(false);
+    const skipAutoSelectionRef = useRef<boolean>(false);
+
+    // Backup mechanism using localStorage
+    const STORAGE_KEY_SESSION = `preserved_session_${searchParams.courseId}`;
+    const STORAGE_KEY_LEVEL = `preserved_level_${searchParams.courseId}`;
+
+    // Initialize refs from localStorage on component mount
+    useEffect(() => {
+        const storedSession = localStorage.getItem(STORAGE_KEY_SESSION);
+        const storedLevel = localStorage.getItem(STORAGE_KEY_LEVEL);
+
+        if (storedSession) {
+            preservedSessionRef.current = storedSession;
+        }
+        if (storedLevel) {
+            preservedLevelRef.current = storedLevel;
+        }
+    }, []);
+
+    // Store to localStorage whenever refs are updated
+    const updatePreservedSession = (sessionId: string) => {
+        preservedSessionRef.current = sessionId;
+        localStorage.setItem(STORAGE_KEY_SESSION, sessionId);
+    };
+
+    const updatePreservedLevel = (levelId: string) => {
+        preservedLevelRef.current = levelId;
+        localStorage.setItem(STORAGE_KEY_LEVEL, levelId);
+    };
+
+    // Update refs when session/level changes and handle emergency restoration
+    useEffect(() => {
+        if (selectedSession) {
+            updatePreservedSession(selectedSession);
+            isInitialLoadRef.current = false;
+        } else {
+            // Emergency backup restoration if ref is somehow empty
+            if (!preservedSessionRef.current) {
+                const storedSession = localStorage.getItem(STORAGE_KEY_SESSION);
+                if (storedSession) {
+                    preservedSessionRef.current = storedSession;
+                }
+            }
+        }
+    }, [selectedSession]);
+
+    useEffect(() => {
+        if (selectedLevel) {
+            updatePreservedLevel(selectedLevel);
+        } else {
+            // Emergency backup restoration if ref is somehow empty
+            if (!preservedLevelRef.current) {
+                const storedLevel = localStorage.getItem(STORAGE_KEY_LEVEL);
+                if (storedLevel) {
+                    preservedLevelRef.current = storedLevel;
+                }
+            }
+        }
+    }, [selectedLevel]);
     const [levelOptions, setLevelOptions] = useState<
         { _id: string; value: string; label: string }[]
     >([]);
@@ -226,15 +292,17 @@ export const CourseDetailsPage = () => {
     // Convert sessions to select options format
     const sessionOptions = useMemo(() => {
         const sessions = form.getValues('courseData')?.sessions || [];
-        return sessions.map((session) => ({
+        const options = sessions.map((session) => ({
             _id: session.sessionDetails.id,
             value: session.sessionDetails.id,
             label: session.sessionDetails.session_name,
         }));
+
+        return options;
     }, [form.watch('courseData.sessions')]);
 
     // Update level options when session changes
-    const handleSessionChange = (sessionId: string) => {
+    const handleSessionChange = (sessionId: string, preserveLevel = false) => {
         setSelectedSession(sessionId);
         const sessions = form.getValues('courseData')?.sessions || [];
         const selectedSessionData = sessions.find(
@@ -249,11 +317,26 @@ export const CourseDetailsPage = () => {
             }));
             setLevelOptions(newLevelOptions);
 
-            // Select the first level when session changes
-            if (newLevelOptions.length > 0 && newLevelOptions[0]?.value) {
-                setSelectedLevel(newLevelOptions[0].value);
+            // Only change level if preserveLevel is false, or if current level is not valid for new session
+            if (!preserveLevel) {
+                if (newLevelOptions.length > 0 && newLevelOptions[0]?.value) {
+                    setSelectedLevel(newLevelOptions[0].value);
+                } else {
+                    setSelectedLevel('');
+                }
             } else {
-                setSelectedLevel('');
+                // Check if current level is still valid for the new session
+                const currentLevelExists = newLevelOptions.some(
+                    (option) => option.value === selectedLevel
+                );
+
+                if (
+                    !currentLevelExists &&
+                    newLevelOptions.length > 0 &&
+                    newLevelOptions[0]?.value
+                ) {
+                    setSelectedLevel(newLevelOptions[0].value);
+                }
             }
         }
     };
@@ -265,26 +348,120 @@ export const CourseDetailsPage = () => {
 
     // Set initial session and its levels
     useEffect(() => {
-        if (sessionOptions.length > 0 && !selectedSession && sessionOptions[0]?.value) {
-            const initialSessionId = sessionOptions[0].value;
-            handleSessionChange(initialSessionId);
+        // Skip auto-selection logic if we're in the process of restoring preserved selections
+        if (isRestoringSelections || skipAutoSelectionRef.current) {
+            return;
         }
-    }, [sessionOptions]);
+
+        if (sessionOptions.length > 0) {
+            if (!selectedSession && sessionOptions[0]?.value) {
+                // Check if we have preserved values before auto-selecting
+                const hasPreservedSession =
+                    preservedSessionRef.current || localStorage.getItem(STORAGE_KEY_SESSION);
+                if (hasPreservedSession) {
+                    return; // Skip auto-selection, let restoration handle it
+                }
+
+                // No session selected and no preserved values, select the first one
+                const initialSessionId = sessionOptions[0].value;
+                handleSessionChange(initialSessionId);
+            } else if (selectedSession) {
+                // Session already selected, check if it's still valid and preserve level
+                const currentSessionExists = sessionOptions.some(
+                    (option) => option.value === selectedSession
+                );
+
+                if (currentSessionExists) {
+                    // Current session still exists, preserve it and the level
+                    handleSessionChange(selectedSession, true);
+                } else if (sessionOptions[0]?.value) {
+                    // Current session no longer exists, select first available
+                    handleSessionChange(sessionOptions[0].value);
+                }
+            }
+        }
+    }, [sessionOptions, isRestoringSelections]);
+
+    // Add a ref to track if we've already loaded the course data for this course
+    const loadedCourseIdRef = useRef<string>('');
+
+    // Add effect to reset loaded course ID when studyLibraryData changes (after mutations)
+    useEffect(() => {
+        // Reset the loaded course ID to allow reload after mutations
+        loadedCourseIdRef.current = '';
+    }, [studyLibraryData]);
 
     useEffect(() => {
         const loadCourseData = async () => {
             if (courseDetailsData?.course) {
+                // Only load if we haven't loaded this course yet
+                const currentCourseId = courseDetailsData.course.id;
+                if (loadedCourseIdRef.current === currentCourseId) {
+                    return;
+                }
+
+                // Get preserved selections from refs (these persist across re-renders)
+                const preservedSession = preservedSessionRef.current;
+                const preservedLevel = preservedLevelRef.current;
+
                 try {
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                     // @ts-expect-error
                     const transformedData = await transformApiDataToCourseData(courseDetailsData);
                     if (transformedData) {
+                        // Mark this course as loaded BEFORE form reset to prevent race conditions
+                        loadedCourseIdRef.current = currentCourseId;
+
                         form.reset({
                             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                             // @ts-expect-error
                             courseData: transformedData,
                             mockCourses: mockCourses,
                         });
+
+                        // Restore preserved selections - try multiple sources
+                        let sessionToRestore = preservedSession;
+                        let levelToRestore = preservedLevel;
+
+                        // If refs are empty, try localStorage as backup
+                        if (!sessionToRestore) {
+                            sessionToRestore = localStorage.getItem(STORAGE_KEY_SESSION) || '';
+                        }
+                        if (!levelToRestore) {
+                            levelToRestore = localStorage.getItem(STORAGE_KEY_LEVEL) || '';
+                        }
+
+                        if (sessionToRestore && levelToRestore) {
+                            // Check if preserved session still exists in the new data
+                            const sessionExists = transformedData.sessions?.some(
+                                (session: { sessionDetails: { id: string } }) =>
+                                    session.sessionDetails.id === sessionToRestore
+                            );
+
+                            if (sessionExists) {
+                                // Set flags to prevent auto-selection interference
+                                setIsRestoringSelections(true);
+                                skipAutoSelectionRef.current = true;
+                                hasRestoredOnceRef.current = true;
+
+                                // Update our backup stores first
+                                updatePreservedSession(sessionToRestore);
+                                updatePreservedLevel(levelToRestore);
+
+                                // Restore immediately without delay
+                                setSelectedSession(sessionToRestore);
+                                setSelectedLevel(levelToRestore);
+
+                                // Use microtask to clean up flags after state updates
+                                Promise.resolve().then(() => {
+                                    setIsRestoringSelections(false);
+                                    skipAutoSelectionRef.current = false;
+                                });
+                            } else {
+                                setIsRestoringSelections(false);
+                                skipAutoSelectionRef.current = false; // Re-enable auto-selection
+                            }
+                        }
                     }
                 } catch (error) {
                     console.error('Error transforming course data:', error);
@@ -314,7 +491,6 @@ export const CourseDetailsPage = () => {
         );
     }, [currentLevel, currentSession]);
 
-    console.log(form.getValues('courseData.instructors'));
     const [resolvedInstructors, setResolvedInstructors] = useState<InstructorWithPicUrl[]>([]);
     const [loadingInstructors, setLoadingInstructors] = useState(false);
     const instructors: Omit<InstructorWithPicUrl, 'profilePicUrl'>[] =
@@ -360,18 +536,26 @@ export const CourseDetailsPage = () => {
 
     return (
         <div className="flex min-h-screen flex-col bg-gray-50">
-            {/* Top Banner */}
+            {/* Top Banner - More Compact */}
             <div
-                className={`relative ${form.getValues('courseData.isCoursePublishedToCatalaouge') ? 'h-[350px]' : 'h-[300px]'}`}
+                className={`relative ${
+                    form.watch('courseData').courseBannerMediaId
+                        ? form.getValues('courseData.isCoursePublishedToCatalaouge')
+                            ? 'h-[280px]'
+                            : 'h-[240px]'
+                        : form.getValues('courseData.isCoursePublishedToCatalaouge')
+                          ? 'h-[200px]'
+                          : 'h-[160px]'
+                }`}
             >
                 {/* Transparent black overlay */}
                 {form.watch('courseData').courseBannerMediaId ? (
                     <div className="pointer-events-none absolute inset-0 z-10 bg-black/50" />
                 ) : (
-                    <div className="pointer-events-none absolute inset-0 z-10 bg-black/10" />
+                    <div className="pointer-events-none absolute inset-0 z-10 bg-black/5" />
                 )}
                 {!form.watch('courseData').courseBannerMediaId ? (
-                    <div className="absolute inset-0 z-0 bg-transparent" />
+                    <div className="absolute inset-0 z-0 bg-gray-100" />
                 ) : (
                     <div className="absolute inset-0 z-0 opacity-70">
                         <img
@@ -387,25 +571,45 @@ export const CourseDetailsPage = () => {
                 )}
                 {/* Primary color overlay with 70% opacity */}
                 <div
-                    className={`container relative z-20 mx-auto px-4 py-12 ${!form.watch('courseData').courseBannerMediaId ? 'text-black' : 'text-white'}`}
+                    className={`container relative z-20 mx-auto px-4 ${
+                        form.watch('courseData').courseBannerMediaId ? 'py-8' : 'py-6'
+                    } ${!form.watch('courseData').courseBannerMediaId ? 'text-black' : 'text-white'}`}
                 >
-                    <div className="flex items-start justify-between gap-8">
+                    <div className="flex items-start justify-between gap-6">
                         {/* Left side - Title and Description */}
-                        <div className="max-w-2xl">
+                        <div className="max-w-2xl flex-1">
                             {!form.watch('courseData').title ? (
-                                <div className="space-y-4">
-                                    <div className="h-8 w-32 animate-pulse rounded bg-white/20" />
-                                    <div className="h-12 w-3/4 animate-pulse rounded bg-white/20" />
-                                    <div className="h-4 w-full animate-pulse rounded bg-white/20" />
-                                    <div className="h-4 w-2/3 animate-pulse rounded bg-white/20" />
+                                <div className="space-y-3">
+                                    <div className="h-6 w-32 animate-pulse rounded bg-white/20" />
+                                    <div className="h-8 w-3/4 animate-pulse rounded bg-white/20" />
+                                    <div className="h-3 w-full animate-pulse rounded bg-white/20" />
+                                    <div className="h-3 w-2/3 animate-pulse rounded bg-white/20" />
                                 </div>
                             ) : (
                                 <>
-                                    <h1 className="mb-4 text-4xl font-bold">
-                                        {form.getValues('courseData').title}
-                                    </h1>
+                                    <div className="flex items-start justify-between gap-4">
+                                        <h1
+                                            className={`font-bold ${
+                                                form.watch('courseData').courseBannerMediaId
+                                                    ? 'mb-3 text-3xl'
+                                                    : 'mb-2 text-2xl'
+                                            }`}
+                                        >
+                                            {form.getValues('courseData').title}
+                                        </h1>
+                                        <div className="shrink-0">
+                                            <AddCourseForm
+                                                isEdit={true}
+                                                initialCourseData={form.getValues()}
+                                            />
+                                        </div>
+                                    </div>
                                     <p
-                                        className="text-lg opacity-90"
+                                        className={`opacity-90 ${
+                                            form.watch('courseData').courseBannerMediaId
+                                                ? 'mb-3 text-base'
+                                                : 'mb-2 text-sm'
+                                        }`}
                                         dangerouslySetInnerHTML={{
                                             __html: form.getValues('courseData').description || '',
                                         }}
@@ -413,35 +617,39 @@ export const CourseDetailsPage = () => {
                                     {form.getValues('courseData.isCoursePublishedToCatalaouge') && (
                                         <MyButton
                                             type="button"
-                                            scale="large"
+                                            scale="medium"
                                             buttonType="primary"
-                                            className="mt-2 bg-success-100 font-medium !text-black hover:bg-success-100  focus:bg-success-100 active:bg-success-100"
+                                            className="mb-2 bg-success-100 font-medium !text-black hover:bg-success-100 focus:bg-success-100 active:bg-success-100"
                                         >
                                             Added to catalog
                                         </MyButton>
                                     )}
-                                    <div className="mt-4 flex gap-2">
-                                        {form.getValues('courseData').tags.map((tag, index) => (
-                                            <span
-                                                key={index}
-                                                className="rounded-md border px-3 py-1 text-sm shadow-lg"
-                                            >
-                                                {tag}
-                                            </span>
-                                        ))}
-                                    </div>
-                                    <AddCourseForm
-                                        isEdit={true}
-                                        initialCourseData={form.getValues()}
-                                    />
+                                    {form.getValues('courseData').tags.length > 0 && (
+                                        <div className="flex flex-wrap gap-2">
+                                            {form.getValues('courseData').tags.map((tag, index) => (
+                                                <span
+                                                    key={index}
+                                                    className="rounded-md border px-2 py-1 text-xs shadow-md"
+                                                >
+                                                    {tag}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
                                 </>
                             )}
                         </div>
 
-                        {/* Right side - Video Player */}
+                        {/* Right side - Video Player - More Compact */}
                         {form.watch('courseData').courseMediaId.id &&
                             (form.watch('courseData').courseMediaId.type === 'youtube' ? (
-                                <div className="w-[400px] overflow-hidden rounded-lg shadow-xl">
+                                <div
+                                    className={`shrink-0 overflow-hidden rounded-lg shadow-lg ${
+                                        form.watch('courseData').courseBannerMediaId
+                                            ? 'w-[320px]'
+                                            : 'w-[280px]'
+                                    }`}
+                                >
                                     <div className="relative flex aspect-video items-center justify-center bg-black">
                                         <iframe
                                             width="100%"
@@ -456,7 +664,13 @@ export const CourseDetailsPage = () => {
                                     </div>
                                 </div>
                             ) : form.watch('courseData').courseMediaId.type === 'video' ? (
-                                <div className="w-[400px] overflow-hidden rounded-lg shadow-xl">
+                                <div
+                                    className={`shrink-0 overflow-hidden rounded-lg shadow-lg ${
+                                        form.watch('courseData').courseBannerMediaId
+                                            ? 'w-[320px]'
+                                            : 'w-[280px]'
+                                    }`}
+                                >
                                     <div className="relative aspect-video bg-black">
                                         <video
                                             src={form.watch('courseData').courseMediaPreview}
@@ -477,7 +691,13 @@ export const CourseDetailsPage = () => {
                                     </div>
                                 </div>
                             ) : (
-                                <div className="w-[400px] overflow-hidden rounded-lg shadow-xl">
+                                <div
+                                    className={`shrink-0 overflow-hidden rounded-lg shadow-lg ${
+                                        form.watch('courseData').courseBannerMediaId
+                                            ? 'w-[320px]'
+                                            : 'w-[280px]'
+                                    }`}
+                                >
                                     <div className="relative aspect-video bg-black">
                                         <img
                                             src={form.watch('courseData').courseMediaPreview}
