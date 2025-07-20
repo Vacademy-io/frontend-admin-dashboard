@@ -807,6 +807,21 @@ export const SubjectMaterial = () => {
                 <Assessments packageSessionId={packageSessionIds ?? ''} />
             </div>
         ),
+        [TabType.CONTENT_STRUCTURE]: (
+            <div className="p-6 py-2">
+                <div className="mb-4">
+                    <h3 className="mb-2 text-lg font-semibold text-gray-800">Content Structure</h3>
+                    <p className="text-sm text-gray-600">
+                        Navigate through your course content structure
+                    </p>
+                </div>
+                <div className="rounded-md bg-gray-50 p-6 text-center">
+                    <p className="text-sm text-gray-500">
+                        Content structure view is available in the main course details page.
+                    </p>
+                </div>
+            </div>
+        ),
     };
 
     if (courseId === '' || levelId === '') {

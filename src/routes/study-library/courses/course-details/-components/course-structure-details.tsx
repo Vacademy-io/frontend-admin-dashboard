@@ -61,6 +61,7 @@ import { useContentStore } from '../subjects/modules/chapters/slides/-stores/cha
 import { TeachersList } from '../subjects/-components/teacher-list';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { ContentTerms, RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { useFileUpload } from '@/hooks/use-file-upload';
 
 // Interfaces (assuming these are unchanged)
 export interface Chapter {
@@ -93,6 +94,64 @@ export interface ModuleWithChapters {
     chapters: ChapterMetadata[];
 }
 export type SubjectModulesMap = { [subjectId: string]: ModuleWithChapters[] };
+
+// Thumbnail Image Component
+const ThumbnailImage = ({
+    thumbnailId,
+    fallbackIcon,
+    fallbackColor,
+}: {
+    thumbnailId: string | null;
+    fallbackIcon: React.ReactNode;
+    fallbackColor: string;
+}) => {
+    const { getPublicUrl } = useFileUpload();
+    const [imageUrl, setImageUrl] = useState<string>('');
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        if (thumbnailId) {
+            setIsLoading(true);
+            getPublicUrl(thumbnailId)
+                .then((url) => {
+                    setImageUrl(url || '');
+                })
+                .catch((error) => {
+                    console.error('Failed to get thumbnail URL:', error);
+                    setImageUrl('');
+                })
+                .finally(() => {
+                    setIsLoading(false);
+                });
+        }
+    }, [thumbnailId, getPublicUrl]);
+
+    if (isLoading) {
+        return (
+            <div
+                className={`mb-3 flex aspect-square items-center justify-center rounded-lg ${fallbackColor}`}
+            >
+                <div className="size-8 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+            </div>
+        );
+    }
+
+    if (imageUrl && thumbnailId) {
+        return (
+            <div className="mb-3 flex aspect-square items-center justify-center overflow-hidden rounded-lg">
+                <img src={imageUrl} alt="Thumbnail" className="size-full object-cover" />
+            </div>
+        );
+    }
+
+    return (
+        <div
+            className={`mb-3 flex aspect-square items-center justify-center rounded-lg ${fallbackColor}`}
+        >
+            {fallbackIcon}
+        </div>
+    );
+};
 
 export const CourseStructureDetails = ({
     selectedSession,
@@ -147,7 +206,13 @@ export const CourseStructureDetails = ({
     }, [sessionList, selectedSession]);
 
     const [selectedTab, setSelectedTab] = useState<string>(TabType.OUTLINE);
-    const handleTabChange = (value: string) => setSelectedTab(value);
+    const handleTabChange = (value: string) => {
+        setSelectedTab(value);
+        // Reset navigation when switching to Content Structure tab
+        if (value === TabType.CONTENT_STRUCTURE) {
+            resetNavigation();
+        }
+    };
 
     const [subjectModulesMap, setSubjectModulesMap] = useState<SubjectModulesMap>({});
     const [chapterSlidesMap, setChapterSlidesMap] = useState<{ [chapterId: string]: Slide[] }>({});
@@ -159,6 +224,20 @@ export const CourseStructureDetails = ({
         type: 'subject' | 'module' | 'chapter' | null;
         item: { id: string; name: string; subjectId?: string; moduleId?: string } | null;
     }>({ isOpen: false, type: null, item: null });
+
+    // Navigation state for loose view
+    const [currentNavigationLevel, setCurrentNavigationLevel] = useState<
+        'subjects' | 'modules' | 'chapters' | 'slides'
+    >('subjects');
+    const [selectedSubjectId, setSelectedSubjectId] = useState<string>('');
+    const [selectedModuleId, setSelectedModuleId] = useState<string>('');
+    const [navigationBreadcrumb, setNavigationBreadcrumb] = useState<
+        Array<{
+            level: string;
+            name: string;
+            id: string;
+        }>
+    >([]);
 
     const addModuleMutation = useAddModule();
     const addSubjectMutation = useAddSubject();
@@ -481,6 +560,43 @@ export const CourseStructureDetails = ({
         setOpenSubjects(new Set());
         setOpenModules(new Set());
         setOpenChapters(new Set());
+    };
+
+    // Navigation functions for loose view
+    const handleSubjectClick = (subjectId: string, subjectName: string) => {
+        setSelectedSubjectId(subjectId);
+        setCurrentNavigationLevel('modules');
+        setNavigationBreadcrumb([{ level: 'Subject', name: subjectName, id: subjectId }]);
+    };
+
+    const handleModuleClick = (moduleId: string, moduleName: string) => {
+        setSelectedModuleId(moduleId);
+        setCurrentNavigationLevel('chapters');
+        setNavigationBreadcrumb((prev) => [
+            ...prev,
+            { level: 'Module', name: moduleName, id: moduleId },
+        ]);
+    };
+
+    const resetNavigation = () => {
+        setCurrentNavigationLevel('subjects');
+        setSelectedSubjectId('');
+        setSelectedModuleId('');
+        setNavigationBreadcrumb([]);
+    };
+
+    const navigateToLevel = (levelIndex: number) => {
+        const breadcrumb = navigationBreadcrumb.slice(0, levelIndex + 1);
+        setNavigationBreadcrumb(breadcrumb);
+
+        if (levelIndex === -1) {
+            resetNavigation();
+        } else if (levelIndex === 0) {
+            setCurrentNavigationLevel('modules');
+            setSelectedModuleId('');
+        } else if (levelIndex === 1) {
+            setCurrentNavigationLevel('chapters');
+        }
     };
     const tabContent: Record<TabType, React.ReactNode> = {
         [TabType.OUTLINE]: (
@@ -1721,6 +1837,401 @@ export const CourseStructureDetails = ({
         [TabType.ASSESSMENT]: (
             <div className="rounded-md bg-white p-6 py-2 text-sm text-gray-600 shadow-sm">
                 <Assessments packageSessionId={packageSessionIds ?? ''} />
+            </div>
+        ),
+        [TabType.CONTENT_STRUCTURE]: (
+            <div className="p-6 py-2">
+                <div className="mb-4">
+                    <h3 className="mb-2 text-lg font-semibold text-gray-800">Content Structure</h3>
+                    <p className="text-sm text-gray-600">
+                        Navigate through your course content using folders
+                    </p>
+
+                    {/* Breadcrumb Navigation */}
+                    {navigationBreadcrumb.length > 0 && (
+                        <div className="mt-3 flex items-center space-x-2 text-sm">
+                            <button
+                                onClick={() => navigateToLevel(-1)}
+                                className="text-blue-600 hover:text-blue-800"
+                            >
+                                Course
+                            </button>
+                            {navigationBreadcrumb.map((crumb, index) => (
+                                <div key={crumb.id} className="flex items-center space-x-2">
+                                    <span className="text-gray-400">/</span>
+                                    <button
+                                        onClick={() => navigateToLevel(index)}
+                                        className="text-blue-600 hover:text-blue-800"
+                                    >
+                                        {crumb.name}
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* Folder Grid View */}
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                    {/* Show Subjects (Course Structure 5 or when at subjects level) */}
+                    {courseStructure === 5 &&
+                        currentNavigationLevel === 'subjects' &&
+                        subjects.map((subject, idx) => (
+                            <div key={subject.id} className="group relative">
+                                <div
+                                    onClick={() =>
+                                        handleSubjectClick(subject.id, subject.subject_name)
+                                    }
+                                    className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-shadow duration-200 hover:shadow-md"
+                                >
+                                    {/* Folder Icon/Image */}
+                                    <ThumbnailImage
+                                        thumbnailId={subject.thumbnail_id}
+                                        fallbackIcon={
+                                            <Folder
+                                                size={32}
+                                                weight="duotone"
+                                                className="text-blue-600"
+                                            />
+                                        }
+                                        fallbackColor="bg-gradient-to-br from-blue-50 to-blue-100"
+                                    />
+
+                                    {/* Folder Title */}
+                                    <h4
+                                        className="mb-1 truncate text-sm font-medium text-gray-800"
+                                        title={subject.subject_name}
+                                    >
+                                        {subject.subject_name}
+                                    </h4>
+
+                                    {/* Subject Number */}
+                                    <p className="text-xs text-gray-500">Subject {idx + 1}</p>
+
+                                    {/* Delete Button */}
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            openDeleteConfirmation('subject', {
+                                                id: subject.id,
+                                                name: subject.subject_name,
+                                            });
+                                        }}
+                                        className="absolute right-2 top-2 rounded-full p-1 opacity-0 transition-opacity hover:bg-red-100 group-hover:opacity-100"
+                                    >
+                                        <Trash size={14} className="text-red-600" />
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+
+                    {/* Show Modules for Course Structure 5 when at modules level */}
+                    {courseStructure === 5 &&
+                        currentNavigationLevel === 'modules' &&
+                        selectedSubjectId &&
+                        (subjectModulesMap[selectedSubjectId] ?? []).map(
+                            (mod: ModuleWithChapters, modIdx: number) => (
+                                <div key={mod.module.id} className="group relative">
+                                    <div
+                                        onClick={() =>
+                                            handleModuleClick(mod.module.id, mod.module.module_name)
+                                        }
+                                        className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-shadow duration-200 hover:shadow-md"
+                                    >
+                                        {/* Folder Icon/Image */}
+                                        <ThumbnailImage
+                                            thumbnailId={mod.module.thumbnail_id}
+                                            fallbackIcon={
+                                                <FileText
+                                                    size={32}
+                                                    weight="duotone"
+                                                    className="text-green-600"
+                                                />
+                                            }
+                                            fallbackColor="bg-gradient-to-br from-green-50 to-green-100"
+                                        />
+
+                                        {/* Folder Title */}
+                                        <h4
+                                            className="mb-1 truncate text-sm font-medium text-gray-800"
+                                            title={mod.module.module_name}
+                                        >
+                                            {mod.module.module_name}
+                                        </h4>
+
+                                        {/* Module Number */}
+                                        <p className="text-xs text-gray-500">Module {modIdx + 1}</p>
+
+                                        {/* Delete Button */}
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                openDeleteConfirmation('module', {
+                                                    id: mod.module.id,
+                                                    name: mod.module.module_name,
+                                                    subjectId: selectedSubjectId,
+                                                });
+                                            }}
+                                            className="absolute right-2 top-2 rounded-full p-1 opacity-0 transition-opacity hover:bg-red-100 group-hover:opacity-100"
+                                        >
+                                            <Trash size={14} className="text-red-600" />
+                                        </button>
+                                    </div>
+                                </div>
+                            )
+                        )}
+
+                    {/* Show Modules for Course Structure 4 */}
+                    {courseStructure === 4 &&
+                        currentNavigationLevel === 'subjects' &&
+                        subjects[0] &&
+                        (subjectModulesMap[subjects[0].id] ?? []).map(
+                            (mod: ModuleWithChapters, modIdx: number) => (
+                                <div key={mod.module.id} className="group relative">
+                                    <div
+                                        onClick={() => {
+                                            // For courseStructure 4, navigate directly to show chapters
+                                            console.log(
+                                                'Navigate to module chapters:',
+                                                mod.module.module_name
+                                            );
+                                        }}
+                                        className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-shadow duration-200 hover:shadow-md"
+                                    >
+                                        {/* Folder Icon/Image */}
+                                        <ThumbnailImage
+                                            thumbnailId={mod.module.thumbnail_id}
+                                            fallbackIcon={
+                                                <FileText
+                                                    size={32}
+                                                    weight="duotone"
+                                                    className="text-green-600"
+                                                />
+                                            }
+                                            fallbackColor="bg-gradient-to-br from-green-50 to-green-100"
+                                        />
+
+                                        {/* Folder Title */}
+                                        <h4
+                                            className="mb-1 truncate text-sm font-medium text-gray-800"
+                                            title={mod.module.module_name}
+                                        >
+                                            {mod.module.module_name}
+                                        </h4>
+
+                                        {/* Module Number */}
+                                        <p className="text-xs text-gray-500">Module {modIdx + 1}</p>
+
+                                        {/* Delete Button */}
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                openDeleteConfirmation('module', {
+                                                    id: mod.module.id,
+                                                    name: mod.module.module_name,
+                                                    subjectId: subjects[0]?.id,
+                                                });
+                                            }}
+                                            className="absolute right-2 top-2 rounded-full p-1 opacity-0 transition-opacity hover:bg-red-100 group-hover:opacity-100"
+                                        >
+                                            <Trash size={14} className="text-red-600" />
+                                        </button>
+                                    </div>
+                                </div>
+                            )
+                        )}
+
+                    {/* Show Chapters for Course Structure 5 when at chapters level */}
+                    {courseStructure === 5 &&
+                        currentNavigationLevel === 'chapters' &&
+                        selectedSubjectId &&
+                        selectedModuleId &&
+                        (
+                            subjectModulesMap[selectedSubjectId]?.find(
+                                (mod) => mod.module.id === selectedModuleId
+                            )?.chapters ?? []
+                        ).map((ch: ChapterMetadata, chIdx: number) => (
+                            <div key={ch.chapter.id} className="group relative">
+                                <div
+                                    onClick={() => {
+                                        // Navigate to chapter slides
+                                        handleChapterNavigation(
+                                            selectedSubjectId,
+                                            selectedModuleId,
+                                            ch.chapter.id
+                                        );
+                                    }}
+                                    className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-shadow duration-200 hover:shadow-md"
+                                >
+                                    {/* Folder Icon/Image */}
+                                    <ThumbnailImage
+                                        thumbnailId={ch.chapter.file_id}
+                                        fallbackIcon={
+                                            <PresentationChart
+                                                size={32}
+                                                weight="duotone"
+                                                className="text-purple-600"
+                                            />
+                                        }
+                                        fallbackColor="bg-gradient-to-br from-purple-50 to-purple-100"
+                                    />
+
+                                    {/* Folder Title */}
+                                    <h4
+                                        className="mb-1 truncate text-sm font-medium text-gray-800"
+                                        title={ch.chapter.chapter_name}
+                                    >
+                                        {ch.chapter.chapter_name}
+                                    </h4>
+
+                                    {/* Chapter Number */}
+                                    <p className="text-xs text-gray-500">Chapter {chIdx + 1}</p>
+
+                                    {/* Delete Button */}
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            openDeleteConfirmation('chapter', {
+                                                id: ch.chapter.id,
+                                                name: ch.chapter.chapter_name,
+                                                subjectId: selectedSubjectId,
+                                                moduleId: selectedModuleId,
+                                            });
+                                        }}
+                                        className="absolute right-2 top-2 rounded-full p-1 opacity-0 transition-opacity hover:bg-red-100 group-hover:opacity-100"
+                                    >
+                                        <Trash size={14} className="text-red-600" />
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+
+                    {/* Show Chapters for Course Structure 3 */}
+                    {courseStructure === 3 &&
+                        currentNavigationLevel === 'subjects' &&
+                        subjects[0] &&
+                        (subjectModulesMap[subjects[0].id]?.[0]?.chapters ?? []).map(
+                            (ch: ChapterMetadata, chIdx: number) => (
+                                <div key={ch.chapter.id} className="group relative">
+                                    <div
+                                        onClick={() => {
+                                            // Navigate to chapter slides
+                                            handleChapterNavigation(
+                                                subjects[0]?.id || '',
+                                                subjects[0]
+                                                    ? subjectModulesMap[subjects[0].id]?.[0]?.module
+                                                          .id || ''
+                                                    : '',
+                                                ch.chapter.id
+                                            );
+                                        }}
+                                        className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-shadow duration-200 hover:shadow-md"
+                                    >
+                                        {/* Folder Icon/Image */}
+                                        <ThumbnailImage
+                                            thumbnailId={ch.chapter.file_id}
+                                            fallbackIcon={
+                                                <PresentationChart
+                                                    size={32}
+                                                    weight="duotone"
+                                                    className="text-purple-600"
+                                                />
+                                            }
+                                            fallbackColor="bg-gradient-to-br from-purple-50 to-purple-100"
+                                        />
+
+                                        {/* Folder Title */}
+                                        <h4
+                                            className="mb-1 truncate text-sm font-medium text-gray-800"
+                                            title={ch.chapter.chapter_name}
+                                        >
+                                            {ch.chapter.chapter_name}
+                                        </h4>
+
+                                        {/* Chapter Number */}
+                                        <p className="text-xs text-gray-500">Chapter {chIdx + 1}</p>
+
+                                        {/* Delete Button */}
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                openDeleteConfirmation('chapter', {
+                                                    id: ch.chapter.id,
+                                                    name: ch.chapter.chapter_name,
+                                                    subjectId: subjects[0]?.id || '',
+                                                    moduleId: subjects[0]
+                                                        ? subjectModulesMap[subjects[0].id]?.[0]
+                                                              ?.module.id
+                                                        : undefined,
+                                                });
+                                            }}
+                                            className="absolute right-2 top-2 rounded-full p-1 opacity-0 transition-opacity hover:bg-red-100 group-hover:opacity-100"
+                                        >
+                                            <Trash size={14} className="text-red-600" />
+                                        </button>
+                                    </div>
+                                </div>
+                            )
+                        )}
+
+                    {/* Add New Folder Buttons */}
+                    {courseStructure === 5 && currentNavigationLevel === 'subjects' && (
+                        <div className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 transition-colors duration-200 hover:border-primary-400 hover:bg-primary-50">
+                            <AddSubjectButton
+                                isTextButton={false}
+                                onAddSubject={handleAddSubject}
+                            />
+                        </div>
+                    )}
+
+                    {courseStructure === 5 &&
+                        currentNavigationLevel === 'modules' &&
+                        selectedSubjectId && (
+                            <div className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 transition-colors duration-200 hover:border-primary-400 hover:bg-primary-50">
+                                <AddModulesButton
+                                    isTextButton={false}
+                                    subjectId={selectedSubjectId}
+                                    onAddModuleBySubjectId={(subjectId, module) =>
+                                        handleAddModule(subjectId, module)
+                                    }
+                                />
+                            </div>
+                        )}
+
+                    {((courseStructure === 5 &&
+                        currentNavigationLevel === 'chapters' &&
+                        selectedSubjectId &&
+                        selectedModuleId) ||
+                        (courseStructure === 4 &&
+                            currentNavigationLevel === 'subjects' &&
+                            subjects[0]) ||
+                        (courseStructure === 3 &&
+                            currentNavigationLevel === 'subjects' &&
+                            subjects[0])) && (
+                        <div className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 transition-colors duration-200 hover:border-primary-400 hover:bg-primary-50">
+                            <AddChapterButton
+                                moduleId={
+                                    courseStructure === 5
+                                        ? selectedModuleId
+                                        : courseStructure === 4 && subjects[0]
+                                          ? subjectModulesMap[subjects[0].id]?.[0]?.module.id || ''
+                                          : subjects[0]
+                                            ? subjectModulesMap[subjects[0].id]?.[0]?.module.id ||
+                                              ''
+                                            : ''
+                                }
+                                sessionId={selectedSession}
+                                levelId={selectedLevel}
+                                subjectId={
+                                    courseStructure === 5
+                                        ? selectedSubjectId
+                                        : subjects[0]?.id || ''
+                                }
+                                isTextButton={false}
+                            />
+                        </div>
+                    )}
+                </div>
             </div>
         ),
     };
