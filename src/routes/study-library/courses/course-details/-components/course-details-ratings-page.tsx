@@ -1,24 +1,16 @@
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { ThumbsUp, ThumbsDown, Trash, Check, X } from 'phosphor-react';
 import { StarRatingComponent } from '@/components/common/star-rating-component';
 import { useState, useEffect } from 'react';
 import { MyPagination } from '@/components/design-system/pagination';
-import { AxiosError } from 'axios';
-import { toast } from 'sonner';
-import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
     handleGetOverAllRatingDetails,
     handleGetRatingDetails,
-    handleUpdateRating,
 } from '../-services/rating-services';
 import { useRouter } from '@tanstack/react-router';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { ProgressBar } from '@/components/ui/custom-progress-bar';
 import { getPublicUrl } from '@/services/upload_file';
-import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
-import { TokenKey } from '@/constants/auth/tokens';
-import { getInstituteId } from '@/constants/helper';
+import { ReviewItem } from './ReviewItem';
 
 // Types for API Response
 interface User {
@@ -38,14 +30,6 @@ interface Rating {
     user: User;
     created_at: string;
     status: string;
-}
-
-interface PaginatedResponse {
-    content: Rating[];
-    totalPages: number;
-    totalElements: number;
-    number: number;
-    size: number;
 }
 
 // Type for transformed review data
@@ -80,17 +64,6 @@ const transformRatingToReview = (rating: Rating): Review => {
     };
 };
 
-function timeAgo(dateString: string) {
-    const now = new Date();
-    const date = new Date(dateString);
-    const diff = Math.floor((now.getTime() - date.getTime()) / 1000);
-    if (diff < 60) return `${diff}s ago`;
-    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-    if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
-    return date.toLocaleDateString();
-}
-
 export function CourseDetailsRatingsComponent({
     currentSession,
     currentLevel,
@@ -98,12 +71,6 @@ export function CourseDetailsRatingsComponent({
     currentSession: string;
     currentLevel: string;
 }) {
-    const instituteId = getInstituteId();
-    const accessToken = getTokenFromCookie(TokenKey.accessToken);
-    const tokenData = getTokenDecodedData(accessToken);
-    const hasRoleAdmin = instituteId
-        ? tokenData?.authorities[instituteId]?.roles.includes('ADMIN')
-        : false;
     const queryClient = useQueryClient();
     const router = useRouter();
     const courseId = router.state.location.search.courseId;
@@ -138,20 +105,6 @@ export function CourseDetailsRatingsComponent({
         enabled: !!packageSessionId, // Only run query if packageSessionId exists
     });
 
-    // Handle errors
-    if (ratingError || overallRatingError) {
-        return (
-            <div className="flex flex-col gap-5 bg-white p-8">
-                <h1 className="mb-1 text-2xl font-bold text-neutral-600">Ratings & Reviews</h1>
-                <div className="text-center text-neutral-500">
-                    {!packageSessionId
-                        ? 'Unable to load ratings - missing course information'
-                        : 'Unable to load ratings. Please try again later.'}
-                </div>
-            </div>
-        );
-    }
-
     // Transform API data to reviews format
     const reviews = ratingData?.content?.map(transformRatingToReview) || [];
     const totalPages = ratingData?.totalPages || 0;
@@ -161,7 +114,9 @@ export function CourseDetailsRatingsComponent({
         async function preloadAvatars() {
             setLoadingAvatars(true);
             // Get all unique avatar IDs (filter out empty strings)
-            const avatarUrls = reviews.map((r: Review) => r.user.avatarUrl).filter((id: string) => !!id);
+            const avatarUrls = reviews
+                .map((r: Review) => r.user.avatarUrl)
+                .filter((id: string) => !!id);
             const uniqueAvatarIds = Array.from(new Set(avatarUrls)) as string[];
             // Fetch all public URLs in parallel
             const idToUrl: Record<string, string> = {};
@@ -196,80 +151,41 @@ export function CourseDetailsRatingsComponent({
         };
     }, [JSON.stringify(reviews)]);
 
-    const handleUpdateRatingMutation = useMutation({
-        mutationFn: async ({
-            id,
-            rating,
-            source_id,
-            status,
-            likes,
-            dislikes,
-        }: {
-            id: string;
-            rating: number;
-            source_id: string;
-            status: string;
-            likes: number;
-            dislikes: number;
-        }) => {
-            return handleUpdateRating(id, rating, source_id, status, likes, dislikes);
-        },
-        onSuccess: (_, variables) => {
-            // Optimistically update the cache instead of invalidating
-            queryClient.setQueryData(
-                [
-                    'GET_ALL_USER_COURSE_RATINGS',
-                    page,
-                    10,
-                    {
-                        source_id:
-                            getPackageSessionId({
-                                courseId: courseId || '',
-                                levelId: currentLevel || '',
-                                sessionId: currentSession || '',
-                            }) || '',
-                        source_type: 'PACKAGE_SESSION',
-                    },
-                ],
-                (oldData: PaginatedResponse | undefined) => {
-                    if (!oldData) return oldData;
+    const handleReviewUpdate = (
+        reviewId: string,
+        updates: { likes: number; dislikes: number; status: string }
+    ) => {
+        // Update the resolved reviews with the new data
+        setResolvedReviews((prev) =>
+            prev.map((review) => (review.id === reviewId ? { ...review, ...updates } : review))
+        );
 
-                    return {
-                        ...oldData,
-                        content: oldData.content.map((rating) => {
-                            if (rating.id === variables.id) {
-                                return {
-                                    ...rating,
-                                    likes: variables.likes,
-                                    dislikes: variables.dislikes,
-                                    status: variables.status,
-                                };
-                            }
-                            return rating;
-                        }),
-                    };
-                }
-            );
-        },
-        onError: (error: unknown) => {
-            if (error instanceof AxiosError) {
-                toast.error(error?.response?.data?.ex || 'Failed to submit rating', {
-                    className: 'error-toast',
-                    duration: 2000,
-                });
-            } else {
-                toast.error('An unexpected error occurred', {
-                    className: 'error-toast',
-                    duration: 2000,
-                });
-                console.error('Unexpected error:', error);
-            }
-        },
-    });
+        // Invalidate queries to refresh data
+        queryClient.invalidateQueries({
+            queryKey: ['GET_ALL_USER_COURSE_RATINGS'],
+        });
+        queryClient.invalidateQueries({
+            queryKey: ['GET_ALL_USER_COURSE_RATINGS_OVERALL'],
+        });
+    };
 
     const handlePageChange = (pageNo: number) => {
         setPage(pageNo);
     };
+
+    // Handle errors
+    if (ratingError || overallRatingError) {
+        return (
+            <div className="flex flex-col gap-5 bg-white p-8">
+                <h1 className="mb-1 text-2xl font-bold text-neutral-600">Ratings & Reviews</h1>
+                <div className="text-center text-neutral-500">
+                    {!packageSessionId
+                        ? 'Unable to load ratings - missing course information'
+                        : 'Unable to load ratings. Please try again later.'}
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col gap-5 bg-white p-8">
@@ -364,176 +280,14 @@ export function CourseDetailsRatingsComponent({
                     <div className="text-center text-neutral-500">No reviews yet</div>
                 ) : (
                     resolvedReviews.map((review) => (
-                        <div
+                        <ReviewItem
                             key={review.id}
-                            className="flex flex-col bg-white p-5 md:items-start md:gap-4"
-                        >
-                            {/* Avatar and User Info */}
-                            <div className="flex w-full items-center justify-between">
-                                <div className="flex shrink-0 items-center justify-center gap-2">
-                                    <Avatar>
-                                        {review.user.avatarUrl !== '' ? (
-                                            <AvatarImage
-                                                src={review.user.avatarUrl}
-                                                alt={review.user.name}
-                                            />
-                                        ) : (
-                                            <AvatarFallback>
-                                                {review.user.name
-                                                    .split(' ')
-                                                    .map((n) => n[0])
-                                                    .join('')
-                                                    .slice(0, 2)
-                                                    .toUpperCase()}
-                                            </AvatarFallback>
-                                        )}
-                                    </Avatar>
-                                    <div className="flex flex-col">
-                                        <span className="font-semibold text-neutral-800">
-                                            {review.user.name}
-                                        </span>
-                                        <span className="mt-0.5 text-xs text-neutral-400">
-                                            {timeAgo(review.createdAt)}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="flex flex-col">
-                                <div className="mt-1 flex items-center gap-2">
-                                    <StarRatingComponent
-                                        score={review.rating * 20}
-                                        starColor={true}
-                                    />
-                                </div>
-                                <div className="mt-2 text-neutral-700">{review.description}</div>
-                                <div className="mt-3 flex items-center justify-start gap-4">
-                                    {review.status === 'PENDING' && hasRoleAdmin ? (
-                                        <>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="flex items-center gap-1 text-neutral-400 hover:text-green-600"
-                                                onClick={() => {
-                                                    handleUpdateRatingMutation.mutate({
-                                                        id: review.id,
-                                                        rating: review.rating,
-                                                        source_id:
-                                                            getPackageSessionId({
-                                                                courseId: courseId || '',
-                                                                levelId: currentLevel,
-                                                                sessionId: currentSession,
-                                                            }) || '',
-                                                        status: 'ACTIVE',
-                                                        likes: review.likes,
-                                                        dislikes: review.dislikes,
-                                                    });
-                                                }}
-                                            >
-                                                <Check size={18} />
-                                                <span className="text-xs">Approve</span>
-                                            </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="flex items-center gap-1 text-neutral-400 hover:text-red-600"
-                                                onClick={() => {
-                                                    handleUpdateRatingMutation.mutate({
-                                                        id: review.id,
-                                                        rating: review.rating,
-                                                        source_id:
-                                                            getPackageSessionId({
-                                                                courseId: courseId || '',
-                                                                levelId: currentLevel,
-                                                                sessionId: currentSession,
-                                                            }) || '',
-                                                        status: 'DELETED',
-                                                        likes: review.likes,
-                                                        dislikes: review.dislikes,
-                                                    });
-                                                }}
-                                            >
-                                                <X size={18} />
-                                                <span className="text-xs">Decline</span>
-                                            </Button>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="flex items-center gap-1 text-neutral-500 hover:text-blue-600"
-                                                onClick={() => {
-                                                    handleUpdateRatingMutation.mutate({
-                                                        id: review.id,
-                                                        rating: review.rating,
-                                                        source_id:
-                                                            getPackageSessionId({
-                                                                courseId: courseId || '',
-                                                                levelId: currentLevel,
-                                                                sessionId: currentSession,
-                                                            }) || '',
-                                                        status: 'ACTIVE',
-                                                        likes: review.likes + 1,
-                                                        dislikes: review.dislikes,
-                                                    });
-                                                }}
-                                            >
-                                                <ThumbsUp size={18} />
-                                                <span className="text-xs">{review.likes}</span>
-                                            </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="flex items-center gap-1 text-neutral-500 hover:text-red-500"
-                                                onClick={() => {
-                                                    handleUpdateRatingMutation.mutate({
-                                                        id: review.id,
-                                                        rating: review.rating,
-                                                        source_id:
-                                                            getPackageSessionId({
-                                                                courseId: courseId || '',
-                                                                levelId: currentLevel,
-                                                                sessionId: currentSession,
-                                                            }) || '',
-                                                        status: 'ACTIVE',
-                                                        likes: review.likes,
-                                                        dislikes: review.dislikes + 1,
-                                                    });
-                                                }}
-                                            >
-                                                <ThumbsDown size={18} />
-                                                <span className="text-xs">{review.dislikes}</span>
-                                            </Button>
-                                            {hasRoleAdmin && (
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="flex items-center gap-1 text-neutral-500 hover:text-red-600"
-                                                    onClick={() => {
-                                                        handleUpdateRatingMutation.mutate({
-                                                            id: review.id,
-                                                            rating: review.rating,
-                                                            source_id:
-                                                                getPackageSessionId({
-                                                                    courseId: courseId || '',
-                                                                    levelId: currentLevel,
-                                                                    sessionId: currentSession,
-                                                                }) || '',
-                                                            status: 'DELETED',
-                                                            likes: review.likes,
-                                                            dislikes: review.dislikes,
-                                                        });
-                                                    }}
-                                                >
-                                                    <Trash size={18} />
-                                                    <span className="text-xs">Delete</span>
-                                                </Button>
-                                            )}
-                                        </>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
+                            review={review}
+                            courseId={courseId || ''}
+                            currentLevel={currentLevel}
+                            currentSession={currentSession}
+                            onReviewUpdate={handleReviewUpdate}
+                        />
                     ))
                 )}
                 {totalPages > 1 && (
