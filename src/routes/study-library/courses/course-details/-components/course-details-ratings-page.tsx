@@ -1,7 +1,7 @@
 import { StarRatingComponent } from '@/components/common/star-rating-component';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { MyPagination } from '@/components/design-system/pagination';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import {
     handleGetOverAllRatingDetails,
     handleGetRatingDetails,
@@ -9,7 +9,6 @@ import {
 import { useRouter } from '@tanstack/react-router';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { ProgressBar } from '@/components/ui/custom-progress-bar';
-import { getPublicUrl } from '@/services/upload_file';
 import { ReviewItem } from './ReviewItem';
 
 // Types for API Response
@@ -71,12 +70,9 @@ export function CourseDetailsRatingsComponent({
     currentSession: string;
     currentLevel: string;
 }) {
-    const queryClient = useQueryClient();
     const router = useRouter();
     const courseId = router.state.location.search.courseId;
     const [page, setPage] = useState(0);
-    const [resolvedReviews, setResolvedReviews] = useState<Review[]>([]);
-    const [loadingAvatars, setLoadingAvatars] = useState(false);
 
     const { getPackageSessionId } = useInstituteDetailsStore();
 
@@ -105,69 +101,11 @@ export function CourseDetailsRatingsComponent({
         enabled: !!packageSessionId, // Only run query if packageSessionId exists
     });
 
-    // Transform API data to reviews format
-    const reviews = ratingData?.content?.map(transformRatingToReview) || [];
+    // Transform API data to reviews format and filter out deleted
+    const reviews: Review[] = (ratingData?.content?.map(transformRatingToReview) || []).filter(
+        (review) => review.status !== 'DELETED'
+    );
     const totalPages = ratingData?.totalPages || 0;
-
-    useEffect(() => {
-        let isMounted = true;
-        async function preloadAvatars() {
-            setLoadingAvatars(true);
-            // Get all unique avatar IDs (filter out empty strings)
-            const avatarUrls = reviews
-                .map((r: Review) => r.user.avatarUrl)
-                .filter((id: string) => !!id);
-            const uniqueAvatarIds = Array.from(new Set(avatarUrls)) as string[];
-            // Fetch all public URLs in parallel
-            const idToUrl: Record<string, string> = {};
-            await Promise.all(
-                uniqueAvatarIds.map(async (id: string) => {
-                    try {
-                        idToUrl[id] = await getPublicUrl(id);
-                    } catch {
-                        idToUrl[id] = '';
-                    }
-                })
-            );
-            // Map reviews to use the resolved URL
-            if (isMounted) {
-                setResolvedReviews(
-                    reviews.map((review: Review) => ({
-                        ...review,
-                        user: {
-                            ...review.user,
-                            avatarUrl: review.user.avatarUrl
-                                ? idToUrl[review.user.avatarUrl] || ''
-                                : '',
-                        },
-                    }))
-                );
-                setLoadingAvatars(false);
-            }
-        }
-        preloadAvatars();
-        return () => {
-            isMounted = false;
-        };
-    }, [JSON.stringify(reviews)]);
-
-    const handleReviewUpdate = (
-        reviewId: string,
-        updates: { likes: number; dislikes: number; status: string }
-    ) => {
-        // Update the resolved reviews with the new data
-        setResolvedReviews((prev) =>
-            prev.map((review) => (review.id === reviewId ? { ...review, ...updates } : review))
-        );
-
-        // Invalidate queries to refresh data
-        queryClient.invalidateQueries({
-            queryKey: ['GET_ALL_USER_COURSE_RATINGS'],
-        });
-        queryClient.invalidateQueries({
-            queryKey: ['GET_ALL_USER_COURSE_RATINGS_OVERALL'],
-        });
-    };
 
     const handlePageChange = (pageNo: number) => {
         setPage(pageNo);
@@ -274,19 +212,16 @@ export function CourseDetailsRatingsComponent({
                 )}
             {/* User Reviews List */}
             <div className={`${reviews.length === 0 ? 'mt-0' : 'mt-8'} flex flex-col gap-4`}>
-                {loadingAvatars ? (
-                    <div>Loading avatars...</div>
-                ) : resolvedReviews.length === 0 ? (
+                {reviews.length === 0 ? (
                     <div className="text-center text-neutral-500">No reviews yet</div>
                 ) : (
-                    resolvedReviews.map((review) => (
+                    reviews.map((review: Review) => (
                         <ReviewItem
                             key={review.id}
                             review={review}
                             courseId={courseId || ''}
                             currentLevel={currentLevel}
                             currentSession={currentSession}
-                            onReviewUpdate={handleReviewUpdate}
                         />
                     ))
                 )}

@@ -2,7 +2,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ThumbsUp, ThumbsDown, Trash, Check, X } from 'phosphor-react';
 import { StarRatingComponent } from '@/components/common/star-rating-component';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { AxiosError } from 'axios';
 import { toast } from 'sonner';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -11,6 +11,7 @@ import { useInstituteDetailsStore } from '@/stores/students/students-list/useIns
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
 import { getInstituteId } from '@/constants/helper';
+import { getPublicUrl } from '@/services/upload_file';
 
 interface ReviewItemProps {
     review: {
@@ -29,7 +30,23 @@ interface ReviewItemProps {
     courseId: string;
     currentLevel: string;
     currentSession: string;
-    onReviewUpdate: (reviewId: string, updates: { likes: number; dislikes: number; status: string }) => void;
+}
+
+interface Rating {
+    id: string;
+    points: number;
+    likes: number;
+    dislikes: number;
+    text: string;
+    user: {
+        id: string;
+        username: string;
+        email: string;
+        full_name: string;
+        profile_pic_file_id: string | null;
+    };
+    created_at: string;
+    status: string;
 }
 
 function timeAgo(dateString: string) {
@@ -43,21 +60,51 @@ function timeAgo(dateString: string) {
     return date.toLocaleDateString();
 }
 
-export function ReviewItem({ review, courseId, currentLevel, currentSession, onReviewUpdate }: ReviewItemProps) {
+export function ReviewItem({ review, courseId, currentLevel, currentSession }: ReviewItemProps) {
+    // All hooks at the top
     const [localLikes, setLocalLikes] = useState(review.likes);
     const [localDislikes, setLocalDislikes] = useState(review.dislikes);
     const [localStatus, setLocalStatus] = useState(review.status);
     const [isUpdating, setIsUpdating] = useState(false);
-
+    const [avatarUrl, setAvatarUrl] = useState<string>('');
+    const isMounted = useRef(true);
     const instituteId = getInstituteId();
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
     const hasRoleAdmin = instituteId
         ? tokenData?.authorities[instituteId]?.roles.includes('ADMIN')
         : false;
-
     const queryClient = useQueryClient();
     const { getPackageSessionId } = useInstituteDetailsStore();
+
+    // Track mount status
+    useEffect(() => {
+        isMounted.current = true;
+        return () => {
+            isMounted.current = false;
+        };
+    }, []);
+
+    // Resolve avatar file ID to public URL
+    useEffect(() => {
+        let isMountedAvatar = true;
+        async function fetchAvatar() {
+            if (review.user.avatarUrl) {
+                try {
+                    const url = await getPublicUrl(review.user.avatarUrl);
+                    if (isMountedAvatar) setAvatarUrl(url);
+                } catch {
+                    if (isMountedAvatar) setAvatarUrl('');
+                }
+            } else {
+                setAvatarUrl('');
+            }
+        }
+        fetchAvatar();
+        return () => {
+            isMountedAvatar = false;
+        };
+    }, [review.user.avatarUrl]);
 
     const handleUpdateRatingMutation = useMutation({
         mutationFn: async ({
@@ -77,42 +124,54 @@ export function ReviewItem({ review, courseId, currentLevel, currentSession, onR
             dislikes: number;
             text: string;
         }) => {
+            // Debug log for mutation payload
+            console.log('handleUpdateRating mutation payload:', {
+                id,
+                rating,
+                source_id,
+                status,
+                likes,
+                dislikes,
+                text,
+            });
             return handleUpdateRating(id, rating, source_id, status, likes, dislikes, text);
         },
         onSuccess: (_, variables) => {
-            // Update local state immediately
-            setLocalLikes(variables.likes);
-            setLocalDislikes(variables.dislikes);
-            setLocalStatus(variables.status);
-
-            // Notify parent component
-            onReviewUpdate(review.id, {
-                likes: variables.likes,
-                dislikes: variables.dislikes,
-                status: variables.status,
+            if (isMounted.current) {
+                setLocalLikes(variables.likes);
+                setLocalDislikes(variables.dislikes);
+                // Don't set localStatus here for delete/decline, as it's already set before mutation
+                setIsUpdating(false);
+            }
+            queryClient.invalidateQueries({ queryKey: ['GET_ALL_USER_COURSE_RATINGS'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_ALL_USER_COURSE_RATINGS_OVERALL'] });
+            // Optimistically update the cache without invalidating
+            const packageSessionId = getPackageSessionId({
+                courseId: courseId || '',
+                levelId: currentLevel || '',
+                sessionId: currentSession || '',
             });
-
-            // Optimistically update the cache
-            queryClient.setQueryData(
+            queryClient.setQueryData<{
+                content: Rating[];
+                totalPages: number;
+                totalElements: number;
+                number: number;
+                size: number;
+            }>(
                 [
                     'GET_ALL_USER_COURSE_RATINGS',
                     0, // Assuming we're on first page, adjust as needed
                     10,
                     {
-                        source_id: getPackageSessionId({
-                            courseId: courseId || '',
-                            levelId: currentLevel || '',
-                            sessionId: currentSession || '',
-                        }) || '',
+                        source_id: packageSessionId || '',
                         source_type: 'PACKAGE_SESSION',
                     },
                 ],
-                (oldData: any) => {
+                (oldData) => {
                     if (!oldData) return oldData;
-
                     return {
                         ...oldData,
-                        content: oldData.content.map((rating: any) => {
+                        content: oldData.content.map((rating: Rating) => {
                             if (rating.id === variables.id) {
                                 return {
                                     ...rating,
@@ -126,50 +185,56 @@ export function ReviewItem({ review, courseId, currentLevel, currentSession, onR
                     };
                 }
             );
-
-            // Also update overall rating cache
-            queryClient.invalidateQueries({
-                queryKey: ['GET_ALL_USER_COURSE_RATINGS_OVERALL'],
-            });
-
-            setIsUpdating(false);
+            // Update overall rating cache optimistically
+            queryClient.setQueryData<unknown>(
+                ['GET_ALL_USER_COURSE_RATINGS_OVERALL', packageSessionId || ''],
+                (oldData: unknown) => {
+                    if (!oldData) return oldData;
+                    // You might want to recalculate these based on the actual change
+                    return {
+                        ...oldData,
+                    };
+                }
+            );
         },
         onError: (error: unknown) => {
-            // Revert local state on error
-            setLocalLikes(review.likes);
-            setLocalDislikes(review.dislikes);
-            setLocalStatus(review.status);
-            setIsUpdating(false);
-
+            if (isMounted.current) {
+                setLocalLikes(review.likes);
+                setLocalDislikes(review.dislikes);
+                setLocalStatus(review.status);
+                setIsUpdating(false);
+            }
+            // Enhanced error logging
             if (error instanceof AxiosError) {
+                console.error('ReviewItem mutation error:', error?.response?.data);
                 toast.error(error?.response?.data?.ex || 'Failed to update rating', {
                     className: 'error-toast',
                     duration: 2000,
                 });
             } else {
+                console.error('ReviewItem unexpected error:', error);
                 toast.error('An unexpected error occurred', {
                     className: 'error-toast',
                     duration: 2000,
                 });
-                console.error('Unexpected error:', error);
             }
         },
     });
 
+    // Hide deleted reviews immediately (after all hooks)
+    if (localStatus === 'DELETED') return null;
+
     const handleAction = (action: 'like' | 'dislike' | 'approve' | 'decline' | 'delete') => {
         if (isUpdating) return;
-
         setIsUpdating(true);
         const packageSessionId = getPackageSessionId({
             courseId: courseId || '',
             levelId: currentLevel || '',
             sessionId: currentSession || '',
         });
-
         let newLikes = localLikes;
         let newDislikes = localDislikes;
         let newStatus = localStatus;
-
         switch (action) {
             case 'like':
                 newLikes = localLikes + 1;
@@ -179,24 +244,29 @@ export function ReviewItem({ review, courseId, currentLevel, currentSession, onR
                 break;
             case 'approve':
                 newStatus = 'ACTIVE';
+                if (isMounted.current) setLocalStatus('ACTIVE'); // UI updates instantly
                 break;
             case 'decline':
-                newStatus = 'DELETED';
-                break;
             case 'delete':
                 newStatus = 'DELETED';
+                if (isMounted.current) setLocalStatus('DELETED'); // Hide immediately
                 break;
         }
-
-        handleUpdateRatingMutation.mutate({
+        const payload = {
             id: review.id,
             rating: review.rating,
             source_id: packageSessionId || '',
             status: newStatus,
             likes: newLikes,
             dislikes: newDislikes,
-            text: review.description, // Ensure text is sent to backend
-        });
+            text: review.description || 'deleted', // fallback to a non-empty string
+        };
+        if (action === 'approve') {
+            console.log('Approve payload:', payload);
+        } else if (action === 'decline' || action === 'delete') {
+            console.log('Delete/Decline payload:', payload);
+        }
+        handleUpdateRatingMutation.mutate(payload);
     };
 
     return (
@@ -205,11 +275,8 @@ export function ReviewItem({ review, courseId, currentLevel, currentSession, onR
             <div className="flex w-full items-center justify-between">
                 <div className="flex shrink-0 items-center justify-center gap-2">
                     <Avatar>
-                        {review.user.avatarUrl !== '' ? (
-                            <AvatarImage
-                                src={review.user.avatarUrl}
-                                alt={review.user.name}
-                            />
+                        {avatarUrl !== '' ? (
+                            <AvatarImage src={avatarUrl} alt={review.user.name} />
                         ) : (
                             <AvatarFallback>
                                 {review.user.name
@@ -222,9 +289,7 @@ export function ReviewItem({ review, courseId, currentLevel, currentSession, onR
                         )}
                     </Avatar>
                     <div className="flex flex-col">
-                        <span className="font-semibold text-neutral-800">
-                            {review.user.name}
-                        </span>
+                        <span className="font-semibold text-neutral-800">{review.user.name}</span>
                         <span className="mt-0.5 text-xs text-neutral-400">
                             {timeAgo(review.createdAt)}
                         </span>
@@ -233,10 +298,7 @@ export function ReviewItem({ review, courseId, currentLevel, currentSession, onR
             </div>
             <div className="flex flex-col">
                 <div className="mt-1 flex items-center gap-2">
-                    <StarRatingComponent
-                        score={review.rating * 20}
-                        starColor={true}
-                    />
+                    <StarRatingComponent score={review.rating * 20} starColor={true} />
                 </div>
                 <div className="mt-2 text-neutral-700">{review.description}</div>
                 <div className="mt-3 flex items-center justify-start gap-4">
