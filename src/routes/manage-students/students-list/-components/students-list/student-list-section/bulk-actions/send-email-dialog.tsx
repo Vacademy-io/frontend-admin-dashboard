@@ -229,7 +229,7 @@ export const SendEmailDialog = () => {
 
         try {
             const response = await fetch(
-                'https://backend-stage.vacademy.io/notification-service/v1/send-email-to-users-public',
+                `${import.meta.env.VITE_BACKEND_URL || 'https://backend-stage.vacademy.io'}/notification-service/v1/send-email-to-users-public`,
                 {
                     method: 'POST',
                     headers: {

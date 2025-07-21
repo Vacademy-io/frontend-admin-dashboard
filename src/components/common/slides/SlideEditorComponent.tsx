@@ -66,12 +66,12 @@ import { SlideRegenerateModal } from './components/SlideRegenerateModal';
 import { RecommendationOverlay, RecommendationToast } from './components/RecommendationUI';
 import { PRODUCT_NAME } from '@/config/branding';
 
-const START_SESSION_API_URL =
-    'https://backend-stage.vacademy.io/community-service/engage/admin/start';
-const ADD_SLIDE_IN_SESSION_API_URL = 'https://backend-stage.vacademy.io/community-service/engage/admin/add-slide-in-session';
-const IMPORT_PPT_API_URL = 'https://backend-stage.vacademy.io/media-service/convert-presentations/import-ppt';
-const REGENERATE_SLIDE_API_URL = 'https://backend-stage.vacademy.io/media-service/ai/presentation/regenerateASlide';
-const GENERATE_SLIDES_FROM_TEXT_API_URL = 'https://backend-stage.vacademy.io/media-service/ai/presentation/generateFromData';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://backend-stage.vacademy.io';
+const START_SESSION_API_URL = `${BACKEND_URL}/community-service/engage/admin/start`;
+const ADD_SLIDE_IN_SESSION_API_URL = `${BACKEND_URL}/community-service/engage/admin/add-slide-in-session`;
+const IMPORT_PPT_API_URL = `${BACKEND_URL}/media-service/convert-presentations/import-ppt`;
+const REGENERATE_SLIDE_API_URL = `${BACKEND_URL}/media-service/ai/presentation/regenerateASlide`;
+const GENERATE_SLIDES_FROM_TEXT_API_URL = `${BACKEND_URL}/media-service/ai/presentation/generateFromData`;
 
 interface SlideRendererProps {
     currentSlideId: string;
@@ -81,7 +81,7 @@ interface SlideRendererProps {
 const SlidesEditorComponent = ({
     metaData,
     presentationId,
-    isEdit, 
+    isEdit,
     autoStartLive,
 }: {
     metaData: { title: string; description: string };
@@ -118,8 +118,8 @@ const SlidesEditorComponent = ({
     }, [setEditMode, autoStartLive]);
 
     const {
-        isLoading: isLoadingPresentation, 
-        isRefetching: isRefetchingPresentation, 
+        isLoading: isLoadingPresentation,
+        isRefetching: isRefetchingPresentation,
     } = useGetSinglePresentation({
         presentationId,
         setSlides,
@@ -266,7 +266,7 @@ const SlidesEditorComponent = ({
             if (slides && slides.length > 0) {
                 setShowSessionOptionsModal(true);
                 // Optional: Clean up the query parameter from URL if desired, though this can be complex
-                // router.history.replace({ search: '...' }); 
+                // router.history.replace({ search: '...' });
             } else if (!isLoadingPresentation && !isRefetchingPresentation && slides && slides.length === 0){
                 toast.error(`Cannot start a live session for an empty ${PRODUCT_NAME.toLowerCase()}. Please add slides.`);
             }
@@ -297,12 +297,12 @@ const SlidesEditorComponent = ({
         setTranscriptResult(''); // Reset previous results
         toast.info("Transcription has started in the background. You will be notified when it's ready.");
 
-    
+
         try {
             const currentAudioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-            
+
             const client = new AssemblyAI({ apiKey: ASSEMBLYAI_API_KEY });
-            
+
             // Pass the Blob directly to the SDK
             const transcript = await client.transcripts.transcribe({
               audio: currentAudioBlob,
@@ -319,7 +319,7 @@ const SlidesEditorComponent = ({
         } catch (error: any) {
             console.error("Error generating transcript:", error);
             toast.error(error.message || "Failed to generate transcript.");
-            setTranscriptResult(""); 
+            setTranscriptResult("");
         } finally {
             setIsTranscribing(false);
         }
@@ -353,10 +353,10 @@ const SlidesEditorComponent = ({
                     const outputName = 'output.mp3';
 
                     await ffmpeg.writeFile(inputName, await fetchFile(currentWebMBlob));
-                    
+
                     // Run FFmpeg command. Options can be added e.g. -b:a 128k for bitrate
                     await ffmpeg.exec(['-i', inputName, outputName]);
-                    
+
                     const outputData = await ffmpeg.readFile(outputName);
                     await ffmpeg.deleteFile(inputName); // Clean up input file
                     await ffmpeg.deleteFile(outputName); // Clean up output file
@@ -483,12 +483,12 @@ const SlidesEditorComponent = ({
                     setIsRecordingPaused(false);
                     stream.getTracks().forEach(track => track.clone().stop()); // Stop cloned tracks
                 };
-                
+
                 // Setup for recommendation interval recording (using a clone of the stream)
                 const recommendationStream = stream.clone();
                 recommendationMediaRecorderRef.current = new MediaRecorder(recommendationStream, { mimeType: 'audio/webm' });
                 recommendationAudioChunksRef.current = [];
-                
+
                 recommendationMediaRecorderRef.current.ondataavailable = (event) => {
                     if (event.data.size > 0) recommendationAudioChunksRef.current.push(event.data);
                 };
@@ -554,7 +554,7 @@ const SlidesEditorComponent = ({
             // Start recording if permission was granted and it's a recording session
             if (shouldRecordAudio && mediaRecorderRef.current && mediaRecorderRef.current.state === 'inactive') {
                 mediaRecorderRef.current.start(1000); // Start main recording
-                
+
                 // Start the recommendation recorder and the 5-minute interval
                 recommendationMediaRecorderRef.current.start();
                 startRecommendationInterval();
@@ -634,7 +634,7 @@ const SlidesEditorComponent = ({
                 };
                 recommendedSlides.push(newSlide);
             });
-            
+
             const feedbackQuestionSlide = createNewSlide(SlideTypeEnum.Quiz);
             (feedbackQuestionSlide as QuizSlideData).elements = {
                 questionName: "Are you able to understand the lecture",
@@ -645,9 +645,9 @@ const SlidesEditorComponent = ({
                 ],
             };
             (feedbackQuestionSlide as ExcalidrawSlideData).name = "Quick Poll";
-            
+
             recommendedSlides.unshift(feedbackQuestionSlide);
-            
+
             if (recommendedSlides.length > 0) {
                 // 4. Add to store
                 const batchTimestamp = `${recommendationBatchCounter * 2}-${(recommendationBatchCounter + 1) * 2} mins`;
@@ -671,7 +671,7 @@ const SlidesEditorComponent = ({
 
     const startRecommendationInterval = () => {
         if (recommendationIntervalRef.current) clearInterval(recommendationIntervalRef.current);
-        
+
         setRecommendationBatchCounter(0);
 
         recommendationIntervalRef.current = setInterval(() => {
@@ -687,7 +687,7 @@ const SlidesEditorComponent = ({
                     recommendationMediaRecorderRef.current.start();
                 }
             }, 500);
-            
+
             setRecommendationBatchCounter(prev => prev + 1);
         }, 120000); // 120000 ms = 2 minutes
     };
@@ -744,12 +744,12 @@ const SlidesEditorComponent = ({
             setIsFinishModalOpen(false);
             // We call cleanupAndExitSession with callFinishApi: false because the API is called inside this function.
             // This will reset the UI and let the user continue.
-            cleanupAndExitSession(false); 
+            cleanupAndExitSession(false);
             toast.info("Generating session summary in the background. You'll be notified.", { duration: 5000 });
         } else {
             setIsTranscribingOnFinish(true);
         }
-        
+
         try {
             // Step 1: Call the main finish API to end the session
             await authenticatedAxiosInstance.post(FINISH_SESSION_API_URL, {
@@ -763,7 +763,7 @@ const SlidesEditorComponent = ({
                 // For background tasks, a simple console log is better to avoid spamming toasts
                 console.log(`[Background] Session ${localSessionId} ended. Starting transcript generation.`);
             }
-            
+
             // Step 2: Transcribe audio
             const audioBlob = new Blob(audioChunksToProcess, { type: 'audio/webm' });
             if (audioBlob.size === 0) throw new Error("Audio recording is empty.");
@@ -777,10 +777,10 @@ const SlidesEditorComponent = ({
 
             // Step 3: Send the transcript to the notifications API
             await authenticatedAxiosInstance.post(
-                'https://backend-stage.vacademy.io/community-service/engage/admin/finish-send-notifications',
+                                    `${BACKEND_URL}/community-service/engage/admin/finish-send-notifications`,
                 { transcript: transcript.text, session_id: localSessionId }
             );
-            
+
             toast.success("Session summary sent successfully!");
 
         } catch (error: any) {
@@ -817,7 +817,7 @@ const SlidesEditorComponent = ({
     const toggleDirectPresentationPreview = () => {
         if (slides && slides.length > 0) {
             if (sessionDetails) setSessionDetails(null);
-            setEditMode(!editMode); 
+            setEditMode(!editMode);
             if (!editMode && slides.length > 0) {
                 setCurrentSlideId(slides[0].id);
             }
@@ -914,7 +914,7 @@ const SlidesEditorComponent = ({
                         question_type: slide.type === SlideTypeEnum.Quiz ? 'MCQS' : 'LONG_ANSWER',
                         access_level: 'public',
                         auto_evaluation_json: slide.type === SlideTypeEnum.Quiz ? JSON.stringify({ type: 'MCQS', data: { correctOptionIds: correctOptionIds }, }) : null,
-                        options_json: null, 
+                        options_json: null,
                         parsed_evaluation_object: slide.type === SlideTypeEnum.Quiz ? { correct_option: correctOptionPreviewIdAsNumber, } : null,
                         evaluation_type: slide.type === SlideTypeEnum.Quiz ? 'auto' : 'manual',
                         explanation_text: {
@@ -1047,7 +1047,7 @@ const SlidesEditorComponent = ({
                     const presentationData = response.data;
                     if (presentationData && Array.isArray(presentationData.added_slides)) {
                          backendSlides = presentationData.added_slides;
-                    } 
+                    }
                 }
 
                 if (backendSlides.length > 0) {
@@ -1071,11 +1071,11 @@ const SlidesEditorComponent = ({
                         newSlideData.slide_order = backendSlide.slide_order;
 
                         // Special handling for question slides to sync question/option IDs
-                        if (backendSlide.added_question && 
+                        if (backendSlide.added_question &&
                             (localSlide.type === SlideTypeEnum.Quiz || localSlide.type === SlideTypeEnum.Feedback)) {
-                            
+
                             newSlideData.questionId = backendSlide.added_question.id;
-                            
+
                             const localOptions = newSlideData.elements.singleChoiceOptions || [];
                             const backendOptions = backendSlide.added_question.options || [];
 
@@ -1085,7 +1085,7 @@ const SlidesEditorComponent = ({
                                 return backendOpt ? { ...localOpt, id: backendOpt.id } : localOpt;
                             });
                         }
-                        
+
                         return newSlideData;
                     }).filter(Boolean); // Remove any nulls from sync errors
 
@@ -1103,7 +1103,7 @@ const SlidesEditorComponent = ({
                     // but we got a new presentation ID. We should trigger a navigation or refetch.
                     const newPresentationId = response.data.id;
                     console.log(`Auto-create successful. New ${PRODUCT_NAME} ID: ${newPresentationId}. Navigating.`);
-                    
+
                     router.navigate({
                         to: '/study-library/volt/add',
                         search: { id: newPresentationId, isEdit: 'true', title: metaData.title, description: metaData.description },
@@ -1117,7 +1117,7 @@ const SlidesEditorComponent = ({
             if (isAutoSave && !isEdit && response.data && response.data.id) {
                 const newPresentationId = response.data.id;
                 console.log(`Auto-create successful. New ${PRODUCT_NAME} ID: ${newPresentationId}. Navigating to edit mode.`);
-                
+
                 // Preserve title and description from metaData for the new URL
                 // autoStartLive should be removed if present, as it's a one-time action
                 const newSearchParams = {
@@ -1136,7 +1136,7 @@ const SlidesEditorComponent = ({
                 });
                 autoCreateNavigated = true; // Set flag
                 // setIsSaving is NOT called here; will be handled by useEffect after navigation
-                return; 
+                return;
             }
 
             if (isAutoSave) {
@@ -1163,7 +1163,7 @@ const SlidesEditorComponent = ({
 
     const handleSharePresentation = () => {
         if (presentationId) {
-            const shareUrl = `https://engage.vacademy.io/presentation/public/${presentationId}`;
+            const shareUrl = `https://${import.meta.env.VITE_ENGAGE_DOMAIN || 'engage.vacademy.io'}/presentation/public/${presentationId}`;
             window.open(shareUrl, '_blank');
             toast.success(`Public ${PRODUCT_NAME.toLowerCase()} link opened!`);
         } else {
@@ -1327,7 +1327,7 @@ const SlidesEditorComponent = ({
 
         // 1. Determine insertion order
         const currentSlide = getSlide(currentSlideId);
-        
+
         let afterSlideOrder = -1; // Default to adding at the beginning if no slides/current slide.
         if (insertionBehavior === 'next' && currentSlide) {
             // Based on logs, the API seems to expect the desired *index* for the new slide,
@@ -1337,9 +1337,9 @@ const SlidesEditorComponent = ({
             // To add at the very end, the new slide's index is the current total number of slides.
             afterSlideOrder = slides.length - 1;
         }
-        
+
         console.log('[Add Quick Question] Calculated target index to send as afterSlideOrder:', afterSlideOrder);
-        
+
         try {
             // 2. Construct the payload
             const accessToken = getTokenFromCookie(TokenKey.accessToken);
@@ -1402,7 +1402,7 @@ const SlidesEditorComponent = ({
             // 3. Make API call
             const response = await authenticatedAxiosInstance.post(url, payload);
             console.log('Received API response:', response);
-            
+
             if (response.data?.slides?.added_slides) {
                 const backendSlideList = response.data.slides.added_slides;
                 console.log('Full slide list from backend:', JSON.stringify(backendSlideList, null, 2));
@@ -1413,7 +1413,7 @@ const SlidesEditorComponent = ({
                     if (backendSlide.source === 'question') {
                         const questionData = backendSlide.added_question;
                         const slideType = questionData.question_type === 'MCQS' ? SlideTypeEnum.Quiz : SlideTypeEnum.Feedback;
-                        
+
                         const questionElements: any = {
                             questionName: questionData.text?.content || '',
                             feedbackAnswer: '',
@@ -1462,20 +1462,20 @@ const SlidesEditorComponent = ({
                 const newFrontendSlides = (await Promise.all(newFrontendSlidesPromises)).filter(Boolean);
 
                 newFrontendSlides.sort((a: AppSlide, b: AppSlide) => a.slide_order - b.slide_order);
-                
+
                 console.log('Newly constructed frontend slides (sorted):', JSON.stringify(newFrontendSlides, null, 2));
                 setSlides(newFrontendSlides as AppSlide[]);
-                
+
                 // After syncing state, find the newly added slide by its temporary ID's order
                 const newlyAddedBackendSlide = backendSlideList.find(
                     (s: any) => s.added_question?.text?.content === (newSlideData as QuizSlideData).elements.questionName
                 );
-                
+
                 console.log('Identified newly added slide from backend response:', newlyAddedBackendSlide);
 
                 if (newlyAddedBackendSlide) {
                     // As per user request, do not navigate to the newly added slide.
-                    // setCurrentSlideId(newlyAddedBackendSlide.id); 
+                    // setCurrentSlideId(newlyAddedBackendSlide.id);
                     console.log(`A new slide was added (ID: ${newlyAddedBackendSlide.id}). Staying on the current slide as per user request.`);
                 }
 
@@ -1501,7 +1501,7 @@ const SlidesEditorComponent = ({
 
         try {
             const response = await authenticatedAxiosInstance.post(
-                'https://backend-stage.vacademy.io/media-service/ai/presentation/generateFromData',
+                                        GENERATE_SLIDES_FROM_TEXT_API_URL,
                 {
                     language: aiLanguage,
                     text: aiTopic,
@@ -1599,7 +1599,7 @@ const SlidesEditorComponent = ({
             const response = await authenticatedAxiosInstance.post(IMPORT_PPT_API_URL, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
-            
+
             const newSlidesFromPpt = response.data;
             console.log('[PPT Import Editor] Received slides:', newSlidesFromPpt);
 
@@ -1689,7 +1689,7 @@ const SlidesEditorComponent = ({
             if (!regeneratedData.elements || !regeneratedData.appState) {
                 throw new Error('Invalid response from AI regeneration service.');
             }
-            
+
             const newElements = regeneratedData.elements;
             const newAppState = {
                 ...(excalidrawSlideToRegenerate.appState || {}),
@@ -1712,9 +1712,9 @@ const SlidesEditorComponent = ({
                 newAppState,
                 existingFilesMap
             );
-            
+
             toast.success('Slide has been regenerated!');
-            
+
             setIsRegenerateModalOpen(false);
             setRegenerateSlideId(null);
         } catch (error: any) {
@@ -1790,7 +1790,7 @@ const SlidesEditorComponent = ({
                             mediaRecorderRef.current.pause();
                             recommendationMediaRecorderRef.current?.pause(); // Pause recommendation recorder too
                             setIsRecordingPaused(true);
-                            if (recordingIntervalRef.current) clearInterval(recordingIntervalRef.current); 
+                            if (recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
                             toast.info('Recording paused.');
                         }
                     }}
@@ -1952,7 +1952,7 @@ const SlidesEditorComponent = ({
                     >
                         <IoArrowBackSharp size={20} />
                     </Button>
-                    
+
                     {isEditingTitle && isEdit ? (
                         <div className="flex items-center gap-1">
                             <Input
@@ -1977,7 +1977,7 @@ const SlidesEditorComponent = ({
                         </div>
                     ) : (
                         <div className="flex items-center gap-1 group">
-                            <span 
+                            <span
                                 className="text-md max-w-[150px] truncate font-semibold text-slate-800 sm:max-w-xs sm:text-lg md:max-w-sm group-hover:text-orange-600"
                                 title={currentTitle}
                                 onClick={() => { if(isEdit) setIsEditingTitle(true);}} // Allow click to edit only if isEdit is true
@@ -2060,7 +2060,7 @@ const SlidesEditorComponent = ({
                     >
                         <span className="absolute inset-0 w-full h-full bg-emerald-400/25 rounded-md animate-pulse"></span>
                         <span className="relative z-10 flex items-center">
-                           <Tv2 className="size-4 mr-1.5" /> 
+                           <Tv2 className="size-4 mr-1.5" />
                         Start Live
                         </span>
                     </Button>

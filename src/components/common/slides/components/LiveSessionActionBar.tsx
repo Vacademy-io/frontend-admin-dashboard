@@ -109,7 +109,7 @@ export const LiveSessionActionBar: React.FC<LiveSessionActionBarProps> = ({
     const qrRef = useRef<HTMLDivElement>(null); // Ref for QR code display
 
     // Corrected invitationLink construction
-    const invitationLink = `https://engage.vacademy.io/${inviteCode}`;
+            const invitationLink = `https://${import.meta.env.VITE_ENGAGE_DOMAIN || 'engage.vacademy.io'}/${inviteCode}`;
 
     useEffect(() => {
         if (!invitationLink || !qrRef.current) {
@@ -165,7 +165,7 @@ export const LiveSessionActionBar: React.FC<LiveSessionActionBarProps> = ({
         <div className="fixed inset-x-0 top-0 z-[1001] flex h-16 items-center justify-between bg-black/30 backdrop-blur-xl border-b border-white/10 px-4 text-white shadow-2xl transition-all duration-300 ease-in-out lg:px-6">
             {/* Subtle gradient overlay */}
             <div className="absolute inset-0 bg-gradient-to-r from-blue-900/20 via-transparent to-purple-900/20 pointer-events-none" />
-            
+
             {/* Left Section: Session Info & QR Code */}
             <div className="relative flex items-center gap-3 lg:gap-4">
                 {/* Live indicator with pulsing animation */}
@@ -178,14 +178,14 @@ export const LiveSessionActionBar: React.FC<LiveSessionActionBarProps> = ({
                     Live {PRODUCT_NAME}
                 </span>
                 </div>
-                
+
                 {/* Connection status with enhanced styling */}
                 <div className="flex items-center gap-2">
                     <div className="transition-all duration-200">
                     <SseStatusIndicator />
                     </div>
                 </div>
-                
+
                 {/* Recording indicator with modern styling */}
                 {isAudioRecording && (
                     <div className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-red-500 to-red-600 px-3 py-1.5 text-xs font-bold shadow-lg shadow-red-500/25 border border-red-400/30 backdrop-blur-sm transition-all duration-300 ease-in-out animate-pulse">
@@ -217,7 +217,7 @@ export const LiveSessionActionBar: React.FC<LiveSessionActionBarProps> = ({
                         />
                         <div className="absolute inset-0 bg-gradient-to-r from-orange-400/10 to-orange-600/10 rounded-lg pointer-events-none" />
                     </div>
-                    
+
                     {/* Invite code and copy button */}
                     <div className="flex items-center gap-3">
                         <div className="flex flex-col">
@@ -341,8 +341,8 @@ export const LiveSessionActionBar: React.FC<LiveSessionActionBarProps> = ({
                     size="sm"
                     onClick={onToggleParticipantsView}
                     className={`h-10 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white backdrop-blur-sm transition-all duration-300 ease-out hover:scale-105 shadow-lg px-3 lg:px-4 ${
-                        isParticipantsPanelOpen 
-                            ? 'bg-blue-500/30 border-blue-400/50 text-blue-200 shadow-blue-500/25' 
+                        isParticipantsPanelOpen
+                            ? 'bg-blue-500/30 border-blue-400/50 text-blue-200 shadow-blue-500/25'
                             : 'hover:border-blue-400/30'
                     }`}
                     title="Toggle Participants Panel"
@@ -352,7 +352,7 @@ export const LiveSessionActionBar: React.FC<LiveSessionActionBarProps> = ({
                         <span className="text-blue-300 font-bold">({participantsCount})</span>
                     </span>
                 </Button>
-                
+
                 {/* Recommendations Button */}
                 {onToggleRecommendations && (
                     <Button
@@ -360,8 +360,8 @@ export const LiveSessionActionBar: React.FC<LiveSessionActionBarProps> = ({
                         size="sm"
                         onClick={onToggleRecommendations}
                         className={`h-10 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white backdrop-blur-sm transition-all duration-300 ease-out hover:scale-105 shadow-lg px-3 lg:px-4 ${
-                            isRecommendationsPanelOpen 
-                                ? 'bg-orange-500/30 border-orange-400/50 text-orange-200 shadow-orange-500/25' 
+                            isRecommendationsPanelOpen
+                                ? 'bg-orange-500/30 border-orange-400/50 text-orange-200 shadow-orange-500/25'
                                 : 'hover:border-orange-400/30'
                         }`}
                         title="Toggle AI Recommendations"
@@ -375,14 +375,14 @@ export const LiveSessionActionBar: React.FC<LiveSessionActionBarProps> = ({
                         </span>
                     </Button>
                 )}
-                
+
                 <Button
                     variant="ghost"
                     size="sm"
                     onClick={onToggleWhiteboard}
                     className={`h-10 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white backdrop-blur-sm transition-all duration-300 ease-out hover:scale-105 shadow-lg px-3 lg:px-4 ${
-                        isWhiteboardOpen 
-                            ? 'bg-purple-500/30 border-purple-400/50 text-purple-200 shadow-purple-500/25' 
+                        isWhiteboardOpen
+                            ? 'bg-purple-500/30 border-purple-400/50 text-purple-200 shadow-purple-500/25'
                             : 'hover:border-purple-400/30'
                     }`}
                     title="Toggle Whiteboard"
@@ -390,7 +390,7 @@ export const LiveSessionActionBar: React.FC<LiveSessionActionBarProps> = ({
                     <Edit3 size={16} className="mr-0 sm:mr-2 transition-transform duration-200 group-hover:rotate-12" />
                     <span className="hidden sm:inline font-medium">Whiteboard</span>
                 </Button>
-                
+
                 {onGenerateTranscript && (
                     <Button
                         variant="ghost"
@@ -422,7 +422,7 @@ export const LiveSessionActionBar: React.FC<LiveSessionActionBarProps> = ({
                         </span>
                     </Button>
                 )}
-                
+
                 {/* Modern End Session Button */}
                 <Button
                     variant="destructive"
