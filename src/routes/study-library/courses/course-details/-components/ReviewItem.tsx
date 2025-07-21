@@ -12,6 +12,17 @@ import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtili
 import { TokenKey } from '@/constants/auth/tokens';
 import { getInstituteId } from '@/constants/helper';
 import { getPublicUrl } from '@/services/upload_file';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface ReviewItemProps {
     review: {
@@ -347,16 +358,38 @@ export function ReviewItem({ review, courseId, currentLevel, currentSession }: R
                                 <span className="text-xs">{localDislikes}</span>
                             </Button>
                             {hasRoleAdmin && (
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="flex items-center gap-1 text-neutral-500 hover:text-red-600"
-                                    onClick={() => handleAction('delete')}
-                                    disabled={isUpdating}
-                                >
-                                    <Trash size={18} />
-                                    <span className="text-xs">Delete</span>
-                                </Button>
+                                <AlertDialog>
+                                    <AlertDialogTrigger>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="flex items-center gap-1 text-neutral-500 hover:text-red-600"
+                                            disabled={isUpdating}
+                                        >
+                                            <Trash size={18} />
+                                            <span className="text-xs">Delete</span>
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>
+                                                Are you sure you want to delete this comment?
+                                            </AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                This action cannot be undone. This will permanently
+                                                delete this comment from the course.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction
+                                                onClick={() => handleAction('delete')}
+                                            >
+                                                Confirm
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
                             )}
                         </>
                     )}

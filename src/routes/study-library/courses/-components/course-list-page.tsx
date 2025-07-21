@@ -419,7 +419,8 @@ const CourseListPage = ({
                                                     <AlertDialogContent>
                                                         <AlertDialogHeader>
                                                             <AlertDialogTitle>
-                                                                Are you absolutely sure?
+                                                                Are you sure you want to delete this
+                                                                course?
                                                             </AlertDialogTitle>
                                                             <AlertDialogDescription>
                                                                 This action cannot be undone. This
