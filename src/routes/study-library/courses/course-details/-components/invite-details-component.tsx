@@ -116,24 +116,30 @@ const InviteDetailsComponent = ({ sessionsData }: { sessionsData: SessionData[] 
                                                 </div>
                                                 <span className="font-medium">Level:</span>
                                                 <span className="text-neutral-700">
-                                                    {
-                                                        getDetailsFromPackageSessionId({
-                                                            packageSessionId:
-                                                                '7ccc1b00-ade5-4d59-a8af-7e3d96a82949',
-                                                        })?.level.level_name
-                                                    }
+                                                    {inviteLink.package_session_ids
+                                                        .map(
+                                                            (id) =>
+                                                                getDetailsFromPackageSessionId({
+                                                                    packageSessionId: id,
+                                                                })?.level.level_name
+                                                        )
+                                                        .filter(Boolean) // removes undefined or null values
+                                                        .join(', ')}
                                                 </span>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <Calendar className="size-3.5 text-neutral-400" />
                                                 <span className="font-medium">Session:</span>
                                                 <span className="text-neutral-700">
-                                                    {
-                                                        getDetailsFromPackageSessionId({
-                                                            packageSessionId:
-                                                                '7ccc1b00-ade5-4d59-a8af-7e3d96a82949',
-                                                        })?.session.session_name
-                                                    }
+                                                    {inviteLink.package_session_ids
+                                                        .map(
+                                                            (id) =>
+                                                                getDetailsFromPackageSessionId({
+                                                                    packageSessionId: id,
+                                                                })?.session.session_name
+                                                        )
+                                                        .filter(Boolean) // removes undefined or null values
+                                                        .join(', ')}
                                                 </span>
                                             </div>
                                         </div>
