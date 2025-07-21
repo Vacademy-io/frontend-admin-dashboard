@@ -270,9 +270,9 @@ export function ReviewItem({ review, courseId, currentLevel, currentSession }: R
     };
 
     return (
-        <div className="flex flex-col bg-white p-5 md:items-start md:gap-4">
-            {/* Avatar and User Info */}
-            <div className="flex w-full items-center justify-between">
+        <div className="flex flex-col rounded-xl border border-neutral-200 bg-white p-5 shadow-sm transition-shadow duration-200 hover:shadow-md md:items-start md:gap-4">
+            {/* Top row: Avatar/User Info and Star Rating */}
+            <div className="flex w-full items-start justify-between">
                 <div className="flex shrink-0 items-center justify-center gap-2">
                     <Avatar>
                         {avatarUrl !== '' ? (
@@ -283,8 +283,7 @@ export function ReviewItem({ review, courseId, currentLevel, currentSession }: R
                                     .split(' ')
                                     .map((n) => n[0])
                                     .join('')
-                                    .slice(0, 2)
-                                    .toUpperCase()}
+                                    .slice(0, 2)}
                             </AvatarFallback>
                         )}
                     </Avatar>
@@ -295,11 +294,11 @@ export function ReviewItem({ review, courseId, currentLevel, currentSession }: R
                         </span>
                     </div>
                 </div>
-            </div>
-            <div className="flex flex-col">
-                <div className="mt-1 flex items-center gap-2">
+                <div className="ml-2 flex items-center">
                     <StarRatingComponent score={review.rating * 20} starColor={true} />
                 </div>
+            </div>
+            <div className="flex flex-col">
                 <div className="mt-2 text-neutral-700">{review.description}</div>
                 <div className="mt-3 flex items-center justify-start gap-4">
                     {localStatus === 'PENDING' && hasRoleAdmin ? (
