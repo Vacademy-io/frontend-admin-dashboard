@@ -266,3 +266,8 @@ export const FINISH_SESSION_API_URL = `${BASE_URL}/community-service/engage/admi
 // Naming Settings
 export const CREATE_NAMING_SETTINGS = `${BASE_URL}/admin-core-service/institute/setting/v1/create-name-setting`;
 export const UPDATE_NAMING_SETTINGS = `${BASE_URL}/admin-core-service/institute/setting/v1/update-name-setting`;
+
+// Payment Options
+export const SAVE_PAYMENT_OPTION = `${BASE_URL}/admin-core-service/v1/payment-option`;
+export const GET_PAYMENT_OPTIONS = `${BASE_URL}/admin-core-service/v1/payment-option/get-payment-options`;
+export const MAKE_DEFAULT_PAYMENT_OPTION = `${BASE_URL}/admin-core-service/v1/payment-option/make-default-payment-option`;
