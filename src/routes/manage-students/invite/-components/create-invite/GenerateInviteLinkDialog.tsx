@@ -47,6 +47,7 @@ import { AxiosError } from 'axios';
 import { handleEnrollInvite } from './-services/enroll-invite';
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { handleGetPaymentDetails } from './-services/get-payments';
+import InviteNameCard from './-components/InviteNameCard';
 
 const GenerateInviteLinkDialog = ({
     showSummaryDialog,
@@ -59,6 +60,7 @@ const GenerateInviteLinkDialog = ({
     const form = useForm<InviteLinkFormValues>({
         resolver: zodResolver(inviteLinkSchema),
         defaultValues: {
+            name: '',
             includeInstituteLogo: false,
             requireApproval: false,
             course: '',
@@ -741,6 +743,8 @@ const GenerateInviteLinkDialog = ({
                 <div className="max-h-[70vh] flex-1 overflow-auto">
                     <Form {...form}>
                         <form className="mt-6 space-y-6">
+                            {/* Invite Name Card */}
+                            <InviteNameCard form={form} />
                             {/* Institute Branding Card */}
                             <InstituteBrandingCard form={form} />
                             {/* Enrollment Settings Card */}
@@ -812,6 +816,7 @@ const GenerateInviteLinkDialog = ({
                         buttonType="primary"
                         className="p-5"
                         onClick={handleSubmit(onSubmit, onInvalid)}
+                        disable={!form.watch('name')}
                     >
                         Create Invite Link
                     </MyButton>

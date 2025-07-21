@@ -107,7 +107,6 @@ export const InviteCardMenuOptions = ({ invite }: InviteCardMenuOptionsProps) =>
                     <DotsThree />
                 </MyButton>
             </MyDropdown>
-
             <CreateInviteDialog
                 initialValues={initialValues}
                 open={openEditDialog}

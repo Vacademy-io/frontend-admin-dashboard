@@ -170,7 +170,7 @@ export function convertInviteData(
     };
     const convertedData = {
         id: '',
-        name: '',
+        name: data.name,
         start_date: '',
         end_date: '',
         invite_code: '',

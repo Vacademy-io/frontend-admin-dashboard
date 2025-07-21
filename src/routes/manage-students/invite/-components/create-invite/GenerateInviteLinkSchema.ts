@@ -65,12 +65,13 @@ const testInputFieldSchema = z.object({
 
 // Schema for the form
 export const inviteLinkSchema = z.object({
+    name: z.string(),
     includeInstituteLogo: z.boolean().default(false),
     requireApproval: z.boolean().default(false),
     messageTemplate: z.enum(['standard', 'review', 'custom']).optional(),
     customMessage: z.string().optional(),
     id: z.string().optional(),
-    course: z.string().min(1, { message: 'Course name is required' }),
+    course: z.string().optional(),
     description: z.string().optional(),
     learningOutcome: z.string().optional(),
     aboutCourse: z.string().optional(),
