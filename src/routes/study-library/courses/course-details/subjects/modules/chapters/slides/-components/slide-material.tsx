@@ -464,6 +464,11 @@ export const SlideMaterial = ({
                 if (!stableKeyRef.current || !stableKeyRef.current.includes(activeItem.id)) {
                     stableKeyRef.current = `slide-editor-${activeItem.id}-${Date.now()}`;
                 }
+                // Define fileId for SlideEditor
+                const fileId =
+                    activeItem.status === 'PUBLISHED'
+                        ? activeItem.document_slide?.published_data
+                        : activeItem.document_slide?.data;
 
                 setContent(
                     <div className="relative z-30 size-full">

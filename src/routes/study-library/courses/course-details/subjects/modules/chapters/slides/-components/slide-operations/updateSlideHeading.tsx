@@ -75,6 +75,8 @@ export const updateHeading = async (
                         ...activeItem.document_slide,
                         title: heading,
                     },
+                    new_slide: false,
+                    notify: false,
                 });
                 setIsEditing(false);
                 return;
@@ -145,7 +147,13 @@ export const updateHeading = async (
             } catch (e) {}
         } else if (activeItem.source_type === 'QUIZ' && addUpdateQuizSlide) {
             // Quiz title update
-            const newQuizSlide = { ...activeItem.quiz_slide, title: heading };
+            const newQuizSlide = {
+                ...activeItem.quiz_slide,
+                id: activeItem.quiz_slide?.id || '',
+                title: heading,
+                description: activeItem.quiz_slide?.description || { id: '', content: '', type: 'TEXT' },
+                questions: activeItem.quiz_slide?.questions || [],
+            };
             const newSlide = { ...activeItem, title: heading, quiz_slide: newQuizSlide };
             try {
                 const { setActiveItem, items, setItems } = require('@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-stores/chapter-sidebar-store').useContentStore.getState();
