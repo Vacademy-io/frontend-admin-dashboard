@@ -32,6 +32,8 @@ export interface InviteLinkDataInterface {
     name: string;
     start_date: string; // ISO date string
     end_date: string; // ISO date string
+    created_at: string;
+    accepted_by: number;
     invite_code: string;
     status: string;
     institute_id: string;

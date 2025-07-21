@@ -1,40 +1,27 @@
 import { InviteForm } from '../-schema/InviteFormSchema';
 import { EmptyInvitePage } from '@/assets/svgs';
 import { InviteCardMenuOptions } from './InviteCardMenuOptions';
-import { TokenKey } from '@/constants/auth/tokens';
-import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { MyPagination } from '@/components/design-system/pagination';
 import { usePaginationState } from '@/hooks/pagination';
-import { useGetInviteList } from '../-services/get-invite-list';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { InviteLink } from '../../-components/InviteLink';
 import CreateInvite from './create-invite/CreateInvite';
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { handleFetchInviteLinks } from '@/routes/study-library/courses/course-details/-services/get-invite-links';
+import { InviteLinkDataInterface } from '@/schemas/study-library/invite-links-schema';
+import { getDateFromUTCString } from '@/constants/helper';
 
 export const Invite = () => {
-    const accessToken = getTokenFromCookie(TokenKey.accessToken);
-    const tokenData = getTokenDecodedData(accessToken);
-    const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
-
     const { page, pageSize, handlePageChange } = usePaginationState({
         initialPage: 0,
         initialPageSize: 5,
     });
 
-    const filterRequest = {
-        status: ['ACTIVE', 'INACTIVE'],
-        name: '',
-    };
-
     const {
         data: inviteList,
         isLoading,
         isError,
-    } = useGetInviteList({
-        instituteId: INSTITUTE_ID || '',
-        pageNo: page,
-        pageSize: pageSize,
-        requestFilterBody: filterRequest,
-    });
+    } = useSuspenseQuery(handleFetchInviteLinks([], page, pageSize));
 
     const onEditInvite = (updatedInvite: InviteForm) => {
         console.log(updatedInvite);
@@ -58,7 +45,7 @@ export const Invite = () => {
                     </div>
                 ) : (
                     <div className="flex flex-col gap-10">
-                        {inviteList.content.map((obj, index) => (
+                        {inviteList.content?.map((obj: InviteLinkDataInterface, index: number) => (
                             <div
                                 key={index}
                                 className="flex w-full flex-col gap-4 rounded-lg border border-neutral-300 p-6"
@@ -68,7 +55,7 @@ export const Invite = () => {
                                     <InviteCardMenuOptions invite={obj} onEdit={onEditInvite} />
                                 </div>
                                 <div className="flex items-center gap-12 text-body font-regular">
-                                    <p>Created on: {obj.date_generated}</p>
+                                    <p>Created on: {getDateFromUTCString(obj.created_at)}</p>
                                     <p>Invites accepted by: {obj.accepted_by}</p>
                                 </div>
                                 <div className="flex items-center gap-2">
