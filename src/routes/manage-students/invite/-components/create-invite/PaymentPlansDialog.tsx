@@ -11,12 +11,27 @@ import { Badge } from '@/components/ui/badge';
 import { MyButton } from '@/components/design-system/button';
 import { UseFormReturn } from 'react-hook-form';
 import { InviteLinkFormValues } from './GenerateInviteLinkSchema';
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { handleGetPaymentDetails } from './-services/get-payments';
+import { useEffect } from 'react';
+import { getDefaultPlanFromPaymentsData, splitPlansByType } from './-utils/helper';
 
 interface PaymentPlansDialogProps {
     form: UseFormReturn<InviteLinkFormValues>;
 }
 
 export function PaymentPlansDialog({ form }: PaymentPlansDialogProps) {
+    const { data: paymentsData } = useSuspenseQuery(handleGetPaymentDetails());
+
+    useEffect(() => {
+        form.reset({
+            ...form.getValues(),
+            freePlans: splitPlansByType(paymentsData).freePlans,
+            paidPlans: splitPlansByType(paymentsData).paidPlans,
+            selectedPlan: getDefaultPlanFromPaymentsData(paymentsData),
+        });
+    }, [paymentsData]);
+
     return (
         <ShadDialog
             open={form.watch('showPlansDialog')}

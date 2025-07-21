@@ -19,6 +19,44 @@ type ApiCourseData = {
     }[];
 };
 
+type FreePlan = {
+    id: string;
+    name: string;
+    description: string;
+};
+
+type PaidPlan = {
+    id: string;
+    name: string;
+    description: string;
+    price: string;
+};
+
+export interface Course {
+    id: string;
+    name: string;
+}
+
+export interface Batch {
+    sessionId: string;
+    levelId: string;
+    sessionName: string;
+    levelName: string;
+}
+
+export interface PaymentOption {
+    id: string;
+    name: string;
+    status: string; // add more status types if needed
+    source: string; // update with other possible sources
+    source_id: string;
+    tag: string; // restrict more if tag values are known
+    type: string; // assuming these are the possible types
+    require_approval: boolean;
+    payment_plans: string[]; // You can replace `any` with a specific `PaymentPlan` interface if available
+    payment_option_metadata_json: string; // or parsed as: PaymentOptionMetadata if you want to parse it
+}
+
 export function transformApiDataToDummyStructure(data: ApiCourseData[]) {
     const dummyCourses: { id: string; name: string }[] = [];
     const dummyBatches: Record<
@@ -98,7 +136,21 @@ function transformCustomFields(customFields: CustomField[], instituteId: string)
     });
 }
 
-export function convertInviteData(data: InviteLinkFormValues) {
+export function convertInviteData(
+    data: InviteLinkFormValues,
+    selectedCourse: Course | null,
+    selectedBatches: Batch[],
+    getPackageSessionId: ({
+        courseId,
+        levelId,
+        sessionId,
+    }: {
+        courseId: string;
+        levelId: string;
+        sessionId: string;
+    }) => void,
+    paymentPlans: PaymentOption[]
+) {
     const instituteId = getInstituteId();
     const jsonMetaData = {
         course: data.course,
@@ -132,7 +184,66 @@ export function convertInviteData(data: InviteLinkFormValues) {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         institute_custom_fields: transformCustomFields(data.custom_fields, instituteId || ''),
-        package_session_to_payment_options: [],
+        package_session_to_payment_options: [
+            {
+                package_session_id: getPackageSessionId({
+                    courseId: selectedCourse ? selectedCourse.id : '',
+                    levelId: selectedBatches[0]?.levelId || '',
+                    sessionId: selectedBatches[0]?.sessionId || '',
+                }),
+                payment_option: getMatchingPaymentPlan(paymentPlans, data.selectedPlan?.id || ''),
+            },
+        ],
     };
     return convertedData;
+}
+
+export function splitPlansByType(data: PaymentOption[]): {
+    freePlans: FreePlan[];
+    paidPlans: PaidPlan[];
+} {
+    const freePlans: FreePlan[] = [];
+    const paidPlans: PaidPlan[] = [];
+
+    data.forEach((item) => {
+        if (item.type === 'FREE') {
+            freePlans.push({
+                id: item.id,
+                name: item.name,
+                description: 'Access to free plan.',
+            });
+        } else {
+            paidPlans.push({
+                id: item.id,
+                name: item.name,
+                description: 'Access to paid plan.',
+                price: '$XX', // fallback if price is missing
+            });
+        }
+    });
+
+    return { freePlans, paidPlans };
+}
+
+export function getDefaultPlanFromPaymentsData(data: PaymentOption[]) {
+    const item = data.find((item) => item.tag === 'DEFAULT');
+    if (!item)
+        return {
+            id: '',
+            name: '',
+            description: '',
+        };
+
+    return {
+        id: item.id,
+        name: item.name,
+        description:
+            item.type === 'FREE'
+                ? 'Access to basic course content.'
+                : 'Full access to all course materials and support.',
+    };
+}
+
+export function getMatchingPaymentPlan(data: PaymentOption[], id: string) {
+    return data.find((item) => item.id === id);
 }

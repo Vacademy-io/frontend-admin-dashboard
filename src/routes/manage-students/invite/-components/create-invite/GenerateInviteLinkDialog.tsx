@@ -45,12 +45,17 @@ import ShowRelatedCoursesCard from './-components/ShowRelatedCoursesCard';
 import { toast } from 'sonner';
 import { AxiosError } from 'axios';
 import { handleEnrollInvite } from './-services/enroll-invite';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
+import { handleGetPaymentDetails } from './-services/get-payments';
 
 const GenerateInviteLinkDialog = ({
     showSummaryDialog,
     setShowSummaryDialog,
+    selectedCourse,
+    selectedBatches,
 }: GenerateInviteLinkDialogProps) => {
+    const queryClient = useQueryClient();
+    const { data: paymentsData } = useSuspenseQuery(handleGetPaymentDetails());
     const form = useForm<InviteLinkFormValues>({
         resolver: zodResolver(inviteLinkSchema),
         defaultValues: {
@@ -288,7 +293,7 @@ const GenerateInviteLinkDialog = ({
     });
     const customFields = getValues('custom_fields');
 
-    const { instituteDetails } = useInstituteDetailsStore();
+    const { instituteDetails, getPackageSessionId } = useInstituteDetailsStore();
     const allTags = instituteDetails?.tags || [];
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const data = getTokenDecodedData(accessToken);
@@ -304,7 +309,13 @@ const GenerateInviteLinkDialog = ({
 
     const handleSubmitRatingMutation = useMutation({
         mutationFn: async ({ data }: { data: InviteLinkFormValues }) => {
-            return handleEnrollInvite({ data });
+            return handleEnrollInvite({
+                data,
+                selectedCourse,
+                selectedBatches,
+                getPackageSessionId,
+                paymentsData,
+            });
         },
         onSuccess: () => {
             toast.success('Your invite link has been created successfully!', {
@@ -313,6 +324,7 @@ const GenerateInviteLinkDialog = ({
             });
             form.reset();
             setShowSummaryDialog(false);
+            queryClient.invalidateQueries({ queryKey: ['inviteList'] });
         },
         onError: (error: unknown) => {
             if (error instanceof AxiosError) {
