@@ -122,7 +122,7 @@ const SlideItem = ({
             (slide.source_type === 'VIDEO' && slide.video_slide?.title) ||
             (slide.source_type === 'QUESTION' && slide?.title) ||
             (slide.source_type === 'ASSIGNMENT' && slide?.title) ||
-            (slide.source_type === 'QUIZ' && (slide.quiz_slide?.title || slide.title)) ||
+            (slide.source_type === 'QUIZ' && slide.title) || // Always use slide.title for QUIZ
             'Untitled'
         );
     };
