@@ -76,7 +76,7 @@ export function AddReferralProgramDialog({
                                                     onChange={(e) => {
                                                         const newTiers = [...field.value];
                                                         if (newTiers[idx]) {
-                                                            newTiers[idx].tier = e.target.value;
+                                                            newTiers[idx]!.tier = e.target.value;
                                                             field.onChange(newTiers);
                                                         }
                                                     }}
@@ -87,7 +87,7 @@ export function AddReferralProgramDialog({
                                                     onChange={(e) => {
                                                         const newTiers = [...field.value];
                                                         if (newTiers[idx]) {
-                                                            newTiers[idx].reward = e.target.value;
+                                                            newTiers[idx]!.reward = e.target.value;
                                                             field.onChange(newTiers);
                                                         }
                                                     }}
