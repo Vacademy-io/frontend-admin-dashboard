@@ -159,6 +159,62 @@ type ExistingBatch = {
     group?: Group;
 };
 
+// Add this helper function before AddCourseStep2
+function getAllSessionLevelsForInstructor(
+    sessions: Session[],
+    hasSessions: string,
+    hasLevels: string
+): Array<{
+    sessionId: string;
+    sessionName: string;
+    levelId: string;
+    levelName: string;
+    batchId?: string;
+}> {
+    const allSessionLevels: Array<{
+        sessionId: string;
+        sessionName: string;
+        levelId: string;
+        levelName: string;
+        batchId?: string;
+    }> = [];
+    if (hasSessions === 'yes' && hasLevels === 'yes') {
+        sessions.forEach((session: Session) => {
+            session.levels.forEach((level: Level) => {
+                allSessionLevels.push({
+                    sessionId: session.id,
+                    sessionName: session.name,
+                    levelId: level.id,
+                    levelName: level.name,
+                    batchId: level.batchId,
+                });
+            });
+        });
+    } else if (hasSessions === 'yes' && hasLevels !== 'yes') {
+        sessions.forEach((session: Session) => {
+            allSessionLevels.push({
+                sessionId: session.id,
+                sessionName: session.name,
+                levelId: 'DEFAULT',
+                levelName: '',
+            });
+        });
+    } else if (hasSessions !== 'yes' && hasLevels === 'yes') {
+        const standaloneSession = sessions.find((s: Session) => s.id === 'standalone');
+        if (standaloneSession) {
+            standaloneSession.levels.forEach((level: Level) => {
+                allSessionLevels.push({
+                    sessionId: 'DEFAULT',
+                    sessionName: '',
+                    levelId: level.id,
+                    levelName: level.name,
+                });
+            });
+        }
+    }
+    return allSessionLevels;
+}
+
 export const AddCourseStep2 = ({
     onBack,
     onSubmit,
@@ -374,47 +430,11 @@ export const AddCourseStep2 = ({
             setShowAssignmentCard(true);
 
             // --- Assign all batches (sessions/levels) automatically ---
-            const allSessionLevels: Array<{
-                sessionId: string;
-                sessionName: string;
-                levelId: string;
-                levelName: string;
-                batchId?: string;
-            }> = [];
-            if (hasSessions === 'yes' && hasLevels === 'yes') {
-                sessions.forEach((session: Session) => {
-                    session.levels.forEach((level: Level) => {
-                        allSessionLevels.push({
-                            sessionId: session.id,
-                            sessionName: session.name,
-                            levelId: level.id,
-                            levelName: level.name,
-                            batchId: level.batchId,
-                        });
-                    });
-                });
-            } else if (hasSessions === 'yes' && hasLevels !== 'yes') {
-                sessions.forEach((session: Session) => {
-                    allSessionLevels.push({
-                        sessionId: session.id,
-                        sessionName: session.name,
-                        levelId: 'DEFAULT',
-                        levelName: '',
-                    });
-                });
-            } else if (hasSessions !== 'yes' && hasLevels === 'yes') {
-                const standaloneSession = sessions.find((s: Session) => s.id === 'standalone');
-                if (standaloneSession) {
-                    standaloneSession.levels.forEach((level: Level) => {
-                        allSessionLevels.push({
-                            sessionId: 'DEFAULT',
-                            sessionName: '',
-                            levelId: level.id,
-                            levelName: level.name,
-                        });
-                    });
-                }
-            }
+            const allSessionLevels = getAllSessionLevelsForInstructor(
+                sessions,
+                hasSessions,
+                hasLevels
+            );
             setSelectedSessionLevels(allSessionLevels);
             setInstructorMappings((prev) => [
                 ...prev,
@@ -1313,12 +1333,6 @@ export const AddCourseStep2 = ({
                                                                                                         batch
                                                                                                             .session
                                                                                                             .session_name
-                                                                                                    }{' '}
-                                                                                                    -{' '}
-                                                                                                    {
-                                                                                                        batch
-                                                                                                            .level
-                                                                                                            .level_name
                                                                                                     }
                                                                                                 </span>
                                                                                             </div>
@@ -2440,6 +2454,146 @@ export const AddCourseStep2 = ({
                                                             };
                                                         })
                                                         ?.filter((i) => i.id && i.email && i.name);
+
+                                                // Find newly added instructors
+                                                const prevIds = selectedInstructors.map(
+                                                    (i) => i.id
+                                                );
+                                                const newInstructors =
+                                                    selectedInstructorsList.filter(
+                                                        (i) => !prevIds.includes(i.id)
+                                                    );
+
+                                                // For each new instructor, assign all sessions/levels
+                                                newInstructors.forEach((instructor) => {
+                                                    const allSessionLevels =
+                                                        getAllSessionLevelsForInstructor(
+                                                            sessions,
+                                                            hasSessions,
+                                                            hasLevels
+                                                        );
+                                                    setInstructorMappings((prev) => [
+                                                        ...prev,
+                                                        {
+                                                            id: instructor.id,
+                                                            email: instructor.email,
+                                                            sessionLevels: allSessionLevels,
+                                                        },
+                                                    ]);
+                                                    // Also update sessions state to reflect assignment
+                                                    setSessions((prevSessions) => {
+                                                        const updatedSessions = JSON.parse(
+                                                            JSON.stringify(prevSessions)
+                                                        );
+                                                        if (
+                                                            hasSessions === 'yes' &&
+                                                            hasLevels === 'yes'
+                                                        ) {
+                                                            updatedSessions.forEach(
+                                                                (session: Session) => {
+                                                                    session.levels.forEach(
+                                                                        (level: Level) => {
+                                                                            if (
+                                                                                !level.userIds.some(
+                                                                                    (
+                                                                                        i: Instructor
+                                                                                    ) =>
+                                                                                        i.id ===
+                                                                                        instructor.id
+                                                                                )
+                                                                            ) {
+                                                                                level.userIds.push(
+                                                                                    instructor
+                                                                                );
+                                                                            }
+                                                                        }
+                                                                    );
+                                                                }
+                                                            );
+                                                        } else if (
+                                                            hasSessions === 'yes' &&
+                                                            hasLevels !== 'yes'
+                                                        ) {
+                                                            updatedSessions.forEach(
+                                                                (session: Session) => {
+                                                                    if (
+                                                                        session.levels.length === 0
+                                                                    ) {
+                                                                        session.levels = [
+                                                                            {
+                                                                                id: 'DEFAULT',
+                                                                                name: '',
+                                                                                userIds: [
+                                                                                    instructor,
+                                                                                ],
+                                                                                batchId: 'DEFAULT',
+                                                                            },
+                                                                        ];
+                                                                    } else {
+                                                                        if (
+                                                                            session.levels[0]
+                                                                                ?.userIds &&
+                                                                            !session.levels[0].userIds.some(
+                                                                                (i: Instructor) =>
+                                                                                    i.id ===
+                                                                                    instructor.id
+                                                                            )
+                                                                        ) {
+                                                                            session.levels[0].userIds.push(
+                                                                                instructor
+                                                                            );
+                                                                        }
+                                                                    }
+                                                                }
+                                                            );
+                                                        } else if (
+                                                            hasSessions !== 'yes' &&
+                                                            hasLevels === 'yes'
+                                                        ) {
+                                                            const standaloneSession =
+                                                                updatedSessions.find(
+                                                                    (s: Session) =>
+                                                                        s.id === 'standalone'
+                                                                );
+                                                            if (standaloneSession) {
+                                                                standaloneSession.levels?.forEach(
+                                                                    (level: Level) => {
+                                                                        if (
+                                                                            !level.userIds.some(
+                                                                                (i: Instructor) =>
+                                                                                    i.id ===
+                                                                                    instructor.id
+                                                                            )
+                                                                        ) {
+                                                                            level.userIds.push(
+                                                                                instructor
+                                                                            );
+                                                                        }
+                                                                    }
+                                                                );
+                                                            }
+                                                        }
+                                                        return updatedSessions;
+                                                    });
+                                                });
+
+                                                // Automatically open assignment card for the first new instructor
+                                                if (newInstructors.length > 0) {
+                                                    const firstNew = newInstructors[0];
+                                                    if (firstNew) {
+                                                        setSelectedInstructorId(firstNew.id);
+                                                        setSelectedInstructorEmail(firstNew.email);
+                                                        const allSessionLevels =
+                                                            getAllSessionLevelsForInstructor(
+                                                                sessions,
+                                                                hasSessions,
+                                                                hasLevels
+                                                            );
+                                                        setSelectedSessionLevels(allSessionLevels);
+                                                        setShowAssignmentCard(true);
+                                                    }
+                                                }
+
                                                 setSelectedInstructors(selectedInstructorsList);
                                             }}
                                             placeholder="Select instructor emails"
