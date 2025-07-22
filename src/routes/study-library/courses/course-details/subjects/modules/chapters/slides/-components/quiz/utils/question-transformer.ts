@@ -49,14 +49,14 @@ const extractSubjectiveAnswer = (question: BackendQuestion, questionType: string
     try {
         const evaluationData = JSON.parse(question.auto_evaluation_json);
         console.log('[QuestionTransformer] Parsed auto_evaluation_json for', questionType, ':', evaluationData);
-        
+
         let subjectiveAnswerText = '';
         if (questionType === 'ONE_WORD') {
             subjectiveAnswerText = evaluationData?.data?.answer || evaluationData?.answer || '';
         } else if (questionType === 'LONG_ANSWER') {
             subjectiveAnswerText = evaluationData?.data?.answer?.content || evaluationData?.answer?.content || evaluationData?.answer || '';
         }
-        
+
         console.log('[QuestionTransformer] Extracted subjectiveAnswerText:', subjectiveAnswerText);
         return subjectiveAnswerText;
     } catch (error) {
@@ -72,11 +72,29 @@ const createBaseTransformedQuestion = (
     questionType: string,
     validAnswers: number[]
 ): TransformedQuestion => {
-    const explanation = question.explanation_text?.content || question.explanation || '';
-    
+    // Prefer explanation_text_data, then explanation_text, then explanation
+    const explanation =
+        (question.explanation_text_data && question.explanation_text_data.content) ||
+        (question.explanation_text && question.explanation_text.content) ||
+        question.explanation || '';
+
+    // For comprehension types, set questionName to passage and ensure parentRichTextContent is set from parent_rich_text.content if present
+    let finalQuestionName = questionText;
+    let parentRichTextContent = '';
+    if (
+        (questionType === 'CMCQS' || questionType === 'CMCQM' || questionType === 'CNUMERIC') &&
+        (question.parent_rich_text?.content || question.comprehensionText || question.passage || question.text?.content || question.text_data?.content)
+    ) {
+        parentRichTextContent = question.parent_rich_text?.content || question.comprehensionText || question.passage || question.text?.content || question.text_data?.content || '';
+        finalQuestionName = question.text?.content || question.questionName || '';
+    } else {
+        parentRichTextContent = '';
+        finalQuestionName = question.text?.content || question.questionName || '';
+    }
+
     console.log('[QuestionTransformer] Creating base transformed question:', {
         questionId: question.id,
-        questionText: questionText,
+        questionText: finalQuestionName,
         questionType: questionType,
         explanation: explanation,
         explanationLength: explanation.length,
@@ -89,7 +107,7 @@ const createBaseTransformedQuestion = (
     });
 
     return {
-        questionName: questionText,
+        questionName: finalQuestionName,
         questionType,
         questionPenalty: question.penalty || question.questionPenalty || '0',
         questionDuration: {
@@ -108,7 +126,7 @@ const createBaseTransformedQuestion = (
         reattemptCount: question.reattemptCount,
         decimals: question.decimals,
         numericType: question.numericType,
-        parentRichTextContent: question.parentRichTextContent,
+        parentRichTextContent: parentRichTextContent,
         singleChoiceOptions: [],
         multipleChoiceOptions: [],
         trueFalseOptions: [],
@@ -267,4 +285,4 @@ export const transformQuestion = (question: BackendQuestion | any): TransformedQ
     });
 
     return transformed;
-}; 
+};

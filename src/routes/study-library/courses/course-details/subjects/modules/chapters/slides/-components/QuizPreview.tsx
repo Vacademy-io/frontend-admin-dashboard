@@ -223,7 +223,13 @@ const QuizPreview = ({ activeItem, routeParams }: QuizPreviewProps) => {
     const handleEdit = (index: number) => {
         console.log('[QuizPreview] handleEdit called with index:', index);
         const question = form.getValues(`questions.${index}`);
-        console.log('[QuizPreview] Question to edit:', question);
+        // Prefill CMCQS/CMCQM options for edit dialog just like MCQ types
+        if (question.questionType === 'CMCQS' && question.singleChoiceOptions) {
+            question.csingleChoiceOptions = question.singleChoiceOptions;
+        }
+        if (question.questionType === 'CMCQM' && question.multipleChoiceOptions) {
+            question.cmultipleChoiceOptions = question.multipleChoiceOptions;
+        }
         editForm.reset({ ...form.getValues(), questions: [question] });
         setEditIndex(index);
         console.log('[QuizPreview] Edit index set to:', index);

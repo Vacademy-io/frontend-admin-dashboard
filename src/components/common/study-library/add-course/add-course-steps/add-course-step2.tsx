@@ -430,11 +430,47 @@ export const AddCourseStep2 = ({
             setShowAssignmentCard(true);
 
             // --- Assign all batches (sessions/levels) automatically ---
-            const allSessionLevels = getAllSessionLevelsForInstructor(
-                sessions,
-                hasSessions,
-                hasLevels
-            );
+            const allSessionLevels: Array<{
+                sessionId: string;
+                sessionName: string;
+                levelId: string;
+                levelName: string;
+                batchId?: string;
+            }> = [];
+            if (hasSessions === 'yes' && hasLevels === 'yes') {
+                sessions.forEach((session: Session) => {
+                    session.levels.forEach((level: Level) => {
+                        allSessionLevels.push({
+                            sessionId: session.id,
+                            sessionName: session.name,
+                            levelId: level.id,
+                            levelName: level.name,
+                            batchId: level.batchId,
+                        });
+                    });
+                });
+            } else if (hasSessions === 'yes' && hasLevels !== 'yes') {
+                sessions.forEach((session: Session) => {
+                    allSessionLevels.push({
+                        sessionId: session.id,
+                        sessionName: session.name,
+                        levelId: 'DEFAULT',
+                        levelName: '',
+                    });
+                });
+            } else if (hasSessions !== 'yes' && hasLevels === 'yes') {
+                const standaloneSession = sessions.find((s: Session) => s.id === 'standalone');
+                if (standaloneSession) {
+                    standaloneSession.levels.forEach((level: Level) => {
+                        allSessionLevels.push({
+                            sessionId: 'DEFAULT',
+                            sessionName: '',
+                            levelId: level.id,
+                            levelName: level.name,
+                        });
+                    });
+                }
+            }
             setSelectedSessionLevels(allSessionLevels);
             setInstructorMappings((prev) => [
                 ...prev,
