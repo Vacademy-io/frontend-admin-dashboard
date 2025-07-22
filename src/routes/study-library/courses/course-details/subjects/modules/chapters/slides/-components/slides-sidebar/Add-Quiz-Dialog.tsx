@@ -21,7 +21,6 @@ import {
 import { Route } from '../..';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import QuizQuestionDialogAddPreview from './QuizQuestionDialog';
-import { MyQuestion } from '@/types/assessments/question-paper-form';
 
 export interface QuestionTypeProps {
     icon: React.ReactNode;
@@ -31,6 +30,34 @@ export interface QuestionTypeProps {
 }
 
 export type QuestionPaperFormType = z.infer<typeof questionsFormSchema>;
+
+// Helper types for extra fields
+type ExtraOptionType = { id?: string; name?: string; isSelected?: boolean };
+type ExtraQuestionFields = {
+    csingleChoiceOptions?: ExtraOptionType[];
+    cmultipleChoiceOptions?: ExtraOptionType[];
+    comprehensionText?: string;
+    passage?: string;
+    parentRichTextContent?: string;
+    text?: { id?: string; content?: string };
+    text_data?: { id?: string; content?: string };
+    parent_rich_text?: { id?: string };
+    parentRichTextId?: string;
+    textId?: string;
+    textDataId?: string;
+    explanation_text?: { id?: string };
+    explanation_text_data?: { id?: string };
+    explanationTextId?: string;
+    explanationTextDataId?: string;
+    questionText?: string;
+    subjectiveAnswerText?: string;
+};
+
+function getExtraField<T = unknown>(q: unknown, key: keyof ExtraQuestionFields): T | undefined {
+    return q && typeof q === 'object' && key in q
+        ? ((q as Record<string, unknown>)[key] as T)
+        : undefined;
+}
 
 const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) => {
     const { getPackageSessionId } = useInstituteDetailsStore();
@@ -131,7 +158,7 @@ const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) =
                     case 'MCQS':
                         options = (q.singleChoiceOptions || [])
                             .slice(0, 4)
-                            .map((option) => ({
+                            .map((option: ExtraOptionType) => ({
                                 id: option.id || crypto.randomUUID(),
                                 quiz_slide_question_id: '',
                                 text: { id: '', type: 'TEXT', content: option.name || '' },
@@ -143,7 +170,7 @@ const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) =
                     case 'MCQM':
                         options = (q.multipleChoiceOptions || [])
                             .slice(0, 4)
-                            .map((option) => ({
+                            .map((option: ExtraOptionType) => ({
                                 id: option.id || crypto.randomUUID(),
                                 quiz_slide_question_id: '',
                                 text: { id: '', type: 'TEXT', content: option.name || '' },
@@ -153,9 +180,11 @@ const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) =
                             }));
                         break;
                     case 'CMCQS':
-                        options = ((q as any).csingleChoiceOptions || [])
+                        options = (
+                            getExtraField<ExtraOptionType[]>(q, 'csingleChoiceOptions') ?? []
+                        )
                             .slice(0, 4)
-                            .map((option: any) => ({
+                            .map((option: ExtraOptionType) => ({
                                 id: option.id || crypto.randomUUID(),
                                 quiz_slide_question_id: '',
                                 text: { id: '', type: 'TEXT', content: option.name || '' },
@@ -165,9 +194,11 @@ const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) =
                             }));
                         break;
                     case 'CMCQM':
-                        options = ((q as any).cmultipleChoiceOptions || [])
+                        options = (
+                            getExtraField<ExtraOptionType[]>(q, 'cmultipleChoiceOptions') ?? []
+                        )
                             .slice(0, 4)
-                            .map((option: any) => ({
+                            .map((option: ExtraOptionType) => ({
                                 id: option.id || crypto.randomUUID(),
                                 quiz_slide_question_id: '',
                                 text: { id: '', type: 'TEXT', content: option.name || '' },
@@ -177,7 +208,7 @@ const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) =
                             }));
                         break;
                     case 'TRUE_FALSE':
-                        options = (q.trueFalseOptions || []).map((option) => ({
+                        options = (q.trueFalseOptions || []).map((option: ExtraOptionType) => ({
                             id: option.id || crypto.randomUUID(),
                             quiz_slide_question_id: '',
                             text: { id: '', type: 'TEXT', content: option.name || '' },
@@ -202,7 +233,7 @@ const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) =
                     default:
                         options = (q.singleChoiceOptions || [])
                             .slice(0, 4)
-                            .map((option) => ({
+                            .map((option: ExtraOptionType) => ({
                                 id: option.id || crypto.randomUUID(),
                                 quiz_slide_question_id: '',
                                 text: { id: '', type: 'TEXT', content: option.name || '' },
@@ -215,10 +246,19 @@ const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) =
                 // Helper to get correct answer indices for MCQ/CMCQ/TRUE_FALSE
                 const getCorrectAnswerIndices = (question: typeof q): number[] => {
                     let opts: { isSelected?: boolean }[] = [];
-                    if (question.questionType === 'MCQS' || question.questionType === 'CMCQS') {
-                        opts = (question.singleChoiceOptions ?? (question as any).csingleChoiceOptions ?? []).slice(0, 4);
-                    } else if (question.questionType === 'MCQM' || question.questionType === 'CMCQM') {
-                        opts = (question.multipleChoiceOptions ?? (question as any).cmultipleChoiceOptions ?? []).slice(0, 4);
+                    if (question.questionType === 'MCQS') {
+                        opts = (question.singleChoiceOptions ?? []).slice(0, 4);
+                    } else if (question.questionType === 'MCQM') {
+                        opts = (question.multipleChoiceOptions ?? []).slice(0, 4);
+                    } else if (question.questionType === 'CMCQS') {
+                        opts = (
+                            getExtraField<ExtraOptionType[]>(question, 'csingleChoiceOptions') ?? []
+                        ).slice(0, 4);
+                    } else if (question.questionType === 'CMCQM') {
+                        opts = (
+                            getExtraField<ExtraOptionType[]>(question, 'cmultipleChoiceOptions') ??
+                            []
+                        ).slice(0, 4);
                     } else if (question.questionType === 'TRUE_FALSE') {
                         opts = question.trueFalseOptions ?? [];
                     }
@@ -248,24 +288,23 @@ const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) =
                         question.questionType === 'TRUE_FALSE'
                     ) {
                         const correctAnswers = getCorrectAnswerIndices(question);
-                        if (correctAnswers.length > 0) {
-                            return JSON.stringify({ correctAnswers });
-                        }
+                        return JSON.stringify({ correctAnswers });
                     }
                     if (
                         question.questionType === 'LONG_ANSWER' ||
                         question.questionType === 'ONE_WORD'
                     ) {
-                        if (
-                            (question as any).subjectiveAnswerText &&
-                            (question as any).subjectiveAnswerText.trim() !== ''
-                        ) {
+                        const subjectiveAnswerText = getExtraField<string>(
+                            question,
+                            'subjectiveAnswerText'
+                        );
+                        if (subjectiveAnswerText && subjectiveAnswerText.trim() !== '') {
                             return JSON.stringify({
                                 data: {
                                     answer:
                                         question.questionType === 'LONG_ANSWER'
-                                            ? { content: (question as any).subjectiveAnswerText }
-                                            : (question as any).subjectiveAnswerText,
+                                            ? { content: subjectiveAnswerText }
+                                            : subjectiveAnswerText,
                                 },
                             });
                         } else if (question.validAnswers && question.validAnswers.length > 0) {
@@ -290,20 +329,47 @@ const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) =
                     q.questionType === 'CMCQM' ||
                     q.questionType === 'CNUMERIC'
                 ) {
-                    parentRichTextContent = (q as any).comprehensionText ?? (q as any).passage ?? (q as any).parentRichTextContent ?? (q as any).text?.content ?? (q as any).text_data?.content ?? '';
-                    parentRichTextId = (q as any).parent_rich_text?.id ?? (q as any).parentRichTextId ?? '';
-                    textContent = q.questionName ?? (q as any).questionText ?? '';
-                    textId = (q as any).text?.id ?? (q as any).textId ?? '';
-                    textDataId = (q as any).text_data?.id ?? (q as any).textDataId ?? '';
+                    parentRichTextContent =
+                        getExtraField<string>(q, 'comprehensionText') ??
+                        getExtraField<string>(q, 'passage') ??
+                        getExtraField<string>(q, 'parentRichTextContent') ??
+                        getExtraField<{ content?: string }>(q, 'text')?.content ??
+                        getExtraField<{ content?: string }>(q, 'text_data')?.content ??
+                        '';
+                    parentRichTextId =
+                        getExtraField<{ id?: string }>(q, 'parent_rich_text')?.id ??
+                        getExtraField<string>(q, 'parentRichTextId') ??
+                        '';
+                    textContent = q.questionName ?? getExtraField<string>(q, 'questionText') ?? '';
+                    textId =
+                        getExtraField<{ id?: string }>(q, 'text')?.id ??
+                        getExtraField<string>(q, 'textId') ??
+                        '';
+                    textDataId =
+                        getExtraField<{ id?: string }>(q, 'text_data')?.id ??
+                        getExtraField<string>(q, 'textDataId') ??
+                        '';
                 } else {
                     parentRichTextContent = '';
                     parentRichTextId = '';
-                    textContent = q.questionName ?? (q as any).questionText ?? '';
-                    textId = (q as any).text?.id ?? (q as any).textId ?? '';
-                    textDataId = (q as any).text_data?.id ?? (q as any).textDataId ?? '';
+                    textContent = q.questionName ?? getExtraField<string>(q, 'questionText') ?? '';
+                    textId =
+                        getExtraField<{ id?: string }>(q, 'text')?.id ??
+                        getExtraField<string>(q, 'textId') ??
+                        '';
+                    textDataId =
+                        getExtraField<{ id?: string }>(q, 'text_data')?.id ??
+                        getExtraField<string>(q, 'textDataId') ??
+                        '';
                 }
-                explanationTextId = (q as any).explanation_text?.id ?? (q as any).explanationTextId ?? '';
-                explanationTextDataId = (q as any).explanation_text_data?.id ?? (q as any).explanationTextDataId ?? '';
+                explanationTextId =
+                    getExtraField<{ id?: string }>(q, 'explanation_text')?.id ??
+                    getExtraField<string>(q, 'explanationTextId') ??
+                    '';
+                explanationTextDataId =
+                    getExtraField<{ id?: string }>(q, 'explanation_text_data')?.id ??
+                    getExtraField<string>(q, 'explanationTextDataId') ??
+                    '';
 
                 return {
                     id: q.id ?? crypto.randomUUID(),
@@ -435,6 +501,19 @@ const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) =
         setPreviewQuestionDialog(true);
     };
 
+    const handleEdit = (index: number) => {
+        const question = quizQuestionForm.getValues(`questions.${index}`);
+        // Prefill CMCQS/CMCQM options for edit dialog just like MCQ types
+        if (question.questionType === 'CMCQS' && question.singleChoiceOptions) {
+            question.csingleChoiceOptions = question.singleChoiceOptions;
+        }
+        if (question.questionType === 'CMCQM' && question.multipleChoiceOptions) {
+            question.cmultipleChoiceOptions = question.multipleChoiceOptions;
+        }
+        quizQuestionForm.reset({ ...quizQuestionForm.getValues(), questions: [question] });
+        setCurrentQuestionIndex(index);
+    };
+
     const handleCreateQuizSlide = async (): Promise<string | null> => {
         const questions = quizQuestionForm.getValues('questions');
 
@@ -494,20 +573,49 @@ const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) =
                             q.questionType === 'CMCQM' ||
                             q.questionType === 'CNUMERIC'
                         ) {
-                            parentRichTextContent = (q as any).comprehensionText ?? (q as any).passage ?? (q as any).parentRichTextContent ?? (q as any).text?.content ?? (q as any).text_data?.content ?? '';
-                            parentRichTextId = (q as any).parent_rich_text?.id ?? (q as any).parentRichTextId ?? '';
-                            textContent = q.questionName ?? (q as any).questionText ?? '';
-                            textId = (q as any).text?.id ?? (q as any).textId ?? '';
-                            textDataId = (q as any).text_data?.id ?? (q as any).textDataId ?? '';
+                            parentRichTextContent =
+                                getExtraField<string>(q, 'comprehensionText') ??
+                                getExtraField<string>(q, 'passage') ??
+                                getExtraField<string>(q, 'parentRichTextContent') ??
+                                getExtraField<{ content?: string }>(q, 'text')?.content ??
+                                getExtraField<{ content?: string }>(q, 'text_data')?.content ??
+                                '';
+                            parentRichTextId =
+                                getExtraField<{ id?: string }>(q, 'parent_rich_text')?.id ??
+                                getExtraField<string>(q, 'parentRichTextId') ??
+                                '';
+                            textContent =
+                                q.questionName ?? getExtraField<string>(q, 'questionText') ?? '';
+                            textId =
+                                getExtraField<{ id?: string }>(q, 'text')?.id ??
+                                getExtraField<string>(q, 'textId') ??
+                                '';
+                            textDataId =
+                                getExtraField<{ id?: string }>(q, 'text_data')?.id ??
+                                getExtraField<string>(q, 'textDataId') ??
+                                '';
                         } else {
                             parentRichTextContent = '';
                             parentRichTextId = '';
-                            textContent = q.questionName ?? (q as any).questionText ?? '';
-                            textId = (q as any).text?.id ?? (q as any).textId ?? '';
-                            textDataId = (q as any).text_data?.id ?? (q as any).textDataId ?? '';
+                            textContent =
+                                q.questionName ?? getExtraField<string>(q, 'questionText') ?? '';
+                            textId =
+                                getExtraField<{ id?: string }>(q, 'text')?.id ??
+                                getExtraField<string>(q, 'textId') ??
+                                '';
+                            textDataId =
+                                getExtraField<{ id?: string }>(q, 'text_data')?.id ??
+                                getExtraField<string>(q, 'textDataId') ??
+                                '';
                         }
-                        explanationTextId = (q as any).explanation_text?.id ?? (q as any).explanationTextId ?? '';
-                        explanationTextDataId = (q as any).explanation_text_data?.id ?? (q as any).explanationTextDataId ?? '';
+                        explanationTextId =
+                            getExtraField<{ id?: string }>(q, 'explanation_text')?.id ??
+                            getExtraField<string>(q, 'explanationTextId') ??
+                            '';
+                        explanationTextDataId =
+                            getExtraField<{ id?: string }>(q, 'explanation_text_data')?.id ??
+                            getExtraField<string>(q, 'explanationTextDataId') ??
+                            '';
                         return {
                             id: q.id ?? crypto.randomUUID(),
                             parent_rich_text: {
