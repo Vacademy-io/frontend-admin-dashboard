@@ -662,7 +662,7 @@ export const AddCourseStep1 = ({
                                                 buttonType="secondary"
                                                 layoutVariant="icon"
                                                 scale="small"
-                                                className="bg-white hover:bg-white active:bg-white"
+                                                className="z-10 bg-white hover:bg-white active:bg-white"
                                                 onClick={() => {
                                                     setShowMediaMenu((prev) => !prev);
                                                     setShowYoutubeInput(false);
@@ -673,7 +673,7 @@ export const AddCourseStep1 = ({
                                             {showMediaMenu && (
                                                 <div
                                                     ref={mediaMenuRef}
-                                                    className=" flex w-48 flex-col gap-2 rounded bg-white p-2 shadow"
+                                                    className="z-20 mt-1 flex w-48 flex-col gap-2 rounded bg-white p-2 shadow"
                                                 >
                                                     <button
                                                         className="w-full rounded px-3 py-2 text-left text-sm hover:bg-gray-100"
