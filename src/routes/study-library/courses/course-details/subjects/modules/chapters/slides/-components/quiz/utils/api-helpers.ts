@@ -12,8 +12,28 @@ const createOptionStructure = (option: any) => ({
     media_id: '',
 });
 
+// Helper to get correct answer indices for MCQ/CMCQ/TRUE_FALSE
+const getCorrectAnswerIndices = (question: any): number[] => {
+    let opts = [];
+    if (question.questionType === 'MCQS' || question.questionType === 'CMCQS') {
+        opts = (question.singleChoiceOptions || question.csingleChoiceOptions || []).slice(0, 4);
+    } else if (question.questionType === 'MCQM' || question.questionType === 'CMCQM') {
+        opts = (question.multipleChoiceOptions || question.cmultipleChoiceOptions || []).slice(
+            0,
+            4
+        );
+    } else if (question.questionType === 'TRUE_FALSE') {
+        opts = question.trueFalseOptions || [];
+    }
+    return opts
+        .map((opt: any, idx: number) => (opt.isSelected ? idx : null))
+        .filter((idx: number | null) => idx !== null);
+};
+
 // Helper function to determine question response type and evaluation type
-const getQuestionResponseConfig = (questionType: string): { questionResponseType: string; evaluationType: string } => {
+const getQuestionResponseConfig = (
+    questionType: string
+): { questionResponseType: string; evaluationType: string } => {
     switch (questionType) {
         case 'NUMERIC':
         case 'CNUMERIC':
@@ -28,7 +48,9 @@ const getQuestionResponseConfig = (questionType: string): { questionResponseType
 };
 
 // Helper function to transform options based on question type
-const transformOptionsByType = (question: any): Array<{
+const transformOptionsByType = (
+    question: any
+): Array<{
     id: string;
     quiz_slide_question_id: string;
     text: { id: string; type: string; content: string };
@@ -38,45 +60,51 @@ const transformOptionsByType = (question: any): Array<{
 }> => {
     switch (question.questionType) {
         case 'MCQS':
-        case 'CMCQS':
-            return (question.singleChoiceOptions || []).map(createOptionStructure);
+            return (question.singleChoiceOptions || []).slice(0, 4).map(createOptionStructure);
         case 'MCQM':
+            return (question.multipleChoiceOptions || []).slice(0, 4).map(createOptionStructure);
+        case 'CMCQS':
+            return (question.csingleChoiceOptions || []).slice(0, 4).map(createOptionStructure);
         case 'CMCQM':
-            return (question.multipleChoiceOptions || []).map(createOptionStructure);
+            return (question.cmultipleChoiceOptions || []).slice(0, 4).map(createOptionStructure);
         case 'TRUE_FALSE':
             return (question.trueFalseOptions || []).map(createOptionStructure);
         default:
-            return (question.singleChoiceOptions || []).map(createOptionStructure);
+            return (question.singleChoiceOptions || []).slice(0, 4).map(createOptionStructure);
     }
 };
 
 // Helper function to create auto evaluation JSON
 const createAutoEvaluationJson = (question: any): string => {
+    if (
+        question.questionType === 'MCQS' ||
+        question.questionType === 'MCQM' ||
+        question.questionType === 'CMCQS' ||
+        question.questionType === 'CMCQM' ||
+        question.questionType === 'TRUE_FALSE'
+    ) {
+        // Use selected indices for correct answers
+        const correctAnswers = getCorrectAnswerIndices(question);
+        if (correctAnswers.length > 0) {
+            return JSON.stringify({ correctAnswers });
+        }
+    }
     if (question.questionType === 'LONG_ANSWER' || question.questionType === 'ONE_WORD') {
-        // For subjective questions, store the answer text
         if (question.subjectiveAnswerText && question.subjectiveAnswerText.trim() !== '') {
             const autoEvaluationJson = JSON.stringify({
                 data: {
-                    answer: question.questionType === 'LONG_ANSWER'
-                        ? { content: question.subjectiveAnswerText }
-                        : question.subjectiveAnswerText
-                }
-            });
-            console.log('[API Helpers] Subjective question auto_evaluation_json:', {
-                questionType: question.questionType,
-                subjectiveAnswerText: question.subjectiveAnswerText,
-                autoEvaluationJson
+                    answer:
+                        question.questionType === 'LONG_ANSWER'
+                            ? { content: question.subjectiveAnswerText }
+                            : question.subjectiveAnswerText,
+                },
             });
             return autoEvaluationJson;
         } else if (question.validAnswers && question.validAnswers.length > 0) {
-            // Fallback to validAnswers if no subjective answer
             return JSON.stringify({ correctAnswers: question.validAnswers });
         }
-    } else {
-        // For other question types, use validAnswers
-        if (question.validAnswers && question.validAnswers.length > 0) {
-            return JSON.stringify({ correctAnswers: question.validAnswers });
-        }
+    } else if (question.validAnswers && question.validAnswers.length > 0) {
+        return JSON.stringify({ correctAnswers: question.validAnswers });
     }
     return '';
 };
@@ -93,8 +121,50 @@ const calculateQuestionTimeInMillis = (question: any): number => {
 };
 
 // Helper function to create question structure
-const createQuestionStructure = (question: any, index: number, options: any[], questionResponseType: string, evaluationType: string): QuizSlideQuestion => {
+const createQuestionStructure = (
+    question: any,
+    index: number,
+    options: any[],
+    questionResponseType: string,
+    evaluationType: string
+): QuizSlideQuestion => {
     const explanationContent = question.explanation || '';
+    let textContent = question.questionName || '';
+    let parentRichTextContent = '';
+    let parentRichTextId = '';
+    let textId = '';
+    let textDataId = '';
+    let explanationTextId = '';
+    let explanationTextDataId = '';
+
+    if (
+        question.questionType === 'CMCQS' ||
+        question.questionType === 'CMCQM' ||
+        question.questionType === 'CNUMERIC'
+    ) {
+        parentRichTextContent =
+            question.comprehensionText ||
+            question.passage ||
+            question.parentRichTextContent ||
+            question.text?.content ||
+            question.text_data?.content ||
+            '';
+        parentRichTextId =
+            question.parent_rich_text?.id || question.parentRichTextId || crypto.randomUUID();
+        textContent = question.questionName || question.questionText || '';
+        textId = question.text?.id || question.textId || crypto.randomUUID();
+        textDataId = question.text_data?.id || question.textDataId || crypto.randomUUID();
+    } else {
+        parentRichTextContent = '';
+        parentRichTextId = crypto.randomUUID();
+        textContent = question.questionName || question.questionText || '';
+        textId = question.text?.id || question.textId || crypto.randomUUID();
+        textDataId = question.text_data?.id || question.textDataId || crypto.randomUUID();
+    }
+    explanationTextId =
+        question.explanation_text?.id || question.explanationTextId || crypto.randomUUID();
+    explanationTextDataId =
+        question.explanation_text_data?.id || question.explanationTextDataId || crypto.randomUUID();
 
     console.log('[API Helpers] Creating question structure:', {
         questionId: question.id,
@@ -102,24 +172,28 @@ const createQuestionStructure = (question: any, index: number, options: any[], q
         explanation: explanationContent,
         explanationLength: explanationContent.length,
         questionType: question.questionType,
-        index: index
+        index: index,
     });
 
     const questionStructure = {
         id: question.id || crypto.randomUUID(),
         parent_rich_text: {
-            id: '',
+            id: parentRichTextId,
             type: 'TEXT',
-            content: question.questionName || '',
+            content: parentRichTextContent,
         },
-        text: { id: '', type: 'TEXT', content: question.questionName || '' },
-        text_data: { id: '', type: 'TEXT', content: question.questionName || '' }, // Added for backend compatibility
+        text: { id: textId, type: 'TEXT', content: textContent },
+        text_data: { id: textDataId, type: 'TEXT', content: textContent },
         explanation_text: {
-            id: '',
+            id: explanationTextId,
             type: 'TEXT',
             content: explanationContent,
         },
-        explanation_text_data: { id: '', type: 'TEXT', content: explanationContent }, // Added for backend compatibility
+        explanation_text_data: {
+            id: explanationTextDataId,
+            type: 'TEXT',
+            content: explanationContent,
+        },
         media_id: '',
         status: question.status || 'ACTIVE',
         question_response_type: questionResponseType,
@@ -128,7 +202,7 @@ const createQuestionStructure = (question: any, index: number, options: any[], q
         access_level: 'INSTITUTE',
         auto_evaluation_json: createAutoEvaluationJson(question),
         evaluation_type: evaluationType,
-        question_time_in_millis: calculateQuestionTimeInMillis(question), // Added for backend compatibility
+        question_time_in_millis: calculateQuestionTimeInMillis(question),
         question_order: index + 1,
         quiz_slide_id: '', // This will be set by the caller
         can_skip: question.canSkip || false,
@@ -141,7 +215,7 @@ const createQuestionStructure = (question: any, index: number, options: any[], q
         explanation_text: questionStructure.explanation_text,
         explanation_text_data: questionStructure.explanation_text_data,
         hasExplanation: !!explanationContent,
-        explanationContent: explanationContent
+        explanationContent: explanationContent,
     });
 
     return questionStructure;
@@ -152,10 +226,18 @@ export const transformFormQuestionsToBackend = (
     questions: UploadQuestionPaperFormType['questions']
 ): QuizSlideQuestion[] => {
     return questions.map((question, index) => {
-        const { questionResponseType, evaluationType } = getQuestionResponseConfig(question.questionType);
+        const { questionResponseType, evaluationType } = getQuestionResponseConfig(
+            question.questionType
+        );
         const options = transformOptionsByType(question);
 
-        return createQuestionStructure(question, index, options, questionResponseType, evaluationType);
+        return createQuestionStructure(
+            question,
+            index,
+            options,
+            questionResponseType,
+            evaluationType
+        );
     });
 };
 
@@ -171,15 +253,17 @@ export const createQuizSlidePayload = (
         activeItemTitle: activeItem.title,
         questionsCount: questions.length,
         transformedQuestionsCount: transformedQuestions.length,
-        questionsWithExplanations: transformedQuestions.filter(q => q.explanation_text.content || q.explanation_text_data.content).length,
-        allExplanations: transformedQuestions.map(q => ({
+        questionsWithExplanations: transformedQuestions.filter(
+            (q) => q.explanation_text.content || q.explanation_text_data.content
+        ).length,
+        allExplanations: transformedQuestions.map((q) => ({
             questionId: q.id,
             explanation_text: q.explanation_text,
             explanation_text_data: q.explanation_text_data,
             hasExplanation: !!(q.explanation_text.content || q.explanation_text_data.content),
             explanationContent: q.explanation_text.content,
-            explanationDataContent: q.explanation_text_data.content
-        }))
+            explanationDataContent: q.explanation_text_data.content,
+        })),
     });
 
     const payload = {
@@ -213,13 +297,13 @@ export const createQuizSlidePayload = (
         payloadId: payload.id,
         quizSlideId: payload.quiz_slide.id,
         questionsInPayload: payload.quiz_slide.questions.length,
-        explanationsInPayload: payload.quiz_slide.questions.map(q => ({
+        explanationsInPayload: payload.quiz_slide.questions.map((q) => ({
             questionId: q.id,
             explanation_text: q.explanation_text,
             explanation_text_data: q.explanation_text_data,
             explanationContent: q.explanation_text.content,
-            explanationDataContent: q.explanation_text_data.content
-        }))
+            explanationDataContent: q.explanation_text_data.content,
+        })),
     });
 
     return payload;

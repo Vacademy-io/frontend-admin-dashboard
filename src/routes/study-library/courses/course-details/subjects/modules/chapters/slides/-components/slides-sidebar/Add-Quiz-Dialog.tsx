@@ -127,26 +127,52 @@ const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) =
 
                 switch (question.questionType) {
                     case 'MCQS':
-                    case 'CMCQS':
-                        options = (question.singleChoiceOptions || []).map((option) => ({
-                            id: option.id || crypto.randomUUID(),
-                            quiz_slide_question_id: '',
-                            text: { id: '', type: 'TEXT', content: option.name || '' },
-                            explanation_text: { id: '', type: 'TEXT', content: '' },
-                            explanation_text_data: { id: '', type: 'TEXT', content: '' },
-                            media_id: '',
-                        }));
+                        options = (question.singleChoiceOptions || [])
+                            .slice(0, 4)
+                            .map((option) => ({
+                                id: option.id || crypto.randomUUID(),
+                                quiz_slide_question_id: '',
+                                text: { id: '', type: 'TEXT', content: option.name || '' },
+                                explanation_text: { id: '', type: 'TEXT', content: '' },
+                                explanation_text_data: { id: '', type: 'TEXT', content: '' },
+                                media_id: '',
+                            }));
                         break;
                     case 'MCQM':
+                        options = (question.multipleChoiceOptions || [])
+                            .slice(0, 4)
+                            .map((option) => ({
+                                id: option.id || crypto.randomUUID(),
+                                quiz_slide_question_id: '',
+                                text: { id: '', type: 'TEXT', content: option.name || '' },
+                                explanation_text: { id: '', type: 'TEXT', content: '' },
+                                explanation_text_data: { id: '', type: 'TEXT', content: '' },
+                                media_id: '',
+                            }));
+                        break;
+                    case 'CMCQS':
+                        options = (question.csingleChoiceOptions || [])
+                            .slice(0, 4)
+                            .map((option) => ({
+                                id: option.id || crypto.randomUUID(),
+                                quiz_slide_question_id: '',
+                                text: { id: '', type: 'TEXT', content: option.name || '' },
+                                explanation_text: { id: '', type: 'TEXT', content: '' },
+                                explanation_text_data: { id: '', type: 'TEXT', content: '' },
+                                media_id: '',
+                            }));
+                        break;
                     case 'CMCQM':
-                        options = (question.multipleChoiceOptions || []).map((option) => ({
-                            id: option.id || crypto.randomUUID(),
-                            quiz_slide_question_id: '',
-                            text: { id: '', type: 'TEXT', content: option.name || '' },
-                            explanation_text: { id: '', type: 'TEXT', content: '' },
-                            explanation_text_data: { id: '', type: 'TEXT', content: '' },
-                            media_id: '',
-                        }));
+                        options = (question.cmultipleChoiceOptions || [])
+                            .slice(0, 4)
+                            .map((option) => ({
+                                id: option.id || crypto.randomUUID(),
+                                quiz_slide_question_id: '',
+                                text: { id: '', type: 'TEXT', content: option.name || '' },
+                                explanation_text: { id: '', type: 'TEXT', content: '' },
+                                explanation_text_data: { id: '', type: 'TEXT', content: '' },
+                                media_id: '',
+                            }));
                         break;
                     case 'TRUE_FALSE':
                         options = (question.trueFalseOptions || []).map((option) => ({
@@ -172,15 +198,43 @@ const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) =
                         evaluationType = 'AUTO';
                         break;
                     default:
-                        options = (question.singleChoiceOptions || []).map((option) => ({
-                            id: option.id || crypto.randomUUID(),
-                            quiz_slide_question_id: '',
-                            text: { id: '', type: 'TEXT', content: option.name || '' },
-                            explanation_text: { id: '', type: 'TEXT', content: '' },
-                            explanation_text_data: { id: '', type: 'TEXT', content: '' },
-                            media_id: '',
-                        }));
+                        options = (question.singleChoiceOptions || [])
+                            .slice(0, 4)
+                            .map((option) => ({
+                                id: option.id || crypto.randomUUID(),
+                                quiz_slide_question_id: '',
+                                text: { id: '', type: 'TEXT', content: option.name || '' },
+                                explanation_text: { id: '', type: 'TEXT', content: '' },
+                                explanation_text_data: { id: '', type: 'TEXT', content: '' },
+                                media_id: '',
+                            }));
                 }
+
+                // Helper to get correct answer indices for MCQ/CMCQ/TRUE_FALSE
+                const getCorrectAnswerIndices = (question: any): number[] => {
+                    let opts = [];
+                    if (question.questionType === 'MCQS' || question.questionType === 'CMCQS') {
+                        opts = (
+                            question.singleChoiceOptions ||
+                            question.csingleChoiceOptions ||
+                            []
+                        ).slice(0, 4);
+                    } else if (
+                        question.questionType === 'MCQM' ||
+                        question.questionType === 'CMCQM'
+                    ) {
+                        opts = (
+                            question.multipleChoiceOptions ||
+                            question.cmultipleChoiceOptions ||
+                            []
+                        ).slice(0, 4);
+                    } else if (question.questionType === 'TRUE_FALSE') {
+                        opts = question.trueFalseOptions || [];
+                    }
+                    return opts
+                        .map((opt: any, idx: number) => (opt.isSelected ? idx : null))
+                        .filter((idx: number | null) => idx !== null);
+                };
 
                 // Calculate question time in milliseconds
                 const calculateQuestionTimeInMillis = (
@@ -200,6 +254,18 @@ const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) =
                     question: UploadQuestionPaperFormType['questions'][0]
                 ): string => {
                     if (
+                        question.questionType === 'MCQS' ||
+                        question.questionType === 'MCQM' ||
+                        question.questionType === 'CMCQS' ||
+                        question.questionType === 'CMCQM' ||
+                        question.questionType === 'TRUE_FALSE'
+                    ) {
+                        const correctAnswers = getCorrectAnswerIndices(question);
+                        if (correctAnswers.length > 0) {
+                            return JSON.stringify({ correctAnswers });
+                        }
+                    }
+                    if (
                         question.questionType === 'LONG_ANSWER' ||
                         question.questionType === 'ONE_WORD'
                     ) {
@@ -218,30 +284,73 @@ const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) =
                         } else if (question.validAnswers && question.validAnswers.length > 0) {
                             return JSON.stringify({ correctAnswers: question.validAnswers });
                         }
-                    } else {
-                        if (question.validAnswers && question.validAnswers.length > 0) {
-                            return JSON.stringify({ correctAnswers: question.validAnswers });
-                        }
+                    } else if (question.validAnswers && question.validAnswers.length > 0) {
+                        return JSON.stringify({ correctAnswers: question.validAnswers });
                     }
                     return '';
                 };
 
+                // For comprehension types, set parent_rich_text to passage, text to question text, and include ids
+                let parentRichTextContent = '';
+                let parentRichTextId = '';
+                let textContent = '';
+                let textId = '';
+                let textDataId = '';
+                let explanationTextId = '';
+                let explanationTextDataId = '';
+                if (
+                    question.questionType === 'CMCQS' ||
+                    question.questionType === 'CMCQM' ||
+                    question.questionType === 'CNUMERIC'
+                ) {
+                    parentRichTextContent =
+                        question.comprehensionText ||
+                        question.passage ||
+                        question.parentRichTextContent ||
+                        question.text?.content ||
+                        question.text_data?.content ||
+                        '';
+                    parentRichTextId =
+                        question.parent_rich_text?.id ||
+                        question.parentRichTextId ||
+                        crypto.randomUUID();
+                    textContent = question.questionName || question.questionText || '';
+                    textId = question.text?.id || question.textId || crypto.randomUUID();
+                    textDataId =
+                        question.text_data?.id || question.textDataId || crypto.randomUUID();
+                } else {
+                    parentRichTextContent = '';
+                    parentRichTextId = crypto.randomUUID();
+                    textContent = question.questionName || question.questionText || '';
+                    textId = question.text?.id || question.textId || crypto.randomUUID();
+                    textDataId =
+                        question.text_data?.id || question.textDataId || crypto.randomUUID();
+                }
+                explanationTextId =
+                    question.explanation_text?.id ||
+                    question.explanationTextId ||
+                    crypto.randomUUID();
+                explanationTextDataId =
+                    question.explanation_text_data?.id ||
+                    question.explanationTextDataId ||
+                    crypto.randomUUID();
+
                 return {
                     id: crypto.randomUUID(),
                     parent_rich_text: {
-                        id: '',
+                        id: parentRichTextId,
                         type: 'TEXT',
-                        content: question.questionName || '',
+                        content: parentRichTextContent,
                     },
-                    text: { id: '', type: 'TEXT', content: question.questionName || '' },
-                    text_data: { id: '', type: 'TEXT', content: question.questionName || '' },
+                    text: { id: textId, type: 'TEXT', content: textContent },
+                    text_data: { id: textDataId, type: 'TEXT', content: textContent },
                     explanation_text: {
-                        id: '',
+                        id: explanationTextId,
                         type: 'TEXT',
                         content: question.explanation || '',
                     },
                     explanation_text_data: {
-                        id: '',
+                        id: explanationTextDataId,
                         type: 'TEXT',
                         content: question.explanation || '',
                     },
@@ -396,13 +505,30 @@ const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) =
                     questions: questions.map((question, index) => ({
                         id: crypto.randomUUID(),
                         parent_rich_text: {
-                            id: '',
+                            id: question.parent_rich_text?.id || question.parentRichTextId || '',
                             type: 'TEXT',
                             content: question.questionName || '',
                         },
-                        text: { id: '', type: 'TEXT', content: question.questionName || '' },
+                        text: {
+                            id: question.text?.id || question.textId || '',
+                            type: 'TEXT',
+                            content: question.questionName || '',
+                        },
+                        text_data: {
+                            id: question.text_data?.id || question.textDataId || '',
+                            type: 'TEXT',
+                            content: question.questionName || '',
+                        },
                         explanation_text: {
-                            id: '',
+                            id: question.explanation_text?.id || question.explanationTextId || '',
+                            type: 'TEXT',
+                            content: question.explanation || '',
+                        },
+                        explanation_text_data: {
+                            id:
+                                question.explanation_text_data?.id ||
+                                question.explanationTextDataId ||
+                                '',
                             type: 'TEXT',
                             content: question.explanation || '',
                         },
