@@ -221,10 +221,10 @@ export const AddCourseStep2 = ({
         }>
     >([]);
 
-    const [addSessionMode, setAddSessionMode] = useState<'new' | 'existing'>('new');
+    const [addSessionMode, setAddSessionMode] = useState<'new' | 'existing'>('existing');
     const [selectedExistingBatchIds, setSelectedExistingBatchIds] = useState<string[]>([]);
     // Add state for addLevelMode and selectedExistingLevelBatchIds
-    const [addLevelMode, setAddLevelMode] = useState<'new' | 'existing'>('new');
+    const [addLevelMode, setAddLevelMode] = useState<'new' | 'existing'>('existing');
     const [selectedExistingLevelBatchIds, setSelectedExistingLevelBatchIds] = useState<string[]>(
         []
     );
@@ -1089,6 +1089,32 @@ export const AddCourseStep2 = ({
                                                         >
                                                             <div className="flex items-center space-x-2">
                                                                 <RadioGroupItem
+                                                                    value="existing"
+                                                                    id="add-session-existing"
+                                                                />
+                                                                <Label
+                                                                    htmlFor="add-session-existing"
+                                                                    className="text-sm font-normal"
+                                                                >
+                                                                    {hasSessions === 'yes' &&
+                                                                    hasLevels === 'yes'
+                                                                        ? `Existing ${getTerminology(
+                                                                              ContentTerms.Session,
+                                                                              SystemTerms.Session
+                                                                          )}s`
+                                                                        : hasSessions === 'yes'
+                                                                          ? `Existing ${getTerminology(
+                                                                                ContentTerms.Session,
+                                                                                SystemTerms.Session
+                                                                            )}s`
+                                                                          : `Existing ${getTerminology(
+                                                                                ContentTerms.Level,
+                                                                                SystemTerms.Level
+                                                                            )}s`}
+                                                                </Label>
+                                                            </div>
+                                                            <div className="flex items-center space-x-2">
+                                                                <RadioGroupItem
                                                                     value="new"
                                                                     id="add-session-new"
                                                                 />
@@ -1112,32 +1138,6 @@ export const AddCourseStep2 = ({
                                                                                 ContentTerms.Level,
                                                                                 SystemTerms.Level
                                                                             )}`}
-                                                                </Label>
-                                                            </div>
-                                                            <div className="flex items-center space-x-2">
-                                                                <RadioGroupItem
-                                                                    value="existing"
-                                                                    id="add-session-existing"
-                                                                />
-                                                                <Label
-                                                                    htmlFor="add-session-existing"
-                                                                    className="text-sm font-normal"
-                                                                >
-                                                                    {hasSessions === 'yes' &&
-                                                                    hasLevels === 'yes'
-                                                                        ? `Existing ${getTerminology(
-                                                                              ContentTerms.Session,
-                                                                              SystemTerms.Session
-                                                                          )}s`
-                                                                        : hasSessions === 'yes'
-                                                                          ? `Existing ${getTerminology(
-                                                                                ContentTerms.Session,
-                                                                                SystemTerms.Session
-                                                                            )}s`
-                                                                          : `Existing ${getTerminology(
-                                                                                ContentTerms.Level,
-                                                                                SystemTerms.Level
-                                                                            )}s`}
                                                                 </Label>
                                                             </div>
                                                         </RadioGroup>
@@ -2024,22 +2024,6 @@ export const AddCourseStep2 = ({
                                                         >
                                                             <div className="flex items-center space-x-2">
                                                                 <RadioGroupItem
-                                                                    value="new"
-                                                                    id="add-level-new"
-                                                                />
-                                                                <Label
-                                                                    htmlFor="add-level-new"
-                                                                    className="text-sm font-normal"
-                                                                >
-                                                                    New{' '}
-                                                                    {getTerminology(
-                                                                        ContentTerms.Level,
-                                                                        SystemTerms.Level
-                                                                    )}
-                                                                </Label>
-                                                            </div>
-                                                            <div className="flex items-center space-x-2">
-                                                                <RadioGroupItem
                                                                     value="existing"
                                                                     id="add-level-existing"
                                                                 />
@@ -2053,6 +2037,22 @@ export const AddCourseStep2 = ({
                                                                         SystemTerms.Level
                                                                     )}
                                                                     s
+                                                                </Label>
+                                                            </div>
+                                                            <div className="flex items-center space-x-2">
+                                                                <RadioGroupItem
+                                                                    value="new"
+                                                                    id="add-level-new"
+                                                                />
+                                                                <Label
+                                                                    htmlFor="add-level-new"
+                                                                    className="text-sm font-normal"
+                                                                >
+                                                                    New{' '}
+                                                                    {getTerminology(
+                                                                        ContentTerms.Level,
+                                                                        SystemTerms.Level
+                                                                    )}
                                                                 </Label>
                                                             </div>
                                                         </RadioGroup>
@@ -3255,7 +3255,7 @@ const SessionCard: React.FC<{
 }) => {
     const [showAddLevel, setShowAddLevel] = useState(false);
     const [newLevelName, setNewLevelName] = useState('');
-    const [addLevelMode, setAddLevelMode] = useState<'new' | 'existing'>('new');
+    const [addLevelMode, setAddLevelMode] = useState<'new' | 'existing'>('existing');
     const [selectedExistingLevelBatchIds, setSelectedExistingLevelBatchIds] = useState<string[]>(
         []
     );
@@ -3339,18 +3339,6 @@ const SessionCard: React.FC<{
                                     >
                                         <div className="flex items-center space-x-2">
                                             <RadioGroupItem
-                                                value="new"
-                                                id={`add-level-new-${session.id}`}
-                                            />
-                                            <Label
-                                                htmlFor={`add-level-new-${session.id}`}
-                                                className="text-sm font-normal"
-                                            >
-                                                New Level
-                                            </Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem
                                                 value="existing"
                                                 id={`add-level-existing-${session.id}`}
                                             />
@@ -3359,6 +3347,18 @@ const SessionCard: React.FC<{
                                                 className="text-sm font-normal"
                                             >
                                                 Existing Levels
+                                            </Label>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem
+                                                value="new"
+                                                id={`add-level-new-${session.id}`}
+                                            />
+                                            <Label
+                                                htmlFor={`add-level-new-${session.id}`}
+                                                className="text-sm font-normal"
+                                            >
+                                                New Level
                                             </Label>
                                         </div>
                                     </RadioGroup>
