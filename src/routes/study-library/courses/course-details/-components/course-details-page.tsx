@@ -830,7 +830,7 @@ export const CourseDetailsPage = () => {
 
                         {/* About Content Section */}
                         {form.getValues('courseData').aboutTheCourse && (
-                            <div className="mb-8">
+                            <div className="mb-8 rounded-sm bg-white p-6">
                                 <h2 className="mb-4 text-2xl font-bold">
                                     About this{' '}
                                     {getTerminology(
@@ -866,13 +866,13 @@ export const CourseDetailsPage = () => {
 
                         {/* Instructors Section */}
                         {instructors && instructors.length > 0 && (
-                            <div className="mb-8 bg-white p-6">
-                                <h2 className="mb-4 text-2xl font-bold">Authors</h2>
+                            <div className="mb-8 flex flex-col gap-3 bg-white p-6">
+                                <h2 className=" text-2xl font-bold">Authors</h2>
                                 {loadingInstructors ? (
                                     <div>Loading instructors...</div>
                                 ) : (
                                     resolvedInstructors.map((instructor, index) => (
-                                        <div key={index} className="flex gap-4 rounded-lg">
+                                        <div key={index} className="flex gap-3 rounded-lg">
                                             <Avatar className="size-8">
                                                 {instructor.profilePicUrl ? (
                                                     <AvatarImage
