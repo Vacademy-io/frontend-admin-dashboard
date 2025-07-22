@@ -159,6 +159,62 @@ type ExistingBatch = {
     group?: Group;
 };
 
+// Add this helper function before AddCourseStep2
+function getAllSessionLevelsForInstructor(
+    sessions: Session[],
+    hasSessions: string,
+    hasLevels: string
+): Array<{
+    sessionId: string;
+    sessionName: string;
+    levelId: string;
+    levelName: string;
+    batchId?: string;
+}> {
+    const allSessionLevels: Array<{
+        sessionId: string;
+        sessionName: string;
+        levelId: string;
+        levelName: string;
+        batchId?: string;
+    }> = [];
+    if (hasSessions === 'yes' && hasLevels === 'yes') {
+        sessions.forEach((session: Session) => {
+            session.levels.forEach((level: Level) => {
+                allSessionLevels.push({
+                    sessionId: session.id,
+                    sessionName: session.name,
+                    levelId: level.id,
+                    levelName: level.name,
+                    batchId: level.batchId,
+                });
+            });
+        });
+    } else if (hasSessions === 'yes' && hasLevels !== 'yes') {
+        sessions.forEach((session: Session) => {
+            allSessionLevels.push({
+                sessionId: session.id,
+                sessionName: session.name,
+                levelId: 'DEFAULT',
+                levelName: '',
+            });
+        });
+    } else if (hasSessions !== 'yes' && hasLevels === 'yes') {
+        const standaloneSession = sessions.find((s: Session) => s.id === 'standalone');
+        if (standaloneSession) {
+            standaloneSession.levels.forEach((level: Level) => {
+                allSessionLevels.push({
+                    sessionId: 'DEFAULT',
+                    sessionName: '',
+                    levelId: level.id,
+                    levelName: level.name,
+                });
+            });
+        }
+    }
+    return allSessionLevels;
+}
+
 export const AddCourseStep2 = ({
     onBack,
     onSubmit,
@@ -653,7 +709,9 @@ export const AddCourseStep2 = ({
                                 const level = session.levels.find((l: Level) => l.id === levelId);
                                 if (
                                     level &&
-                                    !level.userIds.some((i) => i.id === instructorObj.id)
+                                    !level.userIds.some(
+                                        (i: Instructor) => i.id === instructorObj.id
+                                    )
                                 ) {
                                     level.userIds.push(instructorObj);
                                 }
@@ -672,7 +730,7 @@ export const AddCourseStep2 = ({
                                 } else if (
                                     session.levels[0] &&
                                     !session.levels[0].userIds.some(
-                                        (i) => i.id === instructorObj.id
+                                        (i: Instructor) => i.id === instructorObj.id
                                     )
                                 ) {
                                     // Add to existing default level
@@ -689,7 +747,10 @@ export const AddCourseStep2 = ({
                             const level = standaloneSession.levels.find(
                                 (l: Level) => l.id === levelId
                             );
-                            if (level && !level.userIds.some((i) => i.id === instructorObj.id)) {
+                            if (
+                                level &&
+                                !level.userIds.some((i: Instructor) => i.id === instructorObj.id)
+                            ) {
                                 level.userIds.push(instructorObj);
                             }
                         }
@@ -793,17 +854,13 @@ export const AddCourseStep2 = ({
         })
             .then((res) => {
                 setInstructors(
-                    res
-                        .map((instructor: UserRolesDataEntry) => ({
-                            id: instructor.id,
-                            email: instructor.email,
-                            name: instructor.full_name,
-                            profilePicId: instructor.profile_pic_file_id,
-                            roles: instructor.roles?.map((role) => role.role_name) || [],
-                        }))
-                        .filter((instr: UserRolesDataEntry) => {
-                            return instr.id !== tokenData?.user;
-                        })
+                    res.map((instructor: UserRolesDataEntry) => ({
+                        id: instructor.id,
+                        email: instructor.email,
+                        name: instructor.full_name,
+                        profilePicId: instructor.profile_pic_file_id,
+                        roles: instructor.roles?.map((role) => role.role_name) || [],
+                    }))
                 );
             })
             .catch((err) => {
@@ -1309,17 +1366,14 @@ export const AddCourseStep2 = ({
                                                                                                     className="size-4"
                                                                                                 />
                                                                                                 <span className="text-sm text-gray-700">
-                                                                                                    {
-                                                                                                        batch
-                                                                                                            .session
-                                                                                                            .session_name
-                                                                                                    }{' '}
-                                                                                                    -{' '}
-                                                                                                    {
-                                                                                                        batch
-                                                                                                            .level
-                                                                                                            .level_name
-                                                                                                    }
+                                                                                                    {hasSessions ===
+                                                                                                        'yes' &&
+                                                                                                    hasLevels ===
+                                                                                                        'yes'
+                                                                                                        ? `${batch.session.session_name} - ${batch.level.level_name}`
+                                                                                                        : batch
+                                                                                                              .session
+                                                                                                              .session_name}
                                                                                                 </span>
                                                                                             </div>
                                                                                         )
@@ -1434,11 +1488,14 @@ export const AddCourseStep2 = ({
                                                                                                     className="size-4"
                                                                                                 />
                                                                                                 <span className="text-sm text-gray-700">
-                                                                                                    {
-                                                                                                        batch
-                                                                                                            .session
-                                                                                                            .session_name
-                                                                                                    }
+                                                                                                    {hasSessions ===
+                                                                                                        'yes' &&
+                                                                                                    hasLevels ===
+                                                                                                        'yes'
+                                                                                                        ? `${batch.session.session_name} - ${batch.level.level_name}`
+                                                                                                        : batch
+                                                                                                              .session
+                                                                                                              .session_name}
                                                                                                 </span>
                                                                                             </div>
                                                                                         )
@@ -2406,18 +2463,11 @@ export const AddCourseStep2 = ({
 
                                     <div className="flex flex-col gap-4">
                                         <MultiSelectDropdown
-                                            options={instructors
-                                                ?.filter(
-                                                    (instructor) =>
-                                                        !selectedInstructors?.some(
-                                                            (si) => si.id === instructor.id
-                                                        )
-                                                )
-                                                ?.map((instructor) => ({
-                                                    id: instructor.id,
-                                                    name: instructor.name,
-                                                    email: instructor.email,
-                                                }))}
+                                            options={instructors?.map((instructor) => ({
+                                                id: instructor.id,
+                                                name: instructor.name,
+                                                email: instructor.email,
+                                            }))}
                                             selected={selectedInstructors?.map((instructor) => ({
                                                 id: instructor.id,
                                                 name: instructor.name,
@@ -2440,7 +2490,127 @@ export const AddCourseStep2 = ({
                                                             };
                                                         })
                                                         ?.filter((i) => i.id && i.email && i.name);
+
                                                 setSelectedInstructors(selectedInstructorsList);
+                                                form.setValue(
+                                                    'selectedInstructors',
+                                                    selectedInstructorsList
+                                                );
+
+                                                // For each selected instructor, ensure they are assigned to sessions/levels
+                                                selectedInstructorsList.forEach((instructor) => {
+                                                    const allSessionLevels =
+                                                        getAllSessionLevelsForInstructor(
+                                                            sessions,
+                                                            hasSessions,
+                                                            hasLevels
+                                                        );
+                                                    setInstructorMappings((prev) => [
+                                                        ...prev.filter(
+                                                            (m) => m.id !== instructor.id
+                                                        ),
+                                                        {
+                                                            id: instructor.id,
+                                                            email: instructor.email,
+                                                            sessionLevels: allSessionLevels,
+                                                        },
+                                                    ]);
+                                                    // Also update sessions state to reflect assignment
+                                                    setSessions((prevSessions) => {
+                                                        const updatedSessions = JSON.parse(
+                                                            JSON.stringify(prevSessions)
+                                                        );
+                                                        if (
+                                                            hasSessions === 'yes' &&
+                                                            hasLevels === 'yes'
+                                                        ) {
+                                                            updatedSessions.forEach(
+                                                                (session: Session) => {
+                                                                    session.levels.forEach(
+                                                                        (level: Level) => {
+                                                                            if (
+                                                                                !level.userIds.some(
+                                                                                    (
+                                                                                        i: Instructor
+                                                                                    ) =>
+                                                                                        i.id ===
+                                                                                        instructor.id
+                                                                                )
+                                                                            ) {
+                                                                                level.userIds.push(
+                                                                                    instructor
+                                                                                );
+                                                                            }
+                                                                        }
+                                                                    );
+                                                                }
+                                                            );
+                                                        } else if (
+                                                            hasSessions === 'yes' &&
+                                                            hasLevels !== 'yes'
+                                                        ) {
+                                                            updatedSessions.forEach(
+                                                                (session: Session) => {
+                                                                    if (
+                                                                        session.levels.length === 0
+                                                                    ) {
+                                                                        session.levels = [
+                                                                            {
+                                                                                id: 'DEFAULT',
+                                                                                name: '',
+                                                                                userIds: [
+                                                                                    instructor,
+                                                                                ],
+                                                                                batchId: 'DEFAULT',
+                                                                            },
+                                                                        ];
+                                                                    } else {
+                                                                        if (
+                                                                            session.levels[0]
+                                                                                ?.userIds &&
+                                                                            !session.levels[0].userIds.some(
+                                                                                (i: Instructor) =>
+                                                                                    i.id ===
+                                                                                    instructor.id
+                                                                            )
+                                                                        ) {
+                                                                            session.levels[0].userIds.push(
+                                                                                instructor
+                                                                            );
+                                                                        }
+                                                                    }
+                                                                }
+                                                            );
+                                                        } else if (
+                                                            hasSessions !== 'yes' &&
+                                                            hasLevels === 'yes'
+                                                        ) {
+                                                            const standaloneSession =
+                                                                updatedSessions.find(
+                                                                    (s: Session) =>
+                                                                        s.id === 'standalone'
+                                                                );
+                                                            if (standaloneSession) {
+                                                                standaloneSession.levels?.forEach(
+                                                                    (level: Level) => {
+                                                                        if (
+                                                                            !level.userIds.some(
+                                                                                (i: Instructor) =>
+                                                                                    i.id ===
+                                                                                    instructor.id
+                                                                            )
+                                                                        ) {
+                                                                            level.userIds.push(
+                                                                                instructor
+                                                                            );
+                                                                        }
+                                                                    }
+                                                                );
+                                                            }
+                                                        }
+                                                        return updatedSessions;
+                                                    });
+                                                });
                                             }}
                                             placeholder="Select instructor emails"
                                             className="w-full"
@@ -2551,81 +2721,88 @@ export const AddCourseStep2 = ({
                                                                                     : 'Assign'}
                                                                             </MyButton>
                                                                         )}
-                                                                        <MyButton
-                                                                            type="button"
-                                                                            buttonType="text"
-                                                                            scale="medium"
-                                                                            layoutVariant="icon"
-                                                                            onClick={() => {
-                                                                                // 1. Remove from selectedInstructors
-                                                                                const updatedInstructors =
-                                                                                    (
-                                                                                        selectedInstructors: Instructor[]
-                                                                                    ) =>
-                                                                                        selectedInstructors.filter(
-                                                                                            (i) =>
-                                                                                                i.id !==
-                                                                                                instructor.id
-                                                                                        );
-                                                                                setSelectedInstructors(
-                                                                                    updatedInstructors
-                                                                                );
-                                                                                form.setValue(
-                                                                                    'selectedInstructors',
-                                                                                    updatedInstructors(
-                                                                                        selectedInstructors
-                                                                                    )
-                                                                                );
-                                                                                // 2. Remove from all sessions -> levels -> userIds
-                                                                                const updatedSessions =
-                                                                                    form
-                                                                                        .getValues(
-                                                                                            'sessions'
+                                                                        {instructor.id !==
+                                                                            tokenData?.user && (
+                                                                            <MyButton
+                                                                                type="button"
+                                                                                buttonType="text"
+                                                                                scale="medium"
+                                                                                layoutVariant="icon"
+                                                                                onClick={() => {
+                                                                                    // 1. Remove from selectedInstructors
+                                                                                    const updatedInstructors =
+                                                                                        (
+                                                                                            selectedInstructors: Instructor[]
+                                                                                        ) =>
+                                                                                            selectedInstructors.filter(
+                                                                                                (
+                                                                                                    i
+                                                                                                ) =>
+                                                                                                    i.id !==
+                                                                                                    instructor.id
+                                                                                            );
+                                                                                    setSelectedInstructors(
+                                                                                        updatedInstructors
+                                                                                    );
+                                                                                    form.setValue(
+                                                                                        'selectedInstructors',
+                                                                                        updatedInstructors(
+                                                                                            selectedInstructors
                                                                                         )
-                                                                                        .map(
-                                                                                            (
-                                                                                                session
-                                                                                            ) => ({
-                                                                                                ...session,
-                                                                                                levels: session.levels.map(
-                                                                                                    (
-                                                                                                        level
-                                                                                                    ) => ({
-                                                                                                        ...level,
-                                                                                                        userIds:
-                                                                                                            level.userIds.filter(
-                                                                                                                (
-                                                                                                                    user
-                                                                                                                ) =>
-                                                                                                                    user.id !==
-                                                                                                                    instructor.id
-                                                                                                            ),
-                                                                                                    })
-                                                                                                ),
-                                                                                            })
-                                                                                        );
-                                                                                form.setValue(
-                                                                                    'sessions',
-                                                                                    updatedSessions,
-                                                                                    {
-                                                                                        shouldDirty:
-                                                                                            true,
-                                                                                    }
-                                                                                );
+                                                                                    );
+                                                                                    // 2. Remove from all sessions -> levels -> userIds
+                                                                                    const updatedSessions =
+                                                                                        form
+                                                                                            .getValues(
+                                                                                                'sessions'
+                                                                                            )
+                                                                                            .map(
+                                                                                                (
+                                                                                                    session
+                                                                                                ) => ({
+                                                                                                    ...session,
+                                                                                                    levels: session.levels.map(
+                                                                                                        (
+                                                                                                            level
+                                                                                                        ) => ({
+                                                                                                            ...level,
+                                                                                                            userIds:
+                                                                                                                level.userIds.filter(
+                                                                                                                    (
+                                                                                                                        user
+                                                                                                                    ) =>
+                                                                                                                        user.id !==
+                                                                                                                        instructor.id
+                                                                                                                ),
+                                                                                                        })
+                                                                                                    ),
+                                                                                                })
+                                                                                            );
+                                                                                    form.setValue(
+                                                                                        'sessions',
+                                                                                        updatedSessions,
+                                                                                        {
+                                                                                            shouldDirty:
+                                                                                                true,
+                                                                                        }
+                                                                                    );
 
-                                                                                setInstructorMappings(
-                                                                                    (prev) =>
-                                                                                        prev.filter(
-                                                                                            (m) =>
-                                                                                                m.id !==
-                                                                                                instructor.id
-                                                                                        )
-                                                                                );
-                                                                            }}
-                                                                            className="!size-6 text-red-600 hover:text-red-700"
-                                                                        >
-                                                                            <Trash2 className="size-3" />
-                                                                        </MyButton>
+                                                                                    setInstructorMappings(
+                                                                                        (prev) =>
+                                                                                            prev.filter(
+                                                                                                (
+                                                                                                    m
+                                                                                                ) =>
+                                                                                                    m.id !==
+                                                                                                    instructor.id
+                                                                                            )
+                                                                                    );
+                                                                                }}
+                                                                                className="!size-6 text-red-600 hover:text-red-700"
+                                                                            >
+                                                                                <Trash2 className="size-3" />
+                                                                            </MyButton>
+                                                                        )}
                                                                     </div>
                                                                 </div>
 
