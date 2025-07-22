@@ -1329,11 +1329,14 @@ export const AddCourseStep2 = ({
                                                                                                     className="size-4"
                                                                                                 />
                                                                                                 <span className="text-sm text-gray-700">
-                                                                                                    {
-                                                                                                        batch
-                                                                                                            .session
-                                                                                                            .session_name
-                                                                                                    }
+                                                                                                    {hasSessions ===
+                                                                                                        'yes' &&
+                                                                                                    hasLevels ===
+                                                                                                        'yes'
+                                                                                                        ? `${batch.session.session_name} - ${batch.level.level_name}`
+                                                                                                        : batch
+                                                                                                              .session
+                                                                                                              .session_name}
                                                                                                 </span>
                                                                                             </div>
                                                                                         )
@@ -1448,11 +1451,14 @@ export const AddCourseStep2 = ({
                                                                                                     className="size-4"
                                                                                                 />
                                                                                                 <span className="text-sm text-gray-700">
-                                                                                                    {
-                                                                                                        batch
-                                                                                                            .session
-                                                                                                            .session_name
-                                                                                                    }
+                                                                                                    {hasSessions ===
+                                                                                                        'yes' &&
+                                                                                                    hasLevels ===
+                                                                                                        'yes'
+                                                                                                        ? `${batch.session.session_name} - ${batch.level.level_name}`
+                                                                                                        : batch
+                                                                                                              .session
+                                                                                                              .session_name}
                                                                                                 </span>
                                                                                             </div>
                                                                                         )
