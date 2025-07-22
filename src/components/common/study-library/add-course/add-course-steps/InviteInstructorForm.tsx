@@ -40,6 +40,10 @@ const InviteInstructorForm = ({ onInviteSuccess, onCancel }: InviteInstructorFor
         mode: 'onChange',
     });
 
+    const onInvalid = (err: unknown) => {
+        console.error(err);
+    };
+
     const handleInviteUsersMutation = useMutation({
         mutationFn: ({
             instituteId,
@@ -132,11 +136,11 @@ const InviteInstructorForm = ({ onInviteSuccess, onCancel }: InviteInstructorFor
                                 buttonType="primary"
                                 scale="medium"
                                 layoutVariant="default"
-                                onClick={form.handleSubmit(handleSubmit)}
+                                onClick={form.handleSubmit(handleSubmit, onInvalid)}
                                 disable={
                                     !form.watch('name') ||
                                     !form.watch('email') ||
-                                    !form.watch('roleType')
+                                    form.watch('roleType').length == 0
                                 }
                             >
                                 Add Instructor
