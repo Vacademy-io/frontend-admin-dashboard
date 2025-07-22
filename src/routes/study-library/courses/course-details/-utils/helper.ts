@@ -1,6 +1,12 @@
 import { SubjectType } from '@/stores/study-library/use-study-library-store';
 import { getPublicUrl } from '@/services/upload_file';
 
+type DataItem = {
+    total_read_time_minutes: number | null;
+    slide_count: number;
+    source_type: string;
+};
+
 export interface Instructor {
     id: string;
     username: string;
@@ -193,4 +199,19 @@ export function getInstructorsBySessionAndLevel(
         }
     }
     return [];
+}
+
+export function calculateTotalTimeForCourseDuration(data: DataItem[]): {
+    hours: number;
+    minutes: number;
+} {
+    if (!data) return { hours: 0, minutes: 0 };
+    const totalMinutes = data.reduce((sum, item) => {
+        return sum + (item.total_read_time_minutes ?? 0);
+    }, 0);
+
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+
+    return { hours, minutes };
 }

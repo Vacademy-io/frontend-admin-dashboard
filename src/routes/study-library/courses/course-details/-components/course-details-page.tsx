@@ -2,6 +2,7 @@ import { StepsIcon } from '@phosphor-icons/react';
 import { useRouter } from '@tanstack/react-router';
 import {
     ChalkboardTeacher,
+    Clock,
     Code,
     File,
     FileDoc,
@@ -32,7 +33,11 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { handleGetSlideCountDetails } from '../-services/get-slides-count';
 import { CourseDetailsRatingsComponent } from './course-details-ratings-page';
-import { getInstructorsBySessionAndLevel, transformApiDataToCourseData } from '../-utils/helper';
+import {
+    calculateTotalTimeForCourseDuration,
+    getInstructorsBySessionAndLevel,
+    transformApiDataToCourseData,
+} from '../-utils/helper';
 import { CourseStructureDetails } from './course-structure-details';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
@@ -924,6 +929,28 @@ export const CourseDetailsPage = () => {
                                     </div>
                                 ) : (
                                     <>
+                                        {calculateTotalTimeForCourseDuration(slideCountQuery.data)
+                                            .hours ||
+                                        calculateTotalTimeForCourseDuration(slideCountQuery.data)
+                                            .minutes ? (
+                                            <div className="flex items-center gap-2">
+                                                <Clock size={20} />
+                                                <span>
+                                                    {
+                                                        calculateTotalTimeForCourseDuration(
+                                                            slideCountQuery.data
+                                                        ).hours
+                                                    }{' '}
+                                                    hour{' '}
+                                                    {
+                                                        calculateTotalTimeForCourseDuration(
+                                                            slideCountQuery.data
+                                                        ).minutes
+                                                    }{' '}
+                                                    minutes
+                                                </span>
+                                            </div>
+                                        ) : null}
                                         {slideCountQuery.data?.map((count: SlideCountType) => (
                                             <div
                                                 key={count.source_type}
