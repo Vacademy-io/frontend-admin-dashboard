@@ -456,6 +456,11 @@ export const SlideMaterial = ({
         if (activeItem.source_type === 'DOCUMENT') {
             const documentType = activeItem.document_slide?.type;
 
+            // Reset stableKeyRef when not on a presentation slide
+            if (documentType !== 'PRESENTATION') {
+                stableKeyRef.current = '';
+            }
+
             if (documentType === 'PRESENTATION') {
                 // Get the appropriate fileId based on status and learner view
                 const fileId = isLearnerView
@@ -463,10 +468,8 @@ export const SlideMaterial = ({
                     : (activeItem.status === 'PUBLISHED'
                         ? activeItem.document_slide?.published_data
                         : activeItem.document_slide?.data);
-
-                // Create a truly stable key that never changes for this slide
-                // This prevents all unnecessary component rebuilds
-                if (!stableKeyRef.current) {
+                // Only set a new key if the id changes
+                if (!stableKeyRef.current || !stableKeyRef.current.includes(activeItem.id)) {
                     stableKeyRef.current = `slide-editor-${activeItem.id}-${Date.now()}`;
                 }
 
@@ -1547,7 +1550,10 @@ export const SlideMaterial = ({
                                             SaveDraft,
                                             heading,
                                             setIsEditing,
-                                            addUpdateDocumentSlide
+                                            addUpdateDocumentSlide,
+                                            addUpdateQuizSlide, // <-- pass this for QUIZ support
+                                            updateAssignmentOrder, // <-- pass for ASSIGNMENT
+                                            updateQuestionOrder // <-- pass for QUESTION
                                         )
                                     }
                                     className="cursor-pointer hover:text-primary-500"

@@ -60,6 +60,8 @@ export const handleUnpublishSlide = async (
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-expect-error
             await updateQuestionOrder(convertedData!);
+            toast.success('Slide unpublished successfully!');
+            setIsOpen(false);
         } catch {
             toast.error('Error unpublishing question slide');
         }
