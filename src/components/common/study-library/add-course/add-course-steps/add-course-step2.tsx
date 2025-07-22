@@ -673,7 +673,9 @@ export const AddCourseStep2 = ({
                                 const level = session.levels.find((l: Level) => l.id === levelId);
                                 if (
                                     level &&
-                                    !level.userIds.some((i) => i.id === instructorObj.id)
+                                    !level.userIds.some(
+                                        (i: Instructor) => i.id === instructorObj.id
+                                    )
                                 ) {
                                     level.userIds.push(instructorObj);
                                 }
@@ -692,7 +694,7 @@ export const AddCourseStep2 = ({
                                 } else if (
                                     session.levels[0] &&
                                     !session.levels[0].userIds.some(
-                                        (i) => i.id === instructorObj.id
+                                        (i: Instructor) => i.id === instructorObj.id
                                     )
                                 ) {
                                     // Add to existing default level
@@ -709,7 +711,10 @@ export const AddCourseStep2 = ({
                             const level = standaloneSession.levels.find(
                                 (l: Level) => l.id === levelId
                             );
-                            if (level && !level.userIds.some((i) => i.id === instructorObj.id)) {
+                            if (
+                                level &&
+                                !level.userIds.some((i: Instructor) => i.id === instructorObj.id)
+                            ) {
                                 level.userIds.push(instructorObj);
                             }
                         }
@@ -2422,18 +2427,11 @@ export const AddCourseStep2 = ({
 
                                     <div className="flex flex-col gap-4">
                                         <MultiSelectDropdown
-                                            options={instructors
-                                                ?.filter(
-                                                    (instructor) =>
-                                                        !selectedInstructors?.some(
-                                                            (si) => si.id === instructor.id
-                                                        )
-                                                )
-                                                ?.map((instructor) => ({
-                                                    id: instructor.id,
-                                                    name: instructor.name,
-                                                    email: instructor.email,
-                                                }))}
+                                            options={instructors?.map((instructor) => ({
+                                                id: instructor.id,
+                                                name: instructor.name,
+                                                email: instructor.email,
+                                            }))}
                                             selected={selectedInstructors?.map((instructor) => ({
                                                 id: instructor.id,
                                                 name: instructor.name,
@@ -2457,17 +2455,14 @@ export const AddCourseStep2 = ({
                                                         })
                                                         ?.filter((i) => i.id && i.email && i.name);
 
-                                                // Find newly added instructors
-                                                const prevIds = selectedInstructors.map(
-                                                    (i) => i.id
+                                                setSelectedInstructors(selectedInstructorsList);
+                                                form.setValue(
+                                                    'selectedInstructors',
+                                                    selectedInstructorsList
                                                 );
-                                                const newInstructors =
-                                                    selectedInstructorsList.filter(
-                                                        (i) => !prevIds.includes(i.id)
-                                                    );
 
-                                                // For each new instructor, assign all sessions/levels
-                                                newInstructors.forEach((instructor) => {
+                                                // For each selected instructor, ensure they are assigned to sessions/levels
+                                                selectedInstructorsList.forEach((instructor) => {
                                                     const allSessionLevels =
                                                         getAllSessionLevelsForInstructor(
                                                             sessions,
@@ -2475,7 +2470,9 @@ export const AddCourseStep2 = ({
                                                             hasLevels
                                                         );
                                                     setInstructorMappings((prev) => [
-                                                        ...prev,
+                                                        ...prev.filter(
+                                                            (m) => m.id !== instructor.id
+                                                        ),
                                                         {
                                                             id: instructor.id,
                                                             email: instructor.email,
@@ -2578,25 +2575,6 @@ export const AddCourseStep2 = ({
                                                         return updatedSessions;
                                                     });
                                                 });
-
-                                                // Automatically open assignment card for the first new instructor
-                                                if (newInstructors.length > 0) {
-                                                    const firstNew = newInstructors[0];
-                                                    if (firstNew) {
-                                                        setSelectedInstructorId(firstNew.id);
-                                                        setSelectedInstructorEmail(firstNew.email);
-                                                        const allSessionLevels =
-                                                            getAllSessionLevelsForInstructor(
-                                                                sessions,
-                                                                hasSessions,
-                                                                hasLevels
-                                                            );
-                                                        setSelectedSessionLevels(allSessionLevels);
-                                                        setShowAssignmentCard(true);
-                                                    }
-                                                }
-
-                                                setSelectedInstructors(selectedInstructorsList);
                                             }}
                                             placeholder="Select instructor emails"
                                             className="w-full"
