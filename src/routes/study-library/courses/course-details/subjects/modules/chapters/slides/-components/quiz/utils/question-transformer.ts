@@ -127,7 +127,6 @@ const createBaseTransformedQuestion = (
         decimals: question.decimals,
         numericType: question.numericType,
         parentRichTextContent: parentRichTextContent,
-        text: { content: finalQuestionName }, // Always provide text field for preview
         singleChoiceOptions: [],
         multipleChoiceOptions: [],
         trueFalseOptions: [],

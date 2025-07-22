@@ -172,7 +172,7 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
     const passageCharLimit = 120;
     const passageIsLong = passageText.length > passageCharLimit;
     const passageToShow = showFullPassage || !passageIsLong
-        ? question.parentRichTextContent
+        ? (question.parentRichTextContent || '')
         : (question.parentRichTextContent
             ? (() => {
                 // Find the cutoff point in the HTML for the first N chars of plain text
@@ -271,7 +271,7 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
                             <div className="rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-800 shadow-sm">
                                 <div
                                     dangerouslySetInnerHTML={{
-                                        __html: (question.text?.content || ''),
+                                        __html: question.questionName || '',
                                     }}
                                 />
                             </div>
@@ -284,7 +284,7 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
                             <div className="rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-800 shadow-sm">
                                 <div
                                     dangerouslySetInnerHTML={{
-                                        __html: question.text?.content || question.questionName || 'Untitled Question',
+                                        __html: question.questionName || 'Untitled Question',
                                     }}
                                 />
                             </div>
