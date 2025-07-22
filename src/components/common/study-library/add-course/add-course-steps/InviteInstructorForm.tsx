@@ -15,6 +15,7 @@ import { getInstituteId } from '@/constants/helper';
 import { toast } from 'sonner';
 import { MultiSelectField } from '@/components/design-system/multi-select-field';
 import { RoleTypeExceptStudent } from '@/constants/dummy-data';
+import { useState } from 'react';
 
 interface InviteInstructorFormProps {
     onInviteSuccess: (
@@ -29,6 +30,7 @@ interface InviteInstructorFormProps {
 
 const InviteInstructorForm = ({ onInviteSuccess, onCancel }: InviteInstructorFormProps) => {
     const instituteId = getInstituteId();
+    const [isLoading, setIsLoading] = useState(false);
     const form = useForm<inviteUsersFormValues>({
         resolver: zodResolver(inviteUsersSchema),
         defaultValues: {
@@ -53,6 +55,7 @@ const InviteInstructorForm = ({ onInviteSuccess, onCancel }: InviteInstructorFor
             data: z.infer<typeof inviteUsersSchema>;
         }) => handleInviteUsers(instituteId, data),
         onSuccess: (res, { data }) => {
+            setIsLoading(false);
             onInviteSuccess(
                 res.id,
                 data.name,
@@ -64,11 +67,13 @@ const InviteInstructorForm = ({ onInviteSuccess, onCancel }: InviteInstructorFor
             toast.success('Instructor invited successfully');
         },
         onError: (error: unknown) => {
+            setIsLoading(false);
             throw error;
         },
     });
 
     const handleSubmit = (values: inviteUsersFormValues) => {
+        setIsLoading(true);
         handleInviteUsersMutation.mutate({
             instituteId,
             data: values,
@@ -138,12 +143,39 @@ const InviteInstructorForm = ({ onInviteSuccess, onCancel }: InviteInstructorFor
                                 layoutVariant="default"
                                 onClick={form.handleSubmit(handleSubmit, onInvalid)}
                                 disable={
+                                    isLoading ||
                                     !form.watch('name') ||
                                     !form.watch('email') ||
                                     form.watch('roleType').length == 0
                                 }
                             >
-                                Add Instructor
+                                {isLoading ? (
+                                    <span className="flex items-center justify-center gap-2">
+                                        <svg
+                                            className="size-5 animate-spin text-white"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <circle
+                                                className="opacity-25"
+                                                cx="12"
+                                                cy="12"
+                                                r="10"
+                                                stroke="currentColor"
+                                                strokeWidth="4"
+                                            ></circle>
+                                            <path
+                                                className="opacity-75"
+                                                fill="currentColor"
+                                                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                                            ></path>
+                                        </svg>
+                                        Adding...
+                                    </span>
+                                ) : (
+                                    'Add Instructor'
+                                )}
                             </MyButton>
                             <MyButton
                                 type="button"
