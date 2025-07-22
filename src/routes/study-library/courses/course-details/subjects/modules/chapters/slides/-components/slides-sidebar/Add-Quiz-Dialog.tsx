@@ -1,4 +1,4 @@
-'use client';
+' use client';
 
 import { MCQS, MCQM, Numerical, TrueFalse, LongAnswer, SingleWord, CMCQS, CMCQM } from '@/svgs';
 import { QuestionType as QuestionTypeList } from '@/constants/dummy-data';
@@ -21,6 +21,7 @@ import {
 import { Route } from '../..';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import QuizQuestionDialogAddPreview from './QuizQuestionDialog';
+import { MyQuestion } from '@/types/assessments/question-paper-form';
 
 export interface QuestionTypeProps {
     icon: React.ReactNode;
@@ -112,7 +113,8 @@ const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) =
 
         // Helper function to transform questions
         const transformQuestions = (questions: UploadQuestionPaperFormType['questions']) => {
-            return questions.map((question, index) => {
+            return questions.map((q, index) => {
+                // Use only the fields from q, and access extra fields via (q as any) below
                 // Determine which options array to use based on question type
                 let options: Array<{
                     id: string;
@@ -125,31 +127,57 @@ const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) =
                 let questionResponseType = 'OPTION';
                 let evaluationType = 'AUTO';
 
-                switch (question.questionType) {
+                switch (q.questionType) {
                     case 'MCQS':
-                    case 'CMCQS':
-                        options = (question.singleChoiceOptions || []).map((option) => ({
-                            id: option.id || crypto.randomUUID(),
-                            quiz_slide_question_id: '',
-                            text: { id: '', type: 'TEXT', content: option.name || '' },
-                            explanation_text: { id: '', type: 'TEXT', content: '' },
-                            explanation_text_data: { id: '', type: 'TEXT', content: '' },
-                            media_id: '',
-                        }));
+                        options = (q.singleChoiceOptions || [])
+                            .slice(0, 4)
+                            .map((option) => ({
+                                id: option.id || crypto.randomUUID(),
+                                quiz_slide_question_id: '',
+                                text: { id: '', type: 'TEXT', content: option.name || '' },
+                                explanation_text: { id: '', type: 'TEXT', content: '' },
+                                explanation_text_data: { id: '', type: 'TEXT', content: '' },
+                                media_id: '',
+                            }));
                         break;
                     case 'MCQM':
+                        options = (q.multipleChoiceOptions || [])
+                            .slice(0, 4)
+                            .map((option) => ({
+                                id: option.id || crypto.randomUUID(),
+                                quiz_slide_question_id: '',
+                                text: { id: '', type: 'TEXT', content: option.name || '' },
+                                explanation_text: { id: '', type: 'TEXT', content: '' },
+                                explanation_text_data: { id: '', type: 'TEXT', content: '' },
+                                media_id: '',
+                            }));
+                        break;
+                    case 'CMCQS':
+                        options = ((q as any).csingleChoiceOptions || [])
+                            .slice(0, 4)
+                            .map((option: any) => ({
+                                id: option.id || crypto.randomUUID(),
+                                quiz_slide_question_id: '',
+                                text: { id: '', type: 'TEXT', content: option.name || '' },
+                                explanation_text: { id: '', type: 'TEXT', content: '' },
+                                explanation_text_data: { id: '', type: 'TEXT', content: '' },
+                                media_id: '',
+                            }));
+                        break;
                     case 'CMCQM':
-                        options = (question.multipleChoiceOptions || []).map((option) => ({
-                            id: option.id || crypto.randomUUID(),
-                            quiz_slide_question_id: '',
-                            text: { id: '', type: 'TEXT', content: option.name || '' },
-                            explanation_text: { id: '', type: 'TEXT', content: '' },
-                            explanation_text_data: { id: '', type: 'TEXT', content: '' },
-                            media_id: '',
-                        }));
+                        options = ((q as any).cmultipleChoiceOptions || [])
+                            .slice(0, 4)
+                            .map((option: any) => ({
+                                id: option.id || crypto.randomUUID(),
+                                quiz_slide_question_id: '',
+                                text: { id: '', type: 'TEXT', content: option.name || '' },
+                                explanation_text: { id: '', type: 'TEXT', content: '' },
+                                explanation_text_data: { id: '', type: 'TEXT', content: '' },
+                                media_id: '',
+                            }));
                         break;
                     case 'TRUE_FALSE':
-                        options = (question.trueFalseOptions || []).map((option) => ({
+                        options = (q.trueFalseOptions || []).map((option) => ({
                             id: option.id || crypto.randomUUID(),
                             quiz_slide_question_id: '',
                             text: { id: '', type: 'TEXT', content: option.name || '' },
@@ -172,20 +200,35 @@ const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) =
                         evaluationType = 'AUTO';
                         break;
                     default:
-                        options = (question.singleChoiceOptions || []).map((option) => ({
-                            id: option.id || crypto.randomUUID(),
-                            quiz_slide_question_id: '',
-                            text: { id: '', type: 'TEXT', content: option.name || '' },
-                            explanation_text: { id: '', type: 'TEXT', content: '' },
-                            explanation_text_data: { id: '', type: 'TEXT', content: '' },
-                            media_id: '',
-                        }));
+                        options = (q.singleChoiceOptions || [])
+                            .slice(0, 4)
+                            .map((option) => ({
+                                id: option.id || crypto.randomUUID(),
+                                quiz_slide_question_id: '',
+                                text: { id: '', type: 'TEXT', content: option.name || '' },
+                                explanation_text: { id: '', type: 'TEXT', content: '' },
+                                explanation_text_data: { id: '', type: 'TEXT', content: '' },
+                                media_id: '',
+                            }));
                 }
 
+                // Helper to get correct answer indices for MCQ/CMCQ/TRUE_FALSE
+                const getCorrectAnswerIndices = (question: typeof q): number[] => {
+                    let opts: { isSelected?: boolean }[] = [];
+                    if (question.questionType === 'MCQS' || question.questionType === 'CMCQS') {
+                        opts = (question.singleChoiceOptions ?? (question as any).csingleChoiceOptions ?? []).slice(0, 4);
+                    } else if (question.questionType === 'MCQM' || question.questionType === 'CMCQM') {
+                        opts = (question.multipleChoiceOptions ?? (question as any).cmultipleChoiceOptions ?? []).slice(0, 4);
+                    } else if (question.questionType === 'TRUE_FALSE') {
+                        opts = question.trueFalseOptions ?? [];
+                    }
+                    return opts
+                        .map((opt, idx) => (opt.isSelected ? idx : null))
+                        .filter((idx): idx is number => idx !== null);
+                };
+
                 // Calculate question time in milliseconds
-                const calculateQuestionTimeInMillis = (
-                    question: UploadQuestionPaperFormType['questions'][0]
-                ): number => {
+                const calculateQuestionTimeInMillis = (question: typeof q): number => {
                     const duration = question.questionDuration;
                     if (duration) {
                         const hours = parseInt(duration.hrs || '0') * 60 * 60 * 1000;
@@ -196,67 +239,111 @@ const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) =
                 };
 
                 // Create auto evaluation JSON
-                const createAutoEvaluationJson = (
-                    question: UploadQuestionPaperFormType['questions'][0]
-                ): string => {
+                const createAutoEvaluationJson = (question: typeof q): string => {
+                    if (
+                        question.questionType === 'MCQS' ||
+                        question.questionType === 'MCQM' ||
+                        question.questionType === 'CMCQS' ||
+                        question.questionType === 'CMCQM' ||
+                        question.questionType === 'TRUE_FALSE'
+                    ) {
+                        const correctAnswers = getCorrectAnswerIndices(question);
+                        if (correctAnswers.length > 0) {
+                            return JSON.stringify({ correctAnswers });
+                        }
+                    }
                     if (
                         question.questionType === 'LONG_ANSWER' ||
                         question.questionType === 'ONE_WORD'
                     ) {
                         if (
-                            question.subjectiveAnswerText &&
-                            question.subjectiveAnswerText.trim() !== ''
+                            (question as any).subjectiveAnswerText &&
+                            (question as any).subjectiveAnswerText.trim() !== ''
                         ) {
                             return JSON.stringify({
                                 data: {
                                     answer:
                                         question.questionType === 'LONG_ANSWER'
-                                            ? { content: question.subjectiveAnswerText }
-                                            : question.subjectiveAnswerText,
+                                            ? { content: (question as any).subjectiveAnswerText }
+                                            : (question as any).subjectiveAnswerText,
                                 },
                             });
                         } else if (question.validAnswers && question.validAnswers.length > 0) {
                             return JSON.stringify({ correctAnswers: question.validAnswers });
                         }
-                    } else {
-                        if (question.validAnswers && question.validAnswers.length > 0) {
-                            return JSON.stringify({ correctAnswers: question.validAnswers });
-                        }
+                    } else if (question.validAnswers && question.validAnswers.length > 0) {
+                        return JSON.stringify({ correctAnswers: question.validAnswers });
                     }
                     return '';
                 };
 
+                // For comprehension types, set parent_rich_text to passage, text to question text, and include ids
+                let parentRichTextContent = '';
+                let parentRichTextId = '';
+                let textContent = '';
+                let textId = '';
+                let textDataId = '';
+                let explanationTextId = '';
+                let explanationTextDataId = '';
+                if (
+                    q.questionType === 'CMCQS' ||
+                    q.questionType === 'CMCQM' ||
+                    q.questionType === 'CNUMERIC'
+                ) {
+                    parentRichTextContent = (q as any).comprehensionText ?? (q as any).passage ?? (q as any).parentRichTextContent ?? (q as any).text?.content ?? (q as any).text_data?.content ?? '';
+                    parentRichTextId = (q as any).parent_rich_text?.id ?? (q as any).parentRichTextId ?? '';
+                    textContent = q.questionName ?? (q as any).questionText ?? '';
+                    textId = (q as any).text?.id ?? (q as any).textId ?? '';
+                    textDataId = (q as any).text_data?.id ?? (q as any).textDataId ?? '';
+                } else {
+                    parentRichTextContent = '';
+                    parentRichTextId = '';
+                    textContent = q.questionName ?? (q as any).questionText ?? '';
+                    textId = (q as any).text?.id ?? (q as any).textId ?? '';
+                    textDataId = (q as any).text_data?.id ?? (q as any).textDataId ?? '';
+                }
+                explanationTextId = (q as any).explanation_text?.id ?? (q as any).explanationTextId ?? '';
+                explanationTextDataId = (q as any).explanation_text_data?.id ?? (q as any).explanationTextDataId ?? '';
+
                 return {
-                    id: crypto.randomUUID(),
+                    id: q.id ?? crypto.randomUUID(),
                     parent_rich_text: {
-                        id: '',
+                        id: parentRichTextId,
                         type: 'TEXT',
-                        content: question.questionName || '',
+                        content: parentRichTextContent,
                     },
-                    text: { id: '', type: 'TEXT', content: question.questionName || '' },
-                    text_data: { id: '', type: 'TEXT', content: question.questionName || '' },
-                    explanation_text: {
-                        id: '',
+                    text: {
+                        id: textId,
                         type: 'TEXT',
-                        content: question.explanation || '',
+                        content: textContent,
+                    },
+                    text_data: {
+                        id: textDataId,
+                        type: 'TEXT',
+                        content: textContent,
+                    },
+                    explanation_text: {
+                        id: explanationTextId,
+                        type: 'TEXT',
+                        content: q.explanation || '',
                     },
                     explanation_text_data: {
-                        id: '',
+                        id: explanationTextDataId,
                         type: 'TEXT',
-                        content: question.explanation || '',
+                        content: q.explanation || '',
                     },
                     media_id: '',
                     status: 'ACTIVE',
                     question_response_type: questionResponseType,
-                    question_type: question.questionType,
-                    questionType: question.questionType, // Fix: Add questionType field for backend compatibility
+                    question_type: q.questionType,
+                    questionType: q.questionType, // Fix: Add questionType field for backend compatibility
                     access_level: 'INSTITUTE',
-                    auto_evaluation_json: createAutoEvaluationJson(question),
+                    auto_evaluation_json: createAutoEvaluationJson(q),
                     evaluation_type: evaluationType,
-                    question_time_in_millis: calculateQuestionTimeInMillis(question),
+                    question_time_in_millis: calculateQuestionTimeInMillis(q),
                     question_order: index + 1,
                     quiz_slide_id: '',
-                    can_skip: question.canSkip || false,
+                    can_skip: q.canSkip || false,
                     new_question: true,
                     options: options,
                 };
@@ -393,34 +480,77 @@ const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) =
                     id: crypto.randomUUID(),
                     title: `Quiz ${items.filter((slide) => slide.source_type === 'QUIZ').length + 1}`,
                     description: { id: '', content: '', type: 'TEXT' },
-                    questions: questions.map((question, index) => ({
-                        id: crypto.randomUUID(),
-                        parent_rich_text: {
-                            id: '',
-                            type: 'TEXT',
-                            content: question.questionName || '',
-                        },
-                        text: { id: '', type: 'TEXT', content: question.questionName || '' },
-                        explanation_text: {
-                            id: '',
-                            type: 'TEXT',
-                            content: question.explanation || '',
-                        },
-                        media_id: '',
-                        status: 'ACTIVE',
-                        question_response_type: 'OPTION',
-                        question_type: question.questionType,
-                        questionType: question.questionType, // Fix: Add questionType field for backend compatibility
-                        access_level: 'INSTITUTE',
-                        auto_evaluation_json: question.validAnswers
-                            ? JSON.stringify({ correctAnswers: question.validAnswers })
-                            : '',
-                        evaluation_type: 'AUTO',
-                        question_order: index + 1,
-                        quiz_slide_id: '',
-                        can_skip: question.canSkip || false,
-                        options: [],
-                    })),
+                    questions: questions.map((q, index) => {
+                        // Use only the fields from q, and access extra fields via (q as any) below
+                        let parentRichTextContent = '';
+                        let parentRichTextId = '';
+                        let textContent = '';
+                        let textId = '';
+                        let textDataId = '';
+                        let explanationTextId = '';
+                        let explanationTextDataId = '';
+                        if (
+                            q.questionType === 'CMCQS' ||
+                            q.questionType === 'CMCQM' ||
+                            q.questionType === 'CNUMERIC'
+                        ) {
+                            parentRichTextContent = (q as any).comprehensionText ?? (q as any).passage ?? (q as any).parentRichTextContent ?? (q as any).text?.content ?? (q as any).text_data?.content ?? '';
+                            parentRichTextId = (q as any).parent_rich_text?.id ?? (q as any).parentRichTextId ?? '';
+                            textContent = q.questionName ?? (q as any).questionText ?? '';
+                            textId = (q as any).text?.id ?? (q as any).textId ?? '';
+                            textDataId = (q as any).text_data?.id ?? (q as any).textDataId ?? '';
+                        } else {
+                            parentRichTextContent = '';
+                            parentRichTextId = '';
+                            textContent = q.questionName ?? (q as any).questionText ?? '';
+                            textId = (q as any).text?.id ?? (q as any).textId ?? '';
+                            textDataId = (q as any).text_data?.id ?? (q as any).textDataId ?? '';
+                        }
+                        explanationTextId = (q as any).explanation_text?.id ?? (q as any).explanationTextId ?? '';
+                        explanationTextDataId = (q as any).explanation_text_data?.id ?? (q as any).explanationTextDataId ?? '';
+                        return {
+                            id: q.id ?? crypto.randomUUID(),
+                            parent_rich_text: {
+                                id: parentRichTextId,
+                                type: 'TEXT',
+                                content: parentRichTextContent,
+                            },
+                            text: {
+                                id: textId,
+                                type: 'TEXT',
+                                content: textContent,
+                            },
+                            text_data: {
+                                id: textDataId,
+                                type: 'TEXT',
+                                content: textContent,
+                            },
+                            explanation_text: {
+                                id: explanationTextId,
+                                type: 'TEXT',
+                                content: q.explanation || '',
+                            },
+                            explanation_text_data: {
+                                id: explanationTextDataId,
+                                type: 'TEXT',
+                                content: q.explanation || '',
+                            },
+                            media_id: '',
+                            status: 'ACTIVE',
+                            question_response_type: 'OPTION',
+                            question_type: q.questionType,
+                            questionType: q.questionType, // Fix: Add questionType field for backend compatibility
+                            access_level: 'INSTITUTE',
+                            auto_evaluation_json: q.validAnswers
+                                ? JSON.stringify({ correctAnswers: q.validAnswers })
+                                : '',
+                            evaluation_type: 'AUTO',
+                            question_order: index + 1,
+                            quiz_slide_id: '',
+                            can_skip: q.canSkip || false,
+                            options: [],
+                        };
+                    }),
                 },
                 is_loaded: true,
                 new_slide: true,

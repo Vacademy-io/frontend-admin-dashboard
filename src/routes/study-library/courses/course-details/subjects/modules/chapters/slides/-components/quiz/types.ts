@@ -84,4 +84,4 @@ export interface Slide {
     } | null;
     is_loaded: boolean;
     new_slide: boolean;
-} 
+}

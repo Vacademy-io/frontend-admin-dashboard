@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { TransformedQuestion } from '../types';
+import { CaretDown, CaretUp } from 'phosphor-react';
 
 interface QuestionDisplayProps {
     question: TransformedQuestion;
@@ -90,8 +91,8 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
             <div className="mt-3 space-y-2">
                 <div className="text-xs font-medium text-slate-600">{label}</div>
                 <div className={`rounded-md border p-3 text-xs ${
-                    hasAnswer 
-                        ? 'border-blue-200 bg-blue-50' 
+                    hasAnswer
+                        ? 'border-blue-200 bg-blue-50'
                         : 'border-orange-200 bg-orange-50'
                 }`}>
                     <div
@@ -124,7 +125,7 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
 
     const renderCorrectAnswerIndex = (validAnswers: number[], questionType: string) => {
         if (!validAnswers || validAnswers.length === 0) return null;
-        
+
         return (
             <div className="mt-3 space-y-2">
                 <div className="text-xs font-medium text-slate-600">Correct Answer(s):</div>
@@ -144,7 +145,7 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
 
     const renderExplanation = (explanation: string) => {
         if (!explanation || explanation.trim() === '') return null;
-        
+
         return (
             <div className="mt-4 space-y-2">
                 <div className="text-xs font-medium text-slate-600">Explanation:</div>
@@ -160,6 +161,45 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
         );
     };
 
+    // Passage show more/less logic
+    const [showFullPassage, setShowFullPassage] = useState(false);
+    const getPassageText = (html: string) => {
+        const tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        return tmp.innerText || tmp.textContent || '';
+    };
+    const passageText = question.parentRichTextContent ? getPassageText(question.parentRichTextContent) : '';
+    const passageCharLimit = 120;
+    const passageIsLong = passageText.length > passageCharLimit;
+    const passageToShow = showFullPassage || !passageIsLong
+        ? (question.parentRichTextContent || '')
+        : (question.parentRichTextContent
+            ? (() => {
+                // Find the cutoff point in the HTML for the first N chars of plain text
+                let count = 0;
+                let cutoffIdx = 0;
+                const tmp = document.createElement('div');
+                tmp.innerHTML = question.parentRichTextContent;
+                const walker = document.createTreeWalker(tmp, NodeFilter.SHOW_TEXT, null);
+                let node;
+                while ((node = walker.nextNode()) && count < passageCharLimit) {
+                    const text = node.textContent || '';
+                    if (count + text.length > passageCharLimit) {
+                        cutoffIdx += passageCharLimit - count;
+                        count = passageCharLimit;
+                        break;
+                    } else {
+                        count += text.length;
+                        cutoffIdx += text.length;
+                    }
+                }
+                // Fallback: just use substring of plain text if HTML is too complex
+                if (cutoffIdx === 0) return passageText.slice(0, passageCharLimit) + '...';
+                // Otherwise, slice the HTML string at the cutoff point
+                // This is a best-effort and may break HTML if tags are not closed
+                return passageText.slice(0, passageCharLimit) + '...';
+            })() : '');
+
     return (
         <div className="relative flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
             <div className="flex items-center justify-between">
@@ -167,11 +207,12 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
                     <div className="text-primary-700 flex size-8 items-center justify-center rounded-full bg-primary-100 text-sm font-semibold">
                         {questionIndex + 1}
                     </div>
-                    <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-neutral-600">
-                            Question {questionIndex + 1}
-                        </span>
-                    </div>
+                    {/* Inline label next to number */}
+                    {(question.questionType === 'CMCQS' || question.questionType === 'CMCQM' || question.questionType === 'CNUMERIC') ? (
+                        <span className="ml-2 text-xs font-bold text-blue-600 uppercase tracking-wide">Passage</span>
+                    ) : (
+                        <span className="ml-2 text-xs font-bold text-slate-600 uppercase tracking-wide">Question</span>
+                    )}
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -200,28 +241,72 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
             </div>
 
             <div className="ml-11">
-                <div className="mb-2 text-sm font-medium text-slate-700">
-                    <div
-                        dangerouslySetInnerHTML={{
-                            __html: question.questionName || 'Untitled Question',
-                        }}
-                    />
-                </div>
+                {/* Show comprehension passage, question, and explanation for comprehension question types */}
+                {(question.questionType === 'CMCQS' || question.questionType === 'CMCQM' || question.questionType === 'CNUMERIC') ? (
+                    <>
+                        {question.parentRichTextContent && (
+                            <div className="mb-3">
+                                <div className="text-sm text-blue-900" style={{ whiteSpace: 'pre-line' }}>
+                                    <div
+                                        dangerouslySetInnerHTML={{
+                                            __html: passageToShow,
+                                        }}
+                                    />
+                                    {passageIsLong && (
+                                        <button
+                                            type="button"
+                                            className="ml-1 mt-1 flex items-center gap-1 text-xs text-blue-500 underline hover:text-blue-700 focus:outline-none"
+                                            onClick={() => setShowFullPassage((prev) => !prev)}
+                                        >
+                                            {showFullPassage ? 'Show less' : 'Show more'}
+                                            {showFullPassage ? <CaretUp size={14} /> : <CaretDown size={14} />}
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                        {/* Add Question label above question card for comprehension types */}
+                        <div className="mb-1 text-xs font-semibold text-slate-600 uppercase tracking-wide">Question</div>
+                        <div className="mb-3">
+                            <div className="rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-800 shadow-sm">
+                                <div
+                                    dangerouslySetInnerHTML={{
+                                        __html: question.questionName || '',
+                                    }}
+                                />
+                            </div>
+                        </div>
+                        {/* Options/Answers and Explanation will be rendered below */}
+                    </>
+                ) : (
+                    <>
+                        <div className="mb-3">
+                            <div className="rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-800 shadow-sm">
+                                <div
+                                    dangerouslySetInnerHTML={{
+                                        __html: question.questionName || 'Untitled Question',
+                                    }}
+                                />
+                            </div>
+                        </div>
+                        {/* Options/Answers and Explanation will be rendered below */}
+                    </>
+                )}
 
                 {/* Display Answer Options based on question type */}
-                {(question.questionType === 'MCQS' || question.questionType === 'CMCQS') && 
-                    (question.singleChoiceOptions && question.singleChoiceOptions.length > 0) && 
+                {(question.questionType === 'MCQS' || question.questionType === 'CMCQS') &&
+                    (question.singleChoiceOptions && question.singleChoiceOptions.length > 0) &&
                     renderOptions(question.singleChoiceOptions)}
 
-                {(question.questionType === 'MCQM' || question.questionType === 'CMCQM') && 
-                    (question.multipleChoiceOptions && question.multipleChoiceOptions.length > 0) && 
+                {(question.questionType === 'MCQM' || question.questionType === 'CMCQM') &&
+                    (question.multipleChoiceOptions && question.multipleChoiceOptions.length > 0) &&
                     renderOptions(question.multipleChoiceOptions)}
 
-                {question.questionType === 'TRUE_FALSE' && question.trueFalseOptions && question.trueFalseOptions.length > 0 && 
+                {question.questionType === 'TRUE_FALSE' && question.trueFalseOptions && question.trueFalseOptions.length > 0 &&
                     renderOptions(question.trueFalseOptions)}
 
                 {/* Show message when options are expected but not found */}
-                {((question.questionType === 'MCQS' || question.questionType === 'CMCQS') && 
+                {((question.questionType === 'MCQS' || question.questionType === 'CMCQS') &&
                     (!question.singleChoiceOptions || question.singleChoiceOptions.length === 0)) && (
                     <div className="mt-3 space-y-2">
                         <div className="text-xs text-orange-600">
@@ -232,7 +317,7 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
                     </div>
                 )}
 
-                {((question.questionType === 'MCQM' || question.questionType === 'CMCQM') && 
+                {((question.questionType === 'MCQM' || question.questionType === 'CMCQM') &&
                     (!question.multipleChoiceOptions || question.multipleChoiceOptions.length === 0)) && (
                     <div className="mt-3 space-y-2">
                         <div className="text-xs text-orange-600">
@@ -243,7 +328,7 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
                     </div>
                 )}
 
-                {question.questionType === 'TRUE_FALSE' && 
+                {question.questionType === 'TRUE_FALSE' &&
                     (!question.trueFalseOptions || question.trueFalseOptions.length === 0) && (
                     <div className="mt-3 space-y-2">
                         <div className="text-xs text-orange-600">
@@ -254,19 +339,18 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
                     </div>
                 )}
 
-                {(question.questionType === 'NUMERIC' || question.questionType === 'CNUMERIC') && question.validAnswers && question.validAnswers.length > 0 && 
+                {(question.questionType === 'NUMERIC' || question.questionType === 'CNUMERIC') && question.validAnswers && question.validAnswers.length > 0 &&
                     renderNumericAnswer(question.validAnswers)}
 
                 {(question.questionType === 'LONG_ANSWER' || question.questionType === 'ONE_WORD') &&
                     renderSubjectiveAnswer(
                         question.subjectiveAnswerText || ''
                     )}
-
-                {/* Display Explanation */}
+                {/* Move explanation rendering here, after options/answers */}
                 {renderExplanation(question.explanation || '')}
             </div>
         </div>
     );
 };
 
-export default QuestionDisplay; 
+export default QuestionDisplay;
