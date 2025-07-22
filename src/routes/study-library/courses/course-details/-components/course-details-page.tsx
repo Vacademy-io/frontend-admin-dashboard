@@ -546,11 +546,11 @@ export const CourseDetailsPage = () => {
                 className={`relative ${
                     form.watch('courseData').courseBannerMediaId
                         ? form.getValues('courseData.isCoursePublishedToCatalaouge')
-                            ? 'h-[280px]'
-                            : 'h-[240px]'
+                            ? 'min-h-[280px]'
+                            : 'min-h-[240px]'
                         : form.getValues('courseData.isCoursePublishedToCatalaouge')
-                          ? 'h-[200px]'
-                          : 'h-[160px]'
+                          ? 'min-h-[200px]'
+                          : 'min-h-[160px]'
                 }`}
             >
                 {/* Transparent black overlay */}
@@ -602,12 +602,6 @@ export const CourseDetailsPage = () => {
                                         >
                                             {form.getValues('courseData').title}
                                         </h1>
-                                        <div className="shrink-0">
-                                            <AddCourseForm
-                                                isEdit={true}
-                                                initialCourseData={form.getValues()}
-                                            />
-                                        </div>
                                     </div>
                                     <p
                                         className={`opacity-90 ${
@@ -624,11 +618,17 @@ export const CourseDetailsPage = () => {
                                             type="button"
                                             scale="medium"
                                             buttonType="primary"
-                                            className="mb-2 bg-success-100 font-medium !text-black hover:bg-success-100 focus:bg-success-100 active:bg-success-100"
+                                            className="bg-success-100 font-medium !text-black hover:bg-success-100 focus:bg-success-100 active:bg-success-100"
                                         >
                                             Added to catalog
                                         </MyButton>
                                     )}
+                                    <div className="shrink-0">
+                                        <AddCourseForm
+                                            isEdit={true}
+                                            initialCourseData={form.getValues()}
+                                        />
+                                    </div>
                                     {form.getValues('courseData').tags.length > 0 && (
                                         <div className="flex flex-wrap gap-2">
                                             {form.getValues('courseData').tags.map((tag, index) => (
