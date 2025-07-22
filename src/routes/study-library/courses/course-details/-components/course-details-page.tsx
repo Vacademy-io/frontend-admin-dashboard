@@ -540,17 +540,17 @@ export const CourseDetailsPage = () => {
     }, [JSON.stringify(instructors)]);
 
     return (
-        <div className="flex min-h-screen flex-col bg-gray-50">
+        <div className="flex min-h-screen flex-col bg-gray-5 z-0">
             {/* Top Banner - More Compact */}
             <div
                 className={`relative ${
                     form.watch('courseData').courseBannerMediaId
                         ? form.getValues('courseData.isCoursePublishedToCatalaouge')
-                            ? 'h-[280px]'
-                            : 'h-[240px]'
+                            ? 'min-h-[280px]'
+                            : 'min-h-[240px]'
                         : form.getValues('courseData.isCoursePublishedToCatalaouge')
-                          ? 'h-[200px]'
-                          : 'h-[160px]'
+                          ? 'min-h-[200px]'
+                          : 'min-h-[160px]'
                 }`}
             >
                 {/* Transparent black overlay */}
@@ -602,12 +602,6 @@ export const CourseDetailsPage = () => {
                                         >
                                             {form.getValues('courseData').title}
                                         </h1>
-                                        <div className="shrink-0">
-                                            <AddCourseForm
-                                                isEdit={true}
-                                                initialCourseData={form.getValues()}
-                                            />
-                                        </div>
                                     </div>
                                     <p
                                         className={`opacity-90 ${
@@ -624,11 +618,17 @@ export const CourseDetailsPage = () => {
                                             type="button"
                                             scale="medium"
                                             buttonType="primary"
-                                            className="mb-2 bg-success-100 font-medium !text-black hover:bg-success-100 focus:bg-success-100 active:bg-success-100"
+                                            className="bg-success-100 font-medium !text-black hover:bg-success-100 focus:bg-success-100 active:bg-success-100"
                                         >
                                             Added to catalog
                                         </MyButton>
                                     )}
+                                    <div className="shrink-0">
+                                        <AddCourseForm
+                                            isEdit={true}
+                                            initialCourseData={form.getValues()}
+                                        />
+                                    </div>
                                     {form.getValues('courseData').tags.length > 0 && (
                                         <div className="flex flex-wrap gap-2">
                                             {form.getValues('courseData').tags.map((tag, index) => (
@@ -830,7 +830,7 @@ export const CourseDetailsPage = () => {
 
                         {/* About Content Section */}
                         {form.getValues('courseData').aboutTheCourse && (
-                            <div className="mb-8">
+                            <div className="mb-8 rounded-sm bg-white p-6">
                                 <h2 className="mb-4 text-2xl font-bold">
                                     About this{' '}
                                     {getTerminology(
@@ -866,13 +866,13 @@ export const CourseDetailsPage = () => {
 
                         {/* Instructors Section */}
                         {instructors && instructors.length > 0 && (
-                            <div className="mb-8 bg-white p-6">
-                                <h2 className="mb-4 text-2xl font-bold">Authors</h2>
+                            <div className="mb-8 flex flex-col gap-3 bg-white p-6">
+                                <h2 className=" text-2xl font-bold">Authors</h2>
                                 {loadingInstructors ? (
                                     <div>Loading instructors...</div>
                                 ) : (
                                     resolvedInstructors.map((instructor, index) => (
-                                        <div key={index} className="flex gap-4 rounded-lg">
+                                        <div key={index} className="flex gap-3 rounded-lg">
                                             <Avatar className="size-8">
                                                 {instructor.profilePicUrl ? (
                                                     <AvatarImage
